@@ -1,0 +1,20 @@
+{"t": 0.0, "step": 0, "kind": "OP_START", "op": "HARMATTAN-1 (plan A)", "squads": ["SQ_APPUI", "SQ_ASSAUT"], "sizes": [7, 7]}
+{"t": 0.0, "step": 0, "kind": "PHASE", "name": "INFILTRATION", "orders": {"SQ_APPUI": [[14850, 15800], "move"], "SQ_ASSAUT": [[15150, 15750], "move"]}, "losses": 0.0}
+{"t": 15.4, "step": 5, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 30.8, "step": 10, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 46.1, "step": 15, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 61.5, "step": 20, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 76.6, "step": 25, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 91.9, "step": 30, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 107.3, "step": 35, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 122.7, "step": 40, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 138.0, "step": 45, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 153.4, "step": 50, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 168.7, "step": 55, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 184.1, "step": 60, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 184.1, "step": 60, "kind": "CONTINGENCE", "phase": "INFILTRATION", "raison": "approche enlis\u00e9e", "goto": "MISE_EN_PLACE"}
+{"t": 184.1, "step": 60, "kind": "PHASE", "name": "MISE_EN_PLACE", "orders": {"SQ_APPUI": [[14850, 15800], "hold"], "SQ_ASSAUT": [[15110, 15910], "move"]}, "losses": 0.0}
+{"t": 199.2, "step": 65, "kind": "SITREP", "phase": "MISE_EN_PLACE", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 214.2, "step": 70, "kind": "SITREP", "phase": "MISE_EN_PLACE", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 229.4, "step": 75, "kind": "SITREP", "phase": "MISE_EN_PLACE", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 244.5, "step": 80, "kind": "SITREP", "phase": "MISE_EN_PLACE", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}

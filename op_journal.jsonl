@@ -44,3 +44,9 @@
 {"t": 535.1, "step": 180, "kind": "SITREP", "phase": "EXFIL", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
 {"t": 550.3, "step": 185, "kind": "SITREP", "phase": "EXFIL", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
 {"t": 565.4, "step": 190, "kind": "SITREP", "phase": "EXFIL", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 580.6, "step": 195, "kind": "SITREP", "phase": "EXFIL", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 595.5, "step": 200, "kind": "SITREP", "phase": "EXFIL", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 610.7, "step": 205, "kind": "SITREP", "phase": "EXFIL", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 625.8, "step": 210, "kind": "SITREP", "phase": "EXFIL", "vivants": [7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 625.8, "step": 210, "kind": "PHASE_OK", "phase": "EXFIL", "steps": 50, "losses": 0.0}
+{"t": 625.8, "step": 210, "kind": "OP_END", "succes": false, "steps": 210, "losses": 0.0, "ennemis_restants": 8}
