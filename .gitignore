@@ -1,0 +1,5 @@
+.venv/
+__pycache__/
+logs_train/
+*.log
+nohup.out
