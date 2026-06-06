@@ -30,7 +30,7 @@ class OpGPU:
                  hold_shield=0.55,       # réduction des dégâts en posture hold (défense)
                  qrf_dps=0.060,          # CALIBRÉ : partition scriptée -> 73.5% militaire = baseline Arma P-v3b 72%
                  qrf_hp=8.0, garr_hp=12.0, patrol_hp=4.0, squad_n=7,
-                 contact_r=120.0, secure_r=60.0, exfil_budget=195, qrf_step=None,
+                 contact_r=120.0, secure_r=60.0, sup_range=200.0, nu_dps=0.17, exfil_budget=195, qrf_step=None,
                  max_steps=260):
         self.dev = device; self.N = num_envs; self.S = 4   # 4 escouades
         self.g = torch.Generator(device=device).manual_seed(seed)
@@ -41,6 +41,7 @@ class OpGPU:
         self.move_speed = move_speed; self.patrol_bite = patrol_bite; self.garr_dps = garr_dps
         self.assault_dmg = assault_dmg; self.suppress_shield = suppress_shield; self.hold_shield = hold_shield
         self.qrf_dps = qrf_dps; self.contact_r = contact_r; self.secure_r = secure_r
+        self.sup_range = sup_range; self.nu_dps = nu_dps
         self.exfil_budget = exfil_budget; self.max_steps = max_steps
         self.qrf_hp0 = qrf_hp; self.garr_hp0 = garr_hp; self.patrol_hp0 = patrol_hp; self.squad_n = squad_n
         self.COMPLEXE = torch.tensor(POINTS["COMPLEXE"], dtype=torch.float32, device=device)
@@ -128,6 +129,14 @@ class OpGPU:
         dmg_to_squads = self.garr_dps * garr_live.float() * shield * self._noise((self.N,))  # bruit combat
         exposed = (assaulting | suppressing).float()                             # (N,S)
         self.sstr = (self.sstr - dmg_to_squads[:, None] * exposed * 0.5).clamp(min=0)
+        # --- PÉNALITÉ ANTI-MASSE-NUE (robustification hors-trajectoire) : charger le complexe SANS
+        # qu'aucun camp ami ne supprime à portée = feu concentré sur la masse exposée. Gated par supp_active
+        # (suppression à LONGUE portée, quantité SÉPARÉE qui ne touche pas le combat validé ci-dessus) :
+        # la doctrine supprime toujours -> supp_active=1 -> JAMAIS pénalisée (calibration 73.6% préservée). ---
+        supp_active = ((stances == 2) & al).any(1).float()   # un élément ami EST assigné à la suppression (sans coupling de portée)
+        n_assault = assaulting.float().sum(1)                                     # masse à l'assaut
+        nu_penalty = self.nu_dps * garr_live.float() * (1.0 - supp_active) * self._noise((self.N,))
+        self.sstr = (self.sstr - (nu_penalty * n_assault / 4.0)[:, None] * assaulting.float()).clamp(min=0)
         # les assaillants détruisent la garnison
         self.garr = (self.garr - self.assault_dmg * assaulting.float().sum(1) * self._noise((self.N,))).clamp(min=0)
         # --- QRF : spawn quand la garnison tombe et qu'au moins une escouade tient le complexe ---

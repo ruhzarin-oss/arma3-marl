@@ -1,8 +1,8 @@
 import torch, sys
 from op_gpu import OpGPU, GOALS
 GI={g:i for i,g in enumerate(GOALS)}; dev="cuda:0"; N=8192
-qd,gd_=float(sys.argv[1]),float(sys.argv[2])
-env=OpGPU(num_envs=N, device=dev, seed=7, qrf_dps=qd, garr_dps=gd_)
+qd=float(sys.argv[1]); gd_=float(sys.argv[2]); nu=float(sys.argv[3]) if len(sys.argv)>3 else 0.0
+env=OpGPU(num_envs=N, device=dev, seed=7, qrf_dps=qd, garr_dps=gd_, nu_dps=nu)
 g=torch.full((N,4),GI["COMPLEXE"],device=dev); s=torch.ones(N,4,dtype=torch.long,device=dev)
 mil=torch.zeros(N,device=dev); df=torch.zeros(N,dtype=torch.bool,device=dev); pe=torch.zeros(N,device=dev); live=torch.ones(N,dtype=torch.bool,device=dev)
 for t in range(260):
@@ -11,4 +11,4 @@ for t in range(260):
     if nd.any():
         idx=nd.nonzero(as_tuple=True)[0]; mil[idx]=info["mil"][idx].float(); pe[idx]=info["pertes"][idx]; df[idx]=True; live[idx]=False
     if not live.any(): break
-print("ZERG qrf=%.3f garr=%.3f : militaire %.1f%% pertes %.0f%%"%(qd,gd_,100*mil[df].mean().item(),100*pe[df].mean().item()))
+print("ZERG nu=%.3f : militaire %.1f%% pertes %.0f%%"%(nu,100*mil[df].mean().item(),100*pe[df].mean().item()))
