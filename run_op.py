@@ -18,7 +18,7 @@ SPAWN_APPUI  = (14920, 15620)
 SPAWN_ASSAUT = (15080, 15600)
 
 
-def make_plan(variant):
+def make_plan(variant, qrf="inf"):
     """Variante A = doctrine 'appui d'abord' (suppression avant assaut). Variante B = assaut direct (pas de phase de fixation)."""
     phases = [
         {"name": "INFILTRATION",
@@ -36,12 +36,15 @@ def make_plan(variant):
                     else {"SQ_APPUI": (COMPLEXE, "assault"), "SQ_ASSAUT": (COMPLEXE, "assault")}),
          "done_when": ("all", [("zone_clear", COMPLEXE, 60), ("squad_at", 1, COMPLEXE, 85)]),
          "contingencies": [{"if": ("losses", 0.5), "reason": "assaut trop coûteux", "goto": "EXFIL"},
-                           {"if": ("steps", 120), "reason": "assaut enlisé", "goto": "EXFIL"}]},
+                           {"if": ("steps", 160), "reason": "assaut enlisé", "goto": "EXFIL"}]},
         {"name": "CONSOLIDATION",
          "orders": {"SQ_APPUI": (COMPLEXE, "hold"), "SQ_ASSAUT": (COMPLEXE, "hold")},
-         "on_enter": lambda r: (r.env.spawn_qrf(QRF_PT[0], QRF_PT[1], 8, COMPLEXE),
-                                r.jlog("QRF", detail="contre-attaque ennemie : 8 hommes depuis le nord"))
-                                if "qrf" not in r.qrf_done and not r.qrf_done.add("qrf") else None,
+         "on_enter": (lambda r: ((r.env.spawn_qrf_mech(QRF_PT[0], QRF_PT[1], 6, COMPLEXE),
+                                 r.jlog("QRF", detail="contre-attaque MÉCANISÉE : Ifrit HMG + 6 débarqués"))
+                                 if qrf == "mech" else
+                                 (r.env.spawn_qrf(QRF_PT[0], QRF_PT[1], 8, COMPLEXE),
+                                  r.jlog("QRF", detail="contre-attaque ennemie : 8 hommes depuis le nord")))
+                                 if "qrf" not in r.qrf_done and not r.qrf_done.add("qrf") else None),
          "done_when": ("any", [("enemy_dead_frac", 0.85), ("steps", 70)]),
          "contingencies": [{"if": ("losses", 0.6), "reason": "consolidation intenable", "goto": "EXFIL"}]},
         {"name": "EXFIL",
@@ -49,7 +52,7 @@ def make_plan(variant):
          "done_when": ("any", [("all", [("squad_at", 0, LZ, 90), ("squad_at", 1, LZ, 90)]), ("steps", 80)]),
          "contingencies": []},
     ]
-    return {"name": "HARMATTAN-1 (plan %s)" % variant, "phases": phases,
+    return {"name": "HARMATTAN-1v2%s (plan %s)" % ("-mech" if qrf == "mech" else "", variant), "phases": phases,
             # succès : l'ennemi a été brisé (≥70 % détruit), pertes contenues (≤50 %), au moins un élément à la LZ
             "success": ("all", [("enemy_dead_frac", 0.7), ("losses_max", 0.5),
                                 ("any", [("squad_at", 0, LZ, 100), ("squad_at", 1, LZ, 100)])])}

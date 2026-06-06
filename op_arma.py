@@ -45,7 +45,8 @@ class OpArma:
         # état ennemi (taille dynamique : garnison + QRF ajoutées)
         self.en_n = 0; self.epx = np.zeros(0); self.epy = np.zeros(0); self.edmg = np.zeros(0)
         self.esupp = np.zeros(0); self.supp_mark = [np.zeros(n) for n in self.sizes]
-        self._wp = [None for _ in self.squads]            # waypoint de MARCHE posé (mode transit) par escouade
+        self._wp = [None for _ in self.squads]
+        self.has_veh = False; self.vehdmg = 0.0; self.vehx = 0.0; self.vehy = 0.0   # QRF mécanisée (palier 1)            # waypoint de MARCHE posé (mode transit) par escouade
 
     # ------------------------------------------------------------- pont
     def _query(self, sqf, settle=None):
@@ -65,7 +66,8 @@ class OpArma:
             x, y = friendly_spawns[sq]
             sqf += ('private _g%d = createGroup west;\n'
                     'for "_a" from 0 to %d do {\n'
-                    '  _g%d createUnit ["B_Soldier_F", [%d + 9*(cos (360*_a/%d)), %d + 9*(sin (360*_a/%d)), 0], [], 0, "FORM"];\n'
+                    '  private _ty = if (_a in [1,2]) then {"B_soldier_LAT_F"} else {"B_Soldier_F"};\n'
+                    '  _g%d createUnit [_ty, [%d + 9*(cos (360*_a/%d)), %d + 9*(sin (360*_a/%d)), 0], [], 0, "FORM"];\n'
                     '  private _u = (units _g%d) select ((count (units _g%d))-1);\n'
                     '  _u setBehaviour "COMBAT"; _u setUnitPos "AUTO"; _u setSkill %.2f; _u allowFleeing 0;\n'
                     '  %s pushBack _u;\n};\n'
@@ -100,6 +102,30 @@ class OpArma:
         self.epx = np.concatenate([self.epx, np.zeros(n)]); self.epy = np.concatenate([self.epy, np.zeros(n)])
         self.edmg = np.concatenate([self.edmg, np.zeros(n)])
 
+    def spawn_qrf_mech(self, x, y, n_dism, target):
+        """Contre-attaque MÉCANISÉE : 1 Ifrit HMG (équipage scripté) + n_dism débarqués, SAD vers target.
+        Débarqués + équipage trackés dans HMT_EN ; le VÉHICULE tracké à part (HMT_VEH) pour le verdict."""
+        sqf = ('private _vr = ["O_MRAP_02_hmg_F", [%d, %d, 0], 180, east] call BIS_fnc_spawnVehicle;\n'
+               'HMT_VEH = [_vr select 0];\n'
+               '{ _x allowFleeing 0; _x setSkill %.2f; HMT_EN pushBack _x } forEach (_vr select 1);\n'
+               'private _wv = (_vr select 2) addWaypoint [[%d,%d], 0]; _wv setWaypointType "SAD"; _wv setWaypointSpeed "FULL";\n'
+               'private _q = createGroup east;\n'
+               'for "_a" from 0 to %d do {\n'
+               '  _q createUnit ["O_Soldier_F", [%d + 8*(cos (360*_a/%d)), %d + 8*(sin (360*_a/%d)), 0], [], 0, "FORM"];\n'
+               '  private _u = (units _q) select ((count (units _q))-1);\n'
+               '  _u setBehaviour "COMBAT"; _u setSkill %.2f; _u allowFleeing 0; HMT_EN pushBack _u;\n};\n'
+               'private _wp = _q addWaypoint [[%d,%d], 0]; _wp setWaypointType "SAD"; _wp setWaypointSpeed "FULL";\n'
+               'diag_log "HARMATTAN_QRFMECH";\n'
+               % (x, y, self.skill, target[0], target[1],
+                  n_dism - 1, x + 15, n_dism, y, n_dism, self.skill, target[0], target[1]))
+        self.b.send(sqf, wait=True)
+        ncrew = 2                                                  # Ifrit HMG : pilote + tireur
+        add = ncrew + n_dism
+        self.en_n += add
+        self.epx = np.concatenate([self.epx, np.zeros(add)]); self.epy = np.concatenate([self.epy, np.zeros(add)])
+        self.edmg = np.concatenate([self.edmg, np.zeros(add)])
+        self.has_veh = True; self.vehdmg = 0.0; self.vehx = float(x); self.vehy = float(y)
+
     # ------------------------------------------------------------- lecture d'état
     def _dump_sqf(self):
         out = ""
@@ -109,6 +135,9 @@ class OpArma:
                     'private _dm = if (isNull _u) then {100} else {round ((getDammage _u)*100)}; '
                     'diag_log format ["HARMATTAN_%s %%1 %%2 %%3 %%4", _forEachIndex, round (_p#0), round (_p#1), _dm]; } forEach %s;\n'
                     % (tag, tag, sq))
+        out += ('if (!isNil "HMT_VEH") then { private _v = HMT_VEH select 0; private _p = if (isNull _v) then {[0,0]} else {getPosATL _v}; '
+                'private _dm = if (isNull _v) then {100} else {round ((getDammage _v)*100)}; '
+                'diag_log format ["HARMATTAN_VEH 0 %1 %2 %3", round (_p#0), round (_p#1), _dm]; };\n')
         out += ('{ private _u=HMT_EN select _forEachIndex; private _p = if (isNull _u) then {[0,0]} else {getPosATL _u}; '
                 'private _dm = if (isNull _u) then {100} else {round ((getDammage _u)*100)}; '
                 'diag_log format ["HARMATTAN_EN %1 %2 %3 %4", _forEachIndex, round (_p#0), round (_p#1), _dm]; } forEach HMT_EN;\n')
@@ -123,6 +152,10 @@ class OpArma:
                     g = int(m.group(1))
                     if g < self.sizes[si]:
                         self.px[si][g] = int(m.group(2)); self.py[si][g] = int(m.group(3)); self.dmg[si][g] = int(m.group(4))
+        for ln in lines:
+            mv = re.search(r"HARMATTAN_VEH 0 (-?\d+) (-?\d+) (\d+)", ln)
+            if mv:
+                self.vehx = int(mv.group(1)); self.vehy = int(mv.group(2)); self.vehdmg = int(mv.group(3))
         for ln in lines:
             m = re.search(r"HARMATTAN_EN (\d+) (-?\d+) (-?\d+) (\d+)", ln)
             if m:
@@ -165,6 +198,14 @@ class OpArma:
         d2 = dx * dx + dy * dy
         return bool(((d2[al][:, eal]) <= self.sight ** 2).any())
 
+    def _nearest_enemy_dist(self, si):
+        """Distance du plus proche ennemi VIVANT à un membre vivant de l'escouade (1e9 si aucun)."""
+        eal = self.en_alive(); al = self.alive(si)
+        if not (self.en_n and eal.any() and al.any()): return 1e9
+        dx = self.epx[None, :] - self.px[si][:, None]; dy = self.epy[None, :] - self.py[si][:, None]
+        d2 = dx * dx + dy * dy
+        return float(np.sqrt(d2[al][:, eal].min()))
+
     def _goal_dist(self, si):
         al = self.alive(si)
         if not al.any(): return 0.0
@@ -178,7 +219,10 @@ class OpArma:
             a = acts_per_squad[si]; al = self.alive(si)
             gx, gy = self.goals[si]
             # ---- MODE TRANSIT : posture move, hors contact, loin de l'objectif -> waypoint de groupe (l'IA marche) ----
-            if self.stances[si] == "move" and not self._contact(si) and self._goal_dist(si) > 120.0:
+            in_transit = ((self.stances[si] == "move" and not self._contact(si) and self._goal_dist(si) > 120.0)
+                          or (self.stances[si] == "assault" and self._nearest_enemy_dist(si) > 250.0
+                              and self._goal_dist(si) > 40.0))                  # v2 : derniers mètres en zone NETTOYÉE seulement
+            if in_transit:
                 if self._wp[si] != (int(gx), int(gy)):
                     lead = int(np.argmax(al)) if al.any() else 0
                     cmds.append(('private _u=%s select %d; if (!isNull _u && {alive _u}) then { private _g = group _u; '

@@ -12,6 +12,7 @@ p = argparse.ArgumentParser()
 p.add_argument("--servers", type=int, default=10)
 p.add_argument("--reps", type=int, default=30, help="nombre total d'opérations (réparties A/B alternés)")
 p.add_argument("--out", type=str, default="wargame_results.jsonl")
+p.add_argument("--qrf", type=str, default="inf", choices=["inf", "mech"])
 a = p.parse_args()
 
 net = Net(10, 4, 512, 3).to(DEV)
@@ -32,10 +33,11 @@ def worker(srv):
             env = OpArma(squads=(("SQ_APPUI", 7), ("SQ_ASSAUT", 7)), mission=mission, log=log, seed=seed)
             env.spawn({"SQ_APPUI": OP.SPAWN_APPUI, "SQ_ASSAUT": OP.SPAWN_ASSAUT},
                       garrison=[(OP.COMPLEXE[0], OP.COMPLEXE[1], 8, 80)])
-            runner = OperationRunner(env, net, OP.make_plan(plan),
+            runner = OperationRunner(env, net, OP.make_plan(plan, qrf=a.qrf),
                                      log_path="logs_train/wg_srv%d.jsonl" % srv, verbose=False)
             ok = runner.run(max_steps=500)
-            rec = {"plan": plan, "seed": seed, "srv": srv, "succes": bool(ok),
+            veh = ("détruit" if env.vehdmg >= 70 else ("intact" if env.has_veh else "n/a"))
+            rec = {"plan": plan, "seed": seed, "srv": srv, "succes": bool(ok), "vehicule": veh,
                    "pertes": round(runner.losses(), 3), "ennemis_restants": int(env.en_alive().sum()),
                    "steps": runner.step_i, "duree_s": round(time.time() - t0, 1)}
         except Exception as e:
