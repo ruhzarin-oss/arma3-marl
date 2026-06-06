@@ -27,7 +27,7 @@ class OpArma:
     """Espace de bataille PARTAGÉ : N escouades amies (WEST, cerveau) + ennemis scriptés (EAST, trackés pour les obs)."""
 
     def __init__(self, squads=(("SQ_APPUI", 7), ("SQ_ASSAUT", 7)), base=(15000, 16000),
-                 mission=None, log=None, move=22.0, step_wait=1.6, settle=0.8, acc=4.0,
+                 mission=None, log=None, move=22.0, step_wait=1.0, settle=0.5, acc=4.0,
                  sup_range=120.0, sight=110.0, dmg_dead=0.7, skill=0.45, seed=0):
         self.b = ArmaBridge(mission=mission or SB + "/arma3server/mpmissions/HarmattanBridge0.Altis",
                             log=log or SB + "/logs/server0.out")
