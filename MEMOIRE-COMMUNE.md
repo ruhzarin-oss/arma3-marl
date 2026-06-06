@@ -637,3 +637,52 @@ Couches RESTANTES, dans l'ordre :
 **Mode d'échec disséqué** : le manager met 3 escouades sur CRETE + 1 seule à l'assaut (politique optimale en sim, où CRETE = « suppression » exonérant la pénalité nu_dps). En Arma, 3 escouades sur une crête à 188m ne suppriment RIEN de réel (pas de LOS/portée comme dans l'abstraction sim) → l'escouade isolée ne craque la garnison que 22% du temps, et les escouades ne se concentrent jamais pour tenir la consolidation (consol=0) → QRF jamais défaite → 0% militaire.
 **LECTURE (sans spin)** : le PIÈGE CENTRAL du RL basé-modèle démontré end-to-end — manager 83% sim → 0% réel parce que le sim a donné de la valeur à une posture tactiquement creuse. MAIS : (1) PRÉDIT et CHIFFRÉ à l'avance (pré-enregistrement) → écart MESURÉ, pas supposé ; (2) la PARTITION SCRIPTÉE reste invaincue (72% Arma) = une doctrine bien conçue à la main n'est pas trivialement battue par du RL sur sim abstrait ; (3) le PIPELINE de validation (pont d'obs, harnais, pré-enregistrement) fonctionne et est réutilisable.
 **POUR UN MANAGER TRANSFÉRABLE (prochaine sous-tâche)** : sim haute-fidélité sur la SUPPRESSION (CRETE compte seulement sous LOS/proximité, pas un exempt binaire global) + domain randomization ; OU contraindre l'espace d'action à des options tactiquement saines ; OU re-fine-tune dans Arma (lent). **STATUT PILE [1/5] : infra manager + pipeline validation BÂTIS et VALIDÉS end-to-end ; premier manager entraîné NE TRANSFÈRE PAS (overfit sim documenté) ; partition scriptée = couche opérationnelle de référence.** Données : validate_manager.jsonl.
+
+## PISTE ARCHITECTURE — ENCODEUR D'ENTITÉS PAR ATTENTION (notée 06/06, demande Younes — PAS un chantier ouvert)
+**Idée** : 1-2 couches de self-attention sur les entités observées (alliés/ennemis visibles) AVANT le GRU — pattern AlphaStar/OpenAI Five. Gains attendus : nombre VARIABLE d'unités visibles (plus de padding/troncature à taille fixe), invariance par permutation (ennemi n°3 ↔ n°7 = même situation), pondération apprise de la menace prioritaire. Coût : quelques milliers de paramètres, négligeable pour la 3090.
+**Périmètre** : encodeur d'observation SEULEMENT. NE PAS remplacer le GRU par un Transformer (GTrXL = instable avec PPO, chantier mémoire déjà fermé, piège cudnn déjà résolu — ne pas rouvrir) ; Decision Transformer hors sujet (offline, nous = PPO online + ligue) ; comms par attention = en réserve si la coordination plafonne.
+**CRITÈRE D'ACTIVATION (pas avant)** : un symptôme observable — agents qui ignorent des menaces dans l'obs, ou plafond de padding sur le nombre d'unités visibles. Sans diagnostic = optimisation sans symptôme, on n'y touche pas. Priorité actuelle inchangée : pile [1/5] manager.
+
+---
+
+## 2026-06-06 — VOIE « ÉCOLE DE GUERRE » : répertoire doctrinal codé (pile [1/5], après échec du manager appris)
+
+**Pivot conceptuel (idée Younes).** Le manager appris a échoué en Arma (0/32, sur-apprentissage sim : parking-CRETE creux). Plutôt qu'un RH qui DÉCOUVRE la tactique en sim (et invente des fictions), on lui donne un RÉPERTOIRE de manœuvres doctrinales déjà connues — il apprendra seulement *laquelle, quand*. On ne peut pas sur-apprendre une fiction absente du vocabulaire. Chaque manœuvre est Arma-exécutable PAR CONSTRUCTION (moteur de phases scripté) et mesurable directement -> le sélecteur choisira sur DONNÉES RÉELLES, pas sur le sim (court-circuite le mur sim-to-real). Analogue AlphaStar/OpenAI Five (imitation avant RL).
+
+**Codé.** `maneuvers.py` (4 manœuvres = plan-dicts OperationRunner) + `run_maneuver.py` (mesure Arma smoke/masse, métriques P-v3b).
+- M1 APPUI-ASSAUT (référence = P-v3b, 72 %) · M2 DOUBLE ENVELOPPEMENT · M3 ENVELOPPEMENT SIMPLE (flanc lourd) · M4 ASSAUT MASSÉ.
+
+**SMOKE M2 (1 serveur, double enveloppement) — VERDICT : ÉCHEC, mais smoke RÉUSSI dans son but.**
+- ✅ Prouvé : une manœuvre non triviale s'exécute de bout en bout dans le VRAI Arma.
+- M2 : `mil=False, garr_pris=False, pertes 46 %, ennemi 19/20 intact`. Séquence : INFILTRATION → pertes >30 % sur le flanc EST → contingence « pertes en débordement » → EXFIL. **Jamais assauté.**
+- **Trouvaille doctrinale** : le double enveloppement suppose un flanc NON défendu. Ici la garnison a un ÉCRAN DE PATROUILLES au nord (15150/16120) ; l'axe FLANC_E (15230/16110) passe dedans -> SQ_A_EST fond de 7 à 1 AVANT l'assaut. Manœuvre inadaptée à CETTE défense (à confirmer en masse).
+- **2 bugs d'encodage corrigés** (correction, pas tuning) : (a) INFILTRATION M2 attendait l'escouade mourante -> bascule FIXER dès prong OUEST+appui en place ; (b) EXFIL `done_when` indexé sur escouade 0 (peut être anéantie) -> n'importe quelle escouade arrivée OU budget. Réencodage revalidé OK.
+- **Discipline** : on NE tune PAS la géométrie de FLANC_E a posteriori. La table de masse dira si M2 est systématiquement faible ici = donnée pour le sélecteur (« ne pas choisir l'enveloppement contre flancs écrantés »).
+
+**Prochain pas proposé** : table empirique de masse (16 serveurs) M1/M2/M3/M4, ~24 ops chacune -> taux de succès réel par manœuvre. Prédictions pré-enregistrées : M1 72 %, M2 55-75 % (smoke suggère plus bas), M3 60-72 %, M4 30-50 %.
+
+### 2026-06-06 (suite) — Répertoire étendu à 7 manœuvres + prédictions pré-enregistrées
+
+Ajout M5/M6/M7 (validés structurellement). Insight clé consigné : **ennemi Arma STATIQUE** -> seules les manœuvres à mécanisme PHYSIQUE (route, feux, échelons) produisent du signal ; les manœuvres de TROMPERIE (feinte) n'ont rien à tromper. M5 codé comme **témoin négatif** assumé. Lien thèse : un modèle ne récompense que les variables qu'il représente.
+- M5 FEINTE+DÉBORDEMENT (démonstration E + effort principal O) · M6 INFILTRATION (axe SUD couvert INF_O/INF_E sous l'écran de patrouilles, assaut rapproché, sans base de feu) · M7 ATTAQUE ÉCHELONNÉE (1er échelon AO/AE, passage de lignes vers APPUI/RÉSERVE à ~25 % pertes).
+
+**PRÉDICTIONS PRÉ-ENREGISTRÉES (% militaire, AVANT mesure de masse) :**
+| M1 réf | M2 double env | M3 env. simple | M4 massé | M5 feinte | M6 infiltration | M7 échelon |
+|---|---|---|---|---|---|---|
+| 72 % (connu) | 20-45 % (smoke ⇒ revu bas) | 55-72 % | 30-50 % | ~M3 (50-70 %, sans bonus tromperie) | 45-70 % (route paie, mais pas de base de feu) | 55-72 % (préservation vs lenteur) |
+
+Lecture : si M3/M6/M7 ≥ M1 -> meilleur chef d'op transférable ; si M5 ≈ M3 -> confirme « tromperie inerte » ; si M2 reste bas -> confirme « enveloppement inadapté aux flancs écrantés ». PUIS sélecteur sur cette table réelle (pas le sim).
+
+### 2026-06-07 — TABLE DE MASSE (16 serveurs) : M1 mesuré + méthodologie de comparaison
+
+**FICHIERS DE LA VOIE ÉCOLE-DE-GUERRE (inventaire) :**
+- `maneuvers.py` — répertoire doctrinal, 7 manœuvres = plan-dicts OperationRunner (M1 appui-assaut réf · M2 double env · M3 env simple · M4 assaut massé · M5 feinte · M6 infiltration · M7 échelonnée). Géométrie + 2 corrections d'encodage smoke (FIXER au prong ouest ; EXFIL toute escouade).
+- `run_maneuver.py` — mesure Arma d'une manœuvre (smoke 1 serveur / masse N serveurs), métriques P-v3b.
+- `run_table.sh` — driver : boot 16 serveurs + mesure les 7 manœuvres en séquence + synthèse. Sortie `table_maneuvers.jsonl`.
+
+**M1 (référence) mesuré n=16 : militaire 56,2 % | complexe pris 88 % | QRF affrontée 81 % | pertes 19 %.**
+- Harnais SAIN (88 % prennent le complexe, pertes basses). 56 % vs 72 % baseline = dans l'IC (n=16, ±~24 %) -> M1-ici ≈ baseline, point estimé un peu bas.
+- L'écart complexe-pris (88 %) vs militaire (56 %) vient du critère « ≥70 % ennemi total détruit » : la QRF survivante maintient l'ennemi >30 %. Pas les pertes.
+- **MÉTHODO** : on compare M2..M7 à **M1 mesuré ici (56 %, même harnais)**, PAS au 72 % historique = comparaison apples-to-apples. C'est le baseline opérationnel de cette table.
+
+**État au moment de l'enregistrement** : M1 fini (56 %), M2 en cours, M3-M7 à venir. Table relancée en arrière-plan (`/tmp/table.log`).
