@@ -6,8 +6,8 @@ from op_gpu import OpGPU, GOALS
 
 p = argparse.ArgumentParser()
 p.add_argument("--envs", type=int, default=8192); p.add_argument("--steps", type=int, default=300)
-for k, d in [("patrol_bite", 0.020), ("garr_dps", 0.024), ("assault_dmg", 0.16),
-             ("qrf_dps", 0.060), ("move_speed", 14.0), ("nu_dps", 0.17)]:
+for k, d in [("patrol_bite", 0.010), ("garr_dps", 0.024), ("assault_dmg", 0.16),
+             ("qrf_dps", 0.120), ("move_speed", 14.0), ("nu_dps", 0.08)]:
     p.add_argument("--" + k, type=float, default=d)
 a = p.parse_args()
 dev = "cuda:0"

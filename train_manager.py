@@ -6,13 +6,7 @@ import time, argparse, torch
 import torch.nn as nn
 from op_gpu import OpGPU, GOALS, STANCE_NAMES
 
-p = argparse.ArgumentParser()
-p.add_argument("--envs", type=int, default=8192); p.add_argument("--iters", type=int, default=300)
-p.add_argument("--K", type=int, default=8, help="etapes du sim par decision du manager")
-p.add_argument("--decisions", type=int, default=34, help="decisions du manager par episode")
-p.add_argument("--lr", type=float, default=3e-4); p.add_argument("--save", type=str, default="manager.pt")
-a = p.parse_args()
-dev = "cuda:0"; torch.manual_seed(0)
+dev = "cuda:0"
 S = 4; G = len(GOALS); ST = len(STANCE_NAMES)
 
 
@@ -85,48 +79,56 @@ def run_episode(net, env, K, decisions, train=True):
     return buf, metrics
 
 
-GAMMA, LAM, CLIP, EPOCHS, MB = 0.99, 0.95, 0.2, 4, 16384
-net = Manager(OpGPU(num_envs=2, device=dev).obs_dim()).to(dev)
-opt = torch.optim.Adam(net.parameters(), lr=a.lr)
-env = OpGPU(num_envs=a.envs, device=dev, seed=0)
-print("MANAGER | envs=%d K=%d decisions=%d | baseline a battre : 72%% militaire" % (a.envs, a.K, a.decisions), flush=True)
-t0 = time.time()
-for it in range(a.iters):
-    buf, m = run_episode(net, env, a.K, a.decisions, train=True)
-    T = len(buf["obs"]); N = a.envs
-    obs = torch.stack(buf["obs"]); g = torch.stack(buf["g"]); s = torch.stack(buf["s"])
-    lp = torch.stack(buf["lp"]); val = torch.stack(buf["v"]); rew = torch.stack(buf["rew"]); dn = torch.stack(buf["done"])
-    adv = torch.zeros(T, N, device=dev); gae = torch.zeros(N, device=dev)
-    for t in reversed(range(T)):
-        nxt = val[t + 1] if t + 1 < T else torch.zeros(N, device=dev)
-        nd = 1.0 - dn[t]
-        delta = rew[t] + GAMMA * nxt * nd - val[t]
-        gae = delta + GAMMA * LAM * nd * gae
-        adv[t] = gae
-    ret = adv + val
-    adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-    of = obs.reshape(T * N, -1); gf = g.reshape(T * N, S); sf = s.reshape(T * N, S)
-    lpf = lp.reshape(T * N); af = adv.reshape(T * N); rf = ret.reshape(T * N)
-    for _ in range(EPOCHS):
-        perm = torch.randperm(T * N, device=dev)
-        for k in range(0, T * N, MB):
-            mb = perm[k:k + MB]
-            gl, sl, v = net(of[mb])
-            gd = torch.distributions.Categorical(logits=gl); sd = torch.distributions.Categorical(logits=sl)
-            lp2 = gd.log_prob(gf[mb]).sum(1) + sd.log_prob(sf[mb]).sum(1)
-            ratio = (lp2 - lpf[mb]).exp(); A = af[mb]
-            l_pi = -torch.min(ratio * A, ratio.clamp(1 - CLIP, 1 + CLIP) * A).mean()
-            l_v = 0.5 * (v - rf[mb]).pow(2).mean()
-            l_e = -0.01 * (gd.entropy().sum(1) + sd.entropy().sum(1)).mean()
-            opt.zero_grad(); (l_pi + l_v + l_e).backward()
-            nn.utils.clip_grad_norm_(net.parameters(), 0.5); opt.step()
-    if it % 20 == 0 or it == a.iters - 1:
-        with torch.no_grad():
-            _, me = run_episode(net, OpGPU(num_envs=4096, device=dev, seed=999), a.K, a.decisions, train=False)
-        print("it %3d | militaire %.1f%% (eval) | pertes %.0f%% | %.0fs"
-              % (it, 100 * me["mil"], 100 * me["pertes"], time.time() - t0), flush=True)
-torch.save(net.state_dict(), a.save)
-with torch.no_grad():
-    _, mf = run_episode(net, OpGPU(num_envs=8192, device=dev, seed=12345), a.K, a.decisions, train=False)
-print("[FINAL seed12345] manager militaire %.1f%% vs scripte 72%% | pertes %.0f%% | -> %s"
-      % (100 * mf["mil"], 100 * mf["pertes"], a.save), flush=True)
+if __name__ == "__main__":
+    p = argparse.ArgumentParser()
+    p.add_argument("--envs", type=int, default=8192); p.add_argument("--iters", type=int, default=300)
+    p.add_argument("--K", type=int, default=8, help="etapes du sim par decision du manager")
+    p.add_argument("--decisions", type=int, default=34, help="decisions du manager par episode")
+    p.add_argument("--lr", type=float, default=3e-4); p.add_argument("--save", type=str, default="manager.pt")
+    a = p.parse_args()
+    torch.manual_seed(0)
+    GAMMA, LAM, CLIP, EPOCHS, MB = 0.99, 0.95, 0.2, 4, 16384
+    net = Manager(OpGPU(num_envs=2, device=dev).obs_dim()).to(dev)
+    opt = torch.optim.Adam(net.parameters(), lr=a.lr)
+    env = OpGPU(num_envs=a.envs, device=dev, seed=0)
+    print("MANAGER | envs=%d K=%d decisions=%d | baseline a battre : 72%% militaire" % (a.envs, a.K, a.decisions), flush=True)
+    t0 = time.time()
+    for it in range(a.iters):
+        buf, m = run_episode(net, env, a.K, a.decisions, train=True)
+        T = len(buf["obs"]); N = a.envs
+        obs = torch.stack(buf["obs"]); g = torch.stack(buf["g"]); s = torch.stack(buf["s"])
+        lp = torch.stack(buf["lp"]); val = torch.stack(buf["v"]); rew = torch.stack(buf["rew"]); dn = torch.stack(buf["done"])
+        adv = torch.zeros(T, N, device=dev); gae = torch.zeros(N, device=dev)
+        for t in reversed(range(T)):
+            nxt = val[t + 1] if t + 1 < T else torch.zeros(N, device=dev)
+            nd = 1.0 - dn[t]
+            delta = rew[t] + GAMMA * nxt * nd - val[t]
+            gae = delta + GAMMA * LAM * nd * gae
+            adv[t] = gae
+        ret = adv + val
+        adv = (adv - adv.mean()) / (adv.std() + 1e-8)
+        of = obs.reshape(T * N, -1); gf = g.reshape(T * N, S); sf = s.reshape(T * N, S)
+        lpf = lp.reshape(T * N); af = adv.reshape(T * N); rf = ret.reshape(T * N)
+        for _ in range(EPOCHS):
+            perm = torch.randperm(T * N, device=dev)
+            for k in range(0, T * N, MB):
+                mb = perm[k:k + MB]
+                gl, sl, v = net(of[mb])
+                gd = torch.distributions.Categorical(logits=gl); sd = torch.distributions.Categorical(logits=sl)
+                lp2 = gd.log_prob(gf[mb]).sum(1) + sd.log_prob(sf[mb]).sum(1)
+                ratio = (lp2 - lpf[mb]).exp(); A = af[mb]
+                l_pi = -torch.min(ratio * A, ratio.clamp(1 - CLIP, 1 + CLIP) * A).mean()
+                l_v = 0.5 * (v - rf[mb]).pow(2).mean()
+                l_e = -0.01 * (gd.entropy().sum(1) + sd.entropy().sum(1)).mean()
+                opt.zero_grad(); (l_pi + l_v + l_e).backward()
+                nn.utils.clip_grad_norm_(net.parameters(), 0.5); opt.step()
+        if it % 20 == 0 or it == a.iters - 1:
+            with torch.no_grad():
+                _, me = run_episode(net, OpGPU(num_envs=4096, device=dev, seed=999), a.K, a.decisions, train=False)
+            print("it %3d | militaire %.1f%% (eval) | pertes %.0f%% | %.0fs"
+                  % (it, 100 * me["mil"], 100 * me["pertes"], time.time() - t0), flush=True)
+    torch.save(net.state_dict(), a.save)
+    with torch.no_grad():
+        _, mf = run_episode(net, OpGPU(num_envs=8192, device=dev, seed=12345), a.K, a.decisions, train=False)
+    print("[FINAL seed12345] manager militaire %.1f%% vs scripte 72%% | pertes %.0f%% | -> %s"
+          % (100 * mf["mil"], 100 * mf["pertes"], a.save), flush=True)

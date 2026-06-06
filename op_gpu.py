@@ -23,14 +23,14 @@ class OpGPU:
     def __init__(self, num_envs=4096, device="cuda:0", seed=0,
                  # --- constantes calibrées sur les ops Arma (ajustables au calibrage) ---
                  move_speed=14.0,        # m / pas (marche de groupe ~ vitesse réelle mesurée)
-                 patrol_bite=0.020,      # attrition/pas par escouade en mouvement à portée d'une patrouille
-                 garr_dps=0.024,         # CALIBRÉ (avec qrf_dps + bruit log-normal sd0.5)
+                 patrol_bite=0.004,      # v2 : approche quasi-libre
+                 garr_dps=0.010,         # v2 : approche allégée, difficulté = QRF
                  assault_dmg=0.16,       # dégâts/pas infligés À la garnison par escouade en posture assault au contact
                  suppress_shield=0.45,   # réduction de garr_dps subie quand une escouade amie suppresse
                  hold_shield=0.55,       # réduction des dégâts en posture hold (défense)
-                 qrf_dps=0.060,          # CALIBRÉ : partition scriptée -> 73.5% militaire = baseline Arma P-v3b 72%
-                 qrf_hp=8.0, garr_hp=12.0, patrol_hp=4.0, squad_n=7,
-                 contact_r=120.0, secure_r=60.0, sup_range=200.0, nu_dps=0.17, exfil_budget=195, qrf_step=None,
+                 qrf_dps=0.120,          # RECALIBRÉ v2 : QRF concentrée = goulet universel (consolidation)
+                 qrf_hp=22.0, garr_hp=12.0, patrol_hp=4.0, squad_n=7,
+                 contact_r=120.0, secure_r=60.0, sup_range=200.0, nu_dps=0.08, qrf_var=0.55, exfil_budget=195, qrf_step=None,
                  max_steps=260):
         self.dev = device; self.N = num_envs; self.S = 4   # 4 escouades
         self.g = torch.Generator(device=device).manual_seed(seed)
@@ -41,7 +41,7 @@ class OpGPU:
         self.move_speed = move_speed; self.patrol_bite = patrol_bite; self.garr_dps = garr_dps
         self.assault_dmg = assault_dmg; self.suppress_shield = suppress_shield; self.hold_shield = hold_shield
         self.qrf_dps = qrf_dps; self.contact_r = contact_r; self.secure_r = secure_r
-        self.sup_range = sup_range; self.nu_dps = nu_dps
+        self.sup_range = sup_range; self.nu_dps = nu_dps; self.qrf_var = qrf_var
         self.exfil_budget = exfil_budget; self.max_steps = max_steps
         self.qrf_hp0 = qrf_hp; self.garr_hp0 = garr_hp; self.patrol_hp0 = patrol_hp; self.squad_n = squad_n
         self.COMPLEXE = torch.tensor(POINTS["COMPLEXE"], dtype=torch.float32, device=device)
@@ -67,11 +67,12 @@ class OpGPU:
             self.qrf_live = torch.zeros(self.N, dtype=torch.bool, device=self.dev)
             self.t = torch.zeros(self.N, dtype=torch.long, device=self.dev)
             self.consol_t = torch.zeros(self.N, device=self.dev)               # pas passés en consolidation tenue
+            self.qrf_mult = torch.ones(self.N, device=self.dev)                 # multiplicateur QRF par épisode
         self.spos[idx] = sp[None].expand(n, -1, -1)
         self.sstr[idx] = float(self.squad_n)
         self.sgoal[idx] = 0; self.sstance[idx] = 0
         self.garr[idx] = self.garr_hp0; self.patrol[idx] = self.patrol_hp0 * 2  # 2 patrouilles
-        self.qrf[idx] = 0.0; self.qrf_live[idx] = False
+        self.qrf[idx] = 0.0; self.qrf_live[idx] = False; self.qrf_mult[idx] = 1.0
         self.t[idx] = 0; self.consol_t[idx] = 0.0
 
     def alive_squads(self):  # (N,S) bool
@@ -134,25 +135,33 @@ class OpGPU:
         # (suppression à LONGUE portée, quantité SÉPARÉE qui ne touche pas le combat validé ci-dessus) :
         # la doctrine supprime toujours -> supp_active=1 -> JAMAIS pénalisée (calibration 73.6% préservée). ---
         supp_active = ((stances == 2) & al).any(1).float()   # un élément ami EST assigné à la suppression (sans coupling de portée)
-        n_assault = assaulting.float().sum(1)                                     # masse à l'assaut
+        # pénalité PLATE par escouade assaillante non-supprimée (un assaut nu est dangereux PAR escouade,
+        # pas proportionnellement à la masse — sinon fractionner l'assaut esquive la pénalité)
         nu_penalty = self.nu_dps * garr_live.float() * (1.0 - supp_active) * self._noise((self.N,))
-        self.sstr = (self.sstr - (nu_penalty * n_assault / 4.0)[:, None] * assaulting.float()).clamp(min=0)
+        self.sstr = (self.sstr - nu_penalty[:, None] * assaulting.float()).clamp(min=0)
         # les assaillants détruisent la garnison
         self.garr = (self.garr - self.assault_dmg * assaulting.float().sum(1) * self._noise((self.N,))).clamp(min=0)
         # --- QRF : spawn quand la garnison tombe et qu'au moins une escouade tient le complexe ---
         garr_down = self.garr <= 0
         near_cx = ((d_cx < self.secure_r) & al).any(1)                           # une escouade tient le complexe
         spawn_qrf = garr_down & near_cx & (~self.qrf_live)
-        self.qrf = torch.where(spawn_qrf, torch.full_like(self.qrf, self.qrf_hp0), self.qrf)
+        # VARIANCE PAR ÉPISODE : la QRF qui se présente n'est pas toujours la même (force/agressivité) —
+        # multiplicateur log-normal tiré au spawn. C'est lui qui crée la QUEUE d'échecs (~28%) qu'un bruit
+        # par-pas (moyenné sur le combat) ne produit pas. Modélise la vraie variance d'issue du combat.
+        qmult = (torch.randn(self.N, generator=self.g, device=self.dev) * self.qrf_var).exp()
+        self.qrf = torch.where(spawn_qrf, self.qrf_hp0 * qmult, self.qrf)
+        self.qrf_mult = torch.where(spawn_qrf, qmult, self.qrf_mult)
         self.qrf_live = self.qrf_live | spawn_qrf
-        # combat QRF : tape les défenseurs au complexe (hold réduit), les défenseurs tapent la QRF
+        # combat QRF : la contre-attaque mécanisée CONCENTRE son feu (pas de dilution) — elle fait mal à
+        # CHAQUE escouade défenseur en consolidation. C'est LE goulet qui plafonne le succès pour TOUS les
+        # chemins (comme en Arma). Le hold réduit (couvert) mais ne sauve pas. Les défenseurs tapent la QRF.
+        defenders = (holding | assaulting).float()                                # (N,S)
         qrf_on = self.qrf > 0
-        n_def = (holding | assaulting).float().sum(1).clamp(min=1)
         hold_any = holding.any(1).float()
         qshield = 1.0 - self.hold_shield * hold_any
-        dmg_qrf_to = self.qrf_dps * qrf_on.float() * qshield * self._noise((self.N,))
-        self.sstr = (self.sstr - (dmg_qrf_to[:, None] * (holding | assaulting).float()) / n_def[:, None]).clamp(min=0)
-        self.qrf = (self.qrf - self.assault_dmg * (holding | assaulting).float().sum(1) * qrf_on.float()).clamp(min=0)
+        dmg_qrf_to = self.qrf_dps * self.qrf_mult * qrf_on.float() * qshield * self._noise((self.N,))   # (N,) PAR escouade défenseur
+        self.sstr = (self.sstr - dmg_qrf_to[:, None] * defenders).clamp(min=0)     # concentré : chaque défenseur encaisse
+        self.qrf = (self.qrf - self.assault_dmg * defenders.sum(1) * qrf_on.float() * self._noise((self.N,))).clamp(min=0)
         # --- consolidation tenue : garnison morte, QRF traitée ou en cours, ≥2 escouades au complexe ---
         secured = garr_down & ((holding | assaulting) & (d_cx < self.secure_r)).sum(1).float().ge(2)
         self.consol_t = torch.where(secured, self.consol_t + 1, self.consol_t)
