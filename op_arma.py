@@ -60,7 +60,7 @@ class OpArma:
     def spawn(self, friendly_spawns, garrison):
         """friendly_spawns : {squad: (x,y)} ; garrison : list de (x, y, n, radius_patrouille)."""
         decl = "; ".join("%s=[]" % s for s in self.squads) + "; HMT_EN=[]"
-        sqf = ("{ deleteVehicle _x } forEach allUnits; %s;\n"
+        sqf = ("{ deleteVehicle _x } forEach vehicles; { deleteVehicle _x } forEach allUnits; HMT_VEH = nil; %s;\n"
                "west setFriend [east,0]; east setFriend [west,0];\n" % decl)
         for si, sq in enumerate(self.squads):
             x, y = friendly_spawns[sq]
@@ -83,6 +83,7 @@ class OpArma:
                     % (gi, n - 1, gi, x, n, y, n, gi, gi, self.skill, gi, x, y, rad))
         sqf += 'setAccTime %.1f; diag_log "HARMATTAN_OPSPAWN";\n' % self.acc
         self.b.send(sqf, wait=True); time.sleep(4.0)
+        self.has_veh = False; self.vehdmg = 0.0
         self.en_n = sum(g[2] for g in garrison)
         self.epx = np.zeros(self.en_n); self.epy = np.zeros(self.en_n); self.edmg = np.zeros(self.en_n)
         self.read()
@@ -105,10 +106,11 @@ class OpArma:
     def spawn_qrf_mech(self, x, y, n_dism, target):
         """Contre-attaque MÉCANISÉE : 1 Ifrit HMG (équipage scripté) + n_dism débarqués, SAD vers target.
         Débarqués + équipage trackés dans HMT_EN ; le VÉHICULE tracké à part (HMT_VEH) pour le verdict."""
-        sqf = ('private _vr = ["O_MRAP_02_hmg_F", [%d, %d, 0], 180, east] call BIS_fnc_spawnVehicle;\n'
+        sqf = ('private _vr = [[%d, %d, 0], 180, "O_MRAP_02_hmg_F", east] call BIS_fnc_spawnVehicle;\n'
                'HMT_VEH = [_vr select 0];\n'
                '{ _x allowFleeing 0; _x setSkill %.2f; HMT_EN pushBack _x } forEach (_vr select 1);\n'
-               'private _wv = (_vr select 2) addWaypoint [[%d,%d], 0]; _wv setWaypointType "SAD"; _wv setWaypointSpeed "FULL";\n'
+               'private _wv = (_vr select 2) addWaypoint [[%d,%d], 0]; _wv setWaypointType "SAD"; _wv setWaypointSpeed "FULL"; '
+               '(_vr select 2) setBehaviour "COMBAT"; (driver (_vr select 0)) doMove [%d,%d];\n'
                'private _q = createGroup east;\n'
                'for "_a" from 0 to %d do {\n'
                '  _q createUnit ["O_Soldier_F", [%d + 8*(cos (360*_a/%d)), %d + 8*(sin (360*_a/%d)), 0], [], 0, "FORM"];\n'
@@ -116,7 +118,7 @@ class OpArma:
                '  _u setBehaviour "COMBAT"; _u setSkill %.2f; _u allowFleeing 0; HMT_EN pushBack _u;\n};\n'
                'private _wp = _q addWaypoint [[%d,%d], 0]; _wp setWaypointType "SAD"; _wp setWaypointSpeed "FULL";\n'
                'diag_log "HARMATTAN_QRFMECH";\n'
-               % (x, y, self.skill, target[0], target[1],
+               % (x, y, self.skill, target[0], target[1], target[0], target[1],
                   n_dism - 1, x + 15, n_dism, y, n_dism, self.skill, target[0], target[1]))
         self.b.send(sqf, wait=True)
         ncrew = 2                                                  # Ifrit HMG : pilote + tireur
@@ -258,6 +260,15 @@ class OpArma:
                 else:
                     pos = "DOWN" if m == 3 else "MIDDLE"
                     cmds.append('private _u=%s select %d; if (!isNull _u && {alive _u}) then {_u setUnitPos "%s"; _u doMove [%d,%d,0];};' % (sq, i, pos, int(tgx[i]), int(tgy[i])))
+        if self.has_veh and self.vehdmg < 70:                       # palier 1 : les NLAW traitent le véhicule
+            for si, sq in enumerate(self.squads):
+                al = self.alive(si)
+                vd = np.sqrt((self.px[si] - self.vehx) ** 2 + (self.py[si] - self.vehy) ** 2)
+                for i in (1, 2):                                        # les 2 porteurs AT de l'escouade
+                    if i < self.sizes[si] and al[i] and vd[i] < 400:
+                        cmds.append('private _u=%s select %d; if (!isNull _u && {alive _u} && {!isNil "HMT_VEH"}) then '
+                                    '{ private _v = HMT_VEH select 0; if (!isNull _v && {alive _v}) then '
+                                    '{ _u reveal [_v, 4]; _u doTarget _v; _u doFire _v; }; };' % (sq, i))
         self.b.send("\n".join(cmds), wait=True)
         time.sleep(self.step_wait)
         self.read()
