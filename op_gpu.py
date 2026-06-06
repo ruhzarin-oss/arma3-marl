@@ -169,9 +169,12 @@ class OpGPU:
         # --- conditions de fin ---
         al = self.alive_squads()
         ff = self.force_frac()
-        ennemi_total = self.garr_hp0 + 2 * self.patrol_hp0 + self.qrf_hp0
+        # ennemi BRISÉ : il FAUT prendre le complexe (garnison détruite = objectif dur) ET avoir détruit
+        # l'essentiel de ce qui a EXISTÉ — une QRF jamais apparue ne compte PAS comme "détruite" (bug v2 corrigé :
+        # le total ne crédite la QRF que si elle a spawné, sinon tuer les patrouilles suffisait faussement).
+        eff_total = self.garr_hp0 + 2 * self.patrol_hp0 + self.qrf_hp0 * self.qrf_live.float()
         ennemi_reste = self.garr + self.patrol + self.qrf
-        ennemi_brise = (1 - ennemi_reste / ennemi_total) >= 0.7
+        ennemi_brise = (self.garr <= 0) & ((1 - ennemi_reste / eff_total.clamp(min=1e-6)) >= 0.7)
         pertes = 1 - ff
         # à la LZ : médiane des escouades vivantes proche de la LZ
         d_lz = (self.spos - self.LZ[None, None]).norm(dim=-1)
