@@ -248,14 +248,27 @@ les civils *par guerre* ; **exception égalitaire** (le monde-E riche se gèle :
 humain de la carte) ; en guerre totale, le vainqueur contrôle jusqu'à 89 % de la population restante. Par ailleurs la
 hiérarchie A>E>Z est **universelle** sur la carte — aucun renversement par la richesse : la loi 4 est généralisée.
 
-## Doctrine D (déni de revenu) — le premier challenger, à confirmer
+## Loi 10 — le prédateur économique : co-dominant mais instable (doctrine D, instrument nettoyé)
 
-La pointe vise la région ennemie la plus **peuplée** (étrangler la base fiscale). Bataille royale A-D-E (rotations
-convergentes) : **A 0.575 / D 0.421 / E 0.002** — la guerre économique est la première doctrine qui inquiète
-l'Amplificateur, et elle extermine l'Égaliseur. Le monde tout-D est le plus brutal mesuré (91 % d'annihilations,
-guerres en 6 pas, vainqueur avec 39 % du territoire : la prédation généralisée est à somme très négative).
-**⚠️ Non promu en loi** : la sanity DDD est asymétrique (tie-break d'argmax sur scores initialement égaux) — à
-corriger (bruit minuscule sur les scores) et re-tester avant toute conclusion d'invasion.
+La doctrine **D (déni de revenu)** vise la région ennemie la plus **peuplée** — étrangler la base fiscale. Après
+correction complète des tie-breaks (sanity DDD : 0.334/0.334/0.332 ; rotations invariantes à ±0.003) :
+
+- **Bataille royale A-D-E : D 0.499 / A 0.488 / E 0.013** — le prédateur économique fait jeu égal avec
+  l'Amplificateur en écologie mixte, en dévorant l'Égaliseur.
+- **Matrice d'invasion** : A reste l'**unique stratégie évolutionnairement stable** (rien n'envahit son monde,
+  il envahit tout — y compris le monde-D à 0.370). Mais sous lui, un **sous-monde non transitif** : le bloc
+  égalitaire collectif **repousse** le prédateur isolé (D→EE : **0.057** — pas de point riche faible quand la
+  défense est uniforme) ; et le contre-forceur Z, perdant partout ailleurs, **envahit le monde des prédateurs**
+  (Z→DD : **0.430** — la pointe du chasseur de population s'expose au contre-punch).
+
+**Lectures géopolitiques** : la prédation économique paie dans les mondes divers à cibles molles ; la défense
+collective égalitaire est *la* structure anti-prédateur ; la contre-force est un spécialiste anti-prédateur.
+Le monde tout-D reste le plus brutal mesuré (annihilations massives, guerres-éclair, vainqueur sur des ruines).
+
+**Leçon d'instrument (3 incarnations en 24 h : pointe, fuite civile, couronnement du vainqueur)** : *tout argmax
+est un tie-break déguisé, et tout tie-break déterministe est un biais en embuscade* — l'asymétrie DDD venait en
+dernier ressort des **complétions simultanées de victoire** (fréquentes dans les guerres symétriques de prédation,
+quasi absentes ailleurs — d'où des sanity trompeusement propres sur A/E/Z). Bruiter les départages par défaut.
 
 ## Les leçons d'ingénierie de la nuit (à relire avant chaque session)
 

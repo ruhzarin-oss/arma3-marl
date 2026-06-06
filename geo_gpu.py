@@ -116,6 +116,7 @@ class GeoGPU:
                     tl = torch.where(left != c, fl, torch.zeros_like(fl))
                     tr = torch.where(right != c, fr, torch.zeros_like(fr))
                     score = torch.where(frontier, torch.maximum(tl, tr), neg)
+                score = score + 1e-3 * torch.rand(score.shape, generator=self.g, device=self.dev)  # anti tie-break (biais d'indice)
                 spear = score.argmax(1)
                 add = torch.where(has, self.treasury[:, c], torch.zeros_like(self.treasury[:, c]))
                 self.force[self.ar, spear] = self.force[self.ar, spear] + add
@@ -136,7 +137,8 @@ class GeoGPU:
             moving = self.pop * frac
             lok = left == owner; rok = right == owner                                  # issues du même camp
             thL = torch.roll(threat, 1, 1); thR = torch.roll(threat, -1, 1)            # menace chez les voisins
-            goL = lok & ((~rok) | (thL <= thR)); goR = rok & (~goL)
+            rnd = torch.rand(thL.shape, generator=self.g, device=self.dev) < 0.5      # anti-dérive : tie-break aléatoire
+            goL = lok & ((~rok) | (thL < thR) | ((thL == thR) & rnd)); goR = rok & (~goL)
             fL = moving * goL.float(); fR = moving * goR.float()
         self.pop = self.pop - fL - fR + torch.roll(fL, -1, 1) + torch.roll(fR, 1, 1)
         self.civ_moved = self.civ_moved + (fL + fR).sum(1)
@@ -153,7 +155,8 @@ class GeoGPU:
         timeout = self.t >= self.max_steps
         done = (nal <= 1) | win_any | timeout
         terr_alive = torch.where(al, terr, torch.full_like(terr, -1.0))
-        winner = torch.where(win_any, hill_win.float().argmax(1), terr_alive.argmax(1))
+        wn = 1e-3 * torch.rand(terr.shape, generator=self.g, device=self.dev)        # anti tie-break (vainqueur)
+        winner = torch.where(win_any, (hill_win.float() + wn).argmax(1), (terr_alive + wn).argmax(1))
         win_by = torch.where(win_any, torch.zeros_like(self.t),
                  torch.where(nal <= 1, torch.ones_like(self.t), torch.full_like(self.t, 2)))
         popc_now = torch.stack([(self.pop * (self.owner == c).float()).sum(1) for c in range(self.C)], 1)
