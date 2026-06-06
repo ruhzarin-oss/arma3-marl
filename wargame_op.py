@@ -42,7 +42,7 @@ def worker(srv):
                 mplan = OP.make_plan(plan, qrf=a.qrf)
             runner = OperationRunner(env, net, mplan,
                                      log_path="logs_train/wg_srv%d.jsonl" % srv, verbose=False)
-            ok = runner.run(max_steps=500)
+            ok = runner.run(max_steps=800)
             veh = ("détruit" if env.vehdmg >= 70 else ("intact" if env.has_veh else "n/a"))
             rec = {"plan": plan, "seed": seed, "srv": srv, "succes": bool(ok), "vehicule": veh,
                    "pertes": round(runner.losses(), 3), "ennemis_restants": int(env.en_alive().sum()),
