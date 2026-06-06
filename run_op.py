@@ -18,6 +18,75 @@ SPAWN_APPUI  = (14920, 15620)
 SPAWN_ASSAUT = (15080, 15600)
 
 
+# ---------------------------------------------------------------- PALIER 2 : échelle (4 escouades, ennemi renforcé)
+ATTENTE_E     = (15260, 15980)       # point d'attente de l'assaut EST
+LIGNE_O       = (15090, 15930)       # ligne de départ ouest (= LIGNE)
+LIGNE_E       = (15200, 16010)       # ligne de départ est
+SPAWN_A_EST   = (15290, 15740)
+SPAWN_RESERVE = (15000, 15560)
+POSTE_RES     = (15060, 15740)       # poste d'attente de la réserve
+
+SQUADS_P2 = (("SQ_APPUI", 7), ("SQ_A_OUEST", 7), ("SQ_A_EST", 7), ("SQ_RESERVE", 7))
+SPAWNS_P2 = {"SQ_APPUI": SPAWN_APPUI, "SQ_A_OUEST": SPAWN_ASSAUT, "SQ_A_EST": SPAWN_A_EST, "SQ_RESERVE": SPAWN_RESERVE}
+GARRISON_P2 = [(COMPLEXE[0], COMPLEXE[1], 12, 80), (15150, 16120, 4, 120), (14860, 16110, 4, 120)]  # 12 + 2 patrouilles de 4
+
+
+def make_plan_p2(variant, qrf="inf"):
+    """Palier 2. A = appui + 2 assauts convergents + réserve en arrière (engagée par contingence).
+    B = tout le monde à l'assaut d'emblée. Indices : 0 APPUI, 1 A_OUEST, 2 A_EST, 3 RÉSERVE."""
+    assault_orders_A = {"SQ_APPUI": (COMPLEXE, "suppress"), "SQ_A_OUEST": (COMPLEXE, "assault"),
+                        "SQ_A_EST": (COMPLEXE, "assault"), "SQ_RESERVE": (POSTE_RES, "hold")}
+    assault_orders_B = {sq: (COMPLEXE, "assault") for sq in ("SQ_APPUI", "SQ_A_OUEST", "SQ_A_EST", "SQ_RESERVE")}
+    renforce = {"SQ_APPUI": (COMPLEXE, "suppress"), "SQ_A_OUEST": (COMPLEXE, "assault"),
+                "SQ_A_EST": (COMPLEXE, "assault"), "SQ_RESERVE": (COMPLEXE, "assault")}
+    phases = [
+        {"name": "INFILTRATION",
+         "orders": {"SQ_APPUI": (CRETE, "move"), "SQ_A_OUEST": (ATTENTE, "move"),
+                    "SQ_A_EST": (ATTENTE_E, "move"), "SQ_RESERVE": (POSTE_RES, "move")},
+         "done_when": ("all", [("squad_at", 0, CRETE, 90), ("squad_at", 1, ATTENTE, 90),
+                                ("squad_at", 2, ATTENTE_E, 90), ("squad_at", 3, POSTE_RES, 90)]),
+         "contingencies": [{"if": ("losses", 0.3), "reason": "pertes en approche", "goto": "EXFIL"},
+                           {"if": ("steps", 140), "reason": "approche enlisée", "goto": "MISE_EN_PLACE"}]},
+        {"name": "MISE_EN_PLACE",
+         "orders": {"SQ_APPUI": (CRETE, "hold"), "SQ_A_OUEST": (LIGNE_O, "move"),
+                    "SQ_A_EST": (LIGNE_E, "move"), "SQ_RESERVE": (POSTE_RES, "hold")},
+         "done_when": ("all", [("squad_at", 1, LIGNE_O, 85), ("squad_at", 2, LIGNE_E, 85)]),
+         "contingencies": [{"if": ("losses", 0.35), "reason": "pertes avant assaut", "goto": "EXFIL"},
+                           {"if": ("steps", 90), "reason": "mise en place trop lente", "goto": "ASSAUT"}]},
+        {"name": "ASSAUT",
+         "orders": (assault_orders_A if variant == "A" else assault_orders_B),
+         "done_when": ("all", [("zone_clear", COMPLEXE, 60),
+                                ("any", [("squad_at", 1, COMPLEXE, 85), ("squad_at", 2, COMPLEXE, 85)])]),
+         "contingencies": [{"if": ("losses", 0.25), "reason": "assaut coûteux -> engagement réserve", "goto": "ASSAUT_RENFORCE"},
+                           {"if": ("steps", 160), "reason": "assaut enlisé", "goto": "EXFIL"}]},
+        {"name": "ASSAUT_RENFORCE",
+         "orders": renforce,
+         "done_when": ("all", [("zone_clear", COMPLEXE, 60),
+                                ("any", [("squad_at", 1, COMPLEXE, 85), ("squad_at", 2, COMPLEXE, 85),
+                                          ("squad_at", 3, COMPLEXE, 85)])]),
+         "contingencies": [{"if": ("losses", 0.5), "reason": "assaut renforcé trop coûteux", "goto": "EXFIL"},
+                           {"if": ("steps", 110), "reason": "assaut renforcé enlisé", "goto": "EXFIL"}]},
+        {"name": "CONSOLIDATION",
+         "orders": {"SQ_APPUI": (COMPLEXE, "hold"), "SQ_A_OUEST": (COMPLEXE, "hold"),
+                    "SQ_A_EST": (COMPLEXE, "hold"), "SQ_RESERVE": (COMPLEXE, "assault")},
+         "on_enter": (lambda r: ((r.env.spawn_qrf_mech(QRF_PT[0], QRF_PT[1], 6, COMPLEXE),
+                                  r.jlog("QRF", detail="contre-attaque MÉCANISÉE"))
+                                  if qrf == "mech" else
+                                  (r.env.spawn_qrf(QRF_PT[0], QRF_PT[1], 8, COMPLEXE),
+                                   r.jlog("QRF", detail="contre-attaque : 8 hommes")))
+                                  if "qrf" not in r.qrf_done and not r.qrf_done.add("qrf") else None),
+         "done_when": ("any", [("enemy_dead_frac", 0.85), ("steps", 70)]),
+         "contingencies": [{"if": ("losses", 0.6), "reason": "consolidation intenable", "goto": "EXFIL"}]},
+        {"name": "EXFIL",
+         "orders": {sq: (LZ, "move") for sq in ("SQ_APPUI", "SQ_A_OUEST", "SQ_A_EST", "SQ_RESERVE")},
+         "done_when": ("any", [("all", [("squad_at", 0, LZ, 90), ("squad_at", 1, LZ, 90)]), ("steps", 80)]),
+         "contingencies": []},
+    ]
+    return {"name": "HARMATTAN-2%s (plan %s)" % ("-mech" if qrf == "mech" else "", variant), "phases": phases,
+            "success": ("all", [("enemy_dead_frac", 0.7), ("losses_max", 0.5),
+                                ("any", [("squad_at", 0, LZ, 100), ("squad_at", 1, LZ, 100)])])}
+
+
 def make_plan(variant, qrf="inf"):
     """Variante A = doctrine 'appui d'abord' (suppression avant assaut). Variante B = assaut direct (pas de phase de fixation)."""
     phases = [

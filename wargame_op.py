@@ -13,6 +13,7 @@ p.add_argument("--servers", type=int, default=10)
 p.add_argument("--reps", type=int, default=30, help="nombre total d'opérations (réparties A/B alternés)")
 p.add_argument("--out", type=str, default="wargame_results.jsonl")
 p.add_argument("--qrf", type=str, default="inf", choices=["inf", "mech"])
+p.add_argument("--palier", type=int, default=1, choices=[1, 2])
 a = p.parse_args()
 
 net = Net(10, 4, 512, 3).to(DEV)
@@ -30,10 +31,16 @@ def worker(srv):
             plan, seed = jobs[jcursor[0]]; jcursor[0] += 1
         t0 = time.time()
         try:
-            env = OpArma(squads=(("SQ_APPUI", 7), ("SQ_ASSAUT", 7)), mission=mission, log=log, seed=seed)
-            env.spawn({"SQ_APPUI": OP.SPAWN_APPUI, "SQ_ASSAUT": OP.SPAWN_ASSAUT},
-                      garrison=[(OP.COMPLEXE[0], OP.COMPLEXE[1], 8, 80)])
-            runner = OperationRunner(env, net, OP.make_plan(plan, qrf=a.qrf),
+            if a.palier == 2:
+                env = OpArma(squads=OP.SQUADS_P2, mission=mission, log=log, seed=seed)
+                env.spawn(OP.SPAWNS_P2, garrison=OP.GARRISON_P2)
+                mplan = OP.make_plan_p2(plan, qrf=a.qrf)
+            else:
+                env = OpArma(squads=(("SQ_APPUI", 7), ("SQ_ASSAUT", 7)), mission=mission, log=log, seed=seed)
+                env.spawn({"SQ_APPUI": OP.SPAWN_APPUI, "SQ_ASSAUT": OP.SPAWN_ASSAUT},
+                          garrison=[(OP.COMPLEXE[0], OP.COMPLEXE[1], 8, 80)])
+                mplan = OP.make_plan(plan, qrf=a.qrf)
+            runner = OperationRunner(env, net, mplan,
                                      log_path="logs_train/wg_srv%d.jsonl" % srv, verbose=False)
             ok = runner.run(max_steps=500)
             veh = ("détruit" if env.vehdmg >= 70 else ("intact" if env.has_veh else "n/a"))
