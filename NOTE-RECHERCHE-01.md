@@ -213,6 +213,45 @@ S'y ajoute la règle de gestion : *jamais d'optimisation sans re-validation cont
    pays, cartes de régimes étendues.
 5. **Démonstrateur visuel** : une opération de palier 2 en spectateur, chaque plan adossé à ses statistiques.
 
+# Glossaire
+
+**Partition** — le plan d'opération exécutable : la suite des phases, leurs ordres, leurs conditions de
+transition et leurs contingences. C'est un objet *éditable* : les « réparations de partition » modifient le plan,
+jamais le monde ni les agents.
+
+**Phase** — un temps de l'opération (infiltration, mise en place, assaut, consolidation, exfiltration) défini par
+des **ordres** par escouade et une **condition de sortie**.
+
+**Horloge (ou budget) de phase** — le nombre maximal de pas accordé à une phase avant qu'une contingence ne
+force la suite. Réalisme d'état-major (« l'extraction est à H+45 ») ; mal réglée, elle produit des **échecs
+administratifs** : mission militairement accomplie, délai dépassé. L'**horloge globale** plafonne l'opération
+entière et doit rester cohérente avec la somme des horloges de phase.
+
+**Contingence** — règle de bascule conditionnelle (« pertes ≥ 25 % → engager la réserve », « assaut enlisé →
+décrocher ») ; chaque déclenchement est journalisé avec sa raison.
+
+**Posture** — modulation du comportement d'une escouade (approche, assaut, fixation, tenue) obtenue par biais des
+préférences du cerveau gelé, sans réentraînement.
+
+**Consolidation** — la phase de tenue de l'objectif conquis face à la contre-attaque (QRF) ; le verrou principal
+identifié par l'escalade.
+
+**QRF** (*Quick Reaction Force*) — la contre-attaque ennemie déclenchée par la prise de l'objectif ; infanterie ou
+mécanisée selon le palier.
+
+**Gabarit** — la configuration complète d'une campagne d'évaluation (géométrie, effectifs, ennemi, horloges,
+critères) ; les comparaisons ne valent qu'à gabarit identique, d'où leur numérotation (v1, v2, v3).
+
+**Pré-enregistrement** — l'écriture, avant le premier run, de la prédiction chiffrée et des seuils de décision ;
+les références sont mesurées sur les données antérieures.
+
+**Baseline** — le score de référence qu'une nouvelle méthode doit battre ; la partition scriptée v3 fournit celle
+du futur manager appris.
+
+**Horloges politique et militaire** (échelle stratégique, loi 3) — respectivement : le délai de reconnaissance
+d'une victoire (tenue exigée des objectifs) et la vitesse à laquelle la force détruit (chute des capitales) ;
+leur course relative décide si les guerres finissent par accord ou par annihilation.
+
 # Annexe — inventaire des artefacts
 
 | Artefact | Contenu |

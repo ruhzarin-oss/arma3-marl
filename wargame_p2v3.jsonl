@@ -1,0 +1,10 @@
+{"plan": "A", "seed": 12, "srv": 12, "succes": false, "vehicule": "n/a", "pertes": 0.071, "ennemis_restants": 13, "steps": 440, "duree_s": 945.9}
+{"plan": "B", "seed": 11, "srv": 11, "succes": false, "vehicule": "n/a", "pertes": 0.107, "ennemis_restants": 12, "steps": 441, "duree_s": 948.8}
+{"plan": "A", "seed": 4, "srv": 4, "succes": false, "vehicule": "n/a", "pertes": 0.143, "ennemis_restants": 11, "steps": 449, "duree_s": 965.2}
+{"plan": "A", "seed": 8, "srv": 8, "succes": false, "vehicule": "n/a", "pertes": 0.143, "ennemis_restants": 12, "steps": 463, "duree_s": 994.3}
+{"plan": "B", "seed": 13, "srv": 13, "succes": false, "vehicule": "n/a", "pertes": 0.214, "ennemis_restants": 7, "steps": 468, "duree_s": 1008.3}
+{"plan": "B", "seed": 3, "srv": 3, "succes": false, "vehicule": "n/a", "pertes": 0.429, "ennemis_restants": 0, "steps": 471, "duree_s": 1011.4}
+{"plan": "B", "seed": 7, "srv": 7, "succes": false, "vehicule": "n/a", "pertes": 0.286, "ennemis_restants": 0, "steps": 471, "duree_s": 1012.0}
+{"plan": "A", "seed": 6, "srv": 6, "succes": false, "vehicule": "n/a", "pertes": 0.179, "ennemis_restants": 4, "steps": 471, "duree_s": 1012.8}
+{"plan": "B", "seed": 15, "srv": 15, "succes": false, "vehicule": "n/a", "pertes": 0.179, "ennemis_restants": 8, "steps": 471, "duree_s": 1013.4}
+{"plan": "A", "seed": 14, "srv": 14, "succes": false, "vehicule": "n/a", "pertes": 0.321, "ennemis_restants": 17, "steps": 471, "duree_s": 1015.6}
