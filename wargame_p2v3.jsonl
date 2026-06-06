@@ -8,3 +8,4 @@
 {"plan": "A", "seed": 6, "srv": 6, "succes": false, "vehicule": "n/a", "pertes": 0.179, "ennemis_restants": 4, "steps": 471, "duree_s": 1012.8}
 {"plan": "B", "seed": 15, "srv": 15, "succes": false, "vehicule": "n/a", "pertes": 0.179, "ennemis_restants": 8, "steps": 471, "duree_s": 1013.4}
 {"plan": "A", "seed": 14, "srv": 14, "succes": false, "vehicule": "n/a", "pertes": 0.321, "ennemis_restants": 17, "steps": 471, "duree_s": 1015.6}
+{"plan": "B", "seed": 1, "srv": 1, "succes": false, "vehicule": "n/a", "pertes": 0.071, "ennemis_restants": 8, "steps": 495, "duree_s": 1066.2}
