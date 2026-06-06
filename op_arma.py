@@ -178,10 +178,7 @@ class OpArma:
             a = acts_per_squad[si]; al = self.alive(si)
             gx, gy = self.goals[si]
             # ---- MODE TRANSIT : posture move, hors contact, loin de l'objectif -> waypoint de groupe (l'IA marche) ----
-            in_transit = (not self._contact(si)) and (
-                (self.stances[si] == "move" and self._goal_dist(si) > 120.0)
-                or (self.stances[si] == "assault" and self._goal_dist(si) > 40.0))
-            if in_transit:
+            if self.stances[si] == "move" and not self._contact(si) and self._goal_dist(si) > 120.0:
                 if self._wp[si] != (int(gx), int(gy)):
                     lead = int(np.argmax(al)) if al.any() else 0
                     cmds.append(('private _u=%s select %d; if (!isNull _u && {alive _u}) then { private _g = group _u; '

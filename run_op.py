@@ -7,13 +7,6 @@ import torch
 from op_arma import OpArma, OperationRunner, DEV
 from train_koth_gpu import Net
 
-p = argparse.ArgumentParser()
-p.add_argument("--reps", type=int, default=1)
-p.add_argument("--acc", type=float, default=4.0)
-p.add_argument("--plan", type=str, default="A", choices=["A", "B"])
-p.add_argument("--journal", type=str, default="op_journal.jsonl")
-a = p.parse_args()
-
 # ---------------------------------------------------------------- géographie de l'opération (autour de la zone rodée)
 COMPLEXE = (15000, 16000)        # l'objectif : garnison ennemie
 CRETE    = (14880, 15860)        # position d'appui (overwatch)
@@ -62,17 +55,25 @@ def make_plan(variant):
                                 ("any", [("squad_at", 0, LZ, 100), ("squad_at", 1, LZ, 100)])])}
 
 
-net = Net(10, 4, 512, 3).to(DEV)
-net.load_state_dict(torch.load("/home/younes/arma3-marl/koth_finetuned.pt", map_location=DEV)); net.eval()
+if __name__ == "__main__":
+    p = argparse.ArgumentParser()
+    p.add_argument("--reps", type=int, default=1)
+    p.add_argument("--acc", type=float, default=4.0)
+    p.add_argument("--plan", type=str, default="A", choices=["A", "B"])
+    p.add_argument("--journal", type=str, default="op_journal.jsonl")
+    a = p.parse_args()
 
-results = []
-for rep in range(a.reps):
-    env = OpArma(squads=(("SQ_APPUI", 7), ("SQ_ASSAUT", 7)), acc=a.acc, seed=rep)
-    env.spawn({"SQ_APPUI": SPAWN_APPUI, "SQ_ASSAUT": SPAWN_ASSAUT},
-              garrison=[(COMPLEXE[0], COMPLEXE[1], 8, 80)])
-    runner = OperationRunner(env, net, make_plan(a.plan), log_path=a.journal)
-    ok = runner.run(max_steps=500)
-    results.append(bool(ok))
-    print("[REP %d/%d] %s | pertes %.0f%% | ennemis restants %d" %
-          (rep + 1, a.reps, "SUCCÈS ✅" if ok else "ÉCHEC ❌", runner.losses() * 100, int(env.en_alive().sum())), flush=True)
-print("BILAN plan %s : %d/%d succès" % (a.plan, sum(results), len(results)), flush=True)
+    net = Net(10, 4, 512, 3).to(DEV)
+    net.load_state_dict(torch.load("/home/younes/arma3-marl/koth_finetuned.pt", map_location=DEV)); net.eval()
+
+    results = []
+    for rep in range(a.reps):
+        env = OpArma(squads=(("SQ_APPUI", 7), ("SQ_ASSAUT", 7)), acc=a.acc, seed=rep)
+        env.spawn({"SQ_APPUI": SPAWN_APPUI, "SQ_ASSAUT": SPAWN_ASSAUT},
+                  garrison=[(COMPLEXE[0], COMPLEXE[1], 8, 80)])
+        runner = OperationRunner(env, net, make_plan(a.plan), log_path=a.journal)
+        ok = runner.run(max_steps=500)
+        results.append(bool(ok))
+        print("[REP %d/%d] %s | pertes %.0f%% | ennemis restants %d" %
+              (rep + 1, a.reps, "SUCCÈS ✅" if ok else "ÉCHEC ❌", runner.losses() * 100, int(env.en_alive().sum())), flush=True)
+    print("BILAN plan %s : %d/%d succès" % (a.plan, sum(results), len(results)), flush=True)

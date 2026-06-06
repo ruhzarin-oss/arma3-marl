@@ -25,7 +25,7 @@ class GeoGPU:
         self.pop_base = pop_base; self.pop_capital = pop_capital
         self.civ_flee = civ_flee; self.civ_loss = civ_loss
         self.doctrines = (doctrines or "A" * n_countries).upper()
-        assert len(self.doctrines) == n_countries and set(self.doctrines) <= set("AEZ"), "doctrines = chaîne en A/E/Z, une par pays"
+        assert len(self.doctrines) == n_countries and set(self.doctrines) <= set("AEZD"), "doctrines = chaîne en A/E/Z, une par pays"
         self.g = torch.Generator(device=device).manual_seed(seed)
         self.base_owner = (torch.arange(self.R, device=device) // arc).long()
         self.capital = torch.tensor([c * arc + arc // 2 for c in range(self.C)], device=device)
@@ -107,7 +107,12 @@ class GeoGPU:
             else:
                 if d == "A":
                     score = torch.where(frontier, self.force, neg)
-                else:
+                elif d == "D":   # DÉNI DE REVENU : vers la région ennemie la + PEUPLÉE (étrangler la base fiscale)
+                    pl = torch.roll(self.pop, 1, 1); pr = torch.roll(self.pop, -1, 1)
+                    tl = torch.where(left != c, pl, torch.zeros_like(pl))
+                    tr = torch.where(right != c, pr, torch.zeros_like(pr))
+                    score = torch.where(frontier, torch.maximum(tl, tr), neg)
+                else:            # ZÉRO-SOMME/CONTRE-FORCE : face à la + grosse force ennemie
                     tl = torch.where(left != c, fl, torch.zeros_like(fl))
                     tr = torch.where(right != c, fr, torch.zeros_like(fr))
                     score = torch.where(frontier, torch.maximum(tl, tr), neg)

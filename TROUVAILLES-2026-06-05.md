@@ -212,6 +212,59 @@ Ce que la journée valide comme **méthode** (le vendable, au-delà des lois) :
 | `MEMOIRE-COMMUNE.md` | journal autoritaire complet |
 | `multi_server.sh` (sandbox) | lanceur M serveurs headless |
 
+# Nuit du 5 au 6 juin — la couche opérationnelle
+
+## L'architecture à trois étages
+
+Construite et validée dans la nuit : **chef d'opération** (machine à phases : ordres par escouade {objectif, posture},
+transitions conditionnelles, contingences avec raison loggée) → **escouades** (cerveau gelé `koth_finetuned` en micro,
+postures = biais de logits : move/assault/suppress/hold, zéro réentraînement) → **moteur** (ennemi scripté : garnison,
+patrouilles, QRF déclenchable). Opération-type HARMATTAN-1 : raid en 5 phases (infiltration 2 axes → mise en place →
+assaut sous suppression → consolidation contre contre-attaque → exfiltration), critères de succès mesurables.
+**Leçon de mouvement** : le micro-pilotage étrangle la marche (~10 m/min) — séparation mouvement opérationnel
+(waypoint de groupe hors contact) / action tactique (le cerveau au contact), comme une vraie unité.
+**Validation** : garnison de 8 anéantie pour 7 % de pertes amies dès le run 3.
+
+## Le wargaming : 60 opérations, deux fausses conclusions tuées
+
+| n=60 (30/plan) | Plan A — appui d'abord | Plan B — assaut direct |
+|---|---|---|
+| Succès | **23/30 (77 %)** | **23/30 (77 %)** |
+| Pertes moyennes | 17.4 % | 13.8 % |
+| Ennemis restants | 0.77 | 0.53 |
+
+**Égalité parfaite au succès** — et un cas d'école : la série 1 (n=15/plan) « prouvait » la supériorité de B (67-80),
+la série 2 « prouvait » celle de A (87-73). Régression vers la moyenne des deux côtés : une publication à n=15 aurait
+été fausse dans les deux sens. Conclusion défendable : **l'opération est robuste à la partition — le succès vient de
+la micro apprise et de la structure phases/contingences, pas du choix doctrinal de surface.** Modes d'échec distincts :
+A échoue par indécision (pertes faibles, garnison intacte), B par saignée.
+
+## Loi 9 — la richesse rend la guerre totale (carte de régimes, 48 conditions, ~1.8 M guerres)
+
+À horloge politique fixe, augmenter la richesse du monde fait exploser l'annihilation (AEZ hold 10 : 0.77→0.93) :
+la richesse accélère l'horloge **militaire** pendant que l'horloge politique reste fixe — les capitales tombent avant
+que la victoire politique soit validée. Corollaires mesurés : guerres riches plus **brèves** et moins meurtrières pour
+les civils *par guerre* ; **exception égalitaire** (le monde-E riche se gèle : paix par impuissance mutuelle, le plus
+humain de la carte) ; en guerre totale, le vainqueur contrôle jusqu'à 89 % de la population restante. Par ailleurs la
+hiérarchie A>E>Z est **universelle** sur la carte — aucun renversement par la richesse : la loi 4 est généralisée.
+
+## Doctrine D (déni de revenu) — le premier challenger, à confirmer
+
+La pointe vise la région ennemie la plus **peuplée** (étrangler la base fiscale). Bataille royale A-D-E (rotations
+convergentes) : **A 0.575 / D 0.421 / E 0.002** — la guerre économique est la première doctrine qui inquiète
+l'Amplificateur, et elle extermine l'Égaliseur. Le monde tout-D est le plus brutal mesuré (91 % d'annihilations,
+guerres en 6 pas, vainqueur avec 39 % du territoire : la prédation généralisée est à somme très négative).
+**⚠️ Non promu en loi** : la sanity DDD est asymétrique (tie-break d'argmax sur scores initialement égaux) — à
+corriger (bruit minuscule sur les scores) et re-tester avant toute conclusion d'invasion.
+
+## Les leçons d'ingénierie de la nuit (à relire avant chaque session)
+
+1. **Garde `__main__` sur tout script** — le même bug a mordu deux fois en 12 h (train_civ, run_op).
+2. **Jamais d'optimisation sans re-validation** — « l'amélioration » de la marche d'assaut a envoyé 10 opérations
+   défiler sous le feu ; le run de référence existait, il suffisait de re-tester contre lui.
+3. **Le parallélisme est la seule accélération sur serveur dédié** (`setAccTime` ignoré) — 16 serveurs validés.
+4. **À n=15, on publie des erreurs** — dans les deux sens.
+
 # Dette et prochaines étapes
 
 - **Dette de consolidation (maximale)** : pas de `git` ; ce document et le snapshot `save01` en tiennent lieu
