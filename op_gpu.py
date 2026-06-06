@@ -143,8 +143,9 @@ class OpGPU:
         self.garr = (self.garr - self.assault_dmg * assaulting.float().sum(1) * self._noise((self.N,))).clamp(min=0)
         # --- QRF : spawn quand la garnison tombe et qu'au moins une escouade tient le complexe ---
         garr_down = self.garr <= 0
-        near_cx = ((d_cx < self.secure_r) & al).any(1)                           # une escouade tient le complexe
-        spawn_qrf = garr_down & near_cx & (~self.qrf_live)
+        # la QRF répond à la PRISE de l'objectif (garnison détruite), PAS à la position des amis — sinon
+        # détruire la garnison depuis l'anneau 60-120 m esquive la QRF (exploit #6, fermé)
+        spawn_qrf = garr_down & (~self.qrf_live)
         # VARIANCE PAR ÉPISODE : la QRF qui se présente n'est pas toujours la même (force/agressivité) —
         # multiplicateur log-normal tiré au spawn. C'est lui qui crée la QUEUE d'échecs (~28%) qu'un bruit
         # par-pas (moyenné sur le combat) ne produit pas. Modélise la vraie variance d'issue du combat.
