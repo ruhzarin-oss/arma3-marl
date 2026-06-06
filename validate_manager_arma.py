@@ -126,3 +126,42 @@ if __name__ == "__main__":
                      log=SB + "/logs/server0.out", move=36, seed=1)
         m = run_manager_op(env, manager, brain, K=a.K, max_steps=a.max_steps, qrf_kind=a.qrf, verbose=True)
         print("[SMOKE] %s" % m, flush=True)
+    else:
+        # --- VALIDATION DE MASSE : 32 ops sur N serveurs (threads, 1 op/serveur à la fois) ---
+        jobs = list(range(a.reps)); lock = threading.Lock(); results = []; cur = [0]
+        def worker(srv):
+            mis = SB + "/arma3server/mpmissions/HarmattanBridge%d.Altis" % srv
+            log = SB + "/logs/server%d.out" % srv
+            while True:
+                with lock:
+                    if cur[0] >= len(jobs): return
+                    seed = jobs[cur[0]]; cur[0] += 1
+                t0 = time.time()
+                try:
+                    env = OpArma(squads=SQUADS, mission=mis, log=log, move=36, seed=seed)
+                    m = run_manager_op(env, manager, brain, K=a.K, max_steps=a.max_steps, qrf_kind=a.qrf)
+                    m["seed"] = seed; m["srv"] = srv; m["dt"] = round(time.time() - t0, 1)
+                except Exception as e:
+                    m = {"seed": seed, "srv": srv, "err": type(e).__name__}
+                with lock:
+                    results.append(m)
+                    with open(a.out, "a") as f: f.write(json.dumps(m) + "\n")
+                    ok = [r for r in results if "mil" in r]
+                    nmil = sum(r["mil"] for r in ok)
+                    print("[%d/%d] srv%d -> mil=%s garr_pris=%s qrf=%s consol=%d | cumul mil %d/%d"
+                          % (len(results), len(jobs), srv, m.get("mil"), m.get("garr_pris"),
+                             m.get("qrf_spawn"), m.get("consol", 0), nmil, len(ok)), flush=True)
+        print("=== VALIDATION MASSE : %d ops / %d serveurs (QRF %s) | baseline scriptée 72%% ===" % (a.reps, a.servers, a.qrf), flush=True)
+        th = [threading.Thread(target=worker, args=(s,)) for s in range(a.servers)]
+        for t in th: t.start()
+        for t in th: t.join()
+        ok = [r for r in results if "mil" in r]
+        if ok:
+            mil = sum(r["mil"] for r in ok) / len(ok)
+            pertes = sum(r["pertes"] for r in ok) / len(ok)
+            gp = sum(r["garr_pris"] for r in ok) / len(ok)
+            qs = sum(r["qrf_spawn"] for r in ok) / len(ok)
+            print("\n=== VERDICT MANAGER ARMA (n=%d) ===" % len(ok), flush=True)
+            print("militaire %.1f%% | pertes moy %.0f%% | complexe pris %.0f%% | QRF affrontée %.0f%%"
+                  % (100*mil, 100*pertes, 100*gp, 100*qs), flush=True)
+            print("[seuils : >=72%% transfert réussi | 50-72%% partiel | <40%% sim sur-appris] vs scripté 72%%", flush=True)
