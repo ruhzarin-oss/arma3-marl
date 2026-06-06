@@ -565,6 +565,16 @@ Demande : carte en 3, agents CIVILS non-militaires, système éco+doctrinal comp
 *Gabarit v2* = correction du chemin vers CONSOLIDATION : (a) en zone effectivement nettoyée (aucun ennemi vivant à <250 m de l'escouade), la posture assault repasse en marche de groupe pour les derniers mètres (condition STRICTEMENT plus forte que le contact-vue qui avait causé le désastre « défiler sous le feu » — leçon re-validée, pas répétée) ; (b) budget ASSAUT 120→160 pas. Tout le reste identique aux 60 ops.
 **P-v2 (baseline)** : « Sur le gabarit v2 vanilla (QRF infanterie, 24 ops), la CONSOLIDATION sera atteinte dans >60 % des ops (sinon v2 est un échec d'ingénierie, pas un résultat) ; le succès global chute sous 60 % (la QRF affrontée est aujourd'hui 0/3) ; la parité A/B persiste (écart <10 pts). »
 **H1 (palier 1 mécanisé, 2×24 ops)** : « Face à une QRF MÉCANISÉE (1 véhicule armé + groupe débarqué), la parité A/B se brise : le plan A (appui d'abord) surperforme le plan B (assaut direct) en taux de succès, parce que l'élément d'appui fixe/traite le véhicule pendant que l'assaut survit. Secondaire : succès global < baseline v2 ; contingences pertes plus fréquentes. **Seuils décidés avant les données : écart A−B ≥ 20 pts = signal (≈1.6σ à n=24/bras) ; ≥ 30 pts = fort ; < 10 pts = parité robuste, H1 morte.** Sort du véhicule tracé (détruit/évité/victorieux). »
+## PILE ALGORITHMIQUE — FEUILLE DE ROUTE PERMANENTE (gravée 06/06, demande Younes : « rappelle-moi souvent où nous en sommes »)
+Couches REMPLIES : micro tactique (koth_finetuned, sim→réel fermé) · ligue PSRO · politique paramétrée par objectif · postures-logits · couche opérationnelle SCRIPTÉE (152 ops, baseline 25 %) · civils appris · briques mémoire/comms (toys).
+Couches RESTANTES, dans l'ordre :
+**[→ PROCHAINE] 1. MANAGER APPRIS** — réseau qui choisit objectifs+postures des escouades (workers gelés, gating léger) ; terrain = sim GPU ; baseline à battre = 25 % (partition scriptée v3).
+**2. CERVEAU STRATÉGIQUE (cerveau-pays)** — RL sur la carte géo (où attaquer/défendre ; question tertius gaudens) → hiérarchie pays→opération→escouade→soldat apprise de bout en bout.
+**3. MÉMOIRE+COMMS DANS LE CERVEAU DÉPLOYÉ** — fusionner RecComm (validé toys) dans le cerveau d'opérations (souvenir du véhicule masqué, info distribuée).
+**4. ADVERSAIRE APPRIS OPÉRATIONNEL** — self-play de chefs d'opération (l'ennemi des 152 ops est scripté).
+**5. DISTILLATION / SPÉCIALISTES (MoE)** — bibliothèque assaut/défense/antichar + routeur appris.
+(L'orchestrateur LLM = cerise démo, hors pile.) RÈGLE D'AFFICHAGE : rappeler l'étape courante à chaque rapport de jalon.
+
 ## CHECKLIST « MONDE 2 » — OUVERTURE DE LA PORTE MODS/DYNAMICS (préparée 06/06, à exécuter comme VERSION MAJEURE avec sa propre Gate 0)
 **Principe** : le monde vanilla reste à JAMAIS le monde de contrôle (212 ops de référence, 10 lois) ; aucune comparaison ne traverse la frontière du mod. DEMO (visuel pur) s'ouvre librement pour le démonstrateur ; DYNAMICS (ACE & co) suit CE cycle, dans CET ordre :
 **M2.0 — Gate 0** : branche git `monde-2` + bundle ; copie du sandbox serveur (`harmattan-sandbox-m2/` ou préfixe mission dédié) pour ne JAMAIS polluer le vanilla ; choix des mods gelé par écrit (proposition : ACE médical+balistique, LAMBS danger.fsm IA ; PAS de mods de contenu au début — moins de variables).
