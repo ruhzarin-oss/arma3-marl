@@ -1,0 +1,112 @@
+{"mil": true, "pertes": 0.2142857142857143, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 1, "seed": 12, "srv": 12, "dt": 466.6, "op": "TASSILI-12", "man": "M1"}
+{"mil": true, "pertes": 0.0, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 4, "seed": 11, "srv": 11, "dt": 525.5, "op": "ADRAR-11", "man": "M1"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 9, "srv": 9, "dt": 554.4, "op": "BURIN-09", "man": "M1"}
+{"mil": true, "pertes": 0.0, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 4, "srv": 4, "dt": 557.5, "op": "HARFANG-04", "man": "M1"}
+{"mil": false, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 1, "srv": 1, "dt": 565.8, "op": "SIROCCO-01", "man": "M1"}
+{"mil": true, "pertes": 0.1428571428571429, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 5, "seed": 8, "srv": 8, "dt": 575.4, "op": "MISTRAL-08", "man": "M1"}
+{"mil": true, "pertes": 0.25, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 3, "seed": 5, "srv": 5, "dt": 580.0, "op": "GERFAUT-05", "man": "M1"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 5, "seed": 2, "srv": 2, "dt": 594.3, "op": "EPERVIER-02", "man": "M1"}
+{"mil": true, "pertes": 0.25, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 4, "seed": 15, "srv": 15, "dt": 616.0, "op": "BALISTE-15", "man": "M1"}
+{"mil": true, "pertes": 0.0, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 10, "srv": 10, "dt": 623.1, "op": "FENNEC-10", "man": "M1"}
+{"mil": true, "pertes": 0.3571428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 13, "srv": 13, "dt": 674.1, "op": "SEKKIN-13", "man": "M1"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 6, "srv": 6, "dt": 677.2, "op": "SAGAIE-06", "man": "M1"}
+{"mil": true, "pertes": 0.1785714285714286, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 3, "seed": 0, "srv": 0, "dt": 700.3, "op": "CIMETERRE-00", "man": "M1"}
+{"mil": true, "pertes": 0.2142857142857143, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 7, "srv": 7, "dt": 887.1, "op": "TANEZROUFT-07", "man": "M1"}
+{"mil": true, "pertes": 0.25, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 14, "srv": 14, "dt": 1035.4, "op": "OURAGAN-14", "man": "M1"}
+{"mil": true, "pertes": 0.2857142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 3, "srv": 3, "dt": 1057.1, "op": "TRAMONTANE-03", "man": "M1"}
+{"mil": false, "pertes": 0.5357142857142857, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "seed": 10, "srv": 10, "dt": 160.9, "op": "GHIBLI-10", "man": "M2"}
+{"mil": true, "pertes": 0.2142857142857143, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 7, "srv": 7, "dt": 604.8, "op": "ERG-07", "man": "M2"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 4, "srv": 4, "dt": 643.8, "op": "SAHEL-04", "man": "M2"}
+{"mil": true, "pertes": 0.2142857142857143, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 5, "srv": 5, "dt": 649.8, "op": "KHAMSIN-05", "man": "M2"}
+{"mil": true, "pertes": 0.1785714285714286, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 13, "srv": 13, "dt": 651.8, "op": "AQUILON-13", "man": "M2"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 3, "srv": 3, "dt": 679.8, "op": "TAGANT-03", "man": "M2"}
+{"mil": true, "pertes": 0.0, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 2, "seed": 9, "srv": 9, "dt": 682.0, "op": "BARKANE-09", "man": "M2"}
+{"mil": true, "pertes": 0.3214285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 6, "srv": 6, "dt": 685.5, "op": "SIMOUN-06", "man": "M2"}
+{"mil": true, "pertes": 0.1428571428571429, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 11, "srv": 11, "dt": 686.9, "op": "HABOOB-11", "man": "M2"}
+{"mil": true, "pertes": 0.1428571428571429, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 12, "srv": 12, "dt": 691.3, "op": "ZEPHYR-12", "man": "M2"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 8, "srv": 8, "dt": 701.2, "op": "REG-08", "man": "M2"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 1, "srv": 1, "dt": 732.1, "op": "AZALAI-01", "man": "M2"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 14, "srv": 14, "dt": 796.9, "op": "BOREE-14", "man": "M2"}
+{"mil": true, "pertes": 0.1428571428571429, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 2, "srv": 2, "dt": 808.1, "op": "HOGGAR-02", "man": "M2"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 0, "srv": 0, "dt": 812.1, "op": "CHERGUI-00", "man": "M2"}
+{"mil": true, "pertes": 0.1785714285714286, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 15, "srv": 15, "dt": 901.7, "op": "NOROIT-15", "man": "M2"}
+{"mil": true, "pertes": 0.0, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 4, "srv": 4, "dt": 462.0, "op": "HARFANG-04", "man": "M3"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 7, "srv": 7, "dt": 485.1, "op": "TANEZROUFT-07", "man": "M3"}
+{"mil": true, "pertes": 0.1785714285714286, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 10, "srv": 10, "dt": 585.4, "op": "FENNEC-10", "man": "M3"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 11, "srv": 11, "dt": 609.7, "op": "ADRAR-11", "man": "M3"}
+{"mil": true, "pertes": 0.2142857142857143, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 1, "seed": 9, "srv": 9, "dt": 611.1, "op": "BURIN-09", "man": "M3"}
+{"mil": true, "pertes": 0.25, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 2, "seed": 15, "srv": 15, "dt": 629.1, "op": "BALISTE-15", "man": "M3"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 14, "srv": 14, "dt": 634.3, "op": "OURAGAN-14", "man": "M3"}
+{"mil": true, "pertes": 0.0, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 4, "seed": 2, "srv": 2, "dt": 636.3, "op": "EPERVIER-02", "man": "M3"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 0, "srv": 0, "dt": 652.8, "op": "CIMETERRE-00", "man": "M3"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 13, "srv": 13, "dt": 679.7, "op": "SEKKIN-13", "man": "M3"}
+{"mil": true, "pertes": 0.2142857142857143, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 8, "srv": 8, "dt": 719.9, "op": "MISTRAL-08", "man": "M3"}
+{"mil": true, "pertes": 0.2857142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 1, "seed": 3, "srv": 3, "dt": 796.2, "op": "TRAMONTANE-03", "man": "M3"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 5, "srv": 5, "dt": 819.1, "op": "GERFAUT-05", "man": "M3"}
+{"mil": false, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 5, "seed": 6, "srv": 6, "dt": 869.3, "op": "SAGAIE-06", "man": "M3"}
+{"mil": true, "pertes": 0.2142857142857143, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 1, "srv": 1, "dt": 1016.8, "op": "SIROCCO-01", "man": "M3"}
+{"mil": true, "pertes": 0.25, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 12, "srv": 12, "dt": 1021.5, "op": "TASSILI-12", "man": "M3"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 15, "srv": 15, "dt": 582.9, "op": "NOROIT-15", "man": "M4"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 3, "seed": 9, "srv": 9, "dt": 583.1, "op": "BARKANE-09", "man": "M4"}
+{"mil": true, "pertes": 0.25, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 10, "srv": 10, "dt": 606.2, "op": "GHIBLI-10", "man": "M4"}
+{"mil": true, "pertes": 0.0, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 8, "srv": 8, "dt": 608.9, "op": "REG-08", "man": "M4"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 13, "srv": 13, "dt": 628.0, "op": "AQUILON-13", "man": "M4"}
+{"mil": true, "pertes": 0.1428571428571429, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 1, "seed": 0, "srv": 0, "dt": 634.8, "op": "CHERGUI-00", "man": "M4"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 6, "srv": 6, "dt": 646.7, "op": "SIMOUN-06", "man": "M4"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 3, "srv": 3, "dt": 686.0, "op": "TAGANT-03", "man": "M4"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 2, "srv": 2, "dt": 708.8, "op": "HOGGAR-02", "man": "M4"}
+{"mil": true, "pertes": 0.25, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 11, "srv": 11, "dt": 714.1, "op": "HABOOB-11", "man": "M4"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 5, "srv": 5, "dt": 715.6, "op": "KHAMSIN-05", "man": "M4"}
+{"mil": true, "pertes": 0.2142857142857143, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 7, "srv": 7, "dt": 716.0, "op": "ERG-07", "man": "M4"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 14, "srv": 14, "dt": 716.8, "op": "BOREE-14", "man": "M4"}
+{"mil": true, "pertes": 0.1785714285714286, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 1, "seed": 4, "srv": 4, "dt": 750.0, "op": "SAHEL-04", "man": "M4"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 1, "srv": 1, "dt": 784.6, "op": "AZALAI-01", "man": "M4"}
+{"mil": true, "pertes": 0.25, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 12, "srv": 12, "dt": 873.1, "op": "ZEPHYR-12", "man": "M4"}
+{"mil": false, "pertes": 0.2857142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 4, "srv": 4, "dt": 427.4, "op": "HARFANG-04", "man": "M5"}
+{"mil": false, "pertes": 0.0, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 2, "srv": 2, "dt": 467.8, "op": "EPERVIER-02", "man": "M5"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 5, "seed": 11, "srv": 11, "dt": 526.0, "op": "ADRAR-11", "man": "M5"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 4, "seed": 1, "srv": 1, "dt": 532.3, "op": "SIROCCO-01", "man": "M5"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 4, "seed": 12, "srv": 12, "dt": 543.0, "op": "TASSILI-12", "man": "M5"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 4, "seed": 5, "srv": 5, "dt": 543.5, "op": "GERFAUT-05", "man": "M5"}
+{"mil": true, "pertes": 0.1785714285714286, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 2, "seed": 14, "srv": 14, "dt": 547.2, "op": "OURAGAN-14", "man": "M5"}
+{"mil": true, "pertes": 0.25, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 1, "seed": 3, "srv": 3, "dt": 557.1, "op": "TRAMONTANE-03", "man": "M5"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 4, "seed": 10, "srv": 10, "dt": 559.8, "op": "FENNEC-10", "man": "M5"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 9, "srv": 9, "dt": 566.4, "op": "BURIN-09", "man": "M5"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 4, "seed": 0, "srv": 0, "dt": 589.8, "op": "CIMETERRE-00", "man": "M5"}
+{"mil": true, "pertes": 0.1785714285714286, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 7, "srv": 7, "dt": 615.7, "op": "TANEZROUFT-07", "man": "M5"}
+{"mil": true, "pertes": 0.1428571428571429, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 1, "seed": 6, "srv": 6, "dt": 712.3, "op": "SAGAIE-06", "man": "M5"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 13, "srv": 13, "dt": 740.5, "op": "SEKKIN-13", "man": "M5"}
+{"mil": false, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 8, "srv": 8, "dt": 771.4, "op": "MISTRAL-08", "man": "M5"}
+{"mil": true, "pertes": 0.3214285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 15, "srv": 15, "dt": 904.7, "op": "BALISTE-15", "man": "M5"}
+{"mil": false, "pertes": 0.5714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 3, "seed": 4, "srv": 4, "dt": 9.8, "op": "SAHEL-04", "man": "M6"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 11, "srv": 11, "dt": 448.9, "op": "HABOOB-11", "man": "M6"}
+{"mil": true, "pertes": 0.1428571428571429, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 2, "seed": 14, "srv": 14, "dt": 551.9, "op": "BOREE-14", "man": "M6"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 2, "seed": 0, "srv": 0, "dt": 556.3, "op": "CHERGUI-00", "man": "M6"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 4, "seed": 7, "srv": 7, "dt": 561.2, "op": "ERG-07", "man": "M6"}
+{"mil": true, "pertes": 0.0, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 4, "seed": 2, "srv": 2, "dt": 577.4, "op": "HOGGAR-02", "man": "M6"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 15, "srv": 15, "dt": 676.0, "op": "NOROIT-15", "man": "M6"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 5, "srv": 5, "dt": 677.5, "op": "KHAMSIN-05", "man": "M6"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 6, "srv": 6, "dt": 685.6, "op": "SIMOUN-06", "man": "M6"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 3, "srv": 3, "dt": 696.8, "op": "TAGANT-03", "man": "M6"}
+{"mil": true, "pertes": 0.1428571428571429, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "seed": 9, "srv": 9, "dt": 718.8, "op": "BARKANE-09", "man": "M6"}
+{"mil": true, "pertes": 0.1428571428571429, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 2, "seed": 10, "srv": 10, "dt": 746.8, "op": "GHIBLI-10", "man": "M6"}
+{"mil": true, "pertes": 0.1785714285714286, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "seed": 13, "srv": 13, "dt": 825.8, "op": "AQUILON-13", "man": "M6"}
+{"mil": true, "pertes": 0.2857142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 1, "seed": 12, "srv": 12, "dt": 903.2, "op": "ZEPHYR-12", "man": "M6"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "seed": 1, "srv": 0, "dt": 646.2, "op": "AZALAI-01", "man": "M6", "enemy": "normal"}
+{"mil": true, "pertes": 0.0, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "seed": 13, "srv": 15, "dt": 657.3, "op": "SEKKIN-13", "man": "M7", "enemy": "normal"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 1, "ennemis_total": 28, "seed": 11, "srv": 13, "dt": 682.8, "op": "ADRAR-11", "man": "M7", "enemy": "normal"}
+{"mil": true, "pertes": 0.0, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 1, "ennemis_total": 28, "seed": 8, "srv": 1, "dt": 683.3, "op": "REG-08", "man": "M6", "enemy": "normal"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "seed": 7, "srv": 9, "dt": 706.3, "op": "TANEZROUFT-07", "man": "M7", "enemy": "normal"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "seed": 9, "srv": 11, "dt": 713.6, "op": "BURIN-09", "man": "M7", "enemy": "normal"}
+{"mil": true, "pertes": 0.1785714285714286, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "seed": 8, "srv": 10, "dt": 724.8, "op": "MISTRAL-08", "man": "M7", "enemy": "normal"}
+{"mil": true, "pertes": 0.2142857142857143, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 3, "ennemis_total": 28, "seed": 0, "srv": 2, "dt": 730.0, "op": "CIMETERRE-00", "man": "M7", "enemy": "normal"}
+{"mil": true, "pertes": 0.25, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 1, "ennemis_total": 28, "seed": 1, "srv": 3, "dt": 734.2, "op": "SIROCCO-01", "man": "M7", "enemy": "normal"}
+{"mil": true, "pertes": 0.1428571428571429, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "seed": 3, "srv": 5, "dt": 740.3, "op": "TRAMONTANE-03", "man": "M7", "enemy": "normal"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "seed": 5, "srv": 7, "dt": 762.7, "op": "GERFAUT-05", "man": "M7", "enemy": "normal"}
+{"mil": true, "pertes": 0.1428571428571429, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "seed": 10, "srv": 12, "dt": 778.4, "op": "FENNEC-10", "man": "M7", "enemy": "normal"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "seed": 6, "srv": 8, "dt": 829.0, "op": "SAGAIE-06", "man": "M7", "enemy": "normal"}
+{"mil": false, "pertes": 0.0, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 4, "srv": 6, "dt": 1064.3, "op": "HARFANG-04", "man": "M7", "enemy": "normal"}
+{"mil": false, "pertes": 0.0, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 12, "srv": 14, "dt": 1066.6, "op": "TASSILI-12", "man": "M7", "enemy": "normal"}
+{"mil": false, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "seed": 2, "srv": 4, "dt": 1074.9, "op": "EPERVIER-02", "man": "M7", "enemy": "normal"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "seed": 15, "srv": 15, "dt": 598.4, "op": "BALISTE-15", "man": "M7", "enemy": "normal"}
+{"mil": true, "pertes": 0.0, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "seed": 14, "srv": 0, "dt": 718.9, "op": "OURAGAN-14", "man": "M7", "enemy": "normal"}

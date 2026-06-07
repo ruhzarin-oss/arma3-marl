@@ -9,6 +9,7 @@ import torch
 from op_arma import OpArma, OperationRunner
 from train_koth_gpu import Net
 from baptism import op_name
+from enemy_profiles import apply_profile, metrics_dyn, PRO_SKILL_SQF, HUNT_SQF
 import maneuvers as M
 
 SB = "/mnt/data/harmattan-sandbox"
@@ -31,14 +32,19 @@ def metrics(env, runner):
             "qrf_spawn": bool(qrf_live), "qrf_reste": qrf_a}
 
 
-def run_one(brain, plan, srv, seed, max_steps, verbose, log_path):
+def run_one(brain, plan, srv, seed, max_steps, verbose, log_path, enemy="normal"):
     mis = SB + "/arma3server/mpmissions/HarmattanBridge%d.Altis" % srv
     log = SB + "/logs/server%d.out" % srv
     env = OpArma(squads=M.SQUADS, mission=mis, log=log, move=36, seed=seed)
-    env.spawn(M.SPAWNS, M.GARRISON)
+    # [v4] profil de défense : effectifs échelonnés + (si pro) compétences montées + boucle de chasse
+    garrison, prof = apply_profile(env, enemy, M.GARRISON)
+    plan["garr_n"] = garrison[0][2]                     # le déclencheur QRF suit l'effectif réel
+    env.spawn(M.SPAWNS, garrison)
+    if prof["pro"]:
+        env.b.send(PRO_SKILL_SQF + HUNT_SQF, wait=True)
     runner = OperationRunner(env, brain, plan, log_path=log_path, verbose=verbose)
     runner.run(max_steps=max_steps)
-    return metrics(env, runner)
+    return metrics_dyn(env, runner, garrison)
 
 
 if __name__ == "__main__":
@@ -48,6 +54,7 @@ if __name__ == "__main__":
     p.add_argument("--servers", type=int, default=16); p.add_argument("--reps", type=int, default=24)
     p.add_argument("--max_steps", type=int, default=500); p.add_argument("--qrf", type=str, default="inf")
     p.add_argument("--out", type=str, default="run_maneuver.jsonl")
+    p.add_argument("--enemy", type=str, default="normal", choices=["normal", "pro", "hardcore", "nightmare"])
     a = p.parse_args()
     brain = Net(10, 4, 512, 3).to(DEV)
     brain.load_state_dict(torch.load("koth_finetuned.pt", map_location=DEV)); brain.eval()
@@ -55,7 +62,7 @@ if __name__ == "__main__":
 
     if a.smoke:
         print("=== SMOKE %s : 1 opération Arma (journal verbeux) ===" % plan["name"], flush=True)
-        m = run_one(brain, plan, srv=0, seed=1, max_steps=a.max_steps, verbose=True, log_path="op_journal.jsonl")
+        m = run_one(brain, plan, srv=0, seed=1, max_steps=a.max_steps, verbose=True, log_path="op_journal.jsonl", enemy=a.enemy)
         m["op"] = op_name(a.maneuver, 1)
         print("[SMOKE %s] %s" % (a.maneuver, m), flush=True)
     else:
@@ -67,14 +74,14 @@ if __name__ == "__main__":
                     seed = jobs[cur[0]]; cur[0] += 1
                 t0 = time.time()
                 try:
-                    m = run_one(brain, plan, srv, seed, a.max_steps, False, "/dev/null")
+                    m = run_one(brain, plan, srv, seed, a.max_steps, False, "/dev/null", enemy=a.enemy)
                     m["seed"] = seed; m["srv"] = srv; m["dt"] = round(time.time() - t0, 1)
                 except Exception as e:
                     m = {"seed": seed, "srv": srv, "err": type(e).__name__}
                 m["op"] = op_name(a.maneuver, seed)   # baptême : chaque ligne = une op nommée, traçable
                 with lock:
                     results.append(m)
-                    with open(a.out, "a") as f: f.write(json.dumps({**m, "man": a.maneuver}) + "\n")
+                    with open(a.out, "a") as f: f.write(json.dumps({**m, "man": a.maneuver, "enemy": a.enemy}) + "\n")
                     ok = [r for r in results if "mil" in r]; nmil = sum(r["mil"] for r in ok)
                     print("[%d/%d] srv%d -> mil=%s garr_pris=%s qrf=%s | cumul mil %d/%d"
                           % (len(results), len(jobs), srv, m.get("mil"), m.get("garr_pris"),

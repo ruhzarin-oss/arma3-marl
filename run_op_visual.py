@@ -11,6 +11,7 @@ from op_arma import OpArma, OperationRunner
 from arma_bridge import ArmaBridge
 from train_koth_gpu import Net
 from baptism import op_name
+from enemy_profiles import ENEMY_PROFILES, PRO_SKILL_SQF, HUNT_SQF, apply_profile, metrics_dyn
 import maneuvers as M
 
 SB = "/mnt/data/harmattan-sandbox"
@@ -31,65 +32,6 @@ VISU_SPAWNS = {"SQ_APPUI": (14920, 15830), "SQ_A_OUEST": (15080, 15830),
 # LZ de mesure (15180,15620) = OCÉAN (vu in-game par Younes 07/06) -> LZ visuelle au sec, même axe sud-est
 # (rivage local ~y=15750-15800 ; les voisins x=15080 et x=15290 sont secs à y=15830).
 VISU_LZ = (15180, 15840)
-
-# ---- PROFILS ENNEMIS (mode visuel ; demande Younes 07/06 : « rendre les IA hardcore, 50-90 ennemis ») ----
-# mult échelonne garnison+patrouilles, qrf_mult la contre-attaque ; skill+hunt = niveau « pro » :
-# sous-compétences montées (visée/détection/sang-froid) + boucle de CHASSE (un groupe qui acquiert un
-# contact convertit sa patrouille en seek-and-destroy — fini l'ennemi statique qui attend la mort).
-# ⚠️ Gradué exprès : à 1:3 contre des pros, l'attente doctrinale est 0 % partout (effet plancher déjà
-# documenté au palier 1) — l'intéressant est le cran où le classement des manœuvres bascule.
-ENEMY_PROFILES = {
-    "normal":    dict(mult=1.0, qrf_mult=1.0, pro=False),   # 20 + QRF 8  = 28 (la table)
-    "pro":       dict(mult=1.5, qrf_mult=1.5, pro=True),    # 30 + QRF 12 = 42
-    "hardcore":  dict(mult=2.2, qrf_mult=2.0, pro=True),    # 44 + QRF 16 = 60
-    "nightmare": dict(mult=3.0, qrf_mult=3.0, pro=True),    # 60 + QRF 24 = 84
-}
-PRO_SKILL_SQF = (
-    '{ _x setSkill ["aimingAccuracy", 0.75]; _x setSkill ["aimingSpeed", 0.9];'
-    ' _x setSkill ["aimingShake", 0.9]; _x setSkill ["spotDistance", 0.95];'
-    ' _x setSkill ["spotTime", 0.9]; _x setSkill ["courage", 1]; _x setSkill ["commanding", 1];'
-    ' _x setSkill ["general", 1]; } forEach HMT_EN;\n')
-HUNT_SQF = (
-    'HMT_HUNT = true;\n'
-    '[] spawn {\n'
-    '  while {HMT_HUNT} do {\n'
-    '    {\n'
-    '      private _g = _x;\n'
-    '      private _best = objNull; private _bk = 1.5;\n'
-    '      { private _k = _g knowsAbout _x; if (_k > _bk) then { _bk = _k; _best = _x; }; }\n'
-    '        forEach (allUnits select { side _x == west && {alive _x} && {!isPlayer _x} });\n'
-    '      if (!isNull _best && {({alive _x} count units _g) > 0}) then {\n'
-    '        while {count waypoints _g > 0} do { deleteWaypoint [_g, 0] };\n'
-    '        private _wp = _g addWaypoint [getPos _best, 30];\n'
-    '        _wp setWaypointType "SAD"; _wp setWaypointSpeed "FULL"; _g setBehaviour "COMBAT";\n'
-    '      };\n'
-    '    } forEach (allGroups select { side _x == east });\n'
-    '    sleep 30;\n'
-    '  };\n'
-    '};\n')
-
-
-def scaled_garrison(mult):
-    """M.GARRISON échelonné : mêmes positions/rayons, effectifs xmult (la géométrie de défense est conservée)."""
-    return [(x, y, max(1, round(n * mult)), rad) for (x, y, n, rad) in M.GARRISON]
-
-
-def metrics_dyn(env, runner, garrison):
-    """metrics de run_maneuver, mais avec effectifs DYNAMIQUES (les profils ennemis cassent les tranches 12/8/8)."""
-    eal = env.en_alive()
-    gn = garrison[0][2]; pn = sum(g[2] for g in garrison[1:])
-    garr_a = int(eal[0:gn].sum()); pat_a = int(eal[gn:gn + pn].sum()); qrf_a = int(eal[gn + pn:].sum())
-    qrf_live = "qrf" in runner.qrf_done
-    qrf_n = max(0, eal.size - gn - pn)
-    alive_tot = sum(int(env.alive(si).sum()) for si in range(env.S))
-    pertes = 1 - alive_tot / sum(env.sizes)
-    eff_total = gn + pn + (qrf_n if qrf_live else 0)
-    reste = garr_a + pat_a + qrf_a
-    ennemi_brise = (garr_a == 0) and ((1 - reste / max(eff_total, 1)) >= 0.7)
-    mil = bool(ennemi_brise and pertes <= 0.5)
-    return {"mil": mil, "pertes": float(pertes), "garr_pris": bool(garr_a == 0),
-            "qrf_spawn": bool(qrf_live), "qrf_reste": qrf_a, "ennemis_total": int(eff_total)}
-
 
 def _swap_point(obj, old, new):
     """Remplace récursivement un point (tuple/liste == old) dans le plan-dict — goals des orders ET
@@ -269,17 +211,14 @@ if __name__ == "__main__":
         env.acc = float(a.speed)
         env.step_wait = 4.0 / float(a.speed)
         plan = _swap_point(plan, M.LZ, VISU_LZ)   # exfil au sec (la LZ de mesure est dans l'océan)
-        # profil ennemi : effectifs échelonnés + QRF échelonnée (wrapper) ; pro/hunt envoyés post-spawn
-        garrison = scaled_garrison(prof["mult"])
-        if prof["qrf_mult"] != 1.0:
-            _oq, _oqm = env.spawn_qrf, env.spawn_qrf_mech
-            env.spawn_qrf = lambda x, y, n, t: _oq(x, y, max(1, round(n * prof["qrf_mult"])), t)
-            env.spawn_qrf_mech = lambda x, y, n, t: _oqm(x, y, max(1, round(n * prof["qrf_mult"])), t)
+        # profil ennemi : module partagé (effectifs échelonnés + wrapper QRF) ; pro/hunt envoyés post-spawn
+        garrison, prof = apply_profile(env, a.enemy, M.GARRISON)
         # purge du théâtre : les unités orphelines d'une op précédente (morte ou finie) polluent la preview
         env.b.send("HMT_HUNT = false; { if (_x != player) then { deleteVehicle _x }; } forEach allUnits; "
                    "{ deleteVehicle _x } forEach vehicles;", wait=True)
         print("[enemy] profil %s : garnison+patrouilles %d, QRF x%.1f, pro=%s"
               % (a.enemy, sum(g[2] for g in garrison), prof["qrf_mult"], prof["pro"]), flush=True)
+    plan["garr_n"] = garrison[0][2]   # le déclencheur QRF suit l'effectif réel
     env.spawn(spawns, garrison)
     if a.editor and prof["pro"]:
         env.b.send(PRO_SKILL_SQF + HUNT_SQF, wait=True)   # compétences pro + boucle de chasse (ennemi offensif)

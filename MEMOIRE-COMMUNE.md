@@ -740,3 +740,41 @@ Lecture : si M3/M6/M7 ≥ M1 -> meilleur chef d'op transférable ; si M5 ≈ M3 
 **PRÉDICTIONS (militaire %, n=16, v2 → fourchette v3)** : M1 56→**50-70** · M2 62.5→**45-60** · M3 31→**25-45** · M4 25→**20-40** · M5 56→**35-55** · M6 50→**35-55** · M7 25→**15-35**.
 **QUESTION DÉCISIVE PRÉ-ENREGISTRÉE** : familles poolées A(M1,M2,M5,M6) vs B(M3,M4,M7) — **loi CONFIRMÉE** si écart ≥15 pts (z≥2) ; **AFFAIBLIE** si 5-15 pts ; **ARTEFACT** si <5 pts ou inversion. Vérification du fix : % d'ops « garnison prise ET QRF affrontée » attendu ≈ 100 (vs 50-81 en v2).
 **ADDENDUM PRÉ-ENREGISTRÉ V3 (07/06 15h25 — APRÈS M1 seul, AVANT M2-M7)** : M1 v3 = 93.8 % (préd 50-70 RÉFUTÉE vers le haut ; QRF 100 % ✓ fix validé ; cause probable = approche comprimée à ~170 m par les spawns secs, l'écran de patrouilles ne mord plus). **RÈGLE D'EFFET PLAFOND (symétrique de la règle plancher du palier 1)** : si les familles A ET B sortent toutes deux >85 %, le verdict familles sera rendu **« NON-CONCLUANT : effet plafond »** — on ne départage pas des doctrines quand tout réussit. Départage secondaire pré-enregistré dans ce cas : pertes moyennes, % QRF détruite, durée des ops. Si plafond confirmé → harnais v4 à durcir (défense renforcée ou théâtre plus profond — PAS de retour à la nage).
+
+### 2026-06-07 16h20 — PRINCIPE DE DESIGN (formulation Younes) + PRÉ-ENREGISTREMENT TABLE V4 (défense pro)
+**PRINCIPE GRAVÉ : « c'est la difficulté qui fait l'apprentissage, pas l'inverse »** — complété par les deux accidents d'instrument du projet : plancher palier 1 (tout meurt = zéro signal) et plafond v3 (tout réussit = zéro signal). Règle opérationnelle : tenir le harnais à la FRONTIÈRE (~50 % de succès), difficulté par l'ADVERSAIRE (compétence/agressivité/nombre), jamais par accident de géographie.
+**HARNAIS V4 = v3 (QRF inesquivable + géo sèche) + DÉFENSE PRO** : 30 garnison+patrouilles (×1.5) + QRF 12, sous-compétences montées (visée .75/.9, spot .95/.9, courage/commanding 1), boucle de CHASSE 30 s (tout groupe au contact convertit en SAD FULL). Module partagé enemy_profiles.py (mesure+visuel), métrique dynamique.
+**PRÉDICTIONS PRÉ-ENREGISTRÉES (militaire %, n=16, AVANT toute donnée pro)** : M1 **30-55** · M2 **25-50** · M3 **10-35** · M4 **10-30** · M5 **20-45** · M6 **15-40** (spot 0.95 punit l'infiltration) · M7 **5-25**. Mode d'échec NOUVEAU attendu : la chasse transforme la défense en contre-attaque continue → pertes amies en hausse nette (>25 % moy), échecs par submersion pendant la consolidation.
+**QUESTION DÉCISIVE (la loi des 2 axes, redevenue hypothèse après le rétro-éclairage v3)** : familles poolées A vs B — ≥15 pts = loi RE-confirmée sur harnais propre ET dur ; 5-15 = affaiblie ; <5/inversion = la loi v2 était l'ombre de l'eau. Règles plancher (<15 % les deux) et plafond (>85 % les deux) = NON-CONCLUANT → recalibrer (hardcore ou pro-ajusté).
+
+### 2026-06-07 ~19h — TABLE V3 : RÉSULTATS (interrompue à M6 14/16) + VERDICT PLAFOND + INCIDENT
+
+**TABLE V3 MESURÉE (harnais propre : QRF-sur-garnison + géo sèche, défense normale, n=16 sauf M6)** :
+| man | n | mil% | garr% | QRF-spawn% | pertes% | dt moy | préd v3 | verdict préd |
+|---|---|---|---|---|---|---|---|---|
+| M4 assaut-massé | 16 | **100.0** | 100 | 100 | 12.9 | 685s | 20-40 | ❌ réfutée HAUT |
+| M1 appui-assaut | 16 | 93.8 | 100 | 100 | 14.7 | 668s | 50-70 | ❌ réfutée HAUT |
+| M2 double-env | 16 | 93.8 | 93.8 | 93.8 | 15.4 | 681s | 45-60 | ❌ réfutée HAUT |
+| M3 env-simple | 16 | 93.8 | 100 | 100 | 13.2 | 702s | 25-45 | ❌ réfutée HAUT |
+| M6 infiltration | **14** | 92.9 | 100 | 100 | 14.0 | 617s | 35-55 | ❌ réfutée HAUT (partiel) |
+| M5 feinte+débord | 16 | **81.2** | 100 | 100 | 12.7 | 600s | 35-55 | ❌ réfutée HAUT |
+| M7 échelonnée | **0** | — | — | — | — | — | 15-35 | JAMAIS MESURÉE |
+
+**TRACK-RECORD V3 : 0/6 prédictions tenues, toutes réfutées vers le HAUT.** Direction univoque : j'avais modélisé le fix QRF comme vent contraire dominant ; en réalité le fix nage (vent favorable) a tout écrasé. **La difficulté de la v2 n'était pas la défense, c'était la baignade** — approche courte et sèche = +30 à +75 pts selon la manœuvre.
+
+**FIX QRF VALIDÉ À 100 %** : QRF-spawn ≈ 100 % partout (vs 50-81 % v2) — l'esquive par contingence est morte, exactement comme conçu. Le seul effet contraire visible : **M5 81.2 % = pire score v3**, et c'était LA manœuvre qui esquivait le plus en v2 (50 %). Cohérent au mécanisme près.
+
+**VERDICT FAMILLES (règle plafond pré-enregistrée DÉCLENCHÉE)** : A(M1,M2,M5,M6)=90.3 % vs B(M3,M4 — M7 absente)=96.9 % → les deux familles >85 % = **NON-CONCLUANT : EFFET PLAFOND** (et même légère inversion, dénuée de sens à ce niveau). Départage secondaire pré-enregistré : pertes 12.7-15.4 % quasi uniformes, durées 600-702s — **rien ne discrimine**. La loi des 2 axes reste donc HYPOTHÈSE OUVERTE, ni confirmée ni réfutée par la v3 ; c'est la table v4 (défense pro) qui doit trancher. ⚠️ Verdict prononcé avec M6 partiel (14/16) et M7 absente — M7 ne peut PAS renverser le plafond (il faudrait qu'elle sorte <85 % ET que ça tire B sous le seuil ; même M7=0 % donnerait B≈64 %, ce qui changerait le verdict en « non-concluant pour une autre raison », pas en confirmation propre). Compléter quand même pour l'hygiène de table.
+
+**INCIDENT** : la mesure est morte entre M6 et M7 (~16h27, dernière op ZEPHYR-12), très probablement à la fermeture de la session Claude qui portait le run. Constat à 18h50 : **0 serveur arma3 vivant** (flotte entière tombée), aucun processus run_table/run_maneuver, **logs /tmp volatils PERDUS** (table v3 + boot flotte — la cause exacte de la mort est irrécupérable). Leçon répétée (2e crash de table en 2 jours, après le PC coupé du 06/06) : **un run de plusieurs heures doit être détaché de la session (nohup/systemd-run) ET logger en dur dans ~/arma3-marl/logs_train/, jamais /tmp.**
+**M6 seeds manquants : 1 et 8.** Reprise = APPEND-only (jamais run_table_v3.sh brut, même piège que la v2 : il écrase le jsonl).
+
+**ÉTAT DES ARTEFACTS (non commités au moment de la consigne)** : `table_maneuvers_v3.jsonl` (94 ops) ; `enemy_profiles.py` + `run_table_v4.sh` (harnais v4 prêt, smoke pro PAS encore passé) ; modifs `run_maneuver.py` (--enemy pro, métrique dyn) + `run_op_visual.py`. Tag `harnais-v3` posé, **tag `table-v3` PAS posé** (attendait M7).
+
+**SÉQUENCE DE REPRISE (inchangée, gravée ici)** : (1) reboot flotte 16 serveurs ; (2) M6 seeds 1+8 puis M7 n=16, en APPEND, run détaché + log persistant ; (3) verdict familles FORMEL recalculé table complète ; (4) commit + tag `table-v3` ; (5) smoke pro (1 op, vérifier compétences + boucle de chasse sans erreur SQF côté serveur dédié) ; (6) table v4 défense pro (prédictions déjà gravées à l'entrée 16h20, NE PAS les retoucher).
+
+### 2026-06-08 00h~ — TABLE V3 COMPLÉTÉE (reprise après crash) + VERDICT FORMEL
+**Reprise append-only réussie** (`resume_v3.py` + `run_resume_v3.sh`, détaché setsid + log dur `logs_train/resume_v3_20260608_000611.log`) : M6 seeds 1+8 + M7 0-15 mesurés, 18/18 ops, 0 erreur. **table_maneuvers_v3.jsonl = 112 lignes (7×16 COMPLÈTE).**
+**RÉSULTATS FINAUX (n=16/manœuvre, défense normale, harnais propre)** : M4 100 · M1 93.8 · M2 93.8 · M3 93.8 · M6 93.8 · M5 81.2 · **M7 81.2** (garr 87.5, pertes 9 % = la plus économe). 
+**VERDICT FAMILLES FORMEL** : A(M1,M2,M5,M6)=90.6 % vs B(M3,M4,M7)=91.7 % → écart **−1.0 pt (z=−0.19)**, les deux >85 % = **NON-CONCLUANT : EFFET PLAFOND** (micro-inversion sans sens). Départage secondaire : pertes 9-15 %, rien ne discrimine. **Track-record v3 = 0/7, toutes réfutées vers le HAUT.** Fix QRF = **100 %** (garnison prise ⇒ QRF affrontée partout). 
+**M7 ne renverse pas le plafond** (81.2 % > 85 % seuil de justesse ; il aurait fallu qu'elle plonge bas). La loi des 2 axes reste HYPOTHÈSE OUVERTE → tranchée par la table v4 (défense pro). Tag `table-v3` posé. SUITE : smoke pro (1 op --enemy pro) → table v4 (préds gravées 07/06 16h20, NE PAS retoucher).
