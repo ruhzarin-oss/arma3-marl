@@ -18,12 +18,12 @@ FLANC_O   = (14800, 16010)        # flanc OUEST réel du complexe (déborde par 
 FLANC_E   = (15230, 16110)        # flanc EST/NE réel du complexe (déborde par l'est)
 INF_O     = (14960, 15910)        # axe d'infiltration SUD-ouest (sous l'écran de patrouilles nord ~16110)
 INF_E     = (15060, 15910)        # axe d'infiltration SUD-est (x à l'ouest de la patrouille nord 15150)
-POSTE_RES = (15060, 15740)        # poste d'attente réserve
+POSTE_RES = (15060, 15800)        # poste d'attente réserve [v3 07/06 : 15740=EAU -> 15800 sec mesuré]
 QRF_PT    = (15000, 16350)        # surgissement de la contre-attaque
-LZ        = (15180, 15620)        # exfiltration
+LZ        = (15180, 15840)        # exfiltration [v3 07/06 : 15620=OCÉAN -> 15840 sec mesuré]
 
-SPAWN_APPUI = (14920, 15620); SPAWN_ASSAUT = (15080, 15600)
-SPAWN_A_EST = (15290, 15740); SPAWN_RESERVE = (15000, 15560)
+SPAWN_APPUI = (14920, 15830); SPAWN_ASSAUT = (15080, 15830)   # [v3 : anciens spawns DANS L'EAU]
+SPAWN_A_EST = (15290, 15900); SPAWN_RESERVE = (15000, 15820)  # [v3 : idem — fini la nage d'approche]
 SPAWNS = {"SQ_APPUI": SPAWN_APPUI, "SQ_A_OUEST": SPAWN_ASSAUT, "SQ_A_EST": SPAWN_A_EST, "SQ_RESERVE": SPAWN_RESERVE}
 GARRISON = [(COMPLEXE[0], COMPLEXE[1], 12, 80), (15150, 16120, 4, 120), (14860, 16110, 4, 120)]  # 12 + 2 patrouilles
 SQUADS = (("SQ_APPUI", 7), ("SQ_A_OUEST", 7), ("SQ_A_EST", 7), ("SQ_RESERVE", 7))
@@ -32,8 +32,12 @@ SQUADS = (("SQ_APPUI", 7), ("SQ_A_OUEST", 7), ("SQ_A_EST", 7), ("SQ_RESERVE", 7)
 SUCCESS = ("all", [("enemy_dead_frac", 0.7), ("losses_max", 0.5)])
 
 
-def _qrf_on_enter(qrf):
-    """Spawn de la QRF à l'entrée en consolidation (une seule fois)."""
+def _qrf_trigger(qrf):
+    """Spawn de la QRF (une seule fois). [v3 07/06] Déclenchée par la CHUTE DE LA GARNISON, vérifiée à
+    CHAQUE step par OperationRunner (clé plan 'qrf_on_garrison') — plus par l'entrée en CONSOLIDATION :
+    les chemins de contingence sautaient la phase et gagnaient sans jamais affronter la contre-attaque
+    (artefact disséqué sur l'op AZALAI-01, flattait M2/M5/M6). Réponse à la PRISE, pas à la position —
+    report du trou #6 du sim op."""
     def f(r):
         if "qrf" in r.qrf_done:
             return
@@ -51,7 +55,6 @@ def _consol_exfil(qrf):
         {"name": "CONSOLIDATION",
          "orders": {"SQ_APPUI": (COMPLEXE, "hold"), "SQ_A_OUEST": (COMPLEXE, "hold"),
                     "SQ_A_EST": (COMPLEXE, "hold"), "SQ_RESERVE": (COMPLEXE, "assault")},
-         "on_enter": _qrf_on_enter(qrf),
          "done_when": ("any", [("enemy_dead_frac", 0.85), ("steps", 105)]),
          "contingencies": [{"if": ("losses", 0.6), "reason": "consolidation intenable", "goto": "EXFIL"}]},
         {"name": "EXFIL",
@@ -274,6 +277,17 @@ def attaque_echelonnee(qrf="inf"):
     return {"name": "M7-ATTAQUE-ECHELONNEE", "phases": phases, "success": SUCCESS}
 
 
+def _with_qrf_trigger(fn):
+    """[v3] Greffe le déclencheur QRF-sur-garnison + l'effectif garnison sur le plan (lu par le runner)."""
+    def g(qrf="inf"):
+        p = fn(qrf)
+        p["qrf_on_garrison"] = _qrf_trigger(qrf)
+        p["garr_n"] = GARRISON[0][2]
+        return p
+    return g
+
+
 MANEUVERS = {"M1": appui_assaut, "M2": double_enveloppement,
              "M3": enveloppement_simple, "M4": assaut_masse,
              "M5": feinte_debordement, "M6": infiltration, "M7": attaque_echelonnee}
+MANEUVERS = {k: _with_qrf_trigger(v) for k, v in MANEUVERS.items()}   # [v3] QRF-sur-garnison partout

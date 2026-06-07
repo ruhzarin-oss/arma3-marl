@@ -337,6 +337,13 @@ class OperationRunner:
             while self.step_i < max_steps:
                 acts = [self.act(si) for si in range(self.env.S)]
                 self.env.step(acts); self.step_i += 1; self.phase_steps += 1
+                # [v3 07/06] QRF déclenchée par la CHUTE DE LA GARNISON, quel que soit le chemin de phases
+                # (l'accrochage à l'entrée en CONSOLIDATION laissait les contingences l'esquiver — artefact AZALAI-01)
+                qg = self.plan.get("qrf_on_garrison")
+                if qg is not None and "qrf" not in self.qrf_done:
+                    if not self.env.en_alive()[0:self.plan.get("garr_n", 12)].any():
+                        self.jlog("QRF_TRIGGER", detail="garnison tombee -> contre-attaque")
+                        qg(self)
                 if self.step_i % 5 == 0:
                     self.jlog("SITREP", phase=ph["name"],
                               vivants=[int(self.env.alive(si).sum()) for si in range(self.env.S)],
