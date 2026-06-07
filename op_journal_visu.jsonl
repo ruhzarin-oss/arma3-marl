@@ -1,0 +1,168 @@
+{"t": 0.0, "step": 0, "kind": "OP_START", "op": "M2-DOUBLE-ENVELOPPEMENT", "squads": ["SQ_APPUI", "SQ_A_OUEST", "SQ_A_EST", "SQ_RESERVE"], "sizes": [7, 7, 7, 7]}
+{"t": 0.4, "step": 0, "kind": "PHASE", "name": "INFILTRATION", "orders": {"SQ_APPUI": [[14880, 15860], "move"], "SQ_A_OUEST": [[14800, 16010], "move"], "SQ_A_EST": [[15230, 16110], "move"], "SQ_RESERVE": [[15060, 15740], "move"]}, "losses": 0.0}
+{"t": 10.9, "step": 5, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 21.2, "step": 10, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 31.3, "step": 15, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 41.6, "step": 20, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 51.9, "step": 25, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 62.2, "step": 30, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 72.5, "step": 35, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 82.9, "step": 40, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 93.5, "step": 45, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 103.6, "step": 50, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 114.0, "step": 55, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 124.4, "step": 60, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 134.8, "step": 65, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 145.3, "step": 70, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 19, "losses": 0.0}
+{"t": 155.7, "step": 75, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 19, "losses": 0.0}
+{"t": 165.9, "step": 80, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 6, 7], "ennemis": 19, "losses": 0.04}
+{"t": 176.3, "step": 85, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 6, 7], "ennemis": 19, "losses": 0.04}
+{"t": 186.8, "step": 90, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 6, 7], "ennemis": 18, "losses": 0.04}
+{"t": 197.4, "step": 95, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 5, 7], "ennemis": 17, "losses": 0.07}
+{"t": 207.8, "step": 100, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 5, 7], "ennemis": 15, "losses": 0.07}
+{"t": 218.3, "step": 105, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 4, 7], "ennemis": 14, "losses": 0.14}
+{"t": 229.0, "step": 110, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 3, 7], "ennemis": 12, "losses": 0.18}
+{"t": 239.4, "step": 115, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 2, 7], "ennemis": 12, "losses": 0.21}
+{"t": 250.1, "step": 120, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 2, 7], "ennemis": 10, "losses": 0.21}
+{"t": 260.5, "step": 125, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 2, 7], "ennemis": 9, "losses": 0.21}
+{"t": 271.2, "step": 130, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 2, 7], "ennemis": 8, "losses": 0.21}
+{"t": 281.7, "step": 135, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 2, 7], "ennemis": 8, "losses": 0.21}
+{"t": 292.4, "step": 140, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 2, 7], "ennemis": 8, "losses": 0.21}
+{"t": 303.0, "step": 145, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 2, 7], "ennemis": 7, "losses": 0.21}
+{"t": 313.5, "step": 150, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 5, 2, 7], "ennemis": 7, "losses": 0.29}
+{"t": 324.2, "step": 155, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 5, 2, 7], "ennemis": 6, "losses": 0.29}
+{"t": 334.9, "step": 160, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 5, 2, 7], "ennemis": 6, "losses": 0.29}
+{"t": 345.5, "step": 165, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 5, 2, 7], "ennemis": 6, "losses": 0.29}
+{"t": 356.3, "step": 170, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 5, 2, 7], "ennemis": 6, "losses": 0.29}
+{"t": 364.8, "step": 174, "kind": "CONTINGENCE", "phase": "INFILTRATION", "raison": "pertes en d\u00e9bordement", "goto": "EXFIL"}
+{"t": 365.2, "step": 174, "kind": "PHASE", "name": "EXFIL", "orders": {"SQ_APPUI": [[15180, 15620], "move"], "SQ_A_OUEST": [[15180, 15620], "move"], "SQ_A_EST": [[15180, 15620], "move"], "SQ_RESERVE": [[15180, 15620], "move"]}, "losses": 0.32}
+{"t": 367.0, "step": 175, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 4, 2, 7], "ennemis": 6, "losses": 0.32}
+{"t": 377.9, "step": 180, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 4, 2, 7], "ennemis": 5, "losses": 0.32}
+{"t": 388.8, "step": 185, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 4, 2, 7], "ennemis": 3, "losses": 0.32}
+{"t": 399.7, "step": 190, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 4, 2, 7], "ennemis": 2, "losses": 0.32}
+{"t": 410.3, "step": 195, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 4, 2, 7], "ennemis": 0, "losses": 0.32}
+{"t": 421.2, "step": 200, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 4, 2, 7], "ennemis": 0, "losses": 0.32}
+{"t": 432.3, "step": 205, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 443.2, "step": 210, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 454.1, "step": 215, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 465.1, "step": 220, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 475.9, "step": 225, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 486.8, "step": 230, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 497.7, "step": 235, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 508.8, "step": 240, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 519.8, "step": 245, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 530.9, "step": 250, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 541.8, "step": 255, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 552.9, "step": 260, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 563.8, "step": 265, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 574.7, "step": 270, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 585.8, "step": 275, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 596.7, "step": 280, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 607.9, "step": 285, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 619.1, "step": 290, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 5, 2, 7], "ennemis": 0, "losses": 0.29}
+{"t": 628.0, "step": 294, "kind": "PHASE_OK", "phase": "EXFIL", "steps": 120, "losses": 0.29}
+{"t": 628.0, "step": 294, "kind": "OP_END", "succes": true, "steps": 294, "losses": 0.29, "ennemis_restants": 0}
+{"t": 0.0, "step": 0, "kind": "OP_START", "op": "M2-DOUBLE-ENVELOPPEMENT", "squads": ["SQ_APPUI", "SQ_A_OUEST", "SQ_A_EST", "SQ_RESERVE"], "sizes": [7, 7, 7, 7]}
+{"t": 0.0, "step": 0, "kind": "PHASE", "name": "INFILTRATION", "orders": {"SQ_APPUI": [[14880, 15860], "move"], "SQ_A_OUEST": [[14800, 16010], "move"], "SQ_A_EST": [[15230, 16110], "move"], "SQ_RESERVE": [[15060, 15740], "move"]}, "losses": 0.0}
+{"t": 8.1, "step": 5, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 15.7, "step": 10, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 23.3, "step": 15, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 30.9, "step": 20, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 38.6, "step": 25, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 46.2, "step": 30, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 53.8, "step": 35, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 61.4, "step": 40, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 69.0, "step": 45, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 76.6, "step": 50, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 84.2, "step": 55, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 91.8, "step": 60, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 99.4, "step": 65, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 107.0, "step": 70, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 114.6, "step": 75, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 122.2, "step": 80, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 129.8, "step": 85, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 137.4, "step": 90, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 145.0, "step": 95, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 152.6, "step": 100, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 160.2, "step": 105, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 167.9, "step": 110, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 175.5, "step": 115, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 183.1, "step": 120, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 190.7, "step": 125, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 198.3, "step": 130, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 205.9, "step": 135, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 213.5, "step": 140, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 221.2, "step": 145, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 228.8, "step": 150, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 236.4, "step": 155, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 244.0, "step": 160, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 251.6, "step": 165, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 259.2, "step": 170, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 266.8, "step": 175, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 274.4, "step": 180, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 0.0, "step": 0, "kind": "OP_START", "op": "M2-DOUBLE-ENVELOPPEMENT", "squads": ["SQ_APPUI", "SQ_A_OUEST", "SQ_A_EST", "SQ_RESERVE"], "sizes": [7, 7, 7, 7]}
+{"t": 0.6, "step": 0, "kind": "PHASE", "name": "INFILTRATION", "orders": {"SQ_APPUI": [[14880, 15860], "move"], "SQ_A_OUEST": [[14800, 16010], "move"], "SQ_A_EST": [[15230, 16110], "move"], "SQ_RESERVE": [[15060, 15740], "move"]}, "losses": 0.0}
+{"t": 0.0, "step": 0, "kind": "OP_START", "op": "M2-DOUBLE-ENVELOPPEMENT", "squads": ["SQ_APPUI", "SQ_A_OUEST", "SQ_A_EST", "SQ_RESERVE"], "sizes": [7, 7, 7, 7]}
+{"t": 0.4, "step": 0, "kind": "PHASE", "name": "INFILTRATION", "orders": {"SQ_APPUI": [[14880, 15860], "move"], "SQ_A_OUEST": [[14800, 16010], "move"], "SQ_A_EST": [[15230, 16110], "move"], "SQ_RESERVE": [[15060, 15740], "move"]}, "losses": 0.0}
+{"t": 14.0, "step": 5, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 0.0, "step": 0, "kind": "OP_START", "op": "M2-DOUBLE-ENVELOPPEMENT", "squads": ["SQ_APPUI", "SQ_A_OUEST", "SQ_A_EST", "SQ_RESERVE"], "sizes": [7, 7, 7, 7]}
+{"t": 0.4, "step": 0, "kind": "PHASE", "name": "INFILTRATION", "orders": {"SQ_APPUI": [[14880, 15860], "move"], "SQ_A_OUEST": [[14800, 16010], "move"], "SQ_A_EST": [[15230, 16110], "move"], "SQ_RESERVE": [[15060, 15740], "move"]}, "losses": 0.0}
+{"t": 14.0, "step": 5, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 20, "losses": 0.0}
+{"t": 0.0, "step": 0, "kind": "OP_START", "op": "M2-DOUBLE-ENVELOPPEMENT", "squads": ["SQ_APPUI", "SQ_A_OUEST", "SQ_A_EST", "SQ_RESERVE"], "sizes": [7, 7, 7, 7]}
+{"t": 0.6, "step": 0, "kind": "PHASE", "name": "INFILTRATION", "orders": {"SQ_APPUI": [[14880, 15860], "move"], "SQ_A_OUEST": [[14800, 16010], "move"], "SQ_A_EST": [[15230, 16110], "move"], "SQ_RESERVE": [[15060, 15740], "move"]}, "losses": 0.0}
+{"t": 0.0, "step": 0, "kind": "OP_START", "op": "M2-DOUBLE-ENVELOPPEMENT", "squads": ["SQ_APPUI", "SQ_A_OUEST", "SQ_A_EST", "SQ_RESERVE"], "sizes": [7, 7, 7, 7]}
+{"t": 0.6, "step": 0, "kind": "PHASE", "name": "INFILTRATION", "orders": {"SQ_APPUI": [[14880, 15860], "move"], "SQ_A_OUEST": [[14800, 16010], "move"], "SQ_A_EST": [[15230, 16110], "move"], "SQ_RESERVE": [[15060, 15740], "move"]}, "losses": 0.0}
+{"t": 14.0, "step": 5, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 6], "ennemis": 9, "losses": 0.04}
+{"t": 26.6, "step": 10, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 6], "ennemis": 9, "losses": 0.04}
+{"t": 39.1, "step": 15, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 6], "ennemis": 8, "losses": 0.04}
+{"t": 52.1, "step": 20, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 7, 6], "ennemis": 5, "losses": 0.07}
+{"t": 64.7, "step": 25, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 6, 6], "ennemis": 5, "losses": 0.11}
+{"t": 77.1, "step": 30, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 6, 6], "ennemis": 2, "losses": 0.11}
+{"t": 90.1, "step": 35, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 6, 6], "ennemis": 1, "losses": 0.11}
+{"t": 102.5, "step": 40, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 6, 6], "ennemis": 0, "losses": 0.11}
+{"t": 0.0, "step": 0, "kind": "OP_START", "op": "M2-DOUBLE-ENVELOPPEMENT", "squads": ["SQ_APPUI", "SQ_A_OUEST", "SQ_A_EST", "SQ_RESERVE"], "sizes": [7, 7, 7, 7]}
+{"t": 0.4, "step": 0, "kind": "PHASE", "name": "INFILTRATION", "orders": {"SQ_APPUI": [[14880, 15860], "move"], "SQ_A_OUEST": [[14800, 16010], "move"], "SQ_A_EST": [[15230, 16110], "move"], "SQ_RESERVE": [[15060, 15740], "move"]}, "losses": 0.0}
+{"t": 29.0, "step": 5, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 10, "losses": 0.0}
+{"t": 56.4, "step": 10, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 83.9, "step": 15, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 6], "ennemis": 5, "losses": 0.04}
+{"t": 111.9, "step": 20, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 6], "ennemis": 5, "losses": 0.04}
+{"t": 139.4, "step": 25, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 6, 7, 6], "ennemis": 4, "losses": 0.07}
+{"t": 167.0, "step": 30, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 6, 7, 6], "ennemis": 3, "losses": 0.07}
+{"t": 194.9, "step": 35, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 6, 7, 6], "ennemis": 1, "losses": 0.07}
+{"t": 222.4, "step": 40, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 6, 7, 6], "ennemis": 0, "losses": 0.07}
+{"t": 250.0, "step": 45, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 6, 7, 6], "ennemis": 0, "losses": 0.07}
+{"t": 266.9, "step": 48, "kind": "PHASE_OK", "phase": "INFILTRATION", "steps": 48, "losses": 0.07}
+{"t": 266.9, "step": 48, "kind": "PHASE", "name": "FIXER", "orders": {"SQ_APPUI": [[15000, 16000], "suppress"], "SQ_A_OUEST": [[14800, 16010], "hold"], "SQ_A_EST": [[15230, 16110], "hold"], "SQ_RESERVE": [[15060, 15740], "hold"]}, "losses": 0.07}
+{"t": 278.5, "step": 50, "kind": "SITREP", "phase": "FIXER", "vivants": [7, 6, 7, 6], "ennemis": 0, "losses": 0.07}
+{"t": 318.4, "step": 55, "kind": "SITREP", "phase": "FIXER", "vivants": [7, 6, 7, 6], "ennemis": 0, "losses": 0.07}
+{"t": 368.9, "step": 60, "kind": "SITREP", "phase": "FIXER", "vivants": [7, 6, 7, 6], "ennemis": 0, "losses": 0.07}
+{"t": 397.0, "step": 65, "kind": "SITREP", "phase": "FIXER", "vivants": [7, 6, 7, 6], "ennemis": 0, "losses": 0.07}
+{"t": 424.5, "step": 70, "kind": "SITREP", "phase": "FIXER", "vivants": [7, 7, 7, 6], "ennemis": 0, "losses": 0.04}
+{"t": 441.0, "step": 73, "kind": "PHASE_OK", "phase": "FIXER", "steps": 25, "losses": 0.04}
+{"t": 441.0, "step": 73, "kind": "PHASE", "name": "ASSAUT_CONVERGENT", "orders": {"SQ_APPUI": [[15000, 16000], "suppress"], "SQ_A_OUEST": [[15000, 16000], "assault"], "SQ_A_EST": [[15000, 16000], "assault"], "SQ_RESERVE": [[15060, 15740], "hold"]}, "losses": 0.04}
+{"t": 452.5, "step": 75, "kind": "SITREP", "phase": "ASSAUT_CONVERGENT", "vivants": [7, 7, 7, 6], "ennemis": 0, "losses": 0.04}
+{"t": 469.5, "step": 78, "kind": "PHASE_OK", "phase": "ASSAUT_CONVERGENT", "steps": 5, "losses": 0.04}
+{"t": 469.5, "step": 78, "kind": "PHASE", "name": "ASSAUT_RENFORCE", "orders": {"SQ_APPUI": [[15000, 16000], "suppress"], "SQ_A_OUEST": [[15000, 16000], "assault"], "SQ_A_EST": [[15000, 16000], "assault"], "SQ_RESERVE": [[15000, 16000], "assault"]}, "losses": 0.04}
+{"t": 481.0, "step": 80, "kind": "SITREP", "phase": "ASSAUT_RENFORCE", "vivants": [7, 7, 7, 6], "ennemis": 0, "losses": 0.04}
+{"t": 508.5, "step": 85, "kind": "SITREP", "phase": "ASSAUT_RENFORCE", "vivants": [7, 7, 7, 6], "ennemis": 0, "losses": 0.04}
+{"t": 536.0, "step": 90, "kind": "SITREP", "phase": "ASSAUT_RENFORCE", "vivants": [7, 7, 7, 6], "ennemis": 0, "losses": 0.04}
+{"t": 547.5, "step": 92, "kind": "PHASE_OK", "phase": "ASSAUT_RENFORCE", "steps": 14, "losses": 0.04}
+{"t": 547.5, "step": 92, "kind": "PHASE", "name": "CONSOLIDATION", "orders": {"SQ_APPUI": [[15000, 16000], "hold"], "SQ_A_OUEST": [[15000, 16000], "hold"], "SQ_A_EST": [[15000, 16000], "hold"], "SQ_RESERVE": [[15000, 16000], "assault"]}, "losses": 0.04}
+{"t": 548.6, "step": 92, "kind": "QRF", "detail": "contre-attaque 8 hommes"}
+{"t": 573.0, "step": 95, "kind": "SITREP", "phase": "CONSOLIDATION", "vivants": [7, 7, 7, 6], "ennemis": 8, "losses": 0.04}
+{"t": 600.5, "step": 100, "kind": "SITREP", "phase": "CONSOLIDATION", "vivants": [7, 7, 7, 6], "ennemis": 8, "losses": 0.04}
+{"t": 628.0, "step": 105, "kind": "SITREP", "phase": "CONSOLIDATION", "vivants": [7, 7, 7, 6], "ennemis": 8, "losses": 0.04}
+{"t": 738.1, "step": 110, "kind": "SITREP", "phase": "CONSOLIDATION", "vivants": [7, 7, 7, 6], "ennemis": 8, "losses": 0.04}
+{"t": 765.6, "step": 115, "kind": "SITREP", "phase": "CONSOLIDATION", "vivants": [7, 7, 7, 6], "ennemis": 8, "losses": 0.04}
+{"t": 915.4, "step": 120, "kind": "SITREP", "phase": "CONSOLIDATION", "vivants": [7, 7, 7, 6], "ennemis": 8, "losses": 0.04}
+{"t": 1063.6, "step": 125, "kind": "SITREP", "phase": "CONSOLIDATION", "vivants": [7, 7, 7, 6], "ennemis": 8, "losses": 0.04}
+{"t": 1091.1, "step": 130, "kind": "SITREP", "phase": "CONSOLIDATION", "vivants": [7, 7, 7, 6], "ennemis": 8, "losses": 0.04}
+{"t": 0.0, "step": 0, "kind": "OP_START", "op": "M2-DOUBLE-ENVELOPPEMENT", "squads": ["SQ_APPUI", "SQ_A_OUEST", "SQ_A_EST", "SQ_RESERVE"], "sizes": [7, 7, 7, 7]}
+{"t": 0.6, "step": 0, "kind": "PHASE", "name": "INFILTRATION", "orders": {"SQ_APPUI": [[14880, 15860], "move"], "SQ_A_OUEST": [[14800, 16010], "move"], "SQ_A_EST": [[15230, 16110], "move"], "SQ_RESERVE": [[15060, 15740], "move"]}, "losses": 0.0}
+{"t": 29.1, "step": 5, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 56.6, "step": 10, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 7], "ennemis": 8, "losses": 0.0}
+{"t": 84.0, "step": 15, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 7, 7], "ennemis": 6, "losses": 0.04}
+{"t": 112.2, "step": 20, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [5, 7, 7, 7], "ennemis": 5, "losses": 0.07}
+{"t": 139.7, "step": 25, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 7, 7], "ennemis": 4, "losses": 0.04}
+{"t": 167.0, "step": 30, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 7, 7], "ennemis": 4, "losses": 0.04}
+{"t": 387.0, "step": 35, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 7, 7], "ennemis": 4, "losses": 0.04}
