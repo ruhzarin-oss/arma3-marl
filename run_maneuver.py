@@ -8,6 +8,7 @@ import numpy as np
 import torch
 from op_arma import OpArma, OperationRunner
 from train_koth_gpu import Net
+from baptism import op_name
 import maneuvers as M
 
 SB = "/mnt/data/harmattan-sandbox"
@@ -55,6 +56,7 @@ if __name__ == "__main__":
     if a.smoke:
         print("=== SMOKE %s : 1 opération Arma (journal verbeux) ===" % plan["name"], flush=True)
         m = run_one(brain, plan, srv=0, seed=1, max_steps=a.max_steps, verbose=True, log_path="op_journal.jsonl")
+        m["op"] = op_name(a.maneuver, 1)
         print("[SMOKE %s] %s" % (a.maneuver, m), flush=True)
     else:
         jobs = list(range(a.reps)); lock = threading.Lock(); results = []; cur = [0]
@@ -69,6 +71,7 @@ if __name__ == "__main__":
                     m["seed"] = seed; m["srv"] = srv; m["dt"] = round(time.time() - t0, 1)
                 except Exception as e:
                     m = {"seed": seed, "srv": srv, "err": type(e).__name__}
+                m["op"] = op_name(a.maneuver, seed)   # baptême : chaque ligne = une op nommée, traçable
                 with lock:
                     results.append(m)
                     with open(a.out, "a") as f: f.write(json.dumps({**m, "man": a.maneuver}) + "\n")
