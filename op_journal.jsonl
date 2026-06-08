@@ -210,3 +210,14 @@
 {"t": 772.7, "step": 370, "kind": "SITREP", "phase": "EXFIL", "vivants": [6, 7, 7, 4], "ennemis": 0, "losses": 0.14}
 {"t": 774.9, "step": 371, "kind": "PHASE_OK", "phase": "EXFIL", "steps": 25, "losses": 0.14}
 {"t": 774.9, "step": 371, "kind": "OP_END", "succes": true, "steps": 371, "losses": 0.14, "ennemis_restants": 0}
+{"t": 0.0, "step": 0, "kind": "OP_START", "op": "M1-APPUI-ASSAUT", "squads": ["SQ_APPUI", "SQ_A_OUEST", "SQ_A_EST", "SQ_RESERVE"], "sizes": [7, 7, 7, 7]}
+{"t": 0.0, "step": 0, "kind": "PHASE", "name": "INFILTRATION", "orders": {"SQ_APPUI": [[14880, 15860], "move"], "SQ_A_OUEST": [[15120, 15820], "move"], "SQ_A_EST": [[15260, 15980], "move"], "SQ_RESERVE": [[15060, 15800], "move"]}, "losses": 0.0}
+{"t": 2.7, "step": 1, "kind": "PHASE_OK", "phase": "INFILTRATION", "steps": 1, "losses": 0.0}
+{"t": 2.7, "step": 1, "kind": "PHASE", "name": "MISE_EN_PLACE", "orders": {"SQ_APPUI": [[14880, 15860], "hold"], "SQ_A_OUEST": [[15090, 15930], "move"], "SQ_A_EST": [[15200, 16010], "move"], "SQ_RESERVE": [[15060, 15800], "hold"]}, "losses": 0.0}
+{"t": 11.0, "step": 5, "kind": "SITREP", "phase": "MISE_EN_PLACE", "vivants": [7, 7, 7, 7], "ennemis": 28, "losses": 0.0}
+{"t": 21.7, "step": 10, "kind": "SITREP", "phase": "MISE_EN_PLACE", "vivants": [4, 7, 7, 5], "ennemis": 24, "losses": 0.18}
+{"t": 32.4, "step": 15, "kind": "SITREP", "phase": "MISE_EN_PLACE", "vivants": [3, 7, 7, 1], "ennemis": 21, "losses": 0.36}
+{"t": 32.4, "step": 15, "kind": "CONTINGENCE", "phase": "MISE_EN_PLACE", "raison": "pertes avant assaut", "goto": "EXFIL"}
+{"t": 32.4, "step": 15, "kind": "PHASE", "name": "EXFIL", "orders": {"SQ_APPUI": [[15180, 15840], "move"], "SQ_A_OUEST": [[15180, 15840], "move"], "SQ_A_EST": [[15180, 15840], "move"], "SQ_RESERVE": [[15180, 15840], "move"]}, "losses": 0.36}
+{"t": 39.0, "step": 18, "kind": "PHASE_OK", "phase": "EXFIL", "steps": 3, "losses": 0.39}
+{"t": 39.0, "step": 18, "kind": "OP_END", "succes": false, "steps": 18, "losses": 0.39, "ennemis_restants": 20}

@@ -1,0 +1,12 @@
+{
+  "label": "OMNI",
+  "brain": "league_omni_learner.pt",
+  "ref": "league_learner.pt",
+  "winrate_camp0": 0.74,
+  "n_decided": 50,
+  "n_done": 197,
+  "captures": 37,
+  "steps": 300,
+  "servers": 16,
+  "per_server": 3
+}

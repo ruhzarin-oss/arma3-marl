@@ -1,0 +1,5 @@
+VERDICT A/B — transfert Arma KOTH (cerveau=camp0 vs ref fixe league_learner, sous brouillard)
+  BROUILLARD : winrate=0.7230769230769231  (parties décidées=65, captures=44)
+  OMNISCIENT : winrate=0.74  (parties décidées=50, captures=37)
+  ÉCART (fog - omni) = -0.017
+  -> NON CONCLUANT (|écart|<0.05) : effet faible. La MÉMOIRE (étape 2) est probablement le vrai verrou, pas la seule vision.

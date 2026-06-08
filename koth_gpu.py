@@ -5,6 +5,25 @@ import math
 import torch
 
 
+# ---- M0a : postures stratégiques (officier LLM) = BIAIS DE LOGITS sur [HOLD, AVANCER, SUPPRESS, COUVERT] ----
+# Porté de op_arma (« la posture = biais de logits, zéro réentraînement »). Les exécuteurs restent GELÉS ;
+# l'officier ne fait que décaler la distribution d'actions des spécialistes. Ajouter à net.a_logits avant Categorical.
+POSTURES = {
+    "neutre":           [0.0,  0.0,  0.0,  0.0],
+    "prendre_colline":  [-1.0, 2.5,  0.5, -1.0],   # pousser vers la colline, suppresser au contact
+    "defendre":         [1.5, -2.0,  0.5,  1.5],   # tenir, statique, couvert, feu défensif
+    "focus_leader":     [-1.0, 2.0,  1.0, -1.0],   # engager agressivement  (⚠️ approx M0a : PAS de redirection de cible vers le leader)
+    "harceler":         [-1.0,-2.0,  3.0,  1.0],   # fixer à distance, ne pas s'engager  (⚠️ approx : PAS de ciblage de faction X)
+    "repli":            [2.0, -4.0, -1.0,  1.5],   # cesser de pousser, se couvrir  (⚠️ approx : PAS d'action « s'éloigner » dans les 4 macros)
+}
+POSTURE_NAMES = list(POSTURES.keys())
+
+
+def posture_bias(name, device):
+    """Biais de logits (4,) d'une posture stratégique, à AJOUTER à net.a_logits avant l'échantillonnage."""
+    return torch.tensor(POSTURES[name], device=device, dtype=torch.float32)
+
+
 class KothGPU:
     def __init__(self, num_envs=32768, n=3, camps=3, obj_dist=140.0, move=20.0, sup_range=120.0,
                  threat_range=90.0, secure_r=20.0, secure_n=2, max_steps=120, dmg_dead=0.7, cap_need=6, rot_period=14,
@@ -84,9 +103,9 @@ class KothGPU:
         edx = torch.gather(ex, 2, km.unsqueeze(2)).squeeze(2) / S; edy = torch.gather(ey, 2, km.unsqueeze(2)).squeeze(2) / S
         nd = ed2.min(2).values >= 1e18; edx = edx.masked_fill(nd, 0.0); edy = edy.masked_fill(nd, 0.0)
         esupp = torch.gather(esp, 1, km)
+        seen = (torch.sqrt(ed2.min(2).values) <= self.sight).float()
+        edx = edx * seen; edy = edy * seen; esupp = esupp * seen          # [brouillard] masque toujours (no-op si sight=1e9)
         if self.occ:
-            seen = (torch.sqrt(ed2.min(2).values) <= self.sight).float()
-            edx = edx * seen; edy = edy * seen; esupp = esupp * seen
             return torch.stack([ox, oy, dgx, dgy, al.float(), adx, ady, edx, edy, esupp, seen], dim=2)
         return torch.stack([ox, oy, dgx, dgy, al.float(), adx, ady, edx, edy, esupp], dim=2)
 
