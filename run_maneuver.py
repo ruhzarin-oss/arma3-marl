@@ -40,8 +40,8 @@ def run_one(brain, plan, srv, seed, max_steps, verbose, log_path, enemy="normal"
     garrison, prof = apply_profile(env, enemy, M.GARRISON)
     plan["garr_n"] = garrison[0][2]                     # le déclencheur QRF suit l'effectif réel
     env.spawn(M.SPAWNS, garrison)
-    if prof["pro"]:
-        env.b.send(PRO_SKILL_SQF + HUNT_SQF, wait=True)
+    if prof["pro"]:   # skills montés toujours si pro ; boucle de CHASSE seulement si hunt (défaut True -> rétro-compat)
+        env.b.send(PRO_SKILL_SQF + (HUNT_SQF if prof.get("hunt", True) else ""), wait=True)
     runner = OperationRunner(env, brain, plan, log_path=log_path, verbose=verbose)
     runner.run(max_steps=max_steps)
     return metrics_dyn(env, runner, garrison)
@@ -52,9 +52,10 @@ if __name__ == "__main__":
     p.add_argument("--maneuver", type=str, default="M1", choices=list(M.MANEUVERS.keys()))
     p.add_argument("--smoke", action="store_true")
     p.add_argument("--servers", type=int, default=16); p.add_argument("--reps", type=int, default=24)
+    p.add_argument("--base", type=int, default=0)   # offset serveur : permet 2 sondes // (base 0 sur srv 0-7, base 8 sur srv 8-15)
     p.add_argument("--max_steps", type=int, default=500); p.add_argument("--qrf", type=str, default="inf")
     p.add_argument("--out", type=str, default="run_maneuver.jsonl")
-    p.add_argument("--enemy", type=str, default="normal", choices=["normal", "pro", "hardcore", "nightmare"])
+    p.add_argument("--enemy", type=str, default="normal", choices=["normal", "skilled", "skilled_hunt", "mid_skill", "mid_bodies", "pro", "hardcore", "nightmare"])
     a = p.parse_args()
     brain = Net(10, 4, 512, 3).to(DEV)
     brain.load_state_dict(torch.load("koth_finetuned.pt", map_location=DEV)); brain.eval()
@@ -88,7 +89,7 @@ if __name__ == "__main__":
                              m.get("qrf_spawn"), nmil, len(ok)), flush=True)
         print("=== MESURE MASSE %s : %d ops / %d serveurs (QRF %s) | baseline M1 scriptée 72%% ==="
               % (plan["name"], a.reps, a.servers, a.qrf), flush=True)
-        th = [threading.Thread(target=worker, args=(s,)) for s in range(a.servers)]
+        th = [threading.Thread(target=worker, args=(s,)) for s in range(a.base, a.base + a.servers)]
         for t in th: t.start()
         for t in th: t.join()
         ok = [r for r in results if "mil" in r]

@@ -7,8 +7,12 @@ doit venir de la DÉFENSE (compétence + agressivité + nombre), pas de la géog
   sa patrouille en seek-and-destroy — l'ennemi statique qui attend la mort, c'est fini)."""
 
 ENEMY_PROFILES = {
-    "normal":    dict(mult=1.0, qrf_mult=1.0, pro=False),   # 20 + QRF 8  = 28 (harnais v1-v3)
-    "pro":       dict(mult=1.5, qrf_mult=1.5, pro=True),    # 30 + QRF 12 = 42 (harnais v4)
+    "normal":    dict(mult=1.0, qrf_mult=1.0, pro=False),                # 28, skills base, pas de chasse -> 93% (plafond)
+    "skilled":   dict(mult=1.0, qrf_mult=1.0, pro=True, hunt=False),     # 28, SKILLS montés, PAS de chasse = candidat frontière (borne FACILE)
+    "skilled_hunt": dict(mult=1.0, qrf_mult=1.0, pro=True, hunt=True),   # 28, skills + chasse mais effectif NORMAL (isole la chasse vs les corps) = borne DURE
+    "mid_skill": dict(mult=1.25, qrf_mult=1.25, pro=False),              # 35 (sonde: PLAFOND -> effectif ≠ levier)
+    "mid_bodies":dict(mult=1.5, qrf_mult=1.5, pro=False),                # 42 corps sans skills/chasse
+    "pro":       dict(mult=1.5, qrf_mult=1.5, pro=True, hunt=True),      # 42, skills + chasse -> 6% (plancher)
     "hardcore":  dict(mult=2.2, qrf_mult=2.0, pro=True),    # 44 + QRF 16 = 60
     "nightmare": dict(mult=3.0, qrf_mult=3.0, pro=True),    # 60 + QRF 24 = 84
 }
