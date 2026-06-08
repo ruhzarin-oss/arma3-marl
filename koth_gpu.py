@@ -29,11 +29,11 @@ class KothGPU:
                  threat_range=90.0, secure_r=20.0, secure_n=2, max_steps=120, dmg_dead=0.7, cap_need=6, rot_period=14,
                  hit=0.15, beta=0.25, kappa=0.12, tie_pen=0.15, spawn_jit=0.0, sight=1e9, occ=False,
                  econ=True, xp_step=4.0, max_level=5, tier_cost=8.0, max_tier=4, lvl_dmg=0.20, tier_dmg=0.35,
-                 tier_armor=0.13, tier_range=0.25, k_xp=10.0, k_money=15.0, zone_money=3.0, base_money=0.0, base_xp=0.0, income_r=80.0, zone_xp=1.5, device="cuda:0", seed=0):
+                 tier_armor=0.13, tier_range=0.25, k_xp=10.0, k_money=15.0, zone_money=3.0, base_money=0.0, base_xp=0.0, income_r=80.0, zone_xp=1.5, attrition_win=True, timeout_decisive=False, device="cuda:0", seed=0):
         self.dev = device; self.N = num_envs; self.A = n; self.C = camps
         self.obj_dist = obj_dist; self.move = move; self.sup_range = sup_range; self.threat_range = threat_range
         self.secure_r = secure_r; self.secure_n = secure_n; self.max_steps = max_steps; self.dmg_dead = dmg_dead
-        self.cap_need = cap_need; self.rot_period = rot_period
+        self.cap_need = cap_need; self.rot_period = rot_period; self.attrition_win = attrition_win; self.timeout_decisive = timeout_decisive
         self.hit = hit; self.beta = beta; self.kappa = kappa; self.tie_pen = tie_pen; self.spawn_jit = spawn_jit
         self.scale = float(obj_dist); self.n_actions = 4; self.sight = sight; self.occ = occ; self.obs_dim = 11 if occ else 10
         self.econ = econ; self.xp_step = xp_step; self.max_level = float(max_level); self.tier_cost = tier_cost; self.max_tier = float(max_tier)
@@ -221,8 +221,12 @@ class KothGPU:
         sole_alive = torch.where(n_alive == 1, alive_camp.float().argmax(0), m1)
         winner = m1.clone()
         winner = torch.where(captured, self.cap_owner, winner)
-        winner = torch.where((winner == -1) & (n_alive == 1), sole_alive, winner)
-        winner = torch.where((winner == -1) & timeout & (n_max == 1), ct_winner, winner)
+        if self.attrition_win:   # [enrichissement] mode manœuvre (attrition_win=False) : tuer tout le monde = NUL, pas victoire -> il faut TENIR la colline
+            winner = torch.where((winner == -1) & (n_alive == 1), sole_alive, winner)
+        if self.timeout_decisive:   # KOTH authentique : à l'expiration, le PLUS de temps-zone gagne (brise le nul dès que qqn a tenu la colline)
+            winner = torch.where((winner == -1) & timeout & (mx > 0), ct.argmax(0), winner)
+        else:
+            winner = torch.where((winner == -1) & timeout & (n_max == 1), ct_winner, winner)
         decided = winner >= 0
         done = captured | timeout | (n_alive <= 1)
         rew = []

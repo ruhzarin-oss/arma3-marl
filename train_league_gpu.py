@@ -19,9 +19,9 @@ def clone_frozen(net, dev):
 
 def train(iters=400, envs=16384, rollout=16, lr=3e-4, gamma=0.99, gae=0.95, clip=0.2, epochs=4,
           vf=0.5, ent=0.01, hidden=512, layers=3, mb=131072, snap_every=15, pfsp_p=2.0,
-          hit=0.15, kappa=0.12, tie_pen=0.12, spawn_jit=0.25, seed=0, save="league", n=3, sight=1e9):
+          hit=0.15, kappa=0.12, tie_pen=0.12, spawn_jit=0.25, seed=0, save="league", n=3, sight=1e9, attrition_win=True, secure_n=2, cap_need=6, timeout_decisive=False):
     dev = "cuda:0"; cfg = dict(gamma=gamma, gae=gae, clip=clip, epochs=epochs, vf=vf, ent=ent)
-    env = KothGPU(num_envs=envs, n=n, hit=hit, kappa=kappa, tie_pen=tie_pen, spawn_jit=spawn_jit, sight=sight, device=dev, seed=seed)
+    env = KothGPU(num_envs=envs, n=n, hit=hit, kappa=kappa, tie_pen=tie_pen, spawn_jit=spawn_jit, sight=sight, attrition_win=attrition_win, secure_n=secure_n, cap_need=cap_need, timeout_decisive=timeout_decisive, device=dev, seed=seed)
     C, A, O, NA = env.C, env.A, env.obs_dim, env.n_actions; obs = env.reset(); N = envs; T = rollout
     learner = Net(O, NA, hidden, layers).to(dev); opt = torch.optim.Adam(learner.parameters(), lr=lr)
     pool = [clone_frozen(Net(O, NA, hidden, layers).to(dev), dev) for _ in range(2)]
@@ -81,7 +81,11 @@ if __name__ == "__main__":
     p.add_argument("--tie_pen", type=float, default=0.12); p.add_argument("--spawn_jit", type=float, default=0.25)
     p.add_argument("--seed", type=int, default=0); p.add_argument("--save", type=str, default="league")
     p.add_argument("--n", type=int, default=3); p.add_argument("--sight", type=float, default=1e9)
+    p.add_argument("--no_attrition", action="store_true")   # mode manœuvre : tuer tout le monde ≠ gagner
+    p.add_argument("--secure_n", type=int, default=2); p.add_argument("--cap_need", type=int, default=6)
+    p.add_argument("--timeout_decisive", action="store_true")   # à l'expiration, le plus de temps-zone gagne (brise les nuls)
     a = p.parse_args()
     train(iters=a.iters, envs=a.envs, rollout=a.rollout, hidden=a.hidden, layers=a.layers, mb=a.mb,
           snap_every=a.snap_every, pfsp_p=a.pfsp_p, hit=a.hit, kappa=a.kappa, tie_pen=a.tie_pen,
-          spawn_jit=a.spawn_jit, seed=a.seed, save=a.save, n=a.n, sight=a.sight)
+          spawn_jit=a.spawn_jit, seed=a.seed, save=a.save, n=a.n, sight=a.sight, attrition_win=not a.no_attrition,
+          secure_n=a.secure_n, cap_need=a.cap_need, timeout_decisive=a.timeout_decisive)
