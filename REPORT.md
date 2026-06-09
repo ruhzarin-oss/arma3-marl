@@ -39,3 +39,18 @@ l'espace de défense (géométrie) avant de reconclure « jamais de sélecteur �
 n≥16 obligatoire (n=3-8 très bruyant, plusieurs fausses alertes corrigées). Scripts : run_table_skilled.sh,
 run_table_multi.sh, run_m3_curve.sh, enemy_profiles (skilled/skilled_hunt/skilled_qrf/mid_*, knobs hunt/qrf),
 run_maneuver (--base, --enemy). Données : table_skilled.jsonl, table_multi.jsonl, m3_curve.jsonl.
+
+## Pipeline canonique « école de guerre » (reproductible, intégrité vérifiée 09/06)
+- **Défenses** : `enemy_profiles.py` — 9 profils (normal/skilled/skilled_hunt/skilled_qrf/mid_skill/mid_bodies/pro/hardcore/nightmare), knobs `mult/qrf_mult/pro/hunt`. LE LEVIER de difficulté = la létalité-skill (`pro`+`hunt`), pas l'effectif.
+- **Répertoire** : `maneuvers.py` — M1-M7 (Arma-exécutables par construction, micro = `koth_finetuned.pt` gelé).
+- **Mesure** : `run_maneuver.py --maneuver M? --enemy <profil> --servers 16 --reps 16 [--base N]` (micro cuda:0, mais Arma = goulot CPU/temps-réel).
+- **Tables de cette nuit** : `run_table_skilled.sh` (étape 1), `run_table_multi.sh` (étape 2/porte), `run_m3_curve.sh` (enveloppe). Données : `table_skilled.jsonl`, `table_multi.jsonl`, `m3_curve.jsonl`.
+- **Baselines** : scripté 72 % · manager appris 0/32 (overfit sim) · M3-fixe (cette nuit) 100 %@normal.
+
+## Si tu veux aller plus loin (la VRAIE prochaine question, à décider ensemble)
+La porte est fermée DANS l'espace de défense accessible (mêmes garnisons, on ne varie que skill/chasse/QRF).
+Pour qu'un sélecteur (officier) ait un sens, il faut des défenses de **GÉOMÉTRIE/structure différente**
+(garnison concentrée vs dispersée, axes faibles distincts) → certaines favoriseraient M2/M5/M7 plutôt que M3.
+C'est un **build** (knob de géométrie de défense dans le spawn), pas un réglage — à scoper avec toi (étape 3+).
+
+## État final session : science close (gate fermée), tout commité (b9427fa), intégrité OK, GPU/serveurs libres.
