@@ -55,7 +55,7 @@ if __name__ == "__main__":
     p.add_argument("--base", type=int, default=0)   # offset serveur : permet 2 sondes // (base 0 sur srv 0-7, base 8 sur srv 8-15)
     p.add_argument("--max_steps", type=int, default=500); p.add_argument("--qrf", type=str, default="inf")
     p.add_argument("--out", type=str, default="run_maneuver.jsonl")
-    p.add_argument("--enemy", type=str, default="normal", choices=["normal", "skilled", "skilled_hunt", "mid_skill", "mid_bodies", "pro", "hardcore", "nightmare"])
+    p.add_argument("--enemy", type=str, default="normal", choices=["normal", "skilled", "skilled_hunt", "skilled_qrf", "mid_skill", "mid_bodies", "pro", "hardcore", "nightmare"])
     a = p.parse_args()
     brain = Net(10, 4, 512, 3).to(DEV)
     brain.load_state_dict(torch.load("koth_finetuned.pt", map_location=DEV)); brain.eval()

@@ -10,6 +10,7 @@ ENEMY_PROFILES = {
     "normal":    dict(mult=1.0, qrf_mult=1.0, pro=False),                # 28, skills base, pas de chasse -> 93% (plafond)
     "skilled":   dict(mult=1.0, qrf_mult=1.0, pro=True, hunt=False),     # 28, SKILLS montés, PAS de chasse = candidat frontière (borne FACILE)
     "skilled_hunt": dict(mult=1.0, qrf_mult=1.0, pro=True, hunt=True),   # 28, skills + chasse mais effectif NORMAL (isole la chasse vs les corps) = borne DURE
+    "skilled_qrf": dict(mult=1.0, qrf_mult=2.5, pro=True, hunt=False),   # 28 garnison skilled + QRF MASSIVE = caractère différent (favorise vitesse de prise vs méthode) [étape 2 multi-situations]
     "mid_skill": dict(mult=1.25, qrf_mult=1.25, pro=False),              # 35 (sonde: PLAFOND -> effectif ≠ levier)
     "mid_bodies":dict(mult=1.5, qrf_mult=1.5, pro=False),                # 42 corps sans skills/chasse
     "pro":       dict(mult=1.5, qrf_mult=1.5, pro=True, hunt=True),      # 42, skills + chasse -> 6% (plancher)
