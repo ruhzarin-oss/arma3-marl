@@ -7,8 +7,9 @@ Au niveau OPÉRATIONNEL (« gagner une bataille »), la trajectoire s'est conclu
 2. **M3 (enveloppement simple) est robustement la MEILLEURE manœuvre** sur tout l'espace de défense
    testé → **la PORTE est FERMÉE** (pas de signal de sélection) → **pas d'officier-sélecteur justifié**.
    (La thèse « officier » se dissout une 2e fois au contact de la mesure — comme le runaway KOTH.)
-3. **M3-fixe BAT le scripté** : M3 ≈ 93.8 % vs partition scriptée 72 % (à `normal`, données v3) →
-   le micro appris déployé en M3 surclasse la référence hand-codée de ~22 pts.
+3. **M3-fixe ÉCRASE le scripté** : M3 vs `normal` = **100 % (16/16, mesuré cette nuit)** vs partition
+   scriptée 72 % → +28 pts. Enveloppe complète : normal 100 / skilled 62.5 / skilled_hunt 50 / pro 31.2 /
+   skilled_qrf 25 → M3 dégrade gracieusement (jamais 0, même vs pro où la v4 moyennait ~6 %).
 
 → **« Gagner des batailles en Arma » au niveau opérationnel = RÉSOLU par M3-fixe.** Pas besoin de
 RL→LLM→RL-LLM ici (étapes 3-4 non déclenchées, conformément à la porte).
@@ -24,7 +25,8 @@ problème de sélection.
 
 ## Étape 3 (officier) / 4 (RL-LLM) — NON déclenchées (porte fermée, conforme au plan).
 
-## Confirmation enveloppe M3 (en cours) : M3 vs normal + pro, pour la courbe complète.
+## Enveloppe M3 (confirmée, n=16) ✅ : normal 100 / skilled 62.5 / skilled_hunt 50 / pro 31.2 / skilled_qrf 25.
+M3 vs normal = 100 % > scripté 72 % (+28 pts). Dégradation gracieuse — robuste.
 
 ## CAVEAT HONNÊTE (la limite du verdict)
 Les 3 situations étaient des variantes de la MÊME garnison (skill+géométrie identiques), variant la
