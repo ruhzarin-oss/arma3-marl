@@ -29,13 +29,15 @@ class KothGPU:
                  threat_range=90.0, secure_r=20.0, secure_n=2, max_steps=120, dmg_dead=0.7, cap_need=6, rot_period=14,
                  hit=0.15, beta=0.25, kappa=0.12, tie_pen=0.15, spawn_jit=0.0, sight=1e9, occ=False,
                  econ=True, xp_step=4.0, max_level=5, tier_cost=8.0, max_tier=4, lvl_dmg=0.20, tier_dmg=0.35,
-                 tier_armor=0.13, tier_range=0.25, k_xp=10.0, k_money=15.0, zone_money=3.0, base_money=0.0, base_xp=0.0, income_r=80.0, zone_xp=1.5, attrition_win=True, timeout_decisive=False, device="cuda:0", seed=0):
+                 tier_armor=0.13, tier_range=0.25, k_xp=10.0, k_money=15.0, zone_money=3.0, base_money=0.0, base_xp=0.0, income_r=80.0, zone_xp=1.5, attrition_win=True, timeout_decisive=False, ammo=False, ammo_max=40.0, fire_cost=1.0, supp_cost=3.0, ammo_regen=8.0, device="cuda:0", seed=0):
         self.dev = device; self.N = num_envs; self.A = n; self.C = camps
         self.obj_dist = obj_dist; self.move = move; self.sup_range = sup_range; self.threat_range = threat_range
         self.secure_r = secure_r; self.secure_n = secure_n; self.max_steps = max_steps; self.dmg_dead = dmg_dead
         self.cap_need = cap_need; self.rot_period = rot_period; self.attrition_win = attrition_win; self.timeout_decisive = timeout_decisive
         self.hit = hit; self.beta = beta; self.kappa = kappa; self.tie_pen = tie_pen; self.spawn_jit = spawn_jit
         self.scale = float(obj_dist); self.n_actions = 4; self.sight = sight; self.occ = occ; self.obs_dim = 11 if occ else 10
+        self.ammo_on = ammo; self.ammo_max = float(ammo_max); self.fire_cost = float(fire_cost); self.supp_cost = float(supp_cost); self.ammo_regen = float(ammo_regen)
+        if ammo: self.obs_dim += 1
         self.econ = econ; self.xp_step = xp_step; self.max_level = float(max_level); self.tier_cost = tier_cost; self.max_tier = float(max_tier)
         self.lvl_dmg = lvl_dmg; self.tier_dmg = tier_dmg; self.tier_armor = tier_armor; self.tier_range = tier_range
         self.k_xp = k_xp; self.k_money = k_money; self.zone_money = zone_money; self.base_money = base_money; self.base_xp = base_xp; self.income_r = income_r; self.zone_xp = zone_xp
@@ -50,6 +52,7 @@ class KothGPU:
         # économie par agent : niveau (via XP), argent, tier d'équipement (acheté)
         self.level = torch.ones(C, N, A, device=d); self.xp = torch.zeros(C, N, A, device=d)
         self.money = torch.zeros(C, N, A, device=d); self.tier = torch.zeros(C, N, A, device=d)
+        self.ammo = torch.full((C, N, A), float(ammo_max), device=d)   # munitions finies (contrainte de rarete)
         # index fixes pour l'union des camps adverses
         self.camp_of = {s: torch.cat([torch.full((A,), o, dtype=torch.long, device=d) for o in self._others(s)]) for s in range(C)}
         self.loc_of = {s: torch.cat([torch.arange(A, device=d) for _ in self._others(s)]) for s in range(C)}
@@ -78,6 +81,7 @@ class KothGPU:
             self.dmg[c, idx] = 0.0; self.supp[c, idx] = 0.0; self.ctrl_time[c, idx] = 0.0
         self.t[idx] = 0; self.cap_prog[idx] = 0.0; self.cap_owner[idx] = -1
         self.level[:, idx] = 1.0; self.xp[:, idx] = 0.0; self.money[:, idx] = 0.0; self.tier[:, idx] = 0.0
+        self.ammo[:, idx] = self.ammo_max
         for c in range(C):
             px = self.px[c, idx]; py = self.py[c, idx]; al = (self.dmg[c, idx] < self.dmg_dead).float()
             dd = torch.sqrt((px - self.ox[idx, None]) ** 2 + (py - self.oy[idx, None]) ** 2) / self.scale
@@ -105,12 +109,18 @@ class KothGPU:
         esupp = torch.gather(esp, 1, km)
         seen = (torch.sqrt(ed2.min(2).values) <= self.sight).float()
         edx = edx * seen; edy = edy * seen; esupp = esupp * seen          # [brouillard] masque toujours (no-op si sight=1e9)
+        if self.ammo_on:
+            af = (self.ammo[s] / self.ammo_max).clamp(0.0, 1.0)            # munitions vues par lagent => apprend a economiser
+            if self.occ:
+                return torch.stack([ox, oy, dgx, dgy, al.float(), adx, ady, edx, edy, esupp, seen, af], dim=2)
+            return torch.stack([ox, oy, dgx, dgy, al.float(), adx, ady, edx, edy, esupp, af], dim=2)
         if self.occ:
             return torch.stack([ox, oy, dgx, dgy, al.float(), adx, ady, edx, edy, esupp, seen], dim=2)
         return torch.stack([ox, oy, dgx, dgy, al.float(), adx, ady, edx, edy, esupp], dim=2)
 
     def _apply(self, s, a):
         al = self._alive(s); supp_act = (a == 2) & al
+        if self.ammo_on: supp_act = supp_act & (self.ammo[s] > 0)
         for o in self._others(s):
             ex = self.px[o].unsqueeze(2) - self.px[s].unsqueeze(1); ey = self.py[o].unsqueeze(2) - self.py[s].unsqueeze(1)
             within = ((ex * ex + ey * ey) <= self.sup_range ** 2) & supp_act.unsqueeze(1)
@@ -152,6 +162,11 @@ class KothGPU:
             ex = epx.unsqueeze(1) - self.px[s].unsqueeze(2); ey = epy.unsqueeze(1) - self.py[s].unsqueeze(2)
             ed2 = torch.where(eal.unsqueeze(1), ex * ex + ey * ey, BIG)
             shoot = (self.supp[s] < 0.5).float() * self._alive(s).float()
+            if self.ammo_on:
+                shoot = shoot * (self.ammo[s] > 0).float() * (acts[s] != 3).float()   # a sec ou COUVERT => pas de tir
+                cost = torch.where(acts[s] == 2, torch.tensor(self.supp_cost, device=d), torch.tensor(self.fire_cost, device=d)) * shoot
+                self.ammo[s] = (self.ammo[s] - cost).clamp(min=0.0)
+                self.ammo[s] = (self.ammo[s] + (acts[s] == 3).float() * self.ammo_regen).clamp(max=self.ammo_max)  # COUVERT = recharge
             km = ed2.argmin(2); nd = torch.sqrt(ed2.min(2).values)
             rng = self.threat_range * (1.0 + self.tier_range * self.tier[s]) if self.econ else self.threat_range
             exp = (1.0 - nd / rng).clamp(0.0, 1.0) * shoot

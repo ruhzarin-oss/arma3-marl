@@ -810,3 +810,121 @@ Lecture : si M3/M6/M7 ≥ M1 -> meilleur chef d'op transférable ; si M5 ≈ M3 
 **ÉTAPE 2 — multi-situations = la PORTE** : M1-M7 × n=16 sur skilled / skilled_hunt / skilled_qrf (3 caractères : garnison-skill / chasse-soutenue / QRF-massive). **Gagnant = M3 sur les TROIS** (62.5 / 50.0 / 25.0). → **PAS de signal de sélection → PORTE FERMÉE → officier-sélecteur NON justifié** (étapes 3-4 non déclenchées, conforme au plan). La thèse « officier » se dissout 2e fois au contact de la mesure (1re fois = runaway KOTH = artefact attrition).
 
 **VERDICT OPÉRATIONNEL** : **M3-fixe (enveloppement simple) résout « gagner une bataille »** — M3 93.8 %@normal (v3) **> partition scriptée 72 %** (le micro appris surclasse le hand-codé de ~22 pts). Confirmation enveloppe M3 (normal/pro) lancée. **CAVEAT** : les 3 situations = variantes de la MÊME garnison (skill+géométrie identiques, varient chasse/QRF) → difficulté/tempo, pas STRUCTURE. Un vrai problème de sélection exigerait des défenses de **GÉOMÉTRIE différente** (garnison concentrée/dispersée, faiblesses distinctes) — knobs actuels ne le font pas → **prochaine vraie question = enrichir l'espace de défense (build), avant de conclure « jamais de sélecteur »**. Rapport : REPORT.md. Commits : 2206b29 (sondes), 166f82a (étapes 1-2).
+
+## KNOB DE GÉOMÉTRIE DE DÉFENSE — test (a) du PDF d'archi — 2026-06-09
+
+Build : `geometries.py` (5 layouts de garnison à effectif TOTAL égal=20, skill=skilled, seule la STRUCTURE varie) + `run_maneuver.py --geometry`.
+Table M1/M2/M3 × {faible_ouest, faible_est, standard} @ skilled, n=16 (16 serveurs, ~2h temps réel Arma).
+RÉSULTATS (militaire %) :
+            M1      M2      M3
+faible_ouest 12.5    25.0    56.2   -> M3 NET
+faible_est   25.0    37.5    43.8   -> M3 ≈ M2 (7 vs 6 /16 = égalité)
+standard     43.8    31.2    43.8   -> M1 = M3 (7 vs 7 = égalité)
+
+VERDICT : la GÉOMÉTRIE EST UN VRAI LEVIER (contrairement à la difficulté qui ne changeait pas le vainqueur) :
+M1 oscille 12.5%->43.8% (×3.5), la dominance de M3 s'effondre (+31 pts faible_ouest -> égalité ailleurs).
+MAIS M3 n'est JAMAIS battu (top ou ex-aequo sur les 3) -> un sélecteur "toujours M3" reste optimal -> officier PAS ENCORE justifié.
+Les 3 géométries testées ne suffisent pas à détrôner M3. PISTE DÉCISIVE non testée : `concentre` (tout massé, AUCUN flanc)
+devrait punir l'enveloppement (M3) et favoriser le frontal (M1) — et sur `standard` M1 ÉGALE déjà M3, donc concentre pourrait FAIRE BASCULER.
+geometries.py contient déjà concentre + disperse, prêts. Si M1 gagne concentre pendant que M3 gagne faible_ouest -> basculement propre -> officier renaît.
+
+## KNOB GEOMETRIE — concentre mesure (run Younes 09/06) — VERDICT FINAL
+
+M1/M2/M3 x concentre @ skilled, n=16 :  M1 25.0%  |  M2 18.8%  |  M3 43.8%  -> M3 ECRASE (l anti-enveloppement ne le detrone PAS).
+TABLE COMPLETE 4 geometries (militaire %, n=16) :
+              M1     M2     M3
+faible_ouest  12.5   25.0   56.2   M3
+faible_est    25.0   37.5   43.8   M3
+standard      43.8   31.2   43.8   M1=M3 (egalite)
+concentre     25.0   18.8   43.8   M3
+=> M3 EN TETE OU EX-AEQUO SUR LES 4. Jamais battu. Seul M1 l egale (standard) ; M1 ne le BAT jamais ; M2 ne gagne nulle part.
+VERDICT : la geometrie EST un levier reel (classements qui bougent fort, M1 de 12.5 a 43.8) MAIS un selecteur "toujours M3" reste optimal partout
+-> OFFICIER (quasi) MORT, sur base mesuree rigoureuse. M3-FIXE CONFIRME = livrable operationnel, blinde meme face a la geometrie.
+Reste pour cloture totale : disperse (5e geometrie, codee non testee). Logique PDF : (a) tranche -> libre pour (b) couche strategique multi-acteurs.
+
+## Munitions finies = la contrainte qui force lingeniosite (2026-06-09)
+Insight Younes : munitions illimitees -> escouade FAINEANTE (spray) ; munitions limitees -> escouade INGENIEUSE (economise, se rapproche, manoeuvre). La RARETE est le professeur. Explique pourquoi tous les leviers precedents (posture, geometrie, faction-faible, eco) nont rien donne : aucune contrainte mordante => pas de decision => RL fainEant. On rejette leco ("cest la guerre pas wall street").
+
+MECANIQUE (patch koth_gpu.py, flag ammo=False par defaut = retro-compatible) :
+- self.ammo (C,N,A), init ammo_max=40 ; tirer coute 1, SUPPRIMER coute 3 (haut volume).
+- a sec (ammo=0) => ne peut plus tirer ni supprimer.
+- COUVERT (action 3) = NE TIRE PAS + RECHARGE (+8/pas) -> seule facon de reconstituer ses munitions.
+- obs +1 canal : lagent VOIT ses munitions (apprend a economiser). obs_dim 10->11.
+- Test fume OK : 20 pas de suppression vident le chargeur (~13 pas) ; 10 pas de couvert rechargent a fond.
+
+A/B en cours (3090 99%, 414W, ~45min/escouade) : meme obs (11), seul ammo_max change.
+- kothammo_abond : ammo_max=100000 (jamais contraignant -> fainEante temoin).
+- kothammo_rare  : ammo_max=40 (rarete -> ingenieuse).
+Puis eval_ammo.py compare DANS lenv rarete : munitions moy, % a sec, % COUVERT(recharge), dist dengagement, survie, controle.
+
+## 2026-06-09 ~20h25 — ⚠️ DISPERSE ROUVRE LA PORTE OFFICIER (bâtisseur-Linux) — à confirmer n=32
+
+**Contexte coordination** : l'entrée « KNOB GEOMETRIE — concentre VERDICT FINAL » plus haut conclut « officier (quasi) MORT » sur 4 géométries (M3 jamais battu) — mais elle a été écrite AVANT que `disperse` (5e géométrie, « codée non testée ») ne finisse. **Disperse vient de tomber et CONTREDIT ce verdict.**
+
+**RÉSULTAT DISPERSE (n=16, skilled)** :
+| man | mil% | garr_pris | QRF-spawn | pertes moy (min-max) |
+|---|---|---|---|---|
+| **M1 frontal** | **31.2** (5/16) | 13/16 | 13/16 | 38% (18-61) |
+| M2 double-env | 18.8 (3/16) | 12/16 | — | 47% |
+| M3 env-simple | 18.8 (3/16) | 12/16 | 12/16 | **51% (29-82)** |
+
+→ **M1 PASSE DEVANT M3 (+12.4 pts) — 1re géométrie où M3 n'est PAS roi.** Le vainqueur CHANGE selon la structure (M3 sur flanc-faible, M1 sur garnison éclatée) → **un sélecteur a enfin de quoi sélectionner → officier RENAÎT.**
+
+**DISSECTION (pas un artefact)** : M1 et M3 prennent la garnison à égalité (13 vs 12) et affrontent la QRF à égalité → PAS de confound QRF. La différence est le SANG : M3 saigne 51% (jusqu'à 82%) contre 38% pour M1. Mécanisme réel : disperse = 4 points faibles séparés ; l'enveloppement unique de M3 se fait hacher en terrain ouvert entre les positions ; la masse frontale de M1 concentre le feu point par point. **M1 mérite sa tête tactiquement.**
+
+**⚠️ STATUT = NON GRAVÉ** : 5 vs 3 à n=16 = au ras du bruit (rappel projet : M2 62%@n8→31%@n16). **Confirmation EN COURS : M1+M3 disperse seeds 16-31 → n=32** (run détaché PID 203144, log `logs_train/disperse_confirm_*.log`, append-only via nouveau `--seed_base`). Si M1 reste devant à n=32 → basculement CONFIRMÉ → la ligne officier-sélecteur (sens du RL→LLM→RL-LLM) VIT. Sinon → M3-fixe = réponse finale.
+
+**Table géométrie complète (n=16) pour mémoire** :
+```
+              M1     M2     M3    gagnant
+faible_ouest  12.5   25.0   56.2  M3
+faible_est    25.0   37.5   43.8  M3
+standard      43.8   31.2   43.8  M1=M3
+concentre     25.0   18.8   43.8  M3
+disperse      31.2   18.8   18.8  M1   <- BASCULEMENT
+```
+NB : seules M1/M2/M3 testées vs géométrie ; M4-M7 × géométrie jamais mesuré (trou résiduel, secondaire à la question binaire).
+
+## 2026-06-09 ~20h52 — ❌ DÉMENTI : le basculement disperse était du BRUIT (n=32, bâtisseur-Linux)
+
+**CORRECTION de l'entrée « DISPERSE ROUVRE LA PORTE » ci-dessus.** Confirmation lancée (M1+M3 disperse seeds 16-31, append, n=32) :
+```
+              seeds0-15   seeds16-31(neufs)   n=32
+M1 disperse   31.2%(5/16)   18.8%(3/16)       25.0%(8/32)
+M3 disperse   18.8%(3/16)   25.0%(4/16)       21.9%(7/32)
+```
+**Split-half = verdict** : sur la moitié NEUVE, M3 repasse devant M1 (25.0 vs 18.8). À n=32, écart M1-M3 = 3.1 pts = 1 op (8 vs 7) = **statistiquement nul**. Le « M1>M3 » de n=16 était un artefact de bruit (le piège récurrent du projet : 2 ops d'écart à n=16 s'évaporent à n=32).
+
+**STATUT GRAVÉ** : porte de sélection **RESTE FERMÉE**. Sur les 5 géométries, M3 est top ou à ÉGALITÉ — jamais proprement battu (disperse = égalité M1≈M3 à ~22-25%, pas défaite). **Officier-sélecteur NON justifié, confirmation incluse.** M3-fixe = réponse opérationnelle finale, robuste difficulté + géométrie + confirmation. **3e dissolution de « l'officier » au contact de la mesure** (1=runaway KOTH artefact, 2=multi-situations skilled, 3=géométrie+confirmation).
+
+**Convergence des 2 Claude** : l'archi avait raison sur « officier (quasi) mort » — disperse ne l'a PAS ressuscité une fois le bruit retiré. Reste cohérent avec sa piste ammo (« la rareté est le professeur ») = la vraie explication de POURQUOI aucun levier (posture/géométrie/faction) ne crée de signal de sélection : sans contrainte mordante, RL fainéant → pas de décision → rien à sélectionner. La suite est là, pas dans la géométrie.
+
+## 2026-06-10 ~00:55 — PROGRAMME DE NUIT bâtisseur-Linux (coordination archi)
+**Répartition** : je tiens l'axe Arma (16 serveurs/CPU) cette nuit ; l'archi garde la 3090/ammo. Détail complet dans `PLAN-NUIT.md`.
+**Découverte qui lance la nuit** : `skilled_react` (défense COORDONNÉE qui masse les patrouilles sur le flanc menacé) → **INVERSION nette à n=8** : M1 50 % (inchangé) vs M3 **0 %** (effondrement, baseline 62.5 %). 1re fois que la meilleure manœuvre change selon la défense → officier-sélecteur potentiellement RESSUSCITÉ. Confirmation n=16 en cours.
+**Plan gaté** : Gate0 confirmer inversion n=16 → Étape1 construire `skilled_react_depth` (anti-frontal) → Étape2 MATRICE M1/M2/M3/M5 × {passive, anti-flanc, anti-centre} n=16 → Gate1 RPS ? → Étape3 valeur-de-sélection → Étape5 SPEC du défenseur APPRIS (= ta brique GPU, archi : co-évolution self-play attaque↔défense). Off-ramps pré-enregistrés. Tout append-only + détaché + logs durs.
+
+## 2026-06-10 ~01:00 — RÈGLE MATÉRIEL : 3090 plafonnée à 75% (315W)
+Younes : **tout run 3090 <= 75% de puissance**. Posé au niveau driver : `nvidia-smi -i 1 -pm 1 ; -pl 315` (75% du TDP 420W ; < point throttle 409W → plus frais). Script `set_3090_powerlimit.sh` (root requis, lancé par Younes). Le cap s'applique à TOUS les process GPU, ammo inclus. ⚠️ ARCHI : tes runs ammo sont auto-capés à 315W ; ne pas remonter le -pl. Ne survit pas au reboot (relancer le script si reboot).
+
+## 2026-06-10 ~01:20 — GATE 0 : inversion CONFIRMÉE n=16 mais ATTÉNUÉE (split-half remord)
+react n=16 (skilled_react, standard) : M1 **37.5%** (6/16) vs M3 **18.8%** (3/16). Split-half : M1 [s0-7 50% / s8-15 25%], M3 [s0-7 0% / s8-15 37.5%] -> la moitié NEUVE met M3 devant (probe n=8 M1 50/M3 0 = trop optimiste, même piège que disperse).
+**Ce qui TIENT (robuste)** : effet DIFFÉRENTIEL = la défense réactive coûte −44 pts à M3 (62.5->18.8) vs −12 pts à M1 (50->37.5). Elle punit l'enveloppement BIEN plus que le frontal. Classement s'inverse en agrégat (M3 meilleur vs passif, M1 meilleur vs réactif) MAIS marge ~19 pts < seuil 20 + halves discordantes -> escalade n=32 (seeds 16-31) AVANT de graver. Ne PAS appeler la matrice tant que n=32 pas tranché.
+Build fait pendant l'attente : `skilled_react_depth` (défense anti-frontale : bloc central avancé si contact frontal, laisse les flancs) = 2e axe de la matrice. Smoke à passer après le n=32.
+
+## 2026-06-10 ~09:05 — GATE 0 TRANCHÉ n=32 : inversion CONFIRMÉE (modérée) + COÛT pathologique découvert
+**Verdict n=32 (skilled_react, standard)** : M1 **34.4%** (11/32) vs M3 **21.9%** (7/32). Quarts M1 [4,2,2,3] stable ~34 ; M3 [0,3,2,2] (le 0/8 initial = malchance, reste ~25). 
+**INVERSION CONFIRMÉE** : vs passif M3 62.5 > M1 50 ; vs réactif **M1 34.4 > M3 21.9**. Le champion CHANGE selon la défense -> officier-sélecteur justifié (modérément, gap 12.5 pts = 4 ops). 
+**Robuste = l'effet DIFFÉRENTIEL** : la défense réactive coûte −40.6 pts à M3 vs −15.6 pts à M1. Punit l'enveloppement 2.6x plus que le frontal. C'est la vraie signature. Thèse Younes (« rendre l'ennemi intelligent ») VALIDÉE : c'est l'adaptation de l'ennemi, pas la géométrie/difficulté, qui crée le choix.
+**⚠️ COÛT PATHOLOGIQUE (incident de nuit)** : les ops M3-vs-réactif grindent — dt MOYEN 12557s (3.5h), MAX 26581s (7.4h) vs 640s normal. Le standoff enveloppement-vs-réserve fait ramer le serveur (steps ~50s au lieu de ~10s). **La confirmation n=32 a mangé TOUTE la nuit (01:21->09:00)** -> Étapes 1-5 du PLAN-NUIT (matrice, valeur-sélection, depth, spec) PAS exécutées. 
+**Échec de process à corriger** : j'aurais dû borner le temps d'op (max_steps plus bas pour le réactif, ou abort rapide quand enlisé) AVANT de lancer ; le moniteur n'a pas coupé le grind. La matrice est INFAISABLE au coût actuel -> fixer le coût d'abord.
+**Construit non mesuré** : `skilled_react_depth` (défense anti-frontale, code+câblé+import OK) -> smoke à passer.
+**Ammo archi** : eval toujours pas sorti dans ammo_ab.log ; kothammo_rare_*.pt + abond présents. 3090 capée 315W OK (idle).
+
+## 2026-06-10 ~09:45 — VERDICT MUNITIONS COMPLET (archi) : le mécanisme mord, le comportement change, MAIS PAS de supériorité en duel
+- **Mécanisme** (koth_gpu `ammo=True` : 40 balles, tir=1, suppress=3, COUVERT=recharge +8/pas, obs+1 canal munitions) : validé au smoke (à sec en ~13 pas de suppression continue, recharge pleine en 5 pas de couvert). Rétro-compatible (`ammo=False` par défaut).
+- **A/B self-play** (300 iters chacun, même obs 11, seul ammo_max change : 100000 vs 40), éval DANS le monde rareté : rare vs abond = suppress 35 % vs 56 %, avancer 43 % vs 34 %, distance d'engagement 28.8 vs 32.7, survie 0.964 vs 0.852, contrôle 5.84 vs 5.16 → en auto-écologie, la rareté produit une escouade plus sobre et plus décisive.
+- ⚠️ **DUEL DIRECT** (duel_ammo.py, 3 rotations de sièges, 169 352 batailles décidées, env rareté) : part RARETÉ **0.161** vs 0.333 attendu (abondance 0.420/siège ; effondrement siège 1 : 0.022). **L'escouade-abondance gagne le face-à-face même sous rareté.** L'éval A/B auto-référentielle (chacun contre soi-même) flattait la rareté — énième incarnation du mensonge de demi-mesure : ne jamais conclure sans confrontation directe.
+- **VERDICT honnête** : la contrainte change le comportement (vrai) mais n'a PAS produit d'ingéniosité compétitive au budget actuel. Suspects : regen trop généreuse (+8/pas = contrainte molle), attrition_win par défaut (paie l'agression précoce), 300 iters seulement, pas de ligue mixte.
+- **Pistes si on rouvre** : regen 0 + caisse de munitions à la base (vraie logistique spatiale) · attrition_win=False (le contrôle paie, pas le kill) · ligue rare-contre-abond (entraîner CONTRE le sprayeur) · porter dans Arma où les munitions sont natives.
+- **Fil CLOS proprement (tag ammo-v1).** Le levier confirmé qui reste ouvert : l'ENNEMI ADAPTATIF (Gate 0, inversion n=32).

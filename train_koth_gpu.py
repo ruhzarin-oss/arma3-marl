@@ -44,9 +44,10 @@ def ppo_mb(net, opt, B, lastv, cfg, dev, mb):
 
 
 def train(iters=300, envs=32768, rollout=16, lr=3e-4, gamma=0.99, gae=0.95, clip=0.2, epochs=4,
-          vf=0.5, ent=0.01, hidden=512, layers=3, mb=131072, hit=0.15, kappa=0.12, tie_pen=0.15, seed=0, save="kothgpu"):
+          vf=0.5, ent=0.01, hidden=512, layers=3, mb=131072, hit=0.15, kappa=0.12, tie_pen=0.15, seed=0, save="kothgpu",
+          ammo=False, ammo_max=40.0, supp_cost=3.0, ammo_regen=8.0):
     dev = "cuda:0"; cfg = dict(gamma=gamma, gae=gae, clip=clip, epochs=epochs, vf=vf, ent=ent)
-    env = KothGPU(num_envs=envs, hit=hit, kappa=kappa, tie_pen=tie_pen, device=dev, seed=seed)
+    env = KothGPU(num_envs=envs, hit=hit, kappa=kappa, tie_pen=tie_pen, ammo=ammo, ammo_max=ammo_max, supp_cost=supp_cost, ammo_regen=ammo_regen, device=dev, seed=seed)
     C, A, O, NA = env.C, env.A, env.obs_dim, env.n_actions; obs = env.reset(); N = envs
     nets = [Net(O, NA, hidden, layers).to(dev) for _ in range(C)]
     opts = [torch.optim.Adam(nets[c].parameters(), lr=lr) for c in range(C)]
@@ -99,6 +100,9 @@ if __name__ == "__main__":
     p.add_argument("--hit", type=float, default=0.15); p.add_argument("--kappa", type=float, default=0.12)
     p.add_argument("--tie_pen", type=float, default=0.15); p.add_argument("--seed", type=int, default=0)
     p.add_argument("--save", type=str, default="kothgpu")
+    p.add_argument("--ammo", action="store_true"); p.add_argument("--ammo_max", type=float, default=40.0)
+    p.add_argument("--supp_cost", type=float, default=3.0); p.add_argument("--ammo_regen", type=float, default=8.0)
     a = p.parse_args()
     train(iters=a.iters, envs=a.envs, rollout=a.rollout, hidden=a.hidden, layers=a.layers, mb=a.mb,
-          hit=a.hit, kappa=a.kappa, tie_pen=a.tie_pen, seed=a.seed, save=a.save)
+          hit=a.hit, kappa=a.kappa, tie_pen=a.tie_pen, seed=a.seed, save=a.save,
+          ammo=a.ammo, ammo_max=a.ammo_max, supp_cost=a.supp_cost, ammo_regen=a.ammo_regen)
