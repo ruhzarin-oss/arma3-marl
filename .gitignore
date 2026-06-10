@@ -3,3 +3,5 @@ __pycache__/
 logs_train/
 *.log
 nohup.out
+.last_*
+*.bak_preammo.py
