@@ -1,0 +1,16 @@
+{"mil": false, "pertes": 0.5, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 15, "srv": 15, "dt": 35.7, "op": "BALISTE-15", "man": "M1", "enemy": "skilled"}
+{"mil": false, "pertes": 0.3928571428571429, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 4, "srv": 4, "dt": 38.1, "op": "HARFANG-04", "man": "M1", "enemy": "skilled"}
+{"mil": false, "pertes": 0.4642857142857143, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 13, "srv": 13, "dt": 38.2, "op": "SEKKIN-13", "man": "M1", "enemy": "skilled"}
+{"mil": false, "pertes": 0.3571428571428571, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 14, "srv": 14, "dt": 47.5, "op": "OURAGAN-14", "man": "M1", "enemy": "skilled"}
+{"mil": false, "pertes": 0.4642857142857143, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 3, "srv": 3, "dt": 48.4, "op": "TRAMONTANE-03", "man": "M1", "enemy": "skilled"}
+{"mil": false, "pertes": 0.3928571428571429, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 7, "srv": 7, "dt": 51.9, "op": "TANEZROUFT-07", "man": "M1", "enemy": "skilled"}
+{"mil": false, "pertes": 0.3571428571428571, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 1, "srv": 1, "dt": 61.3, "op": "SIROCCO-01", "man": "M1", "enemy": "skilled"}
+{"mil": false, "pertes": 0.3928571428571429, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 2, "srv": 2, "dt": 68.5, "op": "EPERVIER-02", "man": "M1", "enemy": "skilled"}
+{"mil": false, "pertes": 0.3571428571428571, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 5, "srv": 5, "dt": 80.9, "op": "GERFAUT-05", "man": "M1", "enemy": "skilled"}
+{"mil": false, "pertes": 0.3928571428571429, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 9, "srv": 9, "dt": 82.8, "op": "BURIN-09", "man": "M1", "enemy": "skilled"}
+{"mil": false, "pertes": 0.3571428571428571, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 10, "srv": 10, "dt": 153.2, "op": "FENNEC-10", "man": "M1", "enemy": "skilled"}
+{"mil": true, "pertes": 0.2142857142857143, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "seed": 6, "srv": 6, "dt": 579.0, "op": "SAGAIE-06", "man": "M1", "enemy": "skilled"}
+{"mil": true, "pertes": 0.2142857142857143, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "seed": 12, "srv": 12, "dt": 610.0, "op": "TASSILI-12", "man": "M1", "enemy": "skilled"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "seed": 11, "srv": 11, "dt": 665.9, "op": "ADRAR-11", "man": "M1", "enemy": "skilled"}
+{"mil": false, "pertes": 0.5357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 3, "ennemis_total": 28, "seed": 8, "srv": 8, "dt": 694.1, "op": "MISTRAL-08", "man": "M1", "enemy": "skilled"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "seed": 0, "srv": 0, "dt": 727.9, "op": "CIMETERRE-00", "man": "M1", "enemy": "skilled"}

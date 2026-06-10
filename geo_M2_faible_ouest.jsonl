@@ -1,0 +1,16 @@
+{"mil": true, "pertes": 0.3214285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "seed": 6, "srv": 6, "dt": 9.9, "op": "SIMOUN-06", "man": "M2", "enemy": "skilled"}
+{"mil": false, "pertes": 0.3928571428571429, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 7, "srv": 7, "dt": 61.2, "op": "ERG-07", "man": "M2", "enemy": "skilled"}
+{"mil": false, "pertes": 0.5357142857142857, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 9, "srv": 9, "dt": 63.9, "op": "BARKANE-09", "man": "M2", "enemy": "skilled"}
+{"mil": false, "pertes": 0.4642857142857143, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "seed": 13, "srv": 13, "dt": 70.6, "op": "AQUILON-13", "man": "M2", "enemy": "skilled"}
+{"mil": false, "pertes": 0.4285714285714286, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "seed": 5, "srv": 5, "dt": 100.6, "op": "KHAMSIN-05", "man": "M2", "enemy": "skilled"}
+{"mil": false, "pertes": 0.3214285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "seed": 3, "srv": 3, "dt": 142.4, "op": "TAGANT-03", "man": "M2", "enemy": "skilled"}
+{"mil": false, "pertes": 0.3214285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "seed": 2, "srv": 2, "dt": 173.1, "op": "HOGGAR-02", "man": "M2", "enemy": "skilled"}
+{"mil": false, "pertes": 0.4285714285714286, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "seed": 10, "srv": 10, "dt": 188.7, "op": "GHIBLI-10", "man": "M2", "enemy": "skilled"}
+{"mil": false, "pertes": 0.3571428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "seed": 1, "srv": 1, "dt": 201.1, "op": "AZALAI-01", "man": "M2", "enemy": "skilled"}
+{"mil": false, "pertes": 0.5357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "seed": 8, "srv": 8, "dt": 213.2, "op": "REG-08", "man": "M2", "enemy": "skilled"}
+{"mil": false, "pertes": 0.3214285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "seed": 15, "srv": 15, "dt": 335.4, "op": "NOROIT-15", "man": "M2", "enemy": "skilled"}
+{"mil": false, "pertes": 0.4642857142857143, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "seed": 11, "srv": 11, "dt": 440.5, "op": "HABOOB-11", "man": "M2", "enemy": "skilled"}
+{"mil": false, "pertes": 0.3571428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 7, "ennemis_total": 28, "seed": 14, "srv": 14, "dt": 473.0, "op": "BOREE-14", "man": "M2", "enemy": "skilled"}
+{"mil": true, "pertes": 0.2142857142857143, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "seed": 12, "srv": 12, "dt": 805.5, "op": "ZEPHYR-12", "man": "M2", "enemy": "skilled"}
+{"mil": true, "pertes": 0.3571428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 2, "ennemis_total": 28, "seed": 4, "srv": 4, "dt": 810.9, "op": "SAHEL-04", "man": "M2", "enemy": "skilled"}
+{"mil": true, "pertes": 0.3214285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "seed": 0, "srv": 0, "dt": 1073.6, "op": "CHERGUI-00", "man": "M2", "enemy": "skilled"}
