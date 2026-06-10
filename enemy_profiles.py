@@ -11,6 +11,8 @@ ENEMY_PROFILES = {
     "skilled":   dict(mult=1.0, qrf_mult=1.0, pro=True, hunt=False),     # 28, SKILLS montés, PAS de chasse = candidat frontière (borne FACILE)
     "skilled_hunt": dict(mult=1.0, qrf_mult=1.0, pro=True, hunt=True),   # 28, skills + chasse mais effectif NORMAL (isole la chasse vs les corps) = borne DURE
     "skilled_qrf": dict(mult=1.0, qrf_mult=2.5, pro=True, hunt=False),   # 28 garnison skilled + QRF MASSIVE = caractère différent (favorise vitesse de prise vs méthode) [étape 2 multi-situations]
+    "skilled_react": dict(mult=1.0, qrf_mult=1.0, pro=True, hunt=False, react=True),  # 28 skilled, défense COORDONNÉE : les patrouilles se massent sur le flanc menacé (contre l'enveloppement). Test « ennemi intelligent » 10/06
+    "skilled_react_depth": dict(mult=1.0, qrf_mult=1.0, pro=True, hunt=False, react_depth=True),  # 28 skilled, défense anti-FRONTALE : bloc central avancé quand l'attaque est frontale (punit M1), laisse les flancs (récompense M3). 2e axe matrice 10/06
     "mid_skill": dict(mult=1.25, qrf_mult=1.25, pro=False),              # 35 (sonde: PLAFOND -> effectif ≠ levier)
     "mid_bodies":dict(mult=1.5, qrf_mult=1.5, pro=False),                # 42 corps sans skills/chasse
     "pro":       dict(mult=1.5, qrf_mult=1.5, pro=True, hunt=True),      # 42, skills + chasse -> 6% (plancher)
@@ -40,6 +42,77 @@ HUNT_SQF = (
     '      };\n'
     '    } forEach (allGroups select { side _x == east });\n'
     '    sleep 30;\n'
+    '  };\n'
+    '};\n')
+
+
+REACTIVE_DEF_SQF = (
+    'HMT_REACT = true;\n'
+    '[] spawn {\n'
+    '  sleep 6;\n'
+    '  private _obj = [15000,16000,0];\n'
+    '  private _eg = allGroups select { side _x == east };\n'
+    '  private _core = objNull; private _cd = 1e9;\n'
+    '  { private _d = (leader _x) distance2D _obj; if (_d < _cd) then { _cd = _d; _core = _x }; } forEach _eg;\n'
+    '  private _patrols = _eg - [_core];\n'        # le noyau tient l'objectif (QRF/métrique) ; les patrouilles manoeuvrent
+    '  while {HMT_REACT} do {\n'
+    '    private _wW = 0; private _wE = 0;\n'
+    '    {\n'
+    '      private _u = _x; private _k = 0;\n'
+    '      { private _kk = _x knowsAbout _u; if (_kk > _k) then { _k = _kk }; } forEach _eg;\n'
+    '      if (_k > 1.0) then {\n'                 # contact suffisamment connu
+    '        if (((getPosATL _u) select 0) < 15000) then { _wW = _wW + 1 } else { _wE = _wE + 1 };\n'
+    '      };\n'
+    '    } forEach (allUnits select { side _x == west && {alive _x} && {!isPlayer _x} });\n'
+    '    if (_wW + _wE > 0) then {\n'
+    '      private _rally = [14860,16000,0];\n'
+    '      if (_wE > _wW) then { _rally = [15140,16000,0] };\n'   # se masser sur le flanc le plus menacé
+    '      {\n'
+    '        if (({alive _x} count units _x) > 0) then {\n'
+    '          while {count waypoints _x > 0} do { deleteWaypoint [_x, 0] };\n'
+    '          private _wp = _x addWaypoint [_rally, 20];\n'
+    '          _wp setWaypointType "MOVE"; _wp setWaypointSpeed "FULL";\n'   # TENIR le flanc, pas charger : MOVE+hold (sinon la réserve épingle l\'infiltration -> standoff infini)
+    '          _wp setWaypointBehaviour "COMBAT"; _wp setWaypointCombatMode "YELLOW";\n'
+    '          _x setBehaviour "COMBAT"; _x setCombatMode "YELLOW";\n'
+    '        };\n'
+    '      } forEach _patrols;\n'
+    '    };\n'
+    '    sleep 15;\n'
+    '  };\n'
+    '};\n')
+
+
+REACTIVE_DEPTH_SQF = (
+    'HMT_REACT = true;\n'
+    '[] spawn {\n'
+    '  sleep 6;\n'
+    '  private _obj = [15000,16000,0];\n'
+    '  private _eg = allGroups select { side _x == east };\n'
+    '  private _core = objNull; private _cd = 1e9;\n'
+    '  { private _d = (leader _x) distance2D _obj; if (_d < _cd) then { _cd = _d; _core = _x }; } forEach _eg;\n'
+    '  private _patrols = _eg - [_core];\n'
+    '  while {HMT_REACT} do {\n'
+    '    private _ctr = 0; private _lat = 0;\n'
+    '    {\n'
+    '      private _u = _x; private _k = 0;\n'
+    '      { private _kk = _x knowsAbout _u; if (_kk > _k) then { _k = _kk }; } forEach _eg;\n'
+    '      if (_k > 1.0) then {\n'
+    '        if ((abs (((getPosATL _u) select 0) - 15000)) < 80) then { _ctr = _ctr + 1 } else { _lat = _lat + 1 };\n'   # contact CENTRAL vs LATÉRAL
+    '      };\n'
+    '    } forEach (allUnits select { side _x == west && {alive _x} && {!isPlayer _x} });\n'
+    '    if (_ctr > _lat && {_ctr > 0}) then {\n'          # attaque FRONTALE -> bloc central avancé sur l'axe d'assaut ; sinon on NE commet PAS (flanc laissé à l'enveloppement)
+    '      private _rally = [15000,15920,0];\n'
+    '      {\n'
+    '        if (({alive _x} count units _x) > 0) then {\n'
+    '          while {count waypoints _x > 0} do { deleteWaypoint [_x, 0] };\n'
+    '          private _wp = _x addWaypoint [_rally, 20];\n'
+    '          _wp setWaypointType "MOVE"; _wp setWaypointSpeed "FULL";\n'
+    '          _wp setWaypointBehaviour "COMBAT"; _wp setWaypointCombatMode "YELLOW";\n'
+    '          _x setBehaviour "COMBAT"; _x setCombatMode "YELLOW";\n'
+    '        };\n'
+    '      } forEach _patrols;\n'
+    '    };\n'
+    '    sleep 15;\n'
     '  };\n'
     '};\n')
 
