@@ -19,10 +19,19 @@ garrison, prof = apply_profile(env, "skilled", GEOMETRIES["standard"])
 plan["garr_n"] = garrison[0][2]
 env.spawn(M.SPAWNS, garrison)
 env.b.send(PRO_SKILL_SQF, wait=True)
+import time as _t
+# 0) rythme du temps de jeu au repos (verite sur setAccTime : dedie = x1 attendu)
+r0 = env._game_time(); _t.sleep(8.0); r1 = env._game_time()
+rate = (r1 - r0) / 8.0 if (r0 > 0 and r1 > 0) else -1
+print("RATE: temps de jeu / temps mur au repos = %.2f (setAccTime %s)" % (rate, "ACTIF" if rate > 1.5 else "INERTE (dedie)"))
 g0 = env._game_time()
+assert g0 > 0, "CALIB ECHEC : lecture du temps de jeu impossible (g0=%.1f)" % g0
 runner = OperationRunner(env, brain, plan, log_path="/dev/null", verbose=False)
 runner.run(max_steps=60, max_wall=600, stall_wall=400)
 g1 = env._game_time()
 steps = runner.step_i
-print("CALIB: g0=%.1f g1=%.1f steps=%d -> step_game = %.2f s-jeu/pas" % (g0, g1, steps, (g1 - g0) / max(1, steps)))
-open("/tmp/hmt_step_game.txt", "w").write("%.2f" % ((g1 - g0) / max(1, steps)))
+assert g1 > g0, "CALIB ECHEC : g1 <= g0"
+sg = (g1 - g0) / max(1, steps)
+print("CALIB: g0=%.1f g1=%.1f steps=%d -> step_game = %.2f s-jeu/pas" % (g0, g1, steps, sg))
+assert 0.5 < sg < 30, "CALIB ECHEC : step_game hors bande plausible [0.5, 30] : %.2f" % sg
+open("/tmp/hmt_step_game.txt", "w").write("%.2f" % sg)

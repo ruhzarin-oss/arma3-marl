@@ -223,12 +223,17 @@ class OpArma:
         gx, gy = self.goals[si]
         return float(np.median(np.sqrt((self.px[si][al] - gx) ** 2 + (self.py[si][al] - gy) ** 2)))
 
-    def _game_time(self):
-        """Temps de simulation Arma (variable SQF time) — seule horloge comparable a charge variable."""
-        self.b.send("diag_log format [\"HARMATTAN_TIME %1\", time];", wait=True)
-        for ln in reversed(self.b._log_lines(400)):
-            m = re.search(r"HARMATTAN_TIME ([0-9.]+)", ln)
-            if m: return float(m.group(1))
+    def _game_time(self, retries=3):
+        """Temps de simulation Arma (variable SQF time) — seule horloge comparable a charge variable.
+        Robuste : relit/renvoie jusqu a 3 fois (le RPT peut flusher en retard), n accepte que > 0."""
+        for k in range(retries):
+            self.b.send("diag_log format [\"HARMATTAN_TIME %1\", time];", wait=True)
+            time.sleep(0.15 + 0.25 * k)
+            for ln in reversed(self.b._log_lines(600)):
+                m = re.search(r"HARMATTAN_TIME ([0-9.]+)", ln)
+                if m:
+                    v = float(m.group(1))
+                    if v > 0: return v
         return -1.0
 
     def step(self, acts_per_squad):
