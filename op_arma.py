@@ -28,7 +28,7 @@ class OpArma:
     """Espace de bataille PARTAGÉ : N escouades amies (WEST, cerveau) + ennemis scriptés (EAST, trackés pour les obs)."""
 
     def __init__(self, squads=(("SQ_APPUI", 7), ("SQ_ASSAUT", 7)), base=(15000, 16000),
-                 mission=None, log=None, move=22.0, step_wait=1.0, settle=0.5, acc=4.0,
+                 mission=None, log=None, move=22.0, step_wait=1.0, settle=0.5, acc=4.0, step_game=None,
                  sup_range=120.0, sight=110.0, dmg_dead=0.7, skill=0.45, seed=0):
         if _os.environ.get("HMT_SOCKET") == "1":
             from arma_socket_bridge import SocketBridge
@@ -41,6 +41,7 @@ class OpArma:
         self.squads = [s[0] for s in squads]; self.sizes = [int(s[1]) for s in squads]
         self.S = len(self.squads); self.base = base
         self.move = move; self.step_wait = step_wait; self.settle = settle; self.acc = acc
+        self.step_game = float(_os.environ.get("HMT_STEP_GAME", 0) or 0) or step_game   # cadence en temps de JEU (anti-confond de charge)
         if _os.environ.get("HMT_SOCKET") == "1": self.settle = min(self.settle, 0.15)   # les obs arrivent par TCP, plus d attente RPT
         self.sup_range = sup_range; self.sight = sight; self.dmg_dead = dmg_dead; self.skill = skill
         self.rng = np.random.default_rng(seed)
@@ -222,6 +223,14 @@ class OpArma:
         gx, gy = self.goals[si]
         return float(np.median(np.sqrt((self.px[si][al] - gx) ** 2 + (self.py[si][al] - gy) ** 2)))
 
+    def _game_time(self):
+        """Temps de simulation Arma (variable SQF time) — seule horloge comparable a charge variable."""
+        self.b.send("diag_log format [\"HARMATTAN_TIME %1\", time];", wait=True)
+        for ln in reversed(self.b._log_lines(400)):
+            m = re.search(r"HARMATTAN_TIME ([0-9.]+)", ln)
+            if m: return float(m.group(1))
+        return -1.0
+
     def step(self, acts_per_squad):
         cmds = []
         eal = self.en_alive()
@@ -278,7 +287,16 @@ class OpArma:
                                     '{ private _v = HMT_VEH select 0; if (!isNull _v && {alive _v}) then '
                                     '{ _u reveal [_v, 4]; _u doTarget _v; _u doFire _v; }; };' % (sq, i))
         self.b.send("\n".join(cmds), wait=True)
-        time.sleep(self.step_wait)
+        if self.step_game:
+            # [11/06 anti-confond] cadence en temps de JEU : on attend que la SIM ait avance de step_game s,
+            # quelle que soit la charge machine (mur de securite : 6x le budget attendu)
+            t0 = self._game_time(); t0w = time.time()
+            while True:
+                time.sleep(0.12)
+                if self._game_time() - t0 >= self.step_game: break
+                if time.time() - t0w > 6.0 * self.step_game: break
+        else:
+            time.sleep(self.step_wait)
         self.read()
 
 
