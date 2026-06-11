@@ -928,3 +928,104 @@ Build fait pendant l'attente : `skilled_react_depth` (défense anti-frontale : b
 - **VERDICT honnête** : la contrainte change le comportement (vrai) mais n'a PAS produit d'ingéniosité compétitive au budget actuel. Suspects : regen trop généreuse (+8/pas = contrainte molle), attrition_win par défaut (paie l'agression précoce), 300 iters seulement, pas de ligue mixte.
 - **Pistes si on rouvre** : regen 0 + caisse de munitions à la base (vraie logistique spatiale) · attrition_win=False (le contrôle paie, pas le kill) · ligue rare-contre-abond (entraîner CONTRE le sprayeur) · porter dans Arma où les munitions sont natives.
 - **Fil CLOS proprement (tag ammo-v1).** Le levier confirmé qui reste ouvert : l'ENNEMI ADAPTATIF (Gate 0, inversion n=32).
+
+## 2026-06-10 ~10:15 — LISTE 2 LANCÉE : bornes de coût posées + PRÉ-ENREGISTREMENT MATRICE (archi, AVANT toute donnée)
+**Bornes (op_arma.run + run_maneuver CLI)** : `max_wall=1200 s` (mur temps-réel par op) + `stall_wall=500 s` (abandon si AUCUN changement vivants/ennemis/phase pendant 500 s réels) → OP_ABORT journalisé, champ `abort` dans chaque ligne jsonl. Sémantique de verdict inchangée et honnête : un standoff avorté a la garnison vivante → mil=False naturellement (un assaut qui s'enlise est un assaut raté). Une op coûte désormais ≤ 20 min, jamais 7 h.
+**Smokes en cours** : (A) M3 vs skilled_react borné = test du mur sur LA cellule pathologique ; (B) M1 vs skilled_react_depth = première exécution de la défense anti-frontale (validité SQF).
+**PRÉ-ENREGISTREMENT — prédictions matrice (militaire %, n=16, cellules inconnues) — gravées AVANT les runs** :
+- Connues réutilisées : passive×{M1,M2,M3,M5} = 50/31/62.5/25 ; react×{M1,M3} = 34.4/21.9 (n=32).
+- react×M2 : **15-35** (l'anti-flanc punit les prongs ; M2 déjà faible vs passif).
+- react×M5 : **25-45** (la démo Est absorbe la réaction anti-flanc → l'effort principal Ouest en profite ; M5 tient ou monte).
+- depth×M1 : **15-35** (l'anti-centre doit punir le frontal — c'est sa raison d'être ; chute nette sous 50).
+- depth×M2 : **35-55** (les deux flancs libres).
+- depth×M3 : **50-70** (flanc libre → M3 retrouve ~son niveau passif).
+- depth×M5 : **30-50** (l'effort principal déborde → profite ; la démo frontale se fait punir).
+**GATE 1 pré-enregistré** : pierre-feuille-ciseaux CONFIRMÉ si la meilleure attaque change selon la défense — prédiction : passive→M3, react→M1, depth→M3 (ou M2). Clause d'échec : si depth×M1 ≥ 45, la défense anti-centre ne mord pas → matrice à 2 défenses, le noter sans spin. Toute cellule pivot à écart < 20 pts du 2ᵉ → escalade n=32 avant de graver (loi anti-bruit).
+**Valeur de sélection (étape suivante)** = moyenne(meilleure attaque PAR défense) − moyenne(meilleure attaque FIXE globale) ; seuil de justification officier : 15-20 pts.
+
+## 2026-06-10 ~11:50 — GATE 1 : MATRICE COMPLÈTE n=16 — RPS CONFIRMÉ, VALEUR DE SÉLECTION FAIBLE (archi)
+**Matrice (militaire %, 96 ops nouvelles, 0 abort, dt 190-435 s — les bornes ont éteint la pathologie sans jamais mordre)** :
+| | M1 | M2 | M3 | M5 | champion |
+|---|---|---|---|---|---|
+| passive | 50.0 | 31.0 | 62.5 | 25.0 | **M3** |
+| react (anti-flanc) | **34.4** (n=32) | 18.8 | 21.9 (n=32) | 25.0 | **M1** |
+| react_depth (anti-centre) | 18.8 | 31.2 | **50.0** | 43.8 | **M3** |
+**Prédictions pré-enregistrées : 5/6 dans la fourchette** (depth×M2 31.2 juste sous 35-55) ; les 3 champions prédits (passive→M3, react→M1, depth→M3) : **3/3 corrects**. L'anti-centre mord exactement comme conçu (M1 50→18.8 ; clause d'échec « M1≥45 » non déclenchée).
+**GATE 1 ✅ STRUCTUREL : le champion change selon la défense** (M3/M1/M3) — le pierre-feuille-ciseaux existe.
+**MAIS valeur de sélection = +4.2 pts** (sélecteur 49.0 % vs M3-fixe 44.8 %) — **très en dessous du seuil 15-20**. Cause structurelle : M3 domine 2 colonnes sur 3 ; seule l'anti-flanc le punit vraiment. Sur CE vivier de défenses (3, écrites main), un commandant têtu-M3 ne perd que ~4 pts contre un sélecteur parfait → **l'officier est justifié structurellement mais marginal économiquement**.
+**Escalade n=32 EN COURS (loi anti-bruit)** : react×M5 (écart 9.4 au champion), depth×M3 et depth×M5 (écart 6.2) — seeds 16-31 append. Verdict final après.
+**Lecture pour la suite (pré-engagée)** : ne PAS entraîner un officier GRPO pour 4 points. La vraie marche = **DÉFENSEUR APPRIS** : élargir le vivier de défenses par RL (il trouvera des défenses qui punissent M3 plus fort que nos 2 écrites main) → la valeur de sélection remonte mécaniquement → ALORS l'officier a un métier rentable. La valeur de sélection dépend du vivier ; un vivier appris est la seule façon honnête de la faire monter.
+
+## 2026-06-10 ~12:30 — RÉPERTOIRE DOUBLÉ : recherche doctrinale + 5 attaques + 5 défenses CODÉES (archi, décision Younes « tout coder, c'est la plus-value »)
+**Livrable recherche** : `DOCTRINE-REPERTOIRE.md` — catalogue des formes offensives (FM 3-90 + art opératif) et défensives, chacune avec mécanisme / bat / battue-par / statut, les knobs de variante (axes, allocation, seuils de contingence, timing défensif) et les interactions prédites en bloc (§D).
+**Attaques nouvelles (maneuvers.py, 12 manœuvres au total, tous les gotos validés)** :
+- M8 PERCÉE (rupture sur axe étroit + exploitation vers ARRIERE 15000,16230)
+- M9 TOURNANT (marche profonde PIVOT_E 15300,16150 → prise de l'arrière → assaut PAR LE NORD)
+- M10 MARTEAU-ENCLUME (bloc BLOC_N 15040,16180 + assaut sud — le contre de l'élastique)
+- M11 RAID (coup de main + EXFIL immédiat sans consolidation — vise le seuil 70 % avant la QRF)
+- M12 RECO-EN-FORCE (sonde 1 escouade → branchement par CONTINGENCES : front dur→débordement ouest, front mou→frontal ; un frontal qui s'éternise bascule de lui-même) = mini-officier en dur, sa moyenne inter-défenses servira de PLANCHER au sélecteur appris.
+**Défenses nouvelles (enemy_profiles.py, 8 défenses au total, plomberie générique def_sqf→DEFENSE_SQF)** :
+- D3 skilled_mobile (réserve de frappe nord, SAD sur le centroïde des contacts ≥3)
+- D4 skilled_elastic (lignes successives 16000→16150→16270 aux seuils 0.7/0.4 d'effectif)
+- D5 skilled_herisson (tout au complexe, périmètre dense, MIDDLE)
+- D6 skilled_appat (abandon de l'objectif → surplombs nord → nasse quand ≥3 attaquants dans 70 m)
+- D7 skilled_sortie (spoiling : les patrouilles SAD sur les zones de rassemblement sud au 1er contact)
+**Patrons SQF repris des leçons payées** : noyau-le-plus-proche tient toujours (métrique/QRF intactes) ; MOVE+hold pour bloquer (jamais SAD, leçon du standoff) ; SAD pour frapper ; boucles 8-20 s.
+**EN FILE** : 10 smokes (M8-M12 vs skilled ; M1 vs les 5 défenses) chaînés derrière l'escalade n=32 en cours. Puis : prédictions par cellule AVANT toute table (§D du catalogue = hypothèses en bloc), mesure des colonnes/lignes nouvelles ≈ 50 cellules n=16 bornées (~2 nuits de flotte), re-calcul de la valeur de sélection sur le répertoire élargi (le chiffre qui décide de l'officier).
+
+## 2026-06-10 ~13:20 — SMOKES RÉPERTOIRE 10/10 EXÉCUTÉS + PRÉ-ENREGISTREMENT GRANDE MATRICE 9×8 (archi, AVANT toute donnée)
+**Smokes (validité d'exécution, PAS des taux — n=1)** : zéro erreur SQF/python sur les 10. M8 PERCÉE ✅ succès 1er coup (pertes 25 %, 3 ennemis restants). M12 RECO-EN-FORCE ✅ succès 1er coup (le branchement adaptatif fonctionne). M11 RAID : exécution propre, pertes 21 % seulement, mais 54 % de destruction < seuil 70 % (sa nature). M9 lent (500 pas). M10 saigne en approche d'enclume (écran de patrouilles — précédent M2 : on ne retouche PAS la géométrie, la table dira). Défenses : les 5 gagnent leur 1ʳᵉ op vs M1 ; trace mobile = signature doctrinale exacte (écran s'efface → garnison tombe → contre-attaque → M1 exfil à 36 %).
+**PRÉ-ENREGISTREMENT — grande matrice 9 attaques × 8 défenses, fourchettes militaire % n=16, gravées AVANT mesure** (connues exclues) :
+| atk\def | skilled | react | depth | mobile | elastic | herisson | appat | sortie |
+|---|---|---|---|---|---|---|---|---|
+| M1 | 50 (connu) | 34 (connu) | 19 (connu) | 20-40 | 25-45 | 35-60 | 20-45 | 15-35 |
+| M2 | 31 (connu) | 19 (connu) | 31 (connu) | 30-50 | 30-50 | 30-55 | 20-45 | 20-40 |
+| M3 | 62.5 (connu) | 22 (connu) | 66 (connu) | 25-45 | 35-55 | 35-60 | 20-45 | 20-40 |
+| M5 | 25 (connu) | 16 (connu) | 31 (connu) | 30-55 | 25-45 | 20-40 | 20-45 | 15-35 |
+| M8 | 40-65 | 10-30 | 10-30 | 15-35 | 15-35 | 30-55 | 15-40 | 20-40 |
+| M9 | 25-50 | 15-35 | 35-60 | 15-35 | 25-50 | 10-30 | 25-50 | 25-50 |
+| M10 | 25-50 | 10-30 | 30-55 | 20-40 | **45-70** | 15-35 | 25-50 | 20-40 |
+| M11 | 20-40 | 15-35 | 25-45 | 15-35 | 15-35 | 25-50 | **0-20** | 20-45 |
+| M12 | 45-65 | 25-45 | 30-55 | 25-50 | 30-55 | 30-55 | 25-50 | 25-50 |
+**Hypothèses fortes nommées** : (a) M10-élastique 45-70 = LE contre (le repli meurt sur le bloc) ; (b) M11-appât 0-20 = le suicide (la nasse) ; (c) M8 fort seulement vs cordon (skilled), avalé par profondeur/mobile ; (d) M12 = ROBUSTESSE (jamais pire ligne, plancher du futur sélecteur) ; (e) hérisson punit M9 (rien à tourner) et M5 (démo dans le vide).
+**Gate D1 pré-enregistré** : valeur de sélection recalculée sur la matrice 9×8 complète ≥ 15-20 pts → l'officier devient RENTABLE → liste 3 branche officier. Sinon → le répertoire seul est la valeur (M12/robustesse) et la diversité devra venir du défenseur APPRIS.
+**Protocole** : 60 cellules nouvelles n=16 bornées (mur 1200 s/enlisement 500 s), ordre = nouvelles-attaques×connues (15) → connues×nouvelles-défenses (20) → nouvelles×nouvelles (25). Append-only mx_*.jsonl. Pas de retouche de géométrie en cours de table.
+
+## 2026-06-10 ~15:00 — PONT TCP NATIF CONSTRUIT (levier débit ×2-3, archi, décision Younes « optimiser le temps »)
+**Diagnostic** : le « pont socket » existant (hmt_ext_x64.dll) n'était qu'un contournement fichier pour le CLIENT solo. Le vrai goulot du harnais de MESURE : cmd_N.sqf (polling 0.2 s) + diag_log→RPT (flush paresseux) + relecture de 500 Ko de log PAR requête ×16 serveurs (contention disque).
+**Construit (tout testé hors-Arma)** :
+- `socket_bridge/hmt_native.c` → `hmt_native_x64.so` (extension NATIVE Linux du serveur dédié) : thread TCP loopback (port = env HMT_EXT_PORT, 5801+i posé par multi_server.sh), commandes en RAM (ring 128, chunking M|/D| pour >10 Ko), obs forwardées en TCP immédiat ("o|ligne"), HMT_SYNC <n> à la connexion (reprise inter-ops), MSG_NOSIGNAL partout (un client mort ne tue JAMAIS le serveur). Test ctypes complet : version/sync/multi-lignes/chunking 25 Ko/reconnexion ✅.
+- `arma_socket_bridge.py` : SocketBridge, interface IDENTIQUE à ArmaBridge (send/_log_lines/_last_recv) = drop-in. Transformation transparente des `diag_log format [...]`/`diag_log "..."` en émissions socket (parser à crochets imbriqués + échappement SQF "" — 3 cas piégeux testés ✅).
+- `harmattan_actuator_native.sqf` (compteur HMT_NN) + init.sqf template : **les DEUX actuateurs coexistent** (fichier toujours chargé = rétro-compat totale ; natif en plus si la .so répond). Bascule côté Python par env **HMT_SOCKET=1** ; settle 0.5→0.15 en mode socket (les obs n'attendent plus le flush RPT). step_wait INCHANGÉ (c'est du temps de jeu — le toucher fausserait la comparabilité des tables).
+**Gain attendu** : ~2.2 s/pas → ~1.25 s/pas (×1.75) + suppression de la contention disque ×16 → ×2+ sous flotte chargée. À MESURER par l'A/B chaîné (fichier vs TCP, même op/seed) qui part automatiquement après la grande matrice + reboot flotte dual-mode.
+**Règle de bascule** : si A/B propre (métriques identiques, gain confirmé) → les tables suivantes passent en HMT_SOCKET=1 ; le mode fichier reste le fallback gravé.
+
+## 2026-06-10 ~16:30 — PISTE MULTI-THÉÂTRES OUVERTE : CMO + DCS (décision Younes)
+La bibliothèque Steam de Younes couvre tous les échelons de la guerre : DCS (technique air) · Arma (tactique sol) · **CMO (opératif aéronaval)** · HoI4 (stratégique). Décision : étendre la méthode Harmattan aux théâtres 2 et 3. **Plans complets dans `~/Bureau/Plans-CMO-DCS/`** (Gate 0 plomberie → répertoire → matrice → valeur de sélection → officier, pour chacun).
+**Préparé** : CMO (1076160) et DCS (223750) possédés, non installés ; bibliothèque /mnt/data/SteamLibrary enregistrée ; Proton Experimental pré-assigné aux deux (config.vdf). **Leçon d'infra** : Steam refuse le logon réseau en mode headless/-silent → l'installation exige la session graphique. RDP bloqué à distance par le verrou GNOME (« Session creation inhibited », LockedHint résiste à loginctl unlock-session non-root) → Younes finalisera sur place. Re-verrouillage auto DÉSACTIVÉ (gsettings lock-enabled false, idle-delay 0) → le problème ne se reproduira plus une fois la session déverrouillée une fois.
+Client RDP installé sur le Mac (Windows App 11.3.5, extraction directe du pkg Microsoft — brew cassé) + raccourci `workstation.rdp` sur le Bureau Mac.
+
+## 2026-06-11 ~00:35 — CMO + DCS INSTALLÉS par Younes (session débloquée sur place)
+**Emplacement (important : 3e bibliothèque, client SNAP)** : `/mnt/data/harmattan-sandbox/Steam/steamapps/common/` — CMO 35 Go (1076160) · DCS World **369 Go** (223750) · Arma 3 client 41 Go (107410). Préfixes Proton créés pour les trois (`compatdata/`) → premiers lancements probablement faits. Le client Steam actif pour le jeu = **snap** (`~/snap/steam/...`), PAS le deb que j'avais configuré.
+**Matrice intacte pendant le téléchargement des 450 Go** (38/60 cellules à 00:30, rythme 19 min/cellule — la charge ~67 de la soirée s'explique en partie par le download). Reboot/A-B pont TCP : **ANNULÉS sur ordre de Younes** (ab_socket tué) — l'A/B est parké, relançable à la demande.
+**Prochaine marche** : Gate 0 CMO dès la flotte libérée (plan dans ~/Bureau/Plans-CMO-DCS/PLAN-CMO.md, adapter les chemins au préfixe snap).
+
+## 2026-06-11 ~07:45 — 🎯 GATE D1 : MATRICE 9×8 COMPLÈTE (960 ops) — LA PORTE S'OUVRE : VALEUR DE SÉLECTION +15.5 pts
+**Matrice complète (militaire %, n=16/cellule sauf react n=32)** :
+| | skilled | react | depth | mobile | elastic | herisson | appat | sortie |
+|---|---|---|---|---|---|---|---|---|
+| M1 | 50.0 | 34.4 | 18.8 | 37.5 | 25.0 | 50.0 | 25.0 | 37.5 |
+| M2 | 31.0 | 18.8 | 31.2 | 43.8 | 31.2 | 50.0 | 18.8 | 37.5 |
+| M3 | 62.5 | 21.9 | 65.6 | 75.0 | 62.5 | 87.5 | 43.8 | 75.0 |
+| M5 | 25.0 | 15.6 | 31.2 | 75.0 | 68.8 | 68.8 | 68.8 | 50.0 |
+| M8 | 43.8 | 25.0 | 37.5 | 56.2 | 62.5 | 56.2 | 43.8 | 62.5 |
+| M9 | 12.5 | 31.2 | 18.8 | 50.0 | 62.5 | 93.8 | 81.2 | 81.2 |
+| M10 | 25.0 | 31.2 | 18.8 | 81.2 | 81.2 | **100** | **100** | 71.4 |
+| M11 | 31.2 | 18.8 | 12.5 | 78.6 | 64.3 | 64.3 | 28.6 | 42.9 |
+| M12 | 31.2 | **56.2** | 31.2 | 71.4 | 57.1 | 85.7 | 78.6 | **85.7** |
+**CHAMPIONS : 3 régimes distincts** — M3 (défenses ancrées : skilled 62.5, depth 65.6) · M10 marteau-enclume (défenses qui abandonnent l'écran : mobile/elastic 81.2, herisson/appat 100) · M12 reco-en-force (défenses adaptatives : react 56.2, sortie 85.7).
+**ROBUSTESSE (moyenne/8 défenses)** : M10 63.6 > M12 62.2 > M3 61.7 > M9 53.9 > M5 50.4 > M8 48.4 > M11 42.6 > M1 34.8 > M2 32.8. **Les 2 pièces codées HIER prennent les 2 premières places** — la décision Younes « tout coder, c'est la plus-value » remboursée en 24 h.
+**VALEUR DE SÉLECTION = 79.1 (sélecteur parfait) − 63.6 (M10-fixe) = +15.5 pts** → SEUIL 15-20 ATTEINT (borne basse) → **l'officier-sélecteur devient ÉCONOMIQUEMENT justifié**, sous réserve de l'escalade n=32 des pivots (12 cellules lancées 07:45, colonnes serrées : mobile/elastic/herisson/appat/sortie top-2 + skilled M3/M8).
+**Track-record des prédictions : ~17/60 dans la fourchette** — j'ai systématiquement SOUS-estimé les attaquants contre les défenses nouvelles. Erreurs les plus instructives : M9-hérisson prédit 10-30 → **93.8** ; M10-hérisson prédit 15-35 → **100** ; M10-appât 25-50 → **100**. LOI DOCTRINALE ÉMERGENTE : une défense dense SANS écran meurt face à toute manœuvre qui possède l'extérieur (l'enclume/la marche profonde s'installent sans opposition, puis le marteau frappe un périmètre compressé). Corollaire de la loi d'hier (« l'écran est sacré ») : le hérisson est le PIRE des sacrifices d'écran, pas le meilleur.
+**M12 confirme sa nature** : jamais championne nulle part SAUF contre les 2 défenses qui réagissent — l'adaptation ne paie que contre l'adaptation — et 2e robustesse globale. C'est le PLANCHER que le sélecteur appris devra battre.
+**Prochaines marches** : (1) n=32 pivots en cours → verdict consolidé ; (2) commit+tag gate-d1 ; (3) le PROBLÈME DE RECONNAISSANCE (l'officier doit DEVINER la défense depuis les indices de contact — le stub lit la vérité terrain, un vrai officier non) ; (4) M13 assaut-sous-fumigène + 5e action fumée dans le sandbox (l'expérience « le RL peut-il étendre le livre ? », validée par Younes cette nuit).

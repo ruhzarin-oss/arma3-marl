@@ -1,0 +1,16 @@
+{"seed": 0, "srv": 0, "err": "TimeoutError", "op": "CHERGUI-00", "man": "M10", "enemy": "skilled_herisson"}
+{"seed": 15, "srv": 15, "err": "TimeoutError", "op": "NOROIT-15", "man": "M10", "enemy": "skilled_herisson"}
+{"seed": 8, "srv": 8, "err": "TimeoutError", "op": "REG-08", "man": "M10", "enemy": "skilled_herisson"}
+{"seed": 7, "srv": 7, "err": "TimeoutError", "op": "ERG-07", "man": "M10", "enemy": "skilled_herisson"}
+{"seed": 9, "srv": 9, "err": "TimeoutError", "op": "BARKANE-09", "man": "M10", "enemy": "skilled_herisson"}
+{"seed": 1, "srv": 1, "err": "TimeoutError", "op": "AZALAI-01", "man": "M10", "enemy": "skilled_herisson"}
+{"seed": 4, "srv": 4, "err": "TimeoutError", "op": "SAHEL-04", "man": "M10", "enemy": "skilled_herisson"}
+{"seed": 3, "srv": 3, "err": "TimeoutError", "op": "TAGANT-03", "man": "M10", "enemy": "skilled_herisson"}
+{"seed": 12, "srv": 12, "err": "TimeoutError", "op": "ZEPHYR-12", "man": "M10", "enemy": "skilled_herisson"}
+{"seed": 13, "srv": 13, "err": "TimeoutError", "op": "AQUILON-13", "man": "M10", "enemy": "skilled_herisson"}
+{"mil": true, "pertes": 0.25, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 1, "ennemis_total": 28, "abort": null, "seed": 5, "srv": 5, "dt": 835.8, "op": "KHAMSIN-05", "man": "M10", "enemy": "skilled_herisson"}
+{"seed": 10, "srv": 10, "err": "TimeoutError", "op": "GHIBLI-10", "man": "M10", "enemy": "skilled_herisson"}
+{"seed": 14, "srv": 14, "err": "TimeoutError", "op": "BOREE-14", "man": "M10", "enemy": "skilled_herisson"}
+{"seed": 11, "srv": 11, "err": "TimeoutError", "op": "HABOOB-11", "man": "M10", "enemy": "skilled_herisson"}
+{"seed": 2, "srv": 2, "err": "TimeoutError", "op": "HOGGAR-02", "man": "M10", "enemy": "skilled_herisson"}
+{"seed": 6, "srv": 6, "err": "TimeoutError", "op": "SIMOUN-06", "man": "M10", "enemy": "skilled_herisson"}

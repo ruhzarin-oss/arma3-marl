@@ -291,3 +291,166 @@ MANEUVERS = {"M1": appui_assaut, "M2": double_enveloppement,
              "M3": enveloppement_simple, "M4": assaut_masse,
              "M5": feinte_debordement, "M6": infiltration, "M7": attaque_echelonnee}
 MANEUVERS = {k: _with_qrf_trigger(v) for k, v in MANEUVERS.items()}   # [v3] QRF-sur-garnison partout
+
+
+# ============================================================================
+# EXTENSION DU RÉPERTOIRE (10/06) — recherche doctrinale DOCTRINE-REPERTOIRE.md
+# Points nouveaux de la géographie (entre l'objectif 16000 et le point QRF 16350 -> terre sûre)
+# ============================================================================
+ARRIERE = (15000, 16230)   # l'arrière du complexe (axe de fuite/renfort)
+PIVOT_E = (15300, 16150)   # point de contournement profond est
+BLOC_N  = (15040, 16180)   # position de blocage nord (enclume)
+
+
+# ============================================================================
+# M8 — PERCÉE (penetration) : TOUTE la force sur UN axe étroit -> rupture -> exploitation vers l'arrière.
+#   Bat : défenses étalées/cordon. Battue par : défense en profondeur, réserve mobile.
+# ============================================================================
+def percee(qrf="inf"):
+    phases = [
+        {"name": "INFILTRATION",
+         "orders": {"SQ_APPUI": (CRETE, "move"), "SQ_A_OUEST": (ATTENTE, "move"),
+                    "SQ_A_EST": (ATTENTE, "move"), "SQ_RESERVE": (ATTENTE, "move")},
+         "done_when": ("all", [("squad_at", 0, CRETE, 90), ("squad_at", 1, ATTENTE, 90),
+                                ("squad_at", 2, ATTENTE, 110), ("squad_at", 3, ATTENTE, 110)]),
+         "contingencies": [{"if": ("losses", 0.3), "reason": "pertes en approche", "goto": "EXFIL"},
+                           {"if": ("steps", 210), "reason": "approche enlisee", "goto": "RUPTURE"}]},
+        {"name": "RUPTURE",   # tout sur la ligne ouest, axe etroit
+         "orders": {"SQ_APPUI": (COMPLEXE, "suppress"), "SQ_A_OUEST": (LIGNE_O, "assault"),
+                    "SQ_A_EST": (LIGNE_O, "assault"), "SQ_RESERVE": (ATTENTE, "hold")},
+         "done_when": ("any", [("squad_at", 1, LIGNE_O, 60), ("squad_at", 2, LIGNE_O, 60), ("steps", 120)]),
+         "contingencies": [{"if": ("losses", 0.45), "reason": "rupture saignee", "goto": "EXFIL"}]},
+        {"name": "EXPLOITATION",   # on passe AU TRAVERS : une escouade file a l ARRIERE, la reserve suit dans la breche
+         "orders": {"SQ_APPUI": (COMPLEXE, "suppress"), "SQ_A_OUEST": (ARRIERE, "assault"),
+                    "SQ_A_EST": (COMPLEXE, "assault"), "SQ_RESERVE": (LIGNE_O, "move")},
+         "done_when": ("any", [("squad_at", 1, ARRIERE, 80), ("enemy_dead_frac", 0.7), ("steps", 150)]),
+         "contingencies": [{"if": ("losses", 0.55), "reason": "exploitation intenable", "goto": "EXFIL"}]},
+    ] + _consol_exfil(qrf)
+    return {"name": "M8-PERCEE", "phases": phases, "success": SUCCESS}
+
+
+# ============================================================================
+# M9 — MOUVEMENT TOURNANT : prendre l ARRIERE AVANT l objectif -> forcer la defense a sortir de ses trous.
+#   Bat : défenses ancrées au terrain. Battue par : hérisson (rien à tourner), réserve mobile.
+# ============================================================================
+def tournant(qrf="inf"):
+    phases = [
+        {"name": "FIXATION",
+         "orders": {"SQ_APPUI": (CRETE, "move"), "SQ_A_OUEST": (FLANC_E, "move"),
+                    "SQ_A_EST": (FLANC_E, "move"), "SQ_RESERVE": (FLANC_E, "move")},
+         "done_when": ("all", [("squad_at", 0, CRETE, 90), ("squad_at", 2, FLANC_E, 90)]),
+         "contingencies": [{"if": ("losses", 0.3), "reason": "pertes en approche", "goto": "EXFIL"},
+                           {"if": ("steps", 210), "reason": "approche enlisee", "goto": "MARCHE_PROFONDE"}]},
+        {"name": "MARCHE_PROFONDE",   # l appui FIXE par le feu pendant que 3 escouades contournent profond
+         "orders": {"SQ_APPUI": (COMPLEXE, "suppress"), "SQ_A_OUEST": (PIVOT_E, "move"),
+                    "SQ_A_EST": (PIVOT_E, "move"), "SQ_RESERVE": (PIVOT_E, "move")},
+         "done_when": ("any", [("all", [("squad_at", 1, PIVOT_E, 90), ("squad_at", 2, PIVOT_E, 90)]), ("steps", 150)]),
+         "contingencies": [{"if": ("losses", 0.4), "reason": "marche decouverte", "goto": "EXFIL"}]},
+        {"name": "PRISE_ARRIERE",
+         "orders": {"SQ_APPUI": (COMPLEXE, "suppress"), "SQ_A_OUEST": (ARRIERE, "assault"),
+                    "SQ_A_EST": (ARRIERE, "assault"), "SQ_RESERVE": (PIVOT_E, "hold")},
+         "done_when": ("any", [("squad_at", 1, ARRIERE, 70), ("squad_at", 2, ARRIERE, 70), ("steps", 120)]),
+         "contingencies": [{"if": ("losses", 0.5), "reason": "arriere imprenable", "goto": "EXFIL"}]},
+        {"name": "ASSAUT_INVERSE",   # l objectif pris PAR LE NORD (sens inverse de toutes les autres manoeuvres)
+         "orders": {"SQ_APPUI": (COMPLEXE, "suppress"), "SQ_A_OUEST": (COMPLEXE, "assault"),
+                    "SQ_A_EST": (COMPLEXE, "assault"), "SQ_RESERVE": (ARRIERE, "hold")},
+         "done_when": ("any", [("enemy_dead_frac", 0.7), ("steps", 150)]),
+         "contingencies": [{"if": ("losses", 0.55), "reason": "assaut inverse saigne", "goto": "EXFIL"}]},
+    ] + _consol_exfil(qrf)
+    return {"name": "M9-TOURNANT", "phases": phases, "success": SUCCESS}
+
+
+# ============================================================================
+# M10 — MARTEAU-ENCLUME : un bloc au nord (enclume) + l assaut au sud (marteau) ;
+#   l ennemi qui rompt vers l arriere meurt sur le bloc. LE contre de la defense elastique.
+# ============================================================================
+def marteau_enclume(qrf="inf"):
+    phases = [
+        {"name": "INFILTRATION",
+         "orders": {"SQ_APPUI": (CRETE, "move"), "SQ_A_OUEST": (ATTENTE, "move"),
+                    "SQ_A_EST": (FLANC_E, "move"), "SQ_RESERVE": (FLANC_E, "move")},
+         "done_when": ("all", [("squad_at", 0, CRETE, 90), ("squad_at", 1, ATTENTE, 90), ("squad_at", 2, FLANC_E, 90)]),
+         "contingencies": [{"if": ("losses", 0.3), "reason": "pertes en approche", "goto": "EXFIL"},
+                           {"if": ("steps", 210), "reason": "approche enlisee", "goto": "ENCLUME"}]},
+        {"name": "ENCLUME",   # le bloc se met en place au nord PENDANT que le marteau attend
+         "orders": {"SQ_APPUI": (CRETE, "hold"), "SQ_A_OUEST": (ATTENTE, "hold"),
+                    "SQ_A_EST": (BLOC_N, "move"), "SQ_RESERVE": (BLOC_N, "move")},
+         "done_when": ("any", [("squad_at", 2, BLOC_N, 80), ("squad_at", 3, BLOC_N, 80), ("steps", 135)]),
+         "contingencies": [{"if": ("losses", 0.4), "reason": "enclume decouverte", "goto": "EXFIL"}]},
+        {"name": "MARTEAU",   # l assaut pousse du sud ; le bloc TIENT (hold) et fauche ce qui reflue
+         "orders": {"SQ_APPUI": (COMPLEXE, "suppress"), "SQ_A_OUEST": (COMPLEXE, "assault"),
+                    "SQ_A_EST": (BLOC_N, "hold"), "SQ_RESERVE": (BLOC_N, "hold")},
+         "done_when": ("any", [("enemy_dead_frac", 0.7), ("steps", 165)]),
+         "contingencies": [{"if": ("losses", 0.55), "reason": "marteau brise", "goto": "EXFIL"}]},
+    ] + _consol_exfil(qrf)
+    return {"name": "M10-MARTEAU-ENCLUME", "phases": phases, "success": SUCCESS}
+
+
+# ============================================================================
+# M11 — RAID (coup de main) : detruire vite et PARTIR avant la contre-attaque — pas de consolidation.
+#   Bat : garnisons isolees. Suicidaire contre : appat.
+# ============================================================================
+def raid(qrf="inf"):
+    phases = [
+        {"name": "INFILTRATION",
+         "orders": {"SQ_APPUI": (INF_O, "move"), "SQ_A_OUEST": (INF_O, "move"),
+                    "SQ_A_EST": (INF_E, "move"), "SQ_RESERVE": (INF_E, "move")},
+         "done_when": ("all", [("squad_at", 1, INF_O, 80), ("squad_at", 2, INF_E, 80)]),
+         "contingencies": [{"if": ("losses", 0.25), "reason": "raid decele trop tot", "goto": "EXFIL"},
+                           {"if": ("steps", 180), "reason": "approche enlisee", "goto": "COUP_DE_MAIN"}]},
+        {"name": "COUP_DE_MAIN",   # tout le monde dedans, vite
+         "orders": {"SQ_APPUI": (COMPLEXE, "suppress"), "SQ_A_OUEST": (COMPLEXE, "assault"),
+                    "SQ_A_EST": (COMPLEXE, "assault"), "SQ_RESERVE": (COMPLEXE, "assault")},
+         "done_when": ("any", [("enemy_dead_frac", 0.7), ("steps", 150)]),
+         "contingencies": [{"if": ("losses", 0.45), "reason": "coup de main rate", "goto": "EXFIL"}]},
+        {"name": "EXFIL",   # PAS de consolidation : on part avant que la QRF ne morde
+         "orders": {"SQ_APPUI": (LZ, "move"), "SQ_A_OUEST": (LZ, "move"),
+                    "SQ_A_EST": (LZ, "move"), "SQ_RESERVE": (LZ, "move")},
+         "done_when": ("any", [("squad_at", 0, LZ, 90), ("squad_at", 1, LZ, 90),
+                                ("squad_at", 2, LZ, 90), ("squad_at", 3, LZ, 90), ("steps", 120)]),
+         "contingencies": []},
+    ]
+    return {"name": "M11-RAID", "phases": phases, "success": SUCCESS}
+
+
+# ============================================================================
+# M12 — RECONNAISSANCE EN FORCE : une escouade SONDE le front est ; le plan SE DECIDE sur sa reception.
+#   Branchement par contingences = mini-officier en dur. Sa valeur attendue = ROBUSTESSE inter-defenses.
+#   Si la sonde saigne (front dur) -> debordement ouest ; si elle passe (front mou) -> assaut frontal.
+#   Bonus doctrinal : un assaut frontal qui s eternise bascule de lui-meme en debordement (done_when -> +1).
+# ============================================================================
+def reco_en_force(qrf="inf"):
+    phases = [
+        {"name": "MISE_EN_PLACE",
+         "orders": {"SQ_APPUI": (CRETE, "move"), "SQ_A_OUEST": (ATTENTE, "move"),
+                    "SQ_A_EST": (ATTENTE_E, "move"), "SQ_RESERVE": (POSTE_RES, "move")},
+         "done_when": ("all", [("squad_at", 0, CRETE, 90), ("squad_at", 2, ATTENTE_E, 90)]),
+         "contingencies": [{"if": ("losses", 0.3), "reason": "pertes en approche", "goto": "EXFIL"},
+                           {"if": ("steps", 210), "reason": "approche enlisee", "goto": "SONDE"}]},
+        {"name": "SONDE",   # SQ_A_EST tate le front ; les autres attendent la lecture
+         "orders": {"SQ_APPUI": (COMPLEXE, "suppress"), "SQ_A_EST": (LIGNE_E, "assault"),
+                    "SQ_A_OUEST": (ATTENTE, "hold"), "SQ_RESERVE": (POSTE_RES, "hold")},
+         "done_when": ("any", [("squad_at", 2, LIGNE_E, 70), ("steps", 75)]),
+         "contingencies": [{"if": ("losses", 0.08), "reason": "la sonde saigne -> front dur -> debordement", "goto": "DEBORDEMENT_OUEST"}]},
+        {"name": "ASSAUT_FRONTAL",   # front mou : on enfonce ; s il s eternise -> bascule debordement (+1)
+         "orders": {"SQ_APPUI": (COMPLEXE, "suppress"), "SQ_A_OUEST": (COMPLEXE, "assault"),
+                    "SQ_A_EST": (COMPLEXE, "assault"), "SQ_RESERVE": (COMPLEXE, "assault")},
+         "done_when": ("any", [("steps", 165)]),
+         "contingencies": [{"if": ("enemy_dead_frac", 0.7), "reason": "ennemi brise -> consolidation", "goto": "CONSOLIDATION"},
+                           {"if": ("losses", 0.55), "reason": "front dur finalement", "goto": "EXFIL"}]},
+        {"name": "DEBORDEMENT_OUEST",   # front dur : bascule en enveloppement par l ouest
+         "orders": {"SQ_APPUI": (COMPLEXE, "suppress"), "SQ_A_OUEST": (FLANC_O, "move"),
+                    "SQ_A_EST": (ATTENTE_E, "hold"), "SQ_RESERVE": (FLANC_O, "move")},
+         "done_when": ("any", [("squad_at", 1, FLANC_O, 80), ("steps", 120)]),
+         "contingencies": [{"if": ("losses", 0.5), "reason": "debordement saigne", "goto": "EXFIL"}]},
+        {"name": "ASSAUT_FLANC",
+         "orders": {"SQ_APPUI": (COMPLEXE, "suppress"), "SQ_A_OUEST": (COMPLEXE, "assault"),
+                    "SQ_RESERVE": (COMPLEXE, "assault"), "SQ_A_EST": (LIGNE_E, "assault")},
+         "done_when": ("any", [("enemy_dead_frac", 0.7), ("steps", 165)]),
+         "contingencies": [{"if": ("losses", 0.55), "reason": "assaut flanc saigne", "goto": "EXFIL"}]},
+    ] + _consol_exfil(qrf)
+    return {"name": "M12-RECO-EN-FORCE", "phases": phases, "success": SUCCESS}
+
+
+_EXT = {"M8": percee, "M9": tournant, "M10": marteau_enclume, "M11": raid, "M12": reco_en_force}
+MANEUVERS.update({k: _with_qrf_trigger(v) for k, v in _EXT.items()})

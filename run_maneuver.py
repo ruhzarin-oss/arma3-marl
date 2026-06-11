@@ -9,7 +9,7 @@ import torch
 from op_arma import OpArma, OperationRunner
 from train_koth_gpu import Net
 from baptism import op_name
-from enemy_profiles import apply_profile, metrics_dyn, PRO_SKILL_SQF, HUNT_SQF, REACTIVE_DEF_SQF, REACTIVE_DEPTH_SQF
+from enemy_profiles import apply_profile, metrics_dyn, PRO_SKILL_SQF, HUNT_SQF, REACTIVE_DEF_SQF, REACTIVE_DEPTH_SQF, ENEMY_PROFILES, DEFENSE_SQF
 import maneuvers as M
 from geometries import GEOMETRIES
 
@@ -33,7 +33,7 @@ def metrics(env, runner):
             "qrf_spawn": bool(qrf_live), "qrf_reste": qrf_a}
 
 
-def run_one(brain, plan, srv, seed, max_steps, verbose, log_path, enemy="normal", geometry="standard"):
+def run_one(brain, plan, srv, seed, max_steps, verbose, log_path, enemy="normal", geometry="standard", max_wall=1200.0, stall_wall=500.0):
     mis = SB + "/arma3server/mpmissions/HarmattanBridge%d.Altis" % srv
     log = SB + "/logs/server%d.out" % srv
     env = OpArma(squads=M.SQUADS, mission=mis, log=log, move=36, seed=seed)
@@ -44,10 +44,13 @@ def run_one(brain, plan, srv, seed, max_steps, verbose, log_path, enemy="normal"
     if prof["pro"]:   # skills montés toujours si pro ; boucle de CHASSE seulement si hunt (défaut True -> rétro-compat)
         env.b.send(PRO_SKILL_SQF + (HUNT_SQF if prof.get("hunt", True) else "")
                    + (REACTIVE_DEF_SQF if prof.get("react") else "")
-                   + (REACTIVE_DEPTH_SQF if prof.get("react_depth") else ""), wait=True)
+                   + (REACTIVE_DEPTH_SQF if prof.get("react_depth") else "")
+                   + (DEFENSE_SQF[prof["def_sqf"]] if prof.get("def_sqf") else ""), wait=True)
     runner = OperationRunner(env, brain, plan, log_path=log_path, verbose=verbose)
-    runner.run(max_steps=max_steps)
-    return metrics_dyn(env, runner, garrison)
+    runner.run(max_steps=max_steps, max_wall=max_wall, stall_wall=stall_wall)
+    met = metrics_dyn(env, runner, garrison)
+    met["abort"] = getattr(runner, "abort_reason", None)
+    return met
 
 
 if __name__ == "__main__":
@@ -58,8 +61,9 @@ if __name__ == "__main__":
     p.add_argument("--base", type=int, default=0)   # offset serveur : permet 2 sondes // (base 0 sur srv 0-7, base 8 sur srv 8-15)
     p.add_argument("--seed_base", type=int, default=0)   # offset de seed : append-only (ex: seed_base 16 reps 16 -> seeds 16-31, sans réécraser 0-15)
     p.add_argument("--max_steps", type=int, default=500); p.add_argument("--qrf", type=str, default="inf")
+    p.add_argument("--max_wall", type=float, default=1200.0); p.add_argument("--stall_wall", type=float, default=500.0)
     p.add_argument("--out", type=str, default="run_maneuver.jsonl")
-    p.add_argument("--enemy", type=str, default="normal", choices=["normal", "skilled", "skilled_hunt", "skilled_qrf", "skilled_react", "skilled_react_depth", "mid_skill", "mid_bodies", "pro", "hardcore", "nightmare"])
+    p.add_argument("--enemy", type=str, default="normal", choices=list(ENEMY_PROFILES.keys()))
     p.add_argument("--geometry", type=str, default="standard", choices=list(GEOMETRIES.keys()))
     a = p.parse_args()
     brain = Net(10, 4, 512, 3).to(DEV)
@@ -68,7 +72,7 @@ if __name__ == "__main__":
 
     if a.smoke:
         print("=== SMOKE %s : 1 opération Arma (journal verbeux) ===" % plan["name"], flush=True)
-        m = run_one(brain, plan, srv=0, seed=1, max_steps=a.max_steps, verbose=True, log_path="op_journal.jsonl", enemy=a.enemy, geometry=a.geometry)
+        m = run_one(brain, plan, srv=0, seed=1, max_steps=a.max_steps, verbose=True, log_path="op_journal.jsonl", enemy=a.enemy, geometry=a.geometry, max_wall=a.max_wall, stall_wall=a.stall_wall)
         m["op"] = op_name(a.maneuver, 1)
         print("[SMOKE %s] %s" % (a.maneuver, m), flush=True)
     else:
@@ -80,7 +84,7 @@ if __name__ == "__main__":
                     seed = jobs[cur[0]]; cur[0] += 1
                 t0 = time.time()
                 try:
-                    m = run_one(brain, plan, srv, seed, a.max_steps, False, "/dev/null", enemy=a.enemy, geometry=a.geometry)
+                    m = run_one(brain, plan, srv, seed, a.max_steps, False, "/dev/null", enemy=a.enemy, geometry=a.geometry, max_wall=a.max_wall, stall_wall=a.stall_wall)
                     m["seed"] = seed; m["srv"] = srv; m["dt"] = round(time.time() - t0, 1)
                 except Exception as e:
                     m = {"seed": seed, "srv": srv, "err": type(e).__name__}

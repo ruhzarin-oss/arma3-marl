@@ -1,0 +1,16 @@
+{"seed": 14, "srv": 14, "err": "TimeoutError", "op": "BOREE-14", "man": "M12", "enemy": "skilled_mobile"}
+{"seed": 10, "srv": 10, "err": "TimeoutError", "op": "GHIBLI-10", "man": "M12", "enemy": "skilled_mobile"}
+{"mil": true, "pertes": 0.0714285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "abort": null, "seed": 5, "srv": 5, "dt": 484.8, "op": "KHAMSIN-05", "man": "M12", "enemy": "skilled_mobile"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "abort": null, "seed": 11, "srv": 11, "dt": 495.8, "op": "HABOOB-11", "man": "M12", "enemy": "skilled_mobile"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "abort": null, "seed": 2, "srv": 2, "dt": 544.0, "op": "HOGGAR-02", "man": "M12", "enemy": "skilled_mobile"}
+{"mil": true, "pertes": 0.0, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "abort": null, "seed": 8, "srv": 8, "dt": 567.7, "op": "REG-08", "man": "M12", "enemy": "skilled_mobile"}
+{"mil": true, "pertes": 0.1428571428571429, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "abort": null, "seed": 12, "srv": 12, "dt": 581.5, "op": "ZEPHYR-12", "man": "M12", "enemy": "skilled_mobile"}
+{"mil": true, "pertes": 0.0, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "abort": null, "seed": 6, "srv": 6, "dt": 605.6, "op": "SIMOUN-06", "man": "M12", "enemy": "skilled_mobile"}
+{"mil": true, "pertes": 0.1428571428571429, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "abort": null, "seed": 15, "srv": 15, "dt": 701.7, "op": "NOROIT-15", "man": "M12", "enemy": "skilled_mobile"}
+{"mil": true, "pertes": 0.25, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "abort": null, "seed": 7, "srv": 7, "dt": 767.2, "op": "ERG-07", "man": "M12", "enemy": "skilled_mobile"}
+{"mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 6, "ennemis_total": 28, "abort": null, "seed": 9, "srv": 9, "dt": 885.4, "op": "BARKANE-09", "man": "M12", "enemy": "skilled_mobile"}
+{"mil": false, "pertes": 0.0, "garr_pris": false, "qrf_spawn": false, "qrf_reste": 0, "ennemis_total": 20, "abort": null, "seed": 0, "srv": 0, "dt": 1083.7, "op": "CHERGUI-00", "man": "M12", "enemy": "skilled_mobile"}
+{"mil": false, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "abort": null, "seed": 1, "srv": 1, "dt": 1097.0, "op": "AZALAI-01", "man": "M12", "enemy": "skilled_mobile"}
+{"mil": true, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "abort": null, "seed": 3, "srv": 3, "dt": 1105.8, "op": "TAGANT-03", "man": "M12", "enemy": "skilled_mobile"}
+{"mil": false, "pertes": 0.0357142857142857, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "abort": null, "seed": 13, "srv": 13, "dt": 1146.7, "op": "AQUILON-13", "man": "M12", "enemy": "skilled_mobile"}
+{"mil": false, "pertes": 0.0, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "abort": null, "seed": 4, "srv": 4, "dt": 1153.6, "op": "SAHEL-04", "man": "M12", "enemy": "skilled_mobile"}

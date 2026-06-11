@@ -8,6 +8,7 @@ non instrumenté est un étage menteur). Tourne sur serveur DÉDIÉ headless (Ha
 import time, re, json
 import numpy as np
 import torch
+import os as _os
 from arma_bridge import ArmaBridge
 from train_koth_gpu import Net
 
@@ -29,11 +30,18 @@ class OpArma:
     def __init__(self, squads=(("SQ_APPUI", 7), ("SQ_ASSAUT", 7)), base=(15000, 16000),
                  mission=None, log=None, move=22.0, step_wait=1.0, settle=0.5, acc=4.0,
                  sup_range=120.0, sight=110.0, dmg_dead=0.7, skill=0.45, seed=0):
-        self.b = ArmaBridge(mission=mission or SB + "/arma3server/mpmissions/HarmattanBridge0.Altis",
-                            log=log or SB + "/logs/server0.out")
+        if _os.environ.get("HMT_SOCKET") == "1":
+            from arma_socket_bridge import SocketBridge
+            import re as _re
+            _m = _re.search(r"HarmattanBridge(\d+)", mission or "")
+            self.b = SocketBridge(port=5801 + (int(_m.group(1)) if _m else 0))
+        else:
+            self.b = ArmaBridge(mission=mission or SB + "/arma3server/mpmissions/HarmattanBridge0.Altis",
+                                log=log or SB + "/logs/server0.out")
         self.squads = [s[0] for s in squads]; self.sizes = [int(s[1]) for s in squads]
         self.S = len(self.squads); self.base = base
         self.move = move; self.step_wait = step_wait; self.settle = settle; self.acc = acc
+        if _os.environ.get("HMT_SOCKET") == "1": self.settle = min(self.settle, 0.15)   # les obs arrivent par TCP, plus d attente RPT
         self.sup_range = sup_range; self.sight = sight; self.dmg_dead = dmg_dead; self.skill = skill
         self.rng = np.random.default_rng(seed)
         self.scale = 140.0                                            # même échelle d'obs que l'entraînement KOTH
@@ -322,10 +330,12 @@ class OperationRunner:
         lg = lg + torch.as_tensor(STANCES[self.env.stances[si]], device=DEV)
         return torch.distributions.Categorical(logits=lg).sample().cpu().numpy()
 
-    def run(self, max_steps=400):
+    def run(self, max_steps=400, max_wall=1200.0, stall_wall=500.0):
         pidx = 0
+        # [10/06] bornes de cout : un standoff ne doit plus couter 7 h (mur temps-reel + detecteur d enlisement)
+        t_mur = time.time(); sig_prec = None; t_fige = time.time(); abort = None
         self.jlog("OP_START", op=self.plan["name"], squads=self.env.squads, sizes=self.env.sizes)
-        while pidx < len(self.plan["phases"]) and self.step_i < max_steps:
+        while pidx < len(self.plan["phases"]) and self.step_i < max_steps and abort is None:
             ph = self.plan["phases"][pidx]
             for sq, (goal, stance) in ph["orders"].items():
                 si = self.env.squads.index(sq)
@@ -335,6 +345,18 @@ class OperationRunner:
             if "on_enter" in ph: ph["on_enter"](self)
             self.phase_steps = 0
             while self.step_i < max_steps:
+                if max_wall and time.time() - t_mur > max_wall:
+                    abort = "TIMEOUT_MUR"
+                sig = (int(self.env.en_alive().sum()),
+                       sum(int(self.env.alive(si).sum()) for si in range(self.env.S)), pidx)
+                if sig != sig_prec:
+                    sig_prec = sig; t_fige = time.time()
+                elif stall_wall and time.time() - t_fige > stall_wall:
+                    abort = "ENLISEMENT"
+                if abort:
+                    self.jlog("OP_ABORT", raison=abort, phase=ph["name"], steps=self.step_i,
+                              losses=round(self.losses(), 2), ennemis=int(self.env.en_alive().sum()))
+                    break
                 acts = [self.act(si) for si in range(self.env.S)]
                 self.env.step(acts); self.step_i += 1; self.phase_steps += 1
                 # [v3 07/06] QRF déclenchée par la CHUTE DE LA GARNISON, quel que soit le chemin de phases
@@ -358,6 +380,7 @@ class OperationRunner:
                 if self.cond(ph["done_when"]):
                     self.jlog("PHASE_OK", phase=ph["name"], steps=self.phase_steps, losses=round(self.losses(), 2))
                     pidx += 1; break
+        self.abort_reason = abort
         success = self.cond(self.plan["success"])
         self.jlog("OP_END", succes=bool(success), steps=self.step_i, losses=round(self.losses(), 2),
                   ennemis_restants=int(self.env.en_alive().sum()))

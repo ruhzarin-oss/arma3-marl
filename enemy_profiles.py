@@ -149,3 +149,154 @@ def metrics_dyn(env, runner, garrison):
     mil = bool(ennemi_brise and pertes <= 0.5)
     return {"mil": mil, "pertes": float(pertes), "garr_pris": bool(garr_a == 0),
             "qrf_spawn": bool(qrf_live), "qrf_reste": qrf_a, "ennemis_total": int(eff_total)}
+
+
+# ============================================================================
+# EXTENSION DEFENSIVE (10/06) — le miroir du repertoire d attaque (DOCTRINE-REPERTOIRE.md §B)
+# Patron commun : le groupe le plus proche de l objectif = noyau (tient, QRF/metrique intacte) ;
+# les autres groupes manoeuvrent. Lecons reprises de REACTIVE_DEF_SQF : MOVE+hold pour bloquer
+# (jamais SAD pour un bloc, sinon standoff), SAD pour frapper, sleep 8-20 s par boucle.
+# ============================================================================
+
+# D3 — RESERVE MOBILE (strike force) : force de frappe au nord, CONTRE-ATTAQUE sur le centroide
+# des contacts connus. Tueuse de concentration (percee/masse). Vulnerable a la feinte.
+MOBILE_DEF_SQF = (
+    'HMT_DEFMOB = true;\n'
+    '[] spawn {\n'
+    '  sleep 6;\n'
+    '  private _obj = [15000,16000,0];\n'
+    '  private _eg = allGroups select { side _x == east };\n'
+    '  private _core = objNull; private _cd = 1e9;\n'
+    '  { private _d = (leader _x) distance2D _obj; if (_d < _cd) then { _cd = _d; _core = _x }; } forEach _eg;\n'
+    '  private _strike = _eg - [_core];\n'
+    '  { while {count waypoints _x > 0} do { deleteWaypoint [_x,0] };\n'
+    '    private _wp = _x addWaypoint [[15000,16180,0], 20]; _wp setWaypointType "MOVE"; _wp setWaypointSpeed "FULL";\n'
+    '  } forEach _strike;\n'
+    '  while {HMT_DEFMOB} do {\n'
+    '    private _kx = 0; private _ky = 0; private _n = 0;\n'
+    '    { private _u = _x; private _k = 0;\n'
+    '      { private _kk = _x knowsAbout _u; if (_kk > _k) then { _k = _kk }; } forEach _eg;\n'
+    '      if (_k > 1.2) then { _kx = _kx + ((getPosATL _u) select 0); _ky = _ky + ((getPosATL _u) select 1); _n = _n + 1; };\n'
+    '    } forEach (allUnits select { side _x == west && {alive _x} && {!isPlayer _x} });\n'
+    '    if (_n >= 3) then {\n'
+    '      private _tgt = [_kx/_n, _ky/_n, 0];\n'
+    '      { if (({alive _x} count units _x) > 0) then {\n'
+    '          while {count waypoints _x > 0} do { deleteWaypoint [_x,0] };\n'
+    '          private _wp = _x addWaypoint [_tgt, 25]; _wp setWaypointType "SAD"; _wp setWaypointSpeed "FULL";\n'
+    '          _x setBehaviour "COMBAT"; _x setCombatMode "RED"; }; } forEach _strike;\n'
+    '    };\n'
+    '    sleep 20;\n'
+    '  };\n'
+    '};\n')
+
+# D4 — DEFENSE ELASTIQUE : lignes successives (objectif -> 16150 -> 16270) ; on recule sous pression,
+# l attaquant s etire. Contre-indication doctrinale : marteau-enclume (le repli meurt sur le bloc).
+ELASTIC_DEF_SQF = (
+    'HMT_ELAS = true;\n'
+    '[] spawn {\n'
+    '  sleep 6;\n'
+    '  private _tot = {alive _x} count HMT_EN;\n'
+    '  private _l2 = false; private _l3 = false;\n'
+    '  while {HMT_ELAS} do {\n'
+    '    private _al = {alive _x} count HMT_EN;\n'
+    '    if (!_l2 && _al < _tot * 0.7) then { _l2 = true;\n'
+    '      { if (((leader _x) distance2D [15000,16000,0]) < 160) then {\n'
+    '          while {count waypoints _x > 0} do { deleteWaypoint [_x,0] };\n'
+    '          private _wp = _x addWaypoint [[15000,16150,0], 25]; _wp setWaypointType "MOVE"; _wp setWaypointSpeed "FULL";\n'
+    '          _wp setWaypointBehaviour "COMBAT"; }; } forEach (allGroups select { side _x == east }); };\n'
+    '    if (!_l3 && _al < _tot * 0.4) then { _l3 = true;\n'
+    '      { while {count waypoints _x > 0} do { deleteWaypoint [_x,0] };\n'
+    '        private _wp = _x addWaypoint [[15010,16270,0], 25]; _wp setWaypointType "MOVE"; _wp setWaypointSpeed "FULL";\n'
+    '      } forEach (allGroups select { side _x == east }); };\n'
+    '    sleep 10;\n'
+    '  };\n'
+    '};\n')
+
+# D5 — HERISSON (reduit) : TOUT le monde rentre au complexe, perimetre dense, pas d ecran.
+# Tueuse d infiltration/raid/tournant (rien dehors a contourner). Vulnerable a l appui-feu + convergence.
+HERISSON_DEF_SQF = (
+    '[] spawn {\n'
+    '  sleep 4;\n'
+    '  { private _g = _x;\n'
+    '    while {count waypoints _g > 0} do { deleteWaypoint [_g,0] };\n'
+    '    private _wp = _g addWaypoint [[15000,16000,0], 15];\n'
+    '    _wp setWaypointType "MOVE"; _wp setWaypointSpeed "FULL";\n'
+    '    _g setBehaviour "COMBAT"; _g setCombatMode "RED";\n'
+    '  } forEach (allGroups select { side _x == east });\n'
+    '  sleep 30;\n'
+    '  { _x setUnitPos "MIDDLE"; } forEach (allUnits select { side _x == east && {alive _x} });\n'
+    '};\n')
+
+# D6 — APPAT (retraite feinte) : la garnison ABANDONNE l objectif vers les surplombs nord ;
+# quand >=3 attaquants occupent le complexe -> contre-assaut convergent (la nasse). Tueuse de raid/masse.
+APPAT_DEF_SQF = (
+    'HMT_APPAT = true;\n'
+    '[] spawn {\n'
+    '  sleep 6;\n'
+    '  private _obj = [15000,16000,0];\n'
+    '  private _eg = allGroups select { side _x == east };\n'
+    '  private _out = false; private _fired = false;\n'
+    '  while {HMT_APPAT && !_fired} do {\n'
+    '    if (!_out) then {\n'
+    '      private _seen = 0;\n'
+    '      { private _u = _x; private _k = 0;\n'
+    '        { private _kk = _x knowsAbout _u; if (_kk > _k) then { _k = _kk }; } forEach _eg;\n'
+    '        if (_k > 1.0) then { _seen = _seen + 1; };\n'
+    '      } forEach (allUnits select { side _x == west && {alive _x} && {!isPlayer _x} });\n'
+    '      if (_seen >= 2) then { _out = true;\n'
+    '        private _i = 0;\n'
+    '        { while {count waypoints _x > 0} do { deleteWaypoint [_x,0] };\n'
+    '          private _p = [[14870,16180,0],[15130,16200,0]] select (_i mod 2); _i = _i + 1;\n'
+    '          private _wp = _x addWaypoint [_p, 20]; _wp setWaypointType "MOVE"; _wp setWaypointSpeed "FULL";\n'
+    '          _wp setWaypointBehaviour "COMBAT"; _x setCombatMode "YELLOW";\n'
+    '        } forEach _eg; };\n'
+    '    } else {\n'
+    '      private _in = { side _x == west && {alive _x} && {_x distance2D _obj < 70} } count allUnits;\n'
+    '      if (_in >= 3) then { _fired = true;\n'
+    '        { while {count waypoints _x > 0} do { deleteWaypoint [_x,0] };\n'
+    '          private _wp = _x addWaypoint [_obj, 25]; _wp setWaypointType "SAD"; _wp setWaypointSpeed "FULL";\n'
+    '          _x setBehaviour "COMBAT"; _x setCombatMode "RED";\n'
+    '        } forEach _eg; };\n'
+    '    };\n'
+    '    sleep 10;\n'
+    '  };\n'
+    '};\n')
+
+# D7 — SORTIE PREVENTIVE (spoiling attack) : au premier contact, les patrouilles ATTAQUENT les zones
+# de rassemblement sud (crete d appui + base assaut). Tueuse de mises en place lentes. Le noyau tient.
+SORTIE_DEF_SQF = (
+    'HMT_SORTIE = true;\n'
+    '[] spawn {\n'
+    '  sleep 6;\n'
+    '  private _eg = allGroups select { side _x == east };\n'
+    '  private _core = objNull; private _cd = 1e9;\n'
+    '  { private _d = (leader _x) distance2D [15000,16000,0]; if (_d < _cd) then { _cd = _d; _core = _x }; } forEach _eg;\n'
+    '  private _raiders = _eg - [_core];\n'
+    '  private _done = false;\n'
+    '  while {HMT_SORTIE && !_done} do {\n'
+    '    private _seen = 0;\n'
+    '    { private _u = _x; private _k = 0;\n'
+    '      { private _kk = _x knowsAbout _u; if (_kk > _k) then { _k = _kk }; } forEach _eg;\n'
+    '      if (_k > 0.8) then { _seen = _seen + 1; };\n'
+    '    } forEach (allUnits select { side _x == west && {alive _x} && {!isPlayer _x} });\n'
+    '    if (_seen >= 1) then { _done = true;\n'
+    '      private _i = 0;\n'
+    '      { if (({alive _x} count units _x) > 0) then {\n'
+    '          while {count waypoints _x > 0} do { deleteWaypoint [_x,0] };\n'
+    '          private _p = [[14880,15860,0],[15120,15830,0]] select (_i mod 2); _i = _i + 1;\n'
+    '          private _wp = _x addWaypoint [_p, 25]; _wp setWaypointType "SAD"; _wp setWaypointSpeed "FULL";\n'
+    '          _x setBehaviour "COMBAT"; _x setCombatMode "RED"; }; } forEach _raiders; };\n'
+    '    sleep 8;\n'
+    '  };\n'
+    '};\n')
+
+DEFENSE_SQF = {"mobile": MOBILE_DEF_SQF, "elastic": ELASTIC_DEF_SQF, "herisson": HERISSON_DEF_SQF,
+               "appat": APPAT_DEF_SQF, "sortie": SORTIE_DEF_SQF}
+
+ENEMY_PROFILES.update({
+    "skilled_mobile":   dict(mult=1.0, qrf_mult=1.0, pro=True, hunt=False, def_sqf="mobile"),    # D3 reserve mobile
+    "skilled_elastic":  dict(mult=1.0, qrf_mult=1.0, pro=True, hunt=False, def_sqf="elastic"),   # D4 elastique
+    "skilled_herisson": dict(mult=1.0, qrf_mult=1.0, pro=True, hunt=False, def_sqf="herisson"),  # D5 herisson
+    "skilled_appat":    dict(mult=1.0, qrf_mult=1.0, pro=True, hunt=False, def_sqf="appat"),     # D6 appat
+    "skilled_sortie":   dict(mult=1.0, qrf_mult=1.0, pro=True, hunt=False, def_sqf="sortie"),    # D7 sortie preventive
+})
