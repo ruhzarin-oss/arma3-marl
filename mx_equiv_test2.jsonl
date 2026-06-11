@@ -11,3 +11,6 @@
 {"mil": false, "pertes": 0.3571428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "abort": null, "seed": 34, "srv": 2, "dt": 146.7, "op": "HOGGAR-34", "man": "M10", "enemy": "skilled_mobile"}
 {"mil": false, "pertes": 0.3214285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28, "abort": null, "seed": 39, "srv": 7, "dt": 152.6, "op": "ERG-39", "man": "M10", "enemy": "skilled_mobile"}
 {"mil": true, "pertes": 0.3214285714285714, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 4, "ennemis_total": 28, "abort": null, "seed": 38, "srv": 6, "dt": 605.9, "op": "SIMOUN-38", "man": "M10", "enemy": "skilled_mobile"}
+{"mil": true, "pertes": 0.1428571428571429, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "abort": null, "seed": 33, "srv": 1, "dt": 1033.4, "op": "AZALAI-33", "man": "M10", "enemy": "skilled_mobile"}
+{"mil": true, "pertes": 0.3571428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "abort": null, "seed": 40, "srv": 8, "dt": 1034.2, "op": "REG-40", "man": "M10", "enemy": "skilled_mobile"}
+{"mil": true, "pertes": 0.1785714285714286, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28, "abort": null, "seed": 45, "srv": 13, "dt": 1096.6, "op": "AQUILON-45", "man": "M10", "enemy": "skilled_mobile"}
