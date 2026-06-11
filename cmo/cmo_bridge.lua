@@ -1,41 +1,52 @@
--- cmo_bridge.lua — PONT CMO <-> Python (jumeau du pont fichier Arma). A poser comme action d'un
--- EVENT RECURRENT (trigger "Regular Time", ~1 s de jeu) dans un scenario. Mapping Proton Z:\ = /.
---   OUT : dump l'etat (unites des sides Blue/Red : lat/lon/cap/vitesse/alt/vivant) -> state.txt
---   IN  : lit cmd.lua (genere par Python), l'execute via load(), puis l'archive (n croissant)
-local DIR = "Z:\\tmp\\cmo_bridge\\"
+-- cmo_bridge.lua — actuateur PONT cote CMO (a charger comme action d un evenement RECURRENT, ~1/s sim).
+-- Prerequis : Game -> Options -> Lua security DESACTIVEE (sinon io.open est bloque).
+-- HMT_DIR = dossier PARTAGE, vu cote Windows (ex Z:\hmt_bridge\), = /mnt/.../hmt_bridge cote Linux.
+-- OUT : ecrit state.json (unites + temps + n=dernier ordre execute), ecriture atomique (tmp->rename).
+-- IN  : lit cmd_<n+1>.lua, l execute (load), incremente HMT_n.
+if HMT_DIR == nil then HMT_DIR = [[Z:\hmt_bridge\]] end
+if HMT_n   == nil then HMT_n = 0 end
+if HMT_SIDES == nil then HMT_SIDES = {"BLUE", "RED"} end
+
+local function jstr(s) return (tostring(s):gsub("\\", "\\\\"):gsub("\"", "\\\"")) end
 
 local function dump_state()
-  local f = io.open(DIR .. "state.txt", "w")
-  if not f then return end
-  f:write("T " .. tostring(ScenEdit_CurrentTime()) .. "\n")
-  for _, sidename in ipairs({"Blue", "Red"}) do
-    local ok, side = pcall(VP_GetSide, {name = sidename})
-    if ok and side and side.units then
-      for _, ud in ipairs(side.units) do
-        local ok2, u = pcall(ScenEdit_GetUnit, {guid = ud.guid})
-        if ok2 and u then
-          f:write(string.format("U %s|%s|%s|%.5f|%.5f|%.1f|%.1f|%.1f\n",
-            sidename, tostring(u.name), tostring(u.guid),
-            u.latitude or 0, u.longitude or 0, u.heading or 0, u.speed or 0, u.altitude or 0))
+  local f = io.open(HMT_DIR .. "state.tmp", "w")
+  if f == nil then return end
+  f:write("{\"t\":" .. tostring(ScenEdit_CurrentTime()) .. ",\"n\":" .. tostring(HMT_n) .. ",\"units\":[")
+  local first = true
+  for _, sd in ipairs(HMT_SIDES) do
+    -- enumeration des unites du camp (a VALIDER contre CMO reel : VP_GetSide().units / ScenEdit_GetUnit)
+    local ok, side = pcall(function() return VP_GetSide({side = sd}) end)
+    if ok and side ~= nil and side.units ~= nil then
+      for i = 1, #side.units do
+        local u = ScenEdit_GetUnit({guid = side.units[i].guid})
+        if u ~= nil then
+          if not first then f:write(",") end
+          first = false
+          f:write(string.format(
+            "{\"side\":\"%s\",\"name\":\"%s\",\"lon\":%s,\"lat\":%s,\"hdg\":%s,\"spd\":%s,\"alt\":%s,\"dmg\":%s}",
+            jstr(sd), jstr(u.name), tostring(u.longitude or 0), tostring(u.latitude or 0),
+            tostring(u.heading or 0), tostring(u.speed or 0), tostring(u.altitude or 0), tostring(u.damage or 0)))
         end
       end
     end
   end
+  f:write("]}")
   f:close()
+  os.remove(HMT_DIR .. "state.json")
+  os.rename(HMT_DIR .. "state.tmp", HMT_DIR .. "state.json")
 end
 
-local function exec_cmd()
-  local cf = io.open(DIR .. "cmd.lua", "r")
-  if not cf then return end
-  local code = cf:read("*a"); cf:close()
-  os.remove(DIR .. "cmd.lua")
-  if code and #code > 2 then
-    local chunk, e = load(code)
-    if chunk then pcall(chunk) end
-    local af = io.open(DIR .. "ack.txt", "w")
-    if af then af:write("ACK " .. tostring(ScenEdit_CurrentTime()) .. "\n"); af:close() end
+local function poll_cmd()
+  local nx = HMT_n + 1
+  local f = io.open(HMT_DIR .. "cmd_" .. tostring(nx) .. ".lua", "r")
+  if f ~= nil then
+    local code = f:read("*a")
+    f:close()
+    pcall(function() load(code)() end)
+    HMT_n = nx
   end
 end
 
-exec_cmd()
 dump_state()
+poll_cmd()

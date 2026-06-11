@@ -1,66 +1,67 @@
-"""cmo_bridge — cote Python du pont CMO (jumeau de arma_bridge). Lit /tmp/cmo_bridge/state.txt
-ecrit par le Lua de CMO, parse les unites, envoie des commandes Lua via cmd.lua.
-Interface volontairement proche d ArmaBridge pour reutiliser la logique de harnais plus tard."""
-import os, time
+"""cmo_bridge — pont fichier Python(hote Linux+3090) <-> CMO(VM Windows), via dossier PARTAGE.
+Meme principe que le pont Arma : CMO ecrit state.json (etat des unites), Python ecrit cmd_<N>.lua
+(ordres en Lua, numerotes). Ecritures ATOMIQUES (tmp+rename) -> a travers le partage VM, CMO ne lit
+jamais un fichier a moitie ecrit (lecon payee sur Arma)."""
+import os, json, time, glob, re
 
-BRIDGE = "/tmp/cmo_bridge"
 
-class CmoBridge:
-    def __init__(self, bridge=BRIDGE):
-        self.bridge = bridge
-        os.makedirs(bridge, exist_ok=True)
+class CMOBridge:
+    def __init__(self, bridge_dir):
+        self.dir = bridge_dir
+        os.makedirs(self.dir, exist_ok=True)
+        self.n_sent = self._max_cmd_on_disk()
 
-    def ping(self, timeout=30):
-        """Attend le ping.txt ecrit par cmo_ping.lua -> prouve que le Lua de CMO ecrit des fichiers."""
-        p = os.path.join(self.bridge, "ping.txt")
-        if os.path.exists(p): os.remove(p)
+    def _state_path(self):
+        return os.path.join(self.dir, "state.json")
+
+    def _max_cmd_on_disk(self):
+        m = 0
+        for f in glob.glob(os.path.join(self.dir, "cmd_*.lua")):
+            mm = re.search(r"cmd_(\d+)\.lua$", f)
+            if mm:
+                m = max(m, int(mm.group(1)))
+        return m
+
+    def read_state(self, timeout=0.0):
+        """Renvoie le dernier etat ecrit par CMO (dict) ou None. Tolere une lecture pendant l ecriture."""
+        p = self._state_path()
         t0 = time.time()
-        while time.time() - t0 < timeout:
-            if os.path.exists(p):
-                return open(p).read().strip()
-            time.sleep(0.3)
-        return None
+        while True:
+            try:
+                with open(p, "r") as f:
+                    return json.load(f)
+            except (FileNotFoundError, ValueError):
+                if time.time() - t0 >= timeout:
+                    return None
+                time.sleep(0.05)
 
-    def read_state(self):
-        """Parse state.txt -> (t_sim, [unites]). Chaque unite : dict side/name/guid/lat/lon/hdg/spd/alt."""
-        p = os.path.join(self.bridge, "state.txt")
-        if not os.path.exists(p): return None, []
-        t = None; units = []
-        for ln in open(p):
-            ln = ln.rstrip("\n")
-            if ln.startswith("T "):
-                t = float(ln[2:])
-            elif ln.startswith("U "):
-                f = ln[2:].split("|")
-                if len(f) >= 8:
-                    units.append(dict(side=f[0], name=f[1], guid=f[2],
-                                      lat=float(f[3]), lon=float(f[4]),
-                                      hdg=float(f[5]), spd=float(f[6]), alt=float(f[7])))
-        return t, units
+    def last_executed(self):
+        """Numero du dernier ordre que CMO a execute (champ n de state.json)."""
+        st = self.read_state()
+        return st.get("n", 0) if st else 0
 
-    def send(self, lua, wait_ack=True, timeout=10):
-        """Ecrit cmd.lua (le pont CMO l execute au tick suivant) ; attend ack.txt si demande."""
-        ack = os.path.join(self.bridge, "ack.txt")
-        if os.path.exists(ack): os.remove(ack)
-        with open(os.path.join(self.bridge, "cmd.lua"), "w") as f:
-            f.write(lua)
-        if wait_ack:
+    def send(self, lua_code, wait=True, timeout=10.0):
+        """Ecrit un ordre Lua (numerote) que l actuateur CMO executera. Ecriture atomique."""
+        self.n_sent += 1
+        n = self.n_sent
+        tmp = os.path.join(self.dir, ".cmd_%d.tmp" % n)
+        dst = os.path.join(self.dir, "cmd_%d.lua" % n)
+        with open(tmp, "w") as f:
+            f.write(lua_code)
+        os.replace(tmp, dst)                       # atomique -> CMO ne voit que le fichier complet
+        if wait:
             t0 = time.time()
             while time.time() - t0 < timeout:
-                if os.path.exists(ack): return True
-                time.sleep(0.2)
+                if self.last_executed() >= n:
+                    return True
+                time.sleep(0.05)
             return False
         return True
 
-
-if __name__ == "__main__":
-    import sys
-    b = CmoBridge()
-    if len(sys.argv) > 1 and sys.argv[1] == "ping":
-        print("attente du ping CMO (colle cmo_ping.lua dans la console Lua de CMO)...")
-        r = b.ping(timeout=120)
-        print("RESULTAT :", r if r else "AUCUN ping recu (timeout) -> io.open bloque ou pont KO")
-    else:
-        t, u = b.read_state()
-        print("t_sim =", t, "| unites =", len(u))
-        for x in u[:12]: print(" ", x["side"], x["name"], "(%.3f, %.3f)" % (x["lat"], x["lon"]))
+    def units(self, side=None):
+        """Raccourci : liste des unites du dernier etat, filtrable par camp."""
+        st = self.read_state()
+        if not st:
+            return []
+        us = st.get("units", [])
+        return [u for u in us if side is None or u.get("side") == side]

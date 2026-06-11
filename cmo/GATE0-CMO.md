@@ -1,28 +1,25 @@
-# GATE 0 — CMO : valider le pont Python <-> CMO (3 étapes)
+# Gate 0 CMO — pont via VM Windows (plan + etat)
 
-**Pré-requis** : CMO installé (✅ /mnt/data/.../Command - Modern Operations), Proton (✅), mapping Z:\ = / (✅).
-Le pont = jumeau du pont Arma : le Lua de CMO lit/écrit des fichiers dans `/tmp/cmo_bridge/` (vu `Z:\tmp\cmo_bridge\` côté jeu).
+## Pourquoi une VM
+CMO est une appli .NET/WPF Windows. Sous Wine/Proton : bug `FDICopy` (extraction cabinet `netfx_core.mzz`)
+sur TOUTES les versions testees (Proton 8/9/10, GE 10-27/10-34) -> .NET ne s installe pas. Cause : MSI 32 bits
+qui ne se charge pas (erreur 193, WoW64). Une VM Windows fait tourner CMO NATIVEMENT -> zero bug.
 
-## Étape 0a — lancer CMO (TA session graphique, 1 clic)
-Le lancement headless via SSH bute sur le confinement snap + l'autorisation X → à faire dans ta session :
-Steam → **Command Modern Operations → Jouer**. (Proton est déjà assigné.) Si un Launcher s'affiche, "Play".
+## Architecture du pont (la 3090 reste cote Linux)
+VM Windows : CMO + script Lua `cmo_bridge.lua` (evenement recurrent ~1/s).
+Linux hote (3090) : Python `cmo_bridge.py` (officier + executeurs RL).
+Echange : DOSSIER PARTAGE host<->VM. CMO ecrit state.json, Python ecrit cmd_<N>.lua. Ecritures ATOMIQUES.
+La 3090 fait l inference en local sur l hote ; elle ne voit jamais la VM.
 
-## Étape 0b — le TEST ATOMIQUE : le Lua de CMO écrit-il un fichier ? (LE point critique)
-1. Dans CMO : charge **n'importe quel scénario** (le plus court : QuickBattle, ou un scénario "Down Bird" / "Fail Safe"). Mets-le en pause.
-2. Ouvre la **console Lua** : menu **Editor → Lua Script Console** (ou "Special Actions").
-3. Côté workstation (terminal/SSH), lance l'attente :
-   `cd ~/arma3-marl/cmo && python3 cmo_bridge.py ping`
-4. Dans la console Lua de CMO, **colle le contenu de `cmo_ping.lua`** et exécute.
-5. Résultat attendu côté Python : `HMT_CMO_PING ok time=...`
-   - ✅ → **le pont fichier marche** : io.open est autorisé, tout le reste suit. GATE 0 quasi acquis.
-   - ❌ "AUCUN ping reçu" → io.open bloqué par la sécurité Lua : Game → Options → décocher "Lua security", réessayer. Si ça résiste : voie alternative (ScenEdit_ExportInst) à étudier.
+## Etat
+- [x] `cmo_bridge.py` (hote) : read_state / send(lua) / last_executed / units. Ecriture atomique.
+- [x] `cmo_bridge.lua` (CMO) : dump etat + poll cmd. Enumeration unites VP_GetSide/ScenEdit_GetUnit A VALIDER contre CMO reel.
+- [x] `test_bridge.py` : TEST A BLANC complet PASSE (lecture/envoi/accuse/effet) sans CMO ni VM.
+- [ ] BIOS : activer VT-x (actuellement OFF -> pas de /dev/kvm). REBOOT requis (acces physique).
+- [ ] KVM/QEMU/virt-manager + VM Windows + Steam + CMO.
+- [ ] Dossier partage host<->VM (virtio-9p ou Samba) ; HMT_DIR cote Windows.
+- [ ] Lua security DESACTIVEE dans CMO (sinon io.open bloque).
+- [ ] Valider l enumeration d unites Lua + premier round-trip CMO reel = Gate 0 franchi.
 
-## Étape 0c — le pont VIVANT (event récurrent)
-Une fois 0b ✅ :
-1. Dans l'éditeur de scénario : **Event → New** ; Trigger = **Regular Time** (intervalle 1 s) ; Action = **Lua Script**, colle `cmo_bridge.lua`.
-2. Lance le scénario (non-pause).
-3. Côté Python : `python3 cmo_bridge.py` (lecture d'état) → doit lister les unités Blue/Red avec lat/lon qui évoluent.
-4. Test d'injection : `python3 -c "from cmo_bridge import CmoBridge; CmoBridge().send('ScenEdit_SpecialMessage(\"Blue\",\"pont OK\")')"` → le message s'affiche dans CMO.
-   - ✅ les 3 (état lu + commande exécutée + unités qui bougent) → **GATE 0 CMO FRANCHI**.
-
-## Ensuite (plan PLAN-CMO.md) : répertoire de 5-6 doctrines de frappe × 5 défenses → matrice → valeur de sélection → officier.
+## Prerequis VM (quand VT-x sera ON)
+ISO Windows 10/11 (gratuit MS) ; VM 8 Go RAM / 6 coeurs / disque 80 Go sur /mnt/data ; GPU virtuel (CMO=2D).
