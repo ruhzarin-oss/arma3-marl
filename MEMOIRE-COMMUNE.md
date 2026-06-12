@@ -1084,3 +1084,6 @@ Wine impraticable (bug FDICopy/WoW64 sur 5 Protons + GE10-27). Solution : VM Win
 **Revision Gate 0** : instrument propre -> M3 bat M1 contre react (62>31). Inversion react du 10/06 aussi affectee par la charge.
 **VERDICT** : RPS structurellement REEL mais valeur de selection MARGINALE (+4.7 < seuil 15-20). Officier-selecteur justifie en principe, faible gain sur CE theatre (M3 trop dominant). Robustesse: M3 62 > M12 60 > M1 42.
 **Implication** : rendre officier RENTABLE -> (a) defenseur APPRIS (diversifie defenses -> monte la valeur), (b) theatre plus riche = CMO.
+
+## 2026-06-12 — CAP REDEFINI (vision Younes validee)
+Livrable principal = COMMANDEMENT ARMEE DE TERRE pilote IA, multi-echelons, 1000+ hommes, haute intensite entre pays, ACE/realisme, ennemi co-evolutif, doctrine FR/OTAN, observable+explicable, Younes observateur, systeme reutilisable. CMO = theatre 2. Contrainte: Arma != 1000 IA/serveur -> echelons hauts en abstraction GPU, point de contact dans Arma. Pyramide strategique/operatif/tactique/soldat. Le +4.7 valait sur jouet symetrique; a cette echelle le commandement est IMPERATIF. JALON 1 = officier operatif commande une op multi-escouades autonome+adaptative+explicable dans Arma, observateur. Detail complet: VISION-COMMANDEMENT.md.
