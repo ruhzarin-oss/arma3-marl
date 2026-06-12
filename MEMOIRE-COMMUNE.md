@@ -1054,3 +1054,33 @@ Client RDP installé sur le Mac (Windows App 11.3.5, extraction directe du pkg M
 **Leçon (panthéon)** : *une « géométrie standard » créée à côté de l originale est une NOUVELLE référence — renommer ou re-baseline, jamais supposer l équivalence.* (Cousine de « tout argmax est un tie-break déguisé ».)
 **Ce qui SURVIT aux 2 confonds** (mesuré géométrie nouvelle + flotte fraîche) : Gate 0 react n=32 (M1 34.4 > M3 21.9), la matrice 3-défenses du 10/06 matin (+4.2), les cellules n32 fraîches d aujourd hui. **Ce qui tombe** : les références v4 de la colonne skilled (à re-mesurer : 4 cellules de plus) + toute la matrice de nuit (charge).
 **Périmètre re-matrice corrigé : 64 cellules** (60 + la colonne skilled M1/M2/M3/M5) — UN seul instrument (temps-de-jeu + TCP), UNE seule géométrie (standard 10/5/5 assumée comme LA référence), protocole durci (reboot/10 cellules, charge consignée).
+
+## 2026-06-11 ~17:45 — PONT CMO CONSTRUIT (Gate 0 à 80%, archi)
+**Reco terrain** : CMO = Lua 5.4 embarque (lua54/NLua/KeraLua), prefixe Proton OK, mapping **Z:\ = /** (le pont fichier marche comme pour Arma), Steam snap actif, display :0 deverrouille. Scenarios = XML. setAccTime inerte sur dedie (deja vu).
+**Construit (~/arma3-marl/cmo/, commite)** : cmo_ping.lua (TEST ATOMIQUE : le Lua de CMO peut-il io.open un fichier ? = LE point critique du pont) · cmo_bridge.lua (event recurrent : dump unites Blue/Red lat/lon/cap/vit/alt + lit/exec cmd.lua + ack — jumeau exact du pont Arma) · cmo_bridge.py (CmoBridge : ping/read_state/send) · GATE0-CMO.md (3 etapes).
+**Lancement headless KO** : `steam -applaunch` route vers le mauvais client (2 steams : snap actif + deb) ; `snap run steam -applaunch` bute sur l autorisation X + steam-runtime-launcher-service introuvable depuis SSH. → **0a (lancer) + 0b (coller cmo_ping.lua dans la console Lua) = a faire dans la session graphique de Younes** (1 clic + 1 coller), comme l install. Le reste du pont est pret et testable immediatement apres.
+**Risque a lever en 0b** : la securite Lua de CMO peut bloquer io.open (Game>Options>Lua security a decocher). Si ca resiste : voie ScenEdit_ExportInst.
+**Re-matrice** : intacte (cellule 1/72), insensible a la charge CMO grace a l instrument v2 (step_game) — lancer CMO ne la fausse PAS, juste la ralentit un peu.
+
+## 2026-06-11 ~21:30 — CMO via VM Windows : TOUTE la prep faite sans reboot (archi + Younes)
+Wine impraticable (bug FDICopy/WoW64 sur 5 Protons + GE10-27). Solution : VM Windows = CMO natif.
+**Fait (sans reboot)** :
+- Pile KVM installee : qemu-system-x86 10.2, libvirt 12, virt-install, ovmf, swtpm, qemu-utils (younes ds groupes kvm+libvirt).
+- ISO Windows 10 22H2 FR (5.73 Go, validee bootable) -> /mnt/data/vm/iso/win10.iso ; virtio-win.iso (754 Mo).
+- /mnt/data/vm/create_vm.sh : VM Win10 (8 Go/6 coeurs, disque SATA 80 Go, e1000, spice). Boot driverless. virtiofs RETIRE (pont via Samba apres install).
+- Pont commite ~/arma3-marl/cmo/ : cmo_bridge.py + .lua + test_bridge.py (TEST A BLANC PASSE) + GATE0-CMO.md.
+**SEUL VERROU RESTANT** : VT-x desactive au BIOS -> /dev/kvm absent (kvm-ok: "CPU does not support KVM extensions"). Le reboot VT-x activera AUSSI les groupes + libvirtd. A faire APRES le run Gate D1 (Younes ne veut pas couper le run).
+**Apres reboot VT-x** : bash /mnt/data/vm/create_vm.sh -> install Windows -> Steam+CMO -> Samba pour le dossier pont -> charger cmo_bridge.lua dans CMO (Lua security OFF) -> 1er round-trip reel = Gate 0 CMO.
+
+## 2026-06-12 ~03:40 — VM CMO OPÉRATIONNELLE (éteinte pour la nuit, reprise demain)
+**Tout marche** : VT-x activé (reboot fait), VM `cmo-win` = Windows 10 Pro N 22H2 (8 Go/6 vCPU, disque SATA 80 Go, /mnt/data/vm/cmo-win.qcow2). Agent qemu-ga connecté (après install virtio-win-guest-tools). Pilotage Windows depuis l hote via /mnt/data/vm/gx.sh + gxps.sh (guest-exec, encodage base64). Client Steam installé (auto, depuis l hote). CMO EN TÉLÉCHARGEMENT (~1-2 % à l arrêt, reprend au boot). RDP activé (compte **harmattan / Harmattan2026!**, écoute 3389). Port-forward hôte 3390->VM:3389 posé (iptables, survit tant que l hôte ne reboote pas). Internet VM OK.
+**VM ÉTEINTE proprement 03:40** pour rendre le CPU à la re-matrice (la VM ajoutait ~6 vCPU de charge).
+**REPRISE DEMAIN** : `virsh start cmo-win` -> CMO finit de télécharger -> RDP Mac sur 100.66.136.67:3390 (harmattan/Harmattan2026!) -> lancer CMO -> charger cmo_bridge.lua (Lua security OFF) -> 1er round-trip = Gate 0. Pont host-side : adapter cmo_bridge.py au relais par agent qemu-ga (pas besoin de Samba). Re-matrice : 32/72 à 03:40, fin Gate D1 cet après-midi.
+
+## 2026-06-12 ~17:16 — GATE D1 PROPRE : MATRICE 9x8 COMPLETE (instrument v2, insensible a la charge)
+**Valeur de selection = +4.7 pts** (selecteur 67.2 vs M3-fixe 62.5). Le +15.5 du 10/06 etait un ARTEFACT de charge -> confirme et corrige.
+**4 champions distincts (le pierre-feuille-ciseaux EXISTE)** : M3 (skilled 81, react 62, depth 69, mobile 62), M12 (appat 81, sortie 69), M8 (herisson 62), M1 (elastic 50).
+**M12 reco-en-force adaptative VALIDEE** : championne contre appat et sortie = les defenses qui REAGISSENT. La these "adaptation contre adaptation" tient sur donnees propres. (Read provisoire a 69/72 disait M12 KO : faux, appat/sortie pas encore mesures -> M12 81/69 dessus.)
+**Revision Gate 0** : instrument propre -> M3 bat M1 contre react (62>31). Inversion react du 10/06 aussi affectee par la charge.
+**VERDICT** : RPS structurellement REEL mais valeur de selection MARGINALE (+4.7 < seuil 15-20). Officier-selecteur justifie en principe, faible gain sur CE theatre (M3 trop dominant). Robustesse: M3 62 > M12 60 > M1 42.
+**Implication** : rendre officier RENTABLE -> (a) defenseur APPRIS (diversifie defenses -> monte la valeur), (b) theatre plus riche = CMO.
