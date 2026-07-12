@@ -14,7 +14,7 @@ class AssaultTerrain:
                  grid_obs=False, gridK=8, gridspan=80.0, team_obs=False, role_obs=False,
                  shell_obs=False, shellK=12, shell_R=60.0, suffer=False, D_min=2,
                  replica=False, replica_path="replica.npz", device="cuda:0", seed=0, postures=False, flat_los=False,
-                 overwatch=False, ow_expo=0.05):
+                 overwatch=False, ow_expo=0.05, hull=False, ow_dmg=0.3, ow_tofail=0.5):
         self.N = num_envs; self.A = A; self.D = D; self.R_spawn = R_spawn
         self.terr_R = terr_R; self.terr_G = terr_G; self.relief = relief
         self.move = move; self.fire_range = fire_range; self.hit = hit; self.secure_r = secure_r
@@ -33,6 +33,8 @@ class AssaultTerrain:
         self.postures = postures
         self.flat_los = flat_los
         self.overwatch = overwatch; self.ow_expo = ow_expo
+        self.hull = hull; self.ow_dmg = ow_dmg; self.ow_tofail = ow_tofail
+        self._expose_lut = torch.tensor([1.0, 0.5, 0.2], device=device)   # HULL-DOWN : profil de corps (debout/accroupi/couche) = fraction touchable
         self.n_actions = (13 if postures else 10)  # 0-7 caps, 8 HOLD, 9 SUPPRESS ; 10-12 postures (debout/accroupi/couche)
         if postures: self._eye_lut = torch.tensor([1.7, 1.0, 0.3], device=device)   # hauteur d'oeil par posture
         self.grid_obs = grid_obs; self.gridK = gridK; self.gridspan = gridspan; self.team_obs = team_obs; self.role_obs = role_obs
@@ -233,7 +235,8 @@ class AssaultTerrain:
             los = self._losc(self.hm, self.apx, self.apy, bx, by, self.scale, eye_a=self._eye(), eye_b=1.7)
             dist = torch.sqrt((self.apx - self.dpx[:, di:di + 1]) ** 2 + (self.apy - self.dpy[:, di:di + 1]) ** 2)
             active = self._dalive()[:, di:di + 1].float() * (self.dsupp[:, di:di + 1] < 0.5).float()
-            dmg_a += self.hit * los * (dist < self.fire_range).float() * active * (1.0 - 0.7 * incover)
+            _exp = self._expose_lut[self.posture] if (self.postures and self.hull) else 1.0   # HULL-DOWN : posture basse = petite cible (decouple encaisser de voir)
+            dmg_a += self.hit * los * (dist < self.fire_range).float() * active * (1.0 - 0.7 * incover) * _exp
             exposed = torch.maximum(exposed, los * (dist < self.fire_range).float() * self._dalive()[:, di:di + 1].float())
         self.last_dmg_in = (dmg_a * al).detach()
         self.last_exposed = (exposed * al).detach()   # exposition = vu par un defenseur vivant a portee
@@ -258,12 +261,13 @@ class AssaultTerrain:
         cur = (ndist * al2.float()).sum(1) / al2.float().sum(1).clamp(min=1) / self.scale   # dist a l'objectif (pour entrer en portee)
         losses = 1.0 - al2.float().sum(1) / self.A
         dk = (self.D - self._dalive().float().sum(1)) / self.D     # fraction defenseurs neutralises
-        if self.overwatch:                                         # OVERWATCH/DEFILEMENT : engager depuis le couvert, PAS pousser a l'objectif
-            exp_frac = self.last_exposed.sum(1) / al.sum(1).clamp(min=1)   # exposition = etre vu par un defenseur (a MINIMISER)
-            rew = (1.5 * (dk - self._prev_dk)                       # neutraliser l'ennemi au feu (SUPPRESS)
-                   - self.ow_expo * exp_frac                        # PENALITE d'exposition -> force le defilement (voir sans etre vu)
+        if self.overwatch:                                         # OVERWATCH/DEFILEMENT v2 : engager DEPUIS le couvert (pas rompre le LOS)
+            dmg_frac = self.last_dmg_in.sum(1) / al.sum(1).clamp(min=1)    # degats RECUS -> chercher le couvert EN gardant le LOS sur l'ennemi
+            rew = (1.5 * (dk - self._prev_dk)                       # neutraliser l'ennemi = moteur d'engagement
+                   - self.ow_dmg * dmg_frac                         # encaisser COUTE (couvert/hull-down recompense)
                    - 0.005 + neutralized.float() * 1.0              # bonus victoire
-                   - 0.4 * (wiped & ~neutralized).float())         # penalite aneantissement
+                   - 0.4 * (wiped & ~neutralized).float()           # penalite aneantissement
+                   - self.ow_tofail * (timeout & ~neutralized).float())   # se planquer jusqu'au timeout = ECHEC (force a tuer)
         else:
             rew = (0.2 * (self.prev_d - cur)                           # leger shaping : se rapprocher (entrer en portee de feu)
                    + 1.5 * (dk - self._prev_dk)                        # RECOMPENSE = neutraliser les defenseurs au feu

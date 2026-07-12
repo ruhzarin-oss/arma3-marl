@@ -13,27 +13,28 @@ from train_koth_gpu import Net
 from train_soldier_pbt import ppo_iters
 DEV = "cuda:0"; BASE = "/home/younes/arma3-marl/replica_%s.npz"
 MAPS = ["athens", "delphi", "santorini"]
-ARMS = {"A": dict(flat_los=True, postures=False), "B": dict(flat_los=False, postures=True)}
+ARMS = {"A": dict(flat_los=True, postures=False, hull=False), "B": dict(flat_los=False, postures=True, hull=True)}
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--ne", type=int, default=4000); ap.add_argument("--rounds", type=int, default=15)
 ap.add_argument("--K", type=int, default=4); ap.add_argument("--A", type=int, default=9)
 ap.add_argument("--D", type=int, default=6); ap.add_argument("--rspawn", type=float, default=90.0)
-ap.add_argument("--hit", type=float, default=0.25); ap.add_argument("--owexpo", type=float, default=0.05)
+ap.add_argument("--hit", type=float, default=0.25); ap.add_argument("--owdmg", type=float, default=0.3)
+ap.add_argument("--owtofail", type=float, default=0.5)
 ap.add_argument("--seed", type=int, default=0); ap.add_argument("--smoke", action="store_true")
 a = ap.parse_args()
 if a.smoke: a.ne = 64; a.rounds = 2
 
-def mkenv(name, flat_los, postures, n, sd):
+def mkenv(name, flat_los, postures, hull, n, sd):
     return AssaultTerrain(num_envs=n, A=a.A, D=a.D, R_spawn=a.rspawn, relief=40.0, hit=a.hit,
                           shell_obs=True, team_obs=True, replica=True, replica_path=BASE % name,
                           max_steps=60, device=DEV, seed=sd, postures=postures, flat_los=flat_los,
-                          overwatch=True, ow_expo=a.owexpo)
+                          overwatch=True, hull=hull, ow_dmg=a.owdmg, ow_tofail=a.owtofail)
 
 @torch.no_grad()
 def diag(name):
     """PROUVE l'asymetrie AVANT d'entrainer : a positions EGALES, se coucher reduit-il l'exposition ?"""
-    e = mkenv(name, False, True, 512, 123); e.reset(); e.hit = 0.0   # degats coupes : on mesure la GEOMETRIE, pas la survie
+    e = mkenv(name, False, True, True, 512, 123); e.reset(); e.hit = 0.0   # degats coupes : on mesure la GEOMETRIE, pas la survie
     HOLD = torch.full((e.N, e.A), 8, device=DEV, dtype=torch.long)
     for _ in range(8):                                      # avancer vers l'objectif (scripted) pour entrer en contact, sans mourir
         th = torch.atan2(-e.apx, -e.apy); act = (torch.round(th / (3.14159 / 4.0)) % 8).long()
@@ -70,19 +71,19 @@ for m in MAPS:
     print("  %-10s : debout=%.3f  couche=%.3f  reduction=%+.0f%%" % (m, es, ep, 100 * (1 - ep / max(es, 1e-6))), flush=True)
 
 res = {}
-print("\n=== ENTRAINEMENT (ne=%d rounds=%d hit=%.2f D=%d rspawn=%.0f owexpo=%.02f) ===" % (a.ne, a.rounds, a.hit, a.D, a.rspawn, a.owexpo), flush=True)
+print("\n=== ENTRAINEMENT (ne=%d rounds=%d hit=%.2f D=%d rspawn=%.0f owdmg=%.2f owtofail=%.2f | B=2.5D+postures+hull) ===" % (a.ne, a.rounds, a.hit, a.D, a.rspawn, a.owdmg, a.owtofail), flush=True)
 for arm, fl in ARMS.items():
     torch.manual_seed(a.seed)
-    probe = mkenv(MAPS[0], fl["flat_los"], fl["postures"], 8, a.seed); O, NA = probe.obs_dim, probe.n_actions; del probe
+    probe = mkenv(MAPS[0], fl["flat_los"], fl["postures"], fl["hull"], 8, a.seed); O, NA = probe.obs_dim, probe.n_actions; del probe
     net = Net(O, NA, 512, 3).to(DEV); opt = torch.optim.Adam(net.parameters(), 3e-4)
-    envs = [mkenv(nm, fl["flat_los"], fl["postures"], a.ne, a.seed * 100 + i) for i, nm in enumerate(MAPS)]
+    envs = [mkenv(nm, fl["flat_los"], fl["postures"], fl["hull"], a.ne, a.seed * 100 + i) for i, nm in enumerate(MAPS)]
     obs = [e.reset() for e in envs]
     for _ in range(a.rounds):
         for i, e in enumerate(envs): obs[i] = ppo_iters(net, opt, e, obs[i], a.K, O)
     del envs; torch.cuda.empty_cache()
     metr = {k: [] for k in ("survie", "expo", "dkilled", "win", "posture")}
     for mp in MAPS:                                          # EVAL en 3D reelle (flat_los=False), postures selon le bras
-        ev = mkenv(mp, False, fl["postures"], a.ne, 9000 + a.seed); r = evaluate(net, ev)
+        ev = mkenv(mp, False, fl["postures"], fl["hull"], a.ne, 9000 + a.seed); r = evaluate(net, ev)
         for k in metr: metr[k].append(r[k])
         del ev; torch.cuda.empty_cache()
     res[arm] = {k: st.mean(v) for k, v in metr.items()}
