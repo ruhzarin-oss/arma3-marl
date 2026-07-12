@@ -14,7 +14,8 @@ class AssaultTerrain:
                  grid_obs=False, gridK=8, gridspan=80.0, team_obs=False, role_obs=False,
                  shell_obs=False, shellK=12, shell_R=60.0, suffer=False, D_min=2,
                  replica=False, replica_path="replica.npz", device="cuda:0", seed=0, postures=False, flat_los=False,
-                 overwatch=False, ow_expo=0.05, hull=False, ow_dmg=0.3, ow_tofail=0.5, expose_lut=None):
+                 overwatch=False, ow_expo=0.05, hull=False, ow_dmg=0.3, ow_tofail=0.5, expose_lut=None,
+                 emergent_expo=False):
         self.N = num_envs; self.A = A; self.D = D; self.R_spawn = R_spawn
         self.terr_R = terr_R; self.terr_G = terr_G; self.relief = relief
         self.move = move; self.fire_range = fire_range; self.hit = hit; self.secure_r = secure_r
@@ -33,7 +34,7 @@ class AssaultTerrain:
         self.postures = postures
         self.flat_los = flat_los
         self.overwatch = overwatch; self.ow_expo = ow_expo
-        self.hull = hull; self.ow_dmg = ow_dmg; self.ow_tofail = ow_tofail
+        self.hull = hull; self.ow_dmg = ow_dmg; self.ow_tofail = ow_tofail; self.emergent_expo = emergent_expo
         self._expose_lut = torch.tensor(expose_lut if expose_lut is not None else [1.0, 0.5, 0.2], device=device)   # HULL-DOWN : profil de corps (debout/accroupi/couche) = fraction touchable
         self.n_actions = (13 if postures else 10)  # 0-7 caps, 8 HOLD, 9 SUPPRESS ; 10-12 postures (debout/accroupi/couche)
         if postures: self._eye_lut = torch.tensor([1.7, 1.0, 0.3], device=device)   # hauteur d'oeil par posture
@@ -131,6 +132,27 @@ class AssaultTerrain:
         top = self._sample_field(self._elevR, pxr, pyr) + self._sample_field(self._solidhR, pxr, pyr) + self._sample_field(self._lowhR, pxr, pyr)
         blocked = (top > z_ray).any(-1)
         return base * (~blocked).float()
+
+    def _body_exposure(self, ax, ay, eye_a, bx, by, M=5, K=20):
+        """Exposition EMERGENTE : fraction du CORPS de A (sol..eye_a) touchable depuis B (oeil 1.7).
+        Capteur de A = un point (oeil), mais sa CIBLE = une colonne (M segments pieds->tete).
+        Un rayon par segment ; bloque si un obstacle depasse. La fraction visible EMERGE de
+        (position x posture x hauteur du couvert) — pas un multiplicateur choisi. Asymetrie possible :
+        debout je vois par-dessus mais mon torse depasse ; couche rien ne depasse mais je suis aveugle."""
+        d = self.dev
+        t = torch.linspace(0.0, 1.0, K, device=d)                         # (K,) le long du rayon B->A
+        pxr = bx.unsqueeze(-1) * (1 - t) + ax.unsqueeze(-1) * t            # (N,A,K)
+        pyr = by.unsqueeze(-1) * (1 - t) + ay.unsqueeze(-1) * t
+        top = (self._sample_field(self._elevR, pxr, pyr)
+               + self._sample_field(self._solidhR, pxr, pyr)
+               + self._sample_field(self._lowhR, pxr, pyr))               # (N,A,K) sommet obstacle
+        gb = self._sample_field(self._elevR, bx, by) + 1.7                # oeil du defenseur (N,A)
+        ga = self._sample_field(self._elevR, ax, ay)                      # sol sous A (N,A)
+        fr = torch.linspace(0.15, 1.0, M, device=d)                      # segments du corps (fraction de eye_a)
+        zA = ga.unsqueeze(-1) + fr.view(1, 1, M) * eye_a.unsqueeze(-1)    # (N,A,M) hauteurs cibles sur le corps
+        z_ray = gb[..., None, None] * (1 - t).view(1, 1, 1, K) + zA.unsqueeze(-1) * t.view(1, 1, 1, K)  # (N,A,M,K)
+        blocked = (top.unsqueeze(2) > z_ray).any(-1)                      # (N,A,M) segment m bloque ?
+        return (~blocked).float().mean(-1)                               # (N,A) fraction du corps visible
 
     def _obs(self):
         S = self.scale; al = self._aalive()
@@ -235,9 +257,15 @@ class AssaultTerrain:
             los = self._losc(self.hm, self.apx, self.apy, bx, by, self.scale, eye_a=self._eye(), eye_b=1.7)
             dist = torch.sqrt((self.apx - self.dpx[:, di:di + 1]) ** 2 + (self.apy - self.dpy[:, di:di + 1]) ** 2)
             active = self._dalive()[:, di:di + 1].float() * (self.dsupp[:, di:di + 1] < 0.5).float()
-            _exp = self._expose_lut[self.posture] if (self.postures and self.hull) else 1.0   # HULL-DOWN : posture basse = petite cible (decouple encaisser de voir)
-            dmg_a += self.hit * los * (dist < self.fire_range).float() * active * (1.0 - 0.7 * incover) * _exp
-            exposed = torch.maximum(exposed, los * (dist < self.fire_range).float() * self._dalive()[:, di:di + 1].float())
+            inr = (dist < self.fire_range).float()
+            if self.emergent_expo and self.replica:                # EXPOSITION EMERGENTE : fraction du corps touchable = geometrie (couvert deja capture par les rayons)
+                efrac = self._body_exposure(self.apx, self.apy, self._eye(), bx, by)
+                dmg_a += self.hit * efrac * inr * active
+                exposed = torch.maximum(exposed, efrac * inr * self._dalive()[:, di:di + 1].float())
+            else:
+                _exp = self._expose_lut[self.posture] if (self.postures and self.hull) else 1.0   # HULL-DOWN knob (posture basse = petite cible)
+                dmg_a += self.hit * los * inr * active * (1.0 - 0.7 * incover) * _exp
+                exposed = torch.maximum(exposed, los * inr * self._dalive()[:, di:di + 1].float())
         self.last_dmg_in = (dmg_a * al).detach()
         self.last_exposed = (exposed * al).detach()   # exposition = vu par un defenseur vivant a portee
         self.admg = (self.admg + dmg_a * al).clamp(max=0.95)

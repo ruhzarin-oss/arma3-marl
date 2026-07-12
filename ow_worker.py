@@ -11,11 +11,12 @@ DEV = "cuda:0"; BASE = "/home/younes/arma3-marl/replica_%s.npz"
 TRAIN = ["ronda", "matera", "positano", "sarajevo"]     # relief, entrainement
 TEST = ["athens", "delphi", "santorini"]                # relief, HELD-OUT
 ARMS = {
-    "flat_none":  dict(flat_los=True,  postures=False, hull=False, expose=None),           # baseline aveugle
-    "los25_none": dict(flat_los=False, postures=False, hull=False, expose=None),           # LOS 2.5D SEUL
-    "flat_hull":  dict(flat_los=True,  postures=True,  hull=True,  expose=None),           # hull-down SEUL (LOS aveugle)
-    "full":       dict(flat_los=False, postures=True,  hull=True,  expose=None),           # 2.5D + hull (gagnant)
-    "full_mild":  dict(flat_los=False, postures=True,  hull=True,  expose=[1.0, 0.7, 0.5]),# hull ATTENUE (increvable ?)
+    "flat_none":  dict(flat_los=True,  postures=False, hull=False, expose=None, emergent=False),  # baseline aveugle
+    "los25_none": dict(flat_los=False, postures=False, hull=False, expose=None, emergent=False),  # LOS 2.5D SEUL
+    "flat_hull":  dict(flat_los=True,  postures=True,  hull=True,  expose=None, emergent=False),  # hull-down knob SEUL
+    "full":       dict(flat_los=False, postures=True,  hull=True,  expose=None, emergent=False),  # 2.5D + hull knob
+    "full_mild":  dict(flat_los=False, postures=True,  hull=True,  expose=[1.0, 0.7, 0.5], emergent=False),
+    "emergent":   dict(flat_los=False, postures=True,  hull=False, expose=None, emergent=True),   # EXPOSITION EMERGENTE (zero knob)
 }
 ap = argparse.ArgumentParser()
 ap.add_argument("--arm", required=True); ap.add_argument("--seed", type=int, required=True)
@@ -31,7 +32,8 @@ def mkenv(name, n, sd, evalmode=False):
                           shell_obs=True, team_obs=True, replica=True, replica_path=BASE % name, max_steps=60,
                           device=DEV, seed=sd, postures=fl["postures"],
                           flat_los=(False if evalmode else fl["flat_los"]),
-                          overwatch=True, hull=fl["hull"], ow_dmg=a.owdmg, ow_tofail=a.owtofail, expose_lut=fl["expose"])
+                          overwatch=True, hull=fl["hull"], ow_dmg=a.owdmg, ow_tofail=a.owtofail, expose_lut=fl["expose"],
+                          emergent_expo=fl["emergent"])
 
 @torch.no_grad()
 def evaluate(net, env, n_steps=90):
