@@ -14,7 +14,7 @@ class AssaultTerrain:
                  grid_obs=False, gridK=8, gridspan=80.0, team_obs=False, role_obs=False,
                  shell_obs=False, shellK=12, shell_R=60.0, suffer=False, D_min=2,
                  replica=False, replica_path="replica.npz", device="cuda:0", seed=0, postures=False, flat_los=False,
-                 overwatch=False, ow_expo=0.05, hull=False, ow_dmg=0.3, ow_tofail=0.5):
+                 overwatch=False, ow_expo=0.05, hull=False, ow_dmg=0.3, ow_tofail=0.5, expose_lut=None):
         self.N = num_envs; self.A = A; self.D = D; self.R_spawn = R_spawn
         self.terr_R = terr_R; self.terr_G = terr_G; self.relief = relief
         self.move = move; self.fire_range = fire_range; self.hit = hit; self.secure_r = secure_r
@@ -34,7 +34,7 @@ class AssaultTerrain:
         self.flat_los = flat_los
         self.overwatch = overwatch; self.ow_expo = ow_expo
         self.hull = hull; self.ow_dmg = ow_dmg; self.ow_tofail = ow_tofail
-        self._expose_lut = torch.tensor([1.0, 0.5, 0.2], device=device)   # HULL-DOWN : profil de corps (debout/accroupi/couche) = fraction touchable
+        self._expose_lut = torch.tensor(expose_lut if expose_lut is not None else [1.0, 0.5, 0.2], device=device)   # HULL-DOWN : profil de corps (debout/accroupi/couche) = fraction touchable
         self.n_actions = (13 if postures else 10)  # 0-7 caps, 8 HOLD, 9 SUPPRESS ; 10-12 postures (debout/accroupi/couche)
         if postures: self._eye_lut = torch.tensor([1.7, 1.0, 0.3], device=device)   # hauteur d'oeil par posture
         self.grid_obs = grid_obs; self.gridK = gridK; self.gridspan = gridspan; self.team_obs = team_obs; self.role_obs = role_obs
