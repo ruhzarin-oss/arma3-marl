@@ -42,6 +42,7 @@ avec `dkilled(B) >= dkilled(A)` (garde-fou anti-turtle : B ne doit pas juste se 
 
 - **Entraînement (4)** : `denver` `chicago` `paris` `madrid` — générées par `make_cities.sh`.
 - **Test (3, DISJOINTES)** : `newyork` `london` `lille` — jamais vues à l'entraînement.
+- **Test RELIEF (3, terrain vallonné, `--dem`)** : `athens` (Acropole +78 m) · `delphi` (Parnasse +264 m) · `santorini` (caldeira +218 m) — relief SRTM réel dans `elev` → teste le défilement de TERRAIN (crêtes) en plus du couvert bâti.
 - La géométrie de test est **3D réelle** (verticalité active) pour **les deux bras**.
 - Détail d'interface à l'éval : A tourne `postures=False` (subit la 3D, ne peut pas
   se baisser) ; B tourne `postures=True`. **Même terrain, B a la capacité en plus.**

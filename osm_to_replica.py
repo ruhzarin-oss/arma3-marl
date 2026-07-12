@@ -4,13 +4,42 @@ OSM (empreintes batiments + hauteurs) -> grille d'occupation SOLIDE + hauteurs -
 AssaultTerrain charge (comme replica.npz Stratis). Meme pattern que export_replica.py, source = OSM.
   sortie : replica_<name>.npz {solid[GS,GS] bool, elev[GS,GS], solidh[GS,GS] (hauteur bati m), cx,cy,W,GS,obj}
   + verif visuelle /tmp/osm_<name>.png (empreintes vecteur | grille rasterisee)."""
-import argparse, math
+import argparse, math, time
+import requests
+from pyproj import Transformer
 import numpy as np
 import osmnx as ox
 import geopandas as gpd
 from shapely.geometry import Point
 from shapely.prepared import prep
 from shapely.strtree import STRtree
+
+
+def _resize_bilinear(a, GS):
+    DS = a.shape[0]
+    yi = np.linspace(0, DS - 1, GS); xi = np.linspace(0, DS - 1, GS)
+    y0 = np.floor(yi).astype(int); x0 = np.floor(xi).astype(int)
+    y1 = np.minimum(y0 + 1, DS - 1); x1 = np.minimum(x0 + 1, DS - 1)
+    wy = (yi - y0)[:, None]; wx = (xi - x0)[None, :]
+    A = a[np.ix_(y0, x0)]; B = a[np.ix_(y0, x1)]; C = a[np.ix_(y1, x0)]; D = a[np.ix_(y1, x1)]
+    return (A * (1 - wx) + B * wx) * (1 - wy) + (C * (1 - wx) + D * wx) * wy
+
+
+def _fetch_dem(latlon, ds):
+    ele = []
+    for i in range(0, len(latlon), 100):
+        loc = "|".join("%.6f,%.6f" % (la, lo) for la, lo in latlon[i:i + 100])
+        for att in range(3):
+            try:
+                r = requests.get("https://api.opentopodata.org/v1/srtm30m", params={"locations": loc}, timeout=30)
+                r.raise_for_status(); res = r.json()["results"]; break
+            except Exception:
+                if att == 2: raise
+                time.sleep(3)
+        ele += [(x["elevation"] if x["elevation"] is not None else 0.0) for x in res]
+        time.sleep(1.1)
+    a = np.array(ele, dtype=np.float32).reshape(ds, ds)
+    return a - float(a.min())
 
 
 def height_of(row):
@@ -34,6 +63,7 @@ def main():
     ap.add_argument("--W", type=float, default=200.0)       # demi-fenetre en metres (fenetre = 2W)
     ap.add_argument("--cell", type=float, default=2.0)      # metres / case
     ap.add_argument("--name", default="ville")
+    ap.add_argument("--dem", action="store_true", help="remplir elev depuis un MNT SRTM (relief) au lieu de plat")
     a = ap.parse_args()
     GS = int(round(2 * a.W / a.cell))
     print("[osm] %s : fenetre %dx%d m, grille %dx%d (%.1f m/case)" % (a.name, 2 * a.W, 2 * a.W, GS, GS, a.cell), flush=True)
@@ -68,7 +98,16 @@ def main():
                     if g.intersects(p):                        # intersects (pas contains) : attrape les bords
                         solidh[j, i] = max(solidh[j, i], hts[idx if np.isscalar(idx) else int(idx)])
     solidh[solid & (solidh <= 0)] = 6.0                     # garde-fou : bati sans hauteur (bord/precision) -> defaut ~2 etages
-    elev = np.zeros((GS, GS), dtype=np.float32)              # plat pour v1 (DEM plus tard)
+    if a.dem:                                               # RELIEF : MNT SRTM (OpenTopoData), grille grossiere interpolee
+        DS = 40; tr = Transformer.from_crs(utm, "EPSG:4326", always_xy=True)
+        cxs = cx - a.W + (np.arange(DS) + 0.5) * (2 * a.W / DS)
+        cys = cy - a.W + (np.arange(DS) + 0.5) * (2 * a.W / DS)
+        latlon = [tr.transform(xx, yy)[::-1] for yy in cys for xx in cxs]   # (lat,lon)
+        print("[dem] MNT SRTM : %d points %dx%d via OpenTopoData..." % (len(latlon), DS, DS), flush=True)
+        elev = _resize_bilinear(_fetch_dem(latlon, DS), GS).astype(np.float32)
+        print("[dem] relief : amplitude %.0f m" % elev.max(), flush=True)
+    else:
+        elev = np.zeros((GS, GS), dtype=np.float32)          # plat (defaut ; --dem pour le relief)
 
     out = "/home/younes/arma3-marl/replica_%s.npz" % a.name
     np.savez(out, solid=solid, elev=elev, solidh=solidh, cx=cx, cy=cy, W=a.W, GS=GS, obj=np.array([cx, cy]))
