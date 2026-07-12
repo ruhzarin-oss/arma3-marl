@@ -13,7 +13,8 @@ class AssaultTerrain:
                  move=14.0, fire_range=110.0, hit=0.06, secure_r=25.0, max_steps=60, dmg_dead=0.7,
                  grid_obs=False, gridK=8, gridspan=80.0, team_obs=False, role_obs=False,
                  shell_obs=False, shellK=12, shell_R=60.0, suffer=False, D_min=2,
-                 replica=False, replica_path="replica.npz", device="cuda:0", seed=0, postures=False, flat_los=False):
+                 replica=False, replica_path="replica.npz", device="cuda:0", seed=0, postures=False, flat_los=False,
+                 overwatch=False, ow_expo=0.05):
         self.N = num_envs; self.A = A; self.D = D; self.R_spawn = R_spawn
         self.terr_R = terr_R; self.terr_G = terr_G; self.relief = relief
         self.move = move; self.fire_range = fire_range; self.hit = hit; self.secure_r = secure_r
@@ -31,6 +32,7 @@ class AssaultTerrain:
         self.g = torch.Generator(device=device).manual_seed(seed)
         self.postures = postures
         self.flat_los = flat_los
+        self.overwatch = overwatch; self.ow_expo = ow_expo
         self.n_actions = (13 if postures else 10)  # 0-7 caps, 8 HOLD, 9 SUPPRESS ; 10-12 postures (debout/accroupi/couche)
         if postures: self._eye_lut = torch.tensor([1.7, 1.0, 0.3], device=device)   # hauteur d'oeil par posture
         self.grid_obs = grid_obs; self.gridK = gridK; self.gridspan = gridspan; self.team_obs = team_obs; self.role_obs = role_obs
@@ -256,10 +258,17 @@ class AssaultTerrain:
         cur = (ndist * al2.float()).sum(1) / al2.float().sum(1).clamp(min=1) / self.scale   # dist a l'objectif (pour entrer en portee)
         losses = 1.0 - al2.float().sum(1) / self.A
         dk = (self.D - self._dalive().float().sum(1)) / self.D     # fraction defenseurs neutralises
-        rew = (0.2 * (self.prev_d - cur)                           # leger shaping : se rapprocher (entrer en portee de feu)
-               + 1.5 * (dk - self._prev_dk)                        # RECOMPENSE = neutraliser les defenseurs au feu
-               - 0.005 + neutralized.float() * 1.0                 # bonus victoire
-               - 0.4 * (wiped & ~neutralized).float())             # penalite aneantissement (CMDP : pertes)
+        if self.overwatch:                                         # OVERWATCH/DEFILEMENT : engager depuis le couvert, PAS pousser a l'objectif
+            exp_frac = self.last_exposed.sum(1) / al.sum(1).clamp(min=1)   # exposition = etre vu par un defenseur (a MINIMISER)
+            rew = (1.5 * (dk - self._prev_dk)                       # neutraliser l'ennemi au feu (SUPPRESS)
+                   - self.ow_expo * exp_frac                        # PENALITE d'exposition -> force le defilement (voir sans etre vu)
+                   - 0.005 + neutralized.float() * 1.0              # bonus victoire
+                   - 0.4 * (wiped & ~neutralized).float())         # penalite aneantissement
+        else:
+            rew = (0.2 * (self.prev_d - cur)                           # leger shaping : se rapprocher (entrer en portee de feu)
+                   + 1.5 * (dk - self._prev_dk)                        # RECOMPENSE = neutraliser les defenseurs au feu
+                   - 0.005 + neutralized.float() * 1.0                 # bonus victoire
+                   - 0.4 * (wiped & ~neutralized).float())             # penalite aneantissement (CMDP : pertes)
         if self.suffer:
             rew = rew - 1.1 * (wiped & ~neutralized).float()        # la mort COUTE (total -1.5) -> decrocher le perdu devient rationnel
         self.prev_d = cur; self._prev_dk = dk
