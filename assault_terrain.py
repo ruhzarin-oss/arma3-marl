@@ -24,6 +24,7 @@ class AssaultTerrain:
             self._solid = torch.tensor(_R["solid"].astype("float32"), device=device)
             self._elevR = torch.tensor(_R["elev"].astype("float32"), device=device)
             self._solidhR = torch.tensor(_R["solidh"].astype("float32"), device=device) if "solidh" in _R.files else torch.zeros_like(self._solid)
+            self._lowhR = torch.tensor(_R["lowh"].astype("float32"), device=device) if "lowh" in _R.files else torch.zeros_like(self._solid)
             self.terr_G = int(_R["GS"]); self.terr_R = float(_R["W"]); self.scale = self.terr_R
             self.R_spawn = min(R_spawn, self.terr_R - 25.0)
 
@@ -123,7 +124,7 @@ class AssaultTerrain:
         zb = self._sample_field(self._elevR, bx, by) + eye_b
         z_ray = za.unsqueeze(-1) * (1 - t) + zb.unsqueeze(-1) * t
         # sommet a chaque echantillon = sol + hauteur du bati (solidh) ; bloque si un batiment depasse le rayon
-        top = self._sample_field(self._elevR, pxr, pyr) + self._sample_field(self._solidhR, pxr, pyr)
+        top = self._sample_field(self._elevR, pxr, pyr) + self._sample_field(self._solidhR, pxr, pyr) + self._sample_field(self._lowhR, pxr, pyr)
         blocked = (top > z_ray).any(-1)
         return base * (~blocked).float()
 

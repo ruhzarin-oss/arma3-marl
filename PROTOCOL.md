@@ -43,6 +43,7 @@ avec `dkilled(B) >= dkilled(A)` (garde-fou anti-turtle : B ne doit pas juste se 
 - **Entraînement (4)** : `denver` `chicago` `paris` `madrid` — générées par `make_cities.sh`.
 - **Test (3, DISJOINTES)** : `newyork` `london` `lille` — jamais vues à l'entraînement.
 - **Test RELIEF (3, terrain vallonné, `--dem`)** : `athens` (Acropole +78 m) · `delphi` (Parnasse +264 m) · `santorini` (caldeira +218 m) — relief SRTM réel dans `elev` → teste le défilement de TERRAIN (crêtes) en plus du couvert bâti.
+- **Bas couvert (TOUTES les cartes, `add_lowcover.py`)** : barrières procédurales **passables** 0,7–1,4 m (8 % de l'ouvert, canal `lowh`). AJOUTÉ après le gauge du 09/07 qui a montré `usage postures = 0` sur OSM nu (bâtiments ≥ 6 m → bloquent debout = couché, la posture n'a aucun levier). Le bas couvert est la **seule géométrie où se coucher change la LOS** → condition pour que l'A/B postures soit testable.
 - La géométrie de test est **3D réelle** (verticalité active) pour **les deux bras**.
 - Détail d'interface à l'éval : A tourne `postures=False` (subit la 3D, ne peut pas
   se baisser) ; B tourne `postures=True`. **Même terrain, B a la capacité en plus.**
