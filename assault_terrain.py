@@ -13,7 +13,7 @@ class AssaultTerrain:
                  move=14.0, fire_range=110.0, hit=0.06, secure_r=25.0, max_steps=60, dmg_dead=0.7,
                  grid_obs=False, gridK=8, gridspan=80.0, team_obs=False, role_obs=False,
                  shell_obs=False, shellK=12, shell_R=60.0, suffer=False, D_min=2,
-                 replica=False, replica_path="replica.npz", device="cuda:0", seed=0, postures=False):
+                 replica=False, replica_path="replica.npz", device="cuda:0", seed=0, postures=False, flat_los=False):
         self.N = num_envs; self.A = A; self.D = D; self.R_spawn = R_spawn
         self.terr_R = terr_R; self.terr_G = terr_G; self.relief = relief
         self.move = move; self.fire_range = fire_range; self.hit = hit; self.secure_r = secure_r
@@ -29,6 +29,7 @@ class AssaultTerrain:
 
         self.g = torch.Generator(device=device).manual_seed(seed)
         self.postures = postures
+        self.flat_los = flat_los
         self.n_actions = (13 if postures else 10)  # 0-7 caps, 8 HOLD, 9 SUPPRESS ; 10-12 postures (debout/accroupi/couche)
         if postures: self._eye_lut = torch.tensor([1.7, 1.0, 0.3], device=device)   # hauteur d'oeil par posture
         self.grid_obs = grid_obs; self.gridK = gridK; self.gridspan = gridspan; self.team_obs = team_obs; self.role_obs = role_obs
@@ -115,6 +116,8 @@ class AssaultTerrain:
         t = torch.linspace(0.0, 1.0, K, device=self.dev)
         pxr = ax.unsqueeze(-1) * (1 - t) + bx.unsqueeze(-1) * t
         pyr = ay.unsqueeze(-1) * (1 - t) + by.unsqueeze(-1) * t
+        if getattr(self, "flat_los", False):                       # BASELINE PLAT : LOS binaire (tout batiment bloque, ignore solidh/eye)
+            return base * (~(self._sample_solid(pxr, pyr) > 0.5).any(-1)).float()
         # LOS 2.5D : hauteur de l'oeil (sol + eye) aux 2 bouts, interpolee le long du rayon
         za = self._sample_field(self._elevR, ax, ay) + eye_a
         zb = self._sample_field(self._elevR, bx, by) + eye_b
@@ -221,14 +224,16 @@ class AssaultTerrain:
                 self.posture = torch.where(acts == pa, torch.full_like(self.posture, pv), self.posture)
         incover = TG.sample(self.cover, self.apx, self.apy, self.scale).clamp(max=1.0)   # couvert = terrain (atteint par steering)
         # --- feu des DEFENSEURS sur les attaquants (LOS du relief + portee + couvert) ---
-        dmg_a = torch.zeros(N, A, device=d)
+        dmg_a = torch.zeros(N, A, device=d); exposed = torch.zeros(N, A, device=d)
         for di in range(D):
             bx = self.dpx[:, di:di + 1].expand(N, A); by = self.dpy[:, di:di + 1].expand(N, A)
             los = self._losc(self.hm, self.apx, self.apy, bx, by, self.scale, eye_a=self._eye(), eye_b=1.7)
             dist = torch.sqrt((self.apx - self.dpx[:, di:di + 1]) ** 2 + (self.apy - self.dpy[:, di:di + 1]) ** 2)
             active = self._dalive()[:, di:di + 1].float() * (self.dsupp[:, di:di + 1] < 0.5).float()
             dmg_a += self.hit * los * (dist < self.fire_range).float() * active * (1.0 - 0.7 * incover)
+            exposed = torch.maximum(exposed, los * (dist < self.fire_range).float() * self._dalive()[:, di:di + 1].float())
         self.last_dmg_in = (dmg_a * al).detach()
+        self.last_exposed = (exposed * al).detach()   # exposition = vu par un defenseur vivant a portee
         self.admg = (self.admg + dmg_a * al).clamp(max=0.95)
         # --- attaquants SUPPRESS (3) les defenseurs en LOS+portee ---
         self.dsupp.zero_(); dmg_d = torch.zeros(N, D, device=d); supp_act = (acts == 9) & self._aalive()
@@ -263,7 +268,7 @@ class AssaultTerrain:
             a_sup = (sup * appui).sum(1) / appui.sum(1).clamp(min=1)     # appui qui CLOUE
             a_mov = (mov * assaut).sum(1) / assaut.sum(1).clamp(min=1)   # PENDANT que l'assaut AVANCE
             rew = rew + 0.05 * a_sup * a_mov
-        info = {"neutralized": neutralized, "wiped": wiped, "losses": losses, "dkilled": dk}
+        info = {"neutralized": neutralized, "wiped": wiped, "losses": losses, "dkilled": dk, "exposed": self.last_exposed.sum(1) / al.sum(1).clamp(min=1)}
         if auto_reset:
             self._reset(done.nonzero(as_tuple=True)[0])
         return self._obs(), rew, done.float(), info

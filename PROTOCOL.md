@@ -40,8 +40,8 @@ avec `dkilled(B) >= dkilled(A)` (garde-fou anti-turtle : B ne doit pas juste se 
 
 ## 3. Cartes — séparation entraînement / test (obligatoire)
 
-- **Entraînement** : ≥ 4 cartes OSM (ex. Denver + 3 autres villes via `osm_to_replica.py`).
-- **Test** : ≥ 3 cartes OSM **DISJOINTES** (jamais vues à l'entraînement).
+- **Entraînement (4)** : `denver` `chicago` `paris` `madrid` — générées par `make_cities.sh`.
+- **Test (3, DISJOINTES)** : `newyork` `london` `lille` — jamais vues à l'entraînement.
 - La géométrie de test est **3D réelle** (verticalité active) pour **les deux bras**.
 - Détail d'interface à l'éval : A tourne `postures=False` (subit la 3D, ne peut pas
   se baisser) ; B tourne `postures=True`. **Même terrain, B a la capacité en plus.**
