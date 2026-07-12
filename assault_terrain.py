@@ -13,7 +13,7 @@ class AssaultTerrain:
                  move=14.0, fire_range=110.0, hit=0.06, secure_r=25.0, max_steps=60, dmg_dead=0.7,
                  grid_obs=False, gridK=8, gridspan=80.0, team_obs=False, role_obs=False,
                  shell_obs=False, shellK=12, shell_R=60.0, suffer=False, D_min=2,
-                 replica=False, replica_path="replica.npz", device="cuda:0", seed=0):
+                 replica=False, replica_path="replica.npz", device="cuda:0", seed=0, postures=False):
         self.N = num_envs; self.A = A; self.D = D; self.R_spawn = R_spawn
         self.terr_R = terr_R; self.terr_G = terr_G; self.relief = relief
         self.move = move; self.fire_range = fire_range; self.hit = hit; self.secure_r = secure_r
@@ -28,7 +28,9 @@ class AssaultTerrain:
             self.R_spawn = min(R_spawn, self.terr_R - 25.0)
 
         self.g = torch.Generator(device=device).manual_seed(seed)
-        self.n_actions = 10                       # 0-7 = caps (45 deg, STEERING), 8 = HOLD, 9 = SUPPRESS
+        self.postures = postures
+        self.n_actions = (13 if postures else 10)  # 0-7 caps, 8 HOLD, 9 SUPPRESS ; 10-12 postures (debout/accroupi/couche)
+        if postures: self._eye_lut = torch.tensor([1.7, 1.0, 0.3], device=device)   # hauteur d'oeil par posture
         self.grid_obs = grid_obs; self.gridK = gridK; self.gridspan = gridspan; self.team_obs = team_obs; self.role_obs = role_obs
         self.shell_obs = shell_obs; self.shellK = shellK; self.shell_R = shell_R
         self.suffer = suffer; self.D_min = D_min
@@ -43,6 +45,7 @@ class AssaultTerrain:
             self.dpx = torch.zeros(N, D, device=d); self.dpy = torch.zeros(N, D, device=d); self.ddmg = torch.zeros(N, D, device=d)
             self.dsupp = torch.zeros(N, D, device=d); self.t = torch.zeros(N, dtype=torch.long, device=d)
             self.last_dmg_in = torch.zeros(N, self.A, device=d)
+            self.posture = torch.zeros(N, A, dtype=torch.long, device=d)
             self.prev_d = torch.zeros(N, device=d)
             for nm in ("hm", "slope", "cover", "dcover"):
                 setattr(self, nm, torch.zeros(N, self.terr_G, self.terr_G, device=d))
@@ -71,6 +74,7 @@ class AssaultTerrain:
         th = torch.rand(n, generator=self.g, device=d) * 2 * math.pi           # attaquants au bord, cap aleatoire
         sx = self.R_spawn * torch.sin(th); sy = self.R_spawn * torch.cos(th); ar = torch.arange(self.A, device=d).float()
         self.apx[idx] = sx[:, None] + (ar % 2) * 6 - 3; self.apy[idx] = sy[:, None] + (ar - 1) * 6; self.admg[idx] = 0.0
+        self.posture[idx] = 0
         if self.replica:
             for _ in range(10):
                 _w = self._sample_solid(self.apx[idx], self.apy[idx]) > 0.5
@@ -88,6 +92,8 @@ class AssaultTerrain:
     def reset(self): return self._obs()
     def _aalive(self): return self.admg < self.dmg_dead
     def _dalive(self): return self.ddmg < self.dmg_dead
+    def _eye(self):
+        return self._eye_lut[self.posture] if self.postures else torch.full_like(self.apx, 1.7)
 
     def _sample_solid(self, px, py):
         G = self.terr_G
@@ -101,7 +107,7 @@ class AssaultTerrain:
         gy = ((py / self.scale * 0.5 + 0.5) * (G - 1)).clamp(0, G - 1).long()
         return field[gy, gx]
 
-    def _losc(self, hm, ax, ay, bx, by, R, eye=1.7):
+    def _losc(self, hm, ax, ay, bx, by, R, eye_a=1.7, eye_b=1.7):
         base = TG.los_clear(hm, ax, ay, bx, by, R)
         if not getattr(self, "replica", False):
             return base
@@ -110,8 +116,8 @@ class AssaultTerrain:
         pxr = ax.unsqueeze(-1) * (1 - t) + bx.unsqueeze(-1) * t
         pyr = ay.unsqueeze(-1) * (1 - t) + by.unsqueeze(-1) * t
         # LOS 2.5D : hauteur de l'oeil (sol + eye) aux 2 bouts, interpolee le long du rayon
-        za = self._sample_field(self._elevR, ax, ay) + eye
-        zb = self._sample_field(self._elevR, bx, by) + eye
+        za = self._sample_field(self._elevR, ax, ay) + eye_a
+        zb = self._sample_field(self._elevR, bx, by) + eye_b
         z_ray = za.unsqueeze(-1) * (1 - t) + zb.unsqueeze(-1) * t
         # sommet a chaque echantillon = sol + hauteur du bati (solidh) ; bloque si un batiment depasse le rayon
         top = self._sample_field(self._elevR, pxr, pyr) + self._sample_field(self._solidhR, pxr, pyr)
@@ -127,7 +133,7 @@ class AssaultTerrain:
         BIG = torch.tensor(1e18, device=self.dev)
         ed2 = torch.where(self._dalive().unsqueeze(1), ex * ex + ey * ey, BIG); km = ed2.argmin(2)
         bx = torch.gather(self.dpx, 1, km); by = torch.gather(self.dpy, 1, km)
-        los = self._losc(self.hm, self.apx, self.apy, bx, by, S)
+        los = self._losc(self.hm, self.apx, self.apy, bx, by, S, eye_a=self._eye(), eye_b=1.7)
         nd = ed2.min(2).values.clamp(max=1e17).sqrt() / S
         base = torch.stack([self.apx / S, self.apy / S, dgx, dgy, al.float(), sl, dc, los, nd], dim=2)
         parts = [base]
@@ -137,6 +143,8 @@ class AssaultTerrain:
         if self.team_obs: parts.append(self._team_feats())
         if self.role_obs:                                   # ROLE assigne par l'officier (one-hot appui/assaut)
             parts.append(torch.stack([(self.role == 0).float(), (self.role == 1).float()], dim=2))
+        if self.postures:                                   # SELF-PERCEPTION : sa propre posture (one-hot)
+            parts.append(torch.stack([(self.posture == 0).float(), (self.posture == 1).float(), (self.posture == 2).float()], dim=2))
         return torch.cat(parts, dim=2) if len(parts) > 1 else base
 
     def _team_feats(self):
@@ -160,7 +168,7 @@ class AssaultTerrain:
         nt = torch.zeros(N, A, device=d)
         for di in range(D):
             bx = self.dpx[:, di:di + 1].expand(N, A); by = self.dpy[:, di:di + 1].expand(N, A)
-            los = self._losc(self.hm, self.apx, self.apy, bx, by, S)
+            los = self._losc(self.hm, self.apx, self.apy, bx, by, S, eye_a=self._eye(), eye_b=1.7)
             dist = torch.sqrt((self.apx - self.dpx[:, di:di + 1]) ** 2 + (self.apy - self.dpy[:, di:di + 1]) ** 2)
             nt += self._dalive()[:, di:di + 1].float() * los * (dist < self.fire_range).float()
         return torch.stack([(self.last_dmg_in * 5.0).clamp(max=1.0), nt / self.D], dim=2)   # (N,A,2)
@@ -208,12 +216,15 @@ class AssaultTerrain:
         if self.replica:
             _wall = self._sample_solid(self.apx, self.apy) > 0.5
             self.apx = torch.where(_wall, _oax, self.apx); self.apy = torch.where(_wall, _oay, self.apy)
+        if self.postures:                                          # actions 10/11/12 = poser une posture (sticky)
+            for pa, pv in ((10, 0), (11, 1), (12, 2)):
+                self.posture = torch.where(acts == pa, torch.full_like(self.posture, pv), self.posture)
         incover = TG.sample(self.cover, self.apx, self.apy, self.scale).clamp(max=1.0)   # couvert = terrain (atteint par steering)
         # --- feu des DEFENSEURS sur les attaquants (LOS du relief + portee + couvert) ---
         dmg_a = torch.zeros(N, A, device=d)
         for di in range(D):
             bx = self.dpx[:, di:di + 1].expand(N, A); by = self.dpy[:, di:di + 1].expand(N, A)
-            los = self._losc(self.hm, self.apx, self.apy, bx, by, self.scale)
+            los = self._losc(self.hm, self.apx, self.apy, bx, by, self.scale, eye_a=self._eye(), eye_b=1.7)
             dist = torch.sqrt((self.apx - self.dpx[:, di:di + 1]) ** 2 + (self.apy - self.dpy[:, di:di + 1]) ** 2)
             active = self._dalive()[:, di:di + 1].float() * (self.dsupp[:, di:di + 1] < 0.5).float()
             dmg_a += self.hit * los * (dist < self.fire_range).float() * active * (1.0 - 0.7 * incover)
@@ -224,7 +235,7 @@ class AssaultTerrain:
         self.last_supp = supp_act.float()                          # memo pour la conscience d'equipe (coordination)
         for ai in range(A):
             bx = self.apx[:, ai:ai + 1].expand(N, D); by = self.apy[:, ai:ai + 1].expand(N, D)
-            los = self._losc(self.hm, self.dpx, self.dpy, bx, by, self.scale)
+            los = self._losc(self.hm, self.dpx, self.dpy, bx, by, self.scale, eye_a=1.7, eye_b=self._eye()[:, ai:ai + 1])
             dist = torch.sqrt((self.dpx - self.apx[:, ai:ai + 1]) ** 2 + (self.dpy - self.apy[:, ai:ai + 1]) ** 2)
             eff = los * (dist < self.fire_range).float() * supp_act[:, ai:ai + 1].float()
             self.dsupp = torch.maximum(self.dsupp, eff); dmg_d += 0.10 * eff   # tuer un defenseur en ~7 pas de feu
