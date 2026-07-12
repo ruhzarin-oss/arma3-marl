@@ -65,8 +65,9 @@ def main():
                 solid[j, i] = True
                 for idx in tree.query(p):
                     g = geoms[idx if np.isscalar(idx) else int(idx)]
-                    if g.contains(p):
+                    if g.intersects(p):                        # intersects (pas contains) : attrape les bords
                         solidh[j, i] = max(solidh[j, i], hts[idx if np.isscalar(idx) else int(idx)])
+    solidh[solid & (solidh <= 0)] = 6.0                     # garde-fou : bati sans hauteur (bord/precision) -> defaut ~2 etages
     elev = np.zeros((GS, GS), dtype=np.float32)              # plat pour v1 (DEM plus tard)
 
     out = "/home/younes/arma3-marl/replica_%s.npz" % a.name
