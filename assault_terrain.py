@@ -34,7 +34,7 @@ class AssaultTerrain:
         self.grid_obs = grid_obs; self.gridK = gridK; self.gridspan = gridspan; self.team_obs = team_obs; self.role_obs = role_obs
         self.shell_obs = shell_obs; self.shellK = shellK; self.shell_R = shell_R
         self.suffer = suffer; self.D_min = D_min
-        self.obs_dim = 9 + (2 * gridK * gridK if grid_obs else 0) + (4 if team_obs else 0) + (2 if role_obs else 0) + ((shellK + 1) if shell_obs else 0) + (2 if suffer else 0)   # +grille +coequipiers +ROLE +COQUE +SUFFER
+        self.obs_dim = 9 + (2 * gridK * gridK if grid_obs else 0) + (4 if team_obs else 0) + (2 if role_obs else 0) + ((shellK + 1) if shell_obs else 0) + (2 if suffer else 0) + (3 if postures else 0)   # +grille +coequipiers +ROLE +COQUE +SUFFER +POSTURE
         self._reset(torch.arange(num_envs, device=device))
 
     def _reset(self, idx):
