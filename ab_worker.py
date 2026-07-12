@@ -9,7 +9,7 @@ from train_soldier_pbt import ppo_iters
 DEV = "cuda:0"; BASE = "/home/younes/arma3-marl/replica_%s.npz"
 TRAIN = ["denver", "chicago", "paris", "madrid"]
 TESTS = ["newyork", "london", "lille", "athens", "delphi", "santorini"]
-ARMS = {"A": dict(flat_los=True, postures=False), "B": dict(flat_los=False, postures=True)}
+ARMS = {"A": dict(flat_los=True, postures=False), "B": dict(flat_los=False, postures=False)}
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--arm", required=True); ap.add_argument("--seed", type=int, required=True)

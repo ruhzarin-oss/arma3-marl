@@ -18,7 +18,7 @@ BASE = "/home/younes/arma3-marl/replica_%s.npz"
 TRAIN = ["denver", "chicago", "paris", "madrid"]
 TEST_FLAT = ["newyork", "london", "lille"]
 TEST_RELIEF = ["athens", "delphi", "santorini"]
-ARMS = {"A": dict(flat_los=True, postures=False), "B": dict(flat_los=False, postures=True)}
+ARMS = {"A": dict(flat_los=True, postures=False), "B": dict(flat_los=False, postures=False)}
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--smoke", action="store_true")
