@@ -1,0 +1,16 @@
+{"garr_killed": 0.09999999999999998, "losses": 0.625, "abort": null, "cond": "pire", "srv": 9, "seed": 4, "dt": 89.7}
+{"garr_killed": 0.0, "losses": 0.0, "abort": null, "cond": "defile", "srv": 10, "seed": 5, "dt": 90.3}
+{"garr_killed": 0.09999999999999998, "losses": 0.375, "abort": null, "cond": "pire", "srv": 3, "seed": 1, "dt": 90.8}
+{"garr_killed": 0.0, "losses": 0.25, "abort": null, "cond": "defile", "srv": 0, "seed": 0, "dt": 90.9}
+{"garr_killed": 0.0, "losses": 0.125, "abort": null, "cond": "defile", "srv": 12, "seed": 6, "dt": 90.9}
+{"garr_killed": 0.0, "losses": 0.625, "abort": null, "cond": "pire", "srv": 7, "seed": 3, "dt": 91.0}
+{"garr_killed": 0.0, "losses": 0.0, "abort": null, "cond": "defile", "srv": 14, "seed": 7, "dt": 91.0}
+{"garr_killed": 0.5, "losses": 0.25, "abort": null, "cond": "pire", "srv": 5, "seed": 2, "dt": 91.3}
+{"garr_killed": 0.0, "losses": 0.625, "abort": null, "cond": "pire", "srv": 15, "seed": 7, "dt": 91.4}
+{"garr_killed": 0.5, "losses": 0.25, "abort": null, "cond": "pire", "srv": 11, "seed": 5, "dt": 91.5}
+{"garr_killed": 0.09999999999999998, "losses": 0.5, "abort": null, "cond": "pire", "srv": 13, "seed": 6, "dt": 91.5}
+{"garr_killed": 0.0, "losses": 0.0, "abort": null, "cond": "defile", "srv": 6, "seed": 3, "dt": 91.7}
+{"garr_killed": 0.0, "losses": 0.125, "abort": null, "cond": "defile", "srv": 4, "seed": 2, "dt": 91.8}
+{"garr_killed": 0.0, "losses": 0.125, "abort": null, "cond": "defile", "srv": 2, "seed": 1, "dt": 92.0}
+{"garr_killed": 0.19999999999999996, "losses": 0.5, "abort": null, "cond": "pire", "srv": 1, "seed": 0, "dt": 92.4}
+{"garr_killed": 0.0, "losses": 0.125, "abort": null, "cond": "defile", "srv": 8, "seed": 4, "dt": 92.6}

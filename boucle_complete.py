@@ -76,9 +76,9 @@ def reward_fn(completions, rank=None, **kw):
 is14 = "14B" in MODEL or "14b" in MODEL
 if is14:
     mik = {"quantization_config": BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_compute_dtype=torch.bfloat16,
-                                                     bnb_4bit_quant_type="nf4"), "device_map": {"": 0}}
+                                                     bnb_4bit_quant_type="nf4"), "device_map": {"": 0}, "attn_implementation": "sdpa"}
 else:
-    mik = {"dtype": torch.bfloat16, "device_map": {"": 0}}
+    mik = {"dtype": torch.bfloat16, "device_map": {"": 0}, "attn_implementation": "sdpa"}
 lora = LoraConfig(r=16, lora_alpha=32, target_modules=["q_proj", "k_proj", "v_proj", "o_proj"], task_type="CAUSAL_LM")
 cfg = GRPOConfig(output_dir="officer_grpo_%s" % ("14b" if is14 else "7b"), per_device_train_batch_size=6,
                  num_generations=6, max_completion_length=24, learning_rate=1e-5, num_train_epochs=A.epochs,

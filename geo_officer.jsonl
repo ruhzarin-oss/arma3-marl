@@ -1,0 +1,100 @@
+{"geo": "standard", "cond": "adaptatif", "mil": false, "man": "M8", "reco_ok": true, "pred": "standard"}
+{"geo": "faible_ouest", "cond": "adaptatif", "mil": false, "man": "M1", "reco_ok": true, "pred": "faible_ouest"}
+{"geo": "faible_ouest", "cond": "adaptatif", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "faible_est", "cond": "fixe", "mil": false, "man": "M2", "reco_ok": null, "pred": null}
+{"geo": "disperse", "cond": "adaptatif", "mil": true, "man": "M2", "reco_ok": true, "pred": "disperse"}
+{"geo": "standard", "cond": "fixe", "mil": false, "man": "M2", "reco_ok": null, "pred": null}
+{"geo": "faible_ouest", "cond": "fixe", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "faible_est", "cond": "fixe", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "standard", "cond": "adaptatif", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "standard", "cond": "fixe", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "concentre", "cond": "adaptatif", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "concentre", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "adaptatif", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "faible_ouest", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "fixe", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "faible_ouest", "cond": "adaptatif", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "adaptatif", "mil": false, "man": "M5", "reco_ok": true, "pred": "concentre"}
+{"geo": "standard", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "fixe", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "faible_est", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "adaptatif", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "disperse", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "fixe", "mil": false, "man": "M2", "reco_ok": null, "pred": null}
+{"geo": "faible_ouest", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "fixe", "mil": false, "man": "M2", "reco_ok": null, "pred": null}
+{"geo": "concentre", "cond": "adaptatif", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "disperse", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "adaptatif", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "standard", "cond": "fixe", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "concentre", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "fixe", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "concentre", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "adaptatif", "mil": true, "man": "M5", "reco_ok": true, "pred": "concentre"}
+{"geo": "concentre", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "fixe", "err": "ValueError:max() iterable argument is empty"}
+{"geo": "concentre", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "fixe", "mil": true, "man": "M2", "reco_ok": null, "pred": null}
+{"geo": "faible_est", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "fixe", "mil": true, "man": "M2", "reco_ok": null, "pred": null}
+{"geo": "faible_est", "cond": "adaptatif", "mil": true, "man": "M1", "reco_ok": true, "pred": "faible_est"}
+{"geo": "standard", "cond": "adaptatif", "mil": true, "man": "M8", "reco_ok": true, "pred": "standard"}
+{"geo": "faible_ouest", "cond": "fixe", "mil": true, "man": "M2", "reco_ok": null, "pred": null}
+{"geo": "standard", "cond": "fixe", "mil": true, "man": "M2", "reco_ok": null, "pred": null}
+{"geo": "disperse", "cond": "adaptatif", "mil": true, "man": "M2", "reco_ok": true, "pred": "disperse"}

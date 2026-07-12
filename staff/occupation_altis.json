@@ -1,0 +1,2450 @@
+{
+ "world": "Altis",
+ "target": 500,
+ "seed": 0,
+ "scale": 0.134,
+ "center": [
+  13860,
+  15590
+ ],
+ "sectors": [
+  {
+   "name": "NE",
+   "hq": [
+    20885,
+    16959
+   ],
+   "alert": "CALME",
+   "n_localites": 33
+  },
+  {
+   "name": "NO",
+   "hq": [
+    4803,
+    21855
+   ],
+   "alert": "CALME",
+   "n_localites": 23
+  },
+  {
+   "name": "SE",
+   "hq": [
+    16781,
+    12604
+   ],
+   "alert": "CALME",
+   "n_localites": 24
+  },
+  {
+   "name": "SO",
+   "hq": [
+    9092,
+    11962
+   ],
+   "alert": "CALME",
+   "n_localites": 31
+  }
+ ],
+ "n_elements": 183,
+ "total_units": 731,
+ "elements": [
+  {
+   "type": "garrison",
+   "pos": [
+    20885,
+    16959
+   ],
+   "size": 7,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 2,
+   "name": "Paros",
+   "cat": "ville",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    16781,
+    12604
+   ],
+   "size": 7,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 2,
+   "name": "Pyrgos",
+   "cat": "ville",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    13993,
+    18709
+   ],
+   "size": 7,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 2,
+   "name": "Athira",
+   "cat": "ville",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    9092,
+    11962
+   ],
+   "size": 7,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 2,
+   "name": "Zaros",
+   "cat": "ville",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    25681,
+    21365
+   ],
+   "size": 7,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 2,
+   "name": "Sofia",
+   "cat": "ville",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    3459,
+    12966
+   ],
+   "size": 7,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 2,
+   "name": "Kavala",
+   "cat": "ville",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    18049,
+    15264
+   ],
+   "size": 7,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 2,
+   "name": "Charkia",
+   "cat": "ville",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    12502,
+    14337
+   ],
+   "size": 7,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 2,
+   "name": "Neochori",
+   "cat": "ville",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    5033,
+    11245
+   ],
+   "size": 7,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 2,
+   "name": "Panochori",
+   "cat": "ville",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    21352,
+    16362
+   ],
+   "size": 7,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 2,
+   "name": "Kalochori",
+   "cat": "ville",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    10619,
+    12237
+   ],
+   "size": 7,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 2,
+   "name": "Therisa",
+   "cat": "ville",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    20195,
+    11661
+   ],
+   "size": 7,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 2,
+   "name": "Chalkeia",
+   "cat": "ville",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    18753,
+    16597
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Rodopoli",
+   "cat": "bourg",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    20770,
+    6736
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Selakano",
+   "cat": "bourg",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    26944,
+    23171
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Molos",
+   "cat": "bourg",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    14480,
+    17614
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Gravia",
+   "cat": "bourg",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    4116,
+    11736
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Neri",
+   "cat": "bourg",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    12950,
+    15042
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Stavros",
+   "cat": "bourg",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    3688,
+    13776
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Aggelochori",
+   "cat": "bourg",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    4803,
+    21855
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "castle",
+   "cat": "site",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    4886,
+    16171
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Negades",
+   "cat": "bourg",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    19337,
+    13252
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Dorida",
+   "cat": "bourg",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    4560,
+    21461
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Oreokastro",
+   "cat": "site",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    15421,
+    16224
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "power plant",
+   "cat": "bourg",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    9425,
+    20284
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Abdera",
+   "cat": "village",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    16584,
+    16104
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Anthrakia",
+   "cat": "bourg",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    16030,
+    17005
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "military",
+   "cat": "bourg",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    10966,
+    13435
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Poliakko",
+   "cat": "bourg",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    21641,
+    7584
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Feres",
+   "cat": "bourg",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    10270,
+    19036
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Galati",
+   "cat": "village",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    16207,
+    17297
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Telos",
+   "cat": "bourg",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    11113,
+    14574
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Alikampos",
+   "cat": "bourg",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    20490,
+    8907
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Panagia",
+   "cat": "bourg",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    12282,
+    15732
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Lakka",
+   "cat": "bourg",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    11701,
+    13672
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Katalaki",
+   "cat": "bourg",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    5887,
+    20236
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "dump",
+   "cat": "site",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    14612,
+    20787
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 1,
+   "name": "Frini",
+   "cat": "bourg",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    9188,
+    15948
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Agios Dionysios",
+   "cat": "village",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    7062,
+    16472
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Kore",
+   "cat": "village",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    8625,
+    18302
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Syrta",
+   "cat": "site",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    10410,
+    17243
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Orino",
+   "cat": "village",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    6273,
+    12174
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Agios Panagiotis",
+   "cat": "site",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    8089,
+    17258
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Amfissa",
+   "cat": "site",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    6109,
+    16246
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "factory",
+   "cat": "village",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    23200,
+    19987
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Ioannina",
+   "cat": "village",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    3571,
+    10244
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Athanos",
+   "cat": "village",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    17827,
+    18129
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Kalithea",
+   "cat": "village",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    12787,
+    19679
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Ifestiona",
+   "cat": "village",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    6565,
+    22639
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Faros",
+   "cat": "site",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    3949,
+    17278
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Agios Konstantinos",
+   "cat": "village",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    11549,
+    7088
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Eginio",
+   "cat": "site",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    7914,
+    21305
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Aristi",
+   "cat": "site",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    2307,
+    22165
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Bomos",
+   "cat": "site",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    3015,
+    12587
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Kavala Pier",
+   "cat": "village",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    7376,
+    15430
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Topolia",
+   "cat": "village",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    14522,
+    16834
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Terminal",
+   "cat": "village",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    18261,
+    15551
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "storage",
+   "cat": "village",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    7194,
+    11044
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Edessa",
+   "cat": "village",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    14038,
+    16143
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "airbase",
+   "cat": "village",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    5430,
+    14997
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Stadium",
+   "cat": "village",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    23909,
+    20145
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Delfinaki",
+   "cat": "hameau",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    14934,
+    11079
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Faronaki",
+   "cat": "hameau",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    19473,
+    15454
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Nifi",
+   "cat": "hameau",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    9682,
+    22294
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Krya Nera",
+   "cat": "hameau",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    26723,
+    21230
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Gatolia",
+   "cat": "hameau",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    17061,
+    11339
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "quarry",
+   "cat": "hameau",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    11787,
+    18372
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Koroni",
+   "cat": "hameau",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    2993,
+    18517
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Fotia",
+   "cat": "hameau",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    26940,
+    24744
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Molos Airfield",
+   "cat": "hameau",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    19339,
+    17642
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Agios Petros",
+   "cat": "hameau",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    10782,
+    10882
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Drimea",
+   "cat": "hameau",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    9214,
+    8079
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Sfaka",
+   "cat": "hameau",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    16669,
+    20487
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Agia Triada",
+   "cat": "hameau",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    21450,
+    10874
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Aktinarki",
+   "cat": "hameau",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    23275,
+    24198
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Sideras",
+   "cat": "hameau",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    11461,
+    11662
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "AAC airfield",
+   "cat": "hameau",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    11557,
+    9417
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Vikos",
+   "cat": "hameau",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    21339,
+    10434
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Surf Club",
+   "cat": "hameau",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    17060,
+    9992
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Ekali",
+   "cat": "site",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    7324,
+    12125
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Kavirida",
+   "cat": "site",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    23663,
+    21796
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Nidasos",
+   "cat": "site",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    22708,
+    6931
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Agia Pelagia",
+   "cat": "site",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    20296,
+    18635
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Agios Georgios",
+   "cat": "site",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    16837,
+    21890
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Nychi",
+   "cat": "site",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    18411,
+    8098
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Livadi",
+   "cat": "site",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    6003,
+    10511
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Edoris",
+   "cat": "site",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    22792,
+    13638
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Cape Kategidis",
+   "cat": "site",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    24068,
+    15560
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Cape Thelos",
+   "cat": "site",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    18435,
+    14302
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "mine",
+   "cat": "site",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    13472,
+    12019
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Makrynisi",
+   "cat": "site",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    17043,
+    19592
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Zeloran",
+   "cat": "site",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    18049,
+    19187
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Cape Zefyris",
+   "cat": "site",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    21628,
+    21275
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Iraklia",
+   "cat": "site",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    5456,
+    17554
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Gori",
+   "cat": "site",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    21772,
+    6015
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Mazi",
+   "cat": "site",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    25704,
+    23562
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Limnichori",
+   "cat": "site",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    16637,
+    13582
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Chelonisi",
+   "cat": "site",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    22128,
+    8454
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Trachia",
+   "cat": "site",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    8555,
+    7336
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Agios Kosmas",
+   "cat": "site",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    3041,
+    13163
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Kastro",
+   "cat": "site",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    2657,
+    11461
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Cape Drakontas",
+   "cat": "site",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    27999,
+    23776
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Polemistia",
+   "cat": "site",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    14281,
+    13469
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Sagonisi",
+   "cat": "site",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    9115,
+    13960
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Xirolimni Dam",
+   "cat": "site",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    14688,
+    23496
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Cape Agrios",
+   "cat": "site",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    23650,
+    16227
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Ochrolimni",
+   "cat": "site",
+   "sector": "NE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    14490,
+    5872
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Pyrgi",
+   "cat": "site",
+   "sector": "SE"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    8305,
+    25081
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Atsalis",
+   "cat": "site",
+   "sector": "NO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    2371,
+    11507
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Savri",
+   "cat": "site",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    2314,
+    9289
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Fournos",
+   "cat": "site",
+   "sector": "SO"
+  },
+  {
+   "type": "garrison",
+   "pos": [
+    28059,
+    25626
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "loadout": "csat_rifle",
+   "hmg": 0,
+   "name": "Cape Strigla",
+   "cat": "site",
+   "sector": "NE"
+  },
+  {
+   "type": "theater_hq",
+   "pos": [
+    20885,
+    16959
+   ],
+   "size": 19,
+   "posture": "SAFE",
+   "sector": "NE",
+   "name": "QG-THEATRE"
+  },
+  {
+   "type": "fob",
+   "pos": [
+    20885,
+    16959
+   ],
+   "size": 8,
+   "posture": "AWARE",
+   "sector": "NE",
+   "name": "FOB-NE"
+  },
+  {
+   "type": "qrf",
+   "pos": [
+    20885,
+    16959
+   ],
+   "size": 3,
+   "posture": "SAFE",
+   "sector": "NE",
+   "name": "QRF-NE"
+  },
+  {
+   "type": "comms_relay",
+   "pos": [
+    23663,
+    21796
+   ],
+   "size": 4,
+   "posture": "AWARE",
+   "sector": "NE",
+   "name": "RELAIS-NE"
+  },
+  {
+   "type": "fob",
+   "pos": [
+    4803,
+    21855
+   ],
+   "size": 8,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "FOB-NO"
+  },
+  {
+   "type": "qrf",
+   "pos": [
+    4803,
+    21855
+   ],
+   "size": 3,
+   "posture": "SAFE",
+   "sector": "NO",
+   "name": "QRF-NO"
+  },
+  {
+   "type": "comms_relay",
+   "pos": [
+    4803,
+    21855
+   ],
+   "size": 4,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "RELAIS-NO"
+  },
+  {
+   "type": "fob",
+   "pos": [
+    16781,
+    12604
+   ],
+   "size": 8,
+   "posture": "AWARE",
+   "sector": "SE",
+   "name": "FOB-SE"
+  },
+  {
+   "type": "qrf",
+   "pos": [
+    16781,
+    12604
+   ],
+   "size": 3,
+   "posture": "SAFE",
+   "sector": "SE",
+   "name": "QRF-SE"
+  },
+  {
+   "type": "comms_relay",
+   "pos": [
+    18261,
+    15551
+   ],
+   "size": 4,
+   "posture": "AWARE",
+   "sector": "SE",
+   "name": "RELAIS-SE"
+  },
+  {
+   "type": "fob",
+   "pos": [
+    9092,
+    11962
+   ],
+   "size": 8,
+   "posture": "AWARE",
+   "sector": "SO",
+   "name": "FOB-SO"
+  },
+  {
+   "type": "qrf",
+   "pos": [
+    9092,
+    11962
+   ],
+   "size": 3,
+   "posture": "SAFE",
+   "sector": "SO",
+   "name": "QRF-SO"
+  },
+  {
+   "type": "comms_relay",
+   "pos": [
+    6273,
+    12174
+   ],
+   "size": 4,
+   "posture": "AWARE",
+   "sector": "SO",
+   "name": "RELAIS-SO"
+  },
+  {
+   "type": "op",
+   "pos": [
+    4803,
+    21855
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "OP-castle"
+  },
+  {
+   "type": "op",
+   "pos": [
+    4560,
+    21461
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "OP-Oreokastro"
+  },
+  {
+   "type": "op",
+   "pos": [
+    5887,
+    20236
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "OP-dump"
+  },
+  {
+   "type": "op",
+   "pos": [
+    8625,
+    18302
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "OP-Syrta"
+  },
+  {
+   "type": "op",
+   "pos": [
+    6273,
+    12174
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "SO",
+   "name": "OP-Agios Panagiotis"
+  },
+  {
+   "type": "op",
+   "pos": [
+    8089,
+    17258
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "OP-Amfissa"
+  },
+  {
+   "type": "op",
+   "pos": [
+    9188,
+    15948
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "OP-Agios Dionysios"
+  },
+  {
+   "type": "op",
+   "pos": [
+    9425,
+    20284
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "OP-Abdera"
+  },
+  {
+   "type": "op",
+   "pos": [
+    10270,
+    19036
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "OP-Galati"
+  },
+  {
+   "type": "op",
+   "pos": [
+    7062,
+    16472
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "OP-Kore"
+  },
+  {
+   "type": "op",
+   "pos": [
+    2307,
+    22165
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "OP-Bomos"
+  },
+  {
+   "type": "op",
+   "pos": [
+    6565,
+    22639
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "OP-Faros"
+  },
+  {
+   "type": "op",
+   "pos": [
+    11549,
+    7088
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "SO",
+   "name": "OP-Eginio"
+  },
+  {
+   "type": "op",
+   "pos": [
+    10410,
+    17243
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "OP-Orino"
+  },
+  {
+   "type": "op",
+   "pos": [
+    7914,
+    21305
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "OP-Aristi"
+  },
+  {
+   "type": "op",
+   "pos": [
+    4886,
+    16171
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "OP-Negades"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    20856,
+    6842
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "SE",
+   "name": "CP-00"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    4620,
+    21692
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "CP-01"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    26796,
+    23078
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NE",
+   "name": "CP-02"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    15664,
+    17468
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NE",
+   "name": "CP-03"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    6314,
+    10824
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "SO",
+   "name": "CP-04"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    22176,
+    18392
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NE",
+   "name": "CP-05"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    14938,
+    11088
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "SE",
+   "name": "CP-06"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    9724,
+    15928
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "CP-07"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    4268,
+    16148
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "CP-08"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    19844,
+    12298
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "SE",
+   "name": "CP-09"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    17028,
+    21978
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NE",
+   "name": "CP-10"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    9526,
+    20372
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "CP-11"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    10604,
+    11638
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "SO",
+   "name": "CP-12"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    13332,
+    14520
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "SO",
+   "name": "CP-13"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    3080,
+    12408
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "SO",
+   "name": "CP-14"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    19118,
+    16588
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NE",
+   "name": "CP-15"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    12518,
+    18766
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "CP-16"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    7172,
+    18040
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "CP-17"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    24618,
+    20636
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NE",
+   "name": "CP-18"
+  },
+  {
+   "type": "checkpoint",
+   "pos": [
+    17424,
+    14102
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "SE",
+   "name": "CP-19"
+  },
+  {
+   "type": "coastal",
+   "pos": [
+    3459,
+    12966
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "SO",
+   "name": "COTE-Kavala"
+  },
+  {
+   "type": "coastal",
+   "pos": [
+    3015,
+    12587
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "SO",
+   "name": "COTE-Kavala Pier"
+  },
+  {
+   "type": "coastal",
+   "pos": [
+    27999,
+    23776
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "NE",
+   "name": "COTE-Polemistia"
+  },
+  {
+   "type": "coastal",
+   "pos": [
+    2314,
+    9289
+   ],
+   "size": 3,
+   "posture": "AWARE",
+   "sector": "SO",
+   "name": "COTE-Fournos"
+  },
+  {
+   "type": "gbad",
+   "pos": [
+    20885,
+    16959
+   ],
+   "size": 5,
+   "posture": "AWARE",
+   "sector": "NE",
+   "name": "DCA-NE"
+  },
+  {
+   "type": "gbad",
+   "pos": [
+    4803,
+    21855
+   ],
+   "size": 5,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "DCA-NO"
+  },
+  {
+   "type": "gbad",
+   "pos": [
+    16781,
+    12604
+   ],
+   "size": 5,
+   "posture": "AWARE",
+   "sector": "SE",
+   "name": "DCA-SE"
+  },
+  {
+   "type": "patrol",
+   "pos": [
+    20856,
+    6842
+   ],
+   "size": 8,
+   "radius": 900,
+   "posture": "AWARE",
+   "sector": "SE",
+   "name": "PATROUILLE-00"
+  },
+  {
+   "type": "patrol",
+   "pos": [
+    4620,
+    21692
+   ],
+   "size": 8,
+   "radius": 900,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "PATROUILLE-01"
+  },
+  {
+   "type": "patrol",
+   "pos": [
+    26796,
+    23078
+   ],
+   "size": 8,
+   "radius": 900,
+   "posture": "AWARE",
+   "sector": "NE",
+   "name": "PATROUILLE-02"
+  },
+  {
+   "type": "patrol",
+   "pos": [
+    15664,
+    17468
+   ],
+   "size": 8,
+   "radius": 900,
+   "posture": "AWARE",
+   "sector": "NE",
+   "name": "PATROUILLE-03"
+  },
+  {
+   "type": "patrol",
+   "pos": [
+    6314,
+    10824
+   ],
+   "size": 8,
+   "radius": 900,
+   "posture": "AWARE",
+   "sector": "SO",
+   "name": "PATROUILLE-04"
+  },
+  {
+   "type": "patrol",
+   "pos": [
+    22176,
+    18392
+   ],
+   "size": 8,
+   "radius": 900,
+   "posture": "AWARE",
+   "sector": "NE",
+   "name": "PATROUILLE-05"
+  },
+  {
+   "type": "patrol",
+   "pos": [
+    14938,
+    11088
+   ],
+   "size": 8,
+   "radius": 900,
+   "posture": "AWARE",
+   "sector": "SE",
+   "name": "PATROUILLE-06"
+  },
+  {
+   "type": "patrol",
+   "pos": [
+    9724,
+    15928
+   ],
+   "size": 8,
+   "radius": 900,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "PATROUILLE-07"
+  },
+  {
+   "type": "patrol",
+   "pos": [
+    4268,
+    16148
+   ],
+   "size": 8,
+   "radius": 900,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "PATROUILLE-08"
+  },
+  {
+   "type": "patrol",
+   "pos": [
+    19844,
+    12298
+   ],
+   "size": 8,
+   "radius": 900,
+   "posture": "AWARE",
+   "sector": "SE",
+   "name": "PATROUILLE-09"
+  },
+  {
+   "type": "patrol",
+   "pos": [
+    17028,
+    21978
+   ],
+   "size": 8,
+   "radius": 900,
+   "posture": "AWARE",
+   "sector": "NE",
+   "name": "PATROUILLE-10"
+  },
+  {
+   "type": "patrol",
+   "pos": [
+    9526,
+    20372
+   ],
+   "size": 8,
+   "radius": 900,
+   "posture": "AWARE",
+   "sector": "NO",
+   "name": "PATROUILLE-11"
+  },
+  {
+   "type": "convoy",
+   "pos": [
+    20885,
+    16959
+   ],
+   "size": 10,
+   "posture": "SAFE",
+   "sector": "NE",
+   "route": [
+    [
+     20885,
+     16959
+    ],
+    [
+     20885,
+     16959
+    ]
+   ],
+   "name": "CONVOI-NE"
+  },
+  {
+   "type": "convoy",
+   "pos": [
+    20885,
+    16959
+   ],
+   "size": 10,
+   "posture": "SAFE",
+   "sector": "NO",
+   "route": [
+    [
+     20885,
+     16959
+    ],
+    [
+     4803,
+     21855
+    ]
+   ],
+   "name": "CONVOI-NO"
+  },
+  {
+   "type": "convoy",
+   "pos": [
+    20885,
+    16959
+   ],
+   "size": 10,
+   "posture": "SAFE",
+   "sector": "SE",
+   "route": [
+    [
+     20885,
+     16959
+    ],
+    [
+     16781,
+     12604
+    ]
+   ],
+   "name": "CONVOI-SE"
+  },
+  {
+   "type": "convoy",
+   "pos": [
+    20885,
+    16959
+   ],
+   "size": 10,
+   "posture": "SAFE",
+   "sector": "SO",
+   "route": [
+    [
+     20885,
+     16959
+    ],
+    [
+     9092,
+     11962
+    ]
+   ],
+   "name": "CONVOI-SO"
+  }
+ ]
+}

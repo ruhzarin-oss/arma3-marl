@@ -61,6 +61,9 @@ class KothGPU:
     def _others(self, s): return [c for c in range(self.C) if c != s]
     def _alive(self, c): return self.dmg[c] < self.dmg_dead
 
+    def _dmg_terrain_mult(self, s, km):
+        return 1.0   # hook terrain : no-op par defaut (KothTerrain le surcharge -> LOS du relief)
+
     def _dist(self, c):
         al = self._alive(c).float()
         dd = torch.sqrt((self.px[c] - self.ox[:, None]) ** 2 + (self.py[c] - self.oy[:, None]) ** 2) / self.scale
@@ -176,6 +179,7 @@ class KothGPU:
                 etier = torch.cat([self.tier[o] for o in others], 1); dtier = torch.gather(etier, 1, km)
                 dmgval = dmgval * atk * (1.0 - self.tier_armor * dtier).clamp(min=0.1)            # armure du defenseur
                 self.xp[s] = self.xp[s] + self.k_xp * dmgval; self.money[s] = self.money[s] + self.k_money * dmgval
+            dmgval = dmgval * self._dmg_terrain_mult(s, km)
             tcamp = self.camp_of[s][km]; tloc = self.loc_of[s][km]
             for o in others:
                 dmgbuf[o].scatter_add_(1, tloc, dmgval * (tcamp == o).float())

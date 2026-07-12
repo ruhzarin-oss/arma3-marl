@@ -29,3 +29,6 @@ Mac de l'utilisateur) joue l'**architecte** ; vous partagez une **mémoire commu
 Étape 2 du plan : créer l'environnement Python, puis concevoir/coder le simulateur-jouet 2D
 (4 agents = 1 chef + 3 spécialistes ; récompense d'équipe + coût de pertes ; API PettingZoo ;
 vectorisé pour la RTX 3090). Détails et historique dans `MEMOIRE-COMMUNE.md`.
+
+## MODE AUTONOME (activé 2026-06-13 par Younes via Claude-Mac)
+Dérouler **`NEXT-TASKS.md`** sans attendre l utilisateur. Vérifier d abord le verdict de `geo_officer3.jsonl` (confirmation brique 0, log via `/tmp/geoconf_last`), appliquer le GATE 0, puis enchaîner les briques dans l ordre, chacune avec son gate pré-enregistré. Discipline (règles de maison) : pré-enregistrer les seuils avant les données ; jamais de conclusion sur demi-échantillon ; une variable à la fois ; runs en nohup + logs en dur ; reboot préventif flotte ; `pkill` via script (jamais en cmdline ssh) ; logger chaque verdict daté dans `MEMOIRE-COMMUNE.md`. NE PAS refaire « RL découvre la tactique en sim » (scar manager 83%→0%). Si la flotte se dégrade (>15% erreurs/timeouts), reboot — mdp sudo à redemander à Younes (l ancien ne marche plus).

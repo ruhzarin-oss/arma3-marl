@@ -1,0 +1,767 @@
+{"t": 0, "ev": ["KILL", "2:4453", "?", -1]}
+{"t": 22, "ev": ["KILL", "2:4465", "2:4465", 0]}
+{"t": 37, "ev": ["KILL", "2:4628", "2:4628", 0]}
+{"t": 29, "ev": ["KILL", "2:1067", "2:1067", 0]}
+{"t": 81, "ev": ["KILL", "2:5448", "?", -1]}
+{"t": 191, "ev": ["KILL", "1:-2006779155", "?", -1]}
+{"t": 227, "ev": ["KILL", "", "?", -1]}
+{"t": 227, "ev": ["KILL", "", "?", -1]}
+{"t": 227, "ev": ["KILL", "", "?", -1]}
+{"t": 227, "ev": ["KILL", "", "?", -1]}
+{"t": 227, "ev": ["KILL", "", "?", -1]}
+{"t": 227, "ev": ["KILL", "", "?", -1]}
+{"t": 278, "ev": ["KILL", "2:4862", "?", -1]}
+{"t": 311, "ev": ["KILL", "2:8277", "2:8277", 0]}
+{"t": 330, "ev": ["KILL", "2:695", "?", -1]}
+{"t": 384, "ev": ["KILL", "1:-2006779152", "?", -1]}
+{"t": 384, "ev": ["KILL", "1:-2006779154", "?", -1]}
+{"t": 491, "ev": ["KILL", "2:952", "?", -1]}
+{"t": 572, "ev": ["KILL", "2:1329", "2:1329", 0]}
+{"t": 38, "ev": ["KILL", "1:-2006779153", "?", -1]}
+{"t": 82, "ev": ["KILL", "2:8491", "2:8491", 0]}
+{"t": 157, "ev": ["KILL", "2:8535", "2:8535", 0]}
+{"t": 10, "ev": ["KILL", "2:4470", "2:4470", 0]}
+{"t": 32, "ev": ["KILL", "2:5203", "2:5203", 0]}
+{"t": 49, "ev": ["KILL", "2:4475", "2:4475", 0]}
+{"t": 57, "ev": ["KILL", "2:1993", "?", -1]}
+{"t": 98, "ev": ["KILL", "2:1064", "?", -1]}
+{"t": 115, "ev": ["KILL", "2:7271", "2:7271", 0]}
+{"t": 11, "ev": ["KILL", "2:4801", "?", -1]}
+{"t": 11, "ev": ["KILL", "1:-1774060774", "?", -1]}
+{"t": 21, "ev": ["KILL", "1:-1774060773", "?", -1]}
+{"t": 22, "ev": ["KILL", "2:824", "2:824", 0]}
+{"t": 36, "ev": ["KILL", "2:4485", "2:4485", 0]}
+{"t": 50, "ev": ["KILL", "1:-1774060775", "?", -1]}
+{"t": 56, "ev": ["KILL", "", "?", -1]}
+{"t": 56, "ev": ["KILL", "", "?", -1]}
+{"t": 56, "ev": ["KILL", "", "?", -1]}
+{"t": 56, "ev": ["KILL", "", "?", -1]}
+{"t": 56, "ev": ["KILL", "", "?", -1]}
+{"t": 58, "ev": ["KILL", "2:5103", "2:5103", 0]}
+{"t": 59, "ev": ["KILL", "2:5095", "2:5095", 0]}
+{"t": 68, "ev": ["KILL", "2:4500", "2:4500", 0]}
+{"t": 74, "ev": ["FIRE", "2:6805", "R3F_HK416M_HG_DES"]}
+{"t": 81, "ev": ["FIRE", "2:6805", "R3F_HK416M_HG_DES"]}
+{"t": 81, "ev": ["FIRE", "2:6805", "R3F_HK416M_HG_DES"]}
+{"t": 91, "ev": ["FIRE", "2:6805", "R3F_HK416M_HG_DES"]}
+{"t": 95, "ev": ["FIRE", "2:6805", "R3F_HK416M_HG_DES"]}
+{"t": 102, "ev": ["FIRE", "2:6805", "R3F_HK416M_HG_DES"]}
+{"t": 138, "ev": ["KILL", "2:6805", "2:6805", 0]}
+{"t": 146, "ev": ["KILL", "2:4496", "2:4496", 0]}
+{"t": 0, "ev": ["KILL", "2:1325", "?", -1]}
+{"t": 1, "ev": ["KILL", "2:1321", "?", -1]}
+{"t": 1, "ev": ["KILL", "2:5401", "?", -1]}
+{"t": 2, "ev": ["KILL", "2:4530", "?", -1]}
+{"t": 3, "ev": ["FIRE", "2:5957", "R3F_HK416M_HG_DES"]}
+{"t": 4, "ev": ["KILL", "2:1313", "?", -1]}
+{"t": 5, "ev": ["FIRE", "2:5957", "R3F_HK416M_HG_DES"]}
+{"t": 6, "ev": ["KILL", "2:1330", "?", -1]}
+{"t": 6, "ev": ["KILL", "2:1280", "?", -1]}
+{"t": 12, "ev": ["KILL", "2:1370", "?", -1]}
+{"t": 15, "ev": ["KILL", "2:4607", "?", -1]}
+{"t": 16, "ev": ["KILL", "2:1362", "?", -1]}
+{"t": 22, "ev": ["KILL", "2:4526", "?", -1]}
+{"t": 35, "ev": ["KILL", "2:4670", "?", -1]}
+{"t": 40, "ev": ["KILL", "2:4662", "2:4662", 0]}
+{"t": 40, "ev": ["KILL", "2:4678", "?", -1]}
+{"t": 46, "ev": ["KILL", "2:4673", "2:4673", 0]}
+{"t": 48, "ev": ["KILL", "2:4682", "?", -1]}
+{"t": 132, "ev": ["FIRE", "2:5957", "R3F_HK416M_HG_DES"]}
+{"t": 132, "ev": ["FIRE", "2:5957", "R3F_HK416M_HG_DES"]}
+{"t": 132, "ev": ["FIRE", "2:5957", "R3F_HK416M_HG_DES"]}
+{"t": 133, "ev": ["FIRE", "2:5957", "R3F_HK416M_HG_DES"]}
+{"t": 133, "ev": ["FIRE", "2:5957", "R3F_HK416M_HG_DES"]}
+{"t": 133, "ev": ["FIRE", "2:5957", "R3F_HK416M_HG_DES"]}
+{"t": 140, "ev": ["FIRE", "2:5957", "R3F_HK416M_HG_DES"]}
+{"t": 140, "ev": ["FIRE", "2:5957", "R3F_HK416M_HG_DES"]}
+{"t": 140, "ev": ["FIRE", "2:5957", "R3F_HK416M_HG_DES"]}
+{"t": 153, "ev": ["FIRE", "2:5957", "R3F_G17"]}
+{"t": 153, "ev": ["FIRE", "2:5957", "R3F_G17"]}
+{"t": 153, "ev": ["FIRE", "2:5957", "R3F_G17"]}
+{"t": 153, "ev": ["FIRE", "2:5957", "R3F_G17"]}
+{"t": 153, "ev": ["FIRE", "2:5957", "R3F_G17"]}
+{"t": 153, "ev": ["FIRE", "2:5957", "R3F_G17"]}
+{"t": 153, "ev": ["FIRE", "2:5957", "R3F_G17"]}
+{"t": 153, "ev": ["FIRE", "2:5957", "R3F_G17"]}
+{"t": 153, "ev": ["FIRE", "2:5957", "R3F_G17"]}
+{"t": 153, "ev": ["FIRE", "2:5957", "R3F_G17"]}
+{"t": 153, "ev": ["FIRE", "2:5957", "R3F_G17"]}
+{"t": 153, "ev": ["FIRE", "2:5957", "R3F_G17"]}
+{"t": 153, "ev": ["FIRE", "2:5957", "R3F_G17"]}
+{"t": 173, "ev": ["KILL", "1:-1774060774", "?", -1]}
+{"t": 173, "ev": ["KILL", "", "?", -1]}
+{"t": 175, "ev": ["KILL", "2:178", "?", -1]}
+{"t": 176, "ev": ["KILL", "1:-1774060773", "?", -1]}
+{"t": 176, "ev": ["KILL", "", "?", -1]}
+{"t": 177, "ev": ["FIRE", "2:5957", "R3F_G17"]}
+{"t": 179, "ev": ["KILL", "2:5957", "2:2899", 160]}
+{"t": 180, "ev": ["KILL", "4:33", "4:33", 0]}
+{"t": 189, "ev": ["KILL", "2:1079", "?", -1]}
+{"t": 202, "ev": ["KILL", "2:1065", "?", -1]}
+{"t": 208, "ev": ["KILL", "2:1069", "?", -1]}
+{"t": 247, "ev": ["KILL", "2:1083", "?", -1]}
+{"t": 312, "ev": ["KILL", "1:-2006779154", "?", -1]}
+{"t": 81, "ev": ["KILL", "2:260", "2:260", 0]}
+{"t": 83, "ev": ["KILL", "2:10114", "2:10114", 0]}
+{"t": 4, "ev": ["KILL", "2:5157", "?", -1]}
+{"t": 3, "ev": ["KILL", "2:913", "?", -1]}
+{"t": 107, "ev": ["KILL", "", "?", -1]}
+{"t": 107, "ev": ["KILL", "", "?", -1]}
+{"t": 107, "ev": ["KILL", "", "?", -1]}
+{"t": 114, "ev": ["KILL", "2:2006", "2:2006", 0]}
+{"t": 124, "ev": ["FIRE", "2:7453", "R3F_HK416M_HG_DES"]}
+{"t": 125, "ev": ["FIRE", "2:7453", "R3F_HK416M_HG_DES"]}
+{"t": 125, "ev": ["FIRE", "2:7453", "R3F_HK416M_HG_DES"]}
+{"t": 125, "ev": ["FIRE", "2:7453", "R3F_HK416M_HG_DES"]}
+{"t": 160, "ev": ["KILL", "1:-1859898333", "?", -1]}
+{"t": 160, "ev": ["KILL", "", "?", -1]}
+{"t": 192, "ev": ["FIRE", "2:7453", "R3F_HK416M_HG_DES"]}
+{"t": 193, "ev": ["FIRE", "2:7453", "R3F_HK416M_HG_DES"]}
+{"t": 193, "ev": ["FIRE", "2:7453", "R3F_HK416M_HG_DES"]}
+{"t": 199, "ev": ["KILL", "2:7453", "2:2927", 107]}
+{"t": 215, "ev": ["KILL", "2:1372", "2:1372", 0]}
+{"t": 216, "ev": ["KILL", "1:-1801041803", "?", -1]}
+{"t": 216, "ev": ["KILL", "1:-1801041805", "?", -1]}
+{"t": 216, "ev": ["KILL", "", "?", -1]}
+{"t": 216, "ev": ["KILL", "", "?", -1]}
+{"t": 384, "ev": ["KILL", "1:-2006779155", "?", -1]}
+{"t": 384, "ev": ["KILL", "", "?", -1]}
+{"t": 396, "ev": ["KILL", "1:-2006779153", "?", -1]}
+{"t": 396, "ev": ["KILL", "", "?", -1]}
+{"t": 396, "ev": ["KILL", "1:-2006779152", "?", -1]}
+{"t": 396, "ev": ["KILL", "", "?", -1]}
+{"t": 489, "ev": ["KILL", "4:17", "4:17", 0]}
+{"t": 688, "ev": ["KILL", "1:-2006779154", "?", -1]}
+{"t": 1368, "ev": ["KILL", "", "?", -1]}
+{"t": 1369, "ev": ["KILL", "", "?", -1]}
+{"t": 1369, "ev": ["KILL", "", "?", -1]}
+{"t": 1369, "ev": ["KILL", "", "?", -1]}
+{"t": 1369, "ev": ["KILL", "", "?", -1]}
+{"t": 1369, "ev": ["KILL", "", "?", -1]}
+{"t": 1369, "ev": ["KILL", "", "?", -1]}
+{"t": 1369, "ev": ["KILL", "", "?", -1]}
+{"t": 1369, "ev": ["KILL", "", "?", -1]}
+{"t": 1369, "ev": ["KILL", "", "?", -1]}
+{"t": 1821, "ev": ["KILL", "2:13322", "2:13322", 0]}
+{"t": 160, "ev": ["KILL", "1:-1776157811", "?", -1]}
+{"t": 163, "ev": ["KILL", "1:-1774060774", "?", -1]}
+{"t": 185, "ev": ["KILL", "1:-1774060773", "?", -1]}
+{"t": 187, "ev": ["KILL", "1:-1774060775", "?", -1]}
+{"t": 26, "ev": ["HIT", "2:9978", "2:9935", 1]}
+{"t": 26, "ev": ["HIT", "2:9978", "2:9935", 31]}
+{"t": 26, "ev": ["HIT", "2:9978", "2:9935", 10]}
+{"t": 26, "ev": ["HIT", "2:9978", "2:9935", 3]}
+{"t": 26, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 26, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 26, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 26, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9949", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9949", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9949", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9949", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 27, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9965", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9965", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9965", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9965", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 28, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9961", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9961", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9961", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 29, "ev": ["FIRE", "2:9961", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10020", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10020", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10020", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10020", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10020", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10020", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9953", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10020", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:10020", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 30, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:9978", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10020", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10020", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10020", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10020", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 31, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:9957", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:9957", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:9957", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:9957", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:9961", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:9961", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:9961", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:9961", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 32, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10004", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9957", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9996", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9961", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9957", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9961", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9957", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9961", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10016", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10012", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["KILL", "2:9935", "2:9961", 74]}
+{"t": 33, "ev": ["FIRE", "2:9992", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9957", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:9970", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 33, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 34, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 34, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 34, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 34, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 34, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 34, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 34, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 34, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 34, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 34, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 34, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 34, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 35, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 35, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 35, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 35, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 35, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 35, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 35, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 36, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 36, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 36, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 36, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 36, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 36, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 36, "ev": ["FIRE", "2:10000", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 36, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 36, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 36, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 36, "ev": ["FIRE", "2:10008", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 48, "ev": ["HIT", "2:11552", "2:11489", 35]}
+{"t": 49, "ev": ["KILL", "2:11544", "2:11489", 79]}
+{"t": 49, "ev": ["HIT", "2:11544", "2:11489", 19]}
+{"t": 49, "ev": ["FIRE", "2:11561", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11561", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11561", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11540", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11540", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11561", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11548", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11540", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11548", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11540", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11548", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11583", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11548", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11583", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11583", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11595", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11552", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11556", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11595", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11583", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11591", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11561", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11556", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11552", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11561", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11591", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11595", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11523", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11556", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11552", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11561", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11567", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11591", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11595", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11523", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11556", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11567", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11552", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11561", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11591", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11523", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11540", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11567", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11540", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 49, "ev": ["FIRE", "2:11523", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11567", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11540", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11540", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11587", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11587", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11583", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11536", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11583", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11587", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11536", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11583", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11523", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11587", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11536", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["KILL", "2:11489", "2:11523", 86]}
+{"t": 50, "ev": ["FIRE", "2:11523", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11583", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11591", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11536", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11591", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11540", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11540", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11591", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11540", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11591", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11595", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11540", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11595", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11595", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11595", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11552", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11536", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 50, "ev": ["FIRE", "2:11552", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11536", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11552", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11523", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11536", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11552", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11523", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11536", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11595", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11523", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11595", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11523", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11595", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11591", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11591", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11595", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11591", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11591", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11552", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11536", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11552", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11536", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11552", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11587", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11587", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11523", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11536", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11552", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["KILL", "2:11496", "2:11523", 90]}
+{"t": 51, "ev": ["FIRE", "2:11523", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11587", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11536", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11595", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11595", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11552", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11595", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11552", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 51, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 52, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 53, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 53, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 53, "ev": ["FIRE", "2:11571", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 53, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 53, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 53, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 53, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 53, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 53, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 54, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 54, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 54, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 55, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 55, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 55, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 55, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 55, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 55, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 55, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 55, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 55, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 56, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 56, "ev": ["FIRE", "2:11579", "arifle_Katiba_ACO_pointer_F"]}
+{"t": 349, "ev": ["KILL", "2:4651", "2:4651", 0]}
+{"t": 351, "ev": ["KILL", "2:4656", "2:4656", 0]}
+{"t": 381, "ev": ["KILL", "2:4647", "2:4647", 0]}
+{"t": 386, "ev": ["KILL", "2:4660", "2:4660", 0]}
+{"t": 33, "ev": ["KILL", "2:2897", "2:14238", 87]}
+{"t": 39, "ev": ["KILL", "2:2890", "2:14259", 129]}
+{"t": 41, "ev": ["KILL", "2:2935", "2:14238", 195]}
+{"t": 73, "ev": ["KILL", "2:14483", "2:14358", 131]}
+{"t": 73, "ev": ["KILL", "2:14491", "2:14358", 136]}
+{"t": 80, "ev": ["KILL", "2:2879", "2:14344", 110]}
+{"t": 82, "ev": ["KILL", "2:14495", "2:14358", 139]}
+{"t": 83, "ev": ["KILL", "2:14499", "2:14266", 128]}
+{"t": 84, "ev": ["KILL", "2:14503", "2:14344", 141]}
+{"t": 86, "ev": ["KILL", "2:14808", "2:14287", 167]}
+{"t": 88, "ev": ["KILL", "2:14800", "2:14287", 165]}
+{"t": 118, "ev": ["KILL", "2:2978", "2:14337", 3]}
+{"t": 119, "ev": ["KILL", "2:2916", "2:14238", 4]}
+{"t": 121, "ev": ["KILL", "2:2907", "2:14337", 7]}
+{"t": 126, "ev": ["KILL", "2:14337", "2:2912", 9]}
+{"t": 126, "ev": ["KILL", "2:2974", "2:14280", 13]}
+{"t": 127, "ev": ["KILL", "2:2912", "2:14280", 15]}
+{"t": 138, "ev": ["KILL", "1:-1790557923", "?", -1]}
+{"t": 141, "ev": ["KILL", "2:15245", "2:14372", 105]}
+{"t": 149, "ev": ["KILL", "2:2931", "2:14316", 13]}
+{"t": 155, "ev": ["KILL", "2:2969", "2:14309", 1]}
+{"t": 170, "ev": ["KILL", "2:16049", "2:14316", 143]}
+{"t": 171, "ev": ["KILL", "2:14259", "2:2939", 14]}
+{"t": 186, "ev": ["KILL", "2:14238", "?", -1]}
+{"t": 189, "ev": ["KILL", "2:15253", "2:15253", 0]}
+{"t": 196, "ev": ["KILL", "2:16664", "2:14358", 124]}
+{"t": 204, "ev": ["KILL", "2:14796", "2:14796", 0]}
+{"t": 215, "ev": ["KILL", "2:16027", "2:14245", 127]}
+{"t": 228, "ev": ["KILL", "2:2939", "2:14252", 67]}
+{"t": 268, "ev": ["KILL", "2:14487", "2:14372", 128]}
+{"t": 287, "ev": ["KILL", "2:2902", "2:14252", 66]}
+{"t": 294, "ev": ["KILL", "2:2983", "2:14309", 14]}
+{"t": 321, "ev": ["KILL", "2:15261", "2:14330", 154]}
+{"t": 333, "ev": ["KILL", "2:17891", "2:14294", 185]}
+{"t": 354, "ev": ["FIRE", "2:14385", "Throw"]}
+{"t": 355, "ev": ["KILL", "2:16031", "2:14365", 154]}
+{"t": 360, "ev": ["KILL", "2:17903", "2:14358", 64]}
+{"t": 364, "ev": ["KILL", "2:18431", "2:14358", 129]}
+{"t": 395, "ev": ["KILL", "2:17899", "2:14294", 179]}
+{"t": 399, "ev": ["KILL", "2:19393", "2:14273", 166]}
+{"t": 404, "ev": ["KILL", "2:5419", "2:5419", 0]}
+{"t": 406, "ev": ["KILL", "2:15257", "2:15257", 0]}
+{"t": 415, "ev": ["KILL", "2:18427", "2:14372", 127]}
+{"t": 415, "ev": ["KILL", "2:18415", "2:14302", 108]}

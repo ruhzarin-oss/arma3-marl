@@ -1,0 +1,203 @@
+===== PROGRAMME NUIT sam. 13 juin 2026 01:04:18 CEST =====
+Phase 1 : attente fin matrice M1/M2/M3 (logs_train/geomatrix_20260613_0036.log)
+--- Phase 1 finie sam. 13 juin 2026 03:15:19 CEST : VERDICT M1/M2/M3 ---
+=== MATRICE GEOMETRIE : succes militaire (%) | ennemi=skilled, seule la GEOMETRIE change ===
+geometrie           M1       M2       M3    vainqueur
+standard          25%      42%      50%     M3 (50%)
+concentre         25%      50%      25%     M2 (50%)
+disperse          17%      33%      25%     M2 (33%)
+faible_ouest      50%      42%      33%     M1 (50%)
+faible_est        33%      25%      33%     M1 (33%)
+
+Meilleure manoeuvre FIXE = M2 (38% moyen sur geometries)
+Adaptatif (meilleure PAR geometrie) = 43% moyen
+VALEUR DE SELECTION = +5 points   (la session 'postures' donnait +4.7 = marginal)
+>>> rotation faible -> gate NON franchie (M3 domine encore)
+--- reboot flotte avant phase 2 ---
+M=16 serveurs lances (ports 2402..3902)
+===== EXT 1/10 : standard x M8 (sam. 13 juin 2026 03:17:08 CEST) =====
+=== MESURE MASSE M8-PERCEE : 12 ops / 16 serveurs (QRF inf) | baseline M1 scriptée 72% ===
+[1/12] srv7 -> mil=False garr_pris=True qrf=True | cumul mil 0/1
+[2/12] srv10 -> mil=False garr_pris=True qrf=True | cumul mil 0/2
+[3/12] srv4 -> mil=True garr_pris=True qrf=True | cumul mil 1/3
+[4/12] srv0 -> mil=True garr_pris=True qrf=True | cumul mil 2/4
+[5/12] srv1 -> mil=True garr_pris=True qrf=True | cumul mil 3/5
+[6/12] srv2 -> mil=True garr_pris=True qrf=True | cumul mil 4/6
+[7/12] srv5 -> mil=True garr_pris=True qrf=True | cumul mil 5/7
+[8/12] srv8 -> mil=True garr_pris=True qrf=True | cumul mil 6/8
+[9/12] srv6 -> mil=True garr_pris=True qrf=True | cumul mil 7/9
+[10/12] srv3 -> mil=True garr_pris=True qrf=True | cumul mil 8/10
+[11/12] srv9 -> mil=True garr_pris=True qrf=True | cumul mil 9/11
+[12/12] srv11 -> mil=True garr_pris=True qrf=True | cumul mil 10/12
+
+=== TABLE M8 (n=12) ===
+militaire 83.3% | pertes moy 26% | complexe pris 100% | QRF affrontée 100%
+===== EXT 2/10 : concentre x M8 (sam. 13 juin 2026 03:27:57 CEST) =====
+=== MESURE MASSE M8-PERCEE : 12 ops / 16 serveurs (QRF inf) | baseline M1 scriptée 72% ===
+[1/12] srv11 -> mil=False garr_pris=False qrf=False | cumul mil 0/1
+[2/12] srv3 -> mil=False garr_pris=False qrf=False | cumul mil 0/2
+[3/12] srv5 -> mil=False garr_pris=False qrf=False | cumul mil 0/3
+[4/12] srv0 -> mil=False garr_pris=False qrf=False | cumul mil 0/4
+[5/12] srv9 -> mil=False garr_pris=False qrf=False | cumul mil 0/5
+[6/12] srv10 -> mil=False garr_pris=False qrf=False | cumul mil 0/6
+[7/12] srv8 -> mil=False garr_pris=False qrf=False | cumul mil 0/7
+[8/12] srv2 -> mil=False garr_pris=False qrf=False | cumul mil 0/8
+[9/12] srv1 -> mil=False garr_pris=False qrf=False | cumul mil 0/9
+[10/12] srv6 -> mil=False garr_pris=False qrf=False | cumul mil 0/10
+[11/12] srv4 -> mil=True garr_pris=True qrf=True | cumul mil 1/11
+[12/12] srv7 -> mil=True garr_pris=True qrf=True | cumul mil 2/12
+
+=== TABLE M8 (n=12) ===
+militaire 16.7% | pertes moy 30% | complexe pris 17% | QRF affrontée 17%
+===== EXT 3/10 : disperse x M8 (sam. 13 juin 2026 03:35:06 CEST) =====
+=== MESURE MASSE M8-PERCEE : 12 ops / 16 serveurs (QRF inf) | baseline M1 scriptée 72% ===
+[1/12] srv5 -> mil=False garr_pris=False qrf=False | cumul mil 0/1
+[2/12] srv8 -> mil=False garr_pris=False qrf=False | cumul mil 0/2
+[3/12] srv0 -> mil=False garr_pris=False qrf=False | cumul mil 0/3
+[4/12] srv7 -> mil=False garr_pris=False qrf=False | cumul mil 0/4
+[5/12] srv6 -> mil=False garr_pris=True qrf=True | cumul mil 0/5
+[6/12] srv1 -> mil=False garr_pris=True qrf=True | cumul mil 0/6
+[7/12] srv3 -> mil=False garr_pris=True qrf=True | cumul mil 0/7
+[8/12] srv11 -> mil=False garr_pris=True qrf=True | cumul mil 0/8
+[9/12] srv10 -> mil=True garr_pris=True qrf=True | cumul mil 1/9
+[10/12] srv4 -> mil=True garr_pris=True qrf=True | cumul mil 2/10
+[11/12] srv2 -> mil=True garr_pris=True qrf=True | cumul mil 3/11
+[12/12] srv9 -> mil=False garr_pris=True qrf=True | cumul mil 3/12
+
+=== TABLE M8 (n=12) ===
+militaire 25.0% | pertes moy 38% | complexe pris 67% | QRF affrontée 67%
+===== EXT 4/10 : faible_ouest x M8 (sam. 13 juin 2026 03:45:51 CEST) =====
+=== MESURE MASSE M8-PERCEE : 12 ops / 16 serveurs (QRF inf) | baseline M1 scriptée 72% ===
+[1/12] srv11 -> mil=False garr_pris=False qrf=False | cumul mil 0/1
+[2/12] srv10 -> mil=False garr_pris=False qrf=False | cumul mil 0/2
+[3/12] srv6 -> mil=False garr_pris=False qrf=False | cumul mil 0/3
+[4/12] srv5 -> mil=False garr_pris=True qrf=True | cumul mil 0/4
+[5/12] srv0 -> mil=True garr_pris=True qrf=True | cumul mil 1/5
+[6/12] srv4 -> mil=False garr_pris=True qrf=True | cumul mil 1/6
+[7/12] srv3 -> mil=True garr_pris=True qrf=True | cumul mil 2/7
+[8/12] srv7 -> mil=True garr_pris=True qrf=True | cumul mil 3/8
+[9/12] srv9 -> mil=False garr_pris=True qrf=True | cumul mil 3/9
+[10/12] srv2 -> mil=True garr_pris=True qrf=True | cumul mil 4/10
+[11/12] srv1 -> mil=False garr_pris=True qrf=True | cumul mil 4/11
+[12/12] srv8 -> mil=True garr_pris=True qrf=True | cumul mil 5/12
+
+=== TABLE M8 (n=12) ===
+militaire 41.7% | pertes moy 26% | complexe pris 75% | QRF affrontée 75%
+===== EXT 5/10 : faible_est x M8 (sam. 13 juin 2026 03:56:40 CEST) =====
+=== MESURE MASSE M8-PERCEE : 12 ops / 16 serveurs (QRF inf) | baseline M1 scriptée 72% ===
+[1/12] srv3 -> mil=False garr_pris=False qrf=False | cumul mil 0/1
+[2/12] srv1 -> mil=False garr_pris=False qrf=False | cumul mil 0/2
+[3/12] srv9 -> mil=False garr_pris=False qrf=False | cumul mil 0/3
+[4/12] srv5 -> mil=False garr_pris=False qrf=False | cumul mil 0/4
+[5/12] srv8 -> mil=False garr_pris=False qrf=False | cumul mil 0/5
+[6/12] srv7 -> mil=False garr_pris=True qrf=True | cumul mil 0/6
+[7/12] srv6 -> mil=False garr_pris=True qrf=True | cumul mil 0/7
+[8/12] srv2 -> mil=False garr_pris=False qrf=False | cumul mil 0/8
+[9/12] srv0 -> mil=False garr_pris=True qrf=True | cumul mil 0/9
+[10/12] srv4 -> mil=False garr_pris=False qrf=False | cumul mil 0/10
+[11/12] srv11 -> mil=True garr_pris=True qrf=True | cumul mil 1/11
+[12/12] srv10 -> mil=True garr_pris=True qrf=True | cumul mil 2/12
+
+=== TABLE M8 (n=12) ===
+militaire 16.7% | pertes moy 29% | complexe pris 42% | QRF affrontée 42%
+--- reboot preventif ---
+M=16 serveurs lances (ports 2402..3902)
+===== EXT 6/10 : standard x M5 (sam. 13 juin 2026 04:09:13 CEST) =====
+=== MESURE MASSE M5-FEINTE-DEBORDEMENT : 12 ops / 16 serveurs (QRF inf) | baseline M1 scriptée 72% ===
+[1/12] srv0 -> mil=False garr_pris=False qrf=False | cumul mil 0/1
+[2/12] srv1 -> mil=False garr_pris=True qrf=True | cumul mil 0/2
+[3/12] srv6 -> mil=False garr_pris=False qrf=False | cumul mil 0/3
+[4/12] srv10 -> mil=False garr_pris=True qrf=True | cumul mil 0/4
+[5/12] srv7 -> mil=True garr_pris=True qrf=True | cumul mil 1/5
+[6/12] srv2 -> mil=True garr_pris=True qrf=True | cumul mil 2/6
+[7/12] srv11 -> mil=True garr_pris=True qrf=True | cumul mil 3/7
+[8/12] srv8 -> mil=True garr_pris=True qrf=True | cumul mil 4/8
+[9/12] srv3 -> mil=False garr_pris=True qrf=True | cumul mil 4/9
+[10/12] srv4 -> mil=True garr_pris=True qrf=True | cumul mil 5/10
+[11/12] srv9 -> mil=True garr_pris=True qrf=True | cumul mil 6/11
+[12/12] srv5 -> mil=True garr_pris=True qrf=True | cumul mil 7/12
+
+=== TABLE M5 (n=12) ===
+militaire 58.3% | pertes moy 35% | complexe pris 83% | QRF affrontée 83%
+===== EXT 7/10 : concentre x M5 (sam. 13 juin 2026 04:18:46 CEST) =====
+=== MESURE MASSE M5-FEINTE-DEBORDEMENT : 12 ops / 16 serveurs (QRF inf) | baseline M1 scriptée 72% ===
+[1/12] srv9 -> mil=False garr_pris=False qrf=False | cumul mil 0/1
+[2/12] srv7 -> mil=False garr_pris=False qrf=False | cumul mil 0/2
+[3/12] srv4 -> mil=False garr_pris=False qrf=False | cumul mil 0/3
+[4/12] srv0 -> mil=False garr_pris=False qrf=False | cumul mil 0/4
+[5/12] srv3 -> mil=False garr_pris=False qrf=False | cumul mil 0/5
+[6/12] srv5 -> mil=True garr_pris=True qrf=True | cumul mil 1/6
+[7/12] srv11 -> mil=True garr_pris=True qrf=True | cumul mil 2/7
+[8/12] srv1 -> mil=True garr_pris=True qrf=True | cumul mil 3/8
+[9/12] srv8 -> mil=True garr_pris=True qrf=True | cumul mil 4/9
+[10/12] srv10 -> mil=True garr_pris=True qrf=True | cumul mil 5/10
+[11/12] srv2 -> mil=True garr_pris=True qrf=True | cumul mil 6/11
+[12/12] srv6 -> mil=True garr_pris=True qrf=True | cumul mil 7/12
+
+=== TABLE M5 (n=12) ===
+militaire 58.3% | pertes moy 30% | complexe pris 58% | QRF affrontée 58%
+===== EXT 8/10 : disperse x M5 (sam. 13 juin 2026 04:27:16 CEST) =====
+=== MESURE MASSE M5-FEINTE-DEBORDEMENT : 12 ops / 16 serveurs (QRF inf) | baseline M1 scriptée 72% ===
+[1/12] srv8 -> mil=False garr_pris=True qrf=True | cumul mil 0/1
+[2/12] srv3 -> mil=False garr_pris=True qrf=True | cumul mil 0/2
+[3/12] srv4 -> mil=False garr_pris=False qrf=False | cumul mil 0/3
+[4/12] srv9 -> mil=False garr_pris=False qrf=False | cumul mil 0/4
+[5/12] srv2 -> mil=False garr_pris=False qrf=False | cumul mil 0/5
+[6/12] srv5 -> mil=False garr_pris=False qrf=False | cumul mil 0/6
+[7/12] srv10 -> mil=False garr_pris=True qrf=True | cumul mil 0/7
+[8/12] srv1 -> mil=False garr_pris=True qrf=True | cumul mil 0/8
+[9/12] srv7 -> mil=True garr_pris=True qrf=True | cumul mil 1/9
+[10/12] srv11 -> mil=True garr_pris=True qrf=True | cumul mil 2/10
+[11/12] srv6 -> mil=False garr_pris=True qrf=True | cumul mil 2/11
+[12/12] srv0 -> mil=True garr_pris=True qrf=True | cumul mil 3/12
+
+=== TABLE M5 (n=12) ===
+militaire 25.0% | pertes moy 45% | complexe pris 67% | QRF affrontée 67%
+===== EXT 9/10 : faible_ouest x M5 (sam. 13 juin 2026 04:38:02 CEST) =====
+=== MESURE MASSE M5-FEINTE-DEBORDEMENT : 12 ops / 16 serveurs (QRF inf) | baseline M1 scriptée 72% ===
+[1/12] srv0 -> mil=False garr_pris=False qrf=False | cumul mil 0/1
+[2/12] srv3 -> mil=False garr_pris=False qrf=False | cumul mil 0/2
+[3/12] srv2 -> mil=False garr_pris=False qrf=False | cumul mil 0/3
+[4/12] srv5 -> mil=False garr_pris=True qrf=True | cumul mil 0/4
+[5/12] srv8 -> mil=False garr_pris=False qrf=False | cumul mil 0/5
+[6/12] srv11 -> mil=False garr_pris=True qrf=True | cumul mil 0/6
+[7/12] srv4 -> mil=False garr_pris=False qrf=False | cumul mil 0/7
+[8/12] srv7 -> mil=False garr_pris=True qrf=True | cumul mil 0/8
+[9/12] srv10 -> mil=False garr_pris=True qrf=True | cumul mil 0/9
+[10/12] srv6 -> mil=False garr_pris=True qrf=True | cumul mil 0/10
+[11/12] srv9 -> mil=False garr_pris=True qrf=True | cumul mil 0/11
+[12/12] srv1 -> mil=False garr_pris=True qrf=True | cumul mil 0/12
+
+=== TABLE M5 (n=12) ===
+militaire 0.0% | pertes moy 46% | complexe pris 58% | QRF affrontée 58%
+===== EXT 10/10 : faible_est x M5 (sam. 13 juin 2026 04:46:20 CEST) =====
+=== MESURE MASSE M5-FEINTE-DEBORDEMENT : 12 ops / 16 serveurs (QRF inf) | baseline M1 scriptée 72% ===
+[1/12] srv8 -> mil=False garr_pris=False qrf=False | cumul mil 0/1
+[2/12] srv11 -> mil=False garr_pris=False qrf=False | cumul mil 0/2
+[3/12] srv7 -> mil=False garr_pris=False qrf=False | cumul mil 0/3
+[4/12] srv5 -> mil=False garr_pris=False qrf=False | cumul mil 0/4
+[5/12] srv9 -> mil=False garr_pris=False qrf=False | cumul mil 0/5
+[6/12] srv1 -> mil=False garr_pris=True qrf=True | cumul mil 0/6
+[7/12] srv2 -> mil=False garr_pris=True qrf=True | cumul mil 0/7
+[8/12] srv0 -> mil=False garr_pris=True qrf=True | cumul mil 0/8
+[9/12] srv3 -> mil=False garr_pris=True qrf=True | cumul mil 0/9
+[10/12] srv10 -> mil=False garr_pris=True qrf=True | cumul mil 0/10
+[11/12] srv6 -> mil=False garr_pris=True qrf=True | cumul mil 0/11
+[12/12] srv4 -> mil=True garr_pris=True qrf=True | cumul mil 1/12
+
+=== TABLE M5 (n=12) ===
+militaire 8.3% | pertes moy 49% | complexe pris 58% | QRF affrontée 58%
+===== ANALYSE FINALE (matrice complete) sam. 13 juin 2026 04:56:05 CEST =====
+=== MATRICE GEOMETRIE : succes militaire (%) | ennemi=skilled, seule la GEOMETRIE change ===
+geometrie           M1       M2       M3       M5       M8    vainqueur
+standard          25%      42%      50%      58%      83%     M8 (83%)
+concentre         25%      50%      25%      58%      17%     M5 (58%)
+disperse          17%      33%      25%      25%      25%     M2 (33%)
+faible_ouest      50%      42%      33%       0%      42%     M1 (50%)
+faible_est        33%      25%      33%       8%      17%     M1 (33%)
+
+Meilleure manoeuvre FIXE = M2 (38% moyen sur geometries)
+Adaptatif (meilleure PAR geometrie) = 52% moyen
+VALEUR DE SELECTION = +13 points   (la session 'postures' donnait +4.7 = marginal)
+>>> LE VAINQUEUR TOURNE -> commander PAIE -> GATE FRANCHIE
+===== PROGRAMME NUIT FINI sam. 13 juin 2026 04:56:05 CEST =====

@@ -18,9 +18,10 @@ SH = {"skilled": "sk", "skilled_react": "react", "skilled_react_depth": "depth",
 
 
 def run_fixed(srv, seed, enemy, man="M3"):
-    """Op a manoeuvre FIXE (le commandant tetu) — meme setup que l'officier, mais plan impose."""
-    env, garrison, prof = officer_live.setup_op(srv, seed, enemy, lambda x: None)
+    """Op a manoeuvre FIXE (le commandant tetu) — MEME sonde que l'officier (equite), mais plan impose M3."""
+    env, garrison, prof = officer_live.setup_op(srv, seed, enemy)
     brain = Net(10, 4, 512, 3).to(DEV); brain.load_state_dict(torch.load("koth_finetuned.pt", map_location=DEV)); brain.eval()
+    officer_live.probe(env, brain)                       # meme sonde -> isole la valeur du CHOIX, pas l'effet de la sonde
     plan = M.MANEUVERS[man](qrf="inf"); plan["garr_n"] = garrison[0][2]
     r = OperationRunner(env, brain, plan, log_path="/dev/null", verbose=False)
     r.run(max_steps=500, max_wall=1200, stall_wall=500)

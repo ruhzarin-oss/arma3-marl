@@ -1,0 +1,6 @@
+{"garr_killed": 1.0, "losses": 0.625, "abort": null, "cond": "defile", "srv": 0, "seed": 0, "dt": 180.7}
+{"garr_killed": 0.75, "losses": 0.875, "abort": "ENLISEMENT", "cond": "pire", "srv": 5, "seed": 2, "dt": 301.5}
+{"garr_killed": 0.875, "losses": 0.875, "abort": null, "cond": "defile", "srv": 4, "seed": 2, "dt": 323.1}
+{"garr_killed": 0.625, "losses": 0.875, "abort": "TIMEOUT_MUR", "cond": "pire", "srv": 3, "seed": 1, "dt": 347.0}
+{"garr_killed": 0.75, "losses": 0.25, "abort": "TIMEOUT_MUR", "cond": "pire", "srv": 1, "seed": 0, "dt": 347.4}
+{"garr_killed": 0.5, "losses": 1.0, "abort": "TIMEOUT_MUR", "cond": "defile", "srv": 2, "seed": 1, "dt": 347.8}

@@ -3,11 +3,13 @@
  * BUT : remplacer le pont fichier+RPT (cmd_N.sqf + diag_log/parsing de log) par un canal TCP en mémoire.
  *   IN  : Python envoie  "c|<n>|<sqf, \n encodés en \x01>\n"  -> stocké en RAM.
  *         L'actuateur SQF poll : "hmt_native" callExtension "p|<n>" -> chunks "M|..."/"D|..." ("" si absent).
- *   OUT : le SQF émet      : "hmt_native" callExtension "o|<ligne>" -> forward TCP immédiat vers Python.
+ *   OUT : le SQF émet      : "hmt_native" callExtension "o|<ligne>" -> ENFILÉ, envoyé par un thread dédié.
  *   SYNC: à la connexion, l'extension envoie "HMT_SYNC <dernier n délivré>" (reprise propre par op).
  *
- * Sécurité de process : MSG_NOSIGNAL partout (un client mort ne doit JAMAIS tuer le serveur Arma),
- * un seul client à la fois (le harnais), listener lazy au premier appel, port = env HMT_EXT_PORT (déf. 5801).
+ * ROBUSTESSE ANTI-CRASH (fix pipes.cpp) : RVExtension "o|" n'écrit PLUS sur le socket (ça bloquait le thread
+ *   d'Arma quand Python prenait du retard -> stalled cross-thread pipe -> crash). Il ne fait qu'EMPILER dans une
+ *   file bornée ; un thread EXPÉDITEUR dédié fait les send() bloquants HORS du thread d'Arma. File pleine -> on
+ *   jette les plus vieux messages (le serveur survit toujours). MSG_NOSIGNAL partout, un seul client, loopback.
  * Compilation : gcc -shared -fPIC -O2 -pthread -o hmt_native_x64.so hmt_native.c
  */
 #include <stdio.h>
@@ -22,6 +24,7 @@
 
 #define NCMD 128            /* ring des dernières commandes */
 #define MAXCMD (1<<20)      /* 1 Mo max par commande */
+#define NOUT 16384          /* file d'envoi : ring des lignes à émettre */
 
 static pthread_mutex_t MU = PTHREAD_MUTEX_INITIALIZER;
 static pthread_once_t ONCE = PTHREAD_ONCE_INIT;
@@ -31,6 +34,13 @@ static long CUR_N = -1; static size_t CUR_OFF = 0;   /* état de chunking */
 
 typedef struct { long n; char *buf; size_t len; } cmd_t;
 static cmd_t CMDS[NCMD];
+
+/* --- file d'envoi (sortir l'I/O socket du thread d'Arma) --- */
+typedef struct { char *buf; size_t len; } omsg_t;
+static omsg_t OUT[NOUT];
+static size_t OHEAD = 0, OTAIL = 0;                  /* head = prochaine écriture, tail = prochain envoi */
+static pthread_mutex_t OMU = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t OCOND = PTHREAD_COND_INITIALIZER;
 
 static void store_cmd(long n, const char *payload, size_t len) {
     if (len > MAXCMD) return;
@@ -43,6 +53,39 @@ static void store_cmd(long n, const char *payload, size_t len) {
     for (size_t i = 0; i < len; i++) if (c->buf[i] == '\x01') c->buf[i] = '\n';
     c->n = n; c->len = len;
     pthread_mutex_unlock(&MU);
+}
+
+/* RVExtension "o|" appelle ça : rapide, JAMAIS bloquant (pas d'I/O socket ici) */
+static void out_enqueue(const char *data, size_t len) {
+    char *b = malloc(len + 1);
+    if (!b) return;
+    memcpy(b, data, len); b[len] = '\n';             /* on ajoute le \n de fin de ligne ici */
+    pthread_mutex_lock(&OMU);
+    size_t nh = (OHEAD + 1) % NOUT;
+    if (nh == OTAIL) {                               /* file pleine -> jette le plus vieux (le serveur survit) */
+        free(OUT[OTAIL].buf); OUT[OTAIL].buf = NULL;
+        OTAIL = (OTAIL + 1) % NOUT;
+    }
+    OUT[OHEAD].buf = b; OUT[OHEAD].len = len + 1;
+    OHEAD = nh;
+    pthread_cond_signal(&OCOND);
+    pthread_mutex_unlock(&OMU);
+}
+
+/* thread EXPÉDITEUR : draine la file, fait les send() bloquants HORS du thread d'Arma */
+static void *sender(void *arg) {
+    (void)arg;
+    for (;;) {
+        pthread_mutex_lock(&OMU);
+        while (OHEAD == OTAIL) pthread_cond_wait(&OCOND, &OMU);
+        char *b = OUT[OTAIL].buf; size_t len = OUT[OTAIL].len;
+        OUT[OTAIL].buf = NULL; OTAIL = (OTAIL + 1) % NOUT;
+        pthread_mutex_unlock(&OMU);
+        pthread_mutex_lock(&MU); int cl = CLIENT; pthread_mutex_unlock(&MU);  /* on ne tient PAS MU pendant le send */
+        if (cl >= 0 && b) { ssize_t w = send(cl, b, len, MSG_NOSIGNAL); (void)w; }
+        free(b);
+    }
+    return NULL;
 }
 
 static void *listener(void *arg) {
@@ -94,14 +137,16 @@ static void *listener(void *arg) {
 }
 
 static void start_once(void) {
-    pthread_t t;
+    pthread_t t, s;
     pthread_create(&t, NULL, listener, NULL);
     pthread_detach(t);
+    pthread_create(&s, NULL, sender, NULL);          /* thread expéditeur */
+    pthread_detach(s);
 }
 
 __attribute__((visibility("default"))) void RVExtensionVersion(char *output, int outputSize) {
     pthread_once(&ONCE, start_once);
-    snprintf(output, (size_t)outputSize, "hmt_native 1.0 (pont TCP Harmattan)");
+    snprintf(output, (size_t)outputSize, "hmt_native 1.1 (pont TCP Harmattan, envoi non bloquant)");
 }
 
 __attribute__((visibility("default"))) void RVExtension(char *output, int outputSize, const char *function) {
@@ -109,16 +154,11 @@ __attribute__((visibility("default"))) void RVExtension(char *output, int output
     output[0] = 0;
     if (!function) return;
     if (!strncmp(function, "version", 7)) {
-        snprintf(output, (size_t)outputSize, "hmt_native 1.0");
+        snprintf(output, (size_t)outputSize, "hmt_native 1.1");
         return;
     }
-    if (function[0] == 'o' && function[1] == '|') {        /* OUT : forward au client */
-        pthread_mutex_lock(&MU);
-        if (CLIENT >= 0) {
-            send(CLIENT, function + 2, strlen(function + 2), MSG_NOSIGNAL);
-            send(CLIENT, "\n", 1, MSG_NOSIGNAL);
-        }
-        pthread_mutex_unlock(&MU);
+    if (function[0] == 'o' && function[1] == '|') {        /* OUT : ENFILE (ne bloque JAMAIS le thread d'Arma) */
+        out_enqueue(function + 2, strlen(function + 2));
         return;
     }
     if (function[0] == 'p' && function[1] == '|') {        /* POLL : chunks M|/D| */

@@ -12,7 +12,31 @@ from arma_bridge import ArmaBridge
 from train_koth_gpu import Net
 from baptism import op_name
 from enemy_profiles import ENEMY_PROFILES, PRO_SKILL_SQF, HUNT_SQF, apply_profile, metrics_dyn
-import maneuvers as M
+if os.environ.get('HMT_THEATER') == 'paros':
+    import paros as M
+else:
+    import maneuvers as M
+
+import json as _jstaff, os as _ostaff
+LLM_DECISION = {}
+STAFF_DIR = "/home/younes/arma3-marl/staff"
+_SQCOL = {"SQ_APPUI": "#3b82f6", "SQ_A_OUEST": "#22c55e", "SQ_A_EST": "#f59e0b", "SQ_RESERVE": "#eab308"}
+def STAFF_DUMP(runner):
+    env = runner.env
+    sq = {}
+    for si, nm in enumerate(env.squads):
+        units = [[int(env.px[si][u]), int(env.py[si][u]), int(env.dmg[si][u] < env.dmg_dead * 100)] for u in range(env.sizes[si])]
+        sq[nm] = {"color": _SQCOL.get(nm, "#ddd"), "units": units, "goal": [int(env.goals[si][0]), int(env.goals[si][1])], "stance": env.stances[si]}
+    en = [[int(env.epx[k]), int(env.epy[k]), int(env.edmg[k] < env.dmg_dead * 100)] for k in range(env.en_n)]
+    st = {"op": getattr(runner, "opname", "OP"), "step": runner.step_i, "losses": round(runner.losses(), 3),
+          "squads": sq, "enemies": en,
+          "pts": {"COMPLEXE": list(M.COMPLEXE), "CRETE": list(M.CRETE), "FLANC_O": list(M.FLANC_O), "FLANC_E": list(M.FLANC_E), "QRF": list(M.QRF_PT)},
+          "llm": LLM_DECISION}
+    try:
+        _ostaff.makedirs(STAFF_DIR, exist_ok=True)
+        _jstaff.dump(st, open(STAFF_DIR + "/state.json", "w"))
+    except Exception:
+        pass
 
 SB = "/mnt/data/harmattan-sandbox"
 DEV = "cuda:0"
@@ -177,6 +201,8 @@ if __name__ == "__main__":
     p.add_argument("--max_steps", type=int, default=500)
     p.add_argument("--name", type=str, default="", help="nom de bapteme (defaut: baptism.op_name)")
     p.add_argument("--out", type=str, default="ecole_visu.jsonl")
+    p.add_argument("--llm", action="store_true")
+    p.add_argument("--staff", action="store_true")
     p.add_argument("--editor", action="store_true",
                    help="piloter la mission jouee dans le CLIENT (preview Eden) au lieu du serveur dedie")
     p.add_argument("--speed", type=float, default=1.0,
@@ -196,6 +222,17 @@ if __name__ == "__main__":
 
     brain = Net(10, 4, 512, 3).to(DEV)
     brain.load_state_dict(torch.load("koth_finetuned.pt", map_location=DEV)); brain.eval()
+    if a.llm:
+        import officer_op
+        _rep = ("Objectif TENU. Garnison urbaine d'environ 12 hommes massee dans la ville de Paros (bati dense), "
+                "ecran de patrouilles ~8 hommes au nord. Pas de reserve mobile. Terrain : crete d'appui au nord-ouest "
+                "qui domine la ville, flancs ouest et est praticables, approche qui monte depuis le sud.")
+        _d = officer_op.decide(_rep)
+        _raw = str(_d.get("manoeuvre", "M3")).upper()
+        a.maneuver = next((mk for mk in M.MANEUVERS if mk in _raw), "M3")
+        LLM_DECISION = {"posture": _d.get("posture"), "maneuver": a.maneuver,
+                        "justification": _d.get("justification"), "allocation": _d.get("allocation")}
+        print("[LLM] %s -> %s : %s" % (_d.get("posture"), a.maneuver, _d.get("justification")), flush=True)
     plan = M.MANEUVERS[a.maneuver](qrf=a.qrf)
 
     print("=== OP %s — %s (visuelle, mission HMT-EcoleDeGuerre, seed %d) ===" % (name, plan["name"], a.seed), flush=True)
@@ -204,13 +241,15 @@ if __name__ == "__main__":
     prof = ENEMY_PROFILES[a.enemy]
     if a.editor:
         env.b = EditorBridge(log)   # remplace le pont fichier par le pont socket (même API send/read)
-        spawns = VISU_SPAWNS        # spawns au sec (les spawns de mesure sont dans l'eau — voir VISU_SPAWNS)
+        if os.environ.get('HMT_THEATER') != 'paros':
+            spawns = VISU_SPAWNS        # spawns au sec (les spawns de mesure sont dans l'eau — voir VISU_SPAWNS)
         # vitesse : la mesure headless tourne à setAccTime 4 (injouable à l'œil). --speed 1 = temps réel.
         # step_wait compense (4 s-jeu de marche par décision dans les DEUX cas) -> mêmes dynamiques,
         # même nombre de steps que la table ; seul le temps-mur change (~40 min à 1x, ~10 min à 4x).
         env.acc = float(a.speed)
         env.step_wait = 4.0 / float(a.speed)
-        plan = _swap_point(plan, M.LZ, VISU_LZ)   # exfil au sec (la LZ de mesure est dans l'océan)
+        if os.environ.get('HMT_THEATER') != 'paros':
+            plan = _swap_point(plan, M.LZ, VISU_LZ)   # exfil au sec (la LZ de mesure est dans l'océan)
         # profil ennemi : module partagé (effectifs échelonnés + wrapper QRF) ; pro/hunt envoyés post-spawn
         garrison, prof = apply_profile(env, a.enemy, M.GARRISON)
         # purge du théâtre : les unités orphelines d'une op précédente (morte ou finie) polluent la preview
@@ -225,7 +264,7 @@ if __name__ == "__main__":
     runner = TracedRunner(env, brain, plan, opname=name, lz=(VISU_LZ if a.editor else None),
                           log_path="op_journal_visu.jsonl", verbose=True)
     t0 = time.time()
-    runner.run(max_steps=a.max_steps)
+    runner.run(max_steps=a.max_steps, trace=(STAFF_DUMP if a.staff else None))
     m = metrics_dyn(env, runner, garrison)
     rec = {"op": name, "man": a.maneuver, "seed": a.seed, "enemy": a.enemy, "dt": round(time.time() - t0, 1), **m}
     with open(a.out, "a") as f:

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><title>HARMATTAN — Théâtre Altis</title>
+<style>
+  :root{--bg:#070b0f;--panel:#0e151d;--line:#1d2a36;--ink:#cfe3f2;--mut:#7d93a6;--obj:#ff7a3c;--blu:#4a9eff;--red:#ff5a5a}
+  *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:13px}
+  #wrap{display:flex;height:100vh}
+  #left{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
+  #bar{padding:8px 14px;border-bottom:1px solid var(--line);display:flex;gap:16px;align-items:center}
+  #bar b{font-size:14px;letter-spacing:.1em} .kpi{color:var(--mut)} .kpi b{margin-left:5px;font-size:15px}
+  #prog{height:4px;background:var(--red)} #progf{height:4px;background:var(--blu);width:0;transition:width .6s}
+  #toolbar{position:absolute;top:54px;left:12px;display:flex;gap:6px;z-index:4}
+  .tg{background:#0e1822cc;border:1px solid var(--line);color:var(--mut);padding:5px 9px;border-radius:5px;cursor:pointer;font:inherit;font-size:11px;letter-spacing:.04em;backdrop-filter:blur(3px)}
+  .tg.on{color:var(--ink);border-color:#33536e;background:#16273690}
+  #coord{position:absolute;bottom:10px;left:12px;background:#0a131caa;border:1px solid var(--line);border-radius:4px;padding:3px 8px;font-size:11px;color:var(--mut);z-index:4}
+  #map{flex:1;display:block;cursor:grab} #map.drag{cursor:grabbing}
+  #right{width:340px;background:var(--panel);border-left:1px solid var(--line);overflow:auto;padding:14px}
+  h3{margin:14px 0 6px;font-size:11px;letter-spacing:.16em;color:var(--mut);text-transform:uppercase;font-weight:500}
+  .lg{display:flex;align-items:center;gap:7px;padding:2px 0;flex-wrap:wrap} .dot{width:11px;height:11px;border-radius:50%;flex:none;border:1px solid #0008}
+  .sw{width:13px;height:9px;border-radius:2px;flex:none;display:inline-block}
+  #cmd{background:#0b141d;border:1px solid var(--line);border-left:3px solid var(--obj);border-radius:4px;padding:11px;line-height:1.5}
+  #cmd .t{font-size:17px;color:var(--obj)} #cmd .mut{color:var(--mut)}
+  #card{background:#0b141d;border:1px solid var(--line);border-radius:4px;padding:11px;line-height:1.6;min-height:34px}
+  #card .nm{font-size:15px} #card .row{color:var(--mut)} #card .row b{color:var(--ink)}
+  #log{font-size:12px;line-height:1.7} #log .l{color:var(--mut)} #log .l.win{color:#7fd17f} #log .l.tgt{color:var(--obj)}
+  #tip{position:fixed;pointer-events:none;background:#0a141ee8;border:1px solid var(--line);border-radius:4px;padding:5px 8px;font-size:12px;display:none;z-index:6}
+</style></head><body><div id="wrap">
+  <div id="left">
+    <div id="bar"><b>THÉÂTRE ALTIS</b><span class="kpi">tour<b id="turn">—</b></span><span class="kpi" style="color:var(--blu)">BLUFOR<b id="nb">—</b></span><span class="kpi" style="color:var(--red)">OPFOR<b id="nr">—</b></span><span id="stamp" class="kpi" style="margin-left:auto">—</span></div>
+    <div id="prog"><div id="progf"></div></div>
+    <div id="toolbar">
+      <button class="tg on" data-l="relief">Relief</button>
+      <button class="tg on" data-l="routes">Routes</button>
+      <button class="tg on" data-l="zones">Zones</button>
+      <button class="tg on" data-l="labels">Étiquettes</button>
+      <button class="tg" id="recenter">Recentrer</button>
+    </div>
+    <canvas id="map"></canvas>
+    <div id="coord">—</div>
+  </div>
+  <div id="right">
+    <h3>Commandant opératif (LLM)</h3>
+    <div id="cmd"><span class="mut">en attente…</span></div>
+    <h3>Objectif sélectionné</h3>
+    <div id="card"><span class="row">clique un objectif sur la carte…</span></div>
+    <h3>Journal de campagne</h3><div id="log"></div>
+    <h3>Repères</h3>
+    <div class="lg"><span class="dot" style="background:var(--blu)"></span>tenu (BLUFOR)<span style="width:10px"></span><span class="dot" style="background:var(--red)"></span>ennemi (OPFOR)</div>
+    <div class="lg"><span class="sw" style="background:#e6d4a8"></span>axe principal<span class="sw" style="background:#a99a7d"></span>route<span class="sw" style="background:#3a5238"></span>forêt<span class="sw" style="background:#d6c69c"></span>plage</div>
+    <div class="lg mut">anneau orange = objectif assailli · molette = zoom · glisser = déplacer</div>
+  </div>
+</div><div id="tip"></div>
+<script>
+const MAP=30720, CATR={ville:9,bourg:6.5,village:4.8,hameau:3,site:2.2};
+const PAL=[[20,46,72],[214,198,156],[108,134,74],[156,150,98],[50,74,48],[142,130,114],[150,132,96],[84,110,82]];
+const cv=document.getElementById('map'),ctx=cv.getContext('2d');
+let REL=null,OBJ=null,OP=null,RD=null,bg=null,pulse=0,pin=null,hov=null;
+let cam=null;                                   // {s,px,py}
+const SHOW={relief:1,routes:1,zones:1,labels:1};
+function dpr(){return window.devicePixelRatio||1}
+function W2Sx(x){return cam.px+x*cam.s} function W2Sy(y){return cam.py-y*cam.s}
+function S2Wx(p){return (p-cam.px)/cam.s} function S2Wy(p){return (cam.py-p)/cam.s}
+function fitCam(){const cw=cv.width,ch=cv.height,s=Math.min(cw,ch)/MAP;cam={s,px:cw/2-MAP/2*s,py:ch/2+MAP/2*s};}
+function fit(){cv.width=cv.clientWidth*dpr();cv.height=cv.clientHeight*dpr();if(!cam)fitCam();}
+addEventListener('resize',()=>{const had=!!cam;fit();if(!had)fitCam();});
+
+// ---------- fond : relief ombré + couverture du sol + routes (rendu une fois) ----------
+function buildBg(){
+  if(!REL)return;const G=REL.G,H=REL.H,S=REL.S,cell=REL.cell;
+  const small=document.createElement('canvas');small.width=G;small.height=G;const sx=small.getContext('2d');
+  const img=sx.createImageData(G,G);const L=[-0.5,0.55,0.68],Ll=Math.hypot(L[0],L[1],L[2]);
+  for(let r=0;r<G;r++)for(let gx=0;gx<G;gx++){
+    const gy=G-1-r;const h=H[gy][gx];const o=(r*G+gx)*4;let R,Gc,B;
+    if(h<=0){const d=Math.min(140,-h)/140,t=d;R=46-28*t;Gc=104-64*t;B=128-62*t;
+      if(-h<8){R+=18;Gc+=22;B+=14;}}
+    else{
+      let cl=S[gy][gx];if(cl<1||cl>7)cl=3;let base=PAL[cl];
+      // ombrage
+      const hL=H[gy][Math.max(0,gx-1)],hR=H[gy][Math.min(G-1,gx+1)];
+      const hD=H[Math.max(0,gy-1)][gx],hU=H[Math.min(G-1,gy+1)][gx];
+      const nx=-(hR-hL)/(2*cell),ny=-(hU-hD)/(2*cell),nz=1,nl=Math.hypot(nx,ny,nz);
+      let sh=(nx*L[0]+ny*L[1]+nz*L[2])/(nl*Ll);let b=0.72+0.62*sh;if(b<0.46)b=0.46;if(b>1.4)b=1.4;
+      R=base[0]*b;Gc=base[1]*b;B=base[2]*b;
+      if(h>320){const k=Math.min(1,(h-320)/300);R+=(168-R)*0.35*k;Gc+=(158-Gc)*0.35*k;B+=(150-B)*0.35*k;}
+    }
+    img.data[o]=R;img.data[o+1]=Gc;img.data[o+2]=B;img.data[o+3]=255;
+  }
+  sx.putImageData(img,0,0);
+  const BR=1600;bg=document.createElement('canvas');bg.width=BR;bg.height=BR;const bx=bg.getContext('2d');
+  if(SHOW.relief){bx.imageSmoothingEnabled=true;bx.drawImage(small,0,0,G,G,0,0,BR,BR);}
+  else{bx.fillStyle="#0d141b";bx.fillRect(0,0,BR,BR);}
+  if(RD&&RD.roads&&SHOW.routes){for(const p of RD.roads){const x=p[0]/MAP*BR,y=BR-p[1]/MAP*BR;
+    if(p[2]==0){bx.fillStyle="#e6d4a8";bx.fillRect(x-1.3,y-1.3,2.6,2.6);}else{bx.fillStyle="#b3a486cc";bx.fillRect(x-0.85,y-0.85,1.7,1.7);}}}
+}
+function ownColor(n){if(OP&&OP.owners&&OP.owners[n])return OP.owners[n]=="blufor"?[74,158,255]:[255,90,90];return [150,160,170];}
+
+function draw(){if(!cam)return;const cw=cv.width,ch=cv.height;ctx.fillStyle="#070b0f";ctx.fillRect(0,0,cw,ch);
+  if(bg){ctx.imageSmoothingEnabled=true;ctx.drawImage(bg,W2Sx(0),W2Sy(MAP),MAP*cam.s,MAP*cam.s);}
+  // zones de controle (front)
+  if(OBJ&&OP&&OP.owners&&SHOW.zones){ctx.save();ctx.globalCompositeOperation='lighter';
+    for(const o of OBJ){const c=ownColor(o.nom);const rad=(o.cat=="ville"?2200:o.cat=="bourg"?1500:o.cat=="village"?1000:600)*cam.s;
+      const x=W2Sx(o.x),y=W2Sy(o.y);const g=ctx.createRadialGradient(x,y,0,x,y,rad);
+      g.addColorStop(0,`rgba(${c[0]},${c[1]},${c[2]},0.20)`);g.addColorStop(1,`rgba(${c[0]},${c[1]},${c[2]},0)`);
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,rad,0,7);ctx.fill();}ctx.restore();}
+  if(!OBJ)return;
+  // objectifs
+  for(const o of OBJ){const x=W2Sx(o.x),y=W2Sy(o.y),c=ownColor(o.nom);const r=Math.max(2.5,CATR[o.cat]*dpr()*Math.min(1.7,Math.max(.6,cam.s*MAP/Math.min(cw,ch))));
+    ctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;ctx.strokeStyle="#0009";ctx.lineWidth=1*dpr();
+    ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();ctx.stroke();
+    if(pin&&pin.nom==o.nom){ctx.strokeStyle="#fff";ctx.lineWidth=1.6*dpr();ctx.beginPath();ctx.arc(x,y,r+4*dpr(),0,7);ctx.stroke();}}
+  // etiquettes
+  if(SHOW.labels){ctx.fillStyle="#e7f1fbcc";ctx.strokeStyle="#000a";ctx.lineWidth=3*dpr();ctx.font=(11*dpr())+"px monospace";ctx.textBaseline="middle";
+    for(const o of OBJ){const big=o.cat=="ville"||o.cat=="bourg";if(!big&&cam.s*MAP/Math.min(cw,ch)<1.6)continue;
+      const x=W2Sx(o.x),y=W2Sy(o.y),r=CATR[o.cat]*dpr();ctx.strokeText(o.nom,x+r+3,y);ctx.fillText(o.nom,x+r+3,y);}}
+  // cible assaillie
+  if(OP&&OP.target){const t=OBJ.find(o=>o.nom==OP.target);if(t){const x=W2Sx(t.x),y=W2Sy(t.y);
+    ctx.strokeStyle="#ff7a3c";ctx.lineWidth=2.5*dpr();ctx.beginPath();ctx.arc(x,y,(11+5*Math.sin(pulse))*dpr(),0,7);ctx.stroke();}}}
+function loop(){pulse+=0.13;draw();requestAnimationFrame(loop);}
+
+// ---------- interactions ----------
+function nearest(mx,my){if(!OBJ)return null;let best=null,bd=1e9;for(const o of OBJ){const d=Math.hypot(W2Sx(o.x)-mx,W2Sy(o.y)-my);if(d<bd){bd=d;best=o;}}return bd<18*dpr()?best:null;}
+cv.addEventListener('mousemove',e=>{const mx=e.offsetX*dpr(),my=e.offsetY*dpr();
+  document.getElementById('coord').textContent="grille "+String(Math.round(S2Wx(mx)/100)).padStart(3,'0')+" / "+String(Math.round(S2Wy(my)/100)).padStart(3,'0');
+  const o=nearest(mx,my);const tip=document.getElementById('tip');
+  if(o){const ow=OP&&OP.owners?OP.owners[o.nom]:"";tip.style.display="block";tip.style.left=(e.clientX+13)+"px";tip.style.top=(e.clientY+13)+"px";
+    tip.innerHTML=`<b>${o.nom}</b> — ${o.cat} ${ow?("· "+(ow=="blufor"?"NOUS":"ennemi")):""}`;cv.style.cursor="pointer";}
+  else{tip.style.display="none";if(!drag.on)cv.style.cursor="grab";}});
+cv.addEventListener('mouseleave',()=>document.getElementById('tip').style.display="none");
+let drag={on:false,x:0,y:0,moved:0};
+cv.addEventListener('mousedown',e=>{drag={on:true,x:e.offsetX*dpr(),y:e.offsetY*dpr(),moved:0};cv.classList.add('drag');});
+addEventListener('mouseup',e=>{if(drag.on&&drag.moved<5){const o=nearest((e.offsetX||0)*dpr(),(e.offsetY||0)*dpr());if(o&&e.target==cv){pin=o;showCard(o);}}drag.on=false;cv.classList.remove('drag');});
+cv.addEventListener('mousemove',e=>{if(!drag.on)return;const mx=e.offsetX*dpr(),my=e.offsetY*dpr();cam.px+=mx-drag.x;cam.py+=my-drag.y;drag.moved+=Math.abs(mx-drag.x)+Math.abs(my-drag.y);drag.x=mx;drag.y=my;});
+cv.addEventListener('wheel',e=>{e.preventDefault();const mx=e.offsetX*dpr(),my=e.offsetY*dpr();const wx=S2Wx(mx),wy=S2Wy(my);
+  const f=e.deltaY<0?1.12:1/1.12;cam.s=Math.max(Math.min(cv.width,cv.height)/MAP*0.8,Math.min(cam.s*f,0.05));
+  cam.px=mx-wx*cam.s;cam.py=my+wy*cam.s;},{passive:false});
+document.getElementById('recenter').onclick=()=>fitCam();
+document.querySelectorAll('.tg[data-l]').forEach(b=>b.onclick=()=>{const l=b.dataset.l;SHOW[l]=!SHOW[l];b.classList.toggle('on',SHOW[l]);if(l=='relief'||l=='routes')buildBg();});
+function showCard(o){const ow=OP&&OP.owners?OP.owners[o.nom]:"?";const col=ow=="blufor"?"var(--blu)":ow=="opfor"?"var(--red)":"var(--mut)";
+  document.getElementById('card').innerHTML=`<div class="nm" style="color:${col}">${o.nom}</div>
+    <div class="row">type <b>${o.cat}</b> · ${ow=="blufor"?"tenu par NOUS":ow=="opfor"?"tenu par l'ennemi":"—"}</div>
+    <div class="row">bâti <b>${o.bati}</b> · valeur <b>${o.val}</b> · altitude <b>${o.h} m</b></div>
+    <div class="row">position <b>${o.x} / ${o.y}</b></div>`;}
+
+// ---------- flux campagne ----------
+async function poll(){
+  if(!REL){try{REL=await(await fetch('altis_relief.json')).json();fit();buildBg();}catch(e){}}
+  if(!RD){try{RD=await(await fetch('altis_roads.json')).json();if(REL)buildBg();}catch(e){}}
+  if(!OBJ){try{OBJ=(await(await fetch('altis_catalog.json')).json()).objectifs;}catch(e){}}
+  try{OP=await(await fetch('altis_op.json?_='+Date.now())).json();
+    document.getElementById('turn').textContent=OP.turn;
+    document.getElementById('nb').textContent=OP.blufor;document.getElementById('nr').textContent=OP.opfor;
+    document.getElementById('progf').style.width=(100*OP.blufor/OP.total)+"%";
+    const c=OP.commander||{};document.getElementById('cmd').innerHTML=`<div class="t">${c.objectif||"—"}</div><div style="margin-top:5px">${c.justification||""}</div>`;
+    document.getElementById('log').innerHTML=(OP.log||[]).slice().reverse().map(l=>`<div class="l ${l.includes('PRIS')?'win':(l.includes('assaut')?'tgt':'')}">${l}</div>`).join("");
+    document.getElementById('stamp').textContent=new Date().toLocaleTimeString();
+    if(pin)showCard(OBJ.find(o=>o.nom==pin.nom)||pin);
+  }catch(e){document.getElementById('stamp').textContent=REL?"carte prête — campagne non lancée":"chargement du relief…";}}
+setInterval(poll,1200);fit();poll();loop();
+</script></body></html>

@@ -5,3 +5,6 @@ logs_train/
 nohup.out
 .last_*
 *.bak_preammo.py
+*.pt
+*.mp4
+*.gif

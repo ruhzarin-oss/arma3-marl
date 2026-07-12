@@ -1,0 +1,39 @@
+{"geo": "concentre", "cond": "fixe", "mil": false, "man": "M2", "reco_ok": null, "pred": null}
+{"geo": "disperse", "cond": "adaptatif", "mil": false, "man": "M2", "reco_ok": true, "pred": "disperse"}
+{"geo": "disperse", "cond": "fixe", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "faible_ouest", "cond": "adaptatif", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "faible_ouest", "cond": "fixe", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "faible_est", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "standard", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "fixe", "mil": false, "man": "M2", "reco_ok": null, "pred": null}
+{"geo": "concentre", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "adaptatif", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "standard", "cond": "adaptatif", "mil": true, "man": "M8", "reco_ok": true, "pred": "standard"}
+{"geo": "faible_ouest", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "faible_est", "cond": "fixe", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "concentre", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "fixe", "err": "ConnectionRefusedError:[Errno 111] Connection refused"}
+{"geo": "disperse", "cond": "fixe", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "ConnectionRefusedError:[Errno 111] Connection refused"}
+{"geo": "faible_est", "cond": "fixe", "err": "ConnectionRefusedError:[Errno 111] Connection refused"}
+{"geo": "concentre", "cond": "adaptatif", "err": "TimeoutError:HARMATTAN_RECV cmd 668 absent apres 20s (pont sous charge)"}
+{"geo": "standard", "cond": "adaptatif", "err": "ConnectionRefusedError:[Errno 111] Connection refused"}
+{"geo": "standard", "cond": "fixe", "err": "ConnectionRefusedError:[Errno 111] Connection refused"}
+{"geo": "concentre", "cond": "adaptatif", "mil": false, "man": "M5", "reco_ok": true, "pred": "concentre"}
+{"geo": "concentre", "cond": "fixe", "mil": false, "man": "M2", "reco_ok": null, "pred": null}
+{"geo": "disperse", "cond": "fixe", "mil": false, "man": "M2", "reco_ok": null, "pred": null}
+{"geo": "faible_ouest", "cond": "fixe", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "faible_est", "cond": "fixe", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "faible_ouest", "cond": "adaptatif", "mil": false, "man": "M1", "reco_ok": true, "pred": "faible_ouest"}

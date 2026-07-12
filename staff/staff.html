@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><title>HARMATTAN — État-major</title>
+<style>
+  :root{--bg:#0c1116;--panel:#121a22;--line:#1f2c38;--ink:#cfe3f2;--mut:#7d93a6;--red:#ff5a5a;--obj:#ff7a3c;}
+  *{box-sizing:border-box} html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+  #wrap{display:flex;height:100vh}
+  #left{flex:1;display:flex;flex-direction:column;border-right:1px solid var(--line)}
+  #bar{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+  #bar b{font-size:16px;letter-spacing:.12em}
+  #bar .ph{color:var(--obj);letter-spacing:.1em}
+  #map{flex:1;display:block;width:100%}
+  #right{width:340px;background:var(--panel);overflow:auto;padding:14px}
+  h3{margin:14px 0 6px;font-size:11px;letter-spacing:.18em;color:var(--mut);text-transform:uppercase;font-weight:500}
+  .row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--line)}
+  .sq{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line)}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .sq .o{color:var(--mut);font-size:11px}
+  .big{font-size:26px;letter-spacing:.04em}
+  .llm{background:#0e1620;border:1px solid var(--line);border-left:3px solid var(--obj);padding:10px;border-radius:4px;line-height:1.5}
+  .llm .m{font-size:18px;color:var(--obj)}
+  .mut{color:var(--mut)} .warn{color:var(--red)}
+  #stamp{color:var(--mut);font-size:11px}
+</style></head>
+<body><div id="wrap">
+  <div id="left">
+    <div id="bar"><b id="op">HARMATTAN</b><span class="ph" id="phase">—</span><span id="stamp">—</span></div>
+    <canvas id="map"></canvas>
+  </div>
+  <div id="right">
+    <h3>Opération</h3>
+    <div class="row"><span>Pertes amies</span><b id="loss" class="big">—</b></div>
+    <div class="row"><span>Ennemis vivants</span><b id="en">—</b></div>
+    <div class="row"><span>Pas</span><b id="step">—</b></div>
+    <h3>Décision officier (LLM)</h3>
+    <div class="llm"><div class="mut" id="posture">—</div><div class="m" id="man">—</div><div id="just" style="margin-top:6px">—</div></div>
+    <h3>Ordres en cours</h3>
+    <div id="orders"></div>
+    <h3>Légende</h3>
+    <div class="mut">● escouade vivante · ✕ tombé · ▣ objectif · ▲ base de feu · ◆ flanc · ● ennemi</div>
+  </div>
+</div>
+<script>
+const CX0=20520,CX1=21210,CY0=16530,CY1=17240;   // bornes monde (Paros)
+const PT_LABEL={COMPLEXE:"OBJECTIF",CRETE:"BASE DE FEU",FLANC_O:"FLANC O",FLANC_E:"FLANC E",QRF:"QRF"};
+const cv=document.getElementById('map'),ctx=cv.getContext('2d');
+let trails={};
+function fit(){var w=cv.clientWidth||(window.innerWidth-340),h=cv.clientHeight||window.innerHeight;cv.width=w*devicePixelRatio;cv.height=h*devicePixelRatio;}
+addEventListener('resize',fit);fit();
+function X(wx){return (wx-CX0)/(CX1-CX0)*cv.width;}
+function Y(wy){return cv.height-(wy-CY0)/(CY1-CY0)*cv.height;}
+function grid(){ctx.strokeStyle="#16212c";ctx.lineWidth=1;for(let gx=20550;gx<CX1;gx+=100){ctx.beginPath();ctx.moveTo(X(gx),0);ctx.lineTo(X(gx),cv.height);ctx.stroke();}for(let gy=16550;gy<CY1;gy+=100){ctx.beginPath();ctx.moveTo(0,Y(gy));ctx.lineTo(cv.width,Y(gy));ctx.stroke();}}
+function pt(p,label,kind){const x=X(p[0]),y=Y(p[1]),s=8*devicePixelRatio;ctx.save();ctx.translate(x,y);
+  if(kind=='obj'){ctx.strokeStyle="#ff7a3c";ctx.lineWidth=2*devicePixelRatio;ctx.strokeRect(-s,-s,2*s,2*s);ctx.fillStyle="rgba(255,122,60,.12)";ctx.fillRect(-s,-s,2*s,2*s);}
+  else if(kind=='fire'){ctx.fillStyle="#5aa0ff";ctx.beginPath();ctx.moveTo(0,-s);ctx.lineTo(s,s);ctx.lineTo(-s,s);ctx.closePath();ctx.fill();}
+  else{ctx.fillStyle="#8aa";ctx.beginPath();ctx.moveTo(0,-s*.8);ctx.lineTo(s*.8,0);ctx.lineTo(0,s*.8);ctx.lineTo(-s*.8,0);ctx.closePath();ctx.fill();}
+  ctx.fillStyle="#7d93a6";ctx.font=(10*devicePixelRatio)+"px monospace";ctx.fillText(label,s+3,3*devicePixelRatio);ctx.restore();}
+function unit(p,color,alive){const x=X(p[0]),y=Y(p[1]),r=4.5*devicePixelRatio;
+  if(alive){ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();}
+  else{ctx.strokeStyle="#56707f";ctx.lineWidth=2*devicePixelRatio;ctx.beginPath();ctx.moveTo(x-r,y-r);ctx.lineTo(x+r,y+r);ctx.moveTo(x+r,y-r);ctx.lineTo(x-r,y+r);ctx.stroke();}}
+function draw(s){fit();ctx.clearRect(0,0,cv.width,cv.height);grid();
+  if(s.pts)for(const k in s.pts){pt(s.pts[k],PT_LABEL[k]||k,k=='COMPLEXE'?'obj':(k=='CRETE'?'fire':'flank'));}
+  // trails
+  for(const nm in (s.squads||{})){const sq=s.squads[nm];const c=sq.units.filter(u=>u[2]);const cx=c.length?c.reduce((a,u)=>a+u[0],0)/c.length:0,cy=c.length?c.reduce((a,u)=>a+u[1],0)/c.length:0;
+    if(c.length){trails[nm]=trails[nm]||[];const t=trails[nm];if(!t.length||Math.hypot(t[t.length-1][0]-cx,t[t.length-1][1]-cy)>4){t.push([cx,cy]);if(t.length>40)t.shift();}
+      ctx.strokeStyle=sq.color+"66";ctx.lineWidth=2*devicePixelRatio;ctx.beginPath();t.forEach((p,i)=>{i?ctx.lineTo(X(p[0]),Y(p[1])):ctx.moveTo(X(p[0]),Y(p[1]));});ctx.stroke();}}
+  for(const e of (s.enemies||[]))unit(e,"#ff5a5a",e[2]);
+  for(const nm in (s.squads||{})){const sq=s.squads[nm];for(const u of sq.units)unit(u,sq.color,u[2]);}}
+function orders(s){const o=document.getElementById('orders');o.innerHTML="";const ST={move:"approche",assault:"ASSAUT",suppress:"appui-feu",hold:"tient"};
+  for(const nm in (s.squads||{})){const sq=s.squads[nm];const alive=sq.units.filter(u=>u[2]).length;
+    o.innerHTML+=`<div class="sq"><span class="dot" style="background:${sq.color}"></span><div style="flex:1"><div>${nm.replace('SQ_','')} <span class="o">${alive}/${sq.units.length}</span></div><div class="o">${ST[sq.stance]||sq.stance}</div></div></div>`;}}
+async function tick(){try{const r=await fetch('state.json?_='+Date.now());const s=await r.json();
+  document.getElementById('op').textContent=s.op||"HARMATTAN";
+  document.getElementById('step').textContent=s.step??"—";
+  document.getElementById('loss').textContent=Math.round((s.losses||0)*100)+"%";
+  document.getElementById('loss').className="big"+((s.losses||0)>0.5?" warn":"");
+  const enAlive=(s.enemies||[]).filter(e=>e[2]).length;document.getElementById('en').textContent=enAlive+"/"+(s.enemies||[]).length;
+  const ll=s.llm||{};document.getElementById('posture').textContent=ll.posture||"—";document.getElementById('man').textContent=ll.maneuver||"—";document.getElementById('just').textContent=ll.justification||"—";
+  // phase = stance dominante
+  const stc=Object.values(s.squads||{}).map(q=>q.stance);const ph=stc.includes('assault')?"ASSAUT":stc.includes('suppress')?"BASE DE FEU":"INFILTRATION";
+  document.getElementById('phase').textContent=ph;
+  document.getElementById('stamp').textContent=new Date().toLocaleTimeString();
+  draw(s);orders(s);}catch(e){document.getElementById('stamp').textContent="en attente d'une opération…";}}
+setInterval(tick,1000);tick();
+</script></body></html>

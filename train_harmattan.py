@@ -22,20 +22,69 @@ def desktop_root():
             return p
     p = os.path.expanduser("~/Desktop"); os.makedirs(p, exist_ok=True); return p
 
-class ActorCritic(nn.Module):
-    def __init__(self, obs_dim, n_actions, n_agents, hidden=64):
+class AttnCritic(nn.Module):
+    """Critique central a ATTENTION (facon MAAC). Encode chaque agent, self-attention sur
+    l ensemble des agents (chacun apprend QUI regarder), puis agregation invariante au NOMBRE.
+    -> entraine a A=5, evalue a A=30/150 sans changer un parametre. mask optionnel (Phase 2)."""
+    def __init__(self, obs_dim, hidden=64, heads=4):
         super().__init__()
+        self.embed = nn.Sequential(nn.Linear(obs_dim, hidden), nn.Tanh())
+        self.attn = nn.MultiheadAttention(hidden, heads, batch_first=True)
+        self.ln = nn.LayerNorm(hidden)
+        self.head = nn.Sequential(nn.Linear(hidden, hidden), nn.Tanh(), nn.Linear(hidden, 1))
+    def forward(self, obs, mask=None):              # obs (B,A,O) ; mask (B,A) True=ignorer
+        if mask is not None:                        # garde-fou : jamais TOUS masques (sinon NaN attention)
+            allm = mask.all(1)
+            if bool(allm.any()):
+                mask = mask.clone(); mask[allm] = False
+        h = self.embed(obs)                         # (B,A,H)
+        a, _ = self.attn(h, h, h, key_padding_mask=mask)
+        h = self.ln(h + a)                          # residuel
+        if mask is not None:
+            keep = (~mask).float().unsqueeze(-1)
+            pooled = (h * keep).sum(1) / keep.sum(1).clamp(min=1.0)   # moyenne masquee
+        else:
+            pooled = h.mean(1)                      # agregation invariante au nombre
+        return self.head(pooled).squeeze(-1)        # (B,)
+
+class DeepSetsCritic(nn.Module):
+    """ABLATION : encode chaque agent -> MEAN-POOL (invariant ordre+nombre) -> valeur. PAS d attention.
+    Isole ce que l attention RELATIONNELLE apporte vs un simple pooling d ensemble (Deep Sets)."""
+    def __init__(self, obs_dim, hidden=64):
+        super().__init__()
+        self.embed = nn.Sequential(nn.Linear(obs_dim, hidden), nn.Tanh(), nn.Linear(hidden, hidden), nn.Tanh())
+        self.head = nn.Sequential(nn.Linear(hidden, hidden), nn.Tanh(), nn.Linear(hidden, 1))
+    def forward(self, obs, mask=None):
+        h = self.embed(obs)
+        if mask is not None:
+            keep = (~mask).float().unsqueeze(-1)
+            pooled = (h * keep).sum(1) / keep.sum(1).clamp(min=1.0)
+        else:
+            pooled = h.mean(1)
+        return self.head(pooled).squeeze(-1)
+
+class ActorCritic(nn.Module):
+    def __init__(self, obs_dim, n_actions, n_agents, hidden=64, critic="concat", heads=4):
+        super().__init__()
+        self.critic_kind = critic
         self.actor = nn.Sequential(nn.Linear(obs_dim, hidden), nn.Tanh(),
                                    nn.Linear(hidden, hidden), nn.Tanh(),
                                    nn.Linear(hidden, n_actions))
-        self.critic = nn.Sequential(nn.Linear(obs_dim * n_agents, hidden), nn.Tanh(),
-                                    nn.Linear(hidden, hidden), nn.Tanh(),
-                                    nn.Linear(hidden, 1))
+        if critic == "attn":
+            self.critic = AttnCritic(obs_dim, hidden, heads)
+        elif critic == "deepsets":
+            self.critic = DeepSetsCritic(obs_dim, hidden)
+        else:
+            self.critic = nn.Sequential(nn.Linear(obs_dim * n_agents, hidden), nn.Tanh(),
+                                        nn.Linear(hidden, hidden), nn.Tanh(),
+                                        nn.Linear(hidden, 1))
     def act(self, obs):
         dist = Categorical(logits=self.actor(obs)); a = dist.sample()
         return a, dist.log_prob(a)
-    def value(self, obs):
+    def value(self, obs, mask=None):
         B, A, O = obs.shape
+        if self.critic_kind in ("attn", "deepsets"):
+            return self.critic(obs, mask)
         return self.critic(obs.reshape(B, A * O)).squeeze(-1)
     def evaluate(self, obs, actions):
         dist = Categorical(logits=self.actor(obs))
@@ -88,9 +137,9 @@ def train(cfg):
     run_dir = os.path.join(root, rid); os.makedirs(run_dir, exist_ok=True)
     json.dump(cfg, open(os.path.join(run_dir, "config.json"), "w"), indent=2)
     print(f"[run] {run_dir}  | device={dev}")
-    env = VectorizedToy2D(num_envs=cfg["envs"], seed=cfg["seed"])
+    env = VectorizedToy2D(num_envs=cfg["envs"], seed=cfg["seed"], n_agents=cfg.get("agents", 4))
     obs = env.reset(); N, A, O = obs.shape
-    net = ActorCritic(O, env.n_actions, A, cfg["hidden"]).to(dev)
+    net = ActorCritic(O, env.n_actions, A, cfg["hidden"], critic=cfg.get("critic", "concat"), heads=cfg.get("heads", 4)).to(dev)
     opt = torch.optim.Adam(net.parameters(), lr=cfg["lr"])
     if cfg["gif"]:
         s, c = render_gif(net, dev, os.path.join(run_dir, "avant.gif"))
@@ -103,11 +152,14 @@ def train(cfg):
         b_obs = torch.zeros(T, N, A, O, device=dev); b_act = torch.zeros(T, N, A, dtype=torch.long, device=dev)
         b_logp = torch.zeros(T, N, A, device=dev); b_rew = torch.zeros(T, N, device=dev)
         b_val = torch.zeros(T, N, device=dev); b_done = torch.zeros(T, N, device=dev)
+        b_alive = torch.ones(T, N, A, dtype=torch.bool, device=dev)
+        use_mask = (net.critic_kind == "attn")
         for t in range(T):
+            cur_alive = torch.as_tensor(env.alive, device=dev)             # (N,A) aligne avec obs_t
             with torch.no_grad():
-                a, logp = net.act(obs_t); v = net.value(obs_t)
+                a, logp = net.act(obs_t); v = net.value(obs_t, mask=(~cur_alive) if use_mask else None)
             nobs, rew, cost, done, info = env.step(a.cpu().numpy())
-            b_obs[t] = obs_t; b_act[t] = a; b_logp[t] = logp; b_val[t] = v
+            b_obs[t] = obs_t; b_act[t] = a; b_logp[t] = logp; b_val[t] = v; b_alive[t] = cur_alive
             b_rew[t] = torch.as_tensor(rew - cp * cost, dtype=torch.float32, device=dev)
             b_done[t] = torch.as_tensor(done.astype(np.float32), device=dev)
             ep_ret += rew; ep_cas += cost
@@ -116,7 +168,7 @@ def train(cfg):
                 ep_ret[n] = 0; ep_cas[n] = 0
             obs_t = torch.as_tensor(nobs, dtype=torch.float32, device=dev); gstep += N
         with torch.no_grad():
-            last_v = net.value(obs_t)
+            last_v = net.value(obs_t, mask=(~torch.as_tensor(env.alive, device=dev)) if use_mask else None)
         adv = torch.zeros(T, N, device=dev); gae = torch.zeros(N, device=dev)
         for t in reversed(range(T)):
             nnt = 1.0 - b_done[t]; nv = last_v if t == T - 1 else b_val[t + 1]
@@ -124,6 +176,7 @@ def train(cfg):
             gae = delta + gamma * lam * nnt * gae; adv[t] = gae
         ret = (adv + b_val).reshape(T * N)
         f_obs = b_obs.reshape(T * N, A, O); f_act = b_act.reshape(T * N, A); f_logp = b_logp.reshape(T * N, A)
+        f_alive = b_alive.reshape(T * N, A)
         fa = adv.reshape(T * N, 1).expand(T * N, A).reshape(-1); fa = (fa - fa.mean()) / (fa.std() + 1e-8)
         f_adv = fa.reshape(T * N, A)
         idx = np.arange(T * N); mb = max(1, (T * N) // cfg["minibatches"])
@@ -135,7 +188,7 @@ def train(cfg):
                 o = f_obs[j]; nlp, ent = net.evaluate(o, f_act[j])
                 ratio = torch.exp(nlp - f_logp[j]); a_ = f_adv[j]
                 ploss = -torch.min(ratio * a_, torch.clamp(ratio, 1 - cfg["clip"], 1 + cfg["clip"]) * a_).mean()
-                vloss = ((net.value(o) - ret[j]) ** 2).mean(); entropy = ent.mean()
+                vloss = ((net.value(o, mask=(~f_alive[j]) if use_mask else None) - ret[j]) ** 2).mean(); entropy = ent.mean()
                 loss = ploss + cfg["vf"] * vloss - cfg["ent"] * entropy
                 opt.zero_grad(); loss.backward(); nn.utils.clip_grad_norm_(net.parameters(), 0.5); opt.step()
                 pl += ploss.item(); vl += vloss.item(); en += entropy.item(); nu += 1
@@ -180,5 +233,8 @@ if __name__ == "__main__":
     p.add_argument("--minibatches", type=int, default=4); p.add_argument("--vf", type=float, default=0.5)
     p.add_argument("--ent", type=float, default=0.01); p.add_argument("--seed", type=int, default=0)
     p.add_argument("--no-gif", action="store_true")
+    p.add_argument("--critic", choices=["concat", "attn"], default="concat", help="critique central : concat (baseline) ou attn (MAAC)")
+    p.add_argument("--heads", type=int, default=4, help="tetes d attention si --critic attn")
+    p.add_argument("--agents", type=int, default=4, help="nombre dagents a lentrainement")
     a = p.parse_args(); cfg = vars(a); cfg["gif"] = not cfg.pop("no_gif")
     train(cfg)

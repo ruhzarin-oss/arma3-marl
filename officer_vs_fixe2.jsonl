@@ -1,0 +1,32 @@
+{"seed": 100, "posture": "skilled", "cond": "fixe", "err": "TypeError"}
+{"seed": 101, "posture": "skilled_react", "cond": "fixe", "err": "TypeError"}
+{"seed": 102, "posture": "skilled_react_depth", "cond": "fixe", "err": "TypeError"}
+{"seed": 104, "posture": "skilled_elastic", "cond": "fixe", "err": "TypeError"}
+{"seed": 105, "posture": "skilled_herisson", "cond": "fixe", "err": "TypeError"}
+{"seed": 103, "posture": "skilled_mobile", "cond": "fixe", "err": "TypeError"}
+{"seed": 106, "posture": "skilled_appat", "cond": "fixe", "err": "TypeError"}
+{"seed": 107, "posture": "skilled_sortie", "cond": "fixe", "err": "TypeError"}
+{"seed": 110, "posture": "skilled", "cond": "fixe", "err": "TypeError"}
+{"seed": 112, "posture": "skilled_react_depth", "cond": "fixe", "err": "TypeError"}
+{"seed": 113, "posture": "skilled_mobile", "cond": "fixe", "err": "TypeError"}
+{"seed": 114, "posture": "skilled_elastic", "cond": "fixe", "err": "TypeError"}
+{"seed": 111, "posture": "skilled_react", "cond": "fixe", "err": "TypeError"}
+{"seed": 115, "posture": "skilled_herisson", "cond": "fixe", "err": "TypeError"}
+{"seed": 116, "posture": "skilled_appat", "cond": "fixe", "err": "TypeError"}
+{"seed": 105, "posture": "skilled_herisson", "cond": "officier", "mil": true, "pertes": 0.39, "manoeuvre": "M3", "redecision": null, "dt": 254.0}
+{"seed": 117, "posture": "skilled_sortie", "cond": "fixe", "err": "TypeError"}
+{"seed": 115, "posture": "skilled_herisson", "cond": "officier", "mil": true, "pertes": 0.32, "manoeuvre": "M3", "redecision": null, "dt": 336.0}
+{"seed": 110, "posture": "skilled", "cond": "officier", "mil": true, "pertes": 0.36, "manoeuvre": "M3", "redecision": null, "dt": 369.0}
+{"seed": 117, "posture": "skilled_sortie", "cond": "officier", "mil": true, "pertes": 0.5, "manoeuvre": "M3", "redecision": null, "dt": 374.0}
+{"seed": 103, "posture": "skilled_mobile", "cond": "officier", "mil": true, "pertes": 0.46, "manoeuvre": "M3", "redecision": null, "dt": 432.0}
+{"seed": 104, "posture": "skilled_elastic", "cond": "officier", "mil": true, "pertes": 0.07, "manoeuvre": "M3", "redecision": null, "dt": 624.0}
+{"seed": 111, "posture": "skilled_react", "cond": "officier", "mil": true, "pertes": 0.18, "manoeuvre": "M3", "redecision": null, "dt": 658.0}
+{"seed": 107, "posture": "skilled_sortie", "cond": "officier", "mil": true, "pertes": 0.21, "manoeuvre": "M3", "redecision": null, "dt": 659.0}
+{"seed": 112, "posture": "skilled_react_depth", "cond": "officier", "mil": true, "pertes": 0.14, "manoeuvre": "M3", "redecision": null, "dt": 729.0}
+{"seed": 102, "posture": "skilled_react_depth", "cond": "officier", "mil": true, "pertes": 0.14, "manoeuvre": "M3", "redecision": null, "dt": 809.0}
+{"seed": 101, "posture": "skilled_react", "cond": "officier", "mil": true, "pertes": 0.29, "manoeuvre": "M3", "redecision": null, "dt": 813.0}
+{"seed": 116, "posture": "skilled_appat", "cond": "officier", "mil": true, "pertes": 0.36, "manoeuvre": "M3", "redecision": null, "dt": 851.0}
+{"seed": 114, "posture": "skilled_elastic", "cond": "officier", "mil": true, "pertes": 0.36, "manoeuvre": "M3", "redecision": null, "dt": 858.0}
+{"seed": 113, "posture": "skilled_mobile", "cond": "officier", "mil": false, "pertes": 0.04, "manoeuvre": "M12", "redecision": null, "dt": 1172.0}
+{"seed": 106, "posture": "skilled_appat", "cond": "officier", "mil": true, "pertes": 0.43, "manoeuvre": "M12", "redecision": null, "dt": 1241.0}
+{"seed": 100, "posture": "skilled", "cond": "officier", "mil": true, "pertes": 0.39, "manoeuvre": "M3", "redecision": "M12", "dt": 1317.0}

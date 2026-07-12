@@ -41,7 +41,9 @@ class VectorizedToy2D:
         if mask is None:
             mask = np.ones(self.N, dtype=bool)
         idx = np.where(mask)[0]
-        starts = np.array([[1, 1], [1, 2], [2, 1], [2, 2]])[:self.A]
+        gs = int(np.ceil(np.sqrt(self.A)))                              # bloc carre depuis (1,1), A quelconque
+        starts = np.array([[1 + k // gs, 1 + k % gs] for k in range(self.A)], dtype=np.int32)
+        starts = np.clip(starts, 0, self.G - 1)                          # (A=4 -> identique a avant)
         self.pos[idx] = starts[None, :, :]
         self.alive[idx] = True
         self.t[idx] = 0

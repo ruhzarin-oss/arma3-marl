@@ -1,1 +1,4 @@
 {"op": "AZALAI-01", "man": "M2", "seed": 1, "dt": 628.4, "mil": true, "pertes": 0.2857142857142857, "garr_pris": true, "qrf_spawn": false, "qrf_reste": 0}
+{"op": "AZALAI-01", "man": "M2", "seed": 1, "enemy": "normal", "dt": 813.1, "mil": true, "pertes": 0.1071428571428571, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28}
+{"op": "OFFICIER-LLM", "man": "M3", "seed": 2, "enemy": "normal", "dt": 808.1, "mil": true, "pertes": 0.4285714285714286, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 0, "ennemis_total": 28}
+{"op": "PAROS", "man": "M3", "seed": 4, "enemy": "normal", "dt": 1040.6, "mil": false, "pertes": 0.25, "garr_pris": true, "qrf_spawn": true, "qrf_reste": 8, "ennemis_total": 28}

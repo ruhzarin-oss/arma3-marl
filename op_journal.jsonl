@@ -859,3 +859,34 @@
 {"t": 252.0, "step": 85, "kind": "SITREP", "phase": "EXFIL", "vivants": [3, 7, 2, 6], "ennemis": 13, "losses": 0.36}
 {"t": 252.0, "step": 85, "kind": "PHASE_OK", "phase": "EXFIL", "steps": 1, "losses": 0.36}
 {"t": 252.0, "step": 85, "kind": "OP_END", "succes": false, "steps": 85, "losses": 0.36, "ennemis_restants": 13}
+{"t": 0.0, "step": 0, "kind": "OP_START", "op": "M3-ENVELOPPEMENT-SIMPLE", "squads": ["SQ_APPUI", "SQ_A_OUEST", "SQ_A_EST", "SQ_RESERVE"], "sizes": [7, 7, 7, 7]}
+{"t": 0.0, "step": 0, "kind": "PHASE", "name": "INFILTRATION", "orders": {"SQ_APPUI": [[14880, 15860], "move"], "SQ_A_EST": [[15260, 15980], "move"], "SQ_A_OUEST": [[14800, 16010], "move"], "SQ_RESERVE": [[14800, 16010], "move"]}, "losses": 0.0}
+{"t": 15.5, "step": 5, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [7, 7, 7, 5], "ennemis": 17, "losses": 0.07}
+{"t": 30.4, "step": 10, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [6, 7, 7, 4], "ennemis": 12, "losses": 0.14}
+{"t": 44.4, "step": 15, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 10, "losses": 0.25}
+{"t": 55.7, "step": 19, "kind": "QRF_TRIGGER", "detail": "garnison tombee -> contre-attaque"}
+{"t": 55.7, "step": 19, "kind": "QRF", "detail": "contre-attaque 8 hommes"}
+{"t": 58.5, "step": 20, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 16, "losses": 0.25}
+{"t": 72.4, "step": 25, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 16, "losses": 0.25}
+{"t": 86.7, "step": 30, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 15, "losses": 0.25}
+{"t": 101.0, "step": 35, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 15, "losses": 0.25}
+{"t": 115.6, "step": 40, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 14, "losses": 0.25}
+{"t": 129.9, "step": 45, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 14, "losses": 0.25}
+{"t": 144.9, "step": 50, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 14, "losses": 0.25}
+{"t": 158.5, "step": 55, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 172.5, "step": 60, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 186.8, "step": 65, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 201.7, "step": 70, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 216.0, "step": 75, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 230.0, "step": 80, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 244.3, "step": 85, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 258.6, "step": 90, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 272.9, "step": 95, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 287.8, "step": 100, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 302.7, "step": 105, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 316.7, "step": 110, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 331.0, "step": 115, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 345.0, "step": 120, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 359.3, "step": 125, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 373.3, "step": 130, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}
+{"t": 387.7, "step": 135, "kind": "SITREP", "phase": "INFILTRATION", "vivants": [4, 7, 7, 3], "ennemis": 13, "losses": 0.25}

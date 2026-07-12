@@ -60,16 +60,23 @@ class OpArma:
     # ------------------------------------------------------------- pont
     def _query(self, sqf, settle=None):
         nb = self.b.send(sqf, wait=True)
-        time.sleep(self.settle if settle is None else settle)
-        lines = self.b._log_lines()
-        idx = max(i for i, ln in enumerate(lines) if ("HARMATTAN_RECV cmd %d" % nb) in ln)
-        return lines[idx:]
+        s = self.settle if settle is None else settle
+        deadline = time.time() + 20.0
+        first = True
+        while True:
+            time.sleep(s if first else 0.2); first = False
+            lines = self.b._log_lines()
+            idxs = [i for i, ln in enumerate(lines) if ("HARMATTAN_RECV cmd %d" % nb) in ln]
+            if idxs:
+                return lines[idxs[-1]:]
+            if time.time() > deadline:
+                raise TimeoutError("HARMATTAN_RECV cmd %d absent apres 20s (pont sous charge)" % nb)
 
     # ------------------------------------------------------------- mise en place
     def spawn(self, friendly_spawns, garrison):
         """friendly_spawns : {squad: (x,y)} ; garrison : list de (x, y, n, radius_patrouille)."""
         decl = "; ".join("%s=[]" % s for s in self.squads) + "; HMT_EN=[]"
-        sqf = ("{ deleteVehicle _x } forEach vehicles; { deleteVehicle _x } forEach allUnits; HMT_VEH = nil; %s;\n"
+        sqf = ("{ deleteVehicle _x } forEach vehicles; { deleteVehicle _x } forEach allUnits; { deleteGroup _x } forEach allGroups; HMT_VEH = nil; %s;\n"
                "west setFriend [east,0]; east setFriend [west,0];\n" % decl)
         for si, sq in enumerate(self.squads):
             x, y = friendly_spawns[sq]
@@ -353,7 +360,7 @@ class OperationRunner:
         lg = lg + torch.as_tensor(STANCES[self.env.stances[si]], device=DEV)
         return torch.distributions.Categorical(logits=lg).sample().cpu().numpy()
 
-    def run(self, max_steps=400, max_wall=1200.0, stall_wall=500.0):
+    def run(self, max_steps=400, max_wall=1200.0, stall_wall=500.0, trace=None):
         pidx = 0
         # [10/06] bornes de cout : un standoff ne doit plus couter 7 h (mur temps-reel + detecteur d enlisement)
         t_mur = time.time(); sig_prec = None; t_fige = time.time(); abort = None
@@ -382,6 +389,7 @@ class OperationRunner:
                     break
                 acts = [self.act(si) for si in range(self.env.S)]
                 self.env.step(acts); self.step_i += 1; self.phase_steps += 1
+                if trace is not None: trace(self)
                 # [v3 07/06] QRF déclenchée par la CHUTE DE LA GARNISON, quel que soit le chemin de phases
                 # (l'accrochage à l'entrée en CONSOLIDATION laissait les contingences l'esquiver — artefact AZALAI-01)
                 qg = self.plan.get("qrf_on_garrison")

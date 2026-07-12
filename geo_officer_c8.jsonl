@@ -1,0 +1,28 @@
+{"geo": "standard", "cond": "adaptatif", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "standard", "cond": "fixe", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "concentre", "cond": "adaptatif", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "concentre", "cond": "fixe", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "disperse", "cond": "adaptatif", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "faible_est", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "standard", "cond": "adaptatif", "err": "TimeoutError:HARMATTAN_RECV cmd 2 absent apres 20s (pont sous charge)"}
+{"geo": "concentre", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "concentre", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "disperse", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_ouest", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "adaptatif", "err": "TimeoutError:timed out"}
+{"geo": "faible_est", "cond": "fixe", "err": "TimeoutError:timed out"}
+{"geo": "standard", "cond": "adaptatif", "err": "TimeoutError:timed out"}
