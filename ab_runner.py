@@ -29,6 +29,7 @@ ap.add_argument("--ne", type=int, default=256)
 ap.add_argument("--A", type=int, default=9)
 ap.add_argument("--D", type=int, default=4)
 ap.add_argument("--rspawn", type=float, default=80.0)
+ap.add_argument("--hit", type=float, default=0.10)
 ap.add_argument("--out", default="/home/younes/arma3-marl/ab_results.txt")
 a = ap.parse_args()
 if a.smoke:
@@ -39,7 +40,7 @@ else:
 EVAL_NE = 128 if a.smoke else a.ne
 
 def mkenv(name, flat_los, postures, n, sd):
-    return AssaultTerrain(num_envs=n, A=a.A, D=a.D, R_spawn=a.rspawn, relief=40.0, hit=0.10,
+    return AssaultTerrain(num_envs=n, A=a.A, D=a.D, R_spawn=a.rspawn, relief=40.0, hit=a.hit,
                           shell_obs=True, team_obs=True, replica=True, replica_path=BASE % name,
                           max_steps=60, device=DEV, seed=sd, postures=postures, flat_los=flat_los)
 
