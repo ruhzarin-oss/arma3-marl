@@ -23,6 +23,7 @@ class AssaultTerrain:
             _R = np.load(replica_path)
             self._solid = torch.tensor(_R["solid"].astype("float32"), device=device)
             self._elevR = torch.tensor(_R["elev"].astype("float32"), device=device)
+            self._solidhR = torch.tensor(_R["solidh"].astype("float32"), device=device) if "solidh" in _R.files else torch.zeros_like(self._solid)
             self.terr_G = int(_R["GS"]); self.terr_R = float(_R["W"]); self.scale = self.terr_R
             self.R_spawn = min(R_spawn, self.terr_R - 25.0)
 
@@ -94,7 +95,13 @@ class AssaultTerrain:
         gy = ((py / self.scale * 0.5 + 0.5) * (G - 1)).clamp(0, G - 1).long()
         return self._solid[gy, gx]
 
-    def _losc(self, hm, ax, ay, bx, by, R):
+    def _sample_field(self, field, px, py):
+        G = self.terr_G
+        gx = ((px / self.scale * 0.5 + 0.5) * (G - 1)).clamp(0, G - 1).long()
+        gy = ((py / self.scale * 0.5 + 0.5) * (G - 1)).clamp(0, G - 1).long()
+        return field[gy, gx]
+
+    def _losc(self, hm, ax, ay, bx, by, R, eye=1.7):
         base = TG.los_clear(hm, ax, ay, bx, by, R)
         if not getattr(self, "replica", False):
             return base
@@ -102,7 +109,13 @@ class AssaultTerrain:
         t = torch.linspace(0.0, 1.0, K, device=self.dev)
         pxr = ax.unsqueeze(-1) * (1 - t) + bx.unsqueeze(-1) * t
         pyr = ay.unsqueeze(-1) * (1 - t) + by.unsqueeze(-1) * t
-        blocked = (self._sample_solid(pxr, pyr) > 0.5).any(-1)
+        # LOS 2.5D : hauteur de l'oeil (sol + eye) aux 2 bouts, interpolee le long du rayon
+        za = self._sample_field(self._elevR, ax, ay) + eye
+        zb = self._sample_field(self._elevR, bx, by) + eye
+        z_ray = za.unsqueeze(-1) * (1 - t) + zb.unsqueeze(-1) * t
+        # sommet a chaque echantillon = sol + hauteur du bati (solidh) ; bloque si un batiment depasse le rayon
+        top = self._sample_field(self._elevR, pxr, pyr) + self._sample_field(self._solidhR, pxr, pyr)
+        blocked = (top > z_ray).any(-1)
         return base * (~blocked).float()
 
     def _obs(self):
