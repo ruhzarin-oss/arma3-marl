@@ -15,7 +15,7 @@ class AssaultTerrain:
                  shell_obs=False, shellK=12, shell_R=60.0, suffer=False, D_min=2,
                  replica=False, replica_path="replica.npz", device="cuda:0", seed=0, postures=False, flat_los=False,
                  overwatch=False, ow_expo=0.05, hull=False, ow_dmg=0.3, ow_tofail=0.5, expose_lut=None,
-                 emergent_expo=False):
+                 emergent_expo=False, death_pen=0.4, suffer_pen=1.1, win_bonus=1.0, kill_w=1.5, arma_obs=False):
         self.N = num_envs; self.A = A; self.D = D; self.R_spawn = R_spawn
         self.terr_R = terr_R; self.terr_G = terr_G; self.relief = relief
         self.move = move; self.fire_range = fire_range; self.hit = hit; self.secure_r = secure_r
@@ -35,13 +35,15 @@ class AssaultTerrain:
         self.flat_los = flat_los
         self.overwatch = overwatch; self.ow_expo = ow_expo
         self.hull = hull; self.ow_dmg = ow_dmg; self.ow_tofail = ow_tofail; self.emergent_expo = emergent_expo
+        self.death_pen = death_pen; self.suffer_pen = suffer_pen; self.win_bonus = win_bonus; self.kill_w = kill_w   # knobs récompense (défauts = comportement historique)
+        self.arma_obs = arma_obs   # obs ALLÉGÉE cheap-depuis-Arma (sans pente, sans coque) pour le pont SHAMAL->Arma
         self._expose_lut = torch.tensor(expose_lut if expose_lut is not None else [1.0, 0.5, 0.2], device=device)   # HULL-DOWN : profil de corps (debout/accroupi/couche) = fraction touchable
         self.n_actions = (13 if postures else 10)  # 0-7 caps, 8 HOLD, 9 SUPPRESS ; 10-12 postures (debout/accroupi/couche)
         if postures: self._eye_lut = torch.tensor([1.7, 1.0, 0.3], device=device)   # hauteur d'oeil par posture
         self.grid_obs = grid_obs; self.gridK = gridK; self.gridspan = gridspan; self.team_obs = team_obs; self.role_obs = role_obs
         self.shell_obs = shell_obs; self.shellK = shellK; self.shell_R = shell_R
         self.suffer = suffer; self.D_min = D_min
-        self.obs_dim = 9 + (2 * gridK * gridK if grid_obs else 0) + (4 if team_obs else 0) + (2 if role_obs else 0) + ((shellK + 1) if shell_obs else 0) + (2 if suffer else 0) + (3 if postures else 0)   # +grille +coequipiers +ROLE +COQUE +SUFFER +POSTURE
+        self.obs_dim = (8 if arma_obs else 9) + (2 * gridK * gridK if grid_obs else 0) + (4 if team_obs else 0) + (2 if role_obs else 0) + ((shellK + 1) if shell_obs else 0) + (2 if suffer else 0) + (3 if postures else 0)   # +grille +coequipiers +ROLE +COQUE +SUFFER +POSTURE
         self._reset(torch.arange(num_envs, device=device))
 
     def _reset(self, idx):
@@ -165,7 +167,10 @@ class AssaultTerrain:
         bx = torch.gather(self.dpx, 1, km); by = torch.gather(self.dpy, 1, km)
         los = self._losc(self.hm, self.apx, self.apy, bx, by, S, eye_a=self._eye(), eye_b=1.7)
         nd = ed2.min(2).values.clamp(max=1e17).sqrt() / S
-        base = torch.stack([self.apx / S, self.apy / S, dgx, dgy, al.float(), sl, dc, los, nd], dim=2)
+        if self.arma_obs:            # obs Arma-cheap : sans la pente (slope), on garde dcover (~bâti proche) + LOS (checkVisibility)
+            base = torch.stack([self.apx / S, self.apy / S, dgx, dgy, al.float(), dc, los, nd], dim=2)
+        else:
+            base = torch.stack([self.apx / S, self.apy / S, dgx, dgy, al.float(), sl, dc, los, nd], dim=2)
         parts = [base]
         if self.shell_obs: parts.append(self._cover_shell())
         if self.suffer: parts.append(self._suffer_feats())
@@ -291,18 +296,18 @@ class AssaultTerrain:
         dk = (self.D - self._dalive().float().sum(1)) / self.D     # fraction defenseurs neutralises
         if self.overwatch:                                         # OVERWATCH/DEFILEMENT v2 : engager DEPUIS le couvert (pas rompre le LOS)
             dmg_frac = self.last_dmg_in.sum(1) / al.sum(1).clamp(min=1)    # degats RECUS -> chercher le couvert EN gardant le LOS sur l'ennemi
-            rew = (1.5 * (dk - self._prev_dk)                       # neutraliser l'ennemi = moteur d'engagement
+            rew = (self.kill_w * (dk - self._prev_dk)                       # neutraliser l'ennemi = moteur d'engagement
                    - self.ow_dmg * dmg_frac                         # encaisser COUTE (couvert/hull-down recompense)
-                   - 0.005 + neutralized.float() * 1.0              # bonus victoire
-                   - 0.4 * (wiped & ~neutralized).float()           # penalite aneantissement
+                   - 0.005 + neutralized.float() * self.win_bonus              # bonus victoire
+                   - self.death_pen * (wiped & ~neutralized).float()           # penalite aneantissement
                    - self.ow_tofail * (timeout & ~neutralized).float())   # se planquer jusqu'au timeout = ECHEC (force a tuer)
         else:
             rew = (0.2 * (self.prev_d - cur)                           # leger shaping : se rapprocher (entrer en portee de feu)
-                   + 1.5 * (dk - self._prev_dk)                        # RECOMPENSE = neutraliser les defenseurs au feu
-                   - 0.005 + neutralized.float() * 1.0                 # bonus victoire
-                   - 0.4 * (wiped & ~neutralized).float())             # penalite aneantissement (CMDP : pertes)
+                   + self.kill_w * (dk - self._prev_dk)                        # RECOMPENSE = neutraliser les defenseurs au feu
+                   - 0.005 + neutralized.float() * self.win_bonus                 # bonus victoire
+                   - self.death_pen * (wiped & ~neutralized).float())             # penalite aneantissement (CMDP : pertes)
         if self.suffer:
-            rew = rew - 1.1 * (wiped & ~neutralized).float()        # la mort COUTE (total -1.5) -> decrocher le perdu devient rationnel
+            rew = rew - self.suffer_pen * (wiped & ~neutralized).float()   # la mort COUTE (knob suffer_pen ; total defaut -1.5)
         self.prev_d = cur; self._prev_dk = dk
         if self.role_obs:                                          # OFFICIER : recompense la STRUCTURE feu+mouvement
             appui = ((self.role == 0) & al2).float(); assaut = ((self.role == 1) & al2).float()
