@@ -28,7 +28,9 @@ class DuelTerrain:
         self.a_form_idx = torch.full((num_envs,), FORM.NAMES.index(a_form), dtype=torch.long, device=device)   # forme PAR ENV (l'étage HAUT la choisit)
         self.b_form_idx = torch.full((num_envs,), FORM.NAMES.index(b_form), dtype=torch.long, device=device)
         self._tmplA = FORM.templates(A, device=device); self._tmplB = FORM.templates(B, device=device)          # slots canoniques des 15 formes
-        self.n_forms = len(FORM.NAMES); self.n_actions = 13; self.obs_dim = 17; self.squad_dim = 6
+        self.a_maneuver = torch.zeros(num_envs, dtype=torch.long, device=device)   # 0=assaut 1=defend 2=hunt 3=bounding (l'étage HAUT la choisit)
+        self.b_maneuver = torch.zeros(num_envs, dtype=torch.long, device=device)
+        self.n_forms = len(FORM.NAMES); self.n_maneuvers = 4; self.n_actions = 13; self.obs_dim = 17; self.squad_dim = 6
         self._sd = 3.0
         self._eye_lut = torch.tensor([1.7, 1.0, 0.3], device=device)
         d = device
@@ -104,6 +106,11 @@ class DuelTerrain:
         if a_idx is not None: self.a_form_idx = a_idx.long()
         if b_idx is not None: self.b_form_idx = b_idx.long()
 
+    def set_maneuvers(self, a_m=None, b_m=None):
+        """L'étage HAUT pose la manœuvre par env (0=assaut 1=defend 2=hunt 3=bounding)."""
+        if a_m is not None: self.a_maneuver = a_m.long()
+        if b_m is not None: self.b_maneuver = b_m.long()
+
     def squad_obs(self, side):
         """Obs d'escouade (N,6) pour le COMMANDANT : centroïde self rel objectif, vecteur vers l'ennemi, effectifs."""
         S = self.scale
@@ -121,7 +128,8 @@ class DuelTerrain:
         cx = (sx * w).sum(1) / ws; cy = (sy * w).sum(1) / ws
         dxo = tx - cx; dyo = ty - cy; dist = torch.sqrt(dxo * dxo + dyo * dyo).clamp(min=1e-3)
         heading = torch.atan2(dxo / dist, dyo / dist)
-        fp = torch.minimum(torch.full_like(dist, forward), dist)
+        fwd_t = forward if torch.is_tensor(forward) else torch.full_like(dist, forward)   # forward scalaire OU par env
+        fp = torch.minimum(fwd_t, dist)
         ax = cx + dxo / dist * fp; ay = cy + dyo / dist * fp
         pos, _ = FORM.place_idx(form_idx, tmpl, torch.stack([ax, ay], -1), heading)   # forme par env
         return pos[..., 0], pos[..., 1]

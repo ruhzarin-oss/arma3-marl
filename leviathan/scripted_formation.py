@@ -36,6 +36,40 @@ def scripted_action(env, side, close=8.0):
     return torch.where(sal, act, torch.full_like(act, 8))
 
 
+@torch.no_grad()
+def repertoire_action(env, side, close=8.0):
+    """Contrôleur UNIFIÉ : exécute (FORMATION, MANŒUVRE) posées par le cerveau.
+    manœuvre 0=assaut (avance vers l'objectif) 1=defend (tient) 2=hunt (vers l'ennemi) 3=bounding (feu+mouvement)."""
+    d = env.dev
+    if side == 0:
+        sx, sy, sal = env.ax, env.ay, env._a_alive(); ex, ey, eal = env.bx, env.by, env._b_alive()
+        form_idx, tmpl, spost, man = env.a_form_idx, env._tmplA, env.apost, env.a_maneuver
+    else:
+        sx, sy, sal = env.bx, env.by, env._b_alive(); ex, ey, eal = env.ax, env.ay, env._a_alive()
+        form_idx, tmpl, spost, man = env.b_form_idx, env._tmplB, env.bpost, env.b_maneuver
+    N, n = sx.shape; z = torch.zeros(N, device=d)
+    ew = eal.float(); ews = ew.sum(1).clamp(min=1)
+    ecx = (ex * ew).sum(1) / ews; ecy = (ey * ew).sum(1) / ews                    # centroïde ennemi (pour hunt)
+    tx = torch.where(man == 2, ecx, z); ty = torch.where(man == 2, ecy, z)        # hunt -> ennemi ; sinon objectif (origine)
+    fwd = torch.where(man == 1, z, torch.full((N,), env.form_forward, device=d))  # defend -> 0 (tient), sinon avance
+    slot_x, slot_y = env._side_slots(sx, sy, sal, form_idx, tmpl, tx, ty, fwd)
+    dxe = ex.unsqueeze(1) - sx.unsqueeze(2); dye = ey.unsqueeze(1) - sy.unsqueeze(2)
+    BIG = torch.tensor(1e18, device=d)
+    ed2 = torch.where(eal.unsqueeze(1), dxe * dxe + dye * dye, BIG)
+    km = ed2.argmin(2); bx = torch.gather(ex, 1, km); by = torch.gather(ey, 1, km)
+    nd = ed2.min(2).values.clamp(max=1e17).sqrt()
+    los = env._losc(sx, sy, bx, by, eye_a=env._eye(spost), eye_b=1.7)
+    engaged = (los > 0.5) & (nd < env.fire_range)
+    vx = slot_x - sx; vy = slot_y - sy; dslot = torch.sqrt(vx * vx + vy * vy)
+    a_move = (torch.round(torch.atan2(vx, vy) / (math.pi / 4.0)) % 8).long()
+    act = torch.where(dslot > close, a_move,                                      # rejoindre son slot
+                      torch.where(engaged, torch.full_like(a_move, 9), torch.full_like(a_move, 8)))
+    phase = (env.t // 4) % 2; base = (torch.arange(n, device=d)[None] % 2) == phase[:, None]   # BOUNDING : base cloue, manœuvre bondit
+    a_bound = torch.where(base, torch.where(engaged, torch.full_like(a_move, 9), torch.full_like(a_move, 8)), a_move)
+    act = torch.where((man == 3).unsqueeze(1), a_bound, act)
+    return torch.where(sal, act, torch.full_like(act, 8))
+
+
 if __name__ == "__main__":
     import formations as FORM
     from duel_terrain import DuelTerrain
