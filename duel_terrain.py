@@ -23,8 +23,12 @@ class DuelTerrain:
         self.move = move; self.fire_range = fire_range; self.hit = hit; self.secure_r = secure_r
         self.max_steps = max_steps; self.dmg_dead = dmg_dead
         self.death_pen = death_pen; self.win_bonus = win_bonus; self.kill_w = kill_w
-        self.a_form = a_form; self.b_form = b_form; self.form_forward = form_forward   # formation par camp (l'action de la co-évo la choisira plus tard)
-        self.n_actions = 13; self.obs_dim = 17
+        self.form_forward = form_forward
+        self.a_form_idx = torch.full((num_envs,), FORM.NAMES.index(a_form), dtype=torch.long, device=device)   # forme PAR ENV (l'étage HAUT la choisit)
+        self.b_form_idx = torch.full((num_envs,), FORM.NAMES.index(b_form), dtype=torch.long, device=device)
+        self._tmplA = FORM.templates(A, device=device); self._tmplB = FORM.templates(B, device=device)          # slots canoniques des 15 formes
+        self.n_forms = len(FORM.NAMES); self.n_actions = 13; self.obs_dim = 17; self.squad_dim = 6
+        self._sd = 3.0
         self._eye_lut = torch.tensor([1.7, 1.0, 0.3], device=device)
         d = device
         R = np.load(replica_path)
@@ -94,17 +98,31 @@ class DuelTerrain:
     def _a_alive(self): return self.admg < self.dmg_dead
     def _b_alive(self): return self.bdmg < self.dmg_dead
 
-    def _side_slots(self, sx, sy, salive, form, tx, ty, forward):
-        """Numéro d'agent i -> SON slot dans la formation. Ancre = centroïde vivant poussé de 'forward'
-        vers la cible (tx,ty) ; cap = vers la cible. Renvoie slot_x, slot_y (N,n) — chaque agent SA place."""
-        d = self.dev; n = sx.shape[1]
+    def set_forms(self, a_idx=None, b_idx=None):
+        """L'étage HAUT (commandant) pose la forme par env."""
+        if a_idx is not None: self.a_form_idx = a_idx.long()
+        if b_idx is not None: self.b_form_idx = b_idx.long()
+
+    def squad_obs(self, side):
+        """Obs d'escouade (N,6) pour le COMMANDANT : centroïde self rel objectif, vecteur vers l'ennemi, effectifs."""
+        S = self.scale
+        if side == 0: sx, sy, sal, ex, ey, eal = self.ax, self.ay, self._a_alive(), self.bx, self.by, self._b_alive()
+        else:         sx, sy, sal, ex, ey, eal = self.bx, self.by, self._b_alive(), self.ax, self.ay, self._a_alive()
+        ws = sal.float().sum(1).clamp(min=1); we = eal.float().sum(1).clamp(min=1)
+        scx = (sx * sal.float()).sum(1) / ws; scy = (sy * sal.float()).sum(1) / ws
+        ecx = (ex * eal.float()).sum(1) / we; ecy = (ey * eal.float()).sum(1) / we
+        return torch.stack([scx / S, scy / S, (ecx - scx) / S, (ecy - scy) / S,
+                            sal.float().sum(1) / sx.shape[1], eal.float().sum(1) / ex.shape[1]], dim=1)
+
+    def _side_slots(self, sx, sy, salive, form_idx, tmpl, tx, ty, forward):
+        """Numéro d'agent i -> SON slot dans la forme CHOISIE PAR L'ENV. Ancre = centroïde poussé de 'forward' vers (tx,ty)."""
         w = salive.float(); ws = w.sum(1).clamp(min=1)
-        cx = (sx * w).sum(1) / ws; cy = (sy * w).sum(1) / ws                  # centroïde vivant (N,)
+        cx = (sx * w).sum(1) / ws; cy = (sy * w).sum(1) / ws
         dxo = tx - cx; dyo = ty - cy; dist = torch.sqrt(dxo * dxo + dyo * dyo).clamp(min=1e-3)
-        heading = torch.atan2(dxo / dist, dyo / dist)                        # cap vers la cible (dir=(sin,cos))
+        heading = torch.atan2(dxo / dist, dyo / dist)
         fp = torch.minimum(torch.full_like(dist, forward), dist)
-        ax = cx + dxo / dist * fp; ay = cy + dyo / dist * fp                 # ancre poussée vers la cible
-        pos, _ = FORM.place(form, n, torch.stack([ax, ay], -1), heading, device=d)   # (N,n,2) : slot de chaque numéro
+        ax = cx + dxo / dist * fp; ay = cy + dyo / dist * fp
+        pos, _ = FORM.place_idx(form_idx, tmpl, torch.stack([ax, ay], -1), heading)   # forme par env
         return pos[..., 0], pos[..., 1]
 
     # ---- obs générique 17 features pour un camp (self) face à l'autre (enemy) ; feat 2,3 = VECTEUR VERS MON SLOT ----
@@ -144,13 +162,13 @@ class DuelTerrain:
 
     def _obs_A(self):
         z = torch.zeros(self.N, device=self.dev)                            # attaquants : formation vers le FOB (origine)
-        sx, sy = self._side_slots(self.ax, self.ay, self._a_alive(), self.a_form, z, z, self.form_forward)
+        sx, sy = self._side_slots(self.ax, self.ay, self._a_alive(), self.a_form_idx, self._tmplA, z, z, self.form_forward)
         return self._side_obs(self.ax, self.ay, self.apost, self._a_alive(), self.bx, self.by, self._b_alive(), self.a_lastdmg, self.a_supp, sx, sy)
 
     def _obs_B(self):
         aw = self._a_alive().float(); aws = aw.sum(1).clamp(min=1)
         acx = (self.ax * aw).sum(1) / aws; acy = (self.ay * aw).sum(1) / aws  # centroïde attaquant = la menace
-        sx, sy = self._side_slots(self.bx, self.by, self._b_alive(), self.b_form, acx, acy, 0.0)   # défenseurs tiennent, face à la menace
+        sx, sy = self._side_slots(self.bx, self.by, self._b_alive(), self.b_form_idx, self._tmplB, acx, acy, 0.0)   # défenseurs tiennent, face à la menace
         return self._side_obs(self.bx, self.by, self.bpost, self._b_alive(), self.ax, self.ay, self._a_alive(), self.b_lastdmg, self.b_supp, sx, sy)
 
     def _move_fire(self, acts, sx, sy, spost, salive, ex, ey, ealive, eye_e):

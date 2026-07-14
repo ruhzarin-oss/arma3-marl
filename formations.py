@@ -153,6 +153,23 @@ def place(name, n, anchor, heading, sp=SP, r=RR, device="cpu"):
     return pos, face
 
 
+def templates(n, sp=SP, r=RR, device="cpu"):
+    """(F, n, 3) : les slots canoniques des F=15 formes pour n soldats. Précalculé une fois, réutilisé chaque pas."""
+    return torch.stack([slots(nm, n, sp, r) for nm in NAMES]).to(device)
+
+
+def place_idx(form_idx, tmpl, anchor, heading):
+    """Placement BATCHÉ : chaque env choisit SA forme. form_idx:(N,) dans [0,F) ; tmpl:(F,n,3) ;
+    anchor:(N,2) ; heading:(N,). Renvoie pos (N,n,2) + face (N,n). C'est l'action de l'étage HAUT (co-évo)."""
+    sel = tmpl[form_idx.long()]                             # (N,n,3) : la forme choisie par chaque env
+    x = sel[..., 0]; y = sel[..., 1]; f = sel[..., 2]
+    ch = torch.cos(heading).unsqueeze(-1); sh = torch.sin(heading).unsqueeze(-1)
+    wx = x * ch + y * sh; wy = -x * sh + y * ch
+    pos = torch.stack([wx, wy], dim=-1) + anchor.unsqueeze(-2)
+    face = f + heading.unsqueeze(-1)
+    return pos, face
+
+
 if __name__ == "__main__":
     print("=== CATALOGUE FORMATIONS (%d formes) ===" % len(FORMATIONS))
     for nm, m in FORMATIONS.items():
