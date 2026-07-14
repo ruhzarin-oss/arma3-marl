@@ -11,8 +11,8 @@ Convention de cap identique au sandbox : cap 0 = +y, direction = (sin cap, cos c
 import math
 import torch
 
-SP = 5.0     # espacement entre soldats (m)
-RR = 18.0    # rayon des formations courbes / fermées (m)
+SP = 7.0     # espacement entre soldats (m) — formation assez serrée pour être assemblée par des pas grossiers (14m)
+RR = 24.0    # rayon des formations courbes / fermées (m)
 
 
 def _slots(rows):
@@ -154,8 +154,14 @@ def place(name, n, anchor, heading, sp=SP, r=RR, device="cpu"):
 
 
 def templates(n, sp=SP, r=RR, device="cpu"):
-    """(F, n, 3) : les slots canoniques des F=15 formes pour n soldats. Précalculé une fois, réutilisé chaque pas."""
-    return torch.stack([slots(nm, n, sp, r) for nm in NAMES]).to(device)
+    """(F, n, 3) : les slots canoniques des F=15 formes, CENTRÉS sur leur centroïde (l'ancre = le centroïde
+    du groupe -> la formation s'assemble sans se courser elle-même, même asymétrique : coin, échelon)."""
+    ts = []
+    for nm in NAMES:
+        s = slots(nm, n, sp, r).clone()
+        s[:, 0] = s[:, 0] - s[:, 0].mean(); s[:, 1] = s[:, 1] - s[:, 1].mean()
+        ts.append(s)
+    return torch.stack(ts).to(device)
 
 
 def place_idx(form_idx, tmpl, anchor, heading):

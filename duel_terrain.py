@@ -16,14 +16,15 @@ class DuelTerrain:
     def __init__(self, num_envs=1024, A=9, B=9, R_spawn=120.0, R_def=22.0,
                  move=14.0, fire_range=110.0, hit=0.10, secure_r=25.0, max_steps=60, dmg_dead=0.7,
                  death_pen=0.15, win_bonus=2.5, kill_w=2.5,
-                 a_form="coin", b_form="demi_cercle", form_forward=18.0,
+                 a_form="coin", b_form="demi_cercle", form_forward=18.0, form_w=0.0, mutual_support=False,
                  replica=True, replica_path="replica.npz", device="cuda:0", seed=0):
         self.N = num_envs; self.A = A; self.B = B; self.dev = device
         self.R_spawn = R_spawn; self.R_def = R_def
         self.move = move; self.fire_range = fire_range; self.hit = hit; self.secure_r = secure_r
         self.max_steps = max_steps; self.dmg_dead = dmg_dead
         self.death_pen = death_pen; self.win_bonus = win_bonus; self.kill_w = kill_w
-        self.form_forward = form_forward
+        self.form_forward = form_forward; self.form_w = form_w   # form_w>0 -> récompense de MANIEMENT des formes (tenir le rang hors engagement)
+        self.mutual_support = mutual_support   # option B : le bon espacement (formation) réduit les dégâts reçus -> la forme PAIE
         self.a_form_idx = torch.full((num_envs,), FORM.NAMES.index(a_form), dtype=torch.long, device=device)   # forme PAR ENV (l'étage HAUT la choisit)
         self.b_form_idx = torch.full((num_envs,), FORM.NAMES.index(b_form), dtype=torch.long, device=device)
         self._tmplA = FORM.templates(A, device=device); self._tmplB = FORM.templates(B, device=device)          # slots canoniques des 15 formes
@@ -125,6 +126,32 @@ class DuelTerrain:
         pos, _ = FORM.place_idx(form_idx, tmpl, torch.stack([ax, ay], -1), heading)   # forme par env
         return pos[..., 0], pos[..., 1]
 
+    def _fidelity(self, sx, sy, salive, form_idx, tmpl, ex, ey, ealive, tx, ty, forward):
+        """Récompense de MANIEMENT : proche de son slot ET pas engagé. S'efface quand un ennemi est à
+        portée -> libre de rompre pour combattre. Apprend le JUGEMENT (quand tenir, quand rompre)."""
+        d = self.dev
+        slot_x, slot_y = self._side_slots(sx, sy, salive, form_idx, tmpl, tx, ty, forward)
+        dist = torch.sqrt((sx - slot_x) ** 2 + (sy - slot_y) ** 2)                     # écart au slot (N,n)
+        dx = ex.unsqueeze(1) - sx.unsqueeze(2); dy = ey.unsqueeze(1) - sy.unsqueeze(2)
+        BIG = torch.tensor(1e18, device=d)
+        nd = torch.where(ealive.unsqueeze(1), dx * dx + dy * dy, BIG).min(2).values.sqrt()
+        engaged = (nd < self.fire_range).float()                                       # ennemi à portée = engagé
+        fid = torch.exp(-dist / 15.0) * (1.0 - engaged)                                # tenir le rang SEULEMENT hors engagement
+        return (fid * salive.float()).sum(1) / salive.float().sum(1).clamp(min=1)      # (N,) moyenne escouade
+
+    def _support_mult(self, sx, sy, salive):
+        """APPUI MUTUEL (option B) : multiplicateur de dégâts REÇUS par soldat. Voisins vivants au bon
+        espacement [4,20]m -> couverture d'arcs -> moins de dégâts. Isolé -> normal. Aggloméré (<4m) ->
+        plus de dégâts (blob = cible). Rend la BONNE formation payante -> elle est adoptée par intérêt."""
+        d = self.dev; n = sx.shape[1]
+        dx = sx.unsqueeze(1) - sx.unsqueeze(2); dy = sy.unsqueeze(1) - sy.unsqueeze(2)   # (N,n,n) : allié j vu de i
+        dist = torch.sqrt(dx * dx + dy * dy + 1e-6)
+        aj = salive.unsqueeze(1) & ~torch.eye(n, dtype=torch.bool, device=d)[None]
+        support = ((dist >= 9.0) & (dist <= 32.0) & aj).float().sum(2)                   # voisins au bon espacement (formation ~12m)
+        cluster = ((dist < 9.0) & aj).float().sum(2)                                     # voisins trop proches = BLOB (pénalisé)
+        mult = 1.0 - 0.55 * (support / 3.0).clamp(max=1.0) + 0.30 * (cluster / 2.0).clamp(max=1.0)
+        return mult.clamp(0.35, 1.3)                                                     # (N,n)
+
     # ---- obs générique 17 features pour un camp (self) face à l'autre (enemy) ; feat 2,3 = VECTEUR VERS MON SLOT ----
     def _side_obs(self, sx, sy, spost, salive, ex, ey, ealive, s_lastdmg, s_supp, slot_x, slot_y):
         N, n = sx.shape; m = ex.shape[1]; S = self.scale; d = self.dev
@@ -200,6 +227,9 @@ class DuelTerrain:
         # les deux camps agissent (tir simultané, dégâts appliqués après)
         self.ax, self.ay, self.apost, self.a_supp, dmg_to_b = self._move_fire(aA, self.ax, self.ay, self.apost, self._a_alive(), self.bx, self.by, self._b_alive(), eyeB)
         self.bx, self.by, self.bpost, self.b_supp, dmg_to_a = self._move_fire(aB, self.bx, self.by, self.bpost, self._b_alive(), self.ax, self.ay, self._a_alive(), eyeA)
+        if self.mutual_support:                                                       # option B : la formation réduit les dégâts reçus
+            dmg_to_a = dmg_to_a * self._support_mult(self.ax, self.ay, self._a_alive())
+            dmg_to_b = dmg_to_b * self._support_mult(self.bx, self.by, self._b_alive())
         self.a_lastdmg = (dmg_to_a * self._a_alive().float()).detach(); self.b_lastdmg = (dmg_to_b * self._b_alive().float()).detach()
         self.admg = (self.admg + dmg_to_a).clamp(max=0.95); self.bdmg = (self.bdmg + dmg_to_b).clamp(max=0.95)
         self.t = self.t + 1
@@ -217,6 +247,12 @@ class DuelTerrain:
         # récompense ZÉRO-SOMME (mêmes knobs que SHAMAL)
         rA = self.kill_w * a_killed - self.death_pen * a_lost + self.win_bonus * att_wins.float() - self.win_bonus * def_wins.float()
         rB = self.kill_w * b_killed - self.death_pen * b_lost + self.win_bonus * def_wins.float() - self.win_bonus * att_wins.float()
+        if self.form_w > 0:                                                            # récompense de MANIEMENT des formes
+            z = torch.zeros(N, device=d)
+            rA = rA + self.form_w * self._fidelity(self.ax, self.ay, self._a_alive(), self.a_form_idx, self._tmplA, self.bx, self.by, self._b_alive(), z, z, self.form_forward)
+            aw = self._a_alive().float(); aws = aw.sum(1).clamp(min=1)
+            acx = (self.ax * aw).sum(1) / aws; acy = (self.ay * aw).sum(1) / aws
+            rB = rB + self.form_w * self._fidelity(self.bx, self.by, self._b_alive(), self.b_form_idx, self._tmplB, self.ax, self.ay, self._a_alive(), acx, acy, 0.0)
         info = {"att_wins": att_wins, "def_wins": def_wins, "a_alive": aal / self.A, "b_alive": bal / self.B, "took": took}
         if auto_reset:
             self._reset(done.nonzero(as_tuple=True)[0])
