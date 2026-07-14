@@ -16,7 +16,7 @@ class DuelTerrain:
     def __init__(self, num_envs=1024, A=9, B=9, R_spawn=120.0, R_def=22.0,
                  move=14.0, fire_range=110.0, hit=0.10, secure_r=25.0, max_steps=60, dmg_dead=0.7,
                  death_pen=0.15, win_bonus=2.5, kill_w=2.5,
-                 a_form="coin", b_form="demi_cercle", form_forward=18.0, form_w=0.0, mutual_support=False,
+                 a_form="coin", b_form="demi_cercle", form_forward=18.0, form_w=0.0, mutual_support=False, flank=0.0,
                  replica=True, replica_path="replica.npz", device="cuda:0", seed=0):
         self.N = num_envs; self.A = A; self.B = B; self.dev = device
         self.R_spawn = R_spawn; self.R_def = R_def
@@ -25,6 +25,7 @@ class DuelTerrain:
         self.death_pen = death_pen; self.win_bonus = win_bonus; self.kill_w = kill_w
         self.form_forward = form_forward; self.form_w = form_w   # form_w>0 -> récompense de MANIEMENT des formes (tenir le rang hors engagement)
         self.mutual_support = mutual_support   # option B : le bon espacement (formation) réduit les dégâts reçus -> la forme PAIE
+        self.flank = flank   # AFFORDANCE FLANC : touché de flanc/dos = plus de dégâts -> contourner (tenaille/échelon) PAIE
         self.a_form_idx = torch.full((num_envs,), FORM.NAMES.index(a_form), dtype=torch.long, device=device)   # forme PAR ENV (l'étage HAUT la choisit)
         self.b_form_idx = torch.full((num_envs,), FORM.NAMES.index(b_form), dtype=torch.long, device=device)
         self._tmplA = FORM.templates(A, device=device); self._tmplB = FORM.templates(B, device=device)          # slots canoniques des 15 formes
@@ -220,11 +221,18 @@ class DuelTerrain:
         supp = (acts == 9) & salive                              # SUPPRESS = tir
         dmg_e = torch.zeros(N, m, device=d)
         eye_s = self._eye(spost)
+        if self.flank > 0:                                       # la cible fait face au GROS de l'assaut (centroïde des tireurs)
+            sw = salive.float(); sws = sw.sum(1, keepdim=True).clamp(min=1)
+            scx = (sx * sw).sum(1, keepdim=True) / sws; scy = (sy * sw).sum(1, keepdim=True) / sws   # (N,1)
+            face_ang = torch.atan2(scx - ex, scy - ey)           # (N,m) orientation présumée de la cible
         for i in range(n):
             bx = sx[:, i:i+1].expand(N, m); by = sy[:, i:i+1].expand(N, m)
             los = self._losc(ex, ey, bx, by, eye_a=eye_e, eye_b=eye_s[:, i:i+1])
             dist = torch.sqrt((ex - sx[:, i:i+1]) ** 2 + (ey - sy[:, i:i+1]) ** 2)
             eff = los * (dist < self.fire_range).float() * supp[:, i:i+1].float() * ealive.float()
+            if self.flank > 0:                                   # tir de FACE ×1, de FLANC ×(1+f/2), de DOS ×(1+f)
+                shot_ang = torch.atan2(sx[:, i:i+1] - ex, sy[:, i:i+1] - ey)
+                eff = eff * (1.0 + self.flank * (1.0 - torch.cos(shot_ang - face_ang)) / 2.0)
             dmg_e += 0.10 * eff
         return sx, sy, spost, supp.float(), dmg_e
 
