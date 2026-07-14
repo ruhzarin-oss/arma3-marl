@@ -64,7 +64,21 @@ def repertoire_action(env, side, close=8.0):
     a_move = (torch.round(torch.atan2(vx, vy) / (math.pi / 4.0)) % 8).long()
     act = torch.where(dslot > close, a_move,                                      # rejoindre son slot
                       torch.where(engaged, torch.full_like(a_move, 9), torch.full_like(a_move, 8)))
-    phase = (env.t // 4) % 2; base = (torch.arange(n, device=d)[None] % 2) == phase[:, None]   # BOUNDING : base cloue, manœuvre bondit
+    # ENVELOPPEMENT (man==4) : moitié FIXE de face (vers l'ennemi), moitié DÉBORDE par un point latéral -> frappe le flanc
+    ew = eal.float(); ews2 = ew.sum(1, keepdim=True).clamp(min=1)
+    ecx = (ex * ew).sum(1, keepdim=True) / ews2; ecy = (ey * ew).sum(1, keepdim=True) / ews2   # (N,1) centroïde ennemi
+    sw = sal.float(); sws2 = sw.sum(1, keepdim=True).clamp(min=1)
+    mcx = (sx * sw).sum(1, keepdim=True) / sws2; mcy = (sy * sw).sum(1, keepdim=True) / sws2
+    dirx = ecx - mcx; diry = ecy - mcy; dn = torch.sqrt(dirx * dirx + diry * diry).clamp(min=1e-3)
+    perpx = -diry / dn; perpy = dirx / dn                                         # perpendiculaire à l'axe d'approche
+    fixer = (torch.arange(n, device=d)[None] % 2) == 0                            # pair = FIXEUR, impair = DÉBORDEUR
+    tgx = torch.where(fixer, ecx.expand(N, n), (ecx + perpx * 55.0).expand(N, n))  # fixeur -> ennemi ; débordeur -> flanc (ennemi + 55m perp)
+    tgy = torch.where(fixer, ecy.expand(N, n), (ecy + perpy * 55.0).expand(N, n))
+    a_env = (torch.round(torch.atan2(tgx - sx, tgy - sy) / (math.pi / 4.0)) % 8).long()
+    a_env = torch.where(engaged, torch.full_like(a_env, 9), a_env)                # feu dès qu'on a une cible (le débordeur frappe le flanc)
+    act = torch.where((man == 4).unsqueeze(1), a_env, act)
+    # BOUNDING (man==3) : base cloue, manœuvre bondit
+    phase = (env.t // 4) % 2; base = (torch.arange(n, device=d)[None] % 2) == phase[:, None]
     a_bound = torch.where(base, torch.where(engaged, torch.full_like(a_move, 9), torch.full_like(a_move, 8)), a_move)
     act = torch.where((man == 3).unsqueeze(1), a_bound, act)
     return torch.where(sal, act, torch.full_like(act, 8))

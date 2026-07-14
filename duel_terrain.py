@@ -31,7 +31,7 @@ class DuelTerrain:
         self._tmplA = FORM.templates(A, device=device); self._tmplB = FORM.templates(B, device=device)          # slots canoniques des 15 formes
         self.a_maneuver = torch.zeros(num_envs, dtype=torch.long, device=device)   # 0=assaut 1=defend 2=hunt 3=bounding (l'étage HAUT la choisit)
         self.b_maneuver = torch.zeros(num_envs, dtype=torch.long, device=device)
-        self.n_forms = len(FORM.NAMES); self.n_maneuvers = 4; self.n_actions = 13; self.obs_dim = 17; self.squad_dim = 6
+        self.n_forms = len(FORM.NAMES); self.n_maneuvers = 5; self.n_actions = 13; self.obs_dim = 17; self.squad_dim = 6   # +envelopper
         self._sd = 3.0
         self._eye_lut = torch.tensor([1.7, 1.0, 0.3], device=device)
         d = device

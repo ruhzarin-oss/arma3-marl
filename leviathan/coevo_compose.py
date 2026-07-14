@@ -13,11 +13,11 @@ import formations as FORM
 
 DEV = "cuda:0"; BASE = "/home/younes/arma3-marl"
 OUT = BASE + "/leviathan/coevo_compose.pt"
-KCMD = 10; MAN = ["assaut", "defend", "hunt", "bounding"]
+KCMD = 10; MAN = ["assaut", "defend", "hunt", "bounding", "envelop"]
 
 
-class Commander(nn.Module):                          # squad_obs (6) -> (forme 15, manœuvre 4)
-    def __init__(s, sd=6, nf=15, nm=4, h=64):
+class Commander(nn.Module):                          # squad_obs (6) -> (forme 15, manœuvre 5)
+    def __init__(s, sd=6, nf=15, nm=5, h=64):
         super().__init__(); s.b = nn.Sequential(nn.Linear(sd, h), nn.Tanh(), nn.Linear(h, h), nn.Tanh())
         s.f = nn.Linear(h, nf); s.m = nn.Linear(h, nm)
     def act(s, o): h = s.b(o); return s.f(h), s.m(h)
@@ -59,14 +59,14 @@ def train_def(env, apool, dc, od, iters):
 def report(env, ac, dc):
     obsA, obsB = env.reset(); w = 0.0; nep = 0; done_once = torch.zeros(env.N, dtype=torch.bool, device=DEV)
     fh = [torch.zeros(env.n_forms, device=DEV), torch.zeros(env.n_forms, device=DEV)]
-    mh = [torch.zeros(4, device=DEV), torch.zeros(4, device=DEV)]
+    mh = [torch.zeros(env.n_maneuvers, device=DEV), torch.zeros(env.n_maneuvers, device=DEV)]
     for t in range(env.max_steps):
         if t % KCMD == 0:
             fla, mla = ac.act(env.squad_obs(0)); flb, mlb = dc.act(env.squad_obs(1))
             fa = fla.argmax(-1); maa = mla.argmax(-1); fb = flb.argmax(-1); mbb = mlb.argmax(-1)
             env.set_forms(fa, fb); env.set_maneuvers(maa, mbb)
-            fh[0] += torch.bincount(fa, minlength=env.n_forms).float(); mh[0] += torch.bincount(maa, minlength=4).float()
-            fh[1] += torch.bincount(fb, minlength=env.n_forms).float(); mh[1] += torch.bincount(mbb, minlength=4).float()
+            fh[0] += torch.bincount(fa, minlength=env.n_forms).float(); mh[0] += torch.bincount(maa, minlength=env.n_maneuvers).float()
+            fh[1] += torch.bincount(fb, minlength=env.n_forms).float(); mh[1] += torch.bincount(mbb, minlength=env.n_maneuvers).float()
         aA = repertoire_action(env, 0); aB = repertoire_action(env, 1)
         (obsA, obsB), _, done, info = env.step(aA, aB, auto_reset=False); dm = done.bool() & ~done_once
         if dm.any(): w += info["att_wins"][dm].float().sum().item(); nep += int(dm.sum())

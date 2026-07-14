@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""test_flank — l'affordance de flanc rend-elle les formes enveloppantes PAYANTES ?
-Winrate attaquant par forme, flanc OFF vs ON. Si ligne/échelon/croissant gagnent PLUS avec ON
-(vs colonne/coin serrées), le flanc récompense l'enveloppement -> le cerveau aura une raison de le choisir."""
+"""test_flank — la manœuvre d'ENVELOPPEMENT + l'affordance de flanc paient-elles ENSEMBLE ?
+Compare assaut frontal vs envelopper, flanc OFF vs ON. Si envelopper+flanc gagne nettement plus,
+la co-conception marche -> le cerveau aura une raison de déborder contre une défense frontale."""
 import sys, torch
 sys.path.insert(0, "/home/younes/arma3-marl"); sys.path.insert(0, "/home/younes/arma3-marl/leviathan")
 from duel_terrain import DuelTerrain
@@ -10,9 +10,9 @@ DEV = "cuda:0"; RP = "/home/younes/arma3-marl/replica.npz"
 
 
 @torch.no_grad()
-def wr(form, flank):
+def wr(maneuver, flank, form="ligne"):
     e = DuelTerrain(num_envs=256, A=12, B=8, a_form=form, flank=flank, replica=True, replica_path=RP, max_steps=60, device=DEV, seed=0)
-    obsA, obsB = e.reset(); e.a_maneuver = torch.zeros(e.N, dtype=torch.long, device=DEV)   # assaut
+    obsA, obsB = e.reset(); e.a_maneuver = torch.full((e.N,), maneuver, dtype=torch.long, device=DEV)   # manœuvre attaquant fixée
     w = 0.0; nep = 0; done_once = torch.zeros(e.N, dtype=torch.bool, device=DEV)
     for t in range(60):
         aA = repertoire_action(e, 0); aB = repertoire_action(e, 1)
@@ -22,9 +22,10 @@ def wr(form, flank):
     return w / max(nep, 1)
 
 
-print("=== FLANC : quelle forme paie, avec/sans l'affordance ? (winrate attaquant, def=demi_cercle) ===")
-for form in ["colonne", "coin", "ligne", "echelon_gauche", "croissant", "cercle"]:
-    off = wr(form, 0.0); on = wr(form, 2.0)
-    tag = "  <- ENVELOPPE (gagne + avec le flanc)" if on - off > 0.05 else ""
-    print("  %-14s | flanc OFF=%.2f  ON=%.2f  (%+.2f)%s" % (form, off, on, on - off, tag))
+MAN = {0: "assaut (frontal)", 4: "ENVELOPPER"}
+print("=== FLANC × MANŒUVRE : le débordement paie-t-il quand le flanc est actif ? (winrate attaquant) ===")
+for man in [0, 4]:
+    off = wr(man, 0.0); on = wr(man, 2.0)
+    tag = "  <- le flanc PAIE" if (man == 4 and on - off > 0.05) else ""
+    print("  %-18s | flanc OFF=%.2f  ON=%.2f  (%+.2f)%s" % (MAN[man], off, on, on - off, tag))
 print("FLANK_TEST_DONE")
