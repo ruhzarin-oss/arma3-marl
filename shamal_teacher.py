@@ -13,7 +13,16 @@ les 7 règles tactiques TRANSFÉRABLES de LAMBS Danger, traduites dans l'espace 
        flag use_carte) ; rule 6 s'activera là-bas, pas dans AssaultTerrain.
   7. ROMPRE LE CONTACT si débordé (doHide/doFleeing)       -> cap opposé à l'objectif
 
-Le prof fournit les cibles (obs_étudiant -> action_prof) pour le behavior cloning SHAMAL (shamal_bc.py).
+  + RÉPERTOIRE ÉTENDU (copie plus complète de LAMBS, 14/07) :
+  8. BOUNDING OVERWATCH (doGroupSuppress cycle)  -> au contact : la moitié CLOUE, l'autre BONDIT, en alternance
+  9. DÉFENDRE / TENIR (task Defend)              -> mode="defend" : tenir la position + tirer, ne pas avancer
+ 10. TRAQUER (task Hunt / doAssaultMemory)       -> mode="hunt" : cap vers l'ennemi le plus proche (mémoire = carte.py)
+
+NON traduisibles dans le sandbox grossier (= corps Arma, viendront sur Arma) : CQB (nettoyage de bâtiment),
+Garrison/Camp (occuper un bâti), Artillery, véhicules, armes statiques. Creep (avance lente) : pas de contrôle
+de vitesse dans le sim (le pas est fixe à 14m) -> non distinct de Rush ici.
+
+Le prof = le RÉPERTOIRE scripté de manœuvres. Le cerveau (co-évo) sélectionnera laquelle, comme les formes.
 Sortie : acts (N,A) long. 100% vectorisé GPU, aucun rendu, aucune physique (géométrie seule).
 """
 import math
@@ -22,8 +31,9 @@ import terrain_gpu as TG
 
 
 @torch.no_grad()
-def shamal_action(e, drop_to=1, flank=True, retreat=True):
-    """Renvoie l'action scriptée (N,A) du prof SHAMAL, en lisant l'état privilégié de l'env `e`."""
+def shamal_action(e, drop_to=1, flank=True, retreat=True, mode="assault", bounding=True):
+    """Action scriptée (N,A) du prof SHAMAL (répertoire de manœuvres). mode : assault|defend|hunt.
+    bounding=True : feu-et-mouvement en cycle au contact. Lit l'état privilégié de l'env `e`."""
     d = e.dev; N, A, D, S = e.N, e.A, e.D, e.scale
     apx, apy = e.apx, e.apy
     al = e._aalive()                                        # (N,A) attaquant vivant
@@ -42,14 +52,19 @@ def shamal_action(e, drop_to=1, flank=True, retreat=True):
     los = e._losc(e.hm, apx, apy, bx, by, S, eye_a=e._eye(), eye_b=1.7)   # (N,A) {0,1}
     engage = (los > 0.5) & (nd < e.fire_range)              # je peux tirer
 
-    # ---- règle 1 : AVANCER (cap vers l'origine) + règle 5 : FLANC (biais latéral) ----
-    th_obj = torch.atan2(-apx, -apy)                        # cap vers (0,0) (convention step : sin,cos)
-    if flank:
+    # ---- règle 1 : AVANCER (Rush=objectif / Hunt=ennemi) + règle 5 : FLANC ----
+    if mode == "hunt":                                      # TRAQUE : cap vers l'ennemi le plus proche
+        th_obj = torch.atan2(bx - apx, by - apy)
+    else:                                                   # ASSAUT / DÉFENSE : cap vers l'objectif (origine)
+        th_obj = torch.atan2(-apx, -apy)
+    if flank and mode != "defend":
         side = torch.ones(A, device=d); side[:A // 2] = -1.0
         side = side[None].expand(N, A)
         far = (nd > 2.5 * e.secure_r).float()               # l'ouverture se resserre en approchant
         th_obj = th_obj + side * (math.pi / 6.0) * far      # ±30° -> deux pointes qui convergent
     a_adv = (torch.round(th_obj / (math.pi / 4.0)) % 8).long()
+    if mode == "defend":                                    # DÉFENDRE : tenir la position, ne pas avancer
+        a_adv = torch.full((N, A), 8, dtype=torch.long, device=d)
 
     # ---- menace : nb de défenseurs vivants qui peuvent me toucher (LOS+portée), privilégié ----
     n_threat = torch.zeros(N, A, device=d)
@@ -82,6 +97,13 @@ def shamal_action(e, drop_to=1, flank=True, retreat=True):
     act = a_adv                                                     # 1+5 avancer/flanquer
     act = torch.where(cover_cond, a_cover, act)                     # 3  se couvrir
     act = torch.where(engage, a_engage, act)                        # 2+4 tirer / se baisser d'abord
+    if bounding and mode != "defend":                               # 8  BOUNDING OVERWATCH (doGroupSuppress cycle)
+        contact = engage | (n_threat > 0.5)
+        squad_contact = contact.float().mean(1, keepdim=True) > 0.3  # (N,1) escouade au contact
+        phase = (e.t // 4) % 2                                       # (N,) cycle feu <-> mouvement
+        base = (torch.arange(A, device=d)[None] % 2) == phase[:, None]   # (N,A) base de feu ce tour
+        a_bound = torch.where(base, torch.where(engage, torch.full_like(a_adv, 9), torch.full_like(a_adv, 8)), a_adv)
+        act = torch.where(squad_contact & al, a_bound, act)         # au contact : la base CLOUE, la manœuvre BONDIT
     act = torch.where(overwhelmed, a_retreat, act)                  # 7  décrocher
     act = torch.where(al, act, torch.full_like(act, 8))             # morts -> HOLD (sans effet)
     return act
@@ -106,36 +128,34 @@ def _cover_heading(e, apx, apy, S, R=45.0, steps=15):
 
 
 if __name__ == "__main__":
-    import numpy as np
+    from collections import Counter
     from assault_terrain import AssaultTerrain
     DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
     RP = "/home/younes/arma3-marl/replica.npz"
-    print("=== PROF SHAMAL : compétence vs foncer-aveugle (replica, 9v6) ===", flush=True)
+    print("=== RÉPERTOIRE PROF SHAMAL : chaque manœuvre produit-elle un comportement DISTINCT ? ===", flush=True)
 
     def mk(sd):
         return AssaultTerrain(num_envs=256, A=9, D=6, R_spawn=115.0, relief=40.0, hit=0.10,
                               shell_obs=True, team_obs=True, suffer=True, postures=True, hull=True,
                               replica=True, replica_path=RP, max_steps=60, device=DEV, seed=sd)
+    ANAME = {8: "TENIR", 9: "FEU", 10: "debout", 11: "accroupi", 12: "couché"}
 
     @torch.no_grad()
-    def ev(is_teacher):
-        e = mk(0); e.reset(); win = dk = sv = 0.0; nep = 0
+    def run(label, **kw):
+        e = mk(0); e.reset(); win = dk = 0.0; nep = 0; cnt = Counter()
         done_once = torch.zeros(e.N, dtype=torch.bool, device=DEV)
         for _ in range(70):
-            if is_teacher:
-                a = shamal_action(e)
-            else:
-                a = (torch.round(torch.atan2(-e.apx, -e.apy) / (math.pi / 4.0)) % 8).long()
+            a = shamal_action(e, **kw)
+            for k, v in Counter(a[e._aalive()].tolist()).items(): cnt[k] += v
             _, _, done, info = e.step(a, auto_reset=False); dm = done.bool() & ~done_once
-            if dm.any():
-                win += info["neutralized"][dm].float().sum().item()
-                dk += info["dkilled"][dm].float().sum().item()
-                sv += (1.0 - info["losses"][dm]).sum().item(); nep += int(dm.sum())
+            if dm.any(): win += info["neutralized"][dm].float().sum().item(); dk += info["dkilled"][dm].float().sum().item(); nep += int(dm.sum())
             done_once |= done.bool()
-        return win / max(nep, 1), dk / max(nep, 1), sv / max(nep, 1)
+        tot = sum(cnt.values()); mv = sum(cnt[k] for k in range(8))
+        parts = ["MOUV %.0f%%" % (100 * mv / tot)] + ["%s %.0f%%" % (ANAME[k], 100 * cnt[k] / tot) for k in (9, 8, 11) if cnt[k]]
+        print("  %-22s | win %.2f dkilled %.2f | %s" % (label, win / max(nep, 1), dk / max(nep, 1), ", ".join(parts)), flush=True)
 
-    w1, k1, s1 = ev(True); w0, k0, s0 = ev(False)
-    print("  prof SHAMAL : win %.3f | dkilled %.3f | survie %.3f" % (w1, k1, s1), flush=True)
-    print("  foncer      : win %.3f | dkilled %.3f | survie %.3f" % (w0, k0, s0), flush=True)
-    print("  -> le prof doit DOMINER foncer (surtout dkilled : foncer ne tire jamais)", flush=True)
+    run("assaut (bounding OFF)", mode="assault", bounding=False)
+    run("assaut + BOUNDING", mode="assault", bounding=True)
+    run("DÉFENDRE (tenir)", mode="defend")
+    run("TRAQUE (vers ennemi)", mode="hunt")
     print("SHAMAL_TEACHER_OK", flush=True)
