@@ -1,0 +1,23 @@
+=== A/B RUNNER FULL | seeds=1 rounds=15 K=4 ne=4000 A=9 D=6 rspawn=60 | test=newyork,london,lille,athens,delphi,santorini ===
+  [A seed 0] entraine+evalue (712s)
+  [B seed 0] entraine+evalue (1498s)
+
+=== RESULTATS (moyenne +- ecart-type sur 1 seed(s)) ===
+--- TEST PLAT (newyork,london,lille) ---
+  survie   : A=0.723+-0.185   B=0.657+-0.207   delta=-0.066
+  expo     : A=0.125+-0.146   B=0.135+-0.133   delta=+0.010
+  dkilled  : A=0.210+-0.054   B=0.222+-0.051   delta=+0.012
+  win      : A=0.065+-0.085   B=0.063+-0.081   delta=-0.002
+  usage postures (B) : 0.00
+--- TEST RELIEF (athens,delphi,santorini) ---
+  survie   : A=0.553+-0.242   B=0.599+-0.206   delta=+0.046
+  expo     : A=0.175+-0.108   B=0.152+-0.086   delta=-0.023
+  dkilled  : A=0.219+-0.043   B=0.231+-0.053   delta=+0.012
+  win      : A=0.041+-0.042   B=0.041+-0.043   delta=+0.000
+  usage postures (B) : 0.00
+
+=== VERDICT vs seuil PROTOCOL ===
+  survie(B-A) = -0.010  (seuil >= +0.10) : non
+  garde-fou dkilled(B)>=dkilled(A) (anti-turtle) : OUI
+  exposition(B) < exposition(A) : OUI
+  -> H1 non confirmee (ou run trop court)

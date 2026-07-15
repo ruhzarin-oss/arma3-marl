@@ -1,0 +1,35 @@
+=== TEST EMERGENT | 9 jobs (3 bras x 3 seeds), P=3 | ne=1024 rounds=18 ===
+  TRAIN=ronda,matera,positano,sarajevo  TEST(held-out)=athens,delphi,santorini
+  lance flat_none  /seed0  (0s)
+  lance flat_none  /seed1  (0s)
+  lance flat_none  /seed2  (0s)
+  FINI  flat_none  /seed2  OK  (640s)
+  lance los25_none /seed0  (640s)
+  FINI  flat_none  /seed0  OK  (645s)
+  lance los25_none /seed1  (645s)
+  FINI  flat_none  /seed1  OK  (665s)
+  lance los25_none /seed2  (665s)
+  FINI  los25_none /seed0  OK  (1380s)
+  lance emergent   /seed0  (1380s)
+  FINI  los25_none /seed1  OK  (1405s)
+  lance emergent   /seed1  (1405s)
+  FINI  los25_none /seed2  OK  (1410s)
+  lance emergent   /seed2  (1410s)
+  FINI  emergent   /seed1  OK  (2160s)
+  FINI  emergent   /seed0  OK  (2175s)
+  FINI  emergent   /seed2  OK  (2210s)
+
+=== RESULTATS (3 seeds x 3 cartes held-out) ===
+  bras        | survie         dkilled        win            expo     post  
+  flat_none   | 0.812+-0.089  0.195+-0.091  0.024+-0.029  0.032  0.00
+  los25_none  | 0.778+-0.120  0.173+-0.077  0.023+-0.031  0.037  0.00
+  emergent    | 0.798+-0.086  0.269+-0.128  0.055+-0.042  0.036  0.00
+
+=== VERDICT (emergent - baseline flat_none) ===
+  win      : +0.031
+  dkilled  : +0.074
+  survie   : -0.015
+  LOS 2.5D seul sur win : -0.001  |  EMERGENT sur win : +0.031
+  -> conclusion 4 (verticalite exige un corps physique) : NON refutee ici (meme emergent ne paie pas -> scenario statique trop faible, tester manoeuvre)
+
+total 36.8 min

@@ -33,7 +33,7 @@ def load_soldier():
     net.eval(); return net
 
 
-def mkenv(n, sd, A=9, B=9):
+def mkenv(n, sd, A=12, B=8):    # supériorité numérique attaquant (assaut ~3:2) -> matchup gagnable, anti-désengagement
     return DuelTerrain(num_envs=n, A=A, B=B, replica=True, replica_path=BASE + "/replica.npz", max_steps=60, device=DEV, seed=sd)
 
 
