@@ -44,9 +44,11 @@ def repertoire_action(env, side, close=8.0):
     if side == 0:
         sx, sy, sal = env.ax, env.ay, env._a_alive(); ex, ey, eal = env.bx, env.by, env._b_alive()
         form_idx, tmpl, spost, man = env.a_form_idx, env._tmplA, env.apost, env.a_maneuver
+        depth = getattr(env, "a_depth", None); split = getattr(env, "a_split", None)
     else:
         sx, sy, sal = env.bx, env.by, env._b_alive(); ex, ey, eal = env.ax, env.ay, env._a_alive()
         form_idx, tmpl, spost, man = env.b_form_idx, env._tmplB, env.bpost, env.b_maneuver
+        depth = getattr(env, "b_depth", None); split = getattr(env, "b_split", None)
     N, n = sx.shape; z = torch.zeros(N, device=d)
     ew = eal.float(); ews = ew.sum(1).clamp(min=1)
     ecx = (ex * ew).sum(1) / ews; ecy = (ey * ew).sum(1) / ews                    # centroïde ennemi (pour hunt)
@@ -71,12 +73,27 @@ def repertoire_action(env, side, close=8.0):
     mcx = (sx * sw).sum(1, keepdim=True) / sws2; mcy = (sy * sw).sum(1, keepdim=True) / sws2
     dirx = ecx - mcx; diry = ecy - mcy; dn = torch.sqrt(dirx * dirx + diry * diry).clamp(min=1e-3)
     perpx = -diry / dn; perpy = dirx / dn                                         # perpendiculaire à l'axe d'approche
-    fixer = (torch.arange(n, device=d)[None] % 2) == 0                            # pair = FIXEUR, impair = DÉBORDEUR
-    tgx = torch.where(fixer, ecx.expand(N, n), (ecx + perpx * 55.0).expand(N, n))  # fixeur -> ennemi ; débordeur -> flanc (ennemi + 55m perp)
-    tgy = torch.where(fixer, ecy.expand(N, n), (ecy + perpy * 55.0).expand(N, n))
+    rank = torch.arange(n, device=d).float()[None] / max(n - 1, 1)                # 0..1 = rang du soldat
+    spl = (split if split is not None else torch.full((N,), 0.5, device=d)).unsqueeze(1)   # ratio DÉBORDEURS par env
+    dep = (depth if depth is not None else torch.full((N,), 55.0, device=d)).unsqueeze(1)   # profondeur (m) par env
+    fixer = ~(rank < spl)                                                         # les 'split' premiers = DÉBORDEURS, le reste FIXE
+    flank_x = (ecx + perpx * dep).expand(N, n); flank_y = (ecy + perpy * dep).expand(N, n)   # point de flanc à 'profondeur' m
+    tgx = torch.where(fixer, ecx.expand(N, n), flank_x)                           # fixeur -> ennemi ; débordeur -> flanc
+    tgy = torch.where(fixer, ecy.expand(N, n), flank_y)
     a_env = (torch.round(torch.atan2(tgx - sx, tgy - sy) / (math.pi / 4.0)) % 8).long()
     a_env = torch.where(engaged, torch.full_like(a_env, 9), a_env)                # feu dès qu'on a une cible (le débordeur frappe le flanc)
     act = torch.where((man == 4).unsqueeze(1), a_env, act)
+    # DÉCOMPOSÉ (man==5) : 3 sous-groupes SIMULTANÉS — FIXE (feu frontal) / FLANC (déborde) / RUSH (fonce sur l'objectif vidé)
+    ff = getattr(env, "a_fix" if side == 0 else "b_fix", None); rf = getattr(env, "a_rush" if side == 0 else "b_rush", None)
+    fix_frac = (ff if ff is not None else torch.full((N,), 0.40, device=d)).unsqueeze(1)   # part FIXEURS (bas de rang)
+    rush_frac = (rf if rf is not None else torch.full((N,), 0.30, device=d)).unsqueeze(1)   # part RUSHEURS (haut de rang)
+    is_fix = rank < fix_frac; is_rush = rank >= (1.0 - rush_frac); is_flank = ~is_fix & ~is_rush
+    dtgx = torch.where(is_fix, ecx.expand(N, n), torch.where(is_rush, z.unsqueeze(1).expand(N, n), flank_x))   # RUSH -> objectif (origine)
+    dtgy = torch.where(is_fix, ecy.expand(N, n), torch.where(is_rush, z.unsqueeze(1).expand(N, n), flank_y))
+    a_dmove = (torch.round(torch.atan2(dtgx - sx, dtgy - sy) / (math.pi / 4.0)) % 8).long()
+    a_dec = torch.where(is_rush, a_dmove,                                          # RUSH : garde le mouvement (se glisse, ne s'arrête pas pour tirer)
+                        torch.where(engaged, torch.full_like(a_dmove, 9), a_dmove))   # FIXE/FLANC : tire quand engagé
+    act = torch.where((man == 5).unsqueeze(1), a_dec, act)
     # BOUNDING (man==3) : base cloue, manœuvre bondit
     phase = (env.t // 4) % 2; base = (torch.arange(n, device=d)[None] % 2) == phase[:, None]
     a_bound = torch.where(base, torch.where(engaged, torch.full_like(a_move, 9), torch.full_like(a_move, 8)), a_move)

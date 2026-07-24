@@ -15,7 +15,14 @@ class AssaultTerrain:
                  shell_obs=False, shellK=12, shell_R=60.0, suffer=False, D_min=2,
                  replica=False, replica_path="replica.npz", device="cuda:0", seed=0, postures=False, flat_los=False,
                  overwatch=False, ow_expo=0.05, hull=False, ow_dmg=0.3, ow_tofail=0.5, expose_lut=None,
-                 emergent_expo=False, death_pen=0.4, suffer_pen=1.1, win_bonus=1.0, kill_w=1.5, arma_obs=False):
+                 emergent_expo=False, death_pen=0.4, suffer_pen=1.1, win_bonus=1.0, kill_w=1.5, arma_obs=False,
+                 secure_task=False, approach_w=0.2, secure_only=False, supp_kill=1.0,
+                 def_arc=math.pi, def_line=False, def_spread=1.0, def_rline=35.0, def_rand=False, nav_around=False, flank_kill=0.0):
+        self.def_arc = def_arc   # ARC DE TIR défenseur (rad, demi-angle). π = 360° (défaut, rien ne change). Petit = front dirigé -> flanc aveugle (banc FIBUA)
+        self.def_line = def_line; self.def_spread = def_spread; self.def_rline = def_rline   # LIGNE défensive : défenseurs étalés en arc devant l'objectif (flanquable par le bout)
+        self.def_rand = def_rand   # RANDOMISE la géométrie défensive par épisode (arc/spread/rline/décentrage) -> pas de mémorisation « toujours à gauche » (condition Fable #1)
+        self.nav_around = nav_around   # NAV CONSCIENTE DES MURS : cap tapant un mur -> longe (angle libre le plus proche du but), au lieu de s'arrêter net (= doMove Arma). Dissout la tension couvert<->traversée
+        self.flank_kill = flank_kill   # FEU DE FLANC : dégâts/pas infligés à un défenseur depuis SON angle mort (il ne riposte pas) ; 0 = désactivé (mur balistique partout)
         self.N = num_envs; self.A = A; self.D = D; self.R_spawn = R_spawn
         self.terr_R = terr_R; self.terr_G = terr_G; self.relief = relief
         self.move = move; self.fire_range = fire_range; self.hit = hit; self.secure_r = secure_r
@@ -27,6 +34,11 @@ class AssaultTerrain:
             self._elevR = torch.tensor(_R["elev"].astype("float32"), device=device)
             self._solidhR = torch.tensor(_R["solidh"].astype("float32"), device=device) if "solidh" in _R.files else torch.zeros_like(self._solid)
             self._lowhR = torch.tensor(_R["lowh"].astype("float32"), device=device) if "lowh" in _R.files else torch.zeros_like(self._solid)
+            try:   # POINT 5 : DISTANCE-AU-BÂTI (transformée de distance de _solid) = un vrai signal de couvert QUI VARIE (avant : dcover=0)
+                from scipy import ndimage
+                self._dcoverR = torch.tensor(ndimage.distance_transform_edt(_R["solid"].astype("float32") < 0.5).astype("float32"), device=device)
+            except Exception:
+                self._dcoverR = None
             self.terr_G = int(_R["GS"]); self.terr_R = float(_R["W"]); self.scale = self.terr_R
             self.R_spawn = min(R_spawn, self.terr_R - 25.0)
 
@@ -36,6 +48,9 @@ class AssaultTerrain:
         self.overwatch = overwatch; self.ow_expo = ow_expo
         self.hull = hull; self.ow_dmg = ow_dmg; self.ow_tofail = ow_tofail; self.emergent_expo = emergent_expo
         self.death_pen = death_pen; self.suffer_pen = suffer_pen; self.win_bonus = win_bonus; self.kill_w = kill_w   # knobs récompense (défauts = comportement historique)
+        self.secure_task = secure_task; self.approach_w = approach_w   # TÂCHE SÉCURISER : victoire = atteindre le FOB (comme Arma), pas juste tuer par le feu ; clôture = moteur
+        self.secure_only = secure_only   # CALIBRATION Arma : la SEULE victoire = atteindre le FOB (on ne gagne PLUS en nettoyant au feu)
+        self.supp_kill = supp_kill       # efficacité du feu attaquant vs défenseurs (Arma : ~0 contre des retranchés -> forcer à CLORE)
         self.arma_obs = arma_obs   # obs ALLÉGÉE cheap-depuis-Arma (sans pente, sans coque) pour le pont SHAMAL->Arma
         self._expose_lut = torch.tensor(expose_lut if expose_lut is not None else [1.0, 0.5, 0.2], device=device)   # HULL-DOWN : profil de corps (debout/accroupi/couche) = fraction touchable
         self.n_actions = (13 if postures else 10)  # 0-7 caps, 8 HOLD, 9 SUPPRESS ; 10-12 postures (debout/accroupi/couche)
@@ -52,6 +67,8 @@ class AssaultTerrain:
             N, A, D = self.N, self.A, self.D
             self.apx = torch.zeros(N, A, device=d); self.apy = torch.zeros(N, A, device=d); self.admg = torch.zeros(N, A, device=d)
             self.dpx = torch.zeros(N, D, device=d); self.dpy = torch.zeros(N, D, device=d); self.ddmg = torch.zeros(N, D, device=d)
+            self.dface = torch.zeros(N, D, device=d)   # azimut de la FACE de chaque défenseur (arc de tir centré dessus)
+            self._dfarc = torch.full((N, 1), math.pi, device=d)   # arc de tir PAR ENV (demi-angle, rad) -> randomisable
             self.dsupp = torch.zeros(N, D, device=d); self.t = torch.zeros(N, dtype=torch.long, device=d)
             self.last_dmg_in = torch.zeros(N, self.A, device=d)
             self.posture = torch.zeros(N, A, dtype=torch.long, device=d)
@@ -60,13 +77,37 @@ class AssaultTerrain:
                 setattr(self, nm, torch.zeros(N, self.terr_G, self.terr_G, device=d))
         if self.replica:
             self.hm[idx] = self._elevR; self.cover[idx] = self._solid
-            self.slope[idx] = 0.0; self.dcover[idx] = 0.0
+            self.slope[idx] = 0.0
+            self.dcover[idx] = self._dcoverR if getattr(self, "_dcoverR", None) is not None else 0.0   # POINT 5 : vrai couvert variable
         else:
             T = TG.gen_terrain(n, self.terr_G, d, self.g, relief=self.relief)
             for nm in ("hm", "slope", "cover", "dcover"):
                 getattr(self, nm)[idx] = T[nm]
-        dang = torch.arange(self.D, device=d).float() / self.D * 2 * math.pi   # defenseurs en anneau autour de (0,0)
-        self.dpx[idx] = 12.0 * torch.cos(dang)[None]; self.dpy[idx] = 12.0 * torch.sin(dang)[None]
+        if getattr(self, "fixed_th", None) is not None:                        # AXE FIXE (carte-village dessinée : le décor est aligné sur une approche donnée)
+            th = torch.full((n,), float(self.fixed_th), device=d)
+        else:
+            th = torch.rand(n, generator=self.g, device=d) * 2 * math.pi       # AXE DE MENACE : azimut d'où vient l'escouade (calculé tôt pour orienter la défense)
+        if self.def_line:
+            # LIGNE défensive : D défenseurs étalés sur un arc ±spread AUTOUR de l'axe de menace, à rline mètres DEVANT l'objectif.
+            # L'objectif (origine) est DERRIÈRE la ligne. Chaque défenseur fait face vers l'extérieur -> contourner le BOUT = angle mort.
+            if self.def_rand:   # RANDOMISE la géométrie par env (Fable #1) : le cerveau lit le dispositif, ne mémorise pas un côté
+                arc = (40 + torch.rand(n, 1, generator=self.g, device=d) * 30) * math.pi / 180.0     # U(40°,70°)
+                spread = (10 + torch.rand(n, 1, generator=self.g, device=d) * 20) * math.pi / 180.0   # U(10°,30°)
+                rline = 30 + torch.rand(n, 1, generator=self.g, device=d) * 15                        # U(30,45) m
+                coff = (torch.rand(n, 1, generator=self.g, device=d) * 2 - 1) * (25 * math.pi / 180)  # DÉCENTRAGE U(-25°,25°) : l'escouade n'arrive pas toujours pile au centre
+            else:
+                arc = torch.full((n, 1), float(self.def_arc), device=d)
+                spread = torch.full((n, 1), float(self.def_spread), device=d)
+                rline = torch.full((n, 1), float(self.def_rline), device=d); coff = torch.zeros(n, 1, device=d)
+            center = th[:, None] + coff                                                        # (n,1) azimut du centre de la ligne
+            frac = (torch.arange(self.D, device=d).float() / max(self.D - 1, 1) - 0.5) * 2.0   # (D,) -1..1
+            daz = center + frac[None, :] * spread                                              # (n,D) azimuts étalés
+            self.dpx[idx] = rline * torch.sin(daz); self.dpy[idx] = rline * torch.cos(daz)
+            if hasattr(self, "dface"): self.dface[idx] = daz; self._dfarc[idx] = arc            # face extérieure + arc PAR ENV
+        else:
+            dang = torch.arange(self.D, device=d).float() / self.D * 2 * math.pi   # defenseurs en anneau autour de (0,0)
+            self.dpx[idx] = 12.0 * torch.cos(dang)[None]; self.dpy[idx] = 12.0 * torch.sin(dang)[None]
+            if hasattr(self, "dface"): self.dface[idx] = th[:, None]               # anneau : tous face à l'axe de menace
         if self.replica:
             for _ in range(20):
                 _dw = self._sample_solid(self.dpx[idx], self.dpy[idx]) > 0.5
@@ -80,8 +121,7 @@ class AssaultTerrain:
             nact = torch.randint(self.D_min, self.D + 1, (n,), device=d)         # nb defenseurs ACTIFS par env
             deact = (torch.arange(self.D, device=d)[None] >= nact[:, None])       # True = desactive
             self.ddmg[idx] = deact.float()                                        # desactives = deja neutralises
-        th = torch.rand(n, generator=self.g, device=d) * 2 * math.pi           # attaquants au bord, cap aleatoire
-        sx = self.R_spawn * torch.sin(th); sy = self.R_spawn * torch.cos(th); ar = torch.arange(self.A, device=d).float()
+        sx = self.R_spawn * torch.sin(th); sy = self.R_spawn * torch.cos(th); ar = torch.arange(self.A, device=d).float()   # attaquants au bord, sur l'axe de menace th
         self.apx[idx] = sx[:, None] + (ar % 2) * 6 - 3; self.apy[idx] = sy[:, None] + (ar - 1) * 6; self.admg[idx] = 0.0
         self.posture[idx] = 0
         if self.replica:
@@ -160,7 +200,8 @@ class AssaultTerrain:
         S = self.scale; al = self._aalive()
         dgx = -self.apx / S; dgy = -self.apy / S
         sl = TG.sample(self.slope, self.apx, self.apy, S) / 5.0
-        dc = TG.sample(self.dcover, self.apx, self.apy, S) / self.terr_G
+        _dcr = TG.sample(self.dcover, self.apx, self.apy, S)   # distance au bâti (cellules = m sur replica)
+        dc = (_dcr / 30.0).clamp(max=1.0) if self.arma_obs else (_dcr / self.terr_G)   # arma_obs : normalisé COMME le pont Arma (÷30 m capé)
         ex = self.dpx.unsqueeze(1) - self.apx.unsqueeze(2); ey = self.dpy.unsqueeze(1) - self.apy.unsqueeze(2)  # (N,A,D)
         BIG = torch.tensor(1e18, device=self.dev)
         ed2 = torch.where(self._dalive().unsqueeze(1), ex * ex + ey * ey, BIG); km = ed2.argmin(2)
@@ -244,13 +285,29 @@ class AssaultTerrain:
     def step(self, acts, auto_reset=True):
         d = self.dev; N, A, D = self.N, self.A, self.D; al = self._aalive().float()
         th = acts.float() * (math.pi / 4.0)                    # STEERING : actions 0-7 = caps (45 deg)
-        spd = self.move * (acts < 8).float()                   # 8 = HOLD, 9 = SUPPRESS -> pas de mouvement
-        _oax = self.apx.clone(); _oay = self.apy.clone()
-        self.apx = (self.apx + torch.sin(th) * spd * al).clamp(-self.terr_R * 0.99, self.terr_R * 0.99)
-        self.apy = (self.apy + torch.cos(th) * spd * al).clamp(-self.terr_R * 0.99, self.terr_R * 0.99)
-        if self.replica:
-            _wall = self._sample_solid(self.apx, self.apy) > 0.5
-            self.apx = torch.where(_wall, _oax, self.apx); self.apy = torch.where(_wall, _oay, self.apy)
+        moving = (acts < 8).float() * al                       # 8 = HOLD, 9 = SUPPRESS, 10-12 postures -> pas de mouvement
+        if self.replica and self.nav_around:
+            # NAV : essaie le cap, puis des déviations croissantes ; prend le 1er chemin LIBRE (destination + milieu) -> longe les murs, ne se coince pas
+            offs = torch.tensor([0., math.pi / 8, -math.pi / 8, math.pi / 4, -math.pi / 4, 3 * math.pi / 8,
+                                 -3 * math.pi / 8, math.pi / 2, -math.pi / 2, 5 * math.pi / 8, -5 * math.pi / 8], device=d)
+            cth = th.unsqueeze(-1) + offs                       # (N,A,K) caps candidats
+            cx = self.apx.unsqueeze(-1) + torch.sin(cth) * self.move; cy = self.apy.unsqueeze(-1) + torch.cos(cth) * self.move
+            mx = self.apx.unsqueeze(-1) + torch.sin(cth) * self.move * 0.5; my = self.apy.unsqueeze(-1) + torch.cos(cth) * self.move * 0.5
+            K = offs.numel()
+            free = (self._sample_solid(cx.reshape(N, -1), cy.reshape(N, -1)).reshape(N, A, K) < 0.5) & \
+                   (self._sample_solid(mx.reshape(N, -1), my.reshape(N, -1)).reshape(N, A, K) < 0.5)   # destination ET milieu libres
+            pri = offs.abs().view(1, 1, K) + (~free).float() * 1e3    # préfère la déviation MINIMALE, parmi les libres
+            sel = torch.gather(cth, -1, pri.argmin(-1, keepdim=True)).squeeze(-1)
+            go = moving * free.any(-1).float()                        # aucun chemin libre -> reste sur place
+            self.apx = (self.apx + torch.sin(sel) * self.move * go).clamp(-self.terr_R * 0.99, self.terr_R * 0.99)
+            self.apy = (self.apy + torch.cos(sel) * self.move * go).clamp(-self.terr_R * 0.99, self.terr_R * 0.99)
+        else:
+            _oax = self.apx.clone(); _oay = self.apy.clone()
+            self.apx = (self.apx + torch.sin(th) * self.move * moving).clamp(-self.terr_R * 0.99, self.terr_R * 0.99)
+            self.apy = (self.apy + torch.cos(th) * self.move * moving).clamp(-self.terr_R * 0.99, self.terr_R * 0.99)
+            if self.replica:
+                _wall = self._sample_solid(self.apx, self.apy) > 0.5
+                self.apx = torch.where(_wall, _oax, self.apx); self.apy = torch.where(_wall, _oay, self.apy)
         if self.postures:                                          # actions 10/11/12 = poser une posture (sticky)
             for pa, pv in ((10, 0), (11, 1), (12, 2)):
                 self.posture = torch.where(acts == pa, torch.full_like(self.posture, pv), self.posture)
@@ -262,15 +319,19 @@ class AssaultTerrain:
             los = self._losc(self.hm, self.apx, self.apy, bx, by, self.scale, eye_a=self._eye(), eye_b=1.7)
             dist = torch.sqrt((self.apx - self.dpx[:, di:di + 1]) ** 2 + (self.apy - self.dpy[:, di:di + 1]) ** 2)
             active = self._dalive()[:, di:di + 1].float() * (self.dsupp[:, di:di + 1] < 0.5).float()
+            if self.def_line and hasattr(self, "dface"):                 # ARC DE TIR : le défenseur ne tire que dans son cône (±_dfarc autour de sa face)
+                _ang = torch.atan2(self.apx - self.dpx[:, di:di + 1], self.apy - self.dpy[:, di:di + 1])   # azimut défenseur->attaquant
+                _adf = torch.atan2(torch.sin(_ang - self.dface[:, di:di + 1]), torch.cos(_ang - self.dface[:, di:di + 1]))   # écart à la face, wrap [-π,π]
+                active = active * (_adf.abs() <= self._dfarc).float()     # hors cône (flanc/arrière) = ne peut pas tirer (arc par env)
             inr = (dist < self.fire_range).float()
             if self.emergent_expo and self.replica:                # EXPOSITION EMERGENTE : fraction du corps touchable = geometrie (couvert deja capture par les rayons)
                 efrac = self._body_exposure(self.apx, self.apy, self._eye(), bx, by)
                 dmg_a += self.hit * efrac * inr * active
-                exposed = torch.maximum(exposed, efrac * inr * self._dalive()[:, di:di + 1].float())
+                exposed = torch.maximum(exposed, efrac * inr * active)   # exposé = vu par un défenseur qui PEUT tirer (arc inclus)
             else:
                 _exp = self._expose_lut[self.posture] if (self.postures and self.hull) else 1.0   # HULL-DOWN knob (posture basse = petite cible)
                 dmg_a += self.hit * los * inr * active * (1.0 - 0.7 * incover) * _exp
-                exposed = torch.maximum(exposed, los * inr * self._dalive()[:, di:di + 1].float())
+                exposed = torch.maximum(exposed, los * inr * active)   # exposé = vu par un défenseur qui PEUT tirer (arc inclus)
         self.last_dmg_in = (dmg_a * al).detach()
         self.last_exposed = (exposed * al).detach()   # exposition = vu par un defenseur vivant a portee
         self.admg = (self.admg + dmg_a * al).clamp(max=0.95)
@@ -282,15 +343,25 @@ class AssaultTerrain:
             los = self._losc(self.hm, self.dpx, self.dpy, bx, by, self.scale, eye_a=1.7, eye_b=self._eye()[:, ai:ai + 1])
             dist = torch.sqrt((self.dpx - self.apx[:, ai:ai + 1]) ** 2 + (self.dpy - self.apy[:, ai:ai + 1]) ** 2)
             eff = los * (dist < self.fire_range).float() * supp_act[:, ai:ai + 1].float()
-            self.dsupp = torch.maximum(self.dsupp, eff); dmg_d += 0.10 * eff   # tuer un defenseur en ~7 pas de feu
+            self.dsupp = torch.maximum(self.dsupp, eff)
+            if self.flank_kill > 0 and self.def_line and hasattr(self, "dface"):
+                # FEU DE FLANC LÉTAL : depuis l'angle mort du défenseur (hors de SON arc), l'attaquant l'abat (il ne peut pas riposter) ; frontalement = mur balistique (faible)
+                _af = torch.atan2(self.apx[:, ai:ai + 1] - self.dpx, self.apy[:, ai:ai + 1] - self.dpy)   # azimut défenseur->attaquant ai (N,D)
+                _adff = torch.atan2(torch.sin(_af - self.dface), torch.cos(_af - self.dface))
+                blind = (_adff.abs() > self._dfarc).float()                                                # attaquant dans l'angle mort du défenseur
+                dmg_d += (self.flank_kill * blind + self.supp_kill * 0.10 * (1 - blind)) * eff
+            else:
+                dmg_d += self.supp_kill * 0.10 * eff                       # feu attaquant vs def (calibré vs Arma retranché)
         self.ddmg = (self.ddmg + dmg_d).clamp(max=0.95)
         self.t = self.t + 1
         al2 = self._aalive()
         ndist = torch.sqrt(self.apx ** 2 + self.apy ** 2)
-        neutralized = ~self._dalive().any(1)                       # VICTOIRE = defenseurs neutralises PAR LE FEU
+        neutralized = ~self._dalive().any(1)                       # défenseurs neutralisés PAR LE FEU
+        took = ((ndist < self.secure_r) & al2).any(1)              # un attaquant VIVANT a atteint/sécurisé l'objectif (comme Arma)
+        win = took if self.secure_only else ((neutralized | took) if self.secure_task else neutralized)   # secure_only (calib Arma) : SEUL atteindre le FOB gagne
         wiped = ~al2.any(1)
         timeout = self.t >= self.max_steps
-        done = neutralized | wiped | timeout
+        done = win | wiped | timeout
         cur = (ndist * al2.float()).sum(1) / al2.float().sum(1).clamp(min=1) / self.scale   # dist a l'objectif (pour entrer en portee)
         losses = 1.0 - al2.float().sum(1) / self.A
         dk = (self.D - self._dalive().float().sum(1)) / self.D     # fraction defenseurs neutralises
@@ -298,16 +369,16 @@ class AssaultTerrain:
             dmg_frac = self.last_dmg_in.sum(1) / al.sum(1).clamp(min=1)    # degats RECUS -> chercher le couvert EN gardant le LOS sur l'ennemi
             rew = (self.kill_w * (dk - self._prev_dk)                       # neutraliser l'ennemi = moteur d'engagement
                    - self.ow_dmg * dmg_frac                         # encaisser COUTE (couvert/hull-down recompense)
-                   - 0.005 + neutralized.float() * self.win_bonus              # bonus victoire
-                   - self.death_pen * (wiped & ~neutralized).float()           # penalite aneantissement
-                   - self.ow_tofail * (timeout & ~neutralized).float())   # se planquer jusqu'au timeout = ECHEC (force a tuer)
+                   - 0.005 + win.float() * self.win_bonus              # bonus victoire
+                   - self.death_pen * (wiped & ~win).float()           # penalite aneantissement
+                   - self.ow_tofail * (timeout & ~win).float())   # se planquer jusqu'au timeout = ECHEC (force a tuer)
         else:
-            rew = (0.2 * (self.prev_d - cur)                           # leger shaping : se rapprocher (entrer en portee de feu)
-                   + self.kill_w * (dk - self._prev_dk)                        # RECOMPENSE = neutraliser les defenseurs au feu
-                   - 0.005 + neutralized.float() * self.win_bonus                 # bonus victoire
-                   - self.death_pen * (wiped & ~neutralized).float())             # penalite aneantissement (CMDP : pertes)
+            rew = (self.approach_w * (self.prev_d - cur)              # shaping CLÔTURE : se rapprocher (moteur en tâche sécuriser)
+                   + self.kill_w * (dk - self._prev_dk)                        # neutraliser les defenseurs au feu (réduit le feu reçu)
+                   - 0.005 + win.float() * self.win_bonus                 # bonus victoire (sécuriser OU nettoyer)
+                   - self.death_pen * (wiped & ~win).float())             # penalite aneantissement (CMDP : pertes)
         if self.suffer:
-            rew = rew - self.suffer_pen * (wiped & ~neutralized).float()   # la mort COUTE (knob suffer_pen ; total defaut -1.5)
+            rew = rew - self.suffer_pen * (wiped & ~win).float()   # la mort COUTE (knob suffer_pen ; total defaut -1.5)
         self.prev_d = cur; self._prev_dk = dk
         if self.role_obs:                                          # OFFICIER : recompense la STRUCTURE feu+mouvement
             appui = ((self.role == 0) & al2).float(); assaut = ((self.role == 1) & al2).float()
@@ -315,7 +386,7 @@ class AssaultTerrain:
             a_sup = (sup * appui).sum(1) / appui.sum(1).clamp(min=1)     # appui qui CLOUE
             a_mov = (mov * assaut).sum(1) / assaut.sum(1).clamp(min=1)   # PENDANT que l'assaut AVANCE
             rew = rew + 0.05 * a_sup * a_mov
-        info = {"neutralized": neutralized, "wiped": wiped, "losses": losses, "dkilled": dk, "exposed": self.last_exposed.sum(1) / al.sum(1).clamp(min=1)}
+        info = {"neutralized": neutralized, "took": took, "win": win, "wiped": wiped, "losses": losses, "dkilled": dk, "exposed": self.last_exposed.sum(1) / al.sum(1).clamp(min=1)}
         if auto_reset:
             self._reset(done.nonzero(as_tuple=True)[0])
         return self._obs(), rew, done.float(), info

@@ -1,0 +1,19 @@
+{
+ "kind": "bc_fsm_bonds",
+ "obs_dim": 17,
+ "n_actions": 13,
+ "A": 18,
+ "D": 12,
+ "hit": 0.18,
+ "move": 14.0,
+ "R_spawn": 140.0,
+ "secure_r": 25.0,
+ "secure_task": true,
+ "secure_only": true,
+ "supp_kill": 0.25,
+ "replica": true,
+ "arma_obs": true,
+ "teacher": "timid",
+ "iters": 800,
+ "net": "Net(256,3)"
+}

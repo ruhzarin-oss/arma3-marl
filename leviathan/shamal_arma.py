@@ -93,7 +93,7 @@ def build_obs(rows, targets, fx, fy, prev_dmg, sup_mem):
         tx, ty = targets[i]
         relx = (ax[i] - tx) / SCALE; rely = (ay[i] - ty) / SCALE     # position relative a l'objectif de l'element
         al = r[2]
-        dcov = min(r[3] / 30.0, 1.0)
+        dcov = min(r[3] / 30.0, 1.0)   # POINT 5 : couvert RÉTABLI (dist au bâti /30 capé) — le sandbox a maintenant un vrai dcover normalisé pareil, la politique l'apprend et l'utilise
         los = r[4]
         nd = min(r[5] / SCALE, 1.0)
         dmg = r[6] / 100.0
@@ -110,7 +110,7 @@ def build_obs(rows, targets, fx, fy, prev_dmg, sup_mem):
             asup = 1.0 if sup_mem[best] else 0.0
         else:
             adx = ady = asup = 0.0
-        p = int(r[8]); post = [1.0 if p == 0 else 0.0, 1.0 if p == 1 else 0.0, 1.0 if p == 2 else 0.0]
+        p = int(r[8]); post = [1.0 if p == 0 else 0.0, 1.0 if p == 1 else 0.0, 1.0 if p == 2 else 0.0]   # POINT 5 : postures RÉTABLIES
         obs.append([relx, rely, -relx, -rely, al, dcov, los, nd, suf0, suf1, adx, ady, asup, tf] + post)
     return torch.tensor(obs, dtype=torch.float32)
 

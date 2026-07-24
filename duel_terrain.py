@@ -31,7 +31,13 @@ class DuelTerrain:
         self._tmplA = FORM.templates(A, device=device); self._tmplB = FORM.templates(B, device=device)          # slots canoniques des 15 formes
         self.a_maneuver = torch.zeros(num_envs, dtype=torch.long, device=device)   # 0=assaut 1=defend 2=hunt 3=bounding (l'étage HAUT la choisit)
         self.b_maneuver = torch.zeros(num_envs, dtype=torch.long, device=device)
-        self.n_forms = len(FORM.NAMES); self.n_maneuvers = 5; self.n_actions = 13; self.obs_dim = 17; self.squad_dim = 6   # +envelopper
+        # ENVELOPPEMENT en CONTINUUM (Phase 2 : ouvrir l'espace) : profondeur du débordement (m) + ratio DÉBORDEURS, par env.
+        self.a_depth = torch.full((num_envs,), 55.0, device=device); self.b_depth = torch.full((num_envs,), 55.0, device=device)
+        self.a_split = torch.full((num_envs,), 0.5, device=device); self.b_split = torch.full((num_envs,), 0.5, device=device)
+        # DÉCOMPOSITION (man==5) : parts FIXEURS (bas de rang) et RUSHEURS (haut de rang) ; le reste = FLANC.
+        self.a_fix = torch.full((num_envs,), 0.40, device=device); self.b_fix = torch.full((num_envs,), 0.40, device=device)
+        self.a_rush = torch.full((num_envs,), 0.30, device=device); self.b_rush = torch.full((num_envs,), 0.30, device=device)
+        self.n_forms = len(FORM.NAMES); self.n_maneuvers = 6; self.n_actions = 13; self.obs_dim = 17; self.squad_dim = 6   # +envelopper +décomposé
         self._sd = 3.0
         self._eye_lut = torch.tensor([1.7, 1.0, 0.3], device=device)
         d = device
@@ -111,6 +117,22 @@ class DuelTerrain:
         """L'étage HAUT pose la manœuvre par env (0=assaut 1=defend 2=hunt 3=bounding)."""
         if a_m is not None: self.a_maneuver = a_m.long()
         if b_m is not None: self.b_maneuver = b_m.long()
+
+    def set_envelop(self, a_depth=None, b_depth=None, a_split=None, b_split=None):
+        """Paramètres de l'enveloppement (continuum) : profondeur du débordement (m) + ratio DÉBORDEURS [0,1], par env."""
+        def _v(x): return x if torch.is_tensor(x) else torch.full((self.N,), float(x), device=self.dev)
+        if a_depth is not None: self.a_depth = _v(a_depth)
+        if b_depth is not None: self.b_depth = _v(b_depth)
+        if a_split is not None: self.a_split = _v(a_split)
+        if b_split is not None: self.b_split = _v(b_split)
+
+    def set_decompose(self, a_fix=None, b_fix=None, a_rush=None, b_rush=None):
+        """Parts des sous-groupes de la manœuvre DÉCOMPOSÉE : fixeurs (bas de rang) + rusheurs (haut de rang), reste = flanc."""
+        def _v(x): return x if torch.is_tensor(x) else torch.full((self.N,), float(x), device=self.dev)
+        if a_fix is not None: self.a_fix = _v(a_fix)
+        if b_fix is not None: self.b_fix = _v(b_fix)
+        if a_rush is not None: self.a_rush = _v(a_rush)
+        if b_rush is not None: self.b_rush = _v(b_rush)
 
     def squad_obs(self, side):
         """Obs d'escouade (N,6) pour le COMMANDANT : centroïde self rel objectif, vecteur vers l'ennemi, effectifs."""
