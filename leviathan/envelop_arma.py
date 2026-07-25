@@ -77,7 +77,8 @@ def main():
     ap.add_argument("--out", default="envelop_replay.json")
     theatre.add_theatre_arg(ap)
     a = ap.parse_args(); TH = theatre.apply_theatre_arg(a)   # --theatre d'abord, PUIS on résout le FOB
-    fx, fy = [int(v) for v in (a.fob or TH.fob_str).split(",")]; sx, sy = fx, fy + 140
+    fx, fy = [int(v) for v in (a.fob or TH.fob_str).split(",")]
+    sx, sy = [int(round(v)) for v in TH.spawn_for((fx, fy))]   # départ selon l'AXE D'APPROCHE du théâtre (Stratis: nord = ancien comportement)
     b = NativeBridge(port=TH.PORT)
 
     if a.cmd == "setup":

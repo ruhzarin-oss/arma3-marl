@@ -1,0 +1,131 @@
+{
+ "world": "Altis",
+ "candidates": [
+  {
+   "nom": "Pyrgos",
+   "x": 16781,
+   "y": 12604,
+   "az": 270,
+   "frontal": 13,
+   "flanc": 46,
+   "score": 33
+  },
+  {
+   "nom": "Athira",
+   "x": 13993,
+   "y": 18709,
+   "az": 180,
+   "frontal": 18,
+   "flanc": 49,
+   "score": 31
+  },
+  {
+   "nom": "Gravia",
+   "x": 14480,
+   "y": 17614,
+   "az": 0,
+   "frontal": 21,
+   "flanc": 50,
+   "score": 29
+  },
+  {
+   "nom": "Charkia",
+   "x": 18049,
+   "y": 15264,
+   "az": 225,
+   "frontal": 24,
+   "flanc": 44,
+   "score": 20
+  },
+  {
+   "nom": "Stavros",
+   "x": 12950,
+   "y": 15042,
+   "az": 225,
+   "frontal": 15,
+   "flanc": 34,
+   "score": 19
+  },
+  {
+   "nom": "Neochori",
+   "x": 12502,
+   "y": 14337,
+   "az": 270,
+   "frontal": 6,
+   "flanc": 21,
+   "score": 15
+  },
+  {
+   "nom": "Telos",
+   "x": 16207,
+   "y": 17297,
+   "az": 45,
+   "frontal": 12,
+   "flanc": 23,
+   "score": 11
+  },
+  {
+   "nom": "Katalaki",
+   "x": 11701,
+   "y": 13672,
+   "az": 135,
+   "frontal": 14,
+   "flanc": 25,
+   "score": 11
+  },
+  {
+   "nom": "Nifi",
+   "x": 19473,
+   "y": 15454,
+   "az": 135,
+   "frontal": 2,
+   "flanc": 13,
+   "score": 11
+  },
+  {
+   "nom": "Alikampos",
+   "x": 11113,
+   "y": 14574,
+   "az": 90,
+   "frontal": 13,
+   "flanc": 24,
+   "score": 11
+  },
+  {
+   "nom": "Lakka",
+   "x": 12282,
+   "y": 15732,
+   "az": 225,
+   "frontal": 1,
+   "flanc": 11,
+   "score": 10
+  },
+  {
+   "nom": "Rodopoli",
+   "x": 18753,
+   "y": 16597,
+   "az": 45,
+   "frontal": 39,
+   "flanc": 48,
+   "score": 9
+  },
+  {
+   "nom": "Kalithea",
+   "x": 17827,
+   "y": 18129,
+   "az": 0,
+   "frontal": 7,
+   "flanc": 15,
+   "score": 8
+  },
+  {
+   "nom": "Anthrakia",
+   "x": 16584,
+   "y": 16104,
+   "az": 315,
+   "frontal": 9,
+   "flanc": 12,
+   "score": 3
+  }
+ ]
+}
