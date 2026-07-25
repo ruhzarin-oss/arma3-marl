@@ -51,6 +51,8 @@ def main():
     ap.add_argument("--out", default="intent_run.json")
     ap.add_argument("--fob", default=None)
     ap.add_argument("--markers", action="store_true", help="points live sur la carte du jeu (touche M)")
+    ap.add_argument("--cone", type=float, default=None, help="demi-angle du cône de décision, en degrés (90 = défaut, 135 = grand contournement autorisé)")
+    ap.add_argument("--w_expo", type=float, default=None, help="poids de l'exposition dans le choix du point")
     theatre.add_theatre_arg(ap)
     a = ap.parse_args(); TH = theatre.apply_theatre_arg(a)
     fx, fy = [int(v) for v in (a.fob or TH.fob_str).split(",")]
@@ -68,8 +70,15 @@ def main():
         b.send('if (!isNil "HMT_WPILOT") then { { if (!isNull _x) then { deleteVehicle _x } } forEach HMT_WPILOT }; HMT_WPILOT=[];')
         print("nettoyé"); return
 
-    # --- le plan (pour les candidats et les lignes de vue) ---
-    terr = IN.Terrain("%s/map_%s_%d_%d.json" % (LEV, TH.WORLD.lower(), TH.FOB[0], TH.FOB[1]))
+    # --- le terrain : relevé EXACT du moteur si dispo (relief + vrais obstacles), sinon plan reconstruit ---
+    terr = IN.charger_terrain(LEV, TH.WORLD, TH.FOB[0], TH.FOB[1])
+    print("terrain : %s" % ("relevé EXACT (relief + obstacles réels)" if isinstance(terr, IN.TerrainExact)
+                            else "plan reconstruit (approché)"), flush=True)
+    if a.cone:                       # ouvrir le cône = autoriser le GRAND contournement (sinon ±90° interdit le vrai flanc)
+        IN.CFG["cone"] = math.radians(a.cone)
+    if a.w_expo is not None:
+        IN.CFG["w_expo"] = a.w_expo
+    print("cône de décision ±%.0f° | poids de l'exposition %.1f" % (math.degrees(IN.CFG["cone"]), IN.CFG["w_expo"]), flush=True)
     b.send('call compile preprocessFileLineNumbers "intent_exec.sqf";'); time.sleep(0.4)
     b.send("private _es = allUnits select {side _x==east && alive _x}; "
            "{ private _e=_x; { _e reveal [_x,3] } forEach HMT_WPILOT } forEach _es; "
