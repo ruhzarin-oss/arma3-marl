@@ -6,14 +6,11 @@ Objectif : que l'ASSAUT FRONTAL casse dessus, et que seul le DÉBORDEMENT passe.
 import sys, argparse
 sys.path.insert(0, "/home/younes/arma3-marl"); sys.path.insert(0, "/home/younes/arma3-marl/leviathan")
 from native_bridge import NativeBridge
-import theatre   # THÉÂTRE : coordonnées + port du monde actif (défaut STRATIS, inchangé)
 
-ap = argparse.ArgumentParser(); ap.add_argument("--fob", default=None); ap.add_argument("--n", type=int, default=12)
+ap = argparse.ArgumentParser(); ap.add_argument("--fob", default="3253,2984"); ap.add_argument("--n", type=int, default=12)
 ap.add_argument("--skill", type=float, default=0.9)
-theatre.add_theatre_arg(ap)
-a = ap.parse_args(); TH = theatre.apply_theatre_arg(a)   # --theatre d'abord, PUIS on résout le FOB
-fx, fy = [int(v) for v in (a.fob or TH.fob_str).split(",")]
-b = NativeBridge(port=TH.PORT)
+a = ap.parse_args(); fx, fy = [int(v) for v in a.fob.split(",")]
+b = NativeBridge(port=5816)
 SP = 16 + a.n // 4          # périmètre serré (appui mutuel, feux croisés)
 sqf = ('[] spawn { HMT_FOB=[%d,%d]; if (!isNil "HMT_EAST") then { { if (!isNull _x) then { deleteVehicle _x } } forEach HMT_EAST }; HMT_EAST=[]; '
        'private _g = createGroup east; '

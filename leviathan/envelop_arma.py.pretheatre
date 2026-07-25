@@ -10,7 +10,6 @@ La caméra sort des NOMBRES (pertes, FOB pris, temps) + le replay top-down. doMo
 import sys, time, ast, math, json, argparse
 sys.path.insert(0, "/home/younes/arma3-marl"); sys.path.insert(0, "/home/younes/arma3-marl/leviathan")
 from native_bridge import NativeBridge
-import theatre   # THÉÂTRE : coordonnées + port du monde actif (défaut STRATIS, inchangé)
 
 LOAD003 = "/home/younes/Bureau/003.ar"
 
@@ -63,7 +62,7 @@ def east_positions(b, fx, fy):   # positions des défenseurs pour la caméra
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("cmd", choices=["setup", "run", "disarm"])
-    ap.add_argument("--fob", default=None); ap.add_argument("--steps", type=int, default=60)
+    ap.add_argument("--fob", default="3253,2984"); ap.add_argument("--steps", type=int, default=60)
     # A=frontal (simple), B=supfront (fixeurs + assaut FRONTAL, SANS l'angle), C=envelop (fixeurs + FLANC) -> isole suppression vs géométrie (Fable, 3 bras)
     ap.add_argument("--mode", choices=["frontal", "supfront", "envelop", "reckless"], default="envelop")
     ap.add_argument("--nag", type=int, default=18)          # nb attaquants (mêmes pour A et B)
@@ -75,10 +74,8 @@ def main():
     ap.add_argument("--smoke", action="store_true")           # écran de fumée sur l'axe (nier la détection)
     ap.add_argument("--smoke_dist", type=float, default=45.0) # distance de l'écran au FOB (m)
     ap.add_argument("--out", default="envelop_replay.json")
-    theatre.add_theatre_arg(ap)
-    a = ap.parse_args(); TH = theatre.apply_theatre_arg(a)   # --theatre d'abord, PUIS on résout le FOB
-    fx, fy = [int(v) for v in (a.fob or TH.fob_str).split(",")]; sx, sy = fx, fy + 140
-    b = NativeBridge(port=TH.PORT)
+    a = ap.parse_args(); fx, fy = [int(v) for v in a.fob.split(",")]; sx, sy = fx, fy + 140
+    b = NativeBridge(port=5816)
 
     if a.cmd == "setup":
         b.send('call compile preprocessFileLineNumbers "shamal_obs.sqf";'); time.sleep(0.3)

@@ -5,13 +5,10 @@ Un appât BLUFOR est posé à ~45m du FOB (à découvert) ; s'il prend des dég�
 import sys, time, argparse
 sys.path.insert(0, "/home/younes/arma3-marl"); sys.path.insert(0, "/home/younes/arma3-marl/leviathan")
 from native_bridge import NativeBridge
-import theatre   # THÉÂTRE : coordonnées + port du monde actif (défaut STRATIS, inchangé)
 
-ap = argparse.ArgumentParser(); ap.add_argument("--fob", default=None); ap.add_argument("--wait", type=int, default=12)
-theatre.add_theatre_arg(ap)
-a = ap.parse_args(); TH = theatre.apply_theatre_arg(a)   # --theatre d'abord, PUIS on résout le FOB
-fx, fy = [int(v) for v in (a.fob or TH.fob_str).split(",")]
-b = NativeBridge(port=TH.PORT)
+ap = argparse.ArgumentParser(); ap.add_argument("--fob", default="3253,2984"); ap.add_argument("--wait", type=int, default=12)
+a = ap.parse_args(); fx, fy = [int(v) for v in a.fob.split(",")]
+b = NativeBridge(port=5816)
 
 # état de départ : joueurs + défenseurs
 r = b.query('(format ["HARMATTAN_C0 players=%1 east=%2 alive=%3", count allPlayers, count (allUnits select {side _x==east}), count (allUnits select {side _x==east && alive _x})]) call HMT_EMIT;',
