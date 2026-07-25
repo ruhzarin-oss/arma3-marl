@@ -53,6 +53,7 @@ def main():
     ap.add_argument("--markers", action="store_true", help="points live sur la carte du jeu (touche M)")
     ap.add_argument("--cone", type=float, default=None, help="demi-angle du cône de décision, en degrés (90 = défaut, 135 = grand contournement autorisé)")
     ap.add_argument("--w_expo", type=float, default=None, help="poids de l'exposition dans le choix du point")
+    ap.add_argument("--secteur", default=None, help="FORCE le secteur d'approche (exploration) : sud, est, nord, ouest...")
     theatre.add_theatre_arg(ap)
     a = ap.parse_args(); TH = theatre.apply_theatre_arg(a)
     fx, fy = [int(v) for v in (a.fob or TH.fob_str).split(",")]
@@ -80,12 +81,16 @@ def main():
         IN.CFG["w_expo"] = a.w_expo
     print("cône de décision ±%.0f° | poids de l'exposition %.1f" % (math.degrees(IN.CFG["cone"]), IN.CFG["w_expo"]), flush=True)
     b.send('call compile preprocessFileLineNumbers "intent_exec.sqf";'); time.sleep(0.4)
+    # CONDITIONS FIXES : plein jour, ciel dégagé. De nuit les défenseurs ne voient rien et
+    # l'agent apprendrait que l'exposition ne compte pas (piège attrapé le 25/07).
+    b.send("setDate [2035, 7, 6, 12, 0]; 0 setOvercast 0; 0 setFog 0; forceWeatherChange;"); time.sleep(0.6)
     b.send("private _es = allUnits select {side _x==east && alive _x}; "
            "{ private _e=_x; { _e reveal [_x,3] } forEach HMT_WPILOT } forEach _es; "
            "{ private _w=_x; { _w reveal [_x,3] } forEach _es } forEach HMT_WPILOT;")
     time.sleep(1)
 
     agents = [IN.Agent(i) for i in range(a.nag)]
+    plans = None; expo_sect = {}
     prev_dmg = [0.0] * a.nag
     frames = []; took_tick = None; min_pen = 999.0; changements = 0; finis = {}
     print("=== INTENTIONS | %d attaquants | objectif %d,%d | %d tours ===" % (a.nag, fx, fy, a.steps), flush=True)
@@ -106,6 +111,16 @@ def main():
         vivants_idx = set(range(len(ennemis)))
         allies = [pos[i] if vivant[i] else None for i in range(n)]
 
+        # --- LA VOIX INTERNE : les plans longs, distribués une fois, tenus ensuite ---
+        if plans is None and ennemis:
+            plans, expo_sect = IN.repartir_plans(a.nag, terr, ennemis, secteur_force=a.secteur)
+            print("  carte d'exposition par secteur : %s" % ", ".join(
+                "%s %.0f%%" % (k, 100 * v[0]) for k, v in sorted(expo_sect.items(), key=lambda kv: kv[1][0])), flush=True)
+            for r in (IN.BASE_DE_FEU, IN.MANOEUVRE):
+                p = next((x for x in plans if x.role == r), None)
+                if p: print("  %-11s (%d hommes) se dit : « %s »" % (
+                    r, sum(1 for x in plans if x.role == r), p.voix), flush=True)
+
         cmds = []
         for i in range(n):
             if not vivant[i]:
@@ -115,8 +130,20 @@ def main():
             fini, raison = ag.done(step, pos[i], vivants_idx, IN.LIMITES)
             if fini:
                 finis[raison] = finis.get(raison, 0) + 1
-                kind, tgt, en = IN.prof(ag, pos[i], (0.0, 0.0), terr, ennemis,
-                                        sous_le_feu, allies, degats[i], IN.CFG)
+                # le PLAN décide vers quoi « progresser » veut dire en ce moment
+                but = (0.0, 0.0)
+                if plans and i < len(plans):
+                    av = plans[i].voix
+                    but = plans[i].but(pos[i])
+                    if plans[i].voix != av:
+                        print("  [%02d] soldat %d : « %s »" % (step, i, plans[i].voix), flush=True)
+                if but is None:                      # base de feu : tenir et appuyer, ne pas avancer
+                    vus = [k for k, e in enumerate(ennemis)
+                           if math.hypot(pos[i][0] - e[0], pos[i][1] - e[1]) < IN.CFG["portee_appui"]]
+                    kind, tgt, en = (IN.APPUYER, None, vus[0]) if vus else (IN.ABRITER, None, -1)
+                else:
+                    kind, tgt, en = IN.prof(ag, pos[i], but, terr, ennemis,
+                                            sous_le_feu, allies, degats[i], IN.CFG)
                 ag.set(kind, step, tgt, en)
                 changements += 1
                 tx = (tgt[0] + fx) if tgt else 0.0
@@ -139,6 +166,7 @@ def main():
                        "intent": [agents[i].kind if agents[i].kind is not None else -1 for i in range(n)],
                        "east": [[e[0], e[1], e[2]] for e in E],
                        "firew": [1 if agents[i].kind == IN.APPUYER else 0 for i in range(n)],
+                       "voix": [(plans[i].voix if plans and i < len(plans) else "") for i in range(n)],
                        **({"player": [round(P[0], 1), round(P[1], 1)]} if P else {})})
         nv = sum(vivant)
         if step % 5 == 0 or pen < a.secure:
@@ -156,7 +184,13 @@ def main():
 
     ef = sum(1 for e in E if e[2] > 0)
     wf = sum(1 for i in range(min(len(W), a.nag)) if W[i][2] > 0)
-    metrics = {"mode": "intentions", "nag": a.nag, "west_end": wf, "west_losses": a.nag - wf,
+    # CE QUI SERT À L'APPRENTISSAGE : le secteur choisi ET son exposition MESURÉE.
+    # C'est l'exposition qui doit être apprise, pas la direction : les défenseurs bougent d'une
+    # partie à l'autre, donc « le sud » ne veut rien dire — « 5 % d'exposition » si.
+    sect = plans[-1].secteur if plans else ""
+    metrics = {"secteur": sect, "expo_secteur": round(expo_sect.get(sect, (None, 0))[0], 3) if sect in expo_sect else None,
+               "expo_tous": {k: round(v[0], 3) for k, v in expo_sect.items()},
+               "mode": "intentions", "nag": a.nag, "west_end": wf, "west_losses": a.nag - wf,
                "east_start": len(E), "east_end": ef, "east_neutralized": len(E) - ef,
                "took": took_tick is not None, "took_tick": took_tick, "steps": len(frames),
                "min_fob_dist": round(min_pen), "decisions": changements,

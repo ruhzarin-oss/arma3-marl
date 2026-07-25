@@ -299,4 +299,93 @@ def prof(ag, pos, obj, terr, ennemis, sous_le_feu, allies_pos, degats, cfg):
 
 CFG = dict(bond=26.0, cone=math.pi / 2, w_prog=1.0, w_expo=6.0, w_couvert=0.25,
            couvert_ok=12.0, degats_repli=0.55, portee_appui=200.0, appui_proche=90.0)
+
+
+# ==================== LA VOIX INTERNE : une intention LONGUE, tenue ====================
+# Le blocage mesuré le 25/07 : un agent qui redécide à chaque geste ne peut PAS exécuter un
+# contournement. Chaque pas qui l'éloigne paraît mauvais isolément -> il fait demi-tour.
+# Le correctif : une intention LONGUE (« j'aborde par le sud ») qui PERSISTE et qui redéfinit
+# ce que « progresser » veut dire. Tant que le plan tient, avancer = se rapprocher du POINT DE
+# BASCULE du plan, pas de l'objectif final. C'est ça qui crée l'horizon.
+# La voix = la phrase que l'agent se dit. Enregistrée -> lisible dans le rejeu.
+
+BASE_DE_FEU, MANOEUVRE = "base de feu", "manœuvre"
+SECTEURS = [("nord", 0.0), ("nord-est", 45.0), ("est", 90.0), ("sud-est", 135.0),
+            ("sud", 180.0), ("sud-ouest", 225.0), ("ouest", 270.0), ("nord-ouest", 315.0)]
+
+
+def exposition_secteurs(terr, defenseurs, r_min=50.0, r_max=110.0, n=26):
+    """Pour chaque secteur autour de l'objectif : quelle part des positions y est VUE des défenseurs.
+    C'est la carte qui dit où l'on peut approcher sans se faire voir."""
+    import random as _r
+    rng = _r.Random(7)
+    out = {}
+    for nom, cap in SECTEURS:
+        vus = 0; tot = 0
+        for _ in range(n):
+            d = rng.uniform(r_min, r_max)
+            a = math.radians(cap) + rng.uniform(-0.35, 0.35)
+            px, py = d * math.sin(a), d * math.cos(a)
+            if terr.is_solid(px, py):
+                continue
+            tot += 1
+            if any(terr.los(px, py, ex, ey) for ex, ey in defenseurs):
+                vus += 1
+        out[nom] = (vus / tot if tot else 1.0, cap)
+    return out
+
+
+class Plan:
+    """L'intention LONGUE d'un agent + la phrase qu'il se dit (sa voix)."""
+
+    def __init__(self, role, secteur, cap, expo, rayon=85.0):
+        self.role = role
+        self.secteur = secteur
+        self.cap = cap
+        self.expo = expo
+        self.bascule = (rayon * math.sin(math.radians(cap)), rayon * math.cos(math.radians(cap)))
+        self.phase = "rejoindre"          # rejoindre -> assauter
+        self.voix = ""
+        self._dire()
+
+    def _dire(self):
+        if self.role == BASE_DE_FEU:
+            self.voix = "je tiens la base de feu, je couvre la manœuvre"
+        elif self.phase == "rejoindre":
+            self.voix = "je contourne par le %s (%.0f%% d'exposition), je n'assaute pas encore" % (
+                self.secteur, 100 * self.expo)
+        else:
+            self.voix = "je suis en place au %s — j'y vais, couvrez-moi" % self.secteur
+
+    def but(self, pos):
+        """Vers quoi je progresse EN CE MOMENT : le point de bascule tant que je n'y suis pas,
+        puis l'objectif. C'est ce basculement qui rend le détour « rentable » aux yeux du prof."""
+        if self.role == BASE_DE_FEU:
+            return None                    # la base de feu ne progresse pas : elle tient et tire
+        if self.phase == "rejoindre":
+            if math.hypot(pos[0] - self.bascule[0], pos[1] - self.bascule[1]) < 30.0:
+                self.phase = "assauter"; self._dire()
+            else:
+                return self.bascule
+        return (0.0, 0.0)
+
+
+def repartir_plans(n_agents, terr, defenseurs, part_feu=0.35, secteur_force=None):
+    """Distribue les plans AU DÉPART : une base de feu qui fixe, une manœuvre qui contourne
+    par le secteur le moins exposé. C'est l'annonce qui manquait (« j'y vais, couvrez-moi »)."""
+    expo = exposition_secteurs(terr, defenseurs)
+    # secteur de manœuvre = le moins vu ; on écarte l'axe d'arrivée (déjà tenu par la base de feu)
+    ordre = sorted(expo.items(), key=lambda kv: kv[1][0])
+    if secteur_force and secteur_force in expo:      # EXPLORATION : on impose le secteur au lieu de prendre le meilleur
+        nom = secteur_force; e, cap = expo[nom]
+    else:
+        nom, (e, cap) = ordre[0]
+    n_feu = max(1, int(round(n_agents * part_feu)))
+    plans = []
+    for i in range(n_agents):
+        if i < n_feu:
+            plans.append(Plan(BASE_DE_FEU, "axe d'arrivée", 0.0, expo.get("ouest", (1.0, 270.0))[0]))
+        else:
+            plans.append(Plan(MANOEUVRE, nom, cap, e))
+    return plans, expo
 LIMITES = dict(move=9, cover=3, support=5)   # en TOURS de contrôle

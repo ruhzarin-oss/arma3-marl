@@ -1,0 +1,326 @@
+[
+ {
+  "nom": "est_r1",
+  "secteur": "est",
+  "pris": false,
+  "pertes": 2,
+  "approche": 54,
+  "tick": null,
+  "expo": 0.04250797024442083
+ },
+ {
+  "nom": "est_r2",
+  "secteur": "est",
+  "pris": false,
+  "pertes": 6,
+  "approche": 57,
+  "tick": null,
+  "expo": 0.05721716514954486
+ },
+ {
+  "nom": "est_r3",
+  "secteur": "est",
+  "pris": false,
+  "pertes": 1,
+  "approche": 50,
+  "tick": null,
+  "expo": 0.10531594784353059
+ },
+ {
+  "nom": "est_r4",
+  "secteur": "est",
+  "pris": true,
+  "pertes": 0,
+  "approche": 24,
+  "tick": 47,
+  "expo": 0.05381944444444445
+ },
+ {
+  "nom": "est_r5",
+  "secteur": "est",
+  "pris": false,
+  "pertes": 2,
+  "approche": 41,
+  "tick": null,
+  "expo": 0.17976424361493124
+ },
+ {
+  "nom": "est_r6",
+  "secteur": "est",
+  "pris": false,
+  "pertes": 0,
+  "approche": 89,
+  "tick": null,
+  "expo": 0.022222222222222223
+ },
+ {
+  "nom": "nord_r1",
+  "secteur": "nord",
+  "pris": false,
+  "pertes": 0,
+  "approche": 45,
+  "tick": null,
+  "expo": 0.4527777777777778
+ },
+ {
+  "nom": "nord_r2",
+  "secteur": "nord",
+  "pris": false,
+  "pertes": 4,
+  "approche": 38,
+  "tick": null,
+  "expo": 0.06583427922814983
+ },
+ {
+  "nom": "nord_r3",
+  "secteur": "nord",
+  "pris": false,
+  "pertes": 1,
+  "approche": 59,
+  "tick": null,
+  "expo": 0.04287045666356011
+ },
+ {
+  "nom": "nord_r4",
+  "secteur": "nord",
+  "pris": true,
+  "pertes": 0,
+  "approche": 24,
+  "tick": 69,
+  "expo": 0.1988095238095238
+ },
+ {
+  "nom": "nord_r5",
+  "secteur": "nord",
+  "pris": false,
+  "pertes": 0,
+  "approche": 47,
+  "tick": null,
+  "expo": 0.08425925925925926
+ },
+ {
+  "nom": "nord_r6",
+  "secteur": "nord",
+  "pris": false,
+  "pertes": 2,
+  "approche": 50,
+  "tick": null,
+  "expo": 0.11401673640167365
+ },
+ {
+  "nom": "nordouest_r1",
+  "secteur": "nordouest",
+  "pris": false,
+  "pertes": 1,
+  "approche": 54,
+  "tick": null,
+  "expo": 0.07272727272727272
+ },
+ {
+  "nom": "nordouest_r2",
+  "secteur": "nordouest",
+  "pris": false,
+  "pertes": 5,
+  "approche": 48,
+  "tick": null,
+  "expo": 0.16579634464751958
+ },
+ {
+  "nom": "nordouest_r3",
+  "secteur": "nordouest",
+  "pris": false,
+  "pertes": 2,
+  "approche": 30,
+  "tick": null,
+  "expo": 0.18181818181818182
+ },
+ {
+  "nom": "nordouest_r4",
+  "secteur": "nordouest",
+  "pris": true,
+  "pertes": 0,
+  "approche": 23,
+  "tick": 87,
+  "expo": 0.1903409090909091
+ },
+ {
+  "nom": "nordouest_r5",
+  "secteur": "nordouest",
+  "pris": false,
+  "pertes": 3,
+  "approche": 49,
+  "tick": null,
+  "expo": 0.17925478348439072
+ },
+ {
+  "nom": "nordouest_r6",
+  "secteur": "nordouest",
+  "pris": false,
+  "pertes": 3,
+  "approche": 28,
+  "tick": null,
+  "expo": 0.00980392156862745
+ },
+ {
+  "nom": "ouest_r1",
+  "secteur": "ouest",
+  "pris": false,
+  "pertes": 2,
+  "approche": 108,
+  "tick": null,
+  "expo": 0.11897435897435897
+ },
+ {
+  "nom": "ouest_r2",
+  "secteur": "ouest",
+  "pris": false,
+  "pertes": 2,
+  "approche": 29,
+  "tick": null,
+  "expo": 0.1218014329580348
+ },
+ {
+  "nom": "ouest_r3",
+  "secteur": "ouest",
+  "pris": true,
+  "pertes": 1,
+  "approche": 23,
+  "tick": 81,
+  "expo": 0.025
+ },
+ {
+  "nom": "ouest_r4",
+  "secteur": "ouest",
+  "pris": false,
+  "pertes": 2,
+  "approche": 59,
+  "tick": null,
+  "expo": 0.24105263157894738
+ },
+ {
+  "nom": "ouest_r5",
+  "secteur": "ouest",
+  "pris": false,
+  "pertes": 3,
+  "approche": 28,
+  "tick": null,
+  "expo": 0.1298283261802575
+ },
+ {
+  "nom": "ouest_r6",
+  "secteur": "ouest",
+  "pris": false,
+  "pertes": 3,
+  "approche": 78,
+  "tick": null,
+  "expo": 0.047244094488188976
+ },
+ {
+  "nom": "sud_r1",
+  "secteur": "sud",
+  "pris": false,
+  "pertes": 4,
+  "approche": 63,
+  "tick": null,
+  "expo": 0.014976958525345621
+ },
+ {
+  "nom": "sud_r2",
+  "secteur": "sud",
+  "pris": false,
+  "pertes": 1,
+  "approche": 47,
+  "tick": null,
+  "expo": 0.1125
+ },
+ {
+  "nom": "sud_r3",
+  "secteur": "sud",
+  "pris": false,
+  "pertes": 1,
+  "approche": 62,
+  "tick": null,
+  "expo": 0.03946102021174206
+ },
+ {
+  "nom": "sud_r4",
+  "secteur": "sud",
+  "pris": false,
+  "pertes": 1,
+  "approche": 60,
+  "tick": null,
+  "expo": 0.11133200795228629
+ },
+ {
+  "nom": "sud_r5",
+  "secteur": "sud",
+  "pris": true,
+  "pertes": 2,
+  "approche": 23,
+  "tick": 47,
+  "expo": 0.05103969754253308
+ },
+ {
+  "nom": "sud_r6",
+  "secteur": "sud",
+  "pris": true,
+  "pertes": 1,
+  "approche": 24,
+  "tick": 59,
+  "expo": 0.07982583454281568
+ },
+ {
+  "nom": "sudest_r1",
+  "secteur": "sudest",
+  "pris": false,
+  "pertes": 1,
+  "approche": 27,
+  "tick": null,
+  "expo": 0.12570356472795496
+ },
+ {
+  "nom": "sudest_r2",
+  "secteur": "sudest",
+  "pris": true,
+  "pertes": 0,
+  "approche": 24,
+  "tick": 63,
+  "expo": 0.026041666666666668
+ },
+ {
+  "nom": "sudest_r3",
+  "secteur": "sudest",
+  "pris": false,
+  "pertes": 1,
+  "approche": 62,
+  "tick": null,
+  "expo": 0.06341463414634146
+ },
+ {
+  "nom": "sudest_r4",
+  "secteur": "sudest",
+  "pris": false,
+  "pertes": 2,
+  "approche": 57,
+  "tick": null,
+  "expo": 0.07515030060120241
+ },
+ {
+  "nom": "sudest_r5",
+  "secteur": "sudest",
+  "pris": false,
+  "pertes": 1,
+  "approche": 48,
+  "tick": null,
+  "expo": 0.2182182182182182
+ },
+ {
+  "nom": "sudest_r6",
+  "secteur": "sudest",
+  "pris": false,
+  "pertes": 1,
+  "approche": 54,
+  "tick": null,
+  "expo": 0.07317073170731707
+ }
+]

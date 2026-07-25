@@ -1,0 +1,254 @@
+[
+ {
+  "secteur": "sud",
+  "rep": 1,
+  "pris": false,
+  "pertes": 4,
+  "approche": 63
+ },
+ {
+  "secteur": "est",
+  "rep": 1,
+  "pris": false,
+  "pertes": 2,
+  "approche": 54
+ },
+ {
+  "secteur": "nord",
+  "rep": 1,
+  "pris": false,
+  "pertes": 0,
+  "approche": 45
+ },
+ {
+  "secteur": "ouest",
+  "rep": 1,
+  "pris": false,
+  "pertes": 2,
+  "approche": 108
+ },
+ {
+  "secteur": "sud-est",
+  "rep": 1,
+  "pris": false,
+  "pertes": 1,
+  "approche": 27
+ },
+ {
+  "secteur": "nord-ouest",
+  "rep": 1,
+  "pris": false,
+  "pertes": 1,
+  "approche": 54
+ },
+ {
+  "secteur": "sud",
+  "rep": 2,
+  "pris": false,
+  "pertes": 1,
+  "approche": 47
+ },
+ {
+  "secteur": "est",
+  "rep": 2,
+  "pris": false,
+  "pertes": 6,
+  "approche": 57
+ },
+ {
+  "secteur": "nord",
+  "rep": 2,
+  "pris": false,
+  "pertes": 4,
+  "approche": 38
+ },
+ {
+  "secteur": "ouest",
+  "rep": 2,
+  "pris": false,
+  "pertes": 2,
+  "approche": 29
+ },
+ {
+  "secteur": "sud-est",
+  "rep": 2,
+  "pris": true,
+  "pertes": 0,
+  "approche": 24
+ },
+ {
+  "secteur": "nord-ouest",
+  "rep": 2,
+  "pris": false,
+  "pertes": 5,
+  "approche": 48
+ },
+ {
+  "secteur": "sud",
+  "rep": 3,
+  "pris": false,
+  "pertes": 1,
+  "approche": 62
+ },
+ {
+  "secteur": "est",
+  "rep": 3,
+  "pris": false,
+  "pertes": 1,
+  "approche": 50
+ },
+ {
+  "secteur": "nord",
+  "rep": 3,
+  "pris": false,
+  "pertes": 1,
+  "approche": 59
+ },
+ {
+  "secteur": "ouest",
+  "rep": 3,
+  "pris": true,
+  "pertes": 1,
+  "approche": 23
+ },
+ {
+  "secteur": "sud-est",
+  "rep": 3,
+  "pris": false,
+  "pertes": 1,
+  "approche": 62
+ },
+ {
+  "secteur": "nord-ouest",
+  "rep": 3,
+  "pris": false,
+  "pertes": 2,
+  "approche": 30
+ },
+ {
+  "secteur": "sud",
+  "rep": 4,
+  "pris": false,
+  "pertes": 1,
+  "approche": 60
+ },
+ {
+  "secteur": "est",
+  "rep": 4,
+  "pris": true,
+  "pertes": 0,
+  "approche": 24
+ },
+ {
+  "secteur": "nord",
+  "rep": 4,
+  "pris": true,
+  "pertes": 0,
+  "approche": 24
+ },
+ {
+  "secteur": "ouest",
+  "rep": 4,
+  "pris": false,
+  "pertes": 2,
+  "approche": 59
+ },
+ {
+  "secteur": "sud-est",
+  "rep": 4,
+  "pris": false,
+  "pertes": 2,
+  "approche": 57
+ },
+ {
+  "secteur": "nord-ouest",
+  "rep": 4,
+  "pris": true,
+  "pertes": 0,
+  "approche": 23
+ },
+ {
+  "secteur": "sud",
+  "rep": 5,
+  "pris": true,
+  "pertes": 2,
+  "approche": 23
+ },
+ {
+  "secteur": "est",
+  "rep": 5,
+  "pris": false,
+  "pertes": 2,
+  "approche": 41
+ },
+ {
+  "secteur": "nord",
+  "rep": 5,
+  "pris": false,
+  "pertes": 0,
+  "approche": 47
+ },
+ {
+  "secteur": "ouest",
+  "rep": 5,
+  "pris": false,
+  "pertes": 3,
+  "approche": 28
+ },
+ {
+  "secteur": "sud-est",
+  "rep": 5,
+  "pris": false,
+  "pertes": 1,
+  "approche": 48
+ },
+ {
+  "secteur": "nord-ouest",
+  "rep": 5,
+  "pris": false,
+  "pertes": 3,
+  "approche": 49
+ },
+ {
+  "secteur": "sud",
+  "rep": 6,
+  "pris": true,
+  "pertes": 1,
+  "approche": 24
+ },
+ {
+  "secteur": "est",
+  "rep": 6,
+  "pris": false,
+  "pertes": 0,
+  "approche": 89
+ },
+ {
+  "secteur": "nord",
+  "rep": 6,
+  "pris": false,
+  "pertes": 2,
+  "approche": 50
+ },
+ {
+  "secteur": "ouest",
+  "rep": 6,
+  "pris": false,
+  "pertes": 3,
+  "approche": 78
+ },
+ {
+  "secteur": "sud-est",
+  "rep": 6,
+  "pris": false,
+  "pertes": 1,
+  "approche": 54
+ },
+ {
+  "secteur": "nord-ouest",
+  "rep": 6,
+  "pris": false,
+  "pertes": 3,
+  "approche": 28
+ }
+]
