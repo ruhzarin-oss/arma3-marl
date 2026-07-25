@@ -20,6 +20,25 @@ class Net(nn.Module):
     def value(self, obs): return self.v(self.body(obs)).squeeze(-1).mean(-1)
 
 
+class NetAttn(nn.Module):
+    """Critique a ATTENTION (MAAC) : valeurs par agent COUPLEES par self-attention avant moyenne.
+    Passe de moyenne de valeurs independantes a valeurs qui se regardent. Acteur inchange."""
+    def __init__(self, O, nact, hidden=512, layers=3, heads=4):
+        super().__init__()
+        body = []; din = O
+        for _ in range(layers):
+            body += [nn.Linear(din, hidden), nn.ReLU()]; din = hidden
+        self.body = nn.Sequential(*body); self.pi = nn.Linear(hidden, nact)
+        self.attn = nn.MultiheadAttention(hidden, heads, batch_first=True)
+        self.ln = nn.LayerNorm(hidden); self.v = nn.Linear(hidden, 1)
+    def a_logits(self, obs): return self.pi(self.body(obs))
+    def value(self, obs):
+        h = self.body(obs)
+        a, _ = self.attn(h, h, h)
+        h = self.ln(h + a)
+        return self.v(h).squeeze(-1).mean(-1)
+
+
 def ppo_mb(net, opt, B, lastv, cfg, dev, mb):
     b_rew, b_val, b_done = B["rew"], B["val"], B["done"]
     T, N = b_rew.shape
@@ -45,11 +64,11 @@ def ppo_mb(net, opt, B, lastv, cfg, dev, mb):
 
 def train(iters=300, envs=32768, rollout=16, lr=3e-4, gamma=0.99, gae=0.95, clip=0.2, epochs=4,
           vf=0.5, ent=0.01, hidden=512, layers=3, mb=131072, hit=0.15, kappa=0.12, tie_pen=0.15, seed=0, save="kothgpu",
-          ammo=False, ammo_max=40.0, supp_cost=3.0, ammo_regen=8.0):
+          ammo=False, ammo_max=40.0, supp_cost=3.0, ammo_regen=8.0, attn=False, heads=4):
     dev = "cuda:0"; cfg = dict(gamma=gamma, gae=gae, clip=clip, epochs=epochs, vf=vf, ent=ent)
     env = KothGPU(num_envs=envs, hit=hit, kappa=kappa, tie_pen=tie_pen, ammo=ammo, ammo_max=ammo_max, supp_cost=supp_cost, ammo_regen=ammo_regen, device=dev, seed=seed)
     C, A, O, NA = env.C, env.A, env.obs_dim, env.n_actions; obs = env.reset(); N = envs
-    nets = [Net(O, NA, hidden, layers).to(dev) for _ in range(C)]
+    nets = [(NetAttn(O, NA, hidden, layers, heads) if attn else Net(O, NA, hidden, layers)).to(dev) for _ in range(C)]
     opts = [torch.optim.Adam(nets[c].parameters(), lr=lr) for c in range(C)]
     npar = sum(p.numel() for p in nets[0].parameters()); ot = list(obs); T = rollout
     win = [torch.zeros((), device=dev) for _ in range(C)]; decs = torch.zeros((), device=dev)
@@ -100,9 +119,10 @@ if __name__ == "__main__":
     p.add_argument("--hit", type=float, default=0.15); p.add_argument("--kappa", type=float, default=0.12)
     p.add_argument("--tie_pen", type=float, default=0.15); p.add_argument("--seed", type=int, default=0)
     p.add_argument("--save", type=str, default="kothgpu")
+    p.add_argument("--attn", action="store_true"); p.add_argument("--heads", type=int, default=4)
     p.add_argument("--ammo", action="store_true"); p.add_argument("--ammo_max", type=float, default=40.0)
     p.add_argument("--supp_cost", type=float, default=3.0); p.add_argument("--ammo_regen", type=float, default=8.0)
     a = p.parse_args()
     train(iters=a.iters, envs=a.envs, rollout=a.rollout, hidden=a.hidden, layers=a.layers, mb=a.mb,
           hit=a.hit, kappa=a.kappa, tie_pen=a.tie_pen, seed=a.seed, save=a.save,
-          ammo=a.ammo, ammo_max=a.ammo_max, supp_cost=a.supp_cost, ammo_regen=a.ammo_regen)
+          ammo=a.ammo, ammo_max=a.ammo_max, supp_cost=a.supp_cost, ammo_regen=a.ammo_regen, attn=a.attn, heads=a.heads)
