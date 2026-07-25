@@ -26,7 +26,9 @@ def setup_sqf(sx, sy, fx, fy, ld, nag):   # spawn nag soldats WEST autour de (sx
             "if ((count HMT_WPILOT) mod 10 == 0) then { HMT_WG = createGroup west }; "
             "private _px=%d+(random 60)-30; private _py=%d-(random 40); "
             "private _u = HMT_WG createUnit [\"B_soldier_F\",[_px,_py,0],[],0,\"NONE\"]; "
-            "if (!isNull _u) then { _u allowDamage false; _u setPosATL [_px,_py,0]; HMT_WPILOT pushBack _u }; }; ") % (nag, sx, sy)
+            "if (!isNull _u) then { _u allowDamage false; _u setPosATL [_px,_py,0]; "
+            "_u enableSimulation true; _u enableDynamicSimulation false; "   # DÉGEL : simulé même sans joueur proche (sinon l'escouade reste inerte)
+            "HMT_WPILOT pushBack _u }; }; ") % (nag, sx, sy)
     return ("[] spawn { if (!isNil \"HMT_WPILOT\") then { { if (!isNull _x) then { deleteVehicle _x } } forEach HMT_WPILOT }; HMT_WPILOT=[]; "
             "HMT_FOB=[%d,%d]; " % (fx, fy)
             + loop + setl + "call HMT_SHAMAL_ARM; { if (!isNull _x) then { _x allowDamage true } } forEach HMT_WPILOT; "

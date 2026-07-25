@@ -1,0 +1,127 @@
+[
+ {
+  "mode": "frontal",
+  "nag": 12,
+  "west_start": 12,
+  "west_end": 12,
+  "west_losses": 0,
+  "east_start": 8,
+  "east_end": 6,
+  "east_neutralized": 2,
+  "took": true,
+  "took_tick": 44,
+  "steps": 45,
+  "min_fob_dist": 21,
+  "rings": [
+   {
+    "ring": 20,
+    "west": 0,
+    "east": 0
+   },
+   {
+    "ring": 30,
+    "west": 0,
+    "east": 0
+   },
+   {
+    "ring": 40,
+    "west": 0,
+    "east": 0
+   },
+   {
+    "ring": 50,
+    "west": 0,
+    "east": 1
+   },
+   {
+    "ring": 60,
+    "west": 0,
+    "east": 1
+   },
+   {
+    "ring": 70,
+    "west": 0,
+    "east": 0
+   },
+   {
+    "ring": 80,
+    "west": 0,
+    "east": 0
+   },
+   {
+    "ring": 90,
+    "west": 0,
+    "east": 0
+   },
+   {
+    "ring": 100,
+    "west": 0,
+    "east": 0
+   },
+   {
+    "ring": 110,
+    "west": 0,
+    "east": 0
+   }
+  ],
+  "smoke": false,
+  "smoke_grenades": 0,
+  "rep": 1,
+  "east_verified": 8
+ },
+ {
+  "mode": "reckless",
+  "nag": 12,
+  "west_start": 12,
+  "west_end": 12,
+  "west_losses": 0,
+  "east_start": 8,
+  "east_end": 6,
+  "east_neutralized": 2,
+  "took": false,
+  "took_tick": null,
+  "steps": 45,
+  "min_fob_dist": 61,
+  "rings": [
+   {
+    "ring": 60,
+    "west": 0,
+    "east": 1
+   },
+   {
+    "ring": 70,
+    "west": 0,
+    "east": 0
+   },
+   {
+    "ring": 80,
+    "west": 0,
+    "east": 0
+   },
+   {
+    "ring": 90,
+    "west": 0,
+    "east": 0
+   },
+   {
+    "ring": 100,
+    "west": 0,
+    "east": 1
+   },
+   {
+    "ring": 110,
+    "west": 0,
+    "east": 0
+   },
+   {
+    "ring": 120,
+    "west": 0,
+    "east": 0
+   }
+  ],
+  "smoke": false,
+  "smoke_grenades": 0,
+  "rep": 1,
+  "east_verified": 8
+ }
+]

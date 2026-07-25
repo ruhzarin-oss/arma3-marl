@@ -23,6 +23,7 @@ sqf = ('[] spawn { HMT_FOB=[%d,%d]; if (!isNil "HMT_EAST") then { { if (!isNull 
        'private _u = _g createUnit [_cls,[_px,_py,0],[],0,"NONE"]; '
        'if (!isNull _u) then { _u setPosATL [_px,_py,0]; _u setDir (random 360); '
        '_u disableAI "PATH"; _u setUnitPos "DOWN"; '                                              # tiennent + couchés
+       '_u enableSimulation true; _u enableDynamicSimulation false; '                             # DÉGEL : simulé même sans joueur à proximité (sinon l'IA reste inerte)
        '_u setBehaviour "COMBAT"; _u setCombatMode "RED"; _u setSkill %.2f; '                     # LAMBS reste actif (pas de disableAI FSM)
        'HMT_EAST pushBack _u }; }; '
        '(format ["HARMATTAN_EAST n=%%1", count HMT_EAST]) call HMT_EMIT; }') % (
