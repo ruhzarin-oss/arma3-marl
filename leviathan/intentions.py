@@ -23,6 +23,70 @@ AVANCER, ABRITER, APPUYER, DECROCHER = 0, 1, 2, 3
 NOMS = {AVANCER: "avancer", ABRITER: "s'abriter", APPUYER: "appuyer", DECROCHER: "décrocher"}
 
 
+class TerrainExact:
+    """Le RELEVÉ RÉEL demandé au moteur (bake_los.py) : altitude du sol + hauteur du premier obstacle,
+    case par case. Remplace la reconstruction depuis les boîtes englobantes, qui bouchait les passages
+    et ignorait le relief (à Pyrgos : 37 m de dénivelé purement et simplement absents du modèle)."""
+
+    def __init__(self, npz):
+        d = np.load(npz) if isinstance(npz, str) else npz
+        self.sol = d["sol"]; self.obs = d["obs"]
+        self.cx = float(d["cx"]); self.cy = float(d["cy"])
+        self.cell = float(d["cell"]); self.R = float(d["radius"])
+        self.N = self.sol.shape[0]
+        self.avec_hauteurs = True
+        try:
+            from scipy import ndimage
+            self.dcover = ndimage.distance_transform_edt(self.obs < 1.5) * self.cell
+        except Exception:
+            self.dcover = np.full_like(self.obs, 50.0)
+
+    def idx(self, dx, dy):
+        return int((dx + self.R) / self.cell), int((dy + self.R) / self.cell)
+
+    def _in(self, i, j):
+        return 0 <= i < self.N and 0 <= j < self.N
+
+    def is_solid(self, dx, dy):
+        """infranchissable = un obstacle de plus de 1,5 m (un muret se franchit, un mur non)"""
+        i, j = self.idx(dx, dy)
+        return not self._in(i, j) or bool(self.obs[j, i] > 1.5)
+
+    def cover_at(self, dx, dy):
+        i, j = self.idx(dx, dy)
+        return float(self.dcover[j, i]) if self._in(i, j) else 99.0
+
+    def los(self, ax, ay, bx, by, steps=28, ha=1.7, hb=1.0):
+        """Vue A->B en altitude RÉELLE : on compare la ligne de visée au sommet (sol + obstacle).
+        Le relief compte : depuis une hauteur, on voit par-dessus les toits."""
+        ia, ja = self.idx(ax, ay); ib, jb = self.idx(bx, by)
+        if not (self._in(ia, ja) and self._in(ib, jb)):
+            return False
+        za = self.sol[ja, ia] + ha
+        zb = self.sol[jb, ib] + hb
+        for k in range(1, steps):
+            t = k / float(steps)
+            i, j = self.idx(ax + (bx - ax) * t, ay + (by - ay) * t)
+            if not self._in(i, j):
+                continue
+            if self.sol[j, i] + self.obs[j, i] > za + (zb - za) * t:
+                return False
+        return True
+
+
+def charger_terrain(dossier, world, fx, fy):
+    """Prend le relevé EXACT s'il existe, sinon retombe sur le plan reconstruit."""
+    import os, glob as _g
+    p = os.path.join(dossier, "los_%s_%d_%d.npz" % (world.lower(), fx, fy))
+    if os.path.exists(p):
+        return TerrainExact(p)
+    for q in _g.glob(os.path.join(dossier, "map_*.json")):
+        m = json.load(open(q))
+        if abs(m.get("cx", 0) - fx) + abs(m.get("cy", 0) - fy) < 500:
+            return Terrain(m)
+    raise FileNotFoundError("aucun terrain pour %s [%d,%d]" % (world, fx, fy))
+
+
 class Terrain:
     """Le plan de la zone, rasterisé une fois : mur/pas mur, distance au bâti, ligne de vue."""
 
