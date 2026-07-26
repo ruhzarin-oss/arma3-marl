@@ -389,3 +389,79 @@ def repartir_plans(n_agents, terr, defenseurs, part_feu=0.35, secteur_force=None
             plans.append(Plan(MANOEUVRE, nom, cap, e))
     return plans, expo
 LIMITES = dict(move=9, cover=3, support=5)   # en TOURS de contrôle
+
+
+# ==================== LE JUGEMENT APPRIS (remplace le barème écrit à la main) ====================
+# Avant : je notais chaque point candidat avec des poids que J'AVAIS DEVINÉS (progression, exposition,
+# couvert). Maintenant l'agent demande « combien vaut la situation si je vais là ? » et prend le meilleur.
+# La valeur vient du REJEU INVERSÉ sur les parties enregistrées (valeur.py) : personne ne lui a dit
+# qu'être vu était mauvais — il l'a déduit, avec un poids 4x supérieur à tout le reste.
+
+class Valeur:
+    def __init__(self, npz):
+        d = np.load(npz)
+        self.w = d["w"]; self.mu = d["mu"]; self.sd = d["sd"]
+        self.r2 = float(d["r2_test"])
+
+    def etat(self, px, py, expo, couvert, allies, degats, intent):
+        dd = math.hypot(px, py)
+        return np.array([min(dd / 160.0, 1.5), expo, min(couvert / 30.0, 1.0),
+                         allies / 12.0, degats,
+                         1.0 if intent == AVANCER else 0.0,
+                         1.0 if intent == APPUYER else 0.0], dtype="float32")
+
+    def __call__(self, px, py, expo, couvert, allies, degats, intent=AVANCER):
+        x = (self.etat(px, py, expo, couvert, allies, degats, intent) - self.mu) / self.sd
+        return float(np.dot(np.append(x, 1.0), self.w))
+
+
+def prof_appris(ag, pos, obj, terr, ennemis, sous_le_feu, allies_pos, degats, cfg, V):
+    """Répartition des rôles (leçon du 26/07) :
+       - la VALEUR APPRISE choisit OÙ aller  -> elle sait des choses causales sur les POSITIONS
+         (être exposé, être loin du couvert, être loin de l'objectif : vrai quel que soit le joueur)
+       - les RÈGLES choisissent QUOI faire   -> la valeur n'a rien de causal sur les ACTIONS.
+    Pourquoi : entraînée sur des parties enregistrées, elle avait vu qu'« appuyer » accompagne les
+    moments difficiles et en avait conclu qu'appuyer CAUSE la difficulté. Elle a supprimé l'appui,
+    et le feu-et-mouvement s'est effondré (A/B : 2/8 prises et 1,2 perte contre 4/8 et 0,5).
+    C'est le piège classique de l'apprentissage hors ligne : la valeur apprend les HABITUDES de
+    celui qui a collecté les données, pas les lois du monde."""
+    d_obj = math.hypot(pos[0] - obj[0], pos[1] - obj[1])
+    n_allies = sum(1 for a in allies_pos if a is not None)
+
+    # 1. RÈGLE : trop abîmé -> décrocher
+    if degats > cfg["degats_repli"]:
+        cand = candidats(terr, pos, obj, dist=cfg["bond"], cone=math.pi / 2, avancer=False)
+        if cand:
+            best = max(cand, key=lambda c: V(c[0] - obj[0], c[1] - obj[1],
+                                             1.0 if expo(terr, (c[0], c[1]), ennemis) > 0 else 0.0,
+                                             c[3], n_allies, degats, AVANCER))
+            return DECROCHER, (best[0], best[1]), -1
+
+    # 2. RÈGLE : sous le feu à découvert -> se plaquer
+    if sous_le_feu and terr.cover_at(pos[0], pos[1]) > cfg["couvert_ok"]:
+        return ABRITER, None, -1
+
+    # 3. RÈGLE : un camarade est plus avancé et j'ai une cible -> je l'APPUIE
+    #    (c'est CETTE règle qui fait émerger le feu-et-mouvement — on ne la confie pas à la valeur)
+    vus = []
+    for k, e in enumerate(ennemis):
+        de = math.hypot(pos[0] - e[0], pos[1] - e[1])
+        if de < cfg["portee_appui"] and (de < cfg["appui_proche"] or terr.los(pos[0], pos[1], e[0], e[1])):
+            vus.append((k, e))
+    if vus:
+        plus_avances = sum(1 for a in allies_pos
+                           if a is not None and math.hypot(a[0] - obj[0], a[1] - obj[1]) < d_obj - 5)
+        if plus_avances >= 1:
+            k, _ = min(vus, key=lambda ke: math.hypot(ke[1][0] - pos[0], ke[1][1] - pos[1]))
+            return APPUYER, None, k
+
+    # 4. VALEUR APPRISE : puisque j'avance, OÙ ? -> le point dont la situation vaut le plus
+    cand = candidats(terr, pos, obj, dist=cfg["bond"], cone=cfg["cone"], avancer=True)
+    if not cand:
+        cand = candidats(terr, pos, obj, dist=cfg["bond"] * 0.6)
+    if cand:
+        best = max(cand, key=lambda c: V(c[0] - obj[0], c[1] - obj[1],
+                                         1.0 if expo(terr, (c[0], c[1]), ennemis) > 0 else 0.0,
+                                         c[3], n_allies, degats, AVANCER))
+        return AVANCER, (best[0], best[1]), -1
+    return ABRITER, None, -1
