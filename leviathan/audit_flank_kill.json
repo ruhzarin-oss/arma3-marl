@@ -1,0 +1,14 @@
+{
+ "bouton": "flank_kill",
+ "bas": {
+  "prise": 0.873333,
+  "pertes": 0.301667,
+  "expo": 1.227758
+ },
+ "haut": {
+  "prise": 0.88,
+  "pertes": 0.298333,
+  "expo": 1.219575
+ },
+ "verdict": "actif"
+}

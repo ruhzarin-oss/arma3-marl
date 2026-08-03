@@ -1,0 +1,14 @@
+{
+ "bouton": "supp_residuel",
+ "bas": {
+  "prise": 0.88,
+  "pertes": 0.291667,
+  "expo": 1.194822
+ },
+ "haut": {
+  "prise": 0.86,
+  "pertes": 0.35,
+  "expo": 1.363078
+ },
+ "verdict": "actif"
+}

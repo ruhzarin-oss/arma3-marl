@@ -1,0 +1,12 @@
+{
+ "bouton": "stress",
+ "bas": {
+  "prise": 0.873333,
+  "pertes": 0.301667,
+  "expo": 1.227758
+ },
+ "haut": {
+  "erreur": "stress sans champ_risque : l audace n a rien a ponderer. Elle multiplie l exposition qu on"
+ },
+ "verdict": "REFUSE"
+}

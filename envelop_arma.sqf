@@ -32,11 +32,23 @@ HMT_ENVELOP_APPLY = {
         private _u = _x; private _i = _forEachIndex;
         if (alive _u && _i < count HMT_TGTS) then {
             private _t = HMT_TGTS select _i;
-            _u setUnitPos "AUTO"; _u forceSpeed -1;
-            _u doMove [_t select 0, _t select 1, 0];
-            if ((_i < count HMT_FIRE) && {(HMT_FIRE select _i) == 1}) then {
-                private _en = HMT_WNEAR select _i;
-                if (!isNull _en) then { _u doWatch _en; _u doTarget _en; _u doSuppressiveFire _en; };
+            private _as = 0;
+            if (!isNil "HMT_ASSAUT" && {_i < count HMT_ASSAUT}) then { _as = HMT_ASSAUT select _i };
+            if (_as == 1) then {
+                // ORDRE D ASSAUT FINAL : on ne tire plus, on FRANCHIT.
+                // MESURE 2026-07-28 : doSuppressiveFire ARRETE l unite. Tout attaquant qui
+                // obtenait une ligne de vue se figeait vers 28 m et n allait jamais au bout.
+                // Le dernier bond se court, debout, sans tirer — la base de feu couvre.
+                _u setUnitPos "UP"; _u forceSpeed 100;
+                _u doWatch objNull; _u doTarget objNull;
+                _u doMove [_t select 0, _t select 1, 0];
+            } else {
+                _u setUnitPos "AUTO"; _u forceSpeed -1;
+                _u doMove [_t select 0, _t select 1, 0];
+                if ((_i < count HMT_FIRE) && {(HMT_FIRE select _i) == 1}) then {
+                    private _en = HMT_WNEAR select _i;
+                    if (!isNull _en) then { _u doWatch _en; _u doTarget _en; _u doSuppressiveFire _en; };
+                };
             };
         };
     } forEach HMT_WPILOT;

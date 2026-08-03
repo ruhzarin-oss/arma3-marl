@@ -1,0 +1,92 @@
+{
+ "reperes": {
+  "frontal": {
+   "prise": 0.20000000298023224,
+   "pertes_par_prise": 0.3500000238418579,
+   "prise_a_pertes": 0.5714285410180404,
+   "expo_par_metre": 0.024718401953577995,
+   "part_angle_mort": 0.019059117883443832,
+   "pic_croyance_canal3": 0.4734209179878235,
+   "distance_du_detour": 124.92932891845703
+  },
+  "flanc": {
+   "prise": 0.746666669845581,
+   "pertes_par_prise": 0.2544642984867096,
+   "prise_a_pertes": 2.9342688710596416,
+   "expo_par_metre": 0.01864747330546379,
+   "part_angle_mort": 0.20239275693893433,
+   "pic_croyance_canal3": 0.507817268371582,
+   "distance_du_detour": 160.3006591796875
+  }
+ },
+ "bras": {
+  "dense": [
+   {
+    "graine": 7,
+    "piste": [
+     {
+      "prise": 0.8233333826065063,
+      "pertes_par_prise": 0.13866397738456726,
+      "prise_a_pertes": 5.937615508626973,
+      "expo_par_metre": 0.035440005362033844,
+      "part_angle_mort": 0.13683952391147614,
+      "pic_croyance_canal3": 0.6558035016059875,
+      "distance_du_detour": 128.90750122070312,
+      "ronde": 30
+     },
+     {
+      "prise": 0.8833333253860474,
+      "pertes_par_prise": 0.12735849618911743,
+      "prise_a_pertes": 6.935802100508209,
+      "expo_par_metre": 0.030759297311306,
+      "part_angle_mort": 0.13641566038131714,
+      "pic_croyance_canal3": 0.7194780111312866,
+      "distance_du_detour": 129.55055236816406,
+      "ronde": 60
+     },
+     {
+      "prise": 0.8533333539962769,
+      "pertes_par_prise": 0.076171875,
+      "prise_a_pertes": 11.202735314002403,
+      "expo_par_metre": 0.05741113796830177,
+      "part_angle_mort": 0.17953725159168243,
+      "pic_croyance_canal3": 0.677789032459259,
+      "distance_du_detour": 144.31846618652344,
+      "ronde": 90
+     },
+     {
+      "prise": 0.8833333253860474,
+      "pertes_par_prise": 0.1028301864862442,
+      "prise_a_pertes": 8.590214173191377,
+      "expo_par_metre": 0.10068433731794357,
+      "part_angle_mort": 0.16078948974609375,
+      "pic_croyance_canal3": 0.7050625085830688,
+      "distance_du_detour": 141.6792449951172,
+      "ronde": 120
+     },
+     {
+      "prise": 0.89000004529953,
+      "pertes_par_prise": 0.09363295882940292,
+      "prise_a_pertes": 9.50520048096621,
+      "expo_par_metre": 0.093854159116745,
+      "part_angle_mort": 0.1634206920862198,
+      "pic_croyance_canal3": 0.7056829333305359,
+      "distance_du_detour": 142.43446350097656,
+      "ronde": 150
+     }
+    ],
+    "fin": {
+     "prise": 0.89000004529953,
+     "pertes_par_prise": 0.09363295882940292,
+     "prise_a_pertes": 9.50520048096621,
+     "expo_par_metre": 0.093854159116745,
+     "part_angle_mort": 0.1634206920862198,
+     "pic_croyance_canal3": 0.7056829333305359,
+     "distance_du_detour": 142.43446350097656,
+     "ronde": 150
+    }
+   }
+  ],
+  "conv": []
+ }
+}

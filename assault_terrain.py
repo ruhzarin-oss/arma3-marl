@@ -17,14 +17,128 @@ class AssaultTerrain:
                  overwatch=False, ow_expo=0.05, hull=False, ow_dmg=0.3, ow_tofail=0.5, expose_lut=None,
                  emergent_expo=False, death_pen=0.4, suffer_pen=1.1, win_bonus=1.0, kill_w=1.5, arma_obs=False,
                  secure_task=False, approach_w=0.2, secure_only=False, supp_kill=1.0,
-                 def_arc=math.pi, def_line=False, def_spread=1.0, def_rline=35.0, def_rand=False, nav_around=False, flank_kill=0.0):
+                 def_arc=math.pi, def_line=False, def_spread=1.0, def_rline=35.0, def_rand=False, nav_around=False, flank_kill=0.0,
+                 frein_feu=0.0, alerte=False, courbe=None, tir_par_pas=None, sec_par_pas=None, degat_par_impact=None, arc_obs=False, champ_risque=False, champ_R=35.0, stress=False, mission="assaut", arc_latence_s=None, supp_residuel=None, supp_persist=0.0, cible_unique=True):
+        # ---- COURBE N2 : LA SUPPRESSION MESUREE SUR ARMA (28/07) ----
+        # `supp_residuel` = ce qu'il RESTE de capacite de nuire sous suppression pleine.
+        # Mesure : 0.08 (cadence x0,57 x precision x0,14). None = ancien tout-ou-rien.
+        # `supp_persist` = part de la suppression reportee au pas suivant. Arma : la cadence
+        # revient a ~89 % en 2 s pour un pas de 3,28 s, donc le report est FAIBLE.
+        # UN DEFENSEUR TIRE SUR UN HOMME. Sans ca, un flanqueur isole encaisse le feu de
+        # trois defenseurs dans le meme pas de 3,28 s : pire pas 0,471 pour un seuil de
+        # mort a 0,70. Mesure du 28/07. Defaut False = ancien monde.
+        self.cible_unique = bool(cible_unique)
+        self.supp_residuel = supp_residuel
+        self.supp_persist = float(supp_persist)
+        if supp_residuel is not None and not (0.0 <= supp_residuel <= 1.0):
+            raise ValueError("supp_residuel est une fraction de capacite de nuire : 0.08 mesure sur Arma")
+        if not (0.0 <= self.supp_persist < 1.0):
+            raise ValueError("supp_persist est une fraction reportee : 0 = aucune persistance")
+
+        # ---- COURBE DE TOUCHER MESUREE SUR ARMA (chantier 1) ----
+        # Avant : hit=0.06 partout, plus rien au-dela de fire_range. Une falaise la ou Arma
+        # a une pente — donc un monde ou se rapprocher ne coute rien, ou manoeuvrer ne peut
+        # PAS avoir de sens. C'est ce parametre qui a refuse de transferer trois fois.
+        #
+        # LA CONVERSION N'EST PAS UN DETAIL : Arma compte en SECONDES et en BALLES, le
+        # sandbox en PAS. Passer de l'un a l'autre demande deux grandeurs qu'on ne doit
+        # surtout pas choisir :
+        #   sec_par_pas = duree reelle d'un pas de sandbox (move / vitesse mesuree sur Arma)
+        #   tir_par_pas = balles tirees par un defenseur pendant un pas (mesure sur Arma)
+        # Elles sont exposees ici, VIDES par defaut, en attente de leur mesure. Fournir une
+        # courbe sans elles leve une erreur : mieux vaut un arret qu'un chiffre invente.
+        self.courbe = None
+        self.tir_par_pas = tir_par_pas
+        self.sec_par_pas = sec_par_pas
+        self.degat_par_impact = degat_par_impact
+        # ARC PERCU : l'agent voit-il OU REGARDE le defenseur le plus proche ?
+        # Sans ca, son observation est identique dans l'angle mort et dans la ligne
+        # de mire — seuls les degats different. Il ne peut pas contourner ce qu'il
+        # ne percoit pas. Defaut False = comportement historique inchange.
+        self.arc_obs = arc_obs
+        # CHAMP DE RISQUE : le PRIX du terrain dans les 8 directions, a champ_R metres.
+        # Mesure : l agent contourne a 132 m quand le crochet le fait a 184 m — il
+        # manoeuvre au tarif fort faute de savoir, de loin, ou est le couloir bon marche.
+        self.champ_risque = champ_risque; self.champ_R = champ_R
+        # AXE DU STRESS : l audace divise le prix percu du terrain. Le seul mecanisme
+        # de SIROCCO qui fasse ENTRER — sans lui le systeme ne sait que se proteger.
+        self.stress = stress; self.etat = None
+        # ARC DYNAMIQUE : le defenseur se REORIENTE vers la menace apres une latence
+        # mesuree sur Arma (~3 s, soit un pas). Sans ca le cone est un mur permanent,
+        # et le flanc gagne pour une raison que le vrai jeu n a pas.
+        self.arc_latence_s = arc_latence_s
+        self.arc_latence_pas = None
+        if arc_latence_s is not None:
+            if sec_par_pas is None:
+                raise ValueError("arc_latence_s sans sec_par_pas : la latence est en "
+                                 "SECONDES, un pas n a de duree que si on la mesure.")
+            self.arc_latence_pas = max(1, int(round(float(arc_latence_s) / float(sec_par_pas))))
+        if stress:
+            if not champ_risque:
+                raise ValueError("stress sans champ_risque : l audace n a rien a ponderer. "
+                                 "Elle multiplie l exposition qu on accepte de payer ; sans "
+                                 "champ, ce prix n existe pas dans l observation.")
+            if sec_par_pas is None:
+                raise ValueError("stress sans sec_par_pas : les demi-vies hormonales sont "
+                                 "en SECONDES. Meme regle que le reste.")
+            from sirocco_etat import EtatGlobal
+            self.etat = EtatGlobal(num_envs, device, mission=mission, sec_par_pas=sec_par_pas)
+        if courbe is not None:
+            import json as _json
+            _c = courbe if isinstance(courbe, dict) else _json.load(open(courbe))
+            if _c.get('alertes'):
+                raise ValueError('courbe REFUSEE par son propre verificateur : %s' % _c['alertes'])
+            if tir_par_pas is None or degat_par_impact is None:
+                raise ValueError('courbe fournie sans tir_par_pas / degat_par_impact : '
+                                 'ces conversions doivent etre MESUREES sur Arma, pas devinees')
+            _d = [float(x) for x in _c['distances']]
+            _t = [[_c['pct_au_but'][str(int(dd))][pi] / 100.0 for dd in _d]
+                  for pi in range(len(_c['postures']))]
+            self._c_dist = torch.tensor(_d, device=device)
+            self._c_p = torch.tensor(_t, device=device)   # [posture, distance] : proba PAR BALLE
+            self.courbe = _c
         self.def_arc = def_arc   # ARC DE TIR défenseur (rad, demi-angle). π = 360° (défaut, rien ne change). Petit = front dirigé -> flanc aveugle (banc FIBUA)
         self.def_line = def_line; self.def_spread = def_spread; self.def_rline = def_rline   # LIGNE défensive : défenseurs étalés en arc devant l'objectif (flanquable par le bout)
+        # GARDE-FOU (2026-07-28) : def_rand TIRE arc/spread/rline au hasard et IGNORE les
+        # valeurs passees. Trois bancs ont tourne des semaines en croyant piloter un arc fixe.
+        # On refuse desormais le silence : soit on randomise, soit on regle, jamais les deux.
+        if def_rand:
+            _forces = []
+            if abs(float(def_arc) - math.pi) > 1e-9:  _forces.append("def_arc")
+            if abs(float(def_spread) - 1.0) > 1e-9:   _forces.append("def_spread")
+            if abs(float(def_rline) - 35.0) > 1e-9:   _forces.append("def_rline")
+            if _forces:
+                import warnings
+                warnings.warn(
+                    "def_rand=True IGNORE " + ", ".join(_forces) + " : la geometrie defensive "
+                    "est tiree au hasard par episode. Passer def_rand=False pour que ces "
+                    "valeurs soient reellement appliquees.", RuntimeWarning, stacklevel=2)
         self.def_rand = def_rand   # RANDOMISE la géométrie défensive par épisode (arc/spread/rline/décentrage) -> pas de mémorisation « toujours à gauche » (condition Fable #1)
         self.nav_around = nav_around   # NAV CONSCIENTE DES MURS : cap tapant un mur -> longe (angle libre le plus proche du but), au lieu de s'arrêter net (= doMove Arma). Dissout la tension couvert<->traversée
         self.flank_kill = flank_kill   # FEU DE FLANC : dégâts/pas infligés à un défenseur depuis SON angle mort (il ne riposte pas) ; 0 = désactivé (mur balistique partout)
         self.N = num_envs; self.A = A; self.D = D; self.R_spawn = R_spawn
         self.terr_R = terr_R; self.terr_G = terr_G; self.relief = relief
+        # FREIN SOUS LE FEU (2026-07-30). Defaut 0 = comportement historique, non regressif.
+        # Constat : chez le juge externe, les hommes MEURENT EN CHEMIN, partout entre 60 et
+        # 130 m, ecart-type de la distance d arret 15 m. Ici la vitesse ne dependait que de
+        # l action — jamais du feu recu. Le gymnase etait donc structurellement incapable
+        # de representer une halte sous le feu, et annoncait 94,6 % la ou le juge donne 0 %.
+        # Ce coefficient se calibre SUR L ISSUE, pas au jugement.
+        # MODELE D ALERTE MESURE SUR ARMA (2026-07-30, CRITERES_ALERTE_GYM 417252605cfd14d1).
+        # Le gymnase modelisait la visibilite par un CONE DE CAMERA : vu a l infini dans l arc,
+        # invisible en dehors. Contourner rendait donc litteralement invisible, d ou 96 % de
+        # reussite au debordement quand le juge externe en donne 0 %.
+        # Arma dit l inverse : on voit a 60 m DANS TOUTES LES DIRECTIONS, rien au-dela de 100 m.
+        #   detection passive : 4,00 a 30 m | 1,72 a 60 m | 0,00 a partir de 100 m
+        #   trois tirs depuis l invisibilite : +1,50 sur TOUT LE GROUPE en 3 s
+        #   aucune decroissance en 300 s -> l alerte se depense, elle ne se recupere jamais
+        self.alerte = bool(alerte)
+        self.ALERTE_MAX = 4.0
+        self.ALERTE_PAR_TIR = 0.5      # 1,50 mesure pour trois tirs
+        self.R_VUE_PLEINE = 30.0       # 4,00 mesure
+        self.R_VUE_NULLE = 100.0       # 0,00 mesure
+        self.frein_feu = float(frein_feu)
+        self._frein_pret = False   # last_exposed n existe qu apres le premier pas
         self.move = move; self.fire_range = fire_range; self.hit = hit; self.secure_r = secure_r
         self.max_steps = max_steps; self.dmg_dead = dmg_dead; self.dev = device; self.scale = terr_R
         self.replica = replica
@@ -67,10 +181,15 @@ class AssaultTerrain:
             N, A, D = self.N, self.A, self.D
             self.apx = torch.zeros(N, A, device=d); self.apy = torch.zeros(N, A, device=d); self.admg = torch.zeros(N, A, device=d)
             self.dpx = torch.zeros(N, D, device=d); self.dpy = torch.zeros(N, D, device=d); self.ddmg = torch.zeros(N, D, device=d)
+            self.d_attente = torch.zeros(N, D, device=d)   # pas ecoules depuis qu une menace hors cone est perceptible
+            self.d_ouvert = torch.zeros(N, D, dtype=torch.bool, device=d)   # sursis ecoule -> le cone ne restreint plus
             self.dface = torch.zeros(N, D, device=d)   # azimut de la FACE de chaque défenseur (arc de tir centré dessus)
             self._dfarc = torch.full((N, 1), math.pi, device=d)   # arc de tir PAR ENV (demi-angle, rad) -> randomisable
             self.dsupp = torch.zeros(N, D, device=d); self.t = torch.zeros(N, dtype=torch.long, device=d)
             self.last_dmg_in = torch.zeros(N, self.A, device=d)
+            # UN SEUL compteur par groupe defenseur : la propagation mesuree est
+            # instantanee et totale, les quatre defenseurs alertes en trois secondes.
+            self.alerte_niv = torch.zeros(N, device=d)
             self.posture = torch.zeros(N, A, dtype=torch.long, device=d)
             self.prev_d = torch.zeros(N, device=d)
             for nm in ("hm", "slope", "cover", "dcover"):
@@ -117,6 +236,9 @@ class AssaultTerrain:
                 self.dpx[idx] = torch.where(_dw, (self.dpx[idx] + _jx).clamp(-self.terr_R * 0.95, self.terr_R * 0.95), self.dpx[idx])
                 self.dpy[idx] = torch.where(_dw, (self.dpy[idx] + _jy).clamp(-self.terr_R * 0.95, self.terr_R * 0.95), self.dpy[idx])
         self.ddmg[idx] = 0.0; self.dsupp[idx] = 0.0
+        if hasattr(self, "d_attente"): self.d_attente[idx] = 0.0
+        if hasattr(self, "d_ouvert"): self.d_ouvert[idx] = False
+        if getattr(self, "etat", None) is not None: self.etat.reset(idx)
         if self.suffer:
             nact = torch.randint(self.D_min, self.D + 1, (n,), device=d)         # nb defenseurs ACTIFS par env
             deact = (torch.arange(self.D, device=d)[None] >= nact[:, None])       # True = desactive
@@ -124,6 +246,8 @@ class AssaultTerrain:
         sx = self.R_spawn * torch.sin(th); sy = self.R_spawn * torch.cos(th); ar = torch.arange(self.A, device=d).float()   # attaquants au bord, sur l'axe de menace th
         self.apx[idx] = sx[:, None] + (ar % 2) * 6 - 3; self.apy[idx] = sy[:, None] + (ar - 1) * 6; self.admg[idx] = 0.0
         self.posture[idx] = 0
+        if hasattr(self, 'alerte_niv'):
+            self.alerte_niv[idx] = 0.0
         if self.replica:
             for _ in range(10):
                 _w = self._sample_solid(self.apx[idx], self.apy[idx]) > 0.5
@@ -139,6 +263,101 @@ class AssaultTerrain:
         self._prev_dk[idx] = (self.ddmg[idx] >= self.dmg_dead).float().sum(1) / self.D; self.last_supp[idx] = 0.0
 
     def reset(self): return self._obs()
+    def _p_balle(self, dist, posture=None):
+        """Probabilite de toucher PAR BALLE a une distance quelconque, interpolee dans la
+        courbe Arma. Au-dela de la derniere distance mesuree on prolonge la derniere pente
+        jusqu'a zero : on n'invente pas de palier, et on ne remet pas de falaise."""
+        d = self._c_dist
+        plat = dist.reshape(-1)
+        i = torch.clamp(torch.searchsorted(d, plat.contiguous()), 1, len(d) - 1)
+        d0 = d[i - 1]; d1 = d[i]
+        f = ((plat - d0) / (d1 - d0)).clamp(0.0, 1.0)
+        if posture is None:
+            p0 = self._c_p[0][i - 1]; p1 = self._c_p[0][i]
+        else:
+            rows = self._c_p.index_select(0, posture.reshape(-1).long())
+            p0 = rows.gather(1, (i - 1).unsqueeze(1)).squeeze(1)
+            p1 = rows.gather(1, i.unsqueeze(1)).squeeze(1)
+        out = p0 + (p1 - p0) * f
+        au_dela = plat > d[-1]
+        if bool(au_dela.any()):
+            pente = ((self._c_p[..., -2] - self._c_p[..., -1]).clamp(min=0.0).max()
+                     / (d[-1] - d[-2]))
+            out = torch.where(au_dela, (out - pente * (plat - d[-1])).clamp(min=0.0), out)
+        return out.reshape(dist.shape)
+
+    def _champ_danger(self, K=8):
+        """Pour chacune des K directions : le danger qu on subirait a champ_R metres de la.
+        On somme, sur les defenseurs VIVANTS, la probabilite de toucher a cette distance,
+        filtree par la ligne de vue et par l arc de tir. C est le PRIX du terrain — pas
+        une consigne : le moins cher est toujours de fuir, l arbitrage reste a l agent."""
+        N, A, D = self.N, self.A, self.D; S = self.scale
+        th = torch.arange(K, device=self.dev).float() * (2.0 * math.pi / K)
+        cx = (self.apx.unsqueeze(-1) + torch.sin(th) * self.champ_R).reshape(N, A * K)
+        cy = (self.apy.unsqueeze(-1) + torch.cos(th) * self.champ_R).reshape(N, A * K)
+        danger = torch.zeros(N, A * K, device=self.dev)
+        eye = self._eye()
+        eye_c = eye.unsqueeze(-1).expand(N, A, K).reshape(N, A * K) if torch.is_tensor(eye) else eye
+        for di in range(D):
+            bx = self.dpx[:, di:di + 1].expand(N, A * K); by = self.dpy[:, di:di + 1].expand(N, A * K)
+            vivant = self._dalive()[:, di:di + 1].float()
+            los = self._losc(self.hm, cx, cy, bx, by, S, eye_a=eye_c, eye_b=1.7)
+            dist = torch.sqrt((cx - bx) ** 2 + (cy - by) ** 2)
+            act = vivant.expand(N, A * K).clone()
+            if self.def_line and hasattr(self, "dface"):        # hors du cone = ne peut pas tirer
+                _ang = torch.atan2(cx - bx, cy - by)
+                _adf = torch.atan2(torch.sin(_ang - self.dface[:, di:di + 1]),
+                                   torch.cos(_ang - self.dface[:, di:di + 1]))
+                act = act * (_adf.abs() <= self._dfarc).float()
+            if self.courbe is not None:
+                p = self._p_balle(dist) * self.tir_par_pas * self.degat_par_impact
+            else:
+                p = self.hit * (dist < self.fire_range).float()
+            danger = danger + p * los * act
+        return danger.reshape(N, A, K)
+
+    def _p_norm(self, dist):
+        """Prix d'etre vu a cette distance, ramene a [0,1] par le maximum de la courbe.
+        C'est ce qui remplace le drapeau « a portee ou non » : etre vu a 200 m coute
+        vraiment moins qu'a 25 m, mais ce n'est pas GRATUIT. Le rapport vient de la
+        mesure Arma (0,26 au but a 200 m contre 0,75 a 25 m), pas d'un seuil choisi."""
+        if not hasattr(self, "_p_ref"):
+            self._p_ref = float(self._c_p.max())
+        return (self._p_balle(dist) / max(self._p_ref, 1e-6)).clamp(0.0, 1.0)
+
+    def _ouvrir_arcs(self):
+        """Le cone ne tourne pas : il s'OUVRE apres la latence mesuree.
+
+        Mesure Arma : le defenseur riposte a 100 % a tous les angles, mais 4 s plus tard
+        quand la menace vient du flanc ou du dos — ET SANS PIVOTER (il n'est jamais venu a
+        moins de 25 deg de son attaquant). L'angle mort n'est donc ni une protection ni une
+        rotation : c'est un SURSIS.
+
+        Tant qu'une menace hors cone est percue, on compte les pas. La latence ecoulee, le
+        defenseur tire normalement — l'arc cesse de restreindre. Il se referme quand plus
+        aucune menace n'est percue.
+        """
+        if self.arc_latence_pas is None or not hasattr(self, "dface"):
+            return
+        N, A, D = self.N, self.A, self.D; S = self.scale
+        ex = self.apx.unsqueeze(2) - self.dpx.unsqueeze(1)      # (N,A,D)
+        ey = self.apy.unsqueeze(2) - self.dpy.unsqueeze(1)
+        d2 = ex * ex + ey * ey
+        BIG = torch.tensor(1e18, device=self.dev)
+        d2 = torch.where(self._aalive().unsqueeze(2), d2, BIG)
+        ka = d2.argmin(1)                                        # (N,D) l'attaquant le plus proche
+        ax = torch.gather(self.apx, 1, ka); ay = torch.gather(self.apy, 1, ka)
+        los = self._losc(self.hm, self.dpx, self.dpy, ax, ay, S, eye_a=1.7, eye_b=1.7)
+        proche = (d2.min(1).values.clamp(max=1e17).sqrt() < self.fire_range)
+        percue = (los > 0.5) & proche & self._dalive()
+        az = torch.atan2(ax - self.dpx, ay - self.dpy)
+        ecart = torch.atan2(torch.sin(az - self.dface), torch.cos(az - self.dface)).abs()
+        dehors = percue & (ecart > self._dfarc)
+        # le compteur monte tant que la menace hors cone est la, retombe sinon
+        self.d_attente = torch.where(dehors, self.d_attente + 1.0, torch.zeros_like(self.d_attente))
+        # l'arc est OUVERT quand le sursis est ecoule, et se referme sans menace percue
+        self.d_ouvert = (self.d_attente >= self.arc_latence_pas) & percue
+
     def _aalive(self): return self.admg < self.dmg_dead
     def _dalive(self): return self.ddmg < self.dmg_dead
     def _eye(self):
@@ -213,6 +432,19 @@ class AssaultTerrain:
         else:
             base = torch.stack([self.apx / S, self.apy / S, dgx, dgy, al.float(), sl, dc, los, nd], dim=2)
         parts = [base]
+        if self.champ_risque:
+            _cd = self._champ_danger()
+            if self.etat is not None:
+                # audace > 1 : le meme terrain parait moins cher, donc on entre.
+                _cd = _cd / self.etat.audace().view(-1, 1, 1).clamp(min=1e-3)
+            parts.append(_cd)
+        if self.arc_obs and hasattr(self, "dface"):
+            # angle entre la FACE du defenseur le plus proche et la direction sous
+            # laquelle il me voit. 0 = il me regarde en face ; +-pi = je suis dans son dos.
+            _df = torch.gather(self.dface, 1, km)
+            _az = torch.atan2(self.apx - bx, self.apy - by)      # azimut defenseur -> moi
+            _rel = torch.atan2(torch.sin(_az - _df), torch.cos(_az - _df))
+            parts.append(torch.stack([torch.sin(_rel), torch.cos(_rel)], dim=2))
         if self.shell_obs: parts.append(self._cover_shell())
         if self.suffer: parts.append(self._suffer_feats())
         if self.grid_obs: parts.append(self._local_grid())
@@ -303,6 +535,11 @@ class AssaultTerrain:
             self.apy = (self.apy + torch.cos(sel) * self.move * go).clamp(-self.terr_R * 0.99, self.terr_R * 0.99)
         else:
             _oax = self.apx.clone(); _oay = self.apy.clone()
+            if self.frein_feu > 0.0 and hasattr(self, 'last_exposed'):
+                # l exposition subie au pas precedent ralentit : un homme sous le feu avance
+                # moins vite. Au premier pas elle n existe pas encore : aucun frein.
+                _fr = (1.0 - self.frein_feu * self.last_exposed.clamp(0.0, 1.0)).clamp(0.05, 1.0)
+                moving = moving * _fr
             self.apx = (self.apx + torch.sin(th) * self.move * moving).clamp(-self.terr_R * 0.99, self.terr_R * 0.99)
             self.apy = (self.apy + torch.cos(th) * self.move * moving).clamp(-self.terr_R * 0.99, self.terr_R * 0.99)
             if self.replica:
@@ -312,30 +549,116 @@ class AssaultTerrain:
             for pa, pv in ((10, 0), (11, 1), (12, 2)):
                 self.posture = torch.where(acts == pa, torch.full_like(self.posture, pv), self.posture)
         incover = TG.sample(self.cover, self.apx, self.apy, self.scale).clamp(max=1.0)   # couvert = terrain (atteint par steering)
+        # --- ALERTE : mise a jour AVANT le feu, car c est elle qui autorise le feu ---
+        if self.alerte:
+            _al = self._aalive().float()
+            _dv = self._dalive().float()
+            # (a) DETECTION PASSIVE PAR LA DISTANCE, pas par l arc.
+            _dmin = torch.full((N,), 1e4, device=d)
+            for _di in range(D):
+                _dd = torch.sqrt((self.apx - self.dpx[:, _di:_di + 1]) ** 2
+                                 + (self.apy - self.dpy[:, _di:_di + 1]) ** 2)
+                _dd = torch.where(_al > 0, _dd, torch.full_like(_dd, 1e4))
+                _dd = torch.where(_dv[:, _di:_di + 1] > 0, _dd, torch.full_like(_dd, 1e4))
+                _dmin = torch.minimum(_dmin, _dd.min(dim=1).values)
+            _vu = ((self.R_VUE_NULLE - _dmin) / (self.R_VUE_NULLE - self.R_VUE_PLEINE)).clamp(0.0, 1.0)
+            # (b) LE FEU DE L ATTAQUANT COUTE, sur TOUT LE GROUPE, quelle que soit la distance.
+            _tirs = ((acts == 9) & self._aalive()).float().sum(1)
+            # (c) MONOTONE : aucune decroissance mesuree en 300 s.
+            self.alerte_niv = torch.maximum(self.alerte_niv, _vu * self.ALERTE_MAX)
+            self.alerte_niv = (self.alerte_niv + self.ALERTE_PAR_TIR * _tirs).clamp(max=self.ALERTE_MAX)
+
         # --- feu des DEFENSEURS sur les attaquants (LOS du relief + portee + couvert) ---
         dmg_a = torch.zeros(N, A, device=d); exposed = torch.zeros(N, A, device=d)
         for di in range(D):
             bx = self.dpx[:, di:di + 1].expand(N, A); by = self.dpy[:, di:di + 1].expand(N, A)
             los = self._losc(self.hm, self.apx, self.apy, bx, by, self.scale, eye_a=self._eye(), eye_b=1.7)
             dist = torch.sqrt((self.apx - self.dpx[:, di:di + 1]) ** 2 + (self.apy - self.dpy[:, di:di + 1]) ** 2)
-            active = self._dalive()[:, di:di + 1].float() * (self.dsupp[:, di:di + 1] < 0.5).float()
+            # SUPPRESSION GRADUEE, pas un interrupteur. Arma (28/07) : sous le feu il reste
+            # 8 % de la capacite de nuire — un coup au but toutes les 12 s au lieu d'un par
+            # seconde. L'ancien seuil rendait l'attaquant INVULNERABLE des qu'on arrosait,
+            # ce qui payait bien trop le feu de couverture.
+            _viv = self._dalive()[:, di:di + 1].float()
+            if self.supp_residuel is None:
+                active = _viv * (self.dsupp[:, di:di + 1] < 0.5).float()
+            else:
+                _s = self.dsupp[:, di:di + 1].clamp(0.0, 1.0)
+                active = _viv * (1.0 - (1.0 - self.supp_residuel) * _s)
+
             if self.def_line and hasattr(self, "dface"):                 # ARC DE TIR : le défenseur ne tire que dans son cône (±_dfarc autour de sa face)
                 _ang = torch.atan2(self.apx - self.dpx[:, di:di + 1], self.apy - self.dpy[:, di:di + 1])   # azimut défenseur->attaquant
                 _adf = torch.atan2(torch.sin(_ang - self.dface[:, di:di + 1]), torch.cos(_ang - self.dface[:, di:di + 1]))   # écart à la face, wrap [-π,π]
-                active = active * (_adf.abs() <= self._dfarc).float()     # hors cône (flanc/arrière) = ne peut pas tirer (arc par env)
+                _dans = (_adf.abs() <= self._dfarc)
+                if self.alerte:
+                    # LA DETECTION PAR DISTANCE REMPLACE LE CONE (mesure Arma du 2026-07-30 :
+                    # on voit a 60 m DANS TOUTES LES DIRECTIONS). C etait le vrai defaut :
+                    # l arc rendait le contournement litteralement invisible, d ou 96 % de
+                    # reussite au debordement quand le juge externe en donne 0 %.
+                    # Un defenseur tire donc aussi hors de son arc sur ce qu il DETECTE.
+                    _dv2 = torch.sqrt((self.apx - self.dpx[:, di:di + 1]) ** 2
+                                      + (self.apy - self.dpy[:, di:di + 1]) ** 2)
+                    _detecte = _dv2 < self.R_VUE_NULLE
+                    _dans = _dans | _detecte
+                if getattr(self, "d_ouvert", None) is not None:
+                    # SURSIS ECOULE : il tire hors de son cone, sans avoir pivote.
+                    # Mesure Arma : riposte a 100 %% a tous les angles apres ~4 s,
+                    # et sans attenuation d ampleur (impacts 180/0 = 1,17).
+                    _dans = _dans | self.d_ouvert[:, di:di + 1]
+                active = active * _dans.float()     # hors cône ET sursis non ecoule = ne peut pas tirer
             inr = (dist < self.fire_range).float()
+            # SELECTION DE CIBLE. `tir` remplace `active` dans les DEGATS uniquement :
+            # « etre vu » n'est pas « etre pris pour cible », et `exposed` doit rester la
+            # premiere notion (c'est elle qui porte le cout de la manoeuvre).
+            tir = active
+            if self.cible_unique:
+                _elig = (active > 0) & (los > 0.5) & self._aalive()
+                if self.courbe is None:                    # sans courbe, la portee est un mur
+                    _elig = _elig & (dist < self.fire_range)
+                _INF = torch.full_like(dist, float("inf"))
+                _k = torch.where(_elig, dist, _INF).argmin(1, keepdim=True)
+                _sel = torch.zeros_like(active).scatter_(1, _k, 1.0) * _elig.float()
+                tir = active * _sel
             if self.emergent_expo and self.replica:                # EXPOSITION EMERGENTE : fraction du corps touchable = geometrie (couvert deja capture par les rayons)
                 efrac = self._body_exposure(self.apx, self.apy, self._eye(), bx, by)
-                dmg_a += self.hit * efrac * inr * active
-                exposed = torch.maximum(exposed, efrac * inr * active)   # exposé = vu par un défenseur qui PEUT tirer (arc inclus)
+                if self.courbe is not None:
+                    # posture=None VOLONTAIREMENT : efrac porte deja le profil du corps
+                    # (calcule par rayons). Appliquer en plus la colonne posture de la
+                    # courbe compterait le meme effet deux fois.
+                    _p = self._p_balle(dist) * self.tir_par_pas * self.degat_par_impact
+                    dmg_a += _p * efrac * tir
+                else:
+                    dmg_a += self.hit * efrac * inr * tir
+                if self.courbe is not None:
+                    # plus de falaise : l'exposition suit la COURBE, comme les dégâts.
+                    # Sans ça la métrique est aveugle au-delà de 110 m — or le crochet
+                    # y fait 74 % de son détour (mesuré 27/07).
+                    exposed = torch.maximum(exposed, efrac * active * self._p_norm(dist))
+                else:
+                    exposed = torch.maximum(exposed, efrac * inr * active)   # exposé = vu par un défenseur qui PEUT tirer (arc inclus)
             else:
-                _exp = self._expose_lut[self.posture] if (self.postures and self.hull) else 1.0   # HULL-DOWN knob (posture basse = petite cible)
-                dmg_a += self.hit * los * inr * active * (1.0 - 0.7 * incover) * _exp
-                exposed = torch.maximum(exposed, los * inr * active)   # exposé = vu par un défenseur qui PEUT tirer (arc inclus)
+                if self.courbe is not None:
+                    # plus de (dist < fire_range) : la courbe s'eteint d'elle-meme.
+                    # C'etait la falaise a 110 m — celle qui rendait le rapprochement
+                    # gratuit, et donc la manoeuvre depourvue de sens.
+                    _po = self.posture if self.postures else None
+                    _p = self._p_balle(dist, _po) * self.tir_par_pas * self.degat_par_impact
+                    dmg_a += _p * los * tir * (1.0 - 0.7 * incover)
+                else:
+                    _exp = self._expose_lut[self.posture] if (self.postures and self.hull) else 1.0   # HULL-DOWN knob (posture basse = petite cible)
+                    dmg_a += self.hit * los * inr * tir * (1.0 - 0.7 * incover) * _exp
+                if self.courbe is not None:
+                    exposed = torch.maximum(exposed, los * active * self._p_norm(dist))
+                else:
+                    exposed = torch.maximum(exposed, los * inr * active)   # exposé = vu par un défenseur qui PEUT tirer (arc inclus)
         self.last_dmg_in = (dmg_a * al).detach()
         self.last_exposed = (exposed * al).detach()   # exposition = vu par un defenseur vivant a portee
         self.admg = (self.admg + dmg_a * al).clamp(max=0.95)
         # --- attaquants SUPPRESS (3) les defenseurs en LOS+portee ---
+        self._ouvrir_arcs()
+        # PERSISTANCE. Le sandbox remettait la suppression a zero a chaque pas : l'adversaire
+        # relevait la tete instantanement. Arma donne 2 s de repit pour un pas de 3,28 s —
+        # court, mais pas nul. On reporte une fraction avant d'effacer.
+        _reste = self.dsupp * self.supp_persist if self.supp_persist > 0 else None
         self.dsupp.zero_(); dmg_d = torch.zeros(N, D, device=d); supp_act = (acts == 9) & self._aalive()
         self.last_supp = supp_act.float()                          # memo pour la conscience d'equipe (coordination)
         for ai in range(A):
@@ -352,6 +675,8 @@ class AssaultTerrain:
                 dmg_d += (self.flank_kill * blind + self.supp_kill * 0.10 * (1 - blind)) * eff
             else:
                 dmg_d += self.supp_kill * 0.10 * eff                       # feu attaquant vs def (calibré vs Arma retranché)
+        if _reste is not None:                       # le repit mesure sur Arma, reporte d'un pas
+            self.dsupp = torch.maximum(self.dsupp, _reste)
         self.ddmg = (self.ddmg + dmg_d).clamp(max=0.95)
         self.t = self.t + 1
         al2 = self._aalive()
@@ -386,6 +711,14 @@ class AssaultTerrain:
             a_sup = (sup * appui).sum(1) / appui.sum(1).clamp(min=1)     # appui qui CLOUE
             a_mov = (mov * assaut).sum(1) / assaut.sum(1).clamp(min=1)   # PENDANT que l'assaut AVANCE
             rew = rew + 0.05 * a_sup * a_mov
+        if self.etat is not None:
+            _ndist = torch.sqrt(self.apx ** 2 + self.apy ** 2)
+            _al = self._aalive().float()
+            self.etat.pas(danger=self.last_exposed,
+                          pertes=1.0 - _al.mean(1),
+                          temps_restant=1.0 - self.t.float() / float(self.max_steps),
+                          dist_obj=(_ndist * _al).sum(1) / _al.sum(1).clamp(min=1),
+                          dist_obj0=torch.full_like(self.prev_d, self.R_spawn))
         info = {"neutralized": neutralized, "took": took, "win": win, "wiped": wiped, "losses": losses, "dkilled": dk, "exposed": self.last_exposed.sum(1) / al.sum(1).clamp(min=1)}
         if auto_reset:
             self._reset(done.nonzero(as_tuple=True)[0])

@@ -1,0 +1,19 @@
+{
+ "temoin": {
+  "balles": 0,
+  "au_but": 0,
+  "suppression": 0.0
+ },
+ "supprime": {
+  "balles": 0,
+  "au_but": 0,
+  "suppression": 0.0
+ },
+ "secondes_par_bras": 320,
+ "dist": 100,
+ "skill": 0.5,
+ "alertes": [
+  "moins de 100 balles dans un bras : trop peu pour conclure",
+  "les supprimes ne sont PAS plus supprimes que les temoins (0.000 vs 0.000) : le feu de suppression ne porte pas"
+ ]
+}

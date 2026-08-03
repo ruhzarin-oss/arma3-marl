@@ -1,0 +1,61 @@
+{
+ "seuils": [
+  80,
+  100,
+  120,
+  140,
+  160,
+  180,
+  999
+ ],
+ "resultats": {
+  "frontal": {
+   "prise": 0.38333332538604736,
+   "expo_par_metre": 0.03321080530683199,
+   "pertes_par_prise": 0.2786484857400258,
+   "distance_du_detour": 112.9438705444336
+  },
+  "virage_80": {
+   "prise": 0.0,
+   "expo_par_metre": 0.025116429353753727,
+   "pertes_par_prise": NaN,
+   "distance_du_detour": 183.84431966145834
+  },
+  "virage_100": {
+   "prise": 0.0,
+   "expo_par_metre": 0.025116429353753727,
+   "pertes_par_prise": NaN,
+   "distance_du_detour": 183.84431966145834
+  },
+  "virage_120": {
+   "prise": 0.0,
+   "expo_par_metre": 0.025116429353753727,
+   "pertes_par_prise": NaN,
+   "distance_du_detour": 183.84431966145834
+  },
+  "virage_140": {
+   "prise": 0.0,
+   "expo_par_metre": 0.025116429353753727,
+   "pertes_par_prise": NaN,
+   "distance_du_detour": 183.84431966145834
+  },
+  "virage_160": {
+   "prise": 0.11833332975705464,
+   "expo_par_metre": 0.026287763689955074,
+   "pertes_par_prise": 0.06169017776846886,
+   "distance_du_detour": 184.99801635742188
+  },
+  "virage_180": {
+   "prise": 0.4116666515668233,
+   "expo_par_metre": 0.02849879985054334,
+   "pertes_par_prise": 0.09643636892239253,
+   "distance_du_detour": 148.92781575520834
+  },
+  "virage_999": {
+   "prise": 0.41499999165534973,
+   "expo_par_metre": 0.028406877691547077,
+   "pertes_par_prise": 0.10018924375375111,
+   "distance_du_detour": 119.8666508992513
+  }
+ }
+}

@@ -1,0 +1,123 @@
+<!doctype html><meta charset=utf-8><title>HARMATTAN — rejeu vue de dessus</title><style>:root{--bg:#fff;--bg2:#f6f7f9;--fg:#111;--mut:#666;--line:#e3e6ea;--ground:#eceff3;--bat:#c3cad4;--road:#dfe4ea}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1115;--bg2:#171a20;--fg:#e8eaed;--mut:#9aa0a6;--line:#2a2f38;--ground:#12151b;--bat:#3a4150;--road:#232833}}
+:root[data-theme=dark]{--bg:#0f1115;--bg2:#171a20;--fg:#e8eaed;--mut:#9aa0a6;--line:#2a2f38;--ground:#12151b;--bat:#3a4150;--road:#232833}
+:root[data-theme=light]{--bg:#fff;--bg2:#f6f7f9;--fg:#111;--mut:#666;--line:#e3e6ea;--ground:#eceff3;--bat:#c3cad4;--road:#dfe4ea}
+body{background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,-apple-system,sans-serif;margin:0;padding:20px}
+h1{font-size:19px;margin:0 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:16px}
+.wrap{border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:20px;background:var(--bg)}
+canvas{width:100%;max-width:720px;border-radius:8px;display:block;background:var(--ground)}
+.ctl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+button{font:inherit;padding:5px 14px;border-radius:7px;border:1px solid var(--line);background:var(--bg2);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--mut)}
+input[type=range]{flex:1;min-width:180px}
+.t{font-variant-numeric:tabular-nums;color:var(--mut);font-size:13px;min-width:104px}
+.lg{color:var(--mut);font-size:12px;margin-top:8px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 4px 0 10px;vertical-align:baseline}
+select{font:inherit;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg2);color:var(--fg)}</style><script>
+function mkPlayer(el, D){
+  const cv = el.querySelector('canvas'), ctx = cv.getContext('2d');
+  const rng = el.querySelector('.rng'), lbl = el.querySelector('.t'), btn = el.querySelector('.play');
+  const spd = el.querySelector('.spd'), trailSel = el.querySelector('.trail');
+  const DPR = Math.min(2, window.devicePixelRatio||1), W=720, H=720;
+  cv.width = W*DPR; cv.height = H*DPR; cv.style.height = 'auto'; ctx.scale(DPR,DPR);
+  const css = getComputedStyle(document.documentElement);
+  // --- cadrage : englobe trajectoires + objectif + plan ---
+  let xs=[0], ys=[0];
+  D.frames.forEach(f=>f.west.forEach(w=>{xs.push(w[0]-D.fob[0]); ys.push(w[1]-D.fob[1]);}));
+  (D.map&&D.map.bat||[]).forEach(o=>{xs.push(o[0]); ys.push(o[1]);});
+  const R = Math.max(60, Math.max(...xs.map(Math.abs), ...ys.map(Math.abs))*1.12);
+  const S = (W/2-18)/R;                              // pixels par mètre
+  const PX = x => W/2 + x*S, PY = y => H/2 - y*S;    // nord vers le haut
+  const ROLE = {0:'#3b82f6', 1:'#f59e0b'};
+  let t = 0, playing = false, last = 0;
+
+  function bg(){
+    ctx.fillStyle = css.getPropertyValue('--ground'); ctx.fillRect(0,0,W,H);
+    const M = D.map;
+    if (M){
+      ctx.fillStyle = css.getPropertyValue('--road');
+      (M.route||[]).forEach(o=>rect(o, true));
+      ctx.fillStyle = css.getPropertyValue('--bat');
+      (M.bat||[]).forEach(o=>rect(o, false));
+    }
+    // échelle
+    ctx.strokeStyle = css.getPropertyValue('--mut'); ctx.lineWidth=2; ctx.beginPath();
+    ctx.moveTo(18,H-16); ctx.lineTo(18+50*S,H-16); ctx.stroke();
+    ctx.fillStyle = css.getPropertyValue('--mut'); ctx.font='11px system-ui';
+    ctx.fillText('50 m', 18, H-22);
+  }
+  function rect(o, thin){                            // [dx,dy,cap,larg,long] -> empreinte orientée
+    const [x,y,dir,w,l] = o, a = -dir*Math.PI/180;
+    const hw = Math.max(thin?1.2:1.0, w/2)*S, hl = Math.max(thin?1.2:1.0, l/2)*S;
+    ctx.save(); ctx.translate(PX(x), PY(y)); ctx.rotate(a);
+    ctx.fillRect(-hw, -hl, hw*2, hl*2); ctx.restore();
+  }
+  function draw(){
+    bg();
+    // objectif + rayon de sécurisation
+    ctx.strokeStyle='#22c55e'; ctx.setLineDash([5,4]); ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(PX(0),PY(0),25*S,0,7); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#22c55e'; ctx.beginPath(); ctx.arc(PX(0),PY(0),4,0,7); ctx.fill();
+    const f = D.frames[t]; if(!f) return;
+    // défenseurs
+    (f.east||[]).forEach(e=>{
+      const x=e[0]-D.fob[0], y=e[1]-D.fob[1], alv = e[2]===undefined?1:e[2];
+      ctx.beginPath(); ctx.arc(PX(x),PY(y),4,0,7);
+      if(alv){ ctx.fillStyle='#ef4444'; ctx.fill(); } else { ctx.strokeStyle='#ef4444'; ctx.globalAlpha=.5; ctx.stroke(); ctx.globalAlpha=1; }
+    });
+    // traînées
+    const TR = +trailSel.value;
+    if (TR>0){
+      const n = f.west.length;
+      for(let i=0;i<n;i++){
+        ctx.strokeStyle = ROLE[(f.west[i][3]||0)]; ctx.lineWidth=1.5; ctx.globalAlpha=.45; ctx.beginPath();
+        let started=false;
+        for(let k=Math.max(0,t-TR); k<=t; k++){
+          const w = D.frames[k].west[i]; if(!w||!w[2]) continue;
+          const x=w[0]-D.fob[0], y=w[1]-D.fob[1];
+          if(!started){ ctx.moveTo(PX(x),PY(y)); started=true; } else ctx.lineTo(PX(x),PY(y));
+        }
+        ctx.stroke(); ctx.globalAlpha=1;
+      }
+    }
+    // soldats
+    f.west.forEach((w,i)=>{
+      const x=w[0]-D.fob[0], y=w[1]-D.fob[1], alv=w[2], role=w[3]||0;
+      const firing = (f.firew&&f.firew[i])?1:0;
+      if(alv){
+        if(firing){ ctx.strokeStyle='#fbbf24'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(PX(x),PY(y),8,0,7); ctx.stroke(); }
+        ctx.fillStyle = ROLE[role]; ctx.beginPath(); ctx.arc(PX(x),PY(y),4.5,0,7); ctx.fill();
+      } else {
+        ctx.strokeStyle='#ef4444'; ctx.lineWidth=2; ctx.beginPath();
+        ctx.moveTo(PX(x)-4,PY(y)-4); ctx.lineTo(PX(x)+4,PY(y)+4);
+        ctx.moveTo(PX(x)-4,PY(y)+4); ctx.lineTo(PX(x)+4,PY(y)-4); ctx.stroke();
+      }
+    });
+    // JOUEUR (toi) — violet, plus gros, avec halo : impossible à confondre avec les agents
+    if (f.player){
+      const px = f.player[0]-D.fob[0], py = f.player[1]-D.fob[1];
+      ctx.strokeStyle='#a855f7'; ctx.lineWidth=2; ctx.globalAlpha=.55;
+      ctx.beginPath(); ctx.arc(PX(px),PY(py),11,0,7); ctx.stroke(); ctx.globalAlpha=1;
+      ctx.fillStyle='#a855f7'; ctx.beginPath(); ctx.arc(PX(px),PY(py),6,0,7); ctx.fill();
+      ctx.fillStyle='#fff'; ctx.font='bold 8px system-ui'; ctx.textAlign='center';
+      ctx.fillText('J', PX(px), PY(py)+3); ctx.textAlign='left';
+    }
+    const alive = f.west.filter(w=>w[2]).length;
+    const inside = f.west.filter(w=>w[2] && Math.hypot(w[0]-D.fob[0],w[1]-D.fob[1])<25).length;
+    lbl.textContent = 'pas '+f.t+'/'+(D.frames.length-1)+' · '+alive+' vivants · '+inside+' sur obj.';
+    rng.value = t;
+  }
+  function loop(ts){
+    if(!playing) return;
+    if(ts-last > 420/(+spd.value)){ last=ts; t=(t+1)%D.frames.length; draw(); }
+    requestAnimationFrame(loop);
+  }
+  btn.onclick = ()=>{ playing=!playing; btn.textContent = playing?'⏸ pause':'▶ lecture';
+                      if(playing){ last=0; requestAnimationFrame(loop);} };
+  rng.max = D.frames.length-1;
+  rng.oninput = ()=>{ t = +rng.value; draw(); };
+  trailSel.onchange = draw;
+  new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  draw();
+}
+</script><h1>HARMATTAN — rejeu vue de dessus</h1><div class=sub>Lecture animée des runs, sur le plan réel de la carte.</div><div class="wrap" id="p0"><h2 style="font-size:15px;margin:0 0 2px">rejeu3_agent_champ.json</h2><div class="sub">mode <b>agent_champ</b> · objectif pris : <b>non</b> · pertes ?/4 · plan : non baké (lance bake_map.py)</div><canvas></canvas><div class="ctl"><button class="play">▶ lecture</button><input class="rng" type="range" min="0" value="0" step="1"><span class="t">—</span><select class="spd" title="vitesse"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select><select class="trail" title="traînée"><option value="0">sans traînée</option><option value="6">traînée courte</option><option value="999" selected>trajectoire complète</option></select></div><div class="lg"><span class="dot" style="background:#3b82f6"></span>assaut/fixeur<span class="dot" style="background:#f59e0b"></span>débordeur<span class="dot" style="background:#ef4444"></span>défenseur<span class="dot" style="background:#a855f7"></span><b>toi (J)</b><span class="dot" style="background:#fbbf24"></span>tire · ✕ = tombé</div><script>mkPlayer(document.getElementById("p0"), {"fob":[0,0],"frames":[{"t":0,"west":[[120.2,-123.2,1,0],[126.2,-117.2,1,0],[120.2,-111.2,1,0],[126.2,-105.2,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,1,0,0]},{"t":1,"west":[[110.3,-113.3,1,0],[126.2,-117.2,1,0],[110.3,-101.3,1,0],[116.3,-95.3,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[1,0,0,0]},{"t":2,"west":[[110.3,-113.3,1,0],[136.1,-107.3,1,0],[100.4,-91.4,1,0],[102.3,-95.3,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,0,0,0]},{"t":3,"west":[[110.3,-99.3,1,0],[122.1,-107.3,1,0],[90.5,-101.3,1,0],[92.4,-85.4,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,0,0,0]},{"t":4,"west":[[100.4,-89.4,1,0],[108.1,-107.3,1,0],[80.6,-111.2,1,0],[102.3,-75.5,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,0,0,0]},{"t":5,"west":[[90.5,-79.5,1,0],[108.1,-93.3,1,0],[70.7,-101.3,1,0],[92.4,-65.6,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,0,0,1]},{"t":6,"west":[[76.5,-79.5,1,0],[98.2,-83.4,1,0],[84.7,-101.3,1,0],[92.4,-65.6,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,0,0,0]},{"t":7,"west":[[76.5,-79.5,1,0],[88.3,-93.3,1,0],[74.8,-111.2,1,0],[82.5,-75.5,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,0,0,0]},{"t":8,"west":[[76.5,-79.5,1,0],[78.4,-83.4,1,0],[64.9,-101.3,1,0],[72.6,-85.4,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,0,0,0]},{"t":9,"west":[[62.5,-79.5,1,0],[68.5,-73.5,1,0],[55.0,-91.4,1,0],[62.7,-95.3,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,0,0,0]},{"t":10,"west":[[52.6,-69.6,1,0],[68.5,-59.5,1,0],[45.1,-81.5,1,0],[48.7,-95.3,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,0,0,0]},{"t":11,"west":[[42.7,-79.5,1,0],[78.4,-49.6,1,0],[31.1,-81.5,1,0],[38.8,-105.2,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,0,0,0]},{"t":12,"west":[[32.8,-89.4,1,0],[92.4,-49.6,1,0],[21.2,-71.6,1,0],[28.9,-95.3,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,0,0,0]},{"t":13,"west":[[22.9,-79.5,1,0],[92.4,-63.6,1,0],[11.3,-61.7,1,0],[28.9,-81.3,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,0,0,0]},{"t":14,"west":[[13.0,-69.6,1,0],[82.5,-73.5,1,0],[1.4,-51.8,1,0],[19.0,-71.4,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,0,0,0]},{"t":15,"west":[[3.1,-59.7,1,0],[72.6,-83.4,1,0],[-8.5,-41.9,1,0],[9.1,-61.5,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,0,0,0]},{"t":16,"west":[[3.1,-45.7,1,0],[72.6,-83.4,1,0],[-8.5,-27.9,1,0],[-0.8,-51.6,1,0]],"east":[[31.4,-7.8,1],[30.8,-10.2,1],[29.9,-12.5,1],[28.8,-14.8,1],[27.6,-17.0,1],[26.2,-19.1,1],[24.6,-21.0,1],[22.9,-22.9,1]],"firew":[0,0,0,0]}],"map":null})</script></div>

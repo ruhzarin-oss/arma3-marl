@@ -1,0 +1,40 @@
+{
+ "reperes": {
+  "frontal": {
+   "prise": 0.3333333432674408,
+   "pertes_par_prise": 0.265625,
+   "expo_par_metre": 0.03466823324561119,
+   "part_angle_mort": 0.03240741044282913
+  },
+  "flanc": {
+   "prise": 0.8958333730697632,
+   "pertes_par_prise": 0.16860465705394745,
+   "expo_par_metre": 0.011621274054050446,
+   "part_angle_mort": 0.2694157660007477
+  }
+ },
+ "bras": {
+  "aveugle": [
+   {
+    "graine": 7,
+    "piste": [
+     {
+      "prise": 0.5833333730697632,
+      "pertes_par_prise": 0.2857142984867096,
+      "expo_par_metre": 0.038660649210214615,
+      "part_angle_mort": 0.10359328985214233,
+      "ronde": 10
+     }
+    ],
+    "fin": {
+     "prise": 0.5833333730697632,
+     "pertes_par_prise": 0.2857142984867096,
+     "expo_par_metre": 0.038660649210214615,
+     "part_angle_mort": 0.10359328985214233,
+     "ronde": 10
+    }
+   }
+  ],
+  "voyant": []
+ }
+}

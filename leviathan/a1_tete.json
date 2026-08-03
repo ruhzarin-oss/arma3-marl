@@ -1,0 +1,21 @@
+{
+ "quand": "2026-07-28 00:25",
+ "epreuves": {
+  "pont": {
+   "ok": true,
+   "monde": "Altis",
+   "unites": 0,
+   "groupes": 1
+  },
+  "canari": {
+   "ok": true,
+   "tirs": 4,
+   "impacts": 4
+  },
+  "terre": {
+   "ok": true,
+   "certifiees": 11,
+   "rejetees": []
+  }
+ }
+}

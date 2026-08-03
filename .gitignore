@@ -8,3 +8,7 @@ nohup.out
 *.pt
 *.mp4
 *.gif
+leviathan/journaux/
+leviathan/obsoletes/
+*.avant*
+*.bak-*

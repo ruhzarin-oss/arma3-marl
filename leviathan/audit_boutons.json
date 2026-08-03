@@ -1,0 +1,308 @@
+{
+ "approach_w": {
+  "bouton": "approach_w",
+  "bas": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "verdict": "INERTE"
+ },
+ "arc_obs": {
+  "bouton": "arc_obs",
+  "bas": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "verdict": "INERTE"
+ },
+ "champ_risque": {
+  "bouton": "champ_risque",
+  "bas": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "verdict": "INERTE"
+ },
+ "cible_unique": {
+  "bouton": "cible_unique",
+  "bas": {
+   "prise": 0.746667,
+   "pertes": 0.393333,
+   "expo": 1.006838
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "verdict": "actif"
+ },
+ "death_pen": {
+  "bouton": "death_pen",
+  "bas": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "verdict": "INERTE"
+ },
+ "def_arc": {
+  "bouton": "def_arc",
+  "bas": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "verdict": "INERTE"
+ },
+ "def_rand": {
+  "bouton": "def_rand",
+  "bas": {
+   "prise": 0.68,
+   "pertes": 0.395,
+   "expo": 2.605792
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "verdict": "actif"
+ },
+ "def_rline": {
+  "bouton": "def_rline",
+  "bas": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "verdict": "INERTE"
+ },
+ "def_spread": {
+  "bouton": "def_spread",
+  "bas": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "verdict": "INERTE"
+ },
+ "degat_par_impact": {
+  "bouton": "degat_par_impact",
+  "bas": {
+   "prise": 1.0,
+   "pertes": 0.023333,
+   "expo": 1.313023
+  },
+  "haut": {
+   "prise": 0.68,
+   "pertes": 0.491667,
+   "expo": 0.878475
+  },
+  "verdict": "actif"
+ },
+ "emergent_expo": {
+  "bouton": "emergent_expo",
+  "bas": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "verdict": "INERTE"
+ },
+ "flank_kill": {
+  "bouton": "flank_kill",
+  "bas": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "haut": {
+   "prise": 0.88,
+   "pertes": 0.298333,
+   "expo": 1.219575
+  },
+  "verdict": "actif"
+ },
+ "hull": {
+  "bouton": "hull",
+  "bas": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "verdict": "INERTE"
+ },
+ "nav_around": {
+  "bouton": "nav_around",
+  "bas": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "verdict": "INERTE"
+ },
+ "postures": {
+  "bouton": "postures",
+  "bas": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "verdict": "INERTE"
+ },
+ "sec_par_pas": {
+  "bouton": "sec_par_pas",
+  "bas": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "verdict": "INERTE"
+ },
+ "secure_only": {
+  "bouton": "secure_only",
+  "bas": {
+   "prise": 0.853333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "verdict": "actif"
+ },
+ "stress": {
+  "bouton": "stress",
+  "bas": {
+   "prise": 0.873333,
+   "pertes": 0.301667,
+   "expo": 1.227758
+  },
+  "haut": {
+   "erreur": "stress sans champ_risque : l audace n a rien a ponderer. Elle multiplie l exposition qu on"
+  },
+  "verdict": "REFUSE"
+ },
+ "supp_kill": {
+  "bouton": "supp_kill",
+  "bas": {
+   "prise": 0.873333,
+   "pertes": 0.323333,
+   "expo": 1.288649
+  },
+  "haut": {
+   "prise": 0.873333,
+   "pertes": 0.3,
+   "expo": 1.218059
+  },
+  "verdict": "actif"
+ },
+ "supp_persist": {
+  "bouton": "supp_persist",
+  "bas": {
+   "prise": 0.866667,
+   "pertes": 0.303333,
+   "expo": 1.22788
+  },
+  "haut": {
+   "prise": 0.88,
+   "pertes": 0.3,
+   "expo": 1.230861
+  },
+  "verdict": "actif"
+ },
+ "supp_residuel": {
+  "bouton": "supp_residuel",
+  "bas": {
+   "prise": 0.88,
+   "pertes": 0.291667,
+   "expo": 1.194822
+  },
+  "haut": {
+   "prise": 0.86,
+   "pertes": 0.35,
+   "expo": 1.363078
+  },
+  "verdict": "actif"
+ },
+ "tir_par_pas": {
+  "bouton": "tir_par_pas",
+  "bas": {
+   "prise": 1.0,
+   "pertes": 0.043333,
+   "expo": 1.323809
+  },
+  "haut": {
+   "prise": 0.64,
+   "pertes": 0.533333,
+   "expo": 0.790482
+  },
+  "verdict": "actif"
+ }
+}

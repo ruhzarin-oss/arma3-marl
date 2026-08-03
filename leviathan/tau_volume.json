@@ -1,0 +1,397 @@
+{
+ "criteres": "CRITERES_TAU_VOLUME.md",
+ "duree_s": 60,
+ "dist": 60.0,
+ "brut": [
+  {
+   "tirs_att": 27,
+   "tirs_def": 13,
+   "impacts": 5,
+   "t_att": 75.38,
+   "t_def": 79.35,
+   "cond": 1,
+   "rep": 0,
+   "cellule": [
+    23200,
+    17600
+   ],
+   "tau": 3.969999999999999,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 701,
+   "tirs_def": 121,
+   "impacts": 2,
+   "t_att": 75.53,
+   "t_def": 80.66,
+   "cond": 4,
+   "rep": 0,
+   "cellule": [
+    23600,
+    18200
+   ],
+   "tau": 5.280000000000001,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 29,
+   "tirs_def": 13,
+   "impacts": 7,
+   "t_att": 75.38,
+   "t_def": 79.47,
+   "cond": 1,
+   "rep": 0,
+   "cellule": [
+    24000,
+    18800
+   ],
+   "tau": 4.090000000000003,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 158,
+   "tirs_def": 65,
+   "impacts": 11,
+   "t_att": 75.73,
+   "t_def": 79.61,
+   "cond": 4,
+   "rep": 0,
+   "cellule": [
+    10200,
+    11800
+   ],
+   "tau": 4.230000000000004,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 29,
+   "tirs_def": 50,
+   "impacts": 8,
+   "t_att": 139.69,
+   "t_def": 143.58,
+   "cond": 1,
+   "rep": 1,
+   "cellule": [
+    23600,
+    18200
+   ],
+   "tau": 3.890000000000015,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 720,
+   "tirs_def": 121,
+   "impacts": 1,
+   "t_att": 139.73,
+   "t_def": 144.89,
+   "cond": 4,
+   "rep": 1,
+   "cellule": [
+    24000,
+    18800
+   ],
+   "tau": 5.199999999999989,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 0,
+   "impacts": 0,
+   "t_att": -1.0,
+   "t_def": -1.0,
+   "cond": 1,
+   "rep": 1,
+   "cellule": [
+    10200,
+    11800
+   ]
+  },
+  {
+   "tirs_att": 664,
+   "tirs_def": 121,
+   "impacts": 3,
+   "t_att": 139.89,
+   "t_def": 145.07,
+   "cond": 4,
+   "rep": 1,
+   "cellule": [
+    15200,
+    17000
+   ],
+   "tau": 5.3799999999999955,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 30,
+   "tirs_def": 55,
+   "impacts": 6,
+   "t_att": 203.93,
+   "t_def": 207.81,
+   "cond": 1,
+   "rep": 2,
+   "cellule": [
+    24000,
+    18800
+   ],
+   "tau": 3.8799999999999955,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 420,
+   "tirs_def": 124,
+   "impacts": 7,
+   "t_att": 204.01,
+   "t_def": 207.59,
+   "cond": 4,
+   "rep": 2,
+   "cellule": [
+    10200,
+    11800
+   ],
+   "tau": 3.6599999999999966,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 25,
+   "tirs_def": 12,
+   "impacts": 5,
+   "t_att": 204.17,
+   "t_def": 208.46,
+   "cond": 1,
+   "rep": 2,
+   "cellule": [
+    15200,
+    17000
+   ],
+   "tau": 4.530000000000001,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 320,
+   "tirs_def": 68,
+   "impacts": 12,
+   "t_att": 204.13,
+   "t_def": 209.16,
+   "cond": 4,
+   "rep": 2,
+   "cellule": [
+    23200,
+    18800
+   ],
+   "tau": 5.22999999999999,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 0,
+   "impacts": 0,
+   "t_att": -1.0,
+   "t_def": -1.0,
+   "cond": 1,
+   "rep": 3,
+   "cellule": [
+    10200,
+    11800
+   ]
+  },
+  {
+   "tirs_att": 469,
+   "tirs_def": 132,
+   "impacts": 14,
+   "t_att": 268.15,
+   "t_def": 271.2,
+   "cond": 4,
+   "rep": 3,
+   "cellule": [
+    15200,
+    17000
+   ],
+   "tau": 3.0500000000000114,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 24,
+   "tirs_def": 50,
+   "impacts": 8,
+   "t_att": 268.4,
+   "t_def": 272.36,
+   "cond": 1,
+   "rep": 3,
+   "cellule": [
+    23200,
+    18800
+   ],
+   "tau": 4.210000000000036,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 0,
+   "impacts": 0,
+   "t_att": -1.0,
+   "t_def": -1.0,
+   "cond": 4,
+   "rep": 3,
+   "cellule": [
+    22000,
+    18600
+   ]
+  },
+  {
+   "tirs_att": 24,
+   "tirs_def": 52,
+   "impacts": 5,
+   "t_att": 332.38,
+   "t_def": 336.42,
+   "cond": 1,
+   "rep": 4,
+   "cellule": [
+    15200,
+    17000
+   ],
+   "tau": 4.0400000000000205,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 707,
+   "tirs_def": 121,
+   "impacts": 3,
+   "t_att": 332.42,
+   "t_def": 337.47,
+   "cond": 4,
+   "rep": 4,
+   "cellule": [
+    23200,
+    18800
+   ],
+   "tau": 5.090000000000032,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 0,
+   "impacts": 0,
+   "t_att": -1.0,
+   "t_def": -1.0,
+   "cond": 1,
+   "rep": 4,
+   "cellule": [
+    22000,
+    18600
+   ]
+  },
+  {
+   "tirs_att": 304,
+   "tirs_def": 91,
+   "impacts": 10,
+   "t_att": 332.44,
+   "t_def": 336.38,
+   "cond": 4,
+   "rep": 4,
+   "cellule": [
+    22000,
+    7200
+   ],
+   "tau": 4.0,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 30,
+   "tirs_def": 50,
+   "impacts": 6,
+   "t_att": 396.49,
+   "t_def": 400.35,
+   "cond": 1,
+   "rep": 5,
+   "cellule": [
+    23200,
+    18800
+   ],
+   "tau": 3.8600000000000136,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 0,
+   "impacts": 0,
+   "t_att": -1.0,
+   "t_def": -1.0,
+   "cond": 4,
+   "rep": 5,
+   "cellule": [
+    22000,
+    18600
+   ]
+  },
+  {
+   "tirs_att": 24,
+   "tirs_def": 47,
+   "impacts": 4,
+   "t_att": 396.67,
+   "t_def": 401.04,
+   "cond": 1,
+   "rep": 5,
+   "cellule": [
+    22000,
+    7200
+   ],
+   "tau": 4.550000000000011,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 720,
+   "tirs_def": 121,
+   "impacts": 3,
+   "t_att": 396.67,
+   "t_def": 400.09,
+   "cond": 4,
+   "rep": 5,
+   "cellule": [
+    23200,
+    17600
+   ],
+   "tau": 3.599999999999966,
+   "riposte": 1
+  }
+ ],
+ "par_condition": {
+  "1": {
+   "n": 9,
+   "tau": 4.0400000000000205,
+   "riposte": 9,
+   "impacts": 6.0,
+   "tirs_def": 38.0,
+   "taus": [
+    3.969999999999999,
+    4.090000000000003,
+    3.890000000000015,
+    3.8799999999999955,
+    4.530000000000001,
+    4.210000000000036,
+    4.0400000000000205,
+    3.8600000000000136,
+    4.550000000000011
+   ]
+  },
+  "4": {
+   "n": 10,
+   "tau": 4.660000000000018,
+   "riposte": 10,
+   "impacts": 6.6,
+   "tirs_def": 108.5,
+   "taus": [
+    5.280000000000001,
+    4.230000000000004,
+    5.199999999999989,
+    5.3799999999999955,
+    3.6599999999999966,
+    5.22999999999999,
+    3.0500000000000114,
+    5.090000000000032,
+    4.0,
+    3.599999999999966
+   ]
+  }
+ },
+ "verdict": "le volume ne change rien"
+}

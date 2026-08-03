@@ -1372,3 +1372,736 @@ ROLE D'ASSAUT valide (assault_cqb.py) : K=8 soldats, pathfinder Arma REACTIVE (d
 
 CONCLUSION : la doctrine FIRE & MOVEMENT tient en vrai Arma = base de feu (politique apprise setVelocity, supprime les exposes, 70%) + element d'assaut (pathfinder Arma doMove->buildingPos, deloge les retranches, 60%, quasi sans perte). = exactement le MARL a roles du projet. Les 3 etapes du plan (interieurs / entrer-occuper / roles) validees en une session.
 LEVIERS pour pousser le clear vers 100% : plus d'assaillants / plus de temps ; ou IA CQB experte (LAMBS Danger.fsm building-clearing, cf [[mods-capability-not-tactics]], pas encore installe). PROCHAIN = INTEGRATION : combiner base-de-feu (politique) + element d'assaut (pathfinder) dans UN deploiement qui fait la sequence complete approche->suppression->assaut->clear->prise d'objectif (split des roles = choix de design Younes). Fichiers : probe_buildings.py, garrison_verify.py, assault_cqb.py.
+
+---
+
+## 2026-07-28 14:25 CEST (Claude-Mac, Opus 5) — PASSATION : courbe n°2 LIVRÉE, létalité ×4 DÉCOUVERTE, banc de répartition du feu EN ÉCHEC
+
+### 1. CE QUI TOURNE À L'INSTANT
+
+| quoi | détail |
+|---|---|
+| `arma3server_x64` | **PID 314761**, démarré 14:20, `-port=3912 -world=Altis`, config `staging/server_altis.cfg`, profils `profiles_altis` |
+| pont natif | **écoute 127.0.0.1:5826** (fd du même PID). ⚠️ **UN SEUL CLIENT À LA FOIS** |
+| mods | `@CBA_A3;@ALiVE;@ace;…;@rhsusaf;@rhsafrf`, serverMod `@LAMBS_Danger` |
+| chaînes de banc | **AUCUNE. Toutes terminées** (`bissel.log` finit sur `BISSEL_FIN`). Rien n'a été relancé depuis. |
+| autres | `aquilon_daemon.py` (PID 3872), `moniteur_matrix.py` (11504), `rudder_proxy.py` (6142) — indépendants, pas touchés |
+
+⚠️ Ce serveur Altis a été **redémarré une quinzaine de fois** aujourd'hui par les scripts `banc_*.sh` / `bissection*.sh`. Chacun appelle `relancer_meltemi.sh`.
+
+### 2. ACQUIS DE LA JOURNÉE (solides, gravés en mémoire)
+
+**COURBE N°2 — LA SUPPRESSION MESURÉE.** Critères `c266ebdc31631d92`, résultat `courbe_suppression_DUEL_VALIDE.json`.
+Duel symétrique 100 m, cibles invulnérables, impacts comptés par `HitPart`, 3 séances × 60 s, 0 cible morte.
+
+| | témoin | supprimé |
+|---|---|---|
+| balles/s | 2,47 | 1,41 |
+| au but | 42,2 % [39-46] | 5,9 % [4-8] |
+
+→ **cadence ×0,57, précision ×0,14, capacité de nuire ×0,08.** La sandbox mettait 0 % ; la vraie valeur est 8 %.
+→ **Décroissance : la cadence revient à ~89 % en 2 s**, puis plafonne vers 60 % pendant ≥18 s. Pas de sandbox = 3,28 s → bon ordre de grandeur, un peu généreux.
+
+**SIX DÉFAUTS SILENCIEUX TUÉS.**
+1. **Collision de noms `HMT_NSUP`** (compteur ET liste de tireurs → `[0,0,0,0,unité,…]`) → `0 reveal [...]`, erreur de type toutes les 4 s dans un envoi sans accusé → **c'est ce qui tuait le pont à +12 s depuis deux jours.** Le journal le criait : Arma « 8 tireurs », Python « 4 arroseurs ».
+2. **`HandleDamage` sous-compte les impacts d'un facteur 4** (12 % vs 48 % pour `HitPart`, à 100 m où la courbe n°1 dit ~48 %). → **compter avec `HitPart` + `allowDamage false`**.
+3. **`HandleDamage → 0` ne protège PAS** (4 cibles sur 4 mortes à 100 %).
+4. **Bras témoin qui ne combattait pas** (cible `CARELESS`, visée coupée = mannequin ; 0,22 b/s). Le banc comparait un duel à un stand de tir.
+5. **`reverdict_arc2` testait un arc SANS ARC** : `def_arc` non fixé → défaut demi-angle 180°, cône = cercle entier, aucun angle mort.
+6. **Le témoin d'initiative regardait les FIXEURS** (`initiative()` prend l'attaquant le plus proche ; la doctrine crochet met 2 hommes sur 4 en fixation frontale).
+
+**Piège de plomberie :** `mesurer_suppression.py` pointe par défaut sur **stratis (port 5816)** en lisant des cellules **d'Altis** (x≈23 000, 3× hors carte). **Toujours passer `--theatre altis`.**
+
+**RE-VERDICTS.**
+- Courbe n°2 (`CRITERES_REVERDICT_SUPP.md`, critères figés) : flanc 85,5 % → 84,5 %, **écart 1 point = COSMÉTIQUE**. L'avantage du flanc ne venait pas d'un interrupteur de suppression.
+- Arc (`CRITERES_REFERENCE_ARC3.md` `5bbb7f957f0319e8`, `CRITERES_TEMOIN_VENTILE.md` `dae84b78e1b8c319`) : témoin ventilé **flanqueurs 61,5 % / 63,2 %** (seuil ≥60 ✓, confirmé sur graines neuves 21-23), fixeurs 25,4 % / 25,9 %, **frontal 36 % contre un seuil ≤35 → ÉCHEC reproductible, seuil NON retouché**.
+- **L'arc ouvrant n'est PAS adopté** : il écrase la prise du crochet de 43 % à 7 %, et le ×15,7 est un rapport sur des quasi-zéros.
+
+**⭐ LA DÉCOUVERTE LA PLUS IMPORTANTE — LA SANDBOX EST ~4× TROP LÉTALE.**
+`tir_par_pas = 1,15` est une mesure Arma **par défenseur**. La boucle de dégâts l'appliquait à **chaque attaquant séparément** → 4,6 balles/pas avec A=4. Mesuré : **1,8 attaquant pris à partie par défenseur**.
+Chaîne de diagnostic (3 hypothèses réfutées avant la bonne) : paires ×1,13 seulement ; pas de falaise au seuil (10 % entre 0,50 et 0,70) ; exposition du flanqueur 1,1→1,3 pas ; **mais survie du flanqueur 35 % → 1 %** et **pire pas encaissé 0,280 → 0,471** pour un seuil de mort à 0,70 (19 % meurent en UN pas). Le fixeur **n'arrive jamais** (0 % partout) → toute la prise repose sur le flanqueur.
+
+Correctif `cible_unique` posé dans `assault_terrain.py` (défaut `False`, non régressif ; sauvegarde `.avantcible`). Effet **énorme** :
+
+| cône dur | frontal | crochet | ×prise |
+|---|---|---|---|
+| sans sélection | 22,2 % | 40,4 % | 1,82 |
+| **avec sélection** | **80,8 %** | **66,9 %** | **0,82** |
+
+→ **L'AVANTAGE DU FLANC DISPARAÎT.** Une partie de ce qui a été conclu sur la manœuvre depuis deux semaines reposait peut-être sur un excès de létalité. **Rien d'interne ne peut arbitrer : il faut le chiffre d'Arma.**
+
+### 3. LE BANC DE RÉPARTITION DU FEU — ÉTAT EXACT : EN ÉCHEC, 0 CHIFFRE
+
+**But :** mesurer sur Arma, en fenêtres de 3,28 s, (a) les balles par tireur et (b) **le nombre d'hommes DIFFÉRENTS qu'un même soldat prend à partie**. C'est ce chiffre qui tranche `cible_unique`.
+
+**Six tentatives, aucune mesure.** Historique factuel :
+
+| # | dispositif | résultat |
+|---|---|---|
+| 1 | `mesurer_repartition.py`, 8 déf. + 4 att., AUTOTARGET **actif**, aucun ordre | **0 tir défenseurs.** Canari non bloquant → le banc a imprimé « ~4 milliards de fois trop létal » (division par zéro). Corrigé : canari bloquant. |
+| 2 | + ordre de tir aux **attaquants** seulement | **att. 411 tirs, déf. 0.** → ce n'est pas la mise en place, c'est la riposte. |
+| 3 | + `setVehicleAmmo 1`, compteur attaquants | idem, déf. 0 |
+| 4 | + amorce unique aux défenseurs (`doTarget`/`doFire`) | **déf. 0 malgré un ordre explicite** |
+| 5 | `mesurer_repartition2.py` : on observe le camp qui tirait (WEST) | **0 tir de tous les côtés** |
+| 6 | `bissection_selection.py`, 4 crans depuis la config du banc de suppression | **crans 0,1,2,3 : MORT (pose)** — la pose elle-même ne répond plus |
+
+**Bugs de banc trouvés et corrigés en route** (utiles pour la suite) :
+- les variables **`private` ne survivent pas au découpage des envois** : chaque `send` est un script séparé. C'est ce qui cassait la pose quand on découpe. → utiliser des globales, ou une **requête unique** comme le fait `mesurer_suppression.py`.
+- ma conversion en globales n'avait remplacé que la **première** référence par ligne → `setSkill`, `allowDamage false` et **`setCombatMode RED` n'étaient jamais appliqués**.
+- `checkAIFeature` **n'existe pas** dans cette version → requête muette.
+
+**Hypothèse non testée au moment de l'arrêt** (c'est là que je m'arrêtais) : `bissection_selection.py` utilise des noms de variables **trop courts** — `HMT_S`, `HMT_C`, `HMT_D`, `HMT_G`. Or **`HMT_S` est déjà la liste d'unités de `mesurer_suppression.py`**, et le pont/mission peuvent en utiliser d'autres. Le correctif prêt (non appliqué) était de **tout préfixer en `HMT_BS*`**.
+
+**Contrainte structurelle établie, et c'est le vrai obstacle :** la seule configuration dont on sache qu'elle tire est celle du banc de suppression — **`AUTOTARGET` DÉSACTIVÉ** + `reveal` + `doTarget` + `doFire` répétés toutes les 4 s. Elle **impose la cible**, donc elle ne peut pas mesurer une sélection libre. Tant que ce nœud n'est pas défait, le chiffre est inatteignable par cette voie.
+
+### 4. À MOITIÉ FAIT
+
+- **`cible_unique`** : implémenté, prouvé actif (dégâts par vivant −55 % au 1er pas, exposition inchangée au dix-millième), **mais NON CERTIFIÉ** faute du chiffre Arma. Reste `False` par défaut.
+- **`supp_residuel=0.08` / `supp_persist=0.35`** : implémentés, prouvés actifs, re-verdict passé (cosmétique). Restent **inactifs par défaut**. Personne ne les a encore activés dans un entraînement.
+- **Arc ouvrant** : mécanisme du contournement démontré (61-63 % sur les flanqueurs), **frontal échoue d'un point deux fois**. Non adopté.
+- **`mesurer_suppression.py`** : réparé et fiable, mais son `--theatre` défaut reste **stratis** (piège).
+- **`sig()`** : corrigé (`sig_taux`, variance de Poisson) parce qu'il traitait une cadence comme une proportion et plantait au-dessus de 1 balle/s.
+
+### 5. CE QUE J'ALLAIS FAIRE ENSUITE
+
+1. Préfixer `bissection_selection.py` en `HMT_BS*` et relancer les 4 crans (**c'était l'action interrompue**).
+2. Si la pose repart : lire le premier cran qui éteint le feu → soit le chiffre `hommes_différents/tireur`, soit la raison exacte pour laquelle Arma ne peut pas le donner dans ce harnais.
+3. Avec le chiffre : trancher `cible_unique`, puis **refaire le re-verdict du flanc** dans le monde correctement létal. C'est la question ouverte n°1 du projet.
+
+### 6. FAUTE DE MÉTHODE À NE PAS REFAIRE
+
+Le matin, la bissection a résolu en 20 minutes un blocage de deux jours — **partir de ce qui survit, ajouter une pièce à la fois**. L'après-midi, sur le banc de répartition, **j'ai deviné six fois de suite** (munitions, autotarget, camp observé, ordres…) : six runs, zéro chiffre. Je n'ai pas appliqué ma propre leçon. **Sur ce pont, deviner ne marche jamais ; bissecter marche.**
+
+### 7. FICHIERS CRÉÉS OU MODIFIÉS AUJOURD'HUI
+
+**Sandbox** — `~/arma3-marl/` :
+- `assault_terrain.py` **MODIFIÉ** : `supp_residuel`, `supp_persist`, `cible_unique` (tous non régressifs). Sauvegardes `.avantcourbe2`, `.avantcible`.
+- `fumee_courbe2.py` (smoke-test, créé)
+
+**Bancs et sondes** — `~/arma3-marl/leviathan/` :
+- créés : `sonde_qui_tue.py`, `sonde_pieces.py`, `bissection.sh`, `attendre_pont.py`, `banc_supp.sh`, `vrai_banc.sh`, `sonde_hitpart.py`, `reverdict_supp.py`, `faire_reference_arc3.py`, `reverdict_arc3.py`, `diag_puissance_feu.py`, `diag_falaise.py`, `diag_flanqueur.py`, `diag_qui_meurt.py`, `mesurer_repartition.py`, `mesurer_repartition2.py`, `banc_repartition.sh`, `sonde_riposte.py`, `banc_riposte.sh`, `bissection_selection.py`, `bissection_sel.sh`
+- modifié : `mesurer_suppression.py` (collision `HMT_NSUP`, `HitPart`, duel symétrique, JSON avant affichage, `sig_taux`). Sauvegardes `.avantcollision`, `.avantnan`, `.avantcibles`, `.avantduel`, `.avanthitpart`, `.avantsig`
+- critères figés : `CRITERES_SUPPRESSION_DUEL.md` (`c266ebdc31631d92`), `CRITERES_REVERDICT_SUPP.md`, `CRITERES_REFERENCE_ARC3.md` (`5bbb7f957f0319e8`), `CRITERES_TEMOIN_VENTILE.md` (`dae84b78e1b8c319`)
+- résultats : `courbe_suppression_DUEL_VALIDE.json`, `courbe_suppression_stand_de_tir.json` (annulé, biais témoin), `reverdict_supp.json`, `reference_arc3.json`, `reference_arc3_cible.json`, `reverdict_arc3*.json`
+- journaux : `bissection.log`, `vrai_banc.log`, `repartition.log`, `riposte.log`, `bissel.log`
+
+**Mémoire longue (Mac)** : `courbe2-suppression-mesuree.md`, `sandbox-letalite-4x-cible-unique.md` (nouveaux), `arc-tir-sursis-mesure.md` (complété).
+
+
+## 2026-07-28 15:00 CEST (Claude-Mac, Opus 5) — VERDICT : LE CHIFFRE DE RÉPARTITION DU FEU EST TOMBÉ
+
+**Cause racine des six échecs : `currentTarget` N'EXISTE PAS dans ce build d'Arma.**
+Le capteur du banc appelait une commande absente → le bloc `addEventHandler ["Fired", {...}]`
+ne compilait pas → tout le script de pose mourait sans un mot dans le journal. Ni les noms de
+variables (`HMT_S`), ni la longueur du script, ni `AUTOTARGET` n'étaient en cause : les trois
+hypothèses sont RÉFUTÉES, mesurées une par une. `assignedTarget` existe, lui, mais ne rend que
+la cible IMPOSÉE — inutilisable pour mesurer un choix libre.
+
+**Correctif : capteur `HitPart` posé sur les CIBLES.** Chaque impact donne (victime, tireur) :
+on lit la sélection dans les impacts, pas dans l'intention. `HitPart` traverse
+`allowDamage false` (déjà établi le 28/07 sur la courbe n°2). Piège rencontré et corrigé :
+`(_this select 0) select 0` appliquait `select` deux fois — le handler jetait silencieusement.
+
+**RÉSULTAT — hommes DIFFÉRENTS pris à partie par tireur, par fenêtre de 3,28 s** (4 vs 4, 100 m,
+skill 0,5, cibles invulnérables, 6 fenêtres par cran, canari 57-68 tirs) :
+
+| cran | dispositif | hommes différents/tireur | balles/tireur/pas |
+|---|---|---|---|
+| 0 | cible IMPOSÉE (témoin) | 0,95 | 7,68 |
+| 1 | + AUTOTARGET réactivé | 0,78 | 7,00 |
+| 2 | + ordres toutes les 10 s | 0,75 | 6,50 |
+| 3 | **sélection LIBRE** (une impulsion puis rien) | **0,68** | 7,11 |
+
+**VERDICT PRÉ-ENREGISTRÉ (seuil figé avant les données : <1,5 → `cible_unique=True` fidèle ;
+>3 → ancien monde fidèle ; 1,5-3 → facteur intermédiaire) : 0,68 → `cible_unique=True` EST FIDÈLE.**
+Loin du seuil, et le témoin à cible imposée (0,95) est au-dessus de la sélection libre (0,68) :
+laissé libre, un soldat d'Arma se concentre, il ne s'éparpille pas.
+
+**CE QUE ÇA TRANCHE :** l'ancienne boucle de dégâts (chaque défenseur frappait CHAQUE attaquant)
+n'était pas une approximation, c'était une erreur de facteur ~4. Le correctif `cible_unique` est
+certifié par Arma. Il doit passer en défaut `True`.
+
+**CONTRE (limites à ne pas cacher) :** (1) fenêtre de 3,28 s — un tireur peut changer de cible sur
+un horizon plus long ; (2) géométrie de duel (4 alignés à 25 m, 100 m de face), pas une géométrie
+d'assaut ; (3) cibles INVULNÉRABLES : personne ne meurt, donc aucun report de tir sur mort de la
+cible — le vrai chiffre en combat est probablement un peu plus haut, ce qui va dans le sens du
+verdict, pas contre lui.
+
+**SUIVANT — la question n°1 du projet est maintenant ouvrable :** refaire le re-verdict
+frontal vs flanc dans le monde correctement létal (`cible_unique=True`). C'est ce qui dira si
+l'avantage du flanc conclu depuis deux semaines est réel ou s'il était un artefact de létalité.
+
+Fichiers : `bissection_selection.py` (capteur HitPart, sauvegarde `.avantprefixe`),
+`bissection_selection_{0,1,2,3}.json`, run `/mnt/data2/lab/runs/repartition_feu_arma/`.
+
+## 2026-07-28 15:15 CEST (Claude-Mac, Opus 5) — RE-VERDICT FLANC : L'AVANTAGE ÉTAIT UN ARTEFACT DE LÉTALITÉ
+
+`cible_unique` passé en défaut **`True`** dans `assault_terrain.py` (sauvegarde
+`.avantcibledefaut`), sur la foi du chiffre Arma du jour (0,68 homme différent par tireur,
+seuil pré-enregistré <1,5).
+
+Critères figés AVANT le run : `CRITERES_REVERDICT_CIBLE.md` (empreinte `a26a97a30c0eed05`).
+Seuil repris tel quel du re-verdict n°1, **non retouché** : le flanc paie ssi prise
+flanc/frontal ≥1,50 ET coût flanc/frontal ≤0,60.
+Une seule variable change entre les deux mondes : les deux ont la courbe n°1 ET la courbe n°2.
+200 épisodes par bras et par monde, graine 7, doctrines SCRIPTÉES.
+
+| monde | doctrine | prise | pertes/prise | expo/m |
+|---|---|---|---|---|
+| ANCIEN (`cible_unique=False`) | frontal | 36,0 % | 0,29 | 0,026 |
+| ANCIEN | flanc | 84,5 % | 0,16 | 0,015 |
+| MESURÉ (`cible_unique=True`) | frontal | **95,0 %** | 0,31 | 0,028 |
+| MESURÉ | flanc | 95,0 % | 0,12 | 0,012 |
+
+| monde | prise flanc/frontal | coût flanc/frontal | verdict |
+|---|---|---|---|
+| ANCIEN | **×2,35** | ×0,56 | **LE FLANC PAIE** |
+| MESURÉ | **×1,00** | ×0,39 | le flanc ne paie pas |
+
+**>>> L'AVANTAGE DU FLANC ÉTAIT UN ARTEFACT DE LÉTALITÉ.** Il paie dans le monde 4× trop
+létal, il ne paie plus dans le monde mesuré. Les conclusions sur la manœuvre tirées de
+l'ancien monde sont à reprendre.
+
+**Ce qui reste vrai, et c'est important :** le flanc garde son avantage de COÛT (×0,39 —
+il perd 2,5 fois moins d'hommes par prise, et son exposition par mètre est deux fois plus
+basse). Ce qui disparaît, c'est son avantage de PRISE : dans un monde correctement létal,
+le frontal arrive aussi (95 % contre 36 % avant). Le flanc n'achète plus le succès, il
+achète des vies.
+
+**CONTRE :** (1) une seule graine (7) et une seule géométrie défensive (ligne + arc 120°) ;
+(2) doctrines scriptées, pas apprises — une politique apprise pourrait exploiter autre chose ;
+(3) le frontal à 95 % interroge : un banc où presque tout réussit sépare mal. Le prochain
+banc doit durcir la défense jusqu'à ramener le frontal dans une plage discriminante
+(25-75 %), sinon on mesure un plafond et non une doctrine.
+
+**Piège d'infra trouvé et corrigé :** `CUDA_VISIBLE_DEVICES=1` désignait la **GTX 1060**, pas
+la 3090 — CUDA numérote par puissance, `nvidia-smi` par bus PCI. `CUDA_DEVICE_ORDER=PCI_BUS_ID`
+ajouté à `/mnt/data2/lab/lab_run.sh` : sans lui, tout run GPU de la file partait sur la
+mauvaise carte (et échouait en « no kernel image »). Le venv `/mnt/steam/harmattan/venvs/rl`
+n'existe plus (réorg disques) ; le venv qui marche est `~/env_isaaclab` (torch 2.7.0+cu128).
+
+Fichiers : `reverdict_cible.py`, `CRITERES_REVERDICT_CIBLE.md`, `reverdict_cible.json`,
+`assault_terrain.py.avantcibledefaut`, run `/mnt/data2/lab/runs/reverdict_cible_flanc/`.
+
+## 2026-07-28 15:16 CEST (Claude-Mac, Opus 5) — LE SEUIL DE MANŒUVRE : 2 DÉFENSEURS PAR ATTAQUANT
+
+Critères figés AVANT le run : `CRITERES_BALAYAGE_MENACE.md` (empreinte `cfe67bb4d459d5dd`).
+Monde MESURÉ figé (courbe n°1 + n°2 + `cible_unique=True`), aucune courbe retouchée.
+Seul D varie. A=4, 200 épisodes par bras et par point, graine 7, doctrines scriptées.
+
+| D | prise frontal | prise flanc | prise fl/fr | coût fl/fr | dans la bande |
+|---|---|---|---|---|---|
+| 4 | 95,0 % | 95,0 % | ×1,00 | ×0,39 | non (plafond) |
+| 6 | 73,5 % | 92,5 % | ×1,26 | ×0,49 | oui |
+| **8** | 54,0 % | 87,0 % | **×1,61** | ×0,50 | oui |
+| 10 | 39,5 % | 82,0 % | ×2,08 | ×0,57 | oui |
+| 12 | 30,0 % | 77,0 % | ×2,57 | ×0,60 | oui |
+| 16 | 20,5 % | 72,5 % | ×3,54 | ×0,66 | non (plancher) |
+
+**>>> SEUIL DE MANŒUVRE : D = 8, soit DEUX DÉFENSEURS PAR ATTAQUANT.**
+En-dessous, le flanc n'achète que des vies. Au-dessus, il achète la prise elle-même, et
+l'avantage croît de façon monotone (×1,26 → ×3,54).
+
+**Ce que ça change :** le verdict du 28/07 (« l'avantage du flanc était un artefact de
+létalité ») était vrai À D=4 — et D=4 est hors bande, le banc y plafonnait à 95 %. La
+lecture correcte n'est pas « le flanc ne paie pas » mais **« le flanc paie au-dessus d'un
+rapport de forces de 1 contre 2 »**. La doctrine optimale est une FONCTION de la menace,
+pas une constante. C'est la base de l'adaptabilité : un agent doit lire la densité adverse
+et choisir, pas mémoriser une manœuvre.
+
+**Signal secondaire, à ne pas lisser :** l'avantage de COÛT s'érode quand la menace monte
+(×0,39 à D=4, ×0,50 à D=8, ×0,60 à D=12, ×0,66 à D=16 — hors critère). Les deux avantages
+du flanc évoluent en sens INVERSE : il achète de plus en plus la prise, de moins en moins
+les vies. À forte menace, contourner devient un pari, plus une économie.
+
+**CONTRE :** une seule graine (7), une seule géométrie défensive (ligne + arc 120°), doctrines
+scriptées, A=4 fixe. Le seuil D=8 est un seuil DE CE BANC ; il doit être certifié sur Arma
+avant d'être une affirmation sur le monde réel.
+
+Fichiers : `balayage_menace.py`, `CRITERES_BALAYAGE_MENACE.md`, `balayage_menace.json`,
+run `/mnt/data2/lab/runs/balayage_menace/`.
+
+## 2026-07-28 15:40 CEST (Claude-Mac, Opus 5) — ARMA REFUSE L'ÉCHELLE DU SANDBOX + terrain Pyrgos vérifié
+
+**TERRAIN (vérifié en dur, `verifier_terrain.py`, `verif_terrain_altis.json`).**
+Cinq points sur cinq à TERRE (objectif, départ, mi-chemin, deux flancs) — altitudes 14 à 23 m.
+Relief : amplitude **12 m** sur un cercle de 120 m → terrain qui porte, pas une plaine.
+Couvert (objets de terrain à 40 m) : objectif 185, couloir frontal 122, flancs 138 et 162.
+**Asymétrie flanc/frontal ×1,33** contre un seuil figé à 1,30 : ça passe, mais de peu.
+⚠ La fiche de théâtre annonçait 13 contre 46 (×3,5) au 25/07 — instrument différent
+(bâtiments vs objets de terrain), pas une contradiction, mais la marge réelle est mince.
+`poser_fob.py` forçait Stratis en dur ; il honore désormais `HMT_THEATRE` (`.avanttheatre`).
+
+**SONDE DE RÉGIME (garnison 8 fixe, mode frontal, 2 reps par point).**
+
+| attaquants | prise frontale | pertes WEST | EAST neutralisés | bande 25-75 % |
+|---|---|---|---|---|
+| 4 | 0 % | 2,00 | 1,50 | non |
+| 8 | 0 % | 1,50 | 2,00 | non |
+| 12 | **50 %** | 1,00 | 2,00 | OUI |
+| 18 | **50 %** | 5,00 | 2,00 | OUI |
+
+**>>> L'ÉCHELLE ABSOLUE DU SANDBOX NE TRANSFÈRE PAS.** Le sandbox donne 54 % de prise à
+4 attaquants contre 8 défenseurs ; Arma donne 0 %, deux fois sur deux. Il faut **12 hommes
+contre 8** pour seulement atteindre 50 %. Le sandbox laisse quatre hommes prendre un objectif
+tenu par huit — Arma refuse.
+
+Conséquence : le seuil « D/A ≥ 2 » n'est pas certifiable à A=4, puisque rien ne s'y résout.
+C'est l'issue n°4 des critères figés (`b764211cf2e274ca`) : réparer le régime avant lecture.
+
+**CERTIFICATION V2 LANCÉE** — critères `CRITERES_CERTIF_SEUIL_ARMA_V2.md` (`8f6e129af26fecf8`) :
+A=12 fixe (plus petit effectif dans la bande), D ∈ {8,12,16,24} soit D/A ∈ {0,67 ; 1,00 ;
+1,33 ; 2,00}, frontal vs envelop, 3 reps, 24 opérations. Question : le seuil transfère-t-il
+en RAPPORT (bascule attendue à D/A = 2) même si l'échelle absolue est fausse ?
+
+## 2026-07-28 16:20 CEST (Claude-Mac, Opus 5) — CERTIFICATION V2 : RIEN N'A ÉTÉ MESURÉ (22 enlisements sur 24)
+
+Critères `CRITERES_CERTIF_SEUIL_ARMA_V2.md` (`8f6e129af26fecf8`). A=12 fixe, D ∈ {8,12,16,24},
+frontal vs envelop, 3 reps, 24 opérations, Altis/Pyrgos.
+
+| D | D/A | prise frontal | prise envelop | pertes fr | pertes fl | bande |
+|---|---|---|---|---|---|---|
+| 8 | 0,67 | 33 % | 33 % | 1,00 | 1,67 | OUI |
+| 12 | 1,00 | 0 % | 0 % | 3,67 | 1,67 | non |
+| 16 | 1,33 | 0 % | 0 % | 3,33 | 4,00 | non |
+| 24 | 2,00 | 0 % | 0 % | 4,67 | 2,67 | non |
+
+**⚠ LE SCRIPT A IMPRIMÉ UNE CONCLUSION FAUSSE** (« aucune bascule dans la bande → le seuil est
+un artefact du sandbox »). Sa branche s'est déclenchée parce que la bande contenait UNE seule
+cellule. Avec une cellule on ne peut rien dire d'une bascule. La conclusion est retirée.
+
+**LE VRAI ÉTAT : ZÉRO DESTRUCTION SUR 24 OPÉRATIONS.**
+
+| D | mode | pris | détruits | ENLISÉS | distance d'arrêt |
+|---|---|---|---|---|---|
+| 8 | frontal / envelop | 1/3 · 1/3 | 0/3 · 0/3 | 2/3 · 2/3 | 46 m · 40 m |
+| 12 | frontal / envelop | 0/3 · 0/3 | 0/3 · 0/3 | **3/3 · 3/3** | 60 m · 58 m |
+| 16 | frontal / envelop | 0/3 · 0/3 | 0/3 · 0/3 | **3/3 · 3/3** | 87 m · 62 m |
+| 24 | frontal / envelop | 0/3 · 0/3 | 0/3 · 0/3 | **3/3 · 3/3** | 110 m · 76 m |
+
+Aucun assaut n'est allé au bout. Les attaquants sont VIVANTS, cloués entre 40 et 110 m, à
+échanger du feu jusqu'à épuisement du budget de pas. Critère d'abandon figé : au-delà de 25 %
+d'abandons une cellule est NON MESURÉE — **toutes les cellules sont entre 67 % et 100 %**.
+C'est l'issue n°4 des critères, pas la n°3. **On n'a rien mesuré.** Entrée de file : NEGATIF.
+
+**Le seul signal propre** : la distance d'arrêt croît avec la garnison (46 → 110 m en frontal).
+Les attaquants sont cloués de plus en plus loin. Cohérent, mais ça parle du budget de temps du
+banc, pas de la doctrine.
+
+**Deuxième fois aujourd'hui que JALON 2 se répète** : lire des chiffres tirés de combats figés.
+Le garde-fou (bande + comptage des abandons) a fonctionné — c'est lui qui a rattrapé le script.
+
+**DIAGNOSTIC LANCÉ, une seule variable** : budget de pas 60 → 150, mêmes cellules (A=12 vs
+D=8 et D=12, frontal, 2 reps). ≥3 résolues sur 4 → le banc manquait de temps et le budget de
+pas entre au protocole. 0 résolue → le temps n'est pas la cause, il faudra lire la logique
+d'assaut (`assault_tick`, `standoff`) avant tout nouveau run.
+
+## 2026-07-28 16:45 CEST (Claude-Mac, Opus 5) — LA LIGNE D'ASSAUT FINAL : ILS S'ARRÊTENT À 3 MÈTRES DU CRITÈRE
+
+**DIAGNOSTIC ENLISEMENT (budget de pas 60 → 150, une seule variable).**
+0 opération sur 4 résolue. Plus de temps les rapproche (28-36 m au lieu de 46-60 m) et leur
+fait neutraliser 2 à 5 défenseurs, mais aucun assaut n'aboutit. **Le temps n'est pas la cause.**
+
+**LE CRITÈRE DE PRISE EST À 25 m** (`envelop_arma.py:169`, `pen < 25`). Les distances minimales
+mesurées sont de 28, 33, 36 et 50 m. Ils s'arrêtent à TROIS MÈTRES du critère.
+
+**Hypothèse « objectif inatteignable » : RÉFUTÉE (MESURÉ).** Garnison vidée (0 défenseur),
+mêmes attaquants, même trajet : distance minimale **20 m**, FOB PRIS au tick 23, 0 perte.
+Le point est atteignable et le critère franchissable. L'arrêt à 28 m est donc bien causé par
+le feu adverse, pas par le bâti de Pyrgos.
+
+**>>> C'EST LA LIGNE D'ASSAUT FINAL, AU SENS DU MANUEL.** Les assaillants montent au contact,
+neutralisent une partie de la garnison, et ne franchissent pas le dernier bond. Le banc n'a
+aucun mécanisme pour le forcer : pas de suppression synchronisée sur le franchissement, pas
+de fumée, pas d'ordre d'assaut final.
+
+**Ce que le manuel prédisait, avant les données** (noté à 16h05, avant ce diagnostic) :
+« ton banc envoie 12 hommes coupés 45/55 contre 24 défenseurs — la doctrine aurait prédit
+l'échec avant le run » et « on ne franchit pas la ligne d'assaut final sans supprimer ».
+Prédiction confirmée. C'est le premier apport concret du répertoire doctrinal.
+
+**PROCHAIN TEST, pré-enregistré** : `--smoke` (déjà implémenté dans `envelop_arma.py`) sur la
+cellule A=12 vs D=12, qui était 0/3. Seuil figé AVANT : **≥2 opérations sur 3 résolues**
+(prise OU anéantissement) → l'écran de fumée est la clé du dernier bond et devient un
+paramètre du protocole. <2/3 → la fumée ne suffit pas, il faudra un ordre d'assaut final
+explicite (suppression synchronisée sur le franchissement).
+
+## 2026-07-28 16:50 CEST (Claude-Mac, Opus 5) — ⚠ `def_arc` EST UN BOUTON DÉBRANCHÉ + le débordement double est une ASSURANCE, pas une manœuvre
+
+**LE BOUTON MORT (MESURÉ).** `assault_terrain.py:174` — quand `def_rand=True`, l'arc défensif
+est tiré dans **U(40°,70°) de demi-angle** (soit 80-140° d'arc total) et **`def_arc` n'est
+jamais lu**. Tous les bancs du projet passent `def_rand=True`. Tous les commentaires qui
+annoncent « arc de tir 120 deg : le flanc EXISTE comme angle mort » décrivent un paramètre
+ignoré. Preuve : quatre balayages à 60/120/240/360° ont rendu des chiffres IDENTIQUES au point
+près. Un paramètre multiplié par six qui ne change rien n'est pas un paramètre.
+
+Ce que ça n'invalide pas : les verdicts du jour restent des mesures valides (l'arc tiré est
+toujours étroit, un angle mort existe toujours). Ce que ça invalide : la DESCRIPTION des bancs
+et toute lecture qui attribuait un résultat à « l'arc de 120° ».
+
+**MATRICE À GÉOMÉTRIE FIGÉE** (`--fixe` ajouté : `def_rand=False`, spread 20°, rline 37,5 m,
+seul l'arc varie ; les doctrines sont scriptées, elles ne peuvent rien mémoriser, la
+randomisation ne protégeait rien ici). D=8, A=4, 200 épisodes, graine 7 :
+
+| arc total | frontal | appui-mvt | déb. simple | déb. double | infiltration | bonds | double − simple |
+|---|---|---|---|---|---|---|---|
+| 60° | 57 % | 56 % | 100 % | 100 % | 100 % | 28 % | +0 |
+| 120° | 35 % | 29 % | 94 % | 93 % | 90 % | 15 % | **−1** |
+| 240° | 20 % | 19 % | 43 % | 41 % | **51 %** | 6 % | **−2** |
+| 360° | 5 % | 4 % | 16 % | 17 % | 22 % | 1 % | NON MESURÉE (max 22 % < seuil 25 %) |
+
+**>>> LE DÉBORDEMENT DOUBLE NE BAT JAMAIS LE SIMPLE À GÉOMÉTRIE FIGÉE.** Son +8 de la matrice
+précédente venait ENTIÈREMENT de la randomisation : le décentrage U(−25°,+25°) fait partir le
+crochet simple du mauvais côté une fois sur deux, le double couvre les deux flancs.
+**Ce n'est pas une manœuvre supérieure, c'est une assurance contre l'ignorance.** Sa valeur
+mesure le coût de ne pas savoir où l'ennemi fait face — un problème de RENSEIGNEMENT déguisé
+en problème de tactique. Prédiction du manuel (« le double doit perdre contre le simple à
+faible effectif ») : **CONFIRMÉE dès qu'on retire l'incertitude.**
+
+**L'arc est la variable dominante** : la prise passe de 100 % à 16 % quand il s'ouvre. Il était
+débranché depuis le début.
+
+**Troisième prédiction du manuel confirmée** : à 240°, quand plus aucun flanc n'est aveugle,
+c'est l'INFILTRATION qui passe devant (51 % contre 43 % au débordement simple). « Exige du
+couvert et une défense non continue » — elle prend le relais exactement là où le crochet meurt.
+
+Fichiers : `manuel.py` (FIGÉ), `matrice_manuel.py` (+`--arc_deg`, +`--fixe`),
+`CRITERES_MATRICE_MANUEL.md` (3c86c7051e57cbad), `CRITERES_ARC_EXPLOIT.md` (043c5333d90aa8a4),
+`matrice_manuel.json`, `arc_{60,120,240,360}.json` (INERTES, à ne pas lire),
+`arcfix_{60,120,240,360}.json`.
+
+## 2026-07-28 16:55 CEST (Claude-Mac, Opus 5) — AUDIT DES BOUTONS : 3 paramètres silencieusement écrasés, garde-fou posé
+
+`audit_boutons.py` + `audit_boutons.sh` : chaque paramètre passé par les bancs est joué à
+DEUX valeurs extrêmes, même graine, même doctrine (`debordement_simple`, D=8, A=4, 150 épisodes).
+Sorties identiques au chiffre près → bouton INERTE dans la configuration où les bancs tournent.
+**Un processus par bouton** : un assert CUDA empoisonne tout le contexte et emporterait les suivants.
+
+**Résultat brut : 12 inertes sur 21 testés.** Le chiffre brut serait une sur-affirmation ;
+voici le découpage, qui seul compte.
+
+**A. Écrasés par un autre bouton — LES SEULS INQUIÉTANTS (3)**
+`def_arc`, `def_rline`, `def_spread` : tous tués par `def_rand=True`. La géométrie défensive
+que trois bancs croyaient régler était tirée au hasard par épisode.
+
+**B. Inertes par construction de l'expérience — attendu, pas un défaut (7)**
+`approach_w`, `death_pen` : paramètres de RÉCOMPENSE, or les doctrines sont scriptées, rien
+n'apprend. `arc_obs`, `champ_risque` : paramètres d'OBSERVATION, une doctrine scriptée ne lit
+pas l'obs. `emergent_expo`, `nav_around` : exigent `replica=True`, absent ici. `sec_par_pas` :
+n'est utilisé que pour convertir `arc_latence_s` et nourrir `stress` — c'est une unité, pas
+une physique (vérifié ligne par ligne).
+
+**C. Inertes parce que la doctrine ne les sollicite pas (2)**
+`postures`, `hull` : le débordement simple ne se couche jamais, la posture reste debout, donc
+le profil de corps ne change pas. Un banc avec une doctrine qui se couche les réveillerait.
+
+**D. Configurations qui ne tournent pas (2)**
+`def_line=False` → **assert CUDA, l'environnement tombe** (défenseurs en anneau à 12 m :
+distance hors des bornes de la table de toucher, hypothèse à confirmer).
+`stress=True` → refusé (erreur au constructeur).
+
+**ACTIFS (9)** : `def_rand`, `cible_unique`, `tir_par_pas`, `degat_par_impact`, `supp_kill`,
+`supp_residuel`, `supp_persist`, `secure_only`, `flank_kill`.
+
+**GARDE-FOU POSÉ** (`assault_terrain.py`, sauvegarde `.avantgarde`) : si `def_rand=True` ET
+qu'une valeur non-défaut est passée pour `def_arc`/`def_spread`/`def_rline`, l'environnement
+émet un `RuntimeWarning` explicite. Vérifié sur les trois cas : avertit quand il faut, se tait
+quand il faut. **Soit on randomise, soit on règle, jamais les deux en silence.**
+
+**Ce que la journée établit, et c'est l'énoncé de la thèse** : quatre défauts d'instrument
+trouvés en une journée (létalité ×4, conclusion de script erronée, bouton d'arc débranché,
+`CUDA_VISIBLE_DEVICES` sur la mauvaise carte), tous rattrapés par des seuils pré-enregistrés
+et des gardes, jamais par l'intuition. L'audit transforme l'accident en méthode : quatre
+minutes suffisent à savoir quels boutons d'un banc sont réellement branchés.
+
+## 2026-07-28 16:48 CEST — FUMÉE : 1/3, SOUS LE SEUIL (mais n=3 ne tranche rien)
+
+Cellule A=12 vs D=12, 150 pas, `--smoke --smoke_dist 45`, 14 grenades par opération.
+Une seule variable ajoutée par rapport au run de certification.
+
+| rep | pris | survivants | distance min | EAST neutralisés |
+|---|---|---|---|---|
+| 1 | non | 6/12 | 67 m | 4/12 |
+| 2 | non | 7/12 | 28 m | 6/12 |
+| 3 | **OUI** | **10/12** | 20 m | 2/12 |
+
+Seuil pré-enregistré : ≥2/3 résolues. Obtenu 1/3 → **la fumée ne suffit pas**, il faut un
+ordre d'assaut final explicite (suppression synchronisée sur le franchissement).
+
+**À NE PAS SURINTERPRÉTER** : sans fumée la cellule était 0/3, avec fumée 1/3. À n=3, cet
+écart ne prouve rien — ni que la fumée aide, ni qu'elle est inutile. Ce qui est notable :
+quand l'assaut passe, il passe bien (20 m atteints, 2 pertes sur 12).
+
+**PROCHAINE BRIQUE (non lancée)** : un ordre d'assaut final dans `envelop_arma.py` — au
+passage sous ~40 m, les fixeurs supprimant en continu pendant que l'élément d'assaut reçoit
+un `doMove` répété sur le point d'objectif, sans interruption de tir. C'est le mécanisme que
+le manuel décrit et que le banc n'a pas.
+
+## 2026-07-28 18:25 CEST — ORDRE D'ASSAUT FINAL : LA CAUSE DE SIX SEMAINES D'ENLISEMENT
+
+**LA CAUSE, MESURÉE.** `doSuppressiveFire` **arrête l'unité**. Dans `HMT_ENVELOP_APPLY`, tout
+attaquant ayant une ligne de vue recevait `doTarget` + `doSuppressiveFire` : il se figeait sur
+place. C'est l'enlisement constaté sur 28 opérations les 14/06 et 28/07 — attribué jusqu'ici à
+la tactique, alors que c'était une commande SQF qui clouait les hommes au sol.
+
+**LE MÉCANISME AJOUTÉ** (`--assaut_final DIST`, défaut 0 = désactivé, non régressif) :
+sous DIST mètres, l'élément d'assaut cesse de tirer (`doWatch objNull`, `doTarget objNull`,
+plus de `doSuppressiveFire`), se lève et court (`setUnitPos "UP"`, `forceSpeed 100`), et reçoit
+un `doMove` répété sur l'objectif. Les fixeurs continuent de supprimer. C'est le dernier bond
+du manuel : l'élément d'assaut ne tire pas, la base de feu couvre.
+Fichiers : `envelop_arma.sqf` (+`.avantassaut`, copié dans les deux missions),
+`envelop_arma.py` (+`.avantassaut`).
+
+**PREUVE D'ACTIVATION (n=1)** : cellule A=12 vs D=12, frontal, déclencheur 40 m →
+**FOB PRIS au tick 87**, 26 → 19 m en quatre pas après déclenchement, 6 pertes sur 12.
+La même cellule sans l'ordre était 0 prise sur 3, arrêtée à 58-60 m.
+
+**RUN V1 (`7c8d6c96a8cf6887`) : 0 RÉSOLUE SUR 6 — MAIS IL N'A PAS TESTÉ L'ORDRE.**
+Distances minimales : 34, 42, 55, 58, 67, 81 m pour un déclencheur à 40 m. Le mécanisme n'a pu
+s'armer que dans **1 opération sur 6**. Le seuil pré-enregistré (≥5/6 résolues) n'est pas
+atteint et l'entrée est NEGATIF — mais la lecture correcte est : à 12 contre 12, les assaillants
+n'atteignent même pas la distance de déclenchement.
+
+**DEUX FAUTES DE MA PART, CONSIGNÉES :**
+1. Déclencheur placé là où le tir de démonstration s'était arrêté (26 m), pas là où le banc
+   s'enlise réellement (55-81 m).
+2. Le runner filtrait par `tail -1` et **jetait les lignes de tick**, donc toute preuve de
+   déclenchement. Il a fallu reconstituer par les distances. Corrigé : le journal conserve
+   désormais les lignes `FRANCHISSEMENT`. C'est exactement le défaut traqué chez les autres
+   bancs toute la journée — un instrument qui ne garde pas la trace de ce qu'il mesure.
+
+**V2 LANCÉE** (`CRITERES_ASSAUT_FINAL_V2.md`, `c921d934a962560b`) : une seule variable, le
+déclencheur passe à 80 m. Deux seuils en cascade : d'abord ≥5/6 opérations doivent AFFICHER un
+déclenchement (sinon rien d'autre ne se lit), ensuite ≥4/6 doivent être résolues.
+**Pas de troisième valeur de DIST dans ce chantier** : deux réglages successifs d'un même
+bouton, c'est du tuning, pas une mesure.
+
+## 2026-07-28 19:10 CEST — CERTIF DANS LA BANDE : NON MESURÉE, mais l'écart d'abandons dénonce un mécanisme
+
+Critères `CRITERES_CERTIF_BANDE.md` (`657f109d4af8e368`). A=12 vs D=8, 6 reps par bras,
+ordre d'assaut final DÉSACTIVÉ, Altis/Pyrgos.
+
+| bras | prise | abandons | pertes/prise | EAST neutralisés |
+|---|---|---|---|---|
+| frontal | 33 % | **67 %** | 1,50 | 2,7/8 |
+| envelop | 83 % | **17 %** | 1,80 | 2,7/8 |
+
+**Verdict des critères : bras frontal NON MESURÉ** (67 % d'abandons > 25 %). Aucune comparaison
+ne se lit, aucune prédiction du sandbox n'est tranchée.
+
+**MAIS L'ÉCART D'ABANDONS EST LE SIGNAL.** Dans `envelop_arma.py`, pendant leur crochet les
+débordeurs reçoivent `fire = 0` (« swing silencieux », ligne ~152) ; les frontaux reçoivent
+tous `fire = 1`. Or `doSuppressiveFire` FIGE l'unité (mesuré ce soir).
+
+**HYPOTHÈSE (SUPPOSÉ) : les débordeurs avancent parce qu'on leur interdit de tirer, les frontaux
+s'arrêtent parce qu'on leur ordonne de tirer.** L'avantage du flanc mesuré sur Arma serait un
+artefact de l'ORDRE DE FEU, pas une vertu de la géométrie. C'est la même histoire que le
+débordement double du sandbox cet après-midi : un avantage qui vient du harnais, pas de la
+tactique.
+
+**Ce que ça mettrait en cause si c'est vrai** : tous les A/B frontal-vs-débordement de ce banc,
+y compris le banc FIBUA du 23/07. À vérifier avant d'en graver quoi que ce soit de plus.
+
+**TEST SUIVANT, une seule variable** : un FRONTAL SILENCIEUX (`fire = 0` jusqu'au contact,
+même trajet, même effectif). Si son taux d'abandon s'effondre et sa prise rejoint celle de
+l'envelop, l'avantage du flanc sur ce banc est un artefact de l'ordre de feu.
+
+## 2026-07-28 19:23 CEST — FRONTAL SILENCIEUX : effet FORT, seuil ÉCHOUÉ, pré-inscription MAL CALIBRÉE
+
+Critères `CRITERES_FRONTAL_SILENCIEUX.md` (`45f3851a98d62c57`). A=12 vs D=8, 6 reps,
+une seule variable : `--silencieux` (`fire=0` en progression).
+
+| bras | prise | abandons | dist_min moy |
+|---|---|---|---|
+| frontal BRUYANT | 33 % | 67 % | — |
+| **frontal SILENCIEUX** | **67 %** | **33 %** | 28 m |
+| envelop bruyant | 83 % | 17 % | — |
+
+**Verdict des critères : SEUIL 1 ÉCHOUÉ** (33 % d'abandons > 25 %). Entrée NEGATIF, seuil 2
+non lu. Le run reste consigné tel quel, il n'est pas réinterprété.
+
+**⚠ LA CONCLUSION IMPRIMÉE PAR LE SCRIPT EST FAUSSE.** Il affiche « l'ordre de feu n'explique
+PAS l'enlisement ». Les données disent l'inverse en tendance : abandons divisés par deux,
+prise doublée, dans la direction prédite. À n=6, 33 % contre 67 % c'est 2 opérations contre 4 —
+ça ne tranche pas. **Troisième fois aujourd'hui qu'une branche codée d'avance surinterprète**
+(après `certif_seuil_arma` et `arc_exploit`). Les branches de conclusion doivent être écrites
+aussi prudemment que les seuils.
+
+**LA FAUTE EST DANS MA PRÉ-INSCRIPTION, et elle est instructive.** J'ai fixé le seuil d'abandons
+à ≤25 % alors que le bras de comparaison était à 67 %. Un effet qui DIVISE PAR DEUX — le
+résultat le plus probable si l'hypothèse est vraie — atterrit à 33 % et échoue au seuil.
+**J'ai posé une barre qu'un succès net ne franchissait pas.** Un seuil doit être calibré sur
+la taille d'effet attendue, pas choisi rond.
+
+**RÉPLICATION OUVERTE** (`CRITERES_SILENCE_REPLICATION.md`) : trois bras × 18 opérations,
+comparaison primaire sur la PRISE (frontal silencieux − frontal bruyant ≥ +20 points), seuils
+écrits avant les données. Le run à n=6 n'est pas effacé : il est le pilote qui a servi à
+dimensionner celle-ci.
+
+## 2026-07-28 21:36 CEST — ⭐⭐⭐ LA VARIANCE DU BANC ARMA DÉPASSE LES EFFETS QU'ON Y CHERCHE
+
+Réplication `CRITERES_SILENCE_REPLICATION.md` (`e289a5f5e592ec36`), 3 bras × 18 opérations,
+A=12 vs D=8, Altis/Pyrgos. 54 opérations, 2 h 11.
+
+| bras | ops | prise | enlisés | pertes/prise |
+|---|---|---|---|---|
+| frontal bruyant | 18 | **67 %** | 33 % | 3,33 |
+| frontal silencieux | 18 | **33 %** | 67 % | 4,00 |
+| envelop bruyant | 18 | 61 % | 39 % | 1,82 |
+
+**Verdict des critères** : bras `frontal_silencieux` NON MESURÉ (67 % d'enlisements > garde 40 %).
+La comparaison primaire ne se lit pas. Entrée NEGATIF.
+
+**L'HYPOTHÈSE DU SILENCE EST MORTE, ET RETOURNÉE.** Pilote (n=6) : silencieux 67 %, bruyant 33 %.
+Réplication (n=18) : bruyant 67 %, silencieux 33 %. **Les deux chiffres ont échangé leurs places.**
+
+**>>> LE RÉSULTAT DE LA NUIT, ET IL VAUT PLUS QUE L'HYPOTHÈSE QU'IL TUE :**
+**le même bras, mesuré deux fois, donne 33 % puis 67 % de prise.**
+`certif_bande` (18h46, 6 ops) : frontal bruyant 33 %. `replication_silence` (21h36, 18 ops) :
+frontal bruyant 67 %. Même script, même configuration, même rapport de forces, même théâtre.
+**34 points d'écart entre deux mesures du même bras.**
+
+**La variance de ce banc dépasse tous les effets qu'on y cherche depuis six semaines.** Ça
+explique d'un coup : le seuil de manœuvre qui ne se certifie pas, la fumée à 1/3, l'ordre
+d'assaut à 0/6, le pilote qui s'inverse. On mesurait du bruit avec une règle trop fine.
+
+**OBSERVATION NON PRÉ-ENREGISTRÉE** (à traiter comme telle) : l'envelop prend l'objectif aussi
+souvent que le frontal (61 % contre 67 %) pour **1,82 perte contre 3,33**. Le flanc achète des
+VIES, pas l'objectif. C'est exactement ce que le sandbox a mesuré ce matin (coût ×0,39). Seule
+chose que deux instruments indépendants affirment ensemble aujourd'hui.
+
+**CE QUI DOIT PRÉCÉDER TOUTE AUTRE MESURE SUR CE BANC** : estimer sa variance. Rejouer UN SEUL
+bras en blocs indépendants et mesurer l'écart entre blocs. Ce chiffre donne le n minimal de
+toute comparaison future. Sans lui, chaque A/B de ce banc est une loterie qu'on interprète.
+
+## 2026-07-29 — JOURNÉE ENTIÈRE : L'AGENT PASSE DE 0,3 % À 72 % DE SUCCÈS
+
+Architecte : Fable. Exécution : Opus 5. Arbitrage : Younes.
+**Tous les chiffres ci-dessous sont mesurés par l'instrument certifié au jalon 1.**
+
+---
+
+### 1. LE JALON 1 — DES INSTRUMENTS QUI ONT PROUVÉ LEUR ZÉRO
+Motif : sept pannes en deux jours, toutes dans l'instrument, jamais dans l'objet mesuré.
+**Règle qui a fermé la boucle** : on possède des objets dont la réponse est connue — les six
+doctrines écrites à la main. Aucun instrument n'a le droit de produire un chiffre tant qu'il n'a
+pas retrouvé ces chiffres-là.
+
+Fichiers : `CRITERES_JALON1.md` (`2129aea319627f8f`), `banc_mission.py` (collecte seule, journaux
+en ajout, empreintes des fichiers dans l'en-tête), `analyse_journal.py` (recalcule le prédicat et
+le compare au monde), `audit_ordre.py` (orchestrateur, plus aucune boucle de mesure),
+`preuve_permutation.py`, `etalon_j1.sh`, `etalon_j1_5graines.sh`, `controle_nul_e6.sh`.
+
+**Quatre bugs de fond corrigés dans `monde_mission.py`** : permutation résolue après le
+re-tirage ; premier pas jamais permuté ; mode épisode qui supprime le pas désynchronisé par
+construction ; instantanés du toucher et bornes de mission figés avant le re-tirage.
+
+**AMENDEMENT 4, accepté par Younes** : l'ancienne table d'étalon est retirée. Elle mesurait des
+doctrines **amputées** — le pas était désynchronisé, donc passé le 14e pas global plus aucun
+épisode ne recevait le signal qui déclenche le crochet ou l'éventail. Les trois doctrines à phase
+unique décrochaient de 28 à 32 points ; les trois qui n'utilisent pas le pas tombaient dans la
+tolérance. Signature du mécanisme, pas coïncidence.
+
+**Étalon consolidé, 5 graines, protocole persisté, étendue max 5,8 points** :
+| doctrine | PRENDRE | INFILTRER |
+|---|---|---|
+| débordement double | 87,5 | 62,9 |
+| débordement simple | 84,9 | 61,5 |
+| infiltration | 83,7 | 50,2 |
+| appui-mouvement | 46,0 | 13,2 |
+| frontal | 45,0 | 7,8 |
+| bonds alternés | 24,6 | 10,0 |
+
+**Contrôle nul (E6)** : écart **exactement 0,000** sur les six doctrines, 120 passes,
+122 880 épisodes. *Un instrument qui n'a pas prouvé son zéro ne mesure pas, il opine.*
+
+---
+
+### 2. CE QUI A ÉTÉ ESSAYÉ ET FERMÉ, PAR SES PROPRES PORTES
+
+| version | mécanisme | résultat | pourquoi c'est clos |
+|---|---|---|---|
+| v3 | monde d'avant les correctifs | 4,1 % | monde cassé |
+| v4 | monde certifié, verbe | 26-32 % | ×8 par le seul correctif du monde |
+| v5 | l'ordre devient un budget consommé | ~2 % | dose **plate à 3,0** quel que soit le budget |
+| v6 | couche réactive, 4 règles | ~1 % | la couche substituait **64 à 74 %** des gestes |
+| 3b | lagrangien, λ persistant | 5-15 % | λ > 1,0 avant l'itération 200, garde-fou déclenché |
+
+**v5** : le critique apprenait parfaitement le budget (écart de valeur 0,24) mais la politique ne
+s'en servait pas (divergence d'actions 0,0004 sur une échelle qui monte à 0,693). Le verbe était
+une constante d'épisode dont la conséquence n'existait qu'au dernier pas.
+
+**v6, le témoin décisif** — les doctrines passées **à travers** la couche :
+| doctrine | arrivée sans | arrivée à travers |
+|---|---|---|
+| infiltration | 94,9 % | **1,0 %** |
+| débordement double | 96,2 % | 6,8 % |
+| frontal | 54,2 % | 0,5 % |
+Une politique qui ne lit aucune observation s'effondre de 95 % à 1 %. Ce n'était pas
+l'apprentissage. **La conclusion d'obéissance à rho 1,000 sur l'agent entraîné est RETIRÉE :
+elle mesurait l'immobilité.** Un agent qui n'arrive jamais respecte n'importe quel budget.
+
+**3b** : les épisodes qui violent sont ceux qui arrivent. Taxer l'exposition retire l'arrivée
+avant de retirer la violation. **Mais le run précédent, où λ était plafonné à 0,2 par un bug de
+reprise, a donné 51 % d'arrivée et 25 % de succès — meilleur que le témoin sans contrainte.**
+Un petit coût d'exposition guide vers les routes discrètes, qui sont aussi celles qui arrivent.
+Un gros coût tue.
+
+---
+
+### 3. CE QUI A MARCHÉ — IMITATION PUIS AFFINAGE (recette SHAMAL)
+
+**Contrôle à un seul changement** : budget poussé à l'infini, aucune couche → arrivée
+24,2 → 28,3 %. La machinerie était saine, la contrainte était le coupable.
+
+**Deux écarts, qu'il ne faut plus confondre** : la contrainte (28,3 → 0,3 %) et la compétence
+(96,2 → 28,3 %). Le second est le vrai mur.
+
+**Professeur** : `debordement_double` seul, 15 050 240 paires, filtrées sur les épisodes qui
+**arrivent** et non sur ceux qui réussissent. Accord de clonage **96,2 %** sur données tenues à
+l'écart, 3 époques.
+
+**Résultat final, graines TENUES À L'ÉCART (2000-2002), 2048 épisodes par cellule :**
+| | arrivée | succès à B=2,2 |
+|---|---|---|
+| clone | 76,4 % | 64,0 % |
+| affiné graine 0 | 88,1 % | **72,2 %** |
+| affiné graine 1 | 90,7 % | **71,8 %** |
+| affiné graine 2 | 78,2 % | 65,6 % |
+
+**Gain moyen sur le clone : +5,9 points. Critère pré-enregistré de +5 points : FRANCHI.**
+Arrivée de 76 à 90 %, contre 96 % pour le professeur original.
+
+**Réserve** : les trois graines régressent à l'itération 200 (succès moyen 57,4 %, sous le clone).
+Le point de contrôle 100 est le bon. Même motif de régression tardive que v4.
+
+Fichiers : `collecte_prof.py`, `clone_prof.py`, `affine.sh`, `ckpt/clone.pt`,
+`ckpt/aff_g{0,1,2}_100.pt`, `CRITERES_3B_LAGRANGIEN.md` (`392bbcd9c236d0f7`),
+`CRITERES_V6_REFLEXE.md` (`4420f233b5b301be`), `CRITERES_V5_BUDGET.md` (`9274c81a3842a5e5`).
+
+---
+
+### 4. LES LEÇONS DE MÉTHODE, PAYÉES CHER
+
+1. **Toute porte qu'un agent immobile peut franchir est nulle.** Mes deux portes de v6 étaient
+   des portes de solidité ; il leur manquait une compagne de vivacité — vérifier que le corps
+   **laisse encore arriver**.
+2. **Un réflexe masque, il ne choisit jamais.** Critère exécutable de Fable : la règle s'écrit-elle
+   en interdisant des actions, sans autre effet ? Ma règle d'éloignement écrivait un cap : ce
+   n'était pas un réflexe, c'était une décision tactique déguisée, et elle retournait le corps
+   contre le but.
+3. **Collecte et jugement doivent être deux programmes distincts.** Le banc écrit des épisodes
+   bruts en ajout seul ; l'analyse recalcule le prédicat et le compare au monde. Ce contrôle a
+   attrapé **trois** bugs dans mon propre code en une heure, tous invisibles en mode épisode.
+4. **Douze erreurs d'instrumentation en deux jours, toutes de la même forme** : une valeur lue
+   après que l'état a bougé, ou un champ qui ne veut pas dire ce qu'on croit. Le champ `took` du
+   journal valait « le pas du toucher est renseigné », or ce pas ne l'est qu'au succès : les deux
+   colonnes mesuraient la même chose et on ne pouvait pas répondre à « l'escouade arrive-t-elle ».
+5. **Ce qui rattrape, ce n'est jamais l'intuition** : c'est un seuil écrit avant les données, un
+   témoin, ou un contrôle nul. Trois branches ont été fermées par leur propre garde-fou.
+6. **Machine en veille = neuf heures de labo perdues.** `systemctl suspend` à 01h43. Commande
+   `dodo` posée : elle refuse la veille si la file travaille.
+7. **`CUDA_VISIBLE_DEVICES=1` désignait la GTX 1060**, pas la 3090 — CUDA numérote par puissance,
+   `nvidia-smi` par bus PCI. `CUDA_DEVICE_ORDER=PCI_BUS_ID` ajouté au lanceur.
+8. **Trois travaux tiennent sur la 3090** : mesure à 16 % d'occupation avec un seul, 99 % avec
+   trois. Le goulot est le lancement des noyaux côté processeur, pas la carte.

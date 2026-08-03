@@ -1,0 +1,32 @@
+{
+ "cone DUR (fiction)": {
+  "frontal_prise": 0.193359375,
+  "crochet_prise": 0.7473958333333334,
+  "frontal_cout": 0.3744984169801076,
+  "crochet_cout": 0.24635596573352814,
+  "rapport_prise": 3.8653198653198655,
+  "rapport_cout": 0.6578291244061892,
+  "frontal_expo": 0.023602253446976345,
+  "crochet_expo": 0.01849105767905712
+ },
+ "arc dynamique 3.0 s": {
+  "frontal_prise": 0.039388020833333336,
+  "crochet_prise": 0.2998046875,
+  "frontal_cout": 0.5410314997037252,
+  "crochet_cout": 0.22390132149060568,
+  "rapport_prise": 7.611570247933884,
+  "rapport_cout": 0.4138415630387815,
+  "frontal_expo": 0.02498735177020232,
+  "crochet_expo": 0.025218610962231953
+ },
+ "arc dynamique 6.0 s": {
+  "frontal_prise": 0.09309895833333333,
+  "crochet_prise": 0.4622395833333333,
+  "frontal_cout": 0.45543983578681946,
+  "crochet_cout": 0.2174159437417984,
+  "rapport_prise": 4.965034965034965,
+  "rapport_cout": 0.477375773171422,
+  "frontal_expo": 0.024796363587180775,
+  "crochet_expo": 0.023117724806070328
+ }
+}

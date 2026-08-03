@@ -1,0 +1,14 @@
+{
+ "bouton": "tir_par_pas",
+ "bas": {
+  "prise": 1.0,
+  "pertes": 0.043333,
+  "expo": 1.323809
+ },
+ "haut": {
+  "prise": 0.64,
+  "pertes": 0.533333,
+  "expo": 0.790482
+ },
+ "verdict": "actif"
+}

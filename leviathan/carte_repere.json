@@ -1,0 +1,27 @@
+{
+ "reperes": {
+  "frontal": {
+   "prise": 0.20000000298023224,
+   "pertes_par_prise": 0.3500000238418579,
+   "prise_a_pertes": 0.5714285410180404,
+   "expo_par_metre": 0.024718401953577995,
+   "part_angle_mort": 0.019059117883443832,
+   "pic_croyance_canal3": 0.4734209179878235,
+   "distance_du_detour": 124.92932891845703
+  },
+  "flanc": {
+   "prise": 0.746666669845581,
+   "pertes_par_prise": 0.2544642984867096,
+   "prise_a_pertes": 2.9342688710596416,
+   "expo_par_metre": 0.01864747330546379,
+   "part_angle_mort": 0.20239275693893433,
+   "pic_croyance_canal3": 0.507817268371582,
+   "distance_du_detour": 160.3006591796875
+  }
+ },
+ "bras": {
+  "dense": [],
+  "conv": []
+ },
+ "duree_min": 0.1468192140261332
+}

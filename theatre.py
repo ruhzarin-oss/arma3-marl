@@ -83,6 +83,21 @@ THEATRES = {
     ),
 }
 
+# --- LA FERME : 14 instances Altis identiques au juge, pour la collecte parallèle. ---
+# Même monde, même objectif, même axe d'approche que "altis" : ce que la ferme produit est
+# donc directement comparable à ce que le juge mesure. Seuls les ports changent.
+# Lancement : /mnt/data/harmattan-sandbox/ferme_lancer.sh <M>
+_A = THEATRES["altis"]
+for _i in range(14):
+    THEATRES["ferme%d" % _i] = Theatre(
+        name="ferme%d" % _i, world=_A.WORLD, fob=_A.FOB, approach_az=_A.APPROACH_AZ,
+        port=5801 + _i, game_port=2402 + _i * 100,
+        mission="HarmattanBridge%d.Altis" % _i,
+        launch="/mnt/data/harmattan-sandbox/ferme_lancer.sh",
+        notes="instance %d de la ferme d'entraînement (Altis nu, sans ALiVE ni mods). "
+              "Géométrie identique au théâtre altis." % _i,
+    )
+
 # théâtre actif — DÉFAUT STRATIS (compatibilité totale avec l'existant)
 T = THEATRES[os.environ.get("HMT_THEATRE", "stratis").strip().lower()]
 

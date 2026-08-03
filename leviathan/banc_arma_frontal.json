@@ -1,0 +1,11 @@
+{
+ "doctrine": "frontal",
+ "episodes": 12,
+ "prise": 0.0,
+ "pertes_par_episode": 3.3333333333333335,
+ "pertes_par_prise": NaN,
+ "nA": 4,
+ "nD": 8,
+ "rspawn": 170.0,
+ "duree_s": 200
+}

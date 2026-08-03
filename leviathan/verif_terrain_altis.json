@@ -1,0 +1,40 @@
+{
+ "objectif": {
+  "eau": false,
+  "alt": 19,
+  "objets_40m": 185
+ },
+ "depart": {
+  "eau": false,
+  "alt": 14,
+  "objets_40m": 41
+ },
+ "mi_chemin": {
+  "eau": false,
+  "alt": 15,
+  "objets_40m": 122
+ },
+ "flanc_gauche": {
+  "eau": false,
+  "alt": 23,
+  "objets_40m": 138
+ },
+ "flanc_droit": {
+  "eau": false,
+  "alt": 14,
+  "objets_40m": 162
+ },
+ "relief": {
+  "altitudes": [
+   20,
+   23,
+   23,
+   19,
+   14,
+   11,
+   14,
+   19
+  ],
+  "amplitude": 12
+ }
+}

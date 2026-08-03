@@ -1,0 +1,51 @@
+{
+ "frontal": {
+  "prise": 0.38333332538604736,
+  "expo_par_metre": 0.03321080530683199,
+  "arc_par_metre": 0.10310926536719005,
+  "arc_tarife_par_metre": 0.09166800230741501,
+  "detour_a": 115.80333455403645
+ },
+ "crochet_original": {
+  "prise": 0.8683333198229471,
+  "expo_par_metre": 0.013332012730340162,
+  "arc_par_metre": 0.1235995665192604,
+  "arc_tarife_par_metre": 0.0803832213083903,
+  "detour_a": 159.9907430013021
+ },
+ "crochet_vire_100": {
+  "prise": 0.0,
+  "expo_par_metre": 0.025116429353753727,
+  "arc_par_metre": 0.26000676055749256,
+  "arc_tarife_par_metre": 0.1657871057589849,
+  "detour_a": 183.92694091796875
+ },
+ "crochet_vire_140": {
+  "prise": 0.0,
+  "expo_par_metre": 0.025116429353753727,
+  "arc_par_metre": 0.26000676055749256,
+  "arc_tarife_par_metre": 0.1657871057589849,
+  "detour_a": 183.92694091796875
+ },
+ "crochet_vire_180": {
+  "prise": 0.4116666515668233,
+  "expo_par_metre": 0.02849879985054334,
+  "arc_par_metre": 0.12229441851377487,
+  "arc_tarife_par_metre": 0.10156810283660889,
+  "detour_a": 151.29022725423178
+ },
+ "appris_arc": {
+  "prise": 0.8799999753634135,
+  "expo_par_metre": 0.022449200972914696,
+  "arc_par_metre": 0.14865349233150482,
+  "arc_tarife_par_metre": 0.09505013624827068,
+  "detour_a": 134.88771057128906
+ },
+ "appris_champ": {
+  "prise": 0.949999988079071,
+  "expo_par_metre": 0.017539891724785168,
+  "arc_par_metre": 0.22446346282958984,
+  "arc_tarife_par_metre": 0.149180069565773,
+  "detour_a": 126.36275227864583
+ }
+}

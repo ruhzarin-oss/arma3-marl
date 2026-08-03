@@ -1,0 +1,14 @@
+{
+ "bouton": "supp_persist",
+ "bas": {
+  "prise": 0.866667,
+  "pertes": 0.303333,
+  "expo": 1.22788
+ },
+ "haut": {
+  "prise": 0.88,
+  "pertes": 0.3,
+  "expo": 1.230861
+ },
+ "verdict": "actif"
+}

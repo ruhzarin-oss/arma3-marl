@@ -1,0 +1,31 @@
+{
+ "distance": 60.0,
+ "duree_s": 90,
+ "angles": {
+  "0": {
+   "tirs": 40,
+   "touches": 6,
+   "mort": true
+  },
+  "45": {
+   "tirs": 5,
+   "touches": 6,
+   "mort": true
+  },
+  "90": {
+   "tirs": 0,
+   "touches": 35,
+   "mort": true
+  },
+  "135": {
+   "tirs": 0,
+   "touches": 35,
+   "mort": true
+  },
+  "180": {
+   "tirs": 0,
+   "touches": 35,
+   "mort": true
+  }
+ }
+}

@@ -1,0 +1,87 @@
+{
+ "cran": 0,
+ "balles_par_tireur_par_pas": 7.684210526315789,
+ "hommes_par_tireur_par_pas": 0.9473684210526315,
+ "N": 4,
+ "dist": 100,
+ "pas_s": 3.28,
+ "autotarget": false,
+ "periode_ordre": 4.0,
+ "fenetres": [
+  {
+   "balles": [
+    9,
+    5,
+    6,
+    7
+   ],
+   "cibles": [
+    1,
+    1,
+    0,
+    1
+   ],
+   "actifs": 4
+  },
+  {
+   "balles": [
+    0,
+    5,
+    4,
+    2
+   ],
+   "cibles": [
+    0,
+    1,
+    1,
+    1
+   ],
+   "actifs": 3
+  },
+  {
+   "balles": [
+    11,
+    9,
+    10,
+    12
+   ],
+   "cibles": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "actifs": 4
+  },
+  {
+   "balles": [
+    10,
+    11,
+    7,
+    7
+   ],
+   "cibles": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "actifs": 4
+  },
+  {
+   "balles": [
+    8,
+    5,
+    9,
+    9
+   ],
+   "cibles": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "actifs": 4
+  }
+ ]
+}

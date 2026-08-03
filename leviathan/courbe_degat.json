@@ -1,0 +1,15 @@
+{
+ "distances": [
+  25,
+  100,
+  200
+ ],
+ "degat_par_impact": {
+  "25": 0.0,
+  "100": 0.006282425,
+  "200": 0.0
+ },
+ "alertes": [
+  "des distances sans impact"
+ ]
+}

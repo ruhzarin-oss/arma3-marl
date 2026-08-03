@@ -1,0 +1,79 @@
+{
+ "reperes": {
+  "frontal": {
+   "prise": 0.171875,
+   "pertes_par_prise": 0.4318181872367859,
+   "prise_a_pertes": 0.3980263107949017,
+   "expo_par_metre": 0.02388698235154152,
+   "part_angle_mort": 0.018347539007663727,
+   "pic_croyance_canal3": 0.4396608769893646,
+   "distance_du_detour": 127.48146057128906
+  },
+  "flanc": {
+   "prise": 0.796875,
+   "pertes_par_prise": 0.27941176295280457,
+   "prise_a_pertes": 2.8519737021043032,
+   "expo_par_metre": 0.016584642231464386,
+   "part_angle_mort": 0.25627344846725464,
+   "pic_croyance_canal3": 0.47339561581611633,
+   "distance_du_detour": 160.09271240234375
+  }
+ },
+ "bras": {
+  "dense": [
+   {
+    "graine": 7,
+    "piste": [
+     {
+      "prise": 0.0,
+      "pertes_par_prise": NaN,
+      "prise_a_pertes": NaN,
+      "expo_par_metre": 0.4157278537750244,
+      "part_angle_mort": 0.0068359375,
+      "pic_croyance_canal3": 0.15620315074920654,
+      "distance_du_detour": 174.04217529296875,
+      "ronde": 1
+     }
+    ],
+    "fin": {
+     "prise": 0.0,
+     "pertes_par_prise": NaN,
+     "prise_a_pertes": NaN,
+     "expo_par_metre": 0.4157278537750244,
+     "part_angle_mort": 0.0068359375,
+     "pic_croyance_canal3": 0.15620315074920654,
+     "distance_du_detour": 174.04217529296875,
+     "ronde": 1
+    }
+   }
+  ],
+  "conv": [
+   {
+    "graine": 7,
+    "piste": [
+     {
+      "prise": 0.0,
+      "pertes_par_prise": NaN,
+      "prise_a_pertes": NaN,
+      "expo_par_metre": 0.3496844470500946,
+      "part_angle_mort": 0.00891927070915699,
+      "pic_croyance_canal3": 0.14921408891677856,
+      "distance_du_detour": 168.8260040283203,
+      "ronde": 1
+     }
+    ],
+    "fin": {
+     "prise": 0.0,
+     "pertes_par_prise": NaN,
+     "prise_a_pertes": NaN,
+     "expo_par_metre": 0.3496844470500946,
+     "part_angle_mort": 0.00891927070915699,
+     "pic_croyance_canal3": 0.14921408891677856,
+     "distance_du_detour": 168.8260040283203,
+     "ronde": 1
+    }
+   }
+  ]
+ },
+ "duree_min": 0.9123085180918376
+}

@@ -1,0 +1,14 @@
+{
+ "bouton": "secure_only",
+ "bas": {
+  "prise": 0.853333,
+  "pertes": 0.301667,
+  "expo": 1.227758
+ },
+ "haut": {
+  "prise": 0.873333,
+  "pertes": 0.301667,
+  "expo": 1.227758
+ },
+ "verdict": "actif"
+}

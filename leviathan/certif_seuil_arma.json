@@ -1,0 +1,46 @@
+{
+ "8": {
+  "prise_frontal": 0.3333333333333333,
+  "prise_envelop": 0.3333333333333333,
+  "rapport_prise": 1.0,
+  "pertes_frontal": 1.0,
+  "pertes_envelop": 1.6666666666666667,
+  "rapport_cout": 1.0,
+  "dans_bande": true,
+  "n_frontal": 3,
+  "n_envelop": 3
+ },
+ "12": {
+  "prise_frontal": 0.0,
+  "prise_envelop": 0.0,
+  "rapport_prise": Infinity,
+  "pertes_frontal": 3.6666666666666665,
+  "pertes_envelop": 1.6666666666666667,
+  "rapport_cout": NaN,
+  "dans_bande": false,
+  "n_frontal": 3,
+  "n_envelop": 3
+ },
+ "16": {
+  "prise_frontal": 0.0,
+  "prise_envelop": 0.0,
+  "rapport_prise": Infinity,
+  "pertes_frontal": 3.3333333333333335,
+  "pertes_envelop": 4.0,
+  "rapport_cout": NaN,
+  "dans_bande": false,
+  "n_frontal": 3,
+  "n_envelop": 3
+ },
+ "24": {
+  "prise_frontal": 0.0,
+  "prise_envelop": 0.0,
+  "rapport_prise": Infinity,
+  "pertes_frontal": 4.666666666666667,
+  "pertes_envelop": 2.6666666666666665,
+  "rapport_cout": NaN,
+  "dans_bande": false,
+  "n_frontal": 3,
+  "n_envelop": 3
+ }
+}

@@ -1,0 +1,57 @@
+=== corpus ===
+  banc : 778 episodes | hors banc : 0 fenetres | held-out ecarte : envelop
+  fenetres : 3799 banc + 0 hors banc = 70 Mo sur la carte
+  parametres : 1.53 M
+  pas      1 | perte  57.8785 | rec 43.9588 | kl  0.0607 | mort 13.1709 | pris 0.6881 |   0.0 min
+  pas    100 | perte  14.8365 | rec  5.6671 | kl  0.6550 | mort 7.8228 | pris 0.6916 |   1.2 min
+  pas    200 | perte  12.6117 | rec  4.9154 | kl  0.5328 | mort 6.4981 | pris 0.6654 |   2.3 min
+  pas    300 | perte  11.4417 | rec  4.4769 | kl  0.4520 | mort 5.9588 | pris 0.5539 |   3.5 min
+  pas    400 | perte  11.4780 | rec  4.5944 | kl  0.5008 | mort 5.8321 | pris 0.5507 |   4.7 min
+  pas    500 | perte  11.1371 | rec  4.3075 | kl  0.4159 | mort 5.8566 | pris 0.5572 |   5.8 min
+  pas    600 | perte  10.9518 | rec  4.1368 | kl  0.4520 | mort 5.7846 | pris 0.5784 |   7.0 min
+  pas    700 | perte  10.8040 | rec  4.2940 | kl  0.4238 | mort 5.6174 | pris 0.4687 |   8.1 min
+  pas    800 | perte  10.7515 | rec  4.3215 | kl  0.4413 | mort 5.4670 | pris 0.5217 |   9.3 min
+  pas    900 | perte   9.3339 | rec  3.7677 | kl  0.5660 | mort 4.4515 | pris 0.5487 |  10.4 min
+  pas   1000 | perte   8.7446 | rec  3.9370 | kl  0.6355 | mort 3.6307 | pris 0.5414 |  11.6 min
+  pas   1100 | perte   8.4060 | rec  3.9653 | kl  0.6954 | mort 3.1986 | pris 0.5467 |  12.8 min
+  pas   1200 | perte   7.6775 | rec  3.7838 | kl  0.6904 | mort 2.7341 | pris 0.4691 |  14.0 min
+  pas   1300 | perte   6.5502 | rec  3.2775 | kl  0.7974 | mort 1.9081 | pris 0.5673 |  15.1 min
+  pas   1400 | perte   5.5522 | rec  2.8931 | kl  0.7920 | mort 1.3911 | pris 0.4760 |  16.3 min
+  pas   1500 | perte   5.2457 | rec  2.9364 | kl  0.7917 | mort 0.9858 | pris 0.5317 |  17.4 min
+  pas   1600 | perte   5.2395 | rec  2.8796 | kl  0.8441 | mort 1.0408 | pris 0.4750 |  18.6 min
+  pas   1700 | perte   4.7123 | rec  2.8587 | kl  0.7936 | mort 0.6584 | pris 0.4016 |  19.7 min
+  pas   1800 | perte   4.6459 | rec  2.6399 | kl  0.8526 | mort 0.6644 | pris 0.4890 |  20.9 min
+  pas   1900 | perte   4.2272 | rec  2.5092 | kl  0.7954 | mort 0.4392 | pris 0.4833 |  22.0 min
+  pas   2000 | perte   4.4977 | rec  2.6230 | kl  0.9220 | mort 0.5264 | pris 0.4263 |  23.1 min
+  pas   2100 | perte   4.0795 | rec  2.4416 | kl  0.8520 | mort 0.4104 | pris 0.3755 |  24.2 min
+  pas   2200 | perte   3.6928 | rec  2.1178 | kl  0.8961 | mort 0.3647 | pris 0.3141 |  25.4 min
+  pas   2300 | perte   3.4324 | rec  2.0001 | kl  0.8893 | mort 0.1709 | pris 0.3721 |  26.5 min
+  pas   2400 | perte   3.4993 | rec  2.0547 | kl  0.8671 | mort 0.2440 | pris 0.3335 |  27.6 min
+  pas   2500 | perte   3.4237 | rec  1.9955 | kl  0.9014 | mort 0.2206 | pris 0.3063 |  28.8 min
+  pas   2600 | perte   3.1790 | rec  1.7976 | kl  0.8486 | mort 0.1905 | pris 0.3422 |  29.9 min
+  pas   2700 | perte   3.2227 | rec  1.8778 | kl  0.8808 | mort 0.1800 | pris 0.2841 |  31.0 min
+  pas   2800 | perte   3.1117 | rec  1.8286 | kl  0.8710 | mort 0.1580 | pris 0.2541 |  32.1 min
+  pas   2900 | perte   2.9413 | rec  1.6531 | kl  0.8722 | mort 0.1515 | pris 0.2644 |  33.2 min
+  pas   3000 | perte   3.0087 | rec  1.7112 | kl  0.9154 | mort 0.1311 | pris 0.2510 |  34.4 min
+  pas   3100 | perte   3.6308 | rec  1.9693 | kl  0.9882 | mort 0.3808 | pris 0.2925 |  35.5 min
+  pas   3200 | perte   2.6676 | rec  1.4971 | kl  0.8661 | mort 0.1055 | pris 0.1988 |  36.6 min
+  pas   3300 | perte   2.5790 | rec  1.4454 | kl  0.8689 | mort 0.0948 | pris 0.1699 |  37.7 min
+  pas   3400 | perte   2.6626 | rec  1.4673 | kl  0.9163 | mort 0.0949 | pris 0.1841 |  38.9 min
+  pas   3500 | perte   2.4602 | rec  1.3018 | kl  0.9011 | mort 0.0758 | pris 0.1815 |  40.0 min
+  pas   3600 | perte   2.4390 | rec  1.2693 | kl  0.9182 | mort 0.0667 | pris 0.1847 |  41.1 min
+  pas   3700 | perte   2.2698 | rec  1.1755 | kl  0.8720 | mort 0.0649 | pris 0.1575 |  42.2 min
+  pas   3800 | perte   2.3368 | rec  1.1827 | kl  0.9324 | mort 0.0655 | pris 0.1562 |  51.1 min
+  pas   3900 | perte   2.3478 | rec  1.1779 | kl  0.9097 | mort 0.0826 | pris 0.1776 |  52.2 min
+  pas   4000 | perte   2.2292 | rec  1.1279 | kl  0.9257 | mort 0.0573 | pris 0.1183 |  53.3 min
+  pas   4100 | perte   2.2058 | rec  1.1037 | kl  0.9281 | mort 0.0550 | pris 0.1191 |  54.4 min
+  pas   4200 | perte   2.1489 | rec  1.0199 | kl  0.9485 | mort 0.0495 | pris 0.1311 |  55.6 min
+  pas   4300 | perte   2.0874 | rec  0.9743 | kl  0.9311 | mort 0.0485 | pris 0.1335 |  56.8 min
+  pas   4400 | perte   2.0145 | rec  0.9154 | kl  0.9431 | mort 0.0409 | pris 0.1151 |  57.9 min
+  pas   4500 | perte   2.0396 | rec  0.9616 | kl  0.9122 | mort 0.0414 | pris 0.1244 |  59.0 min
+  pas   4600 | perte   2.0372 | rec  0.9270 | kl  0.9435 | mort 0.0418 | pris 0.1248 |  60.1 min
+  pas   4700 | perte   2.0639 | rec  0.9102 | kl  0.9910 | mort 0.0419 | pris 0.1208 |  61.3 min
+  pas   4800 | perte   2.0530 | rec  0.9564 | kl  0.9775 | mort 0.0372 | pris 0.0819 |  62.4 min
+  pas   4900 | perte   1.9826 | rec  0.8876 | kl  0.9688 | mort 0.0379 | pris 0.0883 |  63.5 min
+  pas   5000 | perte   1.8293 | rec  0.7807 | kl  0.9325 | mort 0.0306 | pris 0.0856 |  64.6 min
+ecrit : modele_banc_g2.pt
+MODELE_DONE

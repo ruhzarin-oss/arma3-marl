@@ -42,7 +42,11 @@ def sample(field, px, py, R):
     """Bilinéaire : field (N,G,G) aux positions agents (N,A) -> (N,A)."""
     N, G, _ = field.shape
     gx, gy = _w2g(px, py, R, G)
-    x0 = gx.floor().long(); y0 = gy.floor().long(); x1 = (x0 + 1).clamp(max=G - 1); y1 = (y0 + 1).clamp(max=G - 1)
+    # BORNE BASSE MANQUANTE (corrige le 31/07). Seul l indice HAUT etait borne : une position
+    # sous le bord de la grille produisait un indice negatif et une lecture hors memoire
+    # (assertion GPU). Ne se declenchait pas tant que rien n allait la-bas.
+    x0 = gx.floor().long().clamp(0, G - 1); y0 = gy.floor().long().clamp(0, G - 1)
+    x1 = (x0 + 1).clamp(0, G - 1); y1 = (y0 + 1).clamp(0, G - 1)
     wx = gx - x0.float(); wy = gy - y0.float(); f = field.view(N, -1)
     def gat(yy, xx): return f.gather(1, yy * G + xx)
     return (gat(y0, x0) * (1 - wx) * (1 - wy) + gat(y0, x1) * wx * (1 - wy)

@@ -1,0 +1,148 @@
+{
+ "quand": "2026-07-28 02:56",
+ "etalons": {
+  "frontal": {
+   "prise": {
+    "valeur": 0.193359375,
+    "bande": 0.05946616151421222,
+    "n": 3
+   },
+   "pertes_par_prise": {
+    "valeur": 0.3744984169801076,
+    "bande": 0.07668316363285291,
+    "n": 3
+   },
+   "prise_a_pertes": {
+    "valeur": 0.5188679861553024,
+    "bande": 0.21773781996807606,
+    "n": 3
+   },
+   "expo_totale": {
+    "valeur": 1.9189597368240356,
+    "bande": 0.07076902289264261,
+    "n": 3
+   },
+   "expo_par_metre": {
+    "valeur": 0.023602253446976345,
+    "bande": 0.02,
+    "n": 3
+   },
+   "part_au_dela_110m": {
+    "valeur": 0.6840904355049133,
+    "bande": 0.029435575750784544,
+    "n": 3
+   },
+   "distance_min": {
+    "valeur": 80.62974548339844,
+    "bande": 6.3144119798331255,
+    "n": 3
+   }
+  },
+  "crochet": {
+   "prise": {
+    "valeur": 0.7473958333333334,
+    "bande": 0.09040985878718077,
+    "n": 3
+   },
+   "pertes_par_prise": {
+    "valeur": 0.24635596573352814,
+    "bande": 0.02,
+    "n": 3
+   },
+   "prise_a_pertes": {
+    "valeur": 3.0371072996074466,
+    "bande": 0.5891393444186166,
+    "n": 3
+   },
+   "expo_totale": {
+    "valeur": 0.9886370698610941,
+    "bande": 0.16668877187663,
+    "n": 3
+   },
+   "expo_par_metre": {
+    "valeur": 0.01849105767905712,
+    "bande": 0.02,
+    "n": 3
+   },
+   "part_au_dela_110m": {
+    "valeur": 0.5417638818422953,
+    "bande": 0.02,
+    "n": 3
+   },
+   "distance_min": {
+    "valeur": 81.13043975830078,
+    "bande": 4.970403313278168,
+    "n": 3
+   }
+  },
+  "guet_140": {
+   "prise": {
+    "valeur": 0.0,
+    "bande": 0.02,
+    "n": 3
+   },
+   "pertes_par_prise": null,
+   "prise_a_pertes": null,
+   "expo_totale": {
+    "valeur": 0.7114086945851644,
+    "bande": 0.11050994090170743,
+    "n": 3
+   },
+   "expo_par_metre": {
+    "valeur": 0.019904487455884617,
+    "bande": 0.02,
+    "n": 3
+   },
+   "part_au_dela_110m": {
+    "valeur": 1.0,
+    "bande": 0.02,
+    "n": 3
+   },
+   "distance_min": {
+    "valeur": 133.89886474609375,
+    "bande": 2.677977294921875,
+    "n": 3
+   }
+  },
+  "agent": {
+   "prise": {
+    "valeur": 0.9104817708333334,
+    "bande": 0.02,
+    "n": 3
+   },
+   "pertes_par_prise": {
+    "valeur": 0.09997838983933131,
+    "bande": 0.028704433137187887,
+    "n": 3
+   },
+   "prise_a_pertes": {
+    "valeur": 9.156368989570074,
+    "bande": 2.331509471933918,
+    "n": 3
+   },
+   "expo_totale": {
+    "valeur": 0.764927327632904,
+    "bande": 0.09271050082571711,
+    "n": 3
+   },
+   "expo_par_metre": {
+    "valeur": 0.051733906070391335,
+    "bande": 0.02,
+    "n": 3
+   },
+   "part_au_dela_110m": {
+    "valeur": 0.7168688376744589,
+    "bande": 0.02467001947544465,
+    "n": 3
+   },
+   "distance_min": {
+    "valeur": 64.36901473999023,
+    "bande": 4.28055691020561,
+    "n": 3
+   }
+  }
+ },
+ "exigence_110m": true,
+ "agent": "carte_dense_g7.pt",
+ "eval": 1024
+}

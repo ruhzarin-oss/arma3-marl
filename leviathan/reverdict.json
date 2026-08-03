@@ -1,0 +1,56 @@
+{
+ "criteres": "CRITERES_REVERDICT.md (dcb0a5d9e57d70a5)",
+ "episodes": 200,
+ "graine": 7,
+ "bras": {
+  "ancien/frontal": {
+   "prise": 0.8849999904632568,
+   "pertes_moy": 0.19624999165534973,
+   "pertes_par_prise": 0.09180790930986404,
+   "expo_par_metre": 0.030933622270822525,
+   "metres_gagnes": 137.91099548339844,
+   "pas_moyens": 10.59000015258789,
+   "n": 200
+  },
+  "ancien/flanc": {
+   "prise": 1.0,
+   "pertes_moy": 0.028749998658895493,
+   "pertes_par_prise": 0.028749998658895493,
+   "expo_par_metre": 0.011994353495538235,
+   "metres_gagnes": 113.27285766601562,
+   "pas_moyens": 25.834999084472656,
+   "n": 200
+  },
+  "nouveau/frontal": {
+   "prise": 0.35999998450279236,
+   "pertes_moy": 0.7437499761581421,
+   "pertes_par_prise": 0.2881944477558136,
+   "expo_par_metre": 0.033823397010564804,
+   "metres_gagnes": 109.89444732666016,
+   "pas_moyens": 9.019999504089355,
+   "n": 200
+  },
+  "nouveau/flanc": {
+   "prise": 0.8549999594688416,
+   "pertes_moy": 0.23250000178813934,
+   "pertes_par_prise": 0.1461988389492035,
+   "expo_par_metre": 0.013868112117052078,
+   "metres_gagnes": 103.23193359375,
+   "pas_moyens": 27.65999984741211,
+   "n": 200
+  }
+ },
+ "verdicts": {
+  "ancien": {
+   "rapport_prise": 1.1299435150011086,
+   "rapport_cout": 0.31315383255118445,
+   "le_flanc_paie": false
+  },
+  "nouveau": {
+   "rapport_prise": 2.374999989651971,
+   "rapport_cout": 0.5072923510069749,
+   "le_flanc_paie": true
+  }
+ },
+ "duree_s": 5
+}

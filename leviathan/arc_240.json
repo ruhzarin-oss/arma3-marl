@@ -1,0 +1,53 @@
+{
+ "criteres": "CRITERES_MATRICE_MANUEL.md (3c86c7051e57cbad)",
+ "episodes": 200,
+ "graine": 7,
+ "defenseurs": [
+  8
+ ],
+ "matrice": {
+  "frontal_delibere": {
+   "8": {
+    "prise": 0.5399999618530273,
+    "pertes_par_prise": 0.46990740299224854,
+    "expo_par_metre": 0.03307224437594414
+   }
+  },
+  "appui_mouvement": {
+   "8": {
+    "prise": 0.4749999940395355,
+    "pertes_par_prise": 0.34210526943206787,
+    "expo_par_metre": 0.026858681812882423
+   }
+  },
+  "debordement_simple": {
+   "8": {
+    "prise": 0.8700000047683716,
+    "pertes_par_prise": 0.23706896603107452,
+    "expo_par_metre": 0.01717490330338478
+   }
+  },
+  "debordement_double": {
+   "8": {
+    "prise": 0.9549999833106995,
+    "pertes_par_prise": 0.30628272891044617,
+    "expo_par_metre": 0.014832212589681149
+   }
+  },
+  "infiltration": {
+   "8": {
+    "prise": 0.9300000071525574,
+    "pertes_par_prise": 0.4206989109516144,
+    "expo_par_metre": 0.020828258246183395
+   }
+  },
+  "bonds_alternes": {
+   "8": {
+    "prise": 0.2449999898672104,
+    "pertes_par_prise": 0.37755101919174194,
+    "expo_par_metre": 0.042960576713085175
+   }
+  }
+ },
+ "duree_s": 18
+}

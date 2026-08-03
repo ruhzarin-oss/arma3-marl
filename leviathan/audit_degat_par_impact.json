@@ -1,0 +1,14 @@
+{
+ "bouton": "degat_par_impact",
+ "bas": {
+  "prise": 1.0,
+  "pertes": 0.023333,
+  "expo": 1.313023
+ },
+ "haut": {
+  "prise": 0.68,
+  "pertes": 0.491667,
+  "expo": 0.878475
+ },
+ "verdict": "actif"
+}

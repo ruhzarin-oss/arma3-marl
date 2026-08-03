@@ -1,0 +1,74 @@
+{
+ "False|0|0": {
+  "d_min": 109.0,
+  "tirs": 0.0,
+  "vivants": 8.0,
+  "franchit": 0
+ },
+ "False|0|1": {
+  "d_min": 98.0,
+  "tirs": 0.0,
+  "vivants": 8.0,
+  "franchit": 0
+ },
+ "False|1|0": {
+  "d_min": 108.0,
+  "tirs": 0.0,
+  "vivants": 8.0,
+  "franchit": 0
+ },
+ "False|1|1": {
+  "d_min": 106.0,
+  "tirs": 0.0,
+  "vivants": 8.0,
+  "franchit": 0
+ },
+ "False|2|0": {
+  "d_min": 112.0,
+  "tirs": 0.0,
+  "vivants": 8.0,
+  "franchit": 0
+ },
+ "False|2|1": {
+  "d_min": 109.0,
+  "tirs": 0.0,
+  "vivants": 8.0,
+  "franchit": 0
+ },
+ "True|0|0": {
+  "d_min": 107.0,
+  "tirs": 0.0,
+  "vivants": 8.0,
+  "franchit": 0
+ },
+ "True|0|1": {
+  "d_min": 104.0,
+  "tirs": 0.0,
+  "vivants": 8.0,
+  "franchit": 0
+ },
+ "True|1|0": {
+  "d_min": 108.0,
+  "tirs": 0.0,
+  "vivants": 8.0,
+  "franchit": 0
+ },
+ "True|1|1": {
+  "d_min": 109.0,
+  "tirs": 0.0,
+  "vivants": 8.0,
+  "franchit": 0
+ },
+ "True|2|0": {
+  "d_min": 109.0,
+  "tirs": 4.0,
+  "vivants": 8.0,
+  "franchit": 0
+ },
+ "True|2|1": {
+  "d_min": 113.0,
+  "tirs": 15.0,
+  "vivants": 8.0,
+  "franchit": 0
+ }
+}

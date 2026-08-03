@@ -1,0 +1,843 @@
+{
+ "brut": [
+  {
+   "tirs_att": 4,
+   "tirs_def": 13,
+   "impacts": 7,
+   "t_att": 75.64,
+   "t_def": 73.7,
+   "t_imp": 74.11,
+   "t_dir": 72.22,
+   "knows": 4.0,
+   "angle": 0,
+   "rep": 0,
+   "cellule": [
+    23200,
+    17600
+   ],
+   "lat_rip": -1.9399999999999977,
+   "lat_dir": -3.4200000000000017,
+   "lat_imp": -1.5300000000000011,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 4,
+   "tirs_def": 13,
+   "impacts": 7,
+   "t_att": 75.64,
+   "t_def": 74.17,
+   "t_imp": 74.67,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 45,
+   "rep": 0,
+   "cellule": [
+    23600,
+    18200
+   ],
+   "lat_rip": -1.4699999999999989,
+   "lat_dir": 75.0,
+   "lat_imp": -0.9699999999999989,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 98,
+   "tirs_def": 95,
+   "impacts": 5,
+   "t_att": 74.71,
+   "t_def": 76.76,
+   "t_imp": 102.6,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 90,
+   "rep": 0,
+   "cellule": [
+    24000,
+    18800
+   ],
+   "lat_rip": 2.0500000000000114,
+   "lat_dir": 75.0,
+   "lat_imp": 27.89,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 0,
+   "impacts": 0,
+   "t_att": -1.0,
+   "t_def": -1.0,
+   "t_imp": -1.0,
+   "t_dir": -1.0,
+   "knows": 0.0,
+   "angle": 135,
+   "rep": 0,
+   "cellule": [
+    10200,
+    11800
+   ]
+  },
+  {
+   "tirs_att": 28,
+   "tirs_def": 20,
+   "impacts": 7,
+   "t_att": 73.85,
+   "t_def": 77.71,
+   "t_imp": 79.83,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 180,
+   "rep": 0,
+   "cellule": [
+    15200,
+    17000
+   ],
+   "lat_rip": 3.8599999999999994,
+   "lat_dir": 75.0,
+   "lat_imp": 5.980000000000004,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 7,
+   "impacts": 5,
+   "t_att": -1.0,
+   "t_def": 155.09,
+   "t_imp": 155.21,
+   "t_dir": 153.32,
+   "knows": 4.0,
+   "angle": 0,
+   "rep": 1,
+   "cellule": [
+    23600,
+    18200
+   ]
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 7,
+   "impacts": 3,
+   "t_att": -1.0,
+   "t_def": 155.19,
+   "t_imp": 155.78,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 45,
+   "rep": 1,
+   "cellule": [
+    24000,
+    18800
+   ]
+  },
+  {
+   "tirs_att": 38,
+   "tirs_def": 45,
+   "impacts": 4,
+   "t_att": 157.3,
+   "t_def": 159.76,
+   "t_imp": 171.02,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 90,
+   "rep": 1,
+   "cellule": [
+    10200,
+    11800
+   ],
+   "lat_rip": 2.4599999999999795,
+   "lat_dir": 75.0,
+   "lat_imp": 13.719999999999999,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 20,
+   "tirs_def": 16,
+   "impacts": 2,
+   "t_att": 155.29,
+   "t_def": 158.39,
+   "t_imp": 160.25,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 135,
+   "rep": 1,
+   "cellule": [
+    15200,
+    17000
+   ],
+   "lat_rip": 3.0999999999999943,
+   "lat_dir": 75.0,
+   "lat_imp": 4.960000000000008,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 24,
+   "tirs_def": 16,
+   "impacts": 6,
+   "t_att": 155.43,
+   "t_def": 159.22,
+   "t_imp": 160.25,
+   "t_dir": 167.25,
+   "knows": 4.0,
+   "angle": 180,
+   "rep": 1,
+   "cellule": [
+    23200,
+    18800
+   ],
+   "lat_rip": 3.789999999999992,
+   "lat_dir": 11.819999999999993,
+   "lat_imp": 4.819999999999993,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 6,
+   "impacts": 4,
+   "t_att": -1.0,
+   "t_def": 236.06,
+   "t_imp": 236.49,
+   "t_dir": 234.46,
+   "knows": 4.0,
+   "angle": 0,
+   "rep": 2,
+   "cellule": [
+    24000,
+    18800
+   ]
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 0,
+   "impacts": 0,
+   "t_att": -1.0,
+   "t_def": -1.0,
+   "t_imp": -1.0,
+   "t_dir": -1.0,
+   "knows": 0.0,
+   "angle": 45,
+   "rep": 2,
+   "cellule": [
+    10200,
+    11800
+   ]
+  },
+  {
+   "tirs_att": 20,
+   "tirs_def": 18,
+   "impacts": 5,
+   "t_att": 236.81,
+   "t_def": 239.25,
+   "t_imp": 241.11,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 90,
+   "rep": 2,
+   "cellule": [
+    15200,
+    17000
+   ],
+   "lat_rip": 2.4399999999999977,
+   "lat_dir": 75.0,
+   "lat_imp": 4.300000000000011,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 20,
+   "tirs_def": 44,
+   "impacts": 6,
+   "t_att": 236.39,
+   "t_def": 239.73,
+   "t_imp": 241.81,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 135,
+   "rep": 2,
+   "cellule": [
+    23200,
+    18800
+   ],
+   "lat_rip": 3.3400000000000034,
+   "lat_dir": 75.0,
+   "lat_imp": 5.420000000000016,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 0,
+   "impacts": 0,
+   "t_att": -1.0,
+   "t_def": -1.0,
+   "t_imp": -1.0,
+   "t_dir": -1.0,
+   "knows": 0.0,
+   "angle": 180,
+   "rep": 2,
+   "cellule": [
+    22000,
+    18600
+   ]
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 0,
+   "impacts": 0,
+   "t_att": -1.0,
+   "t_def": -1.0,
+   "t_imp": -1.0,
+   "t_dir": 315.64,
+   "knows": 0.0,
+   "angle": 0,
+   "rep": 3,
+   "cellule": [
+    10200,
+    11800
+   ]
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 41,
+   "impacts": 1,
+   "t_att": -1.0,
+   "t_def": 317.52,
+   "t_imp": 317.89,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 45,
+   "rep": 3,
+   "cellule": [
+    15200,
+    17000
+   ]
+  },
+  {
+   "tirs_att": 12,
+   "tirs_def": 49,
+   "impacts": 2,
+   "t_att": 318.5,
+   "t_def": 321.04,
+   "t_imp": 321.53,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 90,
+   "rep": 3,
+   "cellule": [
+    23200,
+    18800
+   ],
+   "lat_rip": 2.5400000000000205,
+   "lat_dir": 75.0,
+   "lat_imp": 3.0299999999999727,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 0,
+   "impacts": 0,
+   "t_att": -1.0,
+   "t_def": -1.0,
+   "t_imp": -1.0,
+   "t_dir": -1.0,
+   "knows": 0.0,
+   "angle": 135,
+   "rep": 3,
+   "cellule": [
+    22000,
+    18600
+   ]
+  },
+  {
+   "tirs_att": 20,
+   "tirs_def": 16,
+   "impacts": 5,
+   "t_att": 317.58,
+   "t_def": 321.59,
+   "t_imp": 323.47,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 180,
+   "rep": 3,
+   "cellule": [
+    22000,
+    7200
+   ],
+   "lat_rip": 4.009999999999991,
+   "lat_dir": 75.0,
+   "lat_imp": 5.890000000000043,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 42,
+   "impacts": 5,
+   "t_att": -1.0,
+   "t_def": 398.41,
+   "t_imp": 398.47,
+   "t_dir": 396.83,
+   "knows": 4.0,
+   "angle": 0,
+   "rep": 4,
+   "cellule": [
+    15200,
+    17000
+   ]
+  },
+  {
+   "tirs_att": 4,
+   "tirs_def": 10,
+   "impacts": 5,
+   "t_att": 400.12,
+   "t_def": 399.02,
+   "t_imp": 399.27,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 45,
+   "rep": 4,
+   "cellule": [
+    23200,
+    18800
+   ],
+   "lat_rip": -1.1000000000000227,
+   "lat_dir": 75.0,
+   "lat_imp": -0.8500000000000227,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 16,
+   "tirs_def": 55,
+   "impacts": 6,
+   "t_att": 415.71,
+   "t_def": 418.13,
+   "t_imp": 420.19,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 90,
+   "rep": 4,
+   "cellule": [
+    22000,
+    18600
+   ],
+   "lat_rip": 2.420000000000016,
+   "lat_dir": 75.0,
+   "lat_imp": 4.480000000000018,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 16,
+   "tirs_def": 11,
+   "impacts": 4,
+   "t_att": 398.57,
+   "t_def": 401.75,
+   "t_imp": 402.93,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 135,
+   "rep": 4,
+   "cellule": [
+    22000,
+    7200
+   ],
+   "lat_rip": 3.180000000000007,
+   "lat_dir": 75.0,
+   "lat_imp": 4.360000000000014,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 0,
+   "impacts": 0,
+   "t_att": -1.0,
+   "t_def": -1.0,
+   "t_imp": -1.0,
+   "t_dir": -1.0,
+   "knows": 0.0,
+   "angle": 180,
+   "rep": 4,
+   "cellule": [
+    22200,
+    17600
+   ]
+  },
+  {
+   "tirs_att": 4,
+   "tirs_def": 14,
+   "impacts": 8,
+   "t_att": 482.27,
+   "t_def": 479.7,
+   "t_imp": 479.99,
+   "t_dir": 478.03,
+   "knows": 4.0,
+   "angle": 0,
+   "rep": 5,
+   "cellule": [
+    23200,
+    18800
+   ],
+   "lat_rip": -2.569999999999993,
+   "lat_dir": -4.240000000000009,
+   "lat_imp": -2.2799999999999727,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 4,
+   "tirs_def": 11,
+   "impacts": 1,
+   "t_att": 481.5,
+   "t_def": 480.05,
+   "t_imp": 482.27,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 45,
+   "rep": 5,
+   "cellule": [
+    22000,
+    18600
+   ],
+   "lat_rip": -1.4499999999999886,
+   "lat_dir": 75.0,
+   "lat_imp": 0.7699999999999818,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 60,
+   "tirs_def": 66,
+   "impacts": 7,
+   "t_att": 480.69,
+   "t_def": 483.89,
+   "t_imp": 485.94,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 90,
+   "rep": 5,
+   "cellule": [
+    22000,
+    7200
+   ],
+   "lat_rip": 3.1999999999999886,
+   "lat_dir": 75.0,
+   "lat_imp": 5.25,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 75,
+   "tirs_def": 65,
+   "impacts": 4,
+   "t_att": 480.21,
+   "t_def": 483.12,
+   "t_imp": 496.74,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 135,
+   "rep": 5,
+   "cellule": [
+    22200,
+    17600
+   ],
+   "lat_rip": 2.910000000000025,
+   "lat_dir": 75.0,
+   "lat_imp": 16.53000000000003,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 20,
+   "tirs_def": 16,
+   "impacts": 6,
+   "t_att": 479.84,
+   "t_def": 483.24,
+   "t_imp": 484.42,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 180,
+   "rep": 5,
+   "cellule": [
+    24200,
+    19800
+   ],
+   "lat_rip": 3.400000000000034,
+   "lat_dir": 75.0,
+   "lat_imp": 4.580000000000041,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 6,
+   "impacts": 3,
+   "t_att": -1.0,
+   "t_def": 560.6,
+   "t_imp": 560.93,
+   "t_dir": 559.0,
+   "knows": 4.0,
+   "angle": 0,
+   "rep": 6,
+   "cellule": [
+    22000,
+    18600
+   ]
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 5,
+   "impacts": 1,
+   "t_att": -1.0,
+   "t_def": 561.01,
+   "t_imp": 561.62,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 45,
+   "rep": 6,
+   "cellule": [
+    22000,
+    7200
+   ]
+  },
+  {
+   "tirs_att": 20,
+   "tirs_def": 20,
+   "impacts": 5,
+   "t_att": 563.51,
+   "t_def": 566.82,
+   "t_imp": 570.47,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 90,
+   "rep": 6,
+   "cellule": [
+    22200,
+    17600
+   ],
+   "lat_rip": 3.310000000000059,
+   "lat_dir": 75.0,
+   "lat_imp": 6.960000000000036,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 106,
+   "tirs_def": 97,
+   "impacts": 5,
+   "t_att": 561.01,
+   "t_def": 565.27,
+   "t_imp": 578.33,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 135,
+   "rep": 6,
+   "cellule": [
+    24200,
+    19800
+   ],
+   "lat_rip": 4.259999999999991,
+   "lat_dir": 75.0,
+   "lat_imp": 17.32000000000005,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 20,
+   "tirs_def": 55,
+   "impacts": 3,
+   "t_att": 561.01,
+   "t_def": 564.97,
+   "t_imp": 565.92,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 180,
+   "rep": 6,
+   "cellule": [
+    23200,
+    17600
+   ],
+   "lat_rip": 3.9600000000000364,
+   "lat_dir": 75.0,
+   "lat_imp": 4.909999999999968,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 87,
+   "impacts": 4,
+   "t_att": -1.0,
+   "t_def": 641.58,
+   "t_imp": 641.88,
+   "t_dir": 640.1,
+   "knows": 4.0,
+   "angle": 0,
+   "rep": 7,
+   "cellule": [
+    22000,
+    7200
+   ]
+  },
+  {
+   "tirs_att": 0,
+   "tirs_def": 43,
+   "impacts": 1,
+   "t_att": -1.0,
+   "t_def": 642.1,
+   "t_imp": 642.64,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 45,
+   "rep": 7,
+   "cellule": [
+    22200,
+    17600
+   ]
+  },
+  {
+   "tirs_att": 102,
+   "tirs_def": 94,
+   "impacts": 8,
+   "t_att": 642.56,
+   "t_def": 644.62,
+   "t_imp": 647.06,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 90,
+   "rep": 7,
+   "cellule": [
+    24200,
+    19800
+   ],
+   "lat_rip": 2.060000000000059,
+   "lat_dir": 75.0,
+   "lat_imp": 4.5,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 22,
+   "tirs_def": 58,
+   "impacts": 5,
+   "t_att": 641.9,
+   "t_def": 645.49,
+   "t_imp": 647.34,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 135,
+   "rep": 7,
+   "cellule": [
+    23200,
+    17600
+   ],
+   "lat_rip": 3.590000000000032,
+   "lat_dir": 75.0,
+   "lat_imp": 5.440000000000055,
+   "riposte": 1
+  },
+  {
+   "tirs_att": 24,
+   "tirs_def": 55,
+   "impacts": 9,
+   "t_att": 641.84,
+   "t_def": 646.14,
+   "t_imp": 646.41,
+   "t_dir": -1.0,
+   "knows": 4.0,
+   "angle": 180,
+   "rep": 7,
+   "cellule": [
+    23600,
+    18200
+   ],
+   "lat_rip": 4.2999999999999545,
+   "lat_dir": 75.0,
+   "lat_imp": 4.569999999999936,
+   "riposte": 1
+  }
+ ],
+ "par_angle": {
+  "0": {
+   "n": 2,
+   "t_riposte_med": -2.2549999999999955,
+   "t_direction_med": -3.8300000000000054,
+   "t_impact_med": -1.904999999999987,
+   "taux_riposte": 1.0,
+   "impacts_moy": 7.5,
+   "tirs_def_moy": 13.5,
+   "tirs_att_moy": 4.0,
+   "knows_max_moy": 4.0,
+   "lat_rip": [
+    -1.9399999999999977,
+    -2.569999999999993
+   ]
+  },
+  "45": {
+   "n": 3,
+   "t_riposte_med": -1.4499999999999886,
+   "t_direction_med": 75.0,
+   "t_impact_med": -0.8500000000000227,
+   "taux_riposte": 1.0,
+   "impacts_moy": 4.333333333333333,
+   "tirs_def_moy": 11.333333333333334,
+   "tirs_att_moy": 4.0,
+   "knows_max_moy": 4.0,
+   "lat_rip": [
+    -1.4699999999999989,
+    -1.1000000000000227,
+    -1.4499999999999886
+   ]
+  },
+  "90": {
+   "n": 8,
+   "t_riposte_med": 2.4499999999999886,
+   "t_direction_med": 75.0,
+   "t_impact_med": 4.875,
+   "taux_riposte": 1.0,
+   "impacts_moy": 5.25,
+   "tirs_def_moy": 55.25,
+   "tirs_att_moy": 45.75,
+   "knows_max_moy": 4.0,
+   "lat_rip": [
+    2.0500000000000114,
+    2.4599999999999795,
+    2.4399999999999977,
+    2.5400000000000205,
+    2.420000000000016,
+    3.1999999999999886,
+    3.310000000000059,
+    2.060000000000059
+   ]
+  },
+  "135": {
+   "n": 6,
+   "t_riposte_med": 3.260000000000005,
+   "t_direction_med": 75.0,
+   "t_impact_med": 5.430000000000035,
+   "taux_riposte": 1.0,
+   "impacts_moy": 4.333333333333333,
+   "tirs_def_moy": 48.5,
+   "tirs_att_moy": 43.166666666666664,
+   "knows_max_moy": 4.0,
+   "lat_rip": [
+    3.0999999999999943,
+    3.3400000000000034,
+    3.180000000000007,
+    2.910000000000025,
+    4.259999999999991,
+    3.590000000000032
+   ]
+  },
+  "180": {
+   "n": 6,
+   "t_riposte_med": 3.910000000000018,
+   "t_direction_med": 75.0,
+   "t_impact_med": 4.864999999999981,
+   "taux_riposte": 1.0,
+   "impacts_moy": 6.0,
+   "tirs_def_moy": 29.666666666666668,
+   "tirs_att_moy": 22.666666666666668,
+   "knows_max_moy": 4.0,
+   "lat_rip": [
+    3.8599999999999994,
+    3.789999999999992,
+    4.009999999999991,
+    3.400000000000034,
+    3.9600000000000364,
+    4.2999999999999545
+   ]
+  }
+ },
+ "verdicts": {
+  "canari": {
+   "riposte_moins_10s": 2,
+   "n": 2,
+   "ok": false
+  }
+ }
+}

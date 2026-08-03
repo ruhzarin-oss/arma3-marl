@@ -1,0 +1,3 @@
+author = "Harmattan";
+class Header { gameType = "Coop"; minPlayers = 1; maxPlayers = 1; };
+respawn = 0;

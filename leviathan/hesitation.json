@@ -1,0 +1,26 @@
+{
+ "scripte_frontal": {
+  "persistance_cap": 1.7759630680084229,
+  "trajet_par_metre_gagne": 1.0478771924972534,
+  "part_pas_eloignants": 0.0,
+  "longueur_bloc_eloignement": 0.0
+ },
+ "scripte_flanc": {
+  "persistance_cap": 2.880798816680908,
+  "trajet_par_metre_gagne": 2.0238518714904785,
+  "part_pas_eloignants": 0.0,
+  "longueur_bloc_eloignement": 0.0
+ },
+ "appris_aveugle": {
+  "persistance_cap": 2.0038020610809326,
+  "trajet_par_metre_gagne": 2.225599447886149,
+  "part_pas_eloignants": 0.05019729801764091,
+  "longueur_bloc_eloignement": 1.1404406229654949
+ },
+ "appris_voyant": {
+  "persistance_cap": 1.9494484265645344,
+  "trajet_par_metre_gagne": 2.4551783402760825,
+  "part_pas_eloignants": 0.053590258583426476,
+  "longueur_bloc_eloignement": 1.1917095184326172
+ }
+}

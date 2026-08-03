@@ -1,0 +1,44 @@
+{
+ "reperes": {
+  "frontal": {
+   "prise": 0.3333333432674408,
+   "pertes_par_prise": 0.265625,
+   "expo_par_metre": 0.03466823324561119,
+   "part_angle_mort": 0.03240741044282913,
+   "distance_du_detour": 118.41840362548828
+  },
+  "flanc": {
+   "prise": 0.8958333730697632,
+   "pertes_par_prise": 0.16860465705394745,
+   "expo_par_metre": 0.011621274054050446,
+   "part_angle_mort": 0.2694157660007477,
+   "distance_du_detour": 159.5255584716797
+  }
+ },
+ "bras": {
+  "temoin_champ": [
+   {
+    "graine": 7,
+    "piste": [
+     {
+      "prise": 0.8229166865348816,
+      "pertes_par_prise": 0.2594936788082123,
+      "expo_par_metre": 0.033929891884326935,
+      "part_angle_mort": 0.319922536611557,
+      "distance_du_detour": 117.21221923828125,
+      "ronde": 6
+     }
+    ],
+    "fin": {
+     "prise": 0.8229166865348816,
+     "pertes_par_prise": 0.2594936788082123,
+     "expo_par_metre": 0.033929891884326935,
+     "part_angle_mort": 0.319922536611557,
+     "distance_du_detour": 117.21221923828125,
+     "ronde": 6
+    }
+   }
+  ],
+  "champ_plus_stress": []
+ }
+}

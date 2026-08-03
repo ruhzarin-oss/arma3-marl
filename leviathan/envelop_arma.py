@@ -74,6 +74,10 @@ def main():
     ap.add_argument("--flank", type=float, default=0.45)    # part DÉBORDEURS (reste = fixeurs)
     ap.add_argument("--side", choices=["L", "R"], default="L")
     ap.add_argument("--assault_tick", type=int, default=24)   # après ce tick, les débordeurs assautent le FOB (bascule temporelle)
+    ap.add_argument("--silencieux", action="store_true")   # les assaillants NE TIRENT PAS en progression :
+                                                          # doSuppressiveFire FIGE l unite (mesure 2026-07-28).
+                                                          # Teste si l avantage du flanc est un artefact de l ordre de feu.
+    ap.add_argument("--assaut_final", type=float, default=0.0)   # sous cette distance (m) l element d assaut CESSE de tirer et franchit ; 0 = desactive
     ap.add_argument("--smoke", action="store_true")           # écran de fumée sur l'axe (nier la détection)
     ap.add_argument("--smoke_dist", type=float, default=45.0) # distance de l'écran au FOB (m)
     ap.add_argument("--out", default="envelop_replay.json")
@@ -117,6 +121,8 @@ def main():
         alive = [row[2] > 0.5 for row in rows]; los = [row[4] > 0.5 for row in rows]
         na = sum(alive)
         if west0 is None: west0 = na
+        pen_now = min((math.hypot(ax[i] - fx, ay[i] - fy) for i in range(n) if alive[i]), default=999)
+        franchit = a.assaut_final > 0 and pen_now < a.assaut_final   # ORDRE D ASSAUT FINAL
         tgts = []; fire = []; assaulting = 0
         if a.mode == "reckless":                            # (a) TÉMÉRAIRE : debout, sprint, ignore le feu (écrase l'auto-plat-ventre)
             n_deb = 0; fire = [0] * n; assaulting = na
@@ -154,10 +160,22 @@ def main():
                 else:                                       # FIXEUR : TIENT la ligne de feu, SUPPRIME, ne va JAMAIS au FOB
                     off = (fi - (nfix - 1) / 2.0) * 5.0; fi += 1
                     tgts.append([round(fbx + px * off, 1), round(fby + py * off, 1)]); fire.append(1 if los[i] else 0)
+        # ORDRE D ASSAUT FINAL : l element d assaut cesse de tirer et court ; les fixeurs
+        # continuent de supprimer. En frontal il n y a pas de fixeur : tout le monde franchit.
+        if a.silencieux:
+            fire = [0] * len(fire)   # SILENCE : personne ne tire en progression
+        assaut = [0] * len(tgts)
+        if franchit:
+            for i in range(len(tgts)):
+                est_assaut = (a.mode == "frontal") or (i < n_deb)
+                if est_assaut:
+                    assaut[i] = 1
+                    if i < len(fire): fire[i] = 0
         if a.mode == "reckless":
             b.send("call HMT_RECKLESS;")
         else:
-            b.send("HMT_TGTS=%s; HMT_FIRE=%s; call HMT_ENVELOP_APPLY;" % (json.dumps(tgts), json.dumps(fire)))
+            b.send("HMT_ASSAUT=%s; HMT_TGTS=%s; HMT_FIRE=%s; call HMT_ENVELOP_APPLY;"
+                   % (json.dumps(assaut), json.dumps(tgts), json.dumps(fire)))
         if a.smoke and step == 12: b.send("call HMT_SMOKE;")   # 2e (et dernière) salve -> budget 14 fumigènes, puis dissipation
         east = east_positions(b, fx, fy)
         role = [0] * n if a.mode == "frontal" else [int(i < n_deb) for i in range(n)]
@@ -167,7 +185,7 @@ def main():
         _, ea_now = east_count(b)                            # comptage FIABLE des défenseurs vivants (métrique par anneau)
         series.append((pen, na, ea_now))
         if pen < 25 and took_tick is None: took_tick = step
-        print("  [%02d] vivants=%d/%d ->FOB=%3.0fm | assaut=%d tirent=%d" % (step, na, n, pen, assaulting, sum(fire)), flush=True)
+        print("  [%02d] vivants=%d/%d ->FOB=%3.0fm | assaut=%d tirent=%d%s" % (step, na, n, pen, assaulting, sum(fire), " | FRANCHISSEMENT" if franchit else ""), flush=True)
         if na == 0: print("  -> ESCOUADE ANÉANTIE"); break
         if pen < 20: print("  -> FOB PRIS !"); break
         time.sleep(0.9)

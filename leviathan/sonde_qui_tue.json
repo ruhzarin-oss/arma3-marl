@@ -1,0 +1,46 @@
+{
+ "phase_A_sans_ordre": [
+  {
+   "t": 10,
+   "vif": true
+  },
+  {
+   "t": 20,
+   "vif": true
+  },
+  {
+   "t": 30,
+   "vif": true
+  },
+  {
+   "t": 40,
+   "vif": true
+  },
+  {
+   "t": 50,
+   "vif": true
+  }
+ ],
+ "phase_B_avec_ordre": [
+  {
+   "t": 10,
+   "vif": true
+  },
+  {
+   "t": 20,
+   "vif": true
+  },
+  {
+   "t": 30,
+   "vif": true
+  },
+  {
+   "t": 40,
+   "vif": true
+  },
+  {
+   "t": 50,
+   "vif": true
+  }
+ ]
+}

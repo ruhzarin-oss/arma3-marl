@@ -1,0 +1,28 @@
+{
+ "seuils": ">=20 tirs ET >=1 perte = combat ; 0 tir avec canari passe = inerte",
+ "duree_s": 300,
+ "reps": 2,
+ "dist": 100,
+ "n_par_camp": 4,
+ "joueurs_vus": [
+  0,
+  0
+ ],
+ "bras": {
+  "A_normal": {
+   "tirs": 117,
+   "morts": 7,
+   "verdict": "COMBAT"
+  },
+  "B_acquisition_coupee": {
+   "tirs": 406,
+   "morts": 8,
+   "verdict": "COMBAT"
+  },
+  "C_connaissance_forcee": {
+   "tirs": 0,
+   "morts": 16,
+   "verdict": "INERTE"
+  }
+ }
+}

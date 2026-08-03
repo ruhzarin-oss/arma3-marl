@@ -1,0 +1,24 @@
+{
+ "reperes": {
+  "frontal": {
+   "prise": 0.359375,
+   "pertes_par_prise": 0.28260868787765503,
+   "expo_par_metre": 0.0335499607026577
+  },
+  "flanc": {
+   "prise": 0.875,
+   "pertes_par_prise": 0.1517857164144516,
+   "expo_par_metre": 0.011948884464800358
+  }
+ },
+ "appris": {
+  "mesure_g7": [
+   {
+    "prise": 0.59375,
+    "pertes_par_prise": 0.2763157784938812,
+    "expo_par_metre": 0.04034138470888138,
+    "ronde": 10
+   }
+  ]
+ }
+}

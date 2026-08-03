@@ -1,0 +1,61 @@
+{
+ "criteres": "CRITERES_REVERDICT_ARC_OUVRANT.md",
+ "tau_verrou": 4.0,
+ "contre_epreuve": true,
+ "direction_ok": true,
+ "cout_evaluable": true,
+ "temoin_ok": false,
+ "mondes": {
+  "cone DUR (temoin)": {
+   "frontal_prise": 0.21614583333333334,
+   "crochet_prise": 0.4029947916666667,
+   "frontal_cout": 0.32622625430425006,
+   "crochet_cout": 0.22216863433519998,
+   "rapport_prise": 1.8644578313253013,
+   "rapport_cout": 0.681026224602995,
+   "frontal_att_premier": 0.0,
+   "crochet_att_premier": 0.0,
+   "frontal_expo": 0.02732037877043088,
+   "crochet_expo": 0.03193074588974317
+  },
+  "cone OUVRANT tau=4.0s *": {
+   "frontal_prise": 0.0048828125,
+   "crochet_prise": 0.06575520833333333,
+   "frontal_cout": 0.6309523979822794,
+   "crochet_cout": 0.22380511462688446,
+   "rapport_prise": 13.466666666666665,
+   "rapport_cout": 0.3547099834196527,
+   "frontal_att_premier": 0.36282873153686523,
+   "crochet_att_premier": 0.38946929574012756,
+   "frontal_expo": 0.027776202807823818,
+   "crochet_expo": 0.035852660735448204,
+   "pas_de_sursis": 1
+  },
+  "  sensibilite tau=2.0s": {
+   "frontal_prise": 0.0048828125,
+   "crochet_prise": 0.06575520833333333,
+   "frontal_cout": 0.6309523979822794,
+   "crochet_cout": 0.22380511462688446,
+   "rapport_prise": 13.466666666666665,
+   "rapport_cout": 0.3547099834196527,
+   "frontal_att_premier": 0.36282873153686523,
+   "crochet_att_premier": 0.38946929574012756,
+   "frontal_expo": 0.027776202807823818,
+   "crochet_expo": 0.035852660735448204,
+   "pas_de_sursis": 1
+  },
+  "  sensibilite tau=6.0s": {
+   "frontal_prise": 0.046549479166666664,
+   "crochet_prise": 0.1767578125,
+   "frontal_cout": 0.40521302819252014,
+   "crochet_cout": 0.2103231648604075,
+   "rapport_prise": 3.7972027972027975,
+   "rapport_cout": 0.519043441911451,
+   "frontal_att_premier": 0.262919545173645,
+   "crochet_att_premier": 0.2594565997521083,
+   "frontal_expo": 0.028401372954249382,
+   "crochet_expo": 0.0347403089205424,
+   "pas_de_sursis": 2
+  }
+ }
+}

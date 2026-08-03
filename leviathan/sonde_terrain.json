@@ -1,0 +1,50 @@
+{
+ "banc_c0": {
+  "surface": "terre",
+  "alt": 3
+ },
+ "banc_c1": {
+  "surface": "terre",
+  "alt": 3
+ },
+ "banc_c2": {
+  "surface": "EAU",
+  "alt": -87
+ },
+ "banc_c3": {
+  "surface": "EAU",
+  "alt": -131
+ },
+ "arc_c0": {
+  "surface": "terre",
+  "alt": 3
+ },
+ "arc_c1": {
+  "surface": "terre",
+  "alt": 3
+ },
+ "arc_c2": {
+  "surface": "EAU",
+  "alt": -22
+ },
+ "arc_c3": {
+  "surface": "EAU",
+  "alt": -118
+ },
+ "arc_c4": {
+  "surface": "EAU",
+  "alt": -146
+ },
+ "pyrgos": {
+  "surface": "terre",
+  "alt": 19
+ },
+ "athira": {
+  "surface": "terre",
+  "alt": 26
+ },
+ "gravia": {
+  "surface": "terre",
+  "alt": 22
+ }
+}

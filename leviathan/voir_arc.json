@@ -1,0 +1,313 @@
+{
+ "reperes": {
+  "frontal": {
+   "prise": 0.36000001430511475,
+   "pertes_par_prise": 0.2638888955116272,
+   "expo_par_metre": 0.034875933080911636,
+   "part_angle_mort": 0.034724749624729156
+  },
+  "flanc": {
+   "prise": 0.8966667056083679,
+   "pertes_par_prise": 0.15892192721366882,
+   "expo_par_metre": 0.013552670367062092,
+   "part_angle_mort": 0.22346578538417816
+  }
+ },
+ "bras": {
+  "aveugle": [
+   {
+    "graine": 7,
+    "piste": [
+     {
+      "prise": 0.6866666674613953,
+      "pertes_par_prise": 0.28519418835639954,
+      "expo_par_metre": 0.03579398989677429,
+      "part_angle_mort": 0.08257831633090973,
+      "ronde": 30
+     },
+     {
+      "prise": 0.7633333802223206,
+      "pertes_par_prise": 0.1855895221233368,
+      "expo_par_metre": 0.03324354067444801,
+      "part_angle_mort": 0.1369410902261734,
+      "ronde": 60
+     },
+     {
+      "prise": 0.7733333706855774,
+      "pertes_par_prise": 0.17995689809322357,
+      "expo_par_metre": 0.03155794367194176,
+      "part_angle_mort": 0.15613111853599548,
+      "ronde": 90
+     },
+     {
+      "prise": 0.7900000214576721,
+      "pertes_par_prise": 0.175105482339859,
+      "expo_par_metre": 0.031548622995615005,
+      "part_angle_mort": 0.13991795480251312,
+      "ronde": 120
+     },
+     {
+      "prise": 0.800000011920929,
+      "pertes_par_prise": 0.20000001788139343,
+      "expo_par_metre": 0.030463963747024536,
+      "part_angle_mort": 0.15434035658836365,
+      "ronde": 150
+     }
+    ],
+    "fin": {
+     "prise": 0.800000011920929,
+     "pertes_par_prise": 0.20000001788139343,
+     "expo_par_metre": 0.030463963747024536,
+     "part_angle_mort": 0.15434035658836365,
+     "ronde": 150
+    }
+   },
+   {
+    "graine": 8,
+    "piste": [
+     {
+      "prise": 0.36666667461395264,
+      "pertes_par_prise": 0.3840909004211426,
+      "expo_par_metre": 0.05957077071070671,
+      "part_angle_mort": 0.09329217672348022,
+      "ronde": 30
+     },
+     {
+      "prise": 0.5600000023841858,
+      "pertes_par_prise": 0.1398809552192688,
+      "expo_par_metre": 0.026926741003990173,
+      "part_angle_mort": 0.2584502696990967,
+      "ronde": 60
+     },
+     {
+      "prise": 0.5900000333786011,
+      "pertes_par_prise": 0.09604519605636597,
+      "expo_par_metre": 0.02484206296503544,
+      "part_angle_mort": 0.2357996702194214,
+      "ronde": 90
+     },
+     {
+      "prise": 0.59333336353302,
+      "pertes_par_prise": 0.10674157738685608,
+      "expo_par_metre": 0.025658054277300835,
+      "part_angle_mort": 0.23780570924282074,
+      "ronde": 120
+     },
+     {
+      "prise": 0.5800000429153442,
+      "pertes_par_prise": 0.1149425283074379,
+      "expo_par_metre": 0.02741364948451519,
+      "part_angle_mort": 0.2541813552379608,
+      "ronde": 150
+     }
+    ],
+    "fin": {
+     "prise": 0.5800000429153442,
+     "pertes_par_prise": 0.1149425283074379,
+     "expo_par_metre": 0.02741364948451519,
+     "part_angle_mort": 0.2541813552379608,
+     "ronde": 150
+    }
+   },
+   {
+    "graine": 9,
+    "piste": [
+     {
+      "prise": 0.6866666674613953,
+      "pertes_par_prise": 0.24757282435894012,
+      "expo_par_metre": 0.03531079739332199,
+      "part_angle_mort": 0.14281952381134033,
+      "ronde": 30
+     },
+     {
+      "prise": 0.7566666603088379,
+      "pertes_par_prise": 0.23678413033485413,
+      "expo_par_metre": 0.03270277753472328,
+      "part_angle_mort": 0.16706696152687073,
+      "ronde": 60
+     },
+     {
+      "prise": 0.7733333706855774,
+      "pertes_par_prise": 0.2306034415960312,
+      "expo_par_metre": 0.030785223469138145,
+      "part_angle_mort": 0.17417427897453308,
+      "ronde": 90
+     },
+     {
+      "prise": 0.746666669845581,
+      "pertes_par_prise": 0.2466517984867096,
+      "expo_par_metre": 0.0342838391661644,
+      "part_angle_mort": 0.14957179129123688,
+      "ronde": 120
+     },
+     {
+      "prise": 0.7666667103767395,
+      "pertes_par_prise": 0.23695650696754456,
+      "expo_par_metre": 0.035043615847826004,
+      "part_angle_mort": 0.15736138820648193,
+      "ronde": 150
+     }
+    ],
+    "fin": {
+     "prise": 0.7666667103767395,
+     "pertes_par_prise": 0.23695650696754456,
+     "expo_par_metre": 0.035043615847826004,
+     "part_angle_mort": 0.15736138820648193,
+     "ronde": 150
+    }
+   }
+  ],
+  "voyant": [
+   {
+    "graine": 7,
+    "piste": [
+     {
+      "prise": 0.8600000143051147,
+      "pertes_par_prise": 0.14437983930110931,
+      "expo_par_metre": 0.023339100182056427,
+      "part_angle_mort": 0.22150859236717224,
+      "ronde": 30
+     },
+     {
+      "prise": 0.8833333253860474,
+      "pertes_par_prise": 0.13962264358997345,
+      "expo_par_metre": 0.02146921120584011,
+      "part_angle_mort": 0.20043902099132538,
+      "ronde": 60
+     },
+     {
+      "prise": 0.8633333444595337,
+      "pertes_par_prise": 0.13513512909412384,
+      "expo_par_metre": 0.023166438564658165,
+      "part_angle_mort": 0.1976134032011032,
+      "ronde": 90
+     },
+     {
+      "prise": 0.8799999952316284,
+      "pertes_par_prise": 0.12310606241226196,
+      "expo_par_metre": 0.026749731972813606,
+      "part_angle_mort": 0.21455134451389313,
+      "ronde": 120
+     },
+     {
+      "prise": 0.89000004529953,
+      "pertes_par_prise": 0.11985018849372864,
+      "expo_par_metre": 0.019324462860822678,
+      "part_angle_mort": 0.21605749428272247,
+      "ronde": 150
+     }
+    ],
+    "fin": {
+     "prise": 0.89000004529953,
+     "pertes_par_prise": 0.11985018849372864,
+     "expo_par_metre": 0.019324462860822678,
+     "part_angle_mort": 0.21605749428272247,
+     "ronde": 150
+    }
+   },
+   {
+    "graine": 8,
+    "piste": [
+     {
+      "prise": 0.8733333349227905,
+      "pertes_par_prise": 0.1421755701303482,
+      "expo_par_metre": 0.022192982956767082,
+      "part_angle_mort": 0.2713220715522766,
+      "ronde": 30
+     },
+     {
+      "prise": 0.8100000023841858,
+      "pertes_par_prise": 0.17489711940288544,
+      "expo_par_metre": 0.028951089829206467,
+      "part_angle_mort": 0.27538397908210754,
+      "ronde": 60
+     },
+     {
+      "prise": 0.6633333563804626,
+      "pertes_par_prise": 0.09798994660377502,
+      "expo_par_metre": 0.026327187195420265,
+      "part_angle_mort": 0.27542969584465027,
+      "ronde": 90
+     },
+     {
+      "prise": 0.6466667056083679,
+      "pertes_par_prise": 0.10438144207000732,
+      "expo_par_metre": 0.025465907528996468,
+      "part_angle_mort": 0.2192588895559311,
+      "ronde": 120
+     },
+     {
+      "prise": 0.6500000357627869,
+      "pertes_par_prise": 0.09743589907884598,
+      "expo_par_metre": 0.027304675430059433,
+      "part_angle_mort": 0.19365331530570984,
+      "ronde": 150
+     }
+    ],
+    "fin": {
+     "prise": 0.6500000357627869,
+     "pertes_par_prise": 0.09743589907884598,
+     "expo_par_metre": 0.027304675430059433,
+     "part_angle_mort": 0.19365331530570984,
+     "ronde": 150
+    }
+   },
+   {
+    "graine": 9,
+    "piste": [
+     {
+      "prise": 0.9166666865348816,
+      "pertes_par_prise": 0.15727272629737854,
+      "expo_par_metre": 0.021076124161481857,
+      "part_angle_mort": 0.22458140552043915,
+      "ronde": 30
+     },
+     {
+      "prise": 0.9133333563804626,
+      "pertes_par_prise": 0.14324817061424255,
+      "expo_par_metre": 0.01927151158452034,
+      "part_angle_mort": 0.2255457043647766,
+      "ronde": 60
+     },
+     {
+      "prise": 0.8866667151451111,
+      "pertes_par_prise": 0.14379699528217316,
+      "expo_par_metre": 0.020668450742959976,
+      "part_angle_mort": 0.19913031160831451,
+      "ronde": 90
+     },
+     {
+      "prise": 0.9200000166893005,
+      "pertes_par_prise": 0.13949275016784668,
+      "expo_par_metre": 0.020520824939012527,
+      "part_angle_mort": 0.21706095337867737,
+      "ronde": 120
+     },
+     {
+      "prise": 0.9033333659172058,
+      "pertes_par_prise": 0.16143912076950073,
+      "expo_par_metre": 0.020567717030644417,
+      "part_angle_mort": 0.1948218047618866,
+      "ronde": 150
+     }
+    ],
+    "fin": {
+     "prise": 0.9033333659172058,
+     "pertes_par_prise": 0.16143912076950073,
+     "expo_par_metre": 0.020567717030644417,
+     "part_angle_mort": 0.1948218047618866,
+     "ronde": 150
+    }
+   }
+  ]
+ },
+ "bilan": {
+  "expo_aveugle": 0.030973743026455242,
+  "expo_voyant": 0.022398951773842175,
+  "prise_aveugle": 0.7155555884043375,
+  "prise_voyant": 0.8144444823265076,
+  "seuil_expo": 0.023,
+  "contre_epreuve_ok": true,
+  "duree_s": 6432
+ }
+}
