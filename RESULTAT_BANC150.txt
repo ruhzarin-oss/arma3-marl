@@ -1,0 +1,32 @@
+  configurations completes : 20 / 20   (4 bras chacune)
+  derive des defenseurs a la pose : mediane 0.1 m · max 0.9 m  -> les positions rejouees sont bien celles calculees
+
+  ==============================================================================
+  PETIT = s'est approche avant d'etre vu = BIEN.  GRAND = vu de loin, tot = MAL.
+  ------------------------------------------------------------------------------
+  bras            distance de reperage (m)      jamais vu   longueur du chemin
+  droite          mediane   78.0  [ 54.0 - 142.0]     5/20         29 points
+  oracle          mediane  141.0  [ 46.0 - 153.0]     4/20         97 points
+  oracle_libre    mediane   90.0  [ 40.0 - 145.0]     7/20         31 points
+  droite_bis      mediane   70.0  [ 54.0 - 142.0]     5/20         29 points
+  ==============================================================================
+
+  P1 PRESENCE  : droite reperee dans 15/20 (exige >= 16)  -> ECHEC
+  P2 DYNAMIQUE : ecart interquartile 52 m sur 110 m utiles = 48% (exige >= 27 m)  -> OK
+                 ⟨le banc a 80 m valait 8 m : il ne separait rien⟩
+  P3 NUL       : droite vs droite_bis — ecart median 8.0 m (max 48 m), meme verdict 20/20  -> OK
+
+  oracle         repere -61% plus PRES que la droite (sur 14 paires) · echappe 1 fois · se fait voir 2 fois la ou la droite echappe
+  oracle_libre   repere -3% plus PRES que la droite (sur 11 paires) · echappe 4 fois · se fait voir 2 fois la ou la droite echappe
+
+  P4 REUSSITE  : le chemin parfait achete-t-il 25 % ?  -> ECHEC
+
+  ==============================================================================
+  CE QUE LE MODELE IGNORE : LA DUREE
+  correlation de rang (longueur du chemin <-> distance de reperage) : rho = +0.43  (n=59)
+    chemins courts (< 60 points) : repere a  78.0 m   (n=46)
+    chemins longs  (>= 60 points): repere a 145.0 m   (n=13)
+
+  ==============================================================================
+  PORTES CEDEES : P1, P4. Ce banc ne certifie pas encore.
+  ==============================================================================
