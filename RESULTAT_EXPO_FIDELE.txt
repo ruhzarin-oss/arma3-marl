@@ -1,0 +1,51 @@
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:384: UserWarning: Found GPU1 NVIDIA GeForce GTX 1060 6GB which is of compute capability (CC) 6.1.
+The following list shows the CCs this version of PyTorch was built for and the hardware CCs it supports:
+- 7.5 which supports hardware CC >=7.5,<8.0
+- 8.0 which supports hardware CC >=8.0,<9.0 except {8.7}
+- 8.6 which supports hardware CC >=8.6,<9.0 except {8.7}
+- 9.0 which supports hardware CC >=9.0,<10.0
+- 10.0 which supports hardware CC >=10.0,<11.0 except {10.1}
+- 12.0 which supports hardware CC >=12.0,<13.0
+Please follow the instructions at https://pytorch.org/get-started/locally/ to install a PyTorch release that supports one of these CUDA versions: 12.6
+  _warn_unsupported_code(d, device_cc, code_ccs)
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:502: UserWarning: 
+NVIDIA GeForce GTX 1060 6GB with CUDA capability sm_61 is not compatible with the current PyTorch installation.
+The current PyTorch install supports CUDA capabilities sm_75 sm_80 sm_86 sm_90 sm_100 sm_120.
+If you want to use the NVIDIA GeForce GTX 1060 6GB GPU with PyTorch, please check the instructions at https://pytorch.org/get-started/locally/
+
+  queued_call()
+corpus : 173338 ticks, 1519814 arêtes
+
+construction — jusqu'à 12 ennemis par soldat
+  563383 observations en 51 s   mortalité 10.00%
+  ennemis par soldat : médiane 1, moyenne 1.8, max 12
+
+  563383 observations · mortalite 10.00% · tenu a l'ecart 99188
+/home/younes/arma3-marl/expo_fidele.py:39: RuntimeWarning: overflow encountered in exp
+  dans = 1.0 / (1.0 + np.exp(-(CHAMP_ - ec) * 1.2))
+  predicteur GEOMETRIE SEULE : AUC 0.7149
+  predicteur appris entraine en 10 s
+
+========================================================================
+  AUC sur les donnees tenues a l'ecart   (plancher = 0,500)
+    expo, la fonction de la sandbox ....... 0.5005
+    predicteur appris sur le corpus ....... 0.7229
+    ecart .................................. +0.2225
+========================================================================
+
+  E0 VALIDITE  le predicteur bat le plancher de +0.223 (exige +0,05)   -> OK
+  E2 SENS      expo est POSITIVEMENT correlee (AUC 0.5005)   -> OK
+  E3 NUL       etiquettes brassees : expo 0.5073 · appris 0.5019   -> OK
+
+  E1 LE DEFAUT EXISTE-T-IL ?
+     contre le predicteur COMPLET   : ecart +0.2225
+     contre la GEOMETRIE SEULE      : ecart +0.2145   <- LA COMPARAISON EQUITABLE
+     (seuil 0,03)
+
+========================================================================
+  EXPO EST INFIDELE. A INFORMATION EGALE — la geometrie seule — un predicteur
+  appris sur le corpus ordonne le danger nettement mieux que la fonction
+  analytique de la sandbox. Ce n'est donc pas un avantage d'information.
+  -> L'ETAPE 5 A SON OBJET : apprendre le risque sur le corpus et le substituer
+     a expo comme fonction de cout de l'entrainement.
+========================================================================
