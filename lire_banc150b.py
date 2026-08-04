@@ -81,8 +81,12 @@ print("  " + "="*74)
 
 nc = sum(ess[c]['agent']['couche'] for c in comp)
 np_ = sum(ess[c]['agent']['n'] for c in comp)
-print(f"\n  POSTURES DE L'AGENT : couche sur {nc}/{np_} pas ({nc/max(np_,1):.0%})"
-      f"   ⟨0 % avant le cliquet⟩")
+print(f"\n  postures de l'agent : couche sur {nc}/{np_} pas ({nc/max(np_,1):.0%})")
+print(f"     ⟨CE N'EST PAS UN CRITERE. On ne progresse pas couche sur un champ de bataille :")
+print(f"      le couche est une posture d'OBSERVATION longue distance, et ramper vaut 0,23")
+print(f"      de la course. Un agent qui ne se couche pas en approche a RAISON. Le repertoire")
+print(f"      de postures ne peut de toute facon pas s'exprimer en terrain NU — l'accroupi y")
+print(f"      est sans effet, mesure le 03/08. Il faudra du couvert, ou une tache d'observation.⟩")
 
 # ------------------------------------------------------------------ LES PORTES
 vue = sum(1 for c in comp if score(c, 'droite') < 4)

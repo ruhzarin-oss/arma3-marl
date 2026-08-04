@@ -1,0 +1,45 @@
+  configurations completes : 20 / 20
+
+  ================================================================================
+  SURVIE DU GROUPE MANOEUVRANT AUX JALONS 120/90/60/40   (score /4)
+  --------------------------------------------------------------------------------
+  bras            effectif  score median  total  hommes vus   tirs   arme/manoeuvrant
+  solo               1         2.0       48    17/ 20        0         114°
+  bloc_1axe          6         2.0       40   110/120        0          61°
+  deux_axes          3         2.5       53    31/ 60      178         120°
+  flanc_seul         3         2.0       45    51/ 60        0         112°
+  deux_axes_bis      3         3.5       57    30/ 60      180         119°
+  ================================================================================
+
+  P0 VALIDITE — le meme bras rejoue deux fois
+     bruit  deux_axes / bis        : 0.30 point · differe sur 3/20
+     effet  deux_axes / flanc_seul : 1.20 point
+     ⟨le pilote donnait bruit 0,80 pour effet 0,85 : indiscernable, banc nul⟩
+     -> OK, l effet domine le bruit
+
+  P1 PRESENCE — bloc_1axe repere dans 20/20  -> OK
+
+  P2 FIXATION — deux_axes contre flanc_seul  (MEME chemin, MEME effectif de 3,
+                seule la base de feu change)
+     gagne 9 · perd 3 · egalite 8  ·  p = 0.146
+     gain median +0.0 point (exige > 0.30)
+     -> ECHEC
+
+  P3 MECANISME — les armes pointent-elles PLUS LOIN du manoeuvrant avec base de feu ?
+     deux_axes   120°  ·  flanc_seul   112°  ·  ecart +8°
+     plus loin dans 9/20 configurations
+     -> ECHEC : elle ne les detourne pas
+
+  P4 TIR — deux_axes 178 coups · flanc_seul 0 coups  -> OK
+
+  CONTEXTE (effectifs differents — NE PAS comparer directement a la these)
+     deux_axes (3) contre bloc_1axe  (6) : gagne 10, perd 4, p = 0.180
+     deux_axes (3) contre solo       (1) : gagne 9, perd 4, p = 0.267
+     ⟨la metrique punit le nombre : un groupe est repere des qu UN homme l est.
+      Seule la comparaison deux_axes / flanc_seul est immunisee — meme effectif.⟩
+
+  ================================================================================
+  NI EFFET NI MECANISME. Dans ce regime, une base de feu ne protege pas le flanc.
+  Ce n est pas une refutation du collectif : c est que la PERCEPTION n est pas le
+  canal. Le prochain test doit porter sur le FEU — qui tire sur qui, et quand.
+  ================================================================================
