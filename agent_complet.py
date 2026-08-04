@@ -243,7 +243,14 @@ def derouler(pol, idx, tarif, echantillonne=True, gel=None, azi_faux=False, forc
         trop = trop + (pas_reel.norm(dim=-1) > ALLURES.max()*1.01).float()
         e = expo(p, post, idx, wp)
         expo_cum = expo_cum + e*dehors
-        expo_pic = torch.maximum(expo_pic, e*dehors)
+        # LE CLIQUET. Ce qui se paie, c est l AUGMENTATION du pic, pas l exposition de
+        # chaque pas. La somme des increments du pic EST le pic final : l agent paie une
+        # fois d avoir ete vu, et ne peut plus le racheter en etant discret ensuite.
+        # ⟨table du 04/08 : sous la regle SOMME, le chemin optimal-max score PIRE que celui
+        #  de l agent dans 19 configurations sur 20. La sandbox recompensait le rachat.
+        #  Arma ne rachete rien : la memoire du camp ne decroit pas, 5 minutes mesurees.⟩
+        d_pic = (e*dehors - expo_pic).clamp(min=0)
+        expo_pic = expo_pic + d_pic
         n_post.scatter_add_(1, ip.unsqueeze(1), dehors.unsqueeze(1))
         n_all.scatter_add_(1, ia.unsqueeze(1), dehors.unsqueeze(1))
         m_c = (ip==2).float()*dehors; m_d = (ip==0).float()*dehors
@@ -259,7 +266,7 @@ def derouler(pol, idx, tarif, echantillonne=True, gel=None, azi_faux=False, forc
         # MÈTRES GAGNÉS (une différence, pas une distance absolue) éclaire le chemin sans
         # déplacer la solution optimale. ⟨v1 pénalisait la distance absolue : l'agent fonçait⟩
         gagne = (d_prec - p.norm(dim=-1)) * dehors
-        val_l.append(val); rec_l.append(-tarif*e*dehors + 0.05*gagne)
+        val_l.append(val); rec_l.append(-tarif*d_pic + 0.05*gagne)
     reste = (p.norm(dim=-1)-ARRIVE).clamp(min=0)/DEPART_COURANT
     # arriver doit payer FRANCHEMENT. Avec l'ancienne prime de 3, ne jamais arriver coûtait
     # -16,5 et arriver -2,6 : rentable en principe, mais l'écart ne guidait pas l'exploration.

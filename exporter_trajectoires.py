@@ -13,7 +13,7 @@ import numpy as np, torch, json, math, sys
 sys.argv = [sys.argv[0]]                     # neutralise le mode "court" hérité
 exec(open('/home/younes/arma3-marl/agent_complet.py').read().split('print("\\n" + "="*78, flush=True)')[0])
 
-RAYON = 80.0                                  # distance réellement tenue par l'agent à agrégation MAXIMUM
+RAYON = 150.0                                  # distance réellement tenue par l'agent à agrégation MAXIMUM
 # ⟨l'agent précédent tenait 125 m, mais contre une exposition MOYENNÉE — un monde indulgent
 #  que le banc Arma a refusé de certifier (écart 12 % contre 25 % exigés). Avec l'agrégation
 #  corrigée au maximum, il ne tient plus que 80 m. On certifie ce qu'il sait faire, pas ce
@@ -22,6 +22,11 @@ N = 30                                        # configurations exportées
 DEPART_COURANT = RAYON
 
 pol, journal, bloque = entrainer(1, 1.75)
+# Le curriculum laisse DEPART_COURANT au meilleur palier atteint. On le force au rayon du
+# banc pour que la perception soit normalisee comme pendant le rejeu.
+# ⟨si le palier atteint est inferieur a 150 m, l agent travaille HORS DE SON DOMAINE. Le
+#  palier reel est imprime ci-dessous : on le mesure et on le dit, on ne le cache pas.⟩
+DEPART_COURANT = RAYON
 print(f"\nexport : palier atteint {journal[-1][0] if journal else '?'} m", flush=True)
 
 idx = I_TE[:N]
@@ -59,7 +64,7 @@ with torch.no_grad():
                 depart=[float(T[i][0][0]), float(T[i][0][1])],
             ))
 
-json.dump(sorties, open('/mnt/data/corpus/trajectoires_agent.json','w'))
+json.dump(sorties, open('/mnt/data/corpus/trajectoires_agent150.json','w'))
 print(f"  {len(sorties)} trajectoires exportées, {len(sorties[0]['agent'])} points chacune")
 print(f"  defenseurs par config : {np.mean([len(s['defenseurs']) for s in sorties]):.1f}")
 pcouche = np.mean([np.mean([p==2 for p in s['postures']]) for s in sorties])
