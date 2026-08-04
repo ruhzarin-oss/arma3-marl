@@ -1,0 +1,969 @@
+21:09:17 SteamAPI initialization failed. Steam features won't be accessible!
+21:09:17 Initializing stats manager.
+sh: 1: /sbin/ifconfig: not found
+21:09:17 Stats config disabled.
+21:09:17 sessionID: 8fde06fe28dc4f7cd325e698bfa73ae5d280e1cc
+21:09:23 Unsupported language English in stringtable
+21:09:23  ➥ Context: rhsafrf\addons\rhs_main\stringtable.xml
+21:09:26 Skipped loading of addon 'cba_xeh_csla' as required addon 'CSLA' is not present
+21:09:26 Skipped loading of addon 'cba_xeh_contact' as required addon 'A3_Data_F_Contact' is not present
+21:09:26 Skipped loading of addon 'cba_jam_rf' as required addon 'RF_Data_Loadorder' is not present
+21:09:26 Skipped loading of addon 'cba_jam_csla' as required addon 'CSLA' is not present
+21:09:26 Skipped loading of addon 'cba_jam_vn' as required addon 'loadorder_f_vietnam' is not present
+21:09:26 Skipped loading of addon 'cba_jam_gm' as required addon 'gm_weapons_launchers_carlgustaf' is not present
+21:09:26 Skipped loading of addon 'cba_xeh_ws' as required addon 'data_f_lxWS' is not present
+21:09:26 Skipped loading of addon 'cba_jr_gm' as required addon 'gm_weapons_attachments_optics_feroz24' is not present
+21:09:26 Skipped loading of addon 'cba_jam_ws' as required addon 'data_f_lxWS_Loadorder' is not present
+21:09:26 Skipped loading of addon 'cba_jam_spe' as required addon 'WW2_SPE_Core_c_ZZZ_LastLoaded_c' is not present
+21:09:26 Skipped loading of addon 'cba_xeh_sog' as required addon 'loadorder_f_vietnam' is not present
+21:09:26 Updating base class RscShortcutButton->RscButton, by a3\editor_f\config.bin/RscDisplayEditObject/Controls/B_OK/ (original bin\config.bin)
+21:09:26 Updating base class RscSliderH->RscXSliderH, by a3\editor_f\config.bin/RscDisplayEditObject/Slider/ (original bin\config.bin)
+21:09:26 Updating base class RscText->RscPicture, by a3\editor_f\config.bin/RscDisplayEditObject/Preview/ (original bin\config.bin)
+21:09:26 Updating base class RscShortcutButton->RscButton, by a3\editor_f\config.bin/RscDisplayMissionLoad/Controls/B_OK/ (original bin\config.bin)
+21:09:26 Updating base class RscShortcutButton->RscButton, by a3\editor_f\config.bin/RscDisplayMissionSave/Controls/B_OK/ (original bin\config.bin)
+21:09:26 Updating base class ->RscControlsGroup, by a3\ui_f\config.bin/RscControlsGroupNoScrollbars/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscControlsGroup, by a3\ui_f\config.bin/RscControlsGroupNoHScrollbars/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscControlsGroup, by a3\ui_f\config.bin/RscControlsGroupNoVScrollbars/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscText, by a3\ui_f\config.bin/RscLine/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscActiveText, by a3\ui_f\config.bin/RscActivePicture/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscButton, by a3\ui_f\config.bin/RscButtonTextOnly/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscShortcutButton, by a3\ui_f\config.bin/RscShortcutButtonMain/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscShortcutButton, by a3\ui_f\config.bin/RscButtonEditor/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscShortcutButton, by a3\ui_f\config.bin/RscIGUIShortcutButton/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscShortcutButton, by a3\ui_f\config.bin/RscGearShortcutButton/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscShortcutButton, by a3\ui_f\config.bin/RscButtonMenu/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscButtonMenu, by a3\ui_f\config.bin/RscButtonMenuOK/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscButtonMenu, by a3\ui_f\config.bin/RscButtonMenuCancel/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscButtonMenu, by a3\ui_f\config.bin/RscButtonMenuSteam/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscText, by a3\ui_f\config.bin/RscLoadingText/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscListBox, by a3\ui_f\config.bin/RscIGUIListBox/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscListNBox, by a3\ui_f\config.bin/RscIGUIListNBox/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscText, by a3\ui_f\config.bin/RscBackground/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscText, by a3\ui_f\config.bin/RscBackgroundGUI/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscPicture, by a3\ui_f\config.bin/RscBackgroundGUILeft/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscPicture, by a3\ui_f\config.bin/RscBackgroundGUIRight/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscPicture, by a3\ui_f\config.bin/RscBackgroundGUIBottom/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscText, by a3\ui_f\config.bin/RscBackgroundGUITop/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscText, by a3\ui_f\config.bin/RscBackgroundGUIDark/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscPictureKeepAspect, by a3\ui_f\config.bin/RscBackgroundLogo/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscMapControl, by a3\ui_f\config.bin/RscMapControlEmpty/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscPicture, by a3\ui_f\config.bin/CA_Mainback/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->CA_Mainback, by a3\ui_f\config.bin/CA_Back/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->CA_Mainback, by a3\ui_f\config.bin/CA_Title_Back/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->CA_Mainback, by a3\ui_f\config.bin/CA_Black_Back/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscTitle, by a3\ui_f\config.bin/CA_Title/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscPictureKeepAspect, by a3\ui_f\config.bin/CA_Logo/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->CA_Logo, by a3\ui_f\config.bin/CA_Logo_Small/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscButton, by a3\ui_f\config.bin/CA_RscButton/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->CA_RscButton, by a3\ui_f\config.bin/CA_RscButton_dialog/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscActiveText, by a3\ui_f\config.bin/CA_Ok/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscText, by a3\ui_f\config.bin/CA_Ok_image/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscText, by a3\ui_f\config.bin/CA_Ok_image2/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscText, by a3\ui_f\config.bin/CA_Ok_text/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscPicture, by a3\ui_f\config.bin/RscVignette/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->RscControlsGroupNoScrollbars, by a3\ui_f\config.bin/RscMapControlTooltip/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class RscUnitInfo->RscUnitInfoAirNoWeapon, by a3\ui_f\config.bin/RscInGameUI/RscUnitInfoAir/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class RscControlsGroup->RscControlsGroupNoScrollbars, by a3\ui_f\config.bin/RscInGameUI/RscTaskOverview/controls/TaskOverviewAssigned/ (original bin\config.bin)
+21:09:26 Updating base class RscShortcutButton->RscButtonMenu, by a3\ui_f\config.bin/RscDisplayDebug/Controls/B_OK/ (original bin\config.bin)
+21:09:26 Updating base class RscShortcutButton->RscButtonMenu, by a3\ui_f\config.bin/RscDisplayDebug/Controls/B_Cancel/ (original bin\config.bin)
+21:09:26 Updating base class RscShortcutButton->RscButtonMenu, by a3\ui_f\config.bin/RscDisplayDebug/Controls/B_Clear/ (original bin\config.bin)
+21:09:26 Updating base class ->RscText, by a3\ui_f\config.bin/RscDisplayCapture/controls/TimeLines/ (original bin\config.bin)
+21:09:26 Updating base class RscShortcutButton->RscButtonMenu, by a3\ui_f\config.bin/RscDisplayCapture/controls/ButtonAverages/ (original bin\config.bin)
+21:09:26 Updating base class RscShortcutButton->RscButtonMenu, by a3\ui_f\config.bin/RscDisplayCapture/controls/ButtonSavePreviousData/ (original bin\config.bin)
+21:09:26 Updating base class RscShortcutButton->RscButtonMenu, by a3\ui_f\config.bin/RscDisplayCapture/controls/ButtonPreviousData/ (original bin\config.bin)
+21:09:26 Updating base class RscPicture->RscPictureKeepAspect, by a3\ui_f\config.bin/RscDisplayMain/IconPicture/ (original bin\config.bin)
+21:09:26 Updating base class IconPicture->RscPictureKeepAspect, by a3\ui_f\config.bin/RscDisplayMain/DlcOwnedIconPicture/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class IconPicture->RscPictureKeepAspect, by a3\ui_f\config.bin/RscDisplayMain/DlcIconPicture/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class RscControlsGroup->RscControlsGroupNoScrollbars, by a3\ui_f\config.bin/RscDisplayCampaignLoad/controls/OverviewGroup/ (original bin\config.bin)
+21:09:26 Updating base class RscButton->RscButtonSearch, by a3\ui_f\config.bin/RscDisplayCampaignLoad/controls/SearchButton/ (original bin\config.bin)
+21:09:26 Updating base class RscShortcutButton->RscButtonMenuCancel, by a3\ui_f\config.bin/RscDisplayCampaignLoad/controls/ButtonCancel/ (original bin\config.bin)
+21:09:26 Updating base class RscShortcutButton->RscButtonMenu, by a3\ui_f\config.bin/RscDisplayCampaignLoad/controls/ButtonGameOptions/ (original bin\config.bin)
+21:09:26 Updating base class RscShortcutButton->RscButtonMenuSteam, by a3\ui_f\config.bin/RscDisplayCampaignLoad/controls/ButtonBuyDLC/ (original bin\config.bin)
+21:09:26 Updating base class RscShortcutButton->RscButtonMenu, by a3\ui_f\config.bin/RscDisplayCampaignLoad/controls/ButtonRevert/ (original bin\config.bin)
+21:09:26 Updating base class RscShortcutButton->RscButtonMenuOK, by a3\ui_f\config.bin/RscDisplayCampaignLoad/controls/ButtonOK/ (original bin\config.bin)
+21:09:26 Updating base class RscListBox->RscCombo, by a3\ui_f\config.bin/RscDisplayCustomizeController/Steepness/ (original bin\config.bin)
+21:09:26 Updating base class ->RscStandardDisplay, by a3\ui_f\config.bin/RscDisplayControlSchemes/ (original bin\config.bin)
+21:09:26 Updating base class ButtonOK->RscButtonMenuCancel, by a3\ui_f\config.bin/RscDisplayControlSchemes/controls/ButtonCancel/ (original bin\config.bin)
+21:09:26 Updating base class RscButton->RscButtonMenuOK, by a3\ui_f\config.bin/RscDisplayControlSchemes/controls/ButtonOK/ (original bin\config.bin)
+21:09:26 Updating base class RscPicture->RscPictureKeepAspect, by a3\ui_f\config.bin/RscDisplayFileSelectImage/controls/OverviewPicture/ (original bin\config.bin)
+21:09:26 Updating base class RscShortcutButton->RscButtonMenuCancel, by a3\ui_f\config.bin/RscDisplayFieldManual/Controls/ButtonCancel/ (original bin\config.bin)
+21:09:26 Cannot delete class B_KickOff, it is referenced somewhere (used as a base class probably).
+21:09:26 Updating base class RscButton->RscButtonMenuCancel, by a3\ui_f\config.bin/RscDisplayPublishMission/controls/ButtonCancel/ (original bin\config.bin)
+21:09:26 Updating base class RscShortcutButton->RscButtonMenuOK, by a3\ui_f\config.bin/RscDisplayPublishMissionSelectTags/controls/ButtonOK/ (original bin\config.bin)
+21:09:26 Updating base class ButtonOK->RscButtonMenuCancel, by a3\ui_f\config.bin/RscDisplayPublishMissionSelectTags/controls/ButtonCancel/ (original bin\config.bin)
+21:09:26 Updating base class ->RscSubmenu, by a3\ui_f\config.bin/RscMainMenu/ (original bin\config.bin)
+21:09:26 Updating base class ->DistanceClose, by a3\ui_f\config.bin/CfgSimpleTasks/Icon3D/DistanceMid/ (original bin\config.bin)
+21:09:26 Updating base class ->DistanceClose, by a3\ui_f\config.bin/CfgSimpleTasks/Icon3D/DistanceLong/ (original bin\config.bin)
+21:09:26 Updating base class ->ctrlDefaultText, by a3\3den\config.bin/ctrlStatic/ (original a3\3den\config.bin)
+21:09:26 Updating base class ->ctrlActiveText, by a3\3den\config.bin/ctrlActivePicture/ (original a3\3den\config.bin)
+21:09:26 Updating base class ->ctrlDefaultText, by a3\3den\config.bin/ctrlStructuredText/ (original a3\3den\config.bin)
+21:09:26 Updating base class ->ctrlControlsGroup, by a3\3den\config.bin/ctrlControlsGroupNoScrollbars/ (original a3\3den\config.bin)
+21:09:26 Updating base class ->ctrlDefault, by a3\3den\config.bin/ctrlCheckbox/ (original a3\3den\config.bin)
+21:09:26 Updating base class ->ctrlCheckbox, by a3\3den\config.bin/ctrlCheckboxBaseline/ (original a3\3den\config.bin)
+21:09:26 Updating base class RscText->ctrlStaticBackgroundDisable, by a3\3den\config.bin/RscDisplayOptionsAudio/ControlsBackground/BackgroundDisable/ (original a3\3den\config.bin)
+21:09:26 Updating base class RscText->ctrlStaticBackgroundDisableTiles, by a3\3den\config.bin/RscDisplayOptionsAudio/ControlsBackground/BackgroundDisableTiles/ (original a3\3den\config.bin)
+21:09:26 Updating base class RscText->ctrlStaticBackgroundDisable, by a3\3den\config.bin/RscDisplayConfigure/ControlsBackground/BackgroundDisable/ (original a3\3den\config.bin)
+21:09:26 Updating base class RscText->ctrlStaticBackgroundDisableTiles, by a3\3den\config.bin/RscDisplayConfigure/ControlsBackground/BackgroundDisableTiles/ (original a3\3den\config.bin)
+21:09:26 Updating base class RscText->ctrlStaticBackgroundDisable, by a3\3den\config.bin/RscDisplayConfigureAction/ControlsBackground/BackgroundDisable/ (original a3\3den\config.bin)
+21:09:26 Updating base class RscText->ctrlStaticBackgroundDisableTiles, by a3\3den\config.bin/RscDisplayConfigureAction/ControlsBackground/BackgroundDisableTiles/ (original a3\3den\config.bin)
+21:09:26 Updating base class RscText->ctrlStaticBackgroundDisable, by a3\3den\config.bin/RscDisplayConfigureControllers/ControlsBackground/BackgroundDisable/ (original a3\3den\config.bin)
+21:09:26 Updating base class RscText->ctrlStaticBackgroundDisableTiles, by a3\3den\config.bin/RscDisplayConfigureControllers/ControlsBackground/BackgroundDisableTiles/ (original a3\3den\config.bin)
+21:09:26 Updating base class RscText->ctrlStaticBackgroundDisable, by a3\3den\config.bin/RscDisplayGameOptions/ControlsBackground/BackgroundDisable/ (original a3\3den\config.bin)
+21:09:26 Updating base class RscText->ctrlStaticBackgroundDisableTiles, by a3\3den\config.bin/RscDisplayGameOptions/ControlsBackground/BackgroundDisableTiles/ (original a3\3den\config.bin)
+21:09:26 Updating base class controls->, by a3\3den\config.bin/RscDisplayArcadeMap_Layout_2/Controls/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class controls->, by a3\3den\config.bin/RscDisplayArcadeMap_Layout_6/Controls/ (original a3\ui_f\config.bin)
+21:09:26 Updating base class ->ctrlControlsGroupNoScrollbars, by a3\3den\config.bin/Cfg3DEN/Attributes/Default/ (original a3\3den\config.bin)
+21:09:26 Updating base class ->ctrlStatic, by a3\3den\config.bin/Cfg3DEN/Attributes/Title/Controls/Title/ (original a3\3den\config.bin)
+21:09:26 Updating base class ->ctrlToolbox, by a3\3den\config.bin/Cfg3DEN/Attributes/Toolbox/Controls/Value/ (original a3\3den\config.bin)
+21:09:27 Updating base class Mod_Base->, by a3\data_f_destroyer\config.bin/CfgMods/Jets/ (original a3\data_f_jets\config.bin)
+21:09:30 Cannot open /mnt/data/harmattan-sandbox/profilesBA\OfficialServersCache\list.json
+21:09:30 Canceling the list loading process, the load of the file failed: /mnt/data/harmattan-sandbox/profilesBA\OfficialServersCache\list.json
+21:09:30 Initializing Steam Manager
+21:09:30 unable to load subscribed content list. list will be updated from steam
+21:09:30 unable to load published content list. list will be updated from steam
+21:09:30 unable to load cached items meta info. save and update functionality will be broken
+21:09:30 Steam Manager initialized.
+21:09:30 
+21:09:30 ==== Loaded addons ====
+21:09:30 
+21:09:30 dta/languagecore_f.pbo - 151164
+21:09:30 dta/bin.pbo - 152984
+21:09:30 dta/core.pbo - 129618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@PinnedDown_CoverConcealment/addons/pd_cover_concealment.pbo - unknown
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@PinnedDown_BattleLines/addons/pinneddown_battlelines.pbo - unknown
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@LAMBS_Danger/addons/lambs_wp.pbo - 2.6.1.502
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@LAMBS_Danger/addons/lambs_eventhandlers.pbo - 2.6.1.502
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@LAMBS_Danger/addons/lambs_range.pbo - 2.6.1.502
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@LAMBS_Danger/addons/lambs_danger.pbo - 2.6.1.502
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@LAMBS_Danger/addons/lambs_main.pbo - 2.6.1.502
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@LAMBS_Danger/addons/lambs_formations.pbo - 2.6.1.502
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_heavyweapons.pbo - RedHammerStudios.0.5.5.6697.r4418
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_fmtv.pbo - RedHammerStudios.0.5.5.6434.r4295
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_stryker.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_m1165.pbo - RedHammerStudios.0.5.6.6784.r4466
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_m1117.pbo - RedHammerStudios.0.5.1.5730.r3840
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_radio.pbo - RedHammerStudios.0.5.2.5924.r3960
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_f22.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_socomauv.pbo - RedHammerStudios.0.5.5.6504.r4343
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_a2port_air2.pbo - RedHammerStudios.0.5.5.6439.r4299
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_melb.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_props.pbo - RedHammerStudios.0.5.3.6377.r4259
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_himars.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_radio.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_infantry.pbo - RedHammerStudios.0.5.5.6588.r4377
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_weapons.pbo - RedHammerStudios.0.5.6.6810.r4484
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_mtvr.pbo - RedHammerStudios.0.5.2.5935.r3969
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_rg33.pbo - RedHammerStudios.0.5.6.6781.r4465
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_hmmwv.pbo - RedHammerStudios.0.5.5.6735.r4448
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_weapons2.pbo - RedHammerStudios.0.5.5.6720.r4437
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_cougar.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_inventoryicons.pbo - RedHammerStudios.0.5.5.6741.r4451
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_vehiclesounds.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_m1a2.pbo - RedHammerStudios.0.5.6.6801.r4479
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_ah64.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_m113.pbo - RedHammerStudios.0.5.4.6412.r4280
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_m109.pbo - RedHammerStudios.0.5.1.5822.r3882
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_m1a1.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_f22.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_airweapons.pbo - RedHammerStudios.0.5.5.6469.r4318
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_caiman.pbo - RedHammerStudios.0.5.6.6781.r4465
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_socomauv.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_ch53.pbo - RedHammerStudios.0.5.5.6439.r4299
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_a2port_air.pbo - RedHammerStudios.0.5.5.6505.r4344
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_matv.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_himars.pbo - RedHammerStudios.0.5.1.5822.r3882
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_matv.pbo - RedHammerStudios.0.5.5.6744.r4453
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_mtvr.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_decals.pbo - RedHammerStudios.0.5.3.6224.r4167
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_m1a1.pbo - RedHammerStudios.0.5.5.6698.r4419
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_markvsoc.pbo - RedHammerStudios.0.5.5.6666.r4397
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_weaponsounds.pbo - RedHammerStudios.0.5.2.5935.r3969
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_editorpreviews.pbo - RedHammerStudios.0.5.6.6812.r4485
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_markvsoc.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_rg33l.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_melb.pbo - RedHammerStudios.0.5.5.6444.r4303
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_scopes.pbo - RedHammerStudios.0.5.5.6662.r4396
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_m11xx.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_commskit.pbo - RedHammerStudios.0.5.5.6531.r4358
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_s_vehiclesounds.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_hemtt_a2.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_identity.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_mrzr.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_infantry2.pbo - RedHammerStudios.0.5.5.6678.r4404
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_mtvr_tx.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_fmtv.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_rg33l.pbo - RedHammerStudios.0.5.5.6504.r4343
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_infantry3.pbo - RedHammerStudios.0.5.1.5874.r3920
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_weapon_sounds.pbo - RedHammerStudios.0.5.2.5935.r3969
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_m1117.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_hemtt_a4.pbo - RedHammerStudios.0.5.3.6354.r4241
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_s_radio.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_hemtt_a2.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_weapons3.pbo - RedHammerStudios.0.5.6.6798.r4477
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_uav.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_ch53.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_weapons.pbo - RedHammerStudios.0.5.6.6781.r4465
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_commskit.pbo - RedHammerStudios.0.5.5.6531.r4358
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_heavyweapons.pbo - RedHammerStudios.0.5.6.6812.r4485
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_airweapons.pbo - RedHammerStudios.0.5.6.6805.r4481
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_main.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_a2port_car.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_caiman.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_a2port_car.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_hmmwv.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_dve.pbo - RedHammerStudios.0.5.1.5787.r3863
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_m1a2.pbo - RedHammerStudios.0.5.6.6806.r4482
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_props.pbo - RedHammerStudios.0.5.3.6302.r4215
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_m113.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_m11xx.pbo - RedHammerStudios.0.5.5.6735.r4448
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_sounds.pbo - RedHammerStudios.0.5.5.6684.r4407
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_s_weaponsounds.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_optics.pbo - RedHammerStudios.0.5.6.6781.r4465
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_mrzr.pbo - RedHammerStudios.0.5.5.6712.r4431
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_m252.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_statics.pbo - RedHammerStudios.0.5.5.6697.r4418
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_stryker.pbo - RedHammerStudios.0.5.6.6781.r4465
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_a2port_armor.pbo - RedHammerStudios.0.5.1.5822.r3882
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_a2port_air.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_uav.pbo - RedHammerStudios.0.5.2.5937.r3970
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_ah64.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_xmas.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_a2port_armor.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_hemtt_a4.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_cougar.pbo - RedHammerStudios.0.5.6.6781.r4465
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_m252.pbo - RedHammerStudios.0.5.2.5935.r3969
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_m109.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_cars.pbo - RedHammerStudios.0.5.1.5659.r3805
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_muzzleflash.pbo - RedHammerStudios.0.5.5.6613.r4381
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_rg33.pbo - RedHammerStudios.0.5.6.6813.r4486
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsafrf/addons/rhsusf_c_troops.pbo - RedHammerStudios.0.5.6.6785.r4467
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_a2port_air.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_a2port_air.pbo - RedHammerStudios.0.5.6.6533.r4609
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_missions.pbo - RedHammerStudios.0.5.5.6123.r4369
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_pontoon.pbo - RedHammerStudios.0.5.5.6067.r4325
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_air.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_pts.pbo - RedHammerStudios.0.5.2.5723.r4159
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_inventoryicons.pbo - RedHammerStudios.0.5.6.6548.r4622
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_editorpreviews.pbo - RedHammerStudios.0.5.6.6540.r4615
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_vehicle_sounds.pbo - RedHammerStudios.0.5.6.6534.r4610
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_bmp.pbo - RedHammerStudios.0.5.6.6487.r4577
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_t80.pbo - RedHammerStudios.0.5.5.6226.r4433
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_airweapons.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_ss21_camo.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_vehiclesounds.pbo - RedHammerStudios.0.5.5.6388.r4507
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_radio.pbo - RedHammerStudios.0.5.5.6451.r4548
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_a2port_armor_camo.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_zil131.pbo - RedHammerStudios.0.5.5.6463.r4559
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_main.pbo - RedHammerStudios.0.5.6.6541.r4616
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_heavyweapons.pbo - RedHammerStudios.0.5.6.6547.r4621
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_identity.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_weapons.pbo - RedHammerStudios.0.5.6.6540.r4615
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_accessory.pbo - RedHammerStudios.0.5.3.5882.r4217
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_bmp3.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_bmk_t.pbo - RedHammerStudios.0.5.6.6540.r4615
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_radars.pbo - RedHammerStudios.0.5.1.5707.r4148
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_aps.pbo - RedHammerStudios.0.5.2.5719.r4156
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_cars.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_optics.pbo - RedHammerStudios.0.5.6.6500.r4587
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_t72.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_t14.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_btr80.pbo - RedHammerStudios.0.5.6.6546.r4620
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_vehiclesounds.pbo - RedHammerStudios.0.5.5.6450.r4547
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_btr80_camo.pbo - RedHammerStudios.0.5.3.5944.r4236
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_btr70_camo.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_pontoon.pbo - RedHammerStudios.0.5.6.6540.r4615
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_t15.pbo - RedHammerStudios.0.5.5.6470.r4565
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_weapons2.pbo - RedHammerStudios.0.5.5.6099.r4353
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_decals.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_btr.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_a2port_armor.pbo - RedHammerStudios.0.5.5.6370.r4494
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_bmd_camo.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_kamaz.pbo - RedHammerStudios.0.5.6.6535.r4611
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_t80u_camo.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_ss21.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_infantry3.pbo - RedHammerStudios.0.5.6.6537.r4613
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_rva.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_mi28.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_bmd_camo.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_2s1.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_infantry2.pbo - RedHammerStudios.0.5.6.6514.r4597
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_infantry.pbo - RedHammerStudios.0.5.6.6490.r4579
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_bmd.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_2s1.pbo - RedHammerStudios.0.5.6.6510.r4593
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_tigr.pbo - RedHammerStudios.0.5.6.6517.r4599
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_sprut.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_bmk_t.pbo - RedHammerStudios.0.5.5.6062.r4320
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_pts.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_a3retex.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_zil131.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_2s3.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_sprut.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_a2port_car.pbo - RedHammerStudios.0.5.6.6544.r4619
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_a2port_armor.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_heavyweapons.pbo - RedHammerStudios.0.5.6.6526.r4606
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_t72.pbo - RedHammerStudios.0.5.5.6283.r4450
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_cti_indep.pbo - RedHammerStudios.0.5.1.5707.r4148
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_bmp3_camo.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_gaz66.pbo - RedHammerStudios.0.5.6.6526.r4606
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_bmp.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_air.pbo - RedHammerStudios.0.5.2.5710.r4150
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_a3retex.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_btr70.pbo - RedHammerStudios.0.5.5.6370.r4494
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_airweapons.pbo - RedHammerStudios.0.5.6.6529.r4607
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_s_radio.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_weapon_sounds.pbo - RedHammerStudios.0.5.2.5719.r4156
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_mtlb.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_a2port_car_camo.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_weapons3.pbo - RedHammerStudios.0.5.6.6513.r4596
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_bmd.pbo - RedHammerStudios.0.5.5.6450.r4547
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_bmp3.pbo - RedHammerStudios.0.5.2.5722.r4158
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_mi28.pbo - RedHammerStudios.0.5.3.5853.r4205
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_t15.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_kamaz.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_servicemenu.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_radars.pbo - RedHammerStudios.0.5.3.5759.r4174
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_kraz255.pbo - RedHammerStudios.0.5.6.6544.r4619
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_sounds.pbo - RedHammerStudios.0.5.6.6500.r4587
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_props.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_identity.pbo - RedHammerStudios.0.5.5.6002.r4269
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_weaponsounds.pbo - RedHammerStudios.0.5.5.6344.r4474
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_mig29.pbo - RedHammerStudios.0.5.2.5710.r4150
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_a2port_car.pbo - RedHammerStudios.0.5.6.6544.r4619
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_t14.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_troops.pbo - RedHammerStudios.0.5.6.6550.r4624
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_bmd_34.pbo - RedHammerStudios.0.5.2.5711.r4151
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_bmp_camo.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_t80u.pbo - RedHammerStudios.0.5.5.6226.r4433
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_t72_camo.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_mig29.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_2s3.pbo - RedHammerStudios.0.5.6.6500.r4587
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_tanks.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_muzzleflash.pbo - RedHammerStudios.0.5.3.5952.r4239
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_kraz255.pbo - RedHammerStudios.0.5.5.6117.r4365
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_s_weaponsounds.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_weapons.pbo - RedHammerStudios.0.5.5.6364.r4489
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_btr70_camo.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_2s3_camo.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_gaz66_camo.pbo - RedHammerStudios.0.5.1.5533.r4092
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@rhsusaf/addons/rhs_c_trucks.pbo - RedHammerStudios.0.5.6.6542.r4618
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_diagnostic.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_main.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_main_a3.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_vectors.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_keybinding.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_bitwise.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_arrays.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_disposable.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_music.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_characters.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_network.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_ai.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_ui.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_accessory.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_hashes.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_xeh.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_quicktime.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_optics.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_pid.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_help.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_events.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_modules.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_statemachine.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_pylons.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_jr.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_jam.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_common.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_settings.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_loadout.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_versioning.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/@CBA_A3/addons/cba_strings.pbo - 3.18.6.260327
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/supplies_f_aow.pbo - 150149
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/missions_f_aow.pbo - 150974
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/languagemissions_f_aow.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/characters_f_aow.pbo - 150659
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/missions_f_aow_data.pbo - 150984
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/anims_f_aow.pbo - 149768
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/language_f_aow.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/structures_f_aow.pbo - 149883
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/missions_f_aow_video.pbo - 149837
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/functions_f_aow.pbo - 149593
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/props_f_aow.pbo - 150912
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/ui_f_aow.pbo - 149917
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/data_f_aow.pbo - 149928
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/sounds_f_aow.pbo - 150867
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/dubbing_f_aow.pbo - 149901
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/aow/addons/editorpreviews_f_aow.pbo - 149909
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/languagemissions_f_enoch.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/structures_f_enoch_civilian.pbo - 150926
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/structures_f_enoch_cultural.pbo - 150415
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/dubbing_radio_f_enoch.pbo - 150070
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/language_f_enoch.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/map_enoch_data_layers.pbo - 146184
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/missions_f_enoch.pbo - 149487
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/cargoposes_f_enoch.pbo - 142478
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/functions_f_enoch.pbo - 148356
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/supplies_f_enoch.pbo - 151084
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/music_f_enoch.pbo - 147472
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/map_enoch.pbo - 150292
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/map_enoch_data.pbo - 145274
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/props_f_enoch.pbo - 150309
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/anims_f_enoch.pbo - 150341
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/structures_f_enoch_commercial.pbo - 148419
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/sounds_f_enoch.pbo - 150842
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/structures_f_enoch.pbo - 148551
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/ui_f_enoch.pbo - 147095
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/armor_f_enoch.pbo - 145904
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/music_f_enoch_music.pbo - 150867
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/weapons_f_enoch.pbo - 150671
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/rocks_f_enoch.pbo - 148432
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/air_f_enoch.pbo - 145904
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/structures_f_enoch_industrial.pbo - 150920
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/editorpreviews_f_enoch.pbo - 150962
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/structures_f_enoch_data.pbo - 148419
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/vegetation_f_enoch.pbo - 150192
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/static_f_enoch.pbo - 145904
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/dubbing_radio_f_enoch_data.pbo - 150020
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/characters_f_enoch.pbo - 150968
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/structures_f_enoch_infrastructure.pbo - 148551
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/structures_f_enoch_furniture.pbo - 148419
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/soft_f_enoch.pbo - 150885
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/structures_f_enoch_military.pbo - 150174
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/data_f_enoch.pbo - 150070
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/enoch/addons/map_enoch_scenes_f.pbo - 143336
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/sounds_f_tank.pbo - 150867
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/cargoposes_f_tank.pbo - 128283
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/dubbing_f_tank.pbo - 127958
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/props_f_tank.pbo - 131702
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/structures_f_tank.pbo - 150249
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/language_f_tank.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/music_f_tank.pbo - 127912
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/editorpreviews_f_tank.pbo - 137875
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/armor_f_tank.pbo - 150292
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/functions_f_tank.pbo - 125996
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/modules_f_tank.pbo - 147857
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/languagemissions_f_tank.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/missions_f_tank_data.pbo - 128937
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/weapons_f_tank.pbo - 151040
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/ui_f_tank.pbo - 148551
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/data_f_tank.pbo - 128203
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/missions_f_tank.pbo - 150984
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tank/addons/characters_f_tank.pbo - 150968
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tacops/addons/modules_f_tacops.pbo - 150149
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tacops/addons/language_f_tacops.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tacops/addons/sounds_f_tacops.pbo - 150867
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tacops/addons/music_f_tacops.pbo - 124064
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tacops/addons/functions_f_tacops.pbo - 150415
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tacops/addons/ui_f_tacops.pbo - 148551
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tacops/addons/data_f_tacops.pbo - 150102
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tacops/addons/missions_f_tacops.pbo - 144976
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tacops/addons/languagemissions_f_tacops.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tacops/addons/characters_f_tacops.pbo - 129739
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/tacops/addons/dubbing_f_tacops.pbo - 129340
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/air_f_orange.pbo - 150970
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/structures_f_orange.pbo - 150867
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/soft_f_orange.pbo - 150945
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/language_f_orange.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/props_f_orange.pbo - 148864
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/functions_f_orange.pbo - 150945
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/music_f_orange.pbo - 120725
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/ui_f_orange.pbo - 151010
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/dubbing_f_orange.pbo - 121689
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/editorpreviews_f_orange.pbo - 123173
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/characters_f_orange.pbo - 150968
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/sounds_f_orange.pbo - 150867
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/weapons_f_orange.pbo - 150671
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/data_f_orange.pbo - 144284
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/cargoposes_f_orange.pbo - 126225
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/supplies_f_orange.pbo - 129371
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/modules_f_orange.pbo - 143632
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/languagemissions_f_orange.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/orange/addons/missions_f_orange.pbo - 150364
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/map_malden_scenes_f.pbo - 120026
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/props_f_argo.pbo - 129371
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/map_malden_data.pbo - 135888
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/data_f_argo.pbo - 128209
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/weapons_f_patrol.pbo - 141307
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/data_f_patrol.pbo - 141307
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/functions_f_patrol.pbo - 141510
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/missions_f_patrol.pbo - 126663
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/sounds_f_patrol.pbo - 150867
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/armor_f_argo.pbo - 129739
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/structures_f_argo.pbo - 150961
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/language_f_argo.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/vegetation_f_argo.pbo - 148432
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/map_malden_data_layers.pbo - 135888
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/ui_f_patrol.pbo - 141307
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/editorpreviews_f_argo.pbo - 150968
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/rocks_f_argo.pbo - 148432
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/map_malden.pbo - 150292
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/modules_f_patrol.pbo - 119459
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/characters_f_patrol.pbo - 149127
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/languagemissions_f_patrol.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/language_f_patrol.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/argo/addons/music_f_argo.pbo - 119459
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/anims_f_jets.pbo - 123210
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/props_f_jets.pbo - 129371
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/functions_f_destroyer.pbo - 150071
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/weapons_f_destroyer.pbo - 132268
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/modules_f_jets.pbo - 119459
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/language_f_destroyer.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/weapons_f_jets.pbo - 148847
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/dubbing_f_jets.pbo - 119457
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/ui_f_jets.pbo - 126137
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/cargoposes_f_jets.pbo - 126225
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/characters_f_jets.pbo - 129739
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/props_f_destroyer.pbo - 132141
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/missions_f_jets.pbo - 130755
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/data_f_destroyer.pbo - 150370
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/static_f_destroyer.pbo - 140243
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/static_f_jets.pbo - 146744
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/boat_f_destroyer.pbo - 143297
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/language_f_sams.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/boat_f_jets.pbo - 150071
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/language_f_jets.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/data_f_sams.pbo - 150370
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/languagemissions_f_jets.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/functions_f_jets.pbo - 151077
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/sounds_f_jets.pbo - 150867
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/weapons_f_sams.pbo - 149414
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/static_f_sams.pbo - 146744
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/data_f_jets.pbo - 150370
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/editorpreviews_f_sams.pbo - 132141
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/music_f_jets.pbo - 119459
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/editorpreviews_f_destroyer.pbo - 132141
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/editorpreviews_f_jets.pbo - 150968
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/jets/addons/air_f_jets.pbo - 150968
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/rocks_f_exp.pbo - 148432
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/missions_f_exp.pbo - 144315
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/supplies_f_oldman.pbo - 148553
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/structures_f_exp.pbo - 150912
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/modules_f_oldman.pbo - 148553
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/dubbing_radio_f_exp.pbo - 119458
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/map_tanoabuka_data_layers.pbo - 121192
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/characters_f_oldman.pbo - 148698
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/music_f_exp.pbo - 119477
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/boat_f_exp.pbo - 150071
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/air_f_exp.pbo - 150885
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/ui_f_exp.pbo - 123398
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/missions_f_oldman.pbo - 151155
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/armor_f_exp.pbo - 141671
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/music_f_exp_music.pbo - 119477
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/weapons_f_exp.pbo - 150671
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/props_f_exp.pbo - 147637
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/structures_f_exp_infrastructure.pbo - 148551
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/missions_f_exp_video.pbo - 119459
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/languagemissions_f_exp.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/static_f_oldman.pbo - 148580
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/music_f_oldman_music.pbo - 148679
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/data_f_oldman.pbo - 148580
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/cargoposes_f_exp.pbo - 126224
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/sounds_f_exp.pbo - 150920
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/editorpreviews_f_exp.pbo - 150961
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/structures_f_exp_data.pbo - 148419
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/dubbing_radio_f_exp_data_chi.pbo - 119458
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/supplies_f_exp.pbo - 151084
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/music_f_oldman.pbo - 148553
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/map_data_exp.pbo - 136265
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/dubbing_f_exp.pbo - 119457
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/map_tanoa_scenes_f.pbo - 123527
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/map_tanoabuka.pbo - 150292
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/dubbing_radio_f_exp_data_engfre.pbo - 119457
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/structures_f_exp_civilian.pbo - 148739
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/modules_f_exp.pbo - 119459
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/data_f_exp.pbo - 148936
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/map_tanoabuka_data_layers_00_00.pbo - 121192
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/structures_f_exp_cultural.pbo - 148419
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/missions_f_exp_data.pbo - 119459
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/languagemissions_f_oldman.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/soft_f_exp.pbo - 150945
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/language_f_oldman.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/vegetation_f_exp.pbo - 148432
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/structures_f_exp_commercial.pbo - 148419
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/soft_f_oldman.pbo - 148580
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/characters_f_exp.pbo - 150968
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/functions_f_exp.pbo - 144006
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/dubbing_radio_f_exp_data_fre.pbo - 119457
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/language_f_exp.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/structures_f_oldman.pbo - 150089
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/static_f_exp.pbo - 119478
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/functions_f_oldman.pbo - 148553
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/anims_f_exp.pbo - 126506
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/map_tanoabuka_data.pbo - 135884
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/sounds_f_oldman.pbo - 150867
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/dubbing_f_oldman.pbo - 148756
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/structures_f_exp_industrial.pbo - 148419
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/editorpreviews_f_oldman.pbo - 150961
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/props_f_oldman.pbo - 150968
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/expansion/addons/ui_f_oldman.pbo - 149216
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/missions_f_mp_mark_data.pbo - 119459
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/ui_f_mp_mark.pbo - 119478
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/functions_f_mp_mark.pbo - 150802
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/modules_f_mp_mark.pbo - 150251
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/functions_f_mark.pbo - 150934
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/language_f_mark.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/anims_f_mark.pbo - 119457
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/music_f_mark_music.pbo - 119477
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/missions_f_mp_mark.pbo - 141704
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/data_f_mark.pbo - 129371
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/missions_f_mark.pbo - 122301
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/modules_f_mark.pbo - 148886
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/dubbing_f_mp_mark.pbo - 119457
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/languagemissions_f_mark.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/sounds_f_mark.pbo - 150867
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/missions_f_mark_video.pbo - 119459
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/missions_f_mark_data.pbo - 119459
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/music_f_mark.pbo - 119477
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/structures_f_mark.pbo - 149003
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/language_f_mp_mark.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/characters_f_mark.pbo - 150968
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/supplies_f_mark.pbo - 140562
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/languagemissions_f_mp_mark.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/dubbing_f_mark.pbo - 119457
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/static_f_mark.pbo - 146756
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/weapons_f_mark.pbo - 149339
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/mark/addons/ui_f_mark.pbo - 119478
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/language_f_heli.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/air_f_heli.pbo - 150885
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/modules_f_heli.pbo - 150249
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/sounds_f_heli.pbo - 150867
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/missions_f_heli.pbo - 151010
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/data_f_heli.pbo - 119457
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/music_f_heli_music.pbo - 119477
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/anims_f_heli.pbo - 123210
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/ui_f_heli.pbo - 119478
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/dubbing_f_heli.pbo - 119457
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/cargoposes_f_heli.pbo - 126231
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/languagemissions_f_heli.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/missions_f_heli_data.pbo - 119459
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/structures_f_heli.pbo - 141968
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/functions_f_heli.pbo - 123022
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/soft_f_heli.pbo - 129742
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/missions_f_heli_video.pbo - 119459
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/music_f_heli.pbo - 119477
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/supplies_f_heli.pbo - 145695
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/heli/addons/boat_f_heli.pbo - 119457
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/kart/addons/languagemissions_f_kart.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/kart/addons/missions_f_kart.pbo - 149274
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/kart/addons/language_f_kart.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/kart/addons/modules_f_kart_data.pbo - 149274
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/kart/addons/characters_f_kart.pbo - 150968
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/kart/addons/modules_f_kart.pbo - 151162
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/kart/addons/ui_f_kart.pbo - 119478
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/kart/addons/sounds_f_kart.pbo - 150867
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/kart/addons/weapons_f_kart.pbo - 138461
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/kart/addons/anims_f_kart.pbo - 123210
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/kart/addons/structures_f_kart.pbo - 123419
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/kart/addons/data_f_kart.pbo - 119457
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/kart/addons/soft_f_kart.pbo - 150945
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/kart/addons/missions_f_kart_data.pbo - 119459
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/curator/addons/ui_f_curator.pbo - 150867
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/curator/addons/missions_f_curator.pbo - 121570
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/curator/addons/modules_f_curator.pbo - 151084
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/curator/addons/functions_f_curator.pbo - 150945
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/curator/addons/language_f_curator.pbo - 151164
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/curator/addons/data_f_curator_music.pbo - 119457
+21:09:30 /mnt/data/harmattan-sandbox/arma3server/curator/addons/data_f_curator.pbo - 150867
+21:09:30 addons/structures_f.pbo - 150697
+21:09:30 addons/boat_f_epc.pbo - 131911
+21:09:30 addons/missions_f_bootcamp_data.pbo - 150867
+21:09:30 addons/missions_f_epb.pbo - 119459
+21:09:30 addons/map_vr_scenes_f.pbo - 119459
+21:09:30 addons/functions_f_epa.pbo - 150249
+21:09:30 addons/sounds_f_vehicles.pbo - 150867
+21:09:30 addons/missions_f_beta_video.pbo - 119459
+21:09:30 addons/static_f.pbo - 151061
+21:09:30 addons/data_f_decade.pbo - 150764
+21:09:30 addons/sounds_f_epc.pbo - 150867
+21:09:30 addons/missions_f_epa_data.pbo - 119459
+21:09:30 addons/missions_f_exp_a_data.pbo - 119459
+21:09:30 addons/functions_f_epc.pbo - 119458
+21:09:30 addons/air_f_beta.pbo - 151175
+21:09:30 addons/languagemissions_f_epb.pbo - 151164
+21:09:30 addons/armor_f_beta.pbo - 150339
+21:09:30 addons/language_f_mod.pbo - 151164
+21:09:30 addons/rocks_f.pbo - 149339
+21:09:30 addons/misc_f.pbo - 119459
+21:09:30 addons/missions_f_gamma_data.pbo - 119459
+21:09:30 addons/languagemissions_f_beta.pbo - 151164
+21:09:30 addons/anims_f_data.pbo - 148601
+21:09:30 addons/dubbing_radio_f_data_engb.pbo - 119458
+21:09:30 addons/map_altis_data_layers_00_00.pbo - 0000
+21:09:30 addons/missions_f_bootcamp.pbo - 145509
+21:09:30 addons/structures_f_households.pbo - 150926
+21:09:30 addons/sounds_f_bootcamp.pbo - 150842
+21:09:30 addons/characters_f_epc.pbo - 150968
+21:09:30 addons/sounds_f_environment.pbo - 150867
+21:09:30 addons/missions_f_epc.pbo - 141704
+21:09:30 addons/props_f_exp_a.pbo - 147637
+21:09:30 addons/armor_f_epc.pbo - 148819
+21:09:30 addons/ui_f_exp_a.pbo - 119478
+21:09:30 addons/missions_f_bootcamp_video.pbo - 119459
+21:09:30 addons/ui_f_bootcamp.pbo - 119478
+21:09:30 addons/structures_f_mil.pbo - 150697
+21:09:30 addons/functions_f_exp_a.pbo - 150958
+21:09:30 addons/map_stratis.pbo - 148442
+21:09:30 addons/music_f_music.pbo - 119477
+21:09:30 addons/map_altis_data.pbo - 135904
+21:09:30 addons/characters_f_epb.pbo - 150968
+21:09:30 addons/map_stratis_data.pbo - 135888
+21:09:30 addons/anims_f_epc.pbo - 121358
+21:09:30 addons/roads_f.pbo - 148432
+21:09:30 addons/structures_f_epc.pbo - 148804
+21:09:30 addons/weapons_f_bootcamp.pbo - 141713
+21:09:30 addons/language_f_beta.pbo - 151164
+21:09:30 addons/dubbing_f_warlords.pbo - 136700
+21:09:30 addons/weapons_f_epc.pbo - 130416
+21:09:30 addons/music_f_epc_music.pbo - 119477
+21:09:30 addons/missions_f.pbo - 141704
+21:09:30 addons/language_f_epb.pbo - 151164
+21:09:30 addons/map_stratis_scenes_f.pbo - 119459
+21:09:30 addons/structures_f_data.pbo - 148419
+21:09:30 addons/characters_f_bootcamp.pbo - 149274
+21:09:30 addons/languagemissions_f_bootcamp.pbo - 151164
+21:09:30 addons/structures_f_exp_a.pbo - 150912
+21:09:30 addons/language_f_exp_a.pbo - 151164
+21:09:30 addons/music_f_epb.pbo - 119459
+21:09:30 addons/characters_f.pbo - 151039
+21:09:30 addons/missions_f_exp_a.pbo - 141704
+21:09:30 addons/modules_f_data.pbo - 122470
+21:09:30 addons/sounds_f_arsenal.pbo - 150867
+21:09:30 addons/sounds_f_exp_a.pbo - 150867
+21:09:30 addons/map_altis_data_layers_00_01.pbo - 0000
+21:09:30 addons/editor_f.pbo - 121103
+21:09:30 addons/boat_f_beta.pbo - 132036
+21:09:30 addons/3den.pbo - 151061
+21:09:30 addons/missions_f_epa.pbo - 150459
+21:09:30 addons/languagemissions_f_gamma.pbo - 151164
+21:09:30 addons/dubbing_f.pbo - 119457
+21:09:30 addons/dubbing_radio_f_data_gre.pbo - 119458
+21:09:30 addons/signs_f.pbo - 148432
+21:09:30 addons/air_f_epb.pbo - 150885
+21:09:30 addons/anims_f_bootcamp.pbo - 123209
+21:09:30 addons/cargoposes_f.pbo - 149489
+21:09:30 addons/dubbing_f_bootcamp.pbo - 119457
+21:09:30 addons/anims_f_mod.pbo - 135280
+21:09:30 addons/weapons_f_beta.pbo - 150174
+21:09:30 addons/anims_f_epa.pbo - 134499
+21:09:30 addons/map_altis_data_layers.pbo - 135913
+21:09:30 addons/structures_f_ind.pbo - 150048
+21:09:30 addons/air_f_epc.pbo - 150048
+21:09:30 addons/music_f_epc.pbo - 119459
+21:09:30 addons/dubbing_f_epa.pbo - 119457
+21:09:30 addons/structures_f_wrecks.pbo - 148419
+21:09:30 addons/languagemissions_f.pbo - 151164
+21:09:30 addons/weapons_f.pbo - 151176
+21:09:30 addons/modules_f_beta_data.pbo - 149274
+21:09:30 addons/soft_f_gamma.pbo - 150920
+21:09:30 addons/music_f_bootcamp_music.pbo - 119459
+21:09:30 addons/language_f_decade.pbo - 151164
+21:09:30 addons/language_f.pbo - 151164
+21:09:30 addons/map_altis.pbo - 148442
+21:09:30 addons/data_f.pbo - 151162
+21:09:30 addons/characters_f_gamma.pbo - 150968
+21:09:30 addons/static_f_beta.pbo - 132365
+21:09:30 addons/functions_f_bootcamp.pbo - 151040
+21:09:30 addons/characters_f_beta.pbo - 149965
+21:09:30 addons/map_altis_scenes_f.pbo - 119459
+21:09:30 addons/data_f_exp_b.pbo - 119457
+21:09:30 addons/a3.pbo - unknown
+21:09:30 addons/uifonts_f.pbo - 119478
+21:09:30 addons/music_f_bootcamp.pbo - 119459
+21:09:30 addons/missions_f_data.pbo - 119459
+21:09:30 addons/dubbing_f_gamma.pbo - 122449
+21:09:30 addons/sounds_f_decade.pbo - 150867
+21:09:30 addons/armor_f.pbo - 149414
+21:09:30 addons/dubbing_radio_f_data_eng.pbo - 119457
+21:09:30 addons/structures_f_bootcamp.pbo - 143436
+21:09:30 addons/functions_f_warlords.pbo - 150354
+21:09:30 addons/uifonts_f_data.pbo - 150106
+21:09:30 addons/data_f_bootcamp.pbo - 129618
+21:09:30 addons/modules_f_warlords.pbo - 144205
+21:09:30 addons/air_f.pbo - 150885
+21:09:30 addons/weapons_f_epa.pbo - 150905
+21:09:30 addons/functions_f.pbo - 151080
+21:09:30 addons/weapons_f_epb.pbo - 137810
+21:09:30 addons/boat_f.pbo - 150265
+21:09:30 addons/sounds_f_characters.pbo - 150867
+21:09:30 addons/anims_f_exp_a.pbo - 123209
+21:09:30 addons/languagemissions_f_epc.pbo - 151164
+21:09:30 addons/data_f_mod.pbo - 131534
+21:09:30 addons/language_f_warlords.pbo - 151164
+21:09:30 addons/missions_f_epa_video.pbo - 119459
+21:09:30 addons/modules_f_exp_a.pbo - 119459
+21:09:30 addons/structures_f_epa.pbo - 149252
+21:09:30 addons/missions_f_beta_data.pbo - 150867
+21:09:30 addons/armor_f_decade.pbo - 150805
+21:09:30 addons/dubbing_f_epb.pbo - 119457
+21:09:30 addons/dubbing_radio_f_data_per.pbo - 150218
+21:09:30 addons/animals_f.pbo - 150071
+21:09:30 addons/map_stratis_data_layers.pbo - 135888
+21:09:30 addons/language_f_gamma.pbo - 151164
+21:09:30 addons/dubbing_f_epc.pbo - 119457
+21:09:30 addons/missions_f_gamma.pbo - 151061
+21:09:30 addons/3den_language.pbo - 151164
+21:09:30 addons/languagemissions_f_exp_a.pbo - 151164
+21:09:30 addons/soft_f_beta.pbo - 150920
+21:09:30 addons/languagemissions_f_epa.pbo - 151164
+21:09:30 addons/weapons_f_mod.pbo - 149339
+21:09:30 addons/sounds_f_epb.pbo - 150867
+21:09:30 addons/modules_f_beta.pbo - 151162
+21:09:30 addons/animals_f_beta.pbo - 150071
+21:09:30 addons/characters_f_epa.pbo - 148392
+21:09:30 addons/drones_f.pbo - 146855
+21:09:30 addons/language_f_exp_b.pbo - 151164
+21:09:30 addons/map_vr.pbo - 135900
+21:09:30 addons/map_altis_data_layers_01_01.pbo - 0000
+21:09:30 addons/ui_f_data.pbo - 151023
+21:09:30 addons/dubbing_radio_f.pbo - 119457
+21:09:30 addons/map_data.pbo - 134124
+21:09:30 addons/ui_f_decade.pbo - 150746
+21:09:30 addons/music_f_epb_music.pbo - 119459
+21:09:30 addons/modules_f_bootcamp.pbo - 119459
+21:09:30 addons/baseconfig_f.pbo - 119457
+21:09:30 addons/missions_f_video.pbo - 119459
+21:09:30 addons/armor_f_gamma.pbo - 150803
+21:09:30 addons/characters_f_decade.pbo - 150784
+21:09:30 addons/sounds_f_mod.pbo - 150867
+21:09:30 addons/music_f.pbo - 119459
+21:09:30 addons/missions_f_warlords.pbo - 145437
+21:09:30 addons/editorpreviews_f_decade.pbo - 150645
+21:09:30 addons/music_f_epa_music.pbo - 119459
+21:09:30 addons/modules_f.pbo - 150958
+21:09:30 addons/air_f_gamma.pbo - 150048
+21:09:30 addons/data_f_warlords.pbo - 150867
+21:09:30 addons/missions_f_beta.pbo - 150697
+21:09:30 addons/functions_f_decade.pbo - 150807
+21:09:30 addons/map_altis_data_layers_01_00.pbo - 0000
+21:09:30 addons/data_f_exp_a.pbo - 119457
+21:09:30 addons/dubbing_f_beta.pbo - 119457
+21:09:30 addons/weapons_f_decade.pbo - 150757
+21:09:30 addons/soft_f.pbo - 151061
+21:09:30 addons/sounds_f.pbo - 150927
+21:09:30 addons/plants_f.pbo - 148432
+21:09:30 addons/sounds_f_sfx.pbo - 150867
+21:09:30 addons/language_f_epc.pbo - 151164
+21:09:30 addons/language_f_epa.pbo - 151164
+21:09:30 addons/dubbing_radio_f_data_vr.pbo - 119458
+21:09:30 addons/soft_f_epc.pbo - 150070
+21:09:30 addons/editorpreviews_f.pbo - 151077
+21:09:30 addons/ui_f.pbo - 151173
+21:09:30 addons/soft_f_bootcamp.pbo - 150071
+21:09:30 addons/weapons_f_gamma.pbo - 148783
+21:09:30 addons/modules_f_epb.pbo - 134655
+21:09:30 addons/boat_f_gamma.pbo - 127529
+21:09:30 addons/armor_f_epb.pbo - 150260
+21:09:30 addons/static_f_gamma.pbo - 122615
+21:09:30 addons/anims_f.pbo - 150686
+21:09:30 addons/structures_f_epb.pbo - 148421
+21:09:30 addons/props_f_decade.pbo - 150920
+21:09:30 addons/music_f_epa.pbo - 119459
+21:09:30 addons/missions_f_gamma_video.pbo - 119459
+21:09:30 addons/language_f_bootcamp.pbo - 151164
+21:09:30 
+21:09:30 =======================
+21:09:30 
+21:09:30 ============================================================================================= List of mods ===============================================================================================
+21:09:30 modsReadOnly = true
+21:09:30 safeModsActivated = false
+21:09:30 customMods = true
+21:09:30 hash = '90BDCFA91BC424BAD38183AEF2610A6703E12178'
+21:09:30 hashShort = 'd45fd29e'
+21:09:30                                               name |               modDir |    default |   official |               origin |                                     hash | hashShort | fullPath
+21:09:30 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+21:09:30                 Pinned Down: Cover and Concealment | @PinnedDown_CoverConcealment |      false |      false |             GAME DIR | d7033a63c45dc8d505beb19cef1c84360209eb14 |   d3c6115 | /mnt/data/harmattan-sandbox/arma3server/@PinnedDown_CoverConcealment
+21:09:30                          Pinned Down: Battle Lines | @PinnedDown_BattleLines |      false |      false |             GAME DIR | e14cd1c9d4536160ca9bcdd9690a344fcf8bcd3f |  5093e886 | /mnt/data/harmattan-sandbox/arma3server/@PinnedDown_BattleLines
+21:09:30                             LAMBS Danger.fsm 2.6.1 |        @LAMBS_Danger |      false |      false |             GAME DIR | ca10ae45399b3640cb39fb0b9ca379938fdaa0bb |  92e2a26d | /mnt/data/harmattan-sandbox/arma3server/@LAMBS_Danger
+21:09:30                          RHS: United States Forces |             @rhsafrf |      false |      false |             GAME DIR | 22dc683ee7645369b375f5d3a2db51a995658245 |  736ca0ba | /mnt/data/harmattan-sandbox/arma3server/@rhsafrf
+21:09:30        RHS: Armed Forces of the Russian Federation |             @rhsusaf |      false |      false |             GAME DIR | c099f9533a1d61a33bef449594ec01c28661aa62 |  9f03db96 | /mnt/data/harmattan-sandbox/arma3server/@rhsusaf
+21:09:30                      Community Base Addons v3.18.6 |              @CBA_A3 |      false |      false |             GAME DIR | 3e1466169722aa923029e8a6c1cd7a8542d6c9cd |  c1ea2f12 | /mnt/data/harmattan-sandbox/arma3server/@CBA_A3
+21:09:30                                  Arma 3 Art of War |                  aow |       true |       true |             GAME DIR | 7685ba6030e4deb3c55cc1303fe4970086bb1d4e |  45cead90 | /mnt/data/harmattan-sandbox/arma3server/aow
+21:09:30                          Arma 3 Contact (Platform) |                enoch |       true |       true |             GAME DIR | 60377b76eed5b3b0aa32b7eac60a47d283fcf0cc |  b428902f | /mnt/data/harmattan-sandbox/arma3server/enoch
+21:09:30                                       Arma 3 Tanks |                 tank |       true |       true |             GAME DIR | ce4faa4b481d5beb49a49be538691d35e51771e2 |  6e220316 | /mnt/data/harmattan-sandbox/arma3server/tank
+21:09:30                                     Arma 3 Tac-Ops |               tacops |       true |       true |             GAME DIR | ae5caba2339455413681ee7a0d13d6c3506c012c |  5150d064 | /mnt/data/harmattan-sandbox/arma3server/tacops
+21:09:30                                 Arma 3 Laws of War |               orange |       true |       true |             GAME DIR | 842d91a189db46f5c940e3fecb475854965c87f7 |  107dffec | /mnt/data/harmattan-sandbox/arma3server/orange
+21:09:30                                      Arma 3 Malden |                 argo |       true |       true |             GAME DIR | 6929f5532e7b80136be17f26a959c91eeb40ec0f |  aad6aaf5 | /mnt/data/harmattan-sandbox/arma3server/argo
+21:09:30                                        Arma 3 Jets |                 jets |       true |       true |             GAME DIR | e4a48f3a8727e6b56d6082c1dd0b4ab3c42be223 |  7f335115 | /mnt/data/harmattan-sandbox/arma3server/jets
+21:09:30                                        Arma 3 Apex |            expansion |       true |       true |             GAME DIR | 8e9eb113e1e92a3ba26280becd3f05e7bdfcd49c |  125ee13c | /mnt/data/harmattan-sandbox/arma3server/expansion
+21:09:30                                    Arma 3 Marksmen |                 mark |       true |       true |             GAME DIR | 392d9e3a6fdbc19f01be0200b50a6a09413ecc63 |  140e9f85 | /mnt/data/harmattan-sandbox/arma3server/mark
+21:09:30                                 Arma 3 Helicopters |                 heli |       true |       true |             GAME DIR | 0e67ef03a2e786a8e11e01c4b19cd104e120f282 |  61c33e7e | /mnt/data/harmattan-sandbox/arma3server/heli
+21:09:30                                       Arma 3 Karts |                 kart |       true |       true |             GAME DIR | 0ab891520b9ac69ff9132ae6de7e2e199b884ca6 |  f6336162 | /mnt/data/harmattan-sandbox/arma3server/kart
+21:09:30                                        Arma 3 Zeus |              curator |       true |       true |             GAME DIR | 53c3d7094eaa421dad414709f2834c660b583ad3 |  3b763ef8 | /mnt/data/harmattan-sandbox/arma3server/curator
+21:09:30                                             Arma 3 |                   A3 |       true |       true |    NOT FOUND (Empty) |                                          |           | 
+21:09:30 ==========================================================================================================================================================================================================
+21:09:30 InitSound ...
+21:09:30 InitSound - complete
+21:09:30 Dedicated host created.
+21:09:30 PhysX3 SDK Init started ...
+21:09:30 PhysX3 SDK Init ended.
+21:09:32 [CBA] (xeh) INFO: [0,15.009,0] PreStart started.
+21:09:32 [CBA] (settings) INFO: Userconfig: Ignored.
+21:09:32 [CBA] (xeh) INFO: [0,15.074,0] PreStart finished.
+21:09:35 Warning Message: You cannot play/edit this mission; it is dependent on downloadable content that has been deleted.\na3_characters_f
+21:09:35 Loading movesType CfgGesturesMale
+21:09:35 MovesType CfgGesturesMale load time 84.0 ms
+21:09:35 Loading movesType CfgMovesMaleSdr
+21:09:45 Warning: looped for animation: a3\anims_f_epa\data\anim\sdr\cts\hubcleaned\briefing\hubbriefing_loop.rtm differs (looped now 0)! MoveName: hubbriefing_ext
+21:09:48 Warning: looped for animation: a3\anims_f_epa\data\anim\sdr\cts\hubcleaned\spectator\hubspectator_stand.rtm differs (looped now 1)! MoveName: hubspectator_stand_contact
+21:09:49 MovesType CfgMovesMaleSdr load time 13802.0 ms
+21:09:49 BattlEye Server: Initialized (v1.220, Arma 3 2.20.152984)
+[S_API] SteamAPI_Init(): Loaded local 'steamclient.so' OK.
+Setting breakpad minidump AppID = 107410
+SteamInternal_SetMinidumpSteamID:  Caching Steam ID:  76561197960265728 [API loaded no]
+21:09:49 Game Port: 6002, Steam Query Port: 6003
+21:09:49 Initializing Steam server - Game Port: 6002, Steam Query Port: 6003
+Arma 3 Console version 2.20.152984 x64 : port 6002
+21:09:49 Mission BancArma.Stratis read from directory.
+[S_API FAIL] Tried to access Steam interface SteamFriends017 before SteamAPI_Init succeeded.
+21:09:49 Mission BancArma.Stratis: Number of roles (0) is different from 'description.ext::Header::maxPlayer' (1)
+21:09:49 Mission BancArma.Stratis: 'description.ext::Header::minPlayer' (1) is too high - there is 0 roles
+21:09:49 Host identity created.
+[S_API FAIL] Tried to access Steam interface SteamUtils010 before SteamAPI_Init succeeded.
+21:09:49 Roles assigned.
+21:09:49 Reading mission ...
+21:09:49 Starting mission:
+21:09:49  Mission file: BancArma
+21:09:49  Mission world: Stratis
+21:09:49  Mission directory: mpmissions\BancArma.Stratis\
+21:09:50 No more slot to add connection at 033057 (3386.8,5735.4)
+21:09:51 [CBA] (xeh) INFO: [791,33.236,0] PreInit started. v3.18.6.260327
+[S_API FAIL] Tried to access Steam interface STEAMAPPS_INTERFACE_VERSION008 before SteamAPI_Init succeeded.
+21:09:51 [CBA] (settings) INFO: Reading settings from settings file.
+21:09:51 [CBA] (settings) INFO: Finished reading settings from settings file.
+21:09:51 "[BL] Pinned Down: Battle Lines preInit (v0.74.0af transport distance test)"
+21:09:51 [CBA] (xeh) INFO: [791,33.391,0] PreInit finished.
+21:09:51 Mission read.
+21:09:51 [CBA] (xeh) INFO: [791,33.401,0] PostInit started. MISSIONINIT: missionName=BancArma, missionVersion=54, worldName=Stratis, isMultiplayer=true, isServer=true, isDedicated=true, CBA_isHeadlessClient=false, hasInterface=false, didJIP=false
+21:09:51 [CBA] (versioning) INFO: [791,33.408,0] VERSIONING:cba=3.18.6.260327
+21:09:51 "[PD COVER AND CONCEALMENT] initialized version=0.1.29 scheduler=CBA_PFH existingUnits=0 debug=false"
+21:09:51 [CBA] (xeh) INFO: [791,33.545,0] PostInit finished.
+21:09:51 ../lib/Network/networkServer.cpp OnClientStateChanged:NOT IMPLEMENTED - briefing!
+21:09:51  Mission id: 6f2f3515db57c4c003a633d6716bc81bdea50465
+21:09:51 Game started.
+21:09:51 Attempt to override final function - bis_fnc_storeparamsvalues_data
+21:09:57 "HMT|ESC3|debut|3|configs"
+21:10:05 Connected to Steam servers
+21:10:17 Strange convex component145 in a3\plants_f\tree\t_pinuss2s_b_f.p3d:geometryView
+21:10:17 Strange convex component149 in a3\plants_f\tree\t_pinuss2s_b_f.p3d:geometryView
+21:10:23 "HMT|ESC3|terrain|1910|5605|denivele|12"
+21:10:23 "HMT|ESC3|config|18|defenseurs|5|ordre|[""flanc_seul"",""flanc_seul_bis"",""deux_axes_bis"",""bloc_1axe"",""deux_axes"",""solo""]"
+21:11:06 "HMT|ESC3|essai|18|flanc_seul|man|4|fix|0|jalons|[1,1,0,0]|vus|3|sur|3|pas|31|tirs|0|arme_vers_man|84|regard_vers_man|54|vus_jalons|[0,0,3,3]"
+21:11:52 "HMT|ESC3|essai|18|flanc_seul_bis|man|4|fix|0|jalons|[1,1,0,0]|vus|3|sur|3|pas|31|tirs|0|arme_vers_man|92|regard_vers_man|61|vus_jalons|[0,0,3,3]"
+21:12:39 "HMT|ESC3|essai|18|deux_axes_bis|man|4|fix|4|jalons|[1,1,0,0]|vus|3|sur|3|pas|31|tirs|132|arme_vers_man|107|regard_vers_man|86|vus_jalons|[0,0,3,3]"
+21:13:24 "HMT|ESC3|essai|18|bloc_1axe|man|4|fix|0|jalons|[1,1,1,-1]|vus|2|sur|6|pas|29|tirs|0|arme_vers_man|109|regard_vers_man|146|vus_jalons|[0,0,0,-1]"
+21:14:10 "HMT|ESC3|essai|18|deux_axes|man|4|fix|4|jalons|[1,1,0,0]|vus|3|sur|3|pas|31|tirs|129|arme_vers_man|109|regard_vers_man|90|vus_jalons|[0,0,3,3]"
+21:14:57 "HMT|ESC3|essai|18|solo|man|4|fix|0|jalons|[1,1,0,0]|vus|1|sur|1|pas|31|tirs|0|arme_vers_man|92|regard_vers_man|58|vus_jalons|[0,0,1,1]"
+21:15:03 "HMT|ESC3|config|19|defenseurs|8|ordre|[""bloc_1axe"",""solo"",""flanc_seul_bis"",""deux_axes_bis"",""flanc_seul"",""deux_axes""]"
+21:15:43 "HMT|ESC3|essai|19|bloc_1axe|man|4|fix|0|jalons|[1,1,0,-1]|vus|6|sur|6|pas|29|tirs|0|arme_vers_man|38|regard_vers_man|32|vus_jalons|[0,0,2,-1]"
+21:16:29 "HMT|ESC3|essai|19|solo|man|4|fix|0|jalons|[1,1,0,0]|vus|1|sur|1|pas|30|tirs|0|arme_vers_man|113|regard_vers_man|82|vus_jalons|[0,0,1,1]"
+21:17:15 "HMT|ESC3|essai|19|flanc_seul_bis|man|4|fix|0|jalons|[1,1,0,0]|vus|3|sur|3|pas|30|tirs|0|arme_vers_man|109|regard_vers_man|72|vus_jalons|[0,0,3,3]"
+21:18:00 "HMT|ESC3|essai|19|deux_axes_bis|man|4|fix|4|jalons|[1,1,0,0]|vus|3|sur|3|pas|30|tirs|115|arme_vers_man|122|regard_vers_man|119|vus_jalons|[0,0,3,3]"
+21:18:46 "HMT|ESC3|essai|19|flanc_seul|man|4|fix|0|jalons|[1,1,0,0]|vus|3|sur|3|pas|30|tirs|0|arme_vers_man|106|regard_vers_man|80|vus_jalons|[0,0,3,3]"
+21:19:32 "HMT|ESC3|essai|19|deux_axes|man|4|fix|4|jalons|[1,1,0,0]|vus|3|sur|3|pas|30|tirs|90|arme_vers_man|125|regard_vers_man|108|vus_jalons|[0,0,3,3]"
+21:19:38 "HMT|ESC3|config|20|defenseurs|8|ordre|[""deux_axes"",""bloc_1axe"",""solo"",""flanc_seul"",""flanc_seul_bis"",""deux_axes_bis""]"
+21:20:32 "HMT|ESC3|essai|20|deux_axes|man|4|fix|4|jalons|[0,0,0,0]|vus|3|sur|3|pas|40|tirs|240|arme_vers_man|21|regard_vers_man|27|vus_jalons|[3,3,3,3]"
+21:21:16 "HMT|ESC3|essai|20|bloc_1axe|man|0|fix|0|jalons|[1,1,1,-1]|vus|0|sur|6|pas|29|tirs|0|arme_vers_man|106|regard_vers_man|174|vus_jalons|[0,0,0,-1]"
+21:22:14 "HMT|ESC3|essai|20|solo|man|0|fix|0|jalons|[1,1,1,1]|vus|0|sur|1|pas|40|tirs|0|arme_vers_man|116|regard_vers_man|172|vus_jalons|[0,0,0,0]"
+21:23:11 "HMT|ESC3|essai|20|flanc_seul|man|0|fix|0|jalons|[1,1,1,1]|vus|0|sur|3|pas|40|tirs|0|arme_vers_man|117|regard_vers_man|166|vus_jalons|[0,0,0,0]"
+21:24:09 "HMT|ESC3|essai|20|flanc_seul_bis|man|0|fix|0|jalons|[1,1,1,1]|vus|0|sur|3|pas|40|tirs|0|arme_vers_man|119|regard_vers_man|171|vus_jalons|[0,0,0,0]"
+21:25:07 "HMT|ESC3|essai|20|deux_axes_bis|man|4|fix|4|jalons|[0,0,0,0]|vus|3|sur|3|pas|40|tirs|230|arme_vers_man|24|regard_vers_man|26|vus_jalons|[3,3,3,3]"
+21:25:13 "HMT|ESC3|TERMINE|1"
