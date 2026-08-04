@@ -25,7 +25,7 @@ if ! grep -q "HMT|ESC3|TERMINE" "$LOGS/serverBA.out" 2>/dev/null; then
 fi
 
 # LE JOURNAL DU BANC 3 EST ARCHIVE AVANT TOUT. Sept bancs ont deja ete perdus.
-ARCH="$LOGS/serverBA_escouade3.out"
+ARCH="$LOGS/serverBA_escouade3_partie2.out"
 cp -f "$LOGS/serverBA.out" "$ARCH" || exit 2
 echo "banc n°3 archive : $ARCH ($(wc -l < "$ARCH") lignes, $(grep -c '|essai|' "$ARCH") essais)"
 
