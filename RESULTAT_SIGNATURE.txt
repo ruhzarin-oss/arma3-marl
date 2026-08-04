@@ -1,0 +1,15 @@
+
+============================================================================
+  C2 — LA SIGNATURE : a quelle distance le detour est-il achete ?
+  --------------------------------------------------------------------------
+  agent                      n    rayon    detour   fraction  verdict
+  SANS champ de risque      20     150m      111m       74%   PASSE
+  AVEC champ de risque      20     150m      120m       80%   PASSE
+  --------------------------------------------------------------------------
+  seuil : 62% du rayon de depart (155 m sur 250 m, depose le 27/07 et traduit avant ce run)
+  reperes du 27/07 : appris voyant 53 % · crochet scripte 74 %
+============================================================================
+
+  DEPLACEMENT DU DETOUR : 111 m -> 120 m (74% -> 80% du rayon)
+  -> LA SIGNATURE EST LA. Le champ de risque a repousse l'achat de l'ecart
+     vers le tarif du long, ce qui est exactement ce que le diagnostic demandait.

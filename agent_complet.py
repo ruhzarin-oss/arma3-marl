@@ -136,6 +136,39 @@ def expo(p, post, idx, post_poids=None):
     e = e.masked_fill(MSK[idx] < 0.5, 0.0)
     return e.max(dim=1).values
 
+# ---------------------------------------------------------------- LE CHAMP DE RISQUE
+# ⟨diagnostic du 27/07, jamais invalide : « meme manoeuvre, meme quantite, MAUVAIS MOMENT ».
+#  L'appris detourne a 132 m, le crochet scripte a 184 m. L'exposition n'a pas le meme prix
+#  partout — 0,07 par pas a 200 m, 0,20 a 25 m. L'agent ne peut pas apprendre que l'exposition
+#  lointaine est bon marche : rien dans son observation ne lui donne le PRIX avant de le payer.⟩
+#
+# TROIS CHOIX, repris tels quels du 27/07 :
+#   · a 35 m et pas au pas suivant  -> c'est l'echelle de la MANOEUVRE, pas du reflexe
+#   · le PRIX jamais la REPONSE     -> on donne l'exposition, pas « va par la ». Le moins cher
+#                                      est toujours de fuir ; l'arbitrage reste entier.
+#   · geometrie generique           -> meme principe que la coque a 12 rayons
+# PORTEE MESUREE, PAS SUPPOSEE. A 35 m — le choix du 27/07, dans un autre environnement —
+# le champ est PLAT : 18 % de variation entre directions pour 30 % exiges. Cause geometrique :
+# a 150 m, un pas de 35 m ne fait tourner l angle relatif que de 13°, pour un demi-cone
+# mesure a 35°. Le champ doit sonder A L ECHELLE DU CONE.
+# Mesure (portee_champ.py) du rapport ecart-type/moyenne entre les huit directions :
+#   depart 150 m :  20 m -> 0,11 · 35 -> 0,18 · 50 -> 0,25 · 70 -> 0,34 · 100 -> 0,47
+#   et 70 m passe le seuil a TOUTES les distances de depart testees (150, 120, 90, 60 m).
+# 70 m est donc la PLUS COURTE portee qui satisfait le critere. Le seuil n a pas bouge.
+# Le cout est identique quelle que soit la portee : 8 appels a expo.
+PORTEE_CHAMP = 70.0
+_ang = torch.arange(8, device=dev, dtype=torch.float32) * (2*math.pi/8)
+DIRS_CHAMP = torch.stack([torch.sin(_ang), torch.cos(_ang)], -1)   # (8, 2)
+
+def champ_risque(p, post, idx):
+    """(B, 8) : ce que couterait un pas de 35 m dans chacune des huit directions."""
+    B = p.shape[0]
+    q = p.unsqueeze(1) + DIRS_CHAMP.unsqueeze(0) * PORTEE_CHAMP    # (B, 8, 2)
+    q = q.reshape(B*8, 2)
+    idx8 = idx.repeat_interleave(8)
+    post8 = post.repeat_interleave(8)
+    return expo(q, post8, idx8).reshape(B, 8)
+
 def percevoir(p, post, idx):
     """TOUT ce qu'on a, sans résumé : une ligne par entité, l'attention triera."""
     v = p.unsqueeze(1) - POS[idx]
@@ -151,10 +184,11 @@ def percevoir(p, post, idx):
     moi = torch.cat([p/300, p.norm(dim=-1,keepdim=True)/300,
                      torch.nn.functional.one_hot(post,3).float(),
                      MSK[idx].sum(1,keepdim=True)/DMAX,
-                     expo(p, post, idx).unsqueeze(-1)], -1)
+                     expo(p, post, idx).unsqueeze(-1),
+                     champ_risque(p, post, idx)], -1)      # +8 : LE PRIX A L'AVANCE
     return moi, ent
 
-CE, CM = 9, 8
+CE, CM = 9, 16      # moi passe de 8 a 16 : +8 pour le champ de risque
 H = 128
 
 class Politique(nn.Module):
