@@ -1,0 +1,30 @@
+JOURNAL  /mnt/data/harmattan-sandbox/logs/serverBA.out
+  20 configurations vues, 20 completes (6 bras)
+
+D1  DESCRIPTION — cascade, en metres (les -1 sont exclus)
+      bloc_1axe        n=18  mediane  11.0 m   part a 0 m :    0 %
+      deux_axes        n=10  mediane   5.5 m   part a 0 m :    0 %
+      deux_axes_bis    n=10  mediane   4.0 m   part a 0 m :    0 %
+      flanc_seul       n=19  mediane   4.0 m   part a 0 m :    0 %
+      flanc_seul_bis   n=18  mediane   6.0 m   part a 0 m :    0 %
+      flanc_etale      n=19  mediane  17.0 m   part a 0 m :    0 %
+
+D0  CONTROLE POSITIF   flanc_etale 17.0 m  (flanc_seul 4.0 m)   seuil 15 m   -> PASSE
+
+D2  BRUIT              deux_axes/bis 20.0 m · flanc_seul/bis 3.0 m   -> retenu 20.0 m   seuil 25 m   -> PASSE
+
+D5  PRESENCE           bloc_1axe repere 18/20   seuil 18   -> PASSE
+
+D6  TIR                0 config(s) exclue(s) pour 0 coup tire 
+
+D3  HYPOTHESE          lue seulement si D0 et D2 passent
+      deux_axes repere plus pres (donc plus tard) dans 10/20  (contre 8, egalites 2)
+      p = 0.8145   ecart median -19.5 m   bruit D2 20.0 m
+      seuils : >= 14 victoires, p < 0.05, |ecart| > bruit   -> ECHOUE
+
+D4  CONTROLE NEGATIF   flanc_seul vs son propre rejeu : 4 / 10, egalites 6, p = 0.1796   -> PASSE
+
+========================================================================
+VERDICT : HYPOTHESE NON SOUTENUE sur un instrument qualifie. C'est un vrai negatif.
+========================================================================
+  D0=PASSE · D2=PASSE · D3=ECHOUE · D4=PASSE · D5=PASSE
