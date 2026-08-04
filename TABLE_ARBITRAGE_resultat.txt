@@ -1,0 +1,77 @@
+  constantes lues dans le simulateur : champ 35 deg · seuil couche 120 m · pente 12 · arrivee 40 m
+  20 configurations · 20 rejouees dans Arma
+
+  C1 coherence expo (vectorise vs boucle) : ecart max 1.11e-16  OK
+  C4 controle nul (defenseurs dos tourne) : oracle 0.370 · droite 0.404  OK
+
+========================================================================================================
+  cfg |        SOMME (aire d'exposition)        |          MAX (le pic qu'Arma retient)        | Arma
+      | oracle   agent  agent-D  droite         | oracle   agent  agent-D  droite   or.libre   | ag.  dr.
+--------------------------------------------------------------------------------------------------------
+    1 |  15.27  18.28  18.28  15.27         |   0.37   0.41   0.41   0.40   0.37   |   20   20
+    2 |  34.61  39.93  39.93  33.75         |   0.78   0.88   0.88   0.87   0.35   |   76   68
+    3 |  37.95  42.22  42.22  35.95         |   0.83   0.92   0.92   0.92   0.37   |   76   80
+    4 |  23.78  29.87  29.87  35.97         |   0.85   0.88   0.88   0.94   0.36   |   72   80
+    5 |  34.17  53.34  53.34  33.35         |   0.80   0.96   0.96   0.86   0.38   |   72   80
+    6 |  39.83  43.44  43.44  37.15         |   0.86   0.94   0.94   0.95   0.36   |   56   60
+    7 |  37.23  56.54  56.54  34.63         |   0.82   0.93   0.93   0.91   0.37   |   56   60
+    8 |  36.49  55.99  55.99  35.59         |   0.82   0.95   0.95   0.91   0.38   |   80   72
+    9 |  22.80  36.51  36.51  28.46         |   0.84   0.85   0.85   0.87   0.37   |   72   76
+   10 |  35.96  38.94  38.94  35.99         |   0.84   0.88   0.88   0.92   0.74   |   72   68
+   11 |  35.35  40.55  40.55  34.89         |   0.85   0.89   0.89   0.87   0.39   |   48   48
+   12 |  34.51  38.65  38.65  34.59         |   0.81   0.87   0.87   0.88   0.35   |   80   76
+   13 |  38.97  44.85  44.85  36.51         |   0.88   0.97   0.97   0.94   0.36   |   72   72
+   14 |  14.58  16.26  16.26  13.64         |   0.37   0.38   0.38   0.37   0.37   |   -1   -1
+   15 |  13.99  16.17  16.17  13.29         |   0.37   0.38   0.38   0.37   0.37   |   72   76
+   16 |  11.84  10.09  10.09  11.70         |   0.29   0.32   0.32   0.31   0.29   |   -1   -1
+   17 |  15.49  22.97  22.97  14.22         |   0.37   0.40   0.40   0.39   0.37   |   72   80
+   18 |  21.82  28.36  28.36  21.35         |   0.39   1.00   1.00   0.95   0.39   |   80   76
+   19 |  35.51  41.91  41.91  35.54         |   0.82   0.92   0.92   0.91   0.37   |   -1   -1
+   20 |  12.68  32.51  32.51  12.41         |   0.33   0.37   0.37   0.33   0.33   |   76   80
+========================================================================================================
+
+  C2 optimalite sur grille : max 0 violation(s)  · somme 0 violation(s) 
+  C3 emboitement (oracle libre <= contraint) : 0 violation(s) 
+  cout de la discretisation (droite grille vs droite continue) : 5.5% en mediane
+  postures de l'agent : couche sur 0/420 pas (0%) — il ne se couche jamais
+
+  C5 presence : sous MAX, droite 0.877 · oracle 0.814  -> l'oracle achete 7% du pic
+
+========================================================================================================
+  L'ARBITRAGE — les predictions deposees avant le calcul
+========================================================================================================
+
+  1. Sous la regle SOMME, le chemin de l'oracle-max score PIRE (ou egal) que celui
+     de l'agent dans  19 / 20  configurations.
+     -> la somme punissait bien la manoeuvre : la sandbox PREFERAIT le rachat.
+
+  2. Sous la regle MAX, l'oracle ecrase l'agent dans  17 / 20  configurations.
+     ecart median du pic : agent 0.882 contre oracle 0.814
+
+  3. Le simulateur classe-t-il les trajectoires comme Arma ?
+     correlation de rang (pic sandbox <-> distance de reperage Arma)
+       sur les chemins d'agent  : rho = -0.08  (n=20)
+       sur les lignes droites   : rho = -0.28  (n=20)
+       sur les deux ensemble    : rho = -0.18  (n=40)
+     -> BASSE — mais NE PAS conclure avant le test de dynamique ci-dessous :
+        une correlation nulle accuse le simulateur SEULEMENT si l'instrument de
+        reference sait, lui, separer les trajectoires.
+
+  4. QUI DECIDE : le chemin, ou le point de depart ?
+     pic median — ligne droite 0.877
+                  meilleur chemin depuis LE DEPART IMPOSE  0.814   (gagne 0.063)
+                  meilleur chemin en CHOISISSANT son depart 0.369   (gagne 0.445)
+     -> 88% de tout ce qu'il y a a gagner tient au CHOIX DU DEPART,
+        et non a la maniere de marcher ensuite.
+
+     L'INSTRUMENT DISCRIMINE-T-IL ?  depart a 80 m, detection frontale mesuree a 105 m dans Arma.
+     jamais repere : 6/40.  Parmi les 34 reperes, 24 le sont dans les 12 premiers metres (71%).
+     distances des reperes : mediane 72 m · ecart interquartile 8 m sur 40 m utiles -> DYNAMIQUE 20%
+     -> INSTRUMENT ECRASE CONTRE SON PLAFOND. On part a 80 m alors que la
+        detection frontale se fait a 105 m : l'approchant est DEJA VU au depart.
+        Avec 20% de dynamique, une correlation nulle ne prouve RIEN sur le
+        simulateur. La question 3 reste OUVERTE — il faut refaire le banc plus loin.
+
+  5. Ce qu'Arma a mesure, pour memoire :
+     sur 17 configurations valides : agent repere a 67.8 m, droite a 68.9 m -> -2%  (seuil ecrit avant : +25 %)
+
