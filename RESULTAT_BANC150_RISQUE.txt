@@ -1,0 +1,41 @@
+  configurations completes : 20 / 20   (5 bras chacune)
+  derive de POSITION des defenseurs : mediane 0.1 m · max 0.9 m
+
+  LE REGARD DES DEFENSEURS  (5755 releves a 1 Hz, eyeDirection)
+     ecart au cap voulu : median 0° · 90e centile 0° · max 0°
+     -> les regards sont FIXES. La carte d'ombre statique tient, et la duree
+        ne s'explique pas par un balayage.
+
+  ==========================================================================
+  SURVIE AUX JALONS 120 / 90 / 60 / 40 m   (score = jalons franchis invisible, /4)
+  --------------------------------------------------------------------------
+  bras            score median   jalons survecus   arrive invisible   longueur
+  agent              2.0        47 /  80             5 / 20            29 pts
+  droite             2.0        43 /  70             2 / 20            29 pts
+  droite_bis         2.0        39 /  70             2 / 20            29 pts
+  oracle             0.0        21 /  80             4 / 20            97 pts
+  oracle_libre       2.0        51 /  80             7 / 20            30 pts
+  ==========================================================================
+
+  postures de l'agent : couche sur 0/580 pas (0%)
+     ⟨CE N'EST PAS UN CRITERE. On ne progresse pas couche sur un champ de bataille :
+      le couche est une posture d'OBSERVATION longue distance, et ramper vaut 0,23
+      de la course. Un agent qui ne se couche pas en approche a RAISON. Le repertoire
+      de postures ne peut de toute facon pas s'exprimer en terrain NU — l'accroupi y
+      est sans effet, mesure le 03/08. Il faudra du couvert, ou une tache d'observation.⟩
+
+  P1 PRESENCE : la droite est vue avant 40 m dans 18/20 (exige >= 16)  -> OK
+  P2 NUL      : droite et droite_bis donnent le meme score sur 17/20 (exige >= 18)  -> ECHEC
+  P3 AGENT    : bat la droite sur 4/20 (exige >= 15) · egalite 15 · perd 1  -> ECHEC
+  P4 PLAFOND  : oracle libre 2.0 contre droite 2.0  -> OK
+
+  L'EFFET DUREE, REJUGE SUR UNE METRIQUE NON BIAISEE
+     correlation longueur <-> survie : rho = -0.05  (n=100)
+     chemins courts (< 60 pts) : score 2.0   (n=85)
+     chemins longs (>= 60 pts) : score 0.0   (n=15)
+     ⟨sur la distance de reperage, l'effet valait rho = +0,43 — mais cette metrique
+      etait biaisee contre les chemins longs. Voici le verdict propre.⟩
+
+  ==========================================================================
+  PORTES CEDEES : P2, P3. Voir ci-dessus avant toute conclusion.
+  ==========================================================================

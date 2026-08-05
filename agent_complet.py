@@ -136,38 +136,52 @@ def expo(p, post, idx, post_poids=None):
     e = e.masked_fill(MSK[idx] < 0.5, 0.0)
     return e.max(dim=1).values
 
-# ---------------------------------------------------------------- LE CHAMP DE RISQUE
-# ⟨diagnostic du 27/07, jamais invalide : « meme manoeuvre, meme quantite, MAUVAIS MOMENT ».
-#  L'appris detourne a 132 m, le crochet scripte a 184 m. L'exposition n'a pas le meme prix
-#  partout — 0,07 par pas a 200 m, 0,20 a 25 m. L'agent ne peut pas apprendre que l'exposition
-#  lointaine est bon marche : rien dans son observation ne lui donne le PRIX avant de le payer.⟩
-#
-# TROIS CHOIX, repris tels quels du 27/07 :
-#   · a 35 m et pas au pas suivant  -> c'est l'echelle de la MANOEUVRE, pas du reflexe
-#   · le PRIX jamais la REPONSE     -> on donne l'exposition, pas « va par la ». Le moins cher
-#                                      est toujours de fuir ; l'arbitrage reste entier.
-#   · geometrie generique           -> meme principe que la coque a 12 rayons
-# PORTEE MESUREE, PAS SUPPOSEE. A 35 m — le choix du 27/07, dans un autre environnement —
-# le champ est PLAT : 18 % de variation entre directions pour 30 % exiges. Cause geometrique :
-# a 150 m, un pas de 35 m ne fait tourner l angle relatif que de 13°, pour un demi-cone
-# mesure a 35°. Le champ doit sonder A L ECHELLE DU CONE.
-# Mesure (portee_champ.py) du rapport ecart-type/moyenne entre les huit directions :
-#   depart 150 m :  20 m -> 0,11 · 35 -> 0,18 · 50 -> 0,25 · 70 -> 0,34 · 100 -> 0,47
-#   et 70 m passe le seuil a TOUTES les distances de depart testees (150, 120, 90, 60 m).
-# 70 m est donc la PLUS COURTE portee qui satisfait le critere. Le seuil n a pas bouge.
-# Le cout est identique quelle que soit la portee : 8 appels a expo.
-PORTEE_CHAMP = 70.0
-_ang = torch.arange(8, device=dev, dtype=torch.float32) * (2*math.pi/8)
-DIRS_CHAMP = torch.stack([torch.sin(_ang), torch.cos(_ang)], -1)   # (8, 2)
+# ---------------------------------------------------------------- LE RISQUE APPRIS
+# expo, la fonction analytique batie a partir de mesures ponctuelles, vaut AUC 0,5005 sur
+# 563 383 observations reelles : LE HASARD. Un predicteur appris sur la GEOMETRIE SEULE —
+# distance, angle sous lequel je suis dans son champ, angle sous lequel il est dans le mien —
+# atteint 0,6549, et l'ablation montre que l'ecart avec la variante enrichie (0,7178) vient
+# a 92 % de la SUPPRESSION SUBIE : une quasi-tautologie que la sandbox n'a pas et ne doit
+# pas avoir. La variante transferable n'est donc pas degradee, c'est la seule honnete.
+# ⟨les quatre bancs Arma qui ont produit expo restent VRAIS : ils mesuraient la detection du
+#  moteur, avec controles. C'est l'AGREGATION qui est morte, pas les faits.⟩
+import torch.nn as _nn
+class _Risque(_nn.Module):
+    def __init__(s, ce, cs, h=96):
+        super().__init__()
+        s.enc = _nn.Sequential(_nn.Linear(ce, h), _nn.ReLU(), _nn.Linear(h, h))
+        s.q = _nn.Linear(cs, h)
+        s.out = _nn.Sequential(_nn.Linear(cs+h, h), _nn.ReLU(), _nn.Linear(h, 1))
+    def forward(s, soi, enn, msk):
+        z = s.enc(enn)
+        a = (z * s.q(soi).unsqueeze(1)).sum(-1) / math.sqrt(z.shape[-1])
+        a = torch.softmax(a.masked_fill(msk < 0.5, -1e9), -1).unsqueeze(-1)
+        return s.out(torch.cat([soi, (z*a).sum(1)], -1)).squeeze(-1)
 
-def champ_risque(p, post, idx):
-    """(B, 8) : ce que couterait un pas de 35 m dans chacune des huit directions."""
-    B = p.shape[0]
-    q = p.unsqueeze(1) + DIRS_CHAMP.unsqueeze(0) * PORTEE_CHAMP    # (B, 8, 2)
-    q = q.reshape(B*8, 2)
-    idx8 = idx.repeat_interleave(8)
-    post8 = post.repeat_interleave(8)
-    return expo(q, post8, idx8).reshape(B, 8)
+_ck = torch.load('/mnt/data/corpus/risque_geo.pt', map_location=dev)
+RISQUE = _Risque(_ck['ce'], _ck['cs']).to(dev)
+RISQUE.load_state_dict(_ck['etat'])
+for _p in RISQUE.parameters(): _p.requires_grad_(False)   # gele : on apprend l'agent, pas lui
+RISQUE.eval()
+print(f"risque appris charge — AUC {_ck['auc']:.4f} sur le corpus "
+      f"(expo valait 0,5005, le hasard)", flush=True)
+
+def risque(p, post, idx, post_poids=None):
+    """le cout, APPRIS sur Arma. Meme signature et meme echelle [0,1] que expo."""
+    v = p.unsqueeze(1) - POS[idx]
+    d = v.norm(dim=-1).clamp(min=1.0)
+    gis = torch.rad2deg(torch.atan2(v[...,0], v[...,1])) % 360
+    a_lui = ((gis - AZI[idx] + 180) % 360 - 180).abs()          # je suis dans SON champ
+    # mon cap : je regarde vers l'objectif, qui est a l'origine
+    cap = torch.rad2deg(torch.atan2(-p[...,0], -p[...,1])) % 360
+    a_moi = (((gis + 180) % 360 - cap.unsqueeze(1) + 180) % 360 - 180).abs()
+    ent = torch.stack([(d/400).clamp(max=1.0), a_lui/180, a_moi/180], -1)
+    if post_poids is None:
+        pc = post.float()/3
+    else:
+        pc = (post_poids * torch.tensor([0.,1.,2.], device=dev)).sum(-1)/3
+    r = RISQUE(pc.unsqueeze(-1), ent, MSK[idx])
+    return torch.sigmoid(r)          # ramene sur [0,1], comme expo
 
 def percevoir(p, post, idx):
     """TOUT ce qu'on a, sans résumé : une ligne par entité, l'attention triera."""
@@ -184,11 +198,10 @@ def percevoir(p, post, idx):
     moi = torch.cat([p/300, p.norm(dim=-1,keepdim=True)/300,
                      torch.nn.functional.one_hot(post,3).float(),
                      MSK[idx].sum(1,keepdim=True)/DMAX,
-                     expo(p, post, idx).unsqueeze(-1),
-                     champ_risque(p, post, idx)], -1)      # +8 : LE PRIX A L'AVANCE
+                     risque(p, post, idx).unsqueeze(-1)], -1)
     return moi, ent
 
-CE, CM = 9, 16      # moi passe de 8 a 16 : +8 pour le champ de risque
+CE, CM = 9, 8
 H = 128
 
 class Politique(nn.Module):
@@ -275,7 +288,7 @@ def derouler(pol, idx, tarif, echantillonne=True, gel=None, azi_faux=False, forc
         # SURVEILLANCE DE L'EXPLOITATION : on mesure le déplacement RÉELLEMENT effectué, pas
         # celui qu'on croit avoir ordonné. Tout écart trahit une fuite du simulateur.
         trop = trop + (pas_reel.norm(dim=-1) > ALLURES.max()*1.01).float()
-        e = expo(p, post, idx, wp)
+        e = risque(p, post, idx, wp)      # LE COUT EST APPRIS, plus invente
         expo_cum = expo_cum + e*dehors
         # LE CLIQUET. Ce qui se paie, c est l AUGMENTATION du pic, pas l exposition de
         # chaque pas. La somme des increments du pic EST le pic final : l agent paie une
@@ -444,7 +457,12 @@ class Directe:
 
 print("\n" + "="*78, flush=True)
 COURT = len(sys.argv) > 1 and sys.argv[1] == "court"
-TARIFS = (1.75,) if COURT else (1.4, 1.75, 2.1)
+# MISE A L ECHELLE DU TARIF. Le risque appris est 2,7 fois moins disperse qu expo
+# (ecart-type 0,088 contre 0,235, plages [0,474-0,742] contre [0,182-0,846]). Garder 1,75
+# reviendrait a comparer « agent a cout fort » et « agent a cout faible » : on mesurerait
+# l effet du TARIF, pas celui de la FONCTION. On multiplie donc par 0,235/0,088 = 2,67.
+# C est un changement d unite, pas de structure, et il est fait AVANT de voir le resultat.
+TARIFS = [4.7]
 GRAINES = (1,) if COURT else (1, 2, 3)
 resultats = {}
 for tarif in TARIFS:
