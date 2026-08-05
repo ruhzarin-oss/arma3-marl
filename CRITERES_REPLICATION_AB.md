@@ -9,9 +9,14 @@ Il redémarre à zéro. **Aucun score du nouveau journal n a été lu.***
 commit `f64ffae` (CRITERES_METRIQUES_AB.md) : primaire = TENUE, secondaires séparées,
 jamais agrégées. Portée inchangée : charge 6, ratio 1,5-3,0.
 
-**Change : le statut.** Le premier corpus (partie1 + partie2, 210 accrochages) a **déjà
-rendu son verdict** : +17,3 pts sur la TENUE, p = 0,012, zéro écart sur l élimination,
-synergie au plancher NON établie. Ce verdict est clos et ne se rejuge pas.
+**Change : le statut.** Le premier corpus a **déjà rendu son verdict**, prononcé sur les
+**184 accrochages clos au moment de la lecture** : +17,3 pts sur la TENUE, p = 0,012, zéro
+écart sur l élimination, synergie au plancher NON établie. Ce verdict est clos.
+
+L archive en contient aujourd hui **210** — le run a continué 26 accrochages de plus avant
+le reboot. **Ces 26 ne servent PAS à réviser le verdict.** Les rejouer pour voir si le p
+s améliore serait un second regard choisi après avoir vu le premier. Ils restent dans le
+journal, disponibles, non lus. C est la réplication qui tranche, pas eux.
 
 Le nouveau journal est donc une **RÉPLICATION INDÉPENDANTE**, pas une rallonge du premier.
 Le mélanger au premier serait un cumul opportuniste : on regarderait jusqu à ce que le p
