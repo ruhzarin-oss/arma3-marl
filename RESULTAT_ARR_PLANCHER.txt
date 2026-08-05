@@ -1,0 +1,23 @@
+
+==========================================================================
+  TAUX D'ARRIVEE PAR AXE   (un axe « arrive » = il franchit le rayon de tenue)
+  ------------------------------------------------------------------------
+     frontal     29 axes arrives /  70 axes engages   ->  p = 0.414
+     deux_axes   96 axes arrives / 198 axes engages   ->  p = 0.485
+==========================================================================
+
+  « AU MOINS UN AXE ARRIVE », par engagement a deux axes
+  ------------------------------------------------------------------------
+     OBSERVE                              69/ 99  =  69.7%
+     PLANCHER de deux tentatives         1-(1-0.414)^2  =  65.7%
+     ecart au plancher                   +4.0%
+     ⟨les DEUX axes arrivent : 27/99 = 27.3%⟩
+     z = +0.84 · p = 0.4015
+
+==========================================================================
+  AU-DESSUS DU PLANCHER, MAIS PAS SIGNIFICATIVEMENT. Le sens est bon, la force
+  manque. On verse « deux axes = deux chances », et la synergie reste a etablir.
+  ========================================================================
+
+  ⟨et le taux PAR AXE : 0.485 contre 0.414 — un axe engage a deux
+   reussit-il mieux qu'un axe engage seul ? C'est la meme question, vue de l'autre bout.⟩
