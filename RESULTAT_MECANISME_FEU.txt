@@ -1,0 +1,56 @@
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:384: UserWarning: Found GPU1 NVIDIA GeForce GTX 1060 6GB which is of compute capability (CC) 6.1.
+The following list shows the CCs this version of PyTorch was built for and the hardware CCs it supports:
+- 7.5 which supports hardware CC >=7.5,<8.0
+- 8.0 which supports hardware CC >=8.0,<9.0 except {8.7}
+- 8.6 which supports hardware CC >=8.6,<9.0 except {8.7}
+- 9.0 which supports hardware CC >=9.0,<10.0
+- 10.0 which supports hardware CC >=10.0,<11.0 except {10.1}
+- 12.0 which supports hardware CC >=12.0,<13.0
+Please follow the instructions at https://pytorch.org/get-started/locally/ to install a PyTorch release that supports one of these CUDA versions: 12.6
+  _warn_unsupported_code(d, device_cc, code_ccs)
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:502: UserWarning: 
+NVIDIA GeForce GTX 1060 6GB with CUDA capability sm_61 is not compatible with the current PyTorch installation.
+The current PyTorch install supports CUDA capabilities sm_75 sm_80 sm_86 sm_90 sm_100 sm_120.
+If you want to use the NVIDIA GeForce GTX 1060 6GB GPU with PyTorch, please check the instructions at https://pytorch.org/get-started/locally/
+
+  queued_call()
+corpus : 173338 ticks, 1519814 arêtes
+
+construction — jusqu'à 12 ennemis par soldat
+  563383 observations en 48 s   mortalité 10.00%
+  ennemis par soldat : médiane 1, moyenne 1.8, max 12
+
+  comptage du feu ami…
+  563383 observations · camarades qui tirent : moyenne 0.11 · part avec au moins un 9.6%
+  risque geometrique calcule sur les 563383 observations
+
+================================================================================
+  A RISQUE GEOMETRIQUE EGAL — mortalite a 30 s · feu ami = camarade qui tire dans 100 m
+  ------------------------------------------------------------------------------
+   strate   n avec   n sans   mort AVEC   mort SANS     ecart
+        1     2210    54129      5.66%      2.37%   +3.29%
+        2     3155    53183      7.64%      4.02%   +3.62%
+        3     4070    52268      9.04%      5.01%   +4.03%
+        4     4654    51684      9.76%      5.98%   +3.78%
+        5     5084    51255     10.13%      6.70%   +3.43%
+        6     5552    50787     11.04%      7.87%   +3.17%
+        7     6163    50175     11.88%      9.44%   +2.44%
+        8     6949    49389     13.63%     11.12%   +2.51%
+        9     7464    48874     16.71%     14.62%   +2.09%
+       10     8879    47460     30.49%     30.50%   -0.01%
+================================================================================
+
+  F0 VALIDITE  10/10 strates exploitables, variation suffisante -> ECHEC : comparaison vide
+  F1 EFFET     mortalite PLUS BASSE avec feu ami dans 1/10 strates ; ecart global +2.83% (exige <= -2 pts)  -> ECHEC
+  F2 SENS      INVERSE : le feu ami accompagne PLUS de morts a risque egal
+
+  F3 DOSE — l'effet croit-il avec le nombre de camarades qui tirent ?
+     au moins 1 tireur(s) : ecart global +2.83% (1/10 strates favorables)
+     au moins 2 tireur(s) : ecart global +2.90% (0/10 strates favorables)
+     au moins 3 tireur(s) : ecart global +3.05% (1/8 strates favorables)
+
+  F4 NUL       drapeau de tir BRASSE : ecart global +0.09% -> OK
+
+================================================================================
+  PAS D'EFFET NET. Voir les controles avant toute lecture.
+================================================================================
