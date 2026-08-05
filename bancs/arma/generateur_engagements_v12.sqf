@@ -45,9 +45,10 @@
 //
 // Appel : [<n_max>, <duree_s>, <n_axes>, <fige>] execVM "generateur_engagements_v12.sqf";
 
-params [["_maxAcc", 1], ["_dureeMax", 600], ["_nAxes", 2], ["_fige", false]];
+params [["_maxAcc", 1], ["_dureeMax", 600], ["_nAxes", 2], ["_fige", false], ["_calib", false], ["_rMin", 1.2], ["_rMax", 2.5]];
 if (!isServer) exitWith {};
 HMT_GEN_VERSION = 12;
+HMT_CALIB = _calib;   // coupe les journaux lourds pendant le reglage
 
 private _periode = 20;
 private _rTenue = 50;           // rayon de tenue
@@ -55,7 +56,7 @@ private _tenueRequise = 60;     // secondes CONTINUES d occupation exclusive
 HMT_ACC = [];
 
 // ---------------------------------------------------------------- INSTRUMENTATION v12
-HMT_DT_POS = 1.0;          // cadence des positions, desserree d office si le budget saute
+HMT_DT_POS = 2.0;   // 2 s : le coeur du banc est EVENEMENTIEL (ARR, TIR, IMP), pas les positions          // cadence des positions, desserree d office si le budget saute
 HMT_BUDGET_POS = 6;        // ms par passage ⟨v9 tenait 6,7 ms pour 260 entites⟩
 HMT_NPOS = 0;
 
@@ -132,7 +133,7 @@ HMT_QUI_TIENT = {
         {
             _x params ["_unites", "", "", "", "_id"];
             {
-                if (alive _x) then {
+                if (alive _x && !HMT_CALIB) then {
                     private _p = getPosATL _x;
                     (format ["HMT|G|POS|%1|%2|%3|%4|%5|%6|%7", _id, (round (time*100))/100,
                              _x getVariable ["hmt_id", -1], round (_p select 0), round (_p select 1),
@@ -151,8 +152,8 @@ HMT_QUI_TIENT = {
     };
 };
 
-[_maxAcc, _periode, _dureeMax, _rTenue, _tenueRequise, _nAxes, _fige] spawn {
-    params ["_maxAcc", "_periode", "_dureeMax", "_rTenue", "_tenueRequise", "_nAxes", "_fige"];
+[_maxAcc, _periode, _dureeMax, _rTenue, _tenueRequise, _nAxes, _fige, _calib, _rMin, _rMax] spawn {
+    params ["_maxAcc", "_periode", "_dureeMax", "_rTenue", "_tenueRequise", "_nAxes", "_fige", "_calib", "_rMin", "_rMax"];
     private _v = HMT_GEN_VERSION;
     private _n = 0;
     while { HMT_GEN_VERSION == _v } do {
@@ -200,7 +201,7 @@ HMT_QUI_TIENT = {
                                  _x getVariable ["hmt_id", -1], (round (_k*100))/100]) call HMT_LOG;
                     };
                 } forEach (if (side _a == east) then {_o} else {_e});
-            } forEach _viv;
+            } forEach (if (HMT_CALIB) then {[]} else {_viv});
 
             // --- suivi de la tenue CONTINUE ---
             private _q = [_unites, _pt, _rTenue] call HMT_QUI_TIENT;
@@ -244,16 +245,21 @@ HMT_QUI_TIENT = {
                 _n = _n + 1;
                 // LES QUATRE BRAS, TIRES AU SORT A CHAQUE ACCROCHAGE
                 //   0 frontal · 1 deux axes · 2 frontal FIGE · 3 deux axes FIGE
-                private _bras = floor (random 4);
-                _nAxes = if (_bras % 2 == 0) then {1} else {2};
-                _fige  = _bras >= 2;
+                if (_calib) then {
+                    // CALIBRAGE : UN SEUL BRAS, jamais fige. On ne PEUT pas comparer.
+                    _nAxes = 1; _fige = false;
+                } else {
+                    private _bras = floor (random 4);
+                    _nAxes = if (_bras % 2 == 0) then {1} else {2};
+                    _fige  = _bras >= 2;
+                };
                 private _campDef = floor random 2;
                 private _nDef = 4 + floor random 5;                 // 4 a 8 defenseurs
                 // RAPPORT DE FORCE RESSERRE. Mesure du 01/08 sur 33 verdicts : a 1,5-4 contre 1,
                 // l assaillant prenait le point 75,8 % du temps pour une cible de 40-60. J avais
                 // corrige l impasse du matin en fabriquant l inverse — un monde ou l attaque paie
                 // presque toujours. Quatre defenseurs contre seize cedent meme retranches.
-                private _ratio = 1.2 + random 1.3;                  // 1,2 a 2,5 contre 1
+                private _ratio = _rMin + random (_rMax - _rMin);    // plage passee en parametre
                 private _nAtt = round (_nDef * _ratio) min 16;
                 private _dist = 200 + random 200;
                 // LES DEUX AXES DOIVENT ETRE AU SEC. Bug du 01/08 : on tirait un azimut et un
@@ -375,7 +381,7 @@ HMT_QUI_TIENT = {
                     // Le scripter serait le remplacer par une cinquieme aide.
                     // INSTRUMENTATION : chaque homme journalise ses coups avec sa cible,
                     // et chaque groupe d assaut sait quel AXE il porte.
-                    { [_x, _n] call HMT_ARMER_TIR } forEach _tous;
+                    if (!HMT_CALIB) then { { [_x, _n] call HMT_ARMER_TIR } forEach _tous };
                     {
                         private _iAxe = _forEachIndex;
                         { _x setVariable ["hmt_axe", _iAxe] } forEach (units _x);
