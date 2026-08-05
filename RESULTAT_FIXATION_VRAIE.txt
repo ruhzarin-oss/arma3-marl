@@ -1,0 +1,63 @@
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:384: UserWarning: Found GPU1 NVIDIA GeForce GTX 1060 6GB which is of compute capability (CC) 6.1.
+The following list shows the CCs this version of PyTorch was built for and the hardware CCs it supports:
+- 7.5 which supports hardware CC >=7.5,<8.0
+- 8.0 which supports hardware CC >=8.0,<9.0 except {8.7}
+- 8.6 which supports hardware CC >=8.6,<9.0 except {8.7}
+- 9.0 which supports hardware CC >=9.0,<10.0
+- 10.0 which supports hardware CC >=10.0,<11.0 except {10.1}
+- 12.0 which supports hardware CC >=12.0,<13.0
+Please follow the instructions at https://pytorch.org/get-started/locally/ to install a PyTorch release that supports one of these CUDA versions: 12.6
+  _warn_unsupported_code(d, device_cc, code_ccs)
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:502: UserWarning: 
+NVIDIA GeForce GTX 1060 6GB with CUDA capability sm_61 is not compatible with the current PyTorch installation.
+The current PyTorch install supports CUDA capabilities sm_75 sm_80 sm_86 sm_90 sm_100 sm_120.
+If you want to use the NVIDIA GeForce GTX 1060 6GB GPU with PyTorch, please check the instructions at https://pytorch.org/get-started/locally/
+
+  queued_call()
+corpus : 173338 ticks, 1519814 arêtes
+
+construction — jusqu'à 12 ennemis par soldat
+  563383 observations en 49 s   mortalité 10.00%
+  ennemis par soldat : médiane 1, moyenne 1.8, max 12
+
+  lecture des tirs…
+  277021 tirs · 215480 avec cible identifiee (78%)
+  comptage tireur -> cible…
+  563383 observations · vise par au moins un 1.08% · ennemi qui tire ailleurs 16.84%
+
+==================================================================================
+
+  G2 CONTROLE POSITIF — un soldat REELLEMENT VISE meurt-il plus ?
+   strate   n avec   n sans   mort AVEC   mort SANS     ecart
+        4       97    56241     23.71%      6.26%  +17.45%
+        5      144    56195     22.22%      6.97%  +15.25%
+        6      244    56095     27.87%      8.10%  +19.77%
+        7      412    55926     27.18%      9.58%  +17.61%
+        8      671    55667     27.72%     11.23%  +16.49%
+        9     1402    54936     30.53%     14.49%  +16.03%
+       10     3025    53314     46.48%     29.59%  +16.89%
+  -> 7/10 strates · favorables 0 · ECART GLOBAL +17.07%
+     -> OK, la cible journalisee predit bien la mort
+
+  G1 FIXATION — les ennemis visibles tirent AILLEURS
+   strate   n avec   n sans   mort AVEC   mort SANS     ecart
+        1     3398    52941      5.68%      2.30%   +3.38%
+        2     7192    49146      5.06%      4.10%   +0.96%
+        3     8574    47764      6.23%      5.14%   +1.09%
+        4     9731    46607      6.43%      6.26%   +0.17%
+        5     9943    46396      7.35%      6.94%   +0.41%
+        6    10266    46073      8.49%      8.11%   +0.38%
+        7    10264    46074     10.74%      9.48%   +1.26%
+        8    11198    45140     12.56%     11.15%   +1.41%
+        9    11790    44548     16.28%     14.53%   +1.75%
+       10    12514    43825     29.56%     30.77%   -1.21%
+  -> 10/10 strates · favorables 1 · ECART GLOBAL +0.96%
+
+  G0 VALIDITE  10/10 strates exploitables -> OK
+  G1 FIXATION  favorables 1/10 · ecart +0.96% (exige <= -2 pts)  -> ECHEC
+  G3 NUL       cibles brassees : ecart -0.03% -> OK
+
+==================================================================================
+  PAS DE FIXATION DETECTABLE, meme avec la cible du tir. Le quatrieme canal
+  tombe pour de bon, et le +12,3 points reste sans mecanisme identifie.
+==================================================================================
