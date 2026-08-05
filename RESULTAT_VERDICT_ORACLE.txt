@@ -1,0 +1,37 @@
+
+==============================================================================
+  LE CRITERE P3 APPLIQUE A CHAQUE BRAS  — « bat STRICTEMENT la droite sur >= 15/20 »
+==============================================================================
+
+  --- cout APPRIS · 20 configurations ---
+  bras              gagne   egal   perd        p   P3
+  agent                 4     15      1    0.375   ECHOUE
+  droite_bis            0     17      3    0.250   ECHOUE
+  oracle                3      3     14    0.013   ECHOUE
+  oracle_libre         10      5      5    0.302   ECHOUE   <- INFORMATION PARFAITE
+
+  --- cout expo · 20 configurations ---
+  bras              gagne   egal   perd        p   P3
+  agent                 5     15      0    0.062   ECHOUE
+  droite_bis            2     18      0    0.500   ECHOUE
+  oracle                3      3     14    0.013   ECHOUE
+  oracle_libre         10      5      5    0.302   ECHOUE   <- INFORMATION PARFAITE
+
+==============================================================================
+  ORACLE LIBRE, avec information PARFAITE : 10 victoires sur 20
+  AGENT                                   : 4 victoires sur 20
+  CRITERE EXIGE                           : 15
+==============================================================================
+  LE BANC FERME. L'information PARFAITE n'atteint pas le critere : il exigeait
+  l'impossible. Les cinq refus successifs ne jugent pas l'agent, ils jugent le banc.
+
+  Et la lecture qui en decoule — celle de Fable : le +12,3 points est un fait
+  d'ESCOUADE (deux axes = quelqu'un qui FIXE), alors que ce banc mesure un agent
+  SEUL qui approche SANS TIRER. L'avantage du flanc ne s'exprime pas dans un monde
+  sans feu — ce que la mesure « letalite corrigee -> l'avantage disparait »
+  suggerait deja.
+
+  Le prochain instrument se construit a partir du MECANISME DU FEU — qui tire sur
+  qui et quand, sur les 1324 engagements deja captures — et non d'une quatrieme
+  variante de l'approche solitaire.
+==============================================================================
