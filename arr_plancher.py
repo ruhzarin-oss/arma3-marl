@@ -23,8 +23,10 @@ c'est CETTE phrase-la qu'on verse au projet.
 import re, sys, math
 from collections import defaultdict
 
+# CORPUS N1, CLOS. Le journal vif (serverBA.out) est une REPLICATION INDEPENDANTE :
+# il se juge a part, a la regle d arret de CRITERES_REPLICATION_AB.md. Ne pas cumuler.
 JOURNAUX = ['/mnt/data/harmattan-sandbox/logs/serverBA_ab_reel_partie1.out',
-            '/mnt/data/harmattan-sandbox/logs/serverBA.out']
+            '/mnt/data/harmattan-sandbox/logs/serverBA_ab_reel_partie2.out']
 
 D, ARR = {}, defaultdict(set)
 FIN = set()
