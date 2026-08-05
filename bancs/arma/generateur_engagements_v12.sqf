@@ -249,9 +249,13 @@ HMT_QUI_TIENT = {
                     // CALIBRAGE : UN SEUL BRAS, jamais fige. On ne PEUT pas comparer.
                     _nAxes = 1; _fige = false;
                 } else {
-                    private _bras = floor (random 4);
-                    _nAxes = if (_bras % 2 == 0) then {1} else {2};
-                    _fige  = _bras >= 2;
+                    // DEUX BRAS PLEINS + A2 en tranche de controle a 20 %.
+                    // Quatre bras equiprobables diluaient le N : 25 % chacun. Ici 40/40/20,
+                    // le controle positif gardant juste de quoi dire si l instrument tient.
+                    private _d = random 1;
+                    if (_d < 0.4) then { _nAxes = 1; _fige = false }
+                    else { if (_d < 0.8) then { _nAxes = 2; _fige = false }
+                    else { _nAxes = (if (_d < 0.9) then {1} else {2}); _fige = true } };
                 };
                 private _campDef = floor random 2;
                 private _nDef = 4 + floor random 5;                 // 4 a 8 defenseurs
