@@ -24,18 +24,17 @@ observation : 9 par entite, 16 pour soi — CHAMP DE RISQUE ACTIF
   PORTE 0 — le banc sait-il separer un crochet d une ligne droite ?
   tarif 10.5 (derive : un pic de risque de 1,0 coute l objectif entier)
   ----------------------------------------------------------------------------
-     DROITE   arrivee 100.0% · expo_cum   8.36 · PIC  0.617 · chemin  224.0 m
-     CROCHET  arrivee 100.0% · expo_cum   9.19 · PIC  0.604 · chemin  256.0 m
-     GELEE    arrivee 100.0% · expo_cum   8.23 · PIC  0.607 · chemin  224.0 m
+     DROITE   arrivee  47.8% · expo_cum   5.82 · PIC  0.622 · chemin  160.2 m
+     CROCHET  arrivee  63.7% · expo_cum   7.11 · PIC  0.597 · chemin  206.2 m
+     GELEE    arrivee  52.5% · expo_cum   6.14 · PIC  0.607 · chemin  172.8 m
   ----------------------------------------------------------------------------
 
-  DESATURATION : arrivee de la droite 100.0%  (exige < 95 %)   -> ECHEC — le monde reste gratuit
+  DESATURATION : arrivee de la droite 47.8%  (exige < 95 %)   -> OK
   PORTE 0 :
-     expo crochet 0.60 contre 0,85 x droite = 0.52   -> non
-     arrivee crochet 100.0% contre droite +10 pts = 110.0%   -> non
+     expo crochet 0.60 contre 0,85 x droite = 0.53   -> non
+     arrivee crochet 63.7% contre droite +10 pts = 57.8%   -> OK
 
 ==============================================================================
-  LE MONDE RESTE GRATUIT au tarif derive. Interdiction deposee : on ne pousse pas
-  le tarif plus loin pour forcer la discrimination. LA SANDBOX EST DISQUALIFIEE
-  pour cette question — l etage 1 se jugera sur Arma.
+  LE BANC A SON CERTIFICAT. Il separe deux doctrines dont l ordre est mesure.
+  -> relance de l etage 1 a TROIS bras contemporains : champ, placebo, sans-champ.
   ============================================================================
