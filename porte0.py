@@ -89,14 +89,14 @@ with torch.no_grad():
         r = derouler(nul, I_TE, TARIF, echantillonne=False, force_dir=doct,
                      gel=((2, 0) if nom == 'GELEE' else None))
         res[nom] = r
-        print(f"     {nom:8s} arrivee {r['arrive'].mean():6.1%} · expo {r['expo'].mean():6.2f}"
+        print(f"     {nom:8s} arrivee {r['arrive'].mean():6.1%} · expo_cum {r['expo'].mean():6.2f} · PIC {r['pic'].mean():6.3f}"
               f" · chemin {r['chemin'].mean():6.1f} m")
 
 print("  " + "-" * 76)
 a_dr = res['DROITE']['arrive'].mean().item()
-e_dr = res['DROITE']['expo'].mean().item()
+e_dr = res['DROITE']['pic'].mean().item()
 a_cr = res['CROCHET']['arrive'].mean().item()
-e_cr = res['CROCHET']['expo'].mean().item()
+e_cr = res['CROCHET']['pic'].mean().item()
 
 desat = a_dr < 0.95
 print(f"\n  DESATURATION : arrivee de la droite {a_dr:.1%}  (exige < 95 %)"

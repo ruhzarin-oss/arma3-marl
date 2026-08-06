@@ -375,7 +375,10 @@ def derouler(pol, idx, tarif, echantillonne=True, gel=None, azi_faux=False, forc
     R = torch.stack(rec_l).sum(0) + arrive*15.0 - 15.0*reste
     if azi_faux: AZI = sauv
     return dict(R=R, lp=lp_tot, ent=ent_tot, val=torch.stack(val_l).mean(0), trop=trop,
-                arrive=arrive, expo=expo_cum, chemin=chemin, temps=temps,
+                arrive=arrive, expo=expo_cum, pic=expo_pic, chemin=chemin, temps=temps,
+                # LE PIC est ce que la recompense paie (cliquet) ; expo_cum est une SOMME,
+                # donc tout detour y perd par construction, quelle que soit la geometrie.
+                # Juger une doctrine sur expo_cum, c est condamner le crochet d avance.
                 n_post=n_post, n_all=n_all,
                 e_couche=expo_quand_couche/n_couche.clamp(min=1), n_couche=n_couche,
                 e_debout=expo_quand_debout/n_debout.clamp(min=1), n_debout=n_debout)
