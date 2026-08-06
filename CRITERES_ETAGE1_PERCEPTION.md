@@ -202,3 +202,50 @@ change pas la portée de ma propre autorité : c'est un des trois choix de conce
 plus haut, et le modifier après diagnostic est un arbitrage, pas une correction de plomberie.
 
 **Décision demandée à Fable. Rien n'est lancé en attendant.**
+
+---
+
+## Soupçon PRÉ-ENREGISTRÉ — déposé pendant que le run tourne, avant tout résultat
+
+*6 août, 15h40. Les trois bras sont en cours. Aucune graine n'est finie.*
+
+La PORTE 0 vient de mesurer ceci, dans le monde qui tue :
+
+```
+             arrivee    pic
+DROITE        49,6 %   0,617
+CROCHET       61,9 %   0,604
+```
+
+Le crochet achète **+12,3 points de survie** et ne baisse le pic que de 0,013. Autrement dit,
+dans ce monde, **le pic ne distingue pas une bonne manœuvre d'une mauvaise ; la survie, si.**
+C'est cohérent avec tout le dossier : le flanc n'abaisse pas le pire moment, il achète du
+temps hors du cône — et c'est l'engagement cumulé qui tue.
+
+Or la récompense de l'étage 1 en cours paie **le pic** :
+
+```
+rec_l.append(-tarif*d_pic + 0.05*gagne)
+```
+
+> **Donc : si l'étage 1 ressort nul, le suspect numéro un n'est ni le concept, ni le champ à
+> 0,6549, ni le tarif — c'est le terme de risque de la récompense, qui paie une grandeur dont
+> la PORTE 0 vient de mesurer qu'elle ne sépare pas les doctrines.**
+
+Écrit maintenant, avant la fin du run. Après, ce ne serait plus un soupçon, ce serait une
+histoire.
+
+⟨la loi de mort rend désormais la survie observable et dérivable : elle est disponible comme
+monnaie de récompense. Ce n'était pas le cas hier — le monde ne tuait pas.⟩
+
+## Le drapeau « fragile », posé au même moment
+
+La seule zone extrapolée de la loi de mort — au-delà de 200 m, où la courbe n'est pas mesurée
+— est **exactement là où commence chaque épisode**. L'agent part à 250 m. Les cinquante
+premiers mètres de toutes les trajectoires sont gouvernés par le seul morceau supposé.
+
+Et la loi est **fidèlement construite, pas encore fidèle** : chaque constante est mesurée, mais
+leur **produit** ne l'est pas. Quatre constantes justes peuvent composer une mortalité
+d'ensemble fausse. Tant que la mortalité globale de la sandbox n'aura pas été posée à côté de
+celle des corpus Arma, la PORTE 0 prouve que le monde **discrimine**, pas qu'il discrimine
+**au bon tarif**.
