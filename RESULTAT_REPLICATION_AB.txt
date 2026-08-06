@@ -1,0 +1,57 @@
+
+  152 accrochages clos, deux parties de journal reunies
+
+============================================================================
+  A2 — CONTROLE POSITIF : en mode FIGE, le deux-axes doit ECRASER
+  --------------------------------------------------------------------------
+     deux_axes FIGE     tenue   4/ 16    25.0%
+     frontal FIGE       tenue   5/ 15    33.3%
+     ecart -8.3% · p = 0.609   -> ECHEC : instrument casse
+
+============================================================================
+  A1 — PRIMAIRE : la TENUE  (la grandeur du +12,3 du 02/08)
+  --------------------------------------------------------------------------
+     deux_axes          tenue  15/ 67    22.4%
+     frontal            tenue   4/ 54     7.4%
+     ecart +15.0% (exige >= +6 pts) · p = 0.024 (exige < 0,05)   -> OK
+     ⟨rappel : le 02/08 donnait +12,3 points, p < 0,0001⟩
+
+============================================================================
+  SECONDAIRES — analysees SEPAREMENT, jamais agregees a la primaire
+  --------------------------------------------------------------------------
+     A. ELIMINATION   deux_axes 30/67 (45%)  frontal 24/54 (44%)
+     B. CHRONOMETRE   deux_axes 0/67 (0%)  frontal 0/54 (0%)
+
+============================================================================
+  ARR — QUI ARRIVE, ET QUAND   (la lecture « le flanc fait ARRIVER »)
+  --------------------------------------------------------------------------
+     frontal       54 engagements ·  26 axes ont atteint le point · 1er franchissement median 240 s
+     deux_axes     67 engagements ·  64 axes ont atteint le point · 1er franchissement median 229 s
+
+============================================================================
+  L'INSTRUMENT EST CASSE. A1 n'est pas lisible, quel que soit son p.
+  ==========================================================================
+
+
+==========================================================================
+  TAUX D'ARRIVEE PAR AXE   (un axe « arrive » = il franchit le rayon de tenue)
+  ------------------------------------------------------------------------
+     frontal     26 axes arrives /  54 axes engages   ->  p = 0.481
+     deux_axes   64 axes arrives / 134 axes engages   ->  p = 0.478
+==========================================================================
+
+  « AU MOINS UN AXE ARRIVE », par engagement a deux axes
+  ------------------------------------------------------------------------
+     OBSERVE                              44/ 67  =  65.7%
+     PLANCHER de deux tentatives         1-(1-0.481)^2  =  73.1%
+     ecart au plancher                   -7.4%
+     ⟨les DEUX axes arrivent : 20/67 = 29.9%⟩
+     z = -1.37 · p = 0.1695
+
+==========================================================================
+  AU PLANCHER OU EN DESSOUS. « Deux axes = deux billets de loterie » : redondance
+  pure, pas synergie. C'est CETTE phrase-la qu'on verse au projet, pas l'autre.
+  ========================================================================
+
+  ⟨et le taux PAR AXE : 0.478 contre 0.481 — un axe engage a deux
+   reussit-il mieux qu'un axe engage seul ? C'est la meme question, vue de l'autre bout.⟩
