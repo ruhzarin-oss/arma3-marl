@@ -132,6 +132,18 @@ def p_toucher(d, post_poids):
                        torch.ones_like(dd))
     return p * loin
 
+PAS_PAR_FENETRE = 30.0 / 3.28        # 9,15 pas — la conversion MESUREE
+MODE_DES = '--des' in sys.argv       # jugement : la mort se TIRE. Entrainement : elle PONDERE.
+
+def p_mort_du_pas(p_xy, post_poids, idx):
+    """probabilite de mourir PENDANT CE PAS, tiree du predicteur appris sur Arma. (B,)
+
+    Le predicteur rend « mort dans les 30 s ». Taux constant sur la fenetre — le maillon
+    assume, monotone donc sans effet sur le SENS de la pente."""
+    p30 = risque(p_xy, None, idx, post_poids).clamp(1e-6, 1 - 1e-6)
+    return 1.0 - (1.0 - p30) ** (1.0 / PAS_PAR_FENETRE)
+
+# ---- LA CHAINE FAITE MAIN, MORTE le 06/08. Conservee pour memoire, plus jamais appelee.
 def degats_du_pas(p_xy, post_poids, idx):
     """degats subis pendant UN PAS, tous defenseurs confondus. (B,)
 
@@ -347,8 +359,9 @@ def derouler(pol, idx, tarif, echantillonne=True, gel=None, azi_faux=False, forc
     arrive = torch.zeros(B, device=dev); dehors = torch.ones(B, device=dev)
     expo_cum = torch.zeros(B, device=dev); chemin = torch.zeros(B, device=dev)
     expo_pic = torch.zeros(B, device=dev)     # le PIC d'exposition : ce qui est irréversible
-    deg = torch.zeros(B, device=dev)          # degats cumules, seuil de mort a 0,70
-    tues = torch.zeros(B, device=dev)         # combien sont tombes, et quand
+    deg = torch.zeros(B, device=dev)          # (mort) heritage de la chaine faite main
+    tues = torch.zeros(B, device=dev)         # combien sont tombes (mode --des)
+    flamme = torch.ones(B, device=dev)        # LA FLAMME : probabilite d etre encore en vie
     temps = torch.zeros(B, device=dev); trop = torch.zeros(B, device=dev)
     n_post = torch.zeros(B, 3, device=dev); n_all = torch.zeros(B, 3, device=dev)
     expo_quand_couche = torch.zeros(B, device=dev); n_couche = torch.zeros(B, device=dev)
@@ -407,17 +420,21 @@ def derouler(pol, idx, tarif, echantillonne=True, gel=None, azi_faux=False, forc
         m_c = (ip==2).float()*dehors; m_d = (ip==0).float()*dehors
         expo_quand_couche += e*m_c; n_couche += m_c
         expo_quand_debout += e*m_d; n_debout += m_d
-        # ---- ON PEUT MOURIR. C est la reparation du 06/08. ----
-        # Les degats s accumulent au tarif MESURE sur Arma ; au seuil de 0,70 (trois impacts)
-        # l homme est neutralise : il cesse d avancer et il n arrivera pas.
-        deg = deg + degats_du_pas(p, wp, idx) * dehors
-        vivant = (deg < SEUIL_MORT).float()
-        mort_ici = dehors * (1.0 - vivant)
-        tues = tues + mort_ici
-        dehors = dehors * vivant
+        # ---- LA FLAMME. La mort vient du PREDICTEUR, pas d une chaine faite main. ----
+        # A l entrainement elle PONDERE : la flamme descend en pente douce et le gradient la
+        # suit. Au jugement (--des) elle se TIRE : le monde redevient stochastique.
+        pm = p_mort_du_pas(p, wp, idx)
+        if MODE_DES:
+            pris = (torch.rand_like(pm) < pm).float()
+            tues = tues + dehors * pris
+            dehors = dehors * (1.0 - pris)
+        else:
+            flamme = flamme * (1.0 - pm * dehors)
+            tues = tues + 0.0     # aux des seulement ; ici la flamme EST le compte
         d = p.norm(dim=-1)
         vient = (d < ARRIVE).float()*dehors
-        arrive = arrive + vient; dehors = dehors*(1-vient)
+        arrive = arrive + vient*flamme; dehors = dehors*(1-vient)
+        # arriver ne compte que si l on est encore la : l ARRIVEE EST UNE ESPERANCE.
         lp_tot = lp_tot + lp*dehors
         # GUIDAGE PAR POTENTIEL. Sans lui, l'agent s'enferme : ne trouvant jamais l'arrivée
         # par hasard, le seul levier qu'il voit est de baisser son exposition — il se couche,
@@ -425,7 +442,10 @@ def derouler(pol, idx, tarif, echantillonne=True, gel=None, azi_faux=False, forc
         # MÈTRES GAGNÉS (une différence, pas une distance absolue) éclaire le chemin sans
         # déplacer la solution optimale. ⟨v1 pénalisait la distance absolue : l'agent fonçait⟩
         gagne = (d_prec - p.norm(dim=-1)) * dehors
-        val_l.append(val); rec_l.append(-tarif*d_pic + 0.05*gagne)
+        # RECOMPENSE = ARRIVER. Plus de terme de risque : c etait un echafaudage pour un
+        # monde sans mort, et le garder maintenant compterait deux fois. Les metres
+        # gagnes sont peses par la flamme — on ne gagne du terrain que vivant.
+        val_l.append(val); rec_l.append(0.05*gagne*flamme)
     reste = (p.norm(dim=-1)-ARRIVE).clamp(min=0)/DEPART_COURANT
     # arriver doit payer FRANCHEMENT. Avec l'ancienne prime de 3, ne jamais arriver coûtait
     # -16,5 et arriver -2,6 : rentable en principe, mais l'écart ne guidait pas l'exploration.
@@ -571,6 +591,15 @@ class Directe:
     """référence : on va droit au but, allure et posture libres"""
     def __call__(self, p): return -p/p.norm(dim=-1,keepdim=True).clamp(min=1e-6)
 
+import hashlib as _h
+# chemin EN DUR : ce fichier est aussi execute par porte0.py et les depouilleurs, ou
+# __file__ n existe pas. La barriere doit survivre a tous ses modes de chargement.
+_EMPREINTE = _h.md5(open("/home/younes/arma3-marl/agent_complet.py", "rb").read()).hexdigest()[:12]
+print(f"EMPREINTE DU MONDE {_EMPREINTE}"
+      f"   mort = PREDICTEUR APPRIS (AUC {_ck['auc']:.4f})"
+      f"   {'DES' if MODE_DES else 'FLAMME'}", flush=True)
+# La barriere nee de ma faute du 06/08 : un juge REFUSE de comparer des bras aux
+# empreintes differentes. Detection, pas prevention.
 print("\n" + "="*78, flush=True)
 COURT = len(sys.argv) > 1 and sys.argv[1] == "court"
 # MISE A L ECHELLE DU TARIF. Le risque appris est 2,7 fois moins disperse qu expo
