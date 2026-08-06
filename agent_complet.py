@@ -188,7 +188,9 @@ def risque(p, post, idx, post_poids=None):
 # de la porte : 5 graines, succes a 4 sur 5).
 CHAMP_ACTIF = '--champ' in sys.argv
 CHAMP_PLACEBO = '--placebo' in sys.argv
-PORTEE_CHAMP = 35.0
+PORTEE_CHAMP = 100.0   # REQUALIFIE le 06/08 sur la table de dispersion : le champ est un REGARD,
+                       # pas un pas. A 35 m (herite du 27/07, calibre sur l expo morte) il ne
+                       # parlait qu en deca de 90 m — une fois la manoeuvre deja jouee.
 _a8 = torch.arange(8, device=dev, dtype=torch.float32) * (math.pi / 4)
 DIRS8 = torch.stack([torch.sin(_a8), torch.cos(_a8)], -1)     # (8,2), huit caps
 
@@ -229,32 +231,33 @@ print(f"observation : {CE} par entite, {CM} pour soi"
 H = 128
 
 if '--smoke' in sys.argv:
-    # QUATRE positions tres differentes, sur QUATRE configurations defensives reelles.
-    _i = torch.arange(min(4, NC), device=dev)
-    _p = torch.tensor([[0., 250.], [120., 120.], [250., 0.], [-180., 60.]],
-                      device=dev)[:len(_i)]
-    _po = torch.zeros(len(_i), dtype=torch.long, device=dev)
-    _c = champ_risque(_p, _po, _i)
-    print("\n  CHAMP DE RISQUE — huit directions, quatre positions")
+    # LE SEUIL NE BOUGE PAS : 0,010 de dispersion entre les huit directions. Ce qui change,
+    # c est l exigence — il doit etre franchi A CHAQUE DISTANCE du trajet, pas en moyenne.
+    # Un champ qui ne parle qu au but est un champ qui parle trop tard.
+    _SEUIL = 0.010
+    _B = 512
+    _idx = torch.randint(0, NC, (_B,), device=dev)
+    _po = torch.zeros(_B, dtype=torch.long, device=dev)
+    print(f"\n  SMOKE — champ de risque, portee {PORTEE_CHAMP:.0f} m"
+          f"{' (PLACEBO : bruit)' if CHAMP_PLACEBO else ''}")
     print("  " + "-" * 68)
-    for _k in range(len(_i)):
-        _v = " ".join(f"{x:5.3f}" for x in _c[_k].tolist())
-        print(f"    p=({_p[_k,0]:7.1f},{_p[_k,1]:6.1f})   {_v}")
-    _ecart_dir = _c.std(dim=1).mean().item()      # dispersion ENTRE directions
-    _ecart_pos = _c.std(dim=0).mean().item()      # dispersion ENTRE positions
-    _moy = _c.mean().item()
+    _tout = True
+    for _d in (40, 60, 90, 120, 160, 200, 250):
+        _a = torch.rand(_B, device=dev) * 2 * math.pi
+        _p = torch.stack([torch.sin(_a), torch.cos(_a)], -1) * _d
+        _c = champ_risque(_p, _po, _idx)
+        _disp = _c.std(dim=1).mean().item()
+        _ok = _disp > _SEUIL
+        _tout &= _ok
+        print(f"    a {_d:3d} m de l objectif   dispersion {_disp:.4f}   "
+              f"{'OK' if _ok else 'MORD — le champ est plat ici'}")
+    _moi, _ent = percevoir(_p, _po, _idx)
+    _larg = (_moi.shape[-1] == CM and _ent.shape[-1] == CE)
     print("  " + "-" * 68)
-    print(f"    moyenne du champ                     {_moy:.4f}")
-    print(f"    dispersion ENTRE DIRECTIONS          {_ecart_dir:.4f}"
-          f"   {'OK' if _ecart_dir > 0.01 else 'PLAT -> aucune information'}")
-    print(f"    dispersion ENTRE POSITIONS           {_ecart_pos:.4f}"
-          f"   {'OK' if _ecart_pos > 0.01 else 'INSENSIBLE A LA POSITION'}")
-    _moi, _ent = percevoir(_p, _po, _i)
-    print(f"    largeur de l observation : soi={_moi.shape[-1]} (attendu {CM}) "
-          f"· entite={_ent.shape[-1]} (attendu {CE})")
-    _ok = (_moi.shape[-1] == CM and (not CHAMP_ACTIF or _ecart_dir > 0.01))
-    print(f"\n  SMOKE {'PASSE' if _ok else 'ECHOUE — on ne lance rien'}\n")
-    sys.exit(0 if _ok else 1)
+    print(f"    largeur de l observation : soi={_moi.shape[-1]} (attendu {CM})"
+          f" · entite={_ent.shape[-1]} (attendu {CE})   {'OK' if _larg else 'ECHEC'}")
+    print(f"\n  SMOKE {'PASSE — lancement autorise' if (_tout and _larg) else 'MORD — on ne lance rien'}\n")
+    sys.exit(0 if (_tout and _larg) else 1)
 
 class Politique(nn.Module):
     def __init__(s):
@@ -515,7 +518,9 @@ COURT = len(sys.argv) > 1 and sys.argv[1] == "court"
 # l effet du TARIF, pas celui de la FONCTION. On multiplie donc par 0,235/0,088 = 2,67.
 # C est un changement d unite, pas de structure, et il est fait AVANT de voir le resultat.
 TARIFS = [4.7]
-GRAINES = (1,) if COURT else (1, 2, 3)
+# CINQ graines, pas trois. « 2 sur 3 » s ouvrait tout seul une fois sur cinq : ce n etait
+# pas une porte. A 4 sur 5, le hasard ne passe que 3 fois sur 100.
+GRAINES = (1,) if COURT else (1, 2, 3, 4, 5)
 resultats = {}
 for tarif in TARIFS:
     for graine in GRAINES:
