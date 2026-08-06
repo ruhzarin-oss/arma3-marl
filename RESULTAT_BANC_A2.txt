@@ -1,0 +1,30 @@
+
+  301 accrochages clos · 300 retenus · 1 REJETES (degeneres)
+  ⟨le filtre de sante a mordu 1 fois — c est ce qu il est la pour faire⟩
+
+============================================================================
+  PRESENCE — la manipulation a-t-elle vraiment eu lieu ?
+  --------------------------------------------------------------------------
+     journal FIGE present sur 300/300 = 100.0%  (exige >= 95 %)   -> OK
+     accrochages tires en mode fige : 300/300  (le banc en veut 100 %)
+
+============================================================================
+  PRIMAIRE — la TENUE, en mode FIGE
+  --------------------------------------------------------------------------
+     deux_axes    tenue  74/160    46.2%
+     frontal      tenue  40/140    28.6%
+     ecart +17.7% (exige >= +10 pts) · p = 0.0016 (exige < 0,05)   -> OK
+
+============================================================================
+  TEMOIN DE MECANISME — la part d hommes VUS, par axe
+  --------------------------------------------------------------------------
+     axe 0 (celui que les defenseurs FIXENT)     555/1030 vus =  53.9%
+     axe 1 (hors du cone tenu)                   623/1030 vus =  60.5%
+     ecart +6.6% · p = 0.0025   -> PAS DANS LE SENS ATTENDU
+
+============================================================================
+  LA PORTE TIENT. Quand les defenseurs sont aveugles sur un flanc, le deux-axes
+  ECRASE le frontal. L instrument discrimine — donc il pouvait juger l A/B, et les
+  +17,3 et +15,0 se lisent.
+  ⟨mais le temoin ne suit pas : on garde le chiffre, on n ecrit pas d histoire.⟩
+  ==========================================================================
