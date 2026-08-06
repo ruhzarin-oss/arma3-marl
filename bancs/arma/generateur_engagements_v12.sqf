@@ -230,7 +230,13 @@ HMT_QUI_TIENT = {
                          _campDef, _vainqueur, _pris, round _duree_tenue,
                          count _e, count _o, round _dmin,
                          count _arrives]) call HMT_LOG;   // COMBIEN D AXES ONT ATTEINT LE POINT
+                // RENDRE LES GROUPES, pas seulement les hommes. Sans ceci le banc
+                // degenere au 235e accrochage (limite Arma : 144 groupes par camp) et
+                // continue d ecrire des accrochages de 5 s que tout depouilleur compte.
+                private _grp = []; { if (!isNull _x) then { _grp pushBackUnique (group _x) } } forEach _unites;
                 { if (!isNull _x) then { deleteVehicle _x } } forEach _unites;
+                [_grp] spawn { params ["_g"]; sleep 1;
+                    { if (!isNull _x && {count (units _x) == 0}) then { deleteGroup _x } } forEach _g; };
             } else {
                 _restants pushBack [_unites, _t0, _pt, _campDef, _id, _tenu, _depuis, _dmin, _arrives];
             };
@@ -253,9 +259,18 @@ HMT_QUI_TIENT = {
                     // Quatre bras equiprobables diluaient le N : 25 % chacun. Ici 40/40/20,
                     // le controle positif gardant juste de quoi dire si l instrument tient.
                     private _d = random 1;
+                    if (missionNamespace getVariable ["HMT_A2PUR", false]) then {
+                        // BANC A2 DEDIE : 100 % fige, deux bras a 50/50.
+                        // A 20 % du tirage, le controle positif faisait 18 puis 31 configs :
+                        // il a pointe +16,7 % puis -8,3 %, jamais significativement. Une porte
+                        // qui ne peut pas se fermer n est pas une porte. On la dimensionne.
+                        // Criteres : CRITERES_BANC_A2_DEDIE.md, deposes avant le lancement.
+                        _nAxes = (if (_d < 0.5) then {1} else {2}); _fige = true;
+                    } else {
                     if (_d < 0.4) then { _nAxes = 1; _fige = false }
                     else { if (_d < 0.8) then { _nAxes = 2; _fige = false }
                     else { _nAxes = (if (_d < 0.9) then {1} else {2}); _fige = true } };
+                    };
                 };
                 private _campDef = floor random 2;
                 private _nDef = 4 + floor random 5;                 // 4 a 8 defenseurs
@@ -398,8 +413,16 @@ HMT_QUI_TIENT = {
                              count _bats, _campDef, _nDef, _nAtt, round _dist,
                              round _ecart, count _gs, _nAxes,
                              (if (_fige) then {1} else {0})]) call HMT_LOG;
+                    // SANTE : une panne silencieuse doit devenir bruyante. Si le nombre de
+                    // groupes monte accrochage apres accrochage, le banc se meurt, et ca se VOIT.
+                    (format ["HMT|G|SANTE|%1|%2|%3", _n,
+                             {side _x == west} count allGroups,
+                             {side _x == east} count allGroups]) call HMT_LOG;
                 } else {
+                    private _grp2 = []; { if (!isNull _x) then { _grp2 pushBackUnique (group _x) } } forEach _tous;
                     { if (!isNull _x) then { deleteVehicle _x } } forEach _tous;
+                    [_grp2] spawn { params ["_g"]; sleep 1;
+                        { if (!isNull _x && {count (units _x) == 0}) then { deleteGroup _x } } forEach _g; };
                 };
             };
         };
