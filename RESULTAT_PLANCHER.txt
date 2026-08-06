@@ -1,0 +1,40 @@
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:384: UserWarning: Found GPU1 NVIDIA GeForce GTX 1060 6GB which is of compute capability (CC) 6.1.
+The following list shows the CCs this version of PyTorch was built for and the hardware CCs it supports:
+- 7.5 which supports hardware CC >=7.5,<8.0
+- 8.0 which supports hardware CC >=8.0,<9.0 except {8.7}
+- 8.6 which supports hardware CC >=8.6,<9.0 except {8.7}
+- 9.0 which supports hardware CC >=9.0,<10.0
+- 10.0 which supports hardware CC >=10.0,<11.0 except {10.1}
+- 12.0 which supports hardware CC >=12.0,<13.0
+Please follow the instructions at https://pytorch.org/get-started/locally/ to install a PyTorch release that supports one of these CUDA versions: 12.6
+  _warn_unsupported_code(d, device_cc, code_ccs)
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:502: UserWarning: 
+NVIDIA GeForce GTX 1060 6GB with CUDA capability sm_61 is not compatible with the current PyTorch installation.
+The current PyTorch install supports CUDA capabilities sm_75 sm_80 sm_86 sm_90 sm_100 sm_120.
+If you want to use the NVIDIA GeForce GTX 1060 6GB GPU with PyTorch, please check the instructions at https://pytorch.org/get-started/locally/
+
+  queued_call()
+extraction des configurations défensives réelles
+  1848 configurations, 6.5 défenseurs, max 12
+  entraînement 1293   réglage 277   JAMAIS VU 278
+risque appris charge — AUC 0.6549 sur le corpus (expo valait 0,5005, le hasard)
+
+==========================================================================
+  LA SORTIE DU PRÉDICTEUR, telle qu'elle est utilisée comme LOI DE MORT
+  ------------------------------------------------------------------------
+     min 0.406 · médiane 0.601 · max 0.742
+     mortalité RÉELLE du corpus à 30 s : 10,00 %
+  ------------------------------------------------------------------------
+     le PLANCHER converti en mort par pas : 5.53%
+     survie sur 14 pas (224 m, la droite)  au plancher : 45.1%
+     survie sur 16 pas (256 m, le crochet) au plancher : 40.2%
+
+==========================================================================
+  LE PRÉDICTEUR NE DIT JAMAIS « EN SÉCURITÉ ». Sa sortie est un SCORE de classement,
+  pas une probabilité : sur un corpus à 10 % de morts, un modèle calibré rendrait
+  0,10 en moyenne, pas une valeur centrée sur 0,5.
+  -> le traiter comme une probabilité de mourir est une ERREUR DE CATÉGORIE, et
+     elle est de moi, introduite ce soir avec la loi-prédicteur.
+  -> hors du cône n'achète rien, seule la longueur du chemin compte, et le crochet
+     perd mécaniquement. C'est exactement ce que la PORTE 0 a mesuré.
+  ========================================================================

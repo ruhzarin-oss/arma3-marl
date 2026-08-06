@@ -1,0 +1,65 @@
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:384: UserWarning: Found GPU1 NVIDIA GeForce GTX 1060 6GB which is of compute capability (CC) 6.1.
+The following list shows the CCs this version of PyTorch was built for and the hardware CCs it supports:
+- 7.5 which supports hardware CC >=7.5,<8.0
+- 8.0 which supports hardware CC >=8.0,<9.0 except {8.7}
+- 8.6 which supports hardware CC >=8.6,<9.0 except {8.7}
+- 9.0 which supports hardware CC >=9.0,<10.0
+- 10.0 which supports hardware CC >=10.0,<11.0 except {10.1}
+- 12.0 which supports hardware CC >=12.0,<13.0
+Please follow the instructions at https://pytorch.org/get-started/locally/ to install a PyTorch release that supports one of these CUDA versions: 12.6
+  _warn_unsupported_code(d, device_cc, code_ccs)
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:502: UserWarning: 
+NVIDIA GeForce GTX 1060 6GB with CUDA capability sm_61 is not compatible with the current PyTorch installation.
+The current PyTorch install supports CUDA capabilities sm_75 sm_80 sm_86 sm_90 sm_100 sm_120.
+If you want to use the NVIDIA GeForce GTX 1060 6GB GPU with PyTorch, please check the instructions at https://pytorch.org/get-started/locally/
+
+  queued_call()
+corpus : 173338 ticks, 1519814 arêtes
+
+construction — jusqu'à 12 ennemis par soldat
+  563383 observations en 51 s   mortalité 10.00%
+  ennemis par soldat : médiane 1, moyenne 1.8, max 12
+
+  563383 instants · mortalite globale 10.00%
+  dans le cone 39.3% · vu 18.9% · supprimes 6.2%
+
+==============================================================================
+  PORTE 0 — deux paires dont l ORDRE EST CONNU  (taille declaree : >= 3 points)
+  ----------------------------------------------------------------------------
+     dans le cone / hors  ecart +3.7%  (221565 contre 341818)   -> OK
+                         ⟨ordre connu : dedans plus mortel⟩
+     vu / non vu         ecart -0.3%  (106667 contre 456716)   -> ECHEC
+                         ⟨ordre connu : vu plus mortel⟩
+
+==============================================================================
+  AIGUILLE — les strates ou la mortalite vit entre 20 % et 80 %
+  ----------------------------------------------------------------------------
+       0-50  m   n=166003   mortalite  7.17%   hors bande
+      50-100 m   n=102132   mortalite 10.66%   hors bande
+     100-150 m   n= 71452   mortalite 10.64%   hors bande
+     150-200 m   n= 65176   mortalite 11.82%   hors bande
+     200-250 m   n= 59110   mortalite 11.92%   hors bande
+     250-400 m   n= 99507   mortalite 11.27%   hors bande
+     -> 0 strate(s) dans la bande 20-80 %
+
+==============================================================================
+  C1 — CONTRÔLE NÉGATIF : le prédicteur lissé DOIT ÉCHOUER le contraste de falaise
+  ----------------------------------------------------------------------------
+extraction des configurations défensives réelles
+  1848 configurations, 6.5 défenseurs, max 12
+  entraînement 1293   réglage 277   JAMAIS VU 278
+risque appris charge — AUC 0.6549 sur le corpus (expo valait 0,5005, le hasard)
+     le CORPUS mesure sur la paire du cône      +3.7%
+     le PRÉDICTEUR attribue à la même paire     +11.6%
+     il en restitue 314% — IL NE LISSE PAS
+     -> C1 ÉCHEC — porte DÉCORATIVE
+
+==============================================================================
+  C2 — CONTRÔLE NUL : étiquettes brassées
+  ----------------------------------------------------------------------------
+     écart sur étiquettes brassées -0.01%   (exige |écart| < 3 points)   -> OK
+
+==============================================================================
+  LE BANC N'A PAS SON CERTIFICAT — PORTE 0, C1 (porte décorative), aucune strate dans la bande.
+  Rien ne se lit sur un agent tant que ce n'est pas réparé.
+  ============================================================================

@@ -1,0 +1,43 @@
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:384: UserWarning: Found GPU1 NVIDIA GeForce GTX 1060 6GB which is of compute capability (CC) 6.1.
+The following list shows the CCs this version of PyTorch was built for and the hardware CCs it supports:
+- 7.5 which supports hardware CC >=7.5,<8.0
+- 8.0 which supports hardware CC >=8.0,<9.0 except {8.7}
+- 8.6 which supports hardware CC >=8.6,<9.0 except {8.7}
+- 9.0 which supports hardware CC >=9.0,<10.0
+- 10.0 which supports hardware CC >=10.0,<11.0 except {10.1}
+- 12.0 which supports hardware CC >=12.0,<13.0
+Please follow the instructions at https://pytorch.org/get-started/locally/ to install a PyTorch release that supports one of these CUDA versions: 12.6
+  _warn_unsupported_code(d, device_cc, code_ccs)
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:502: UserWarning: 
+NVIDIA GeForce GTX 1060 6GB with CUDA capability sm_61 is not compatible with the current PyTorch installation.
+The current PyTorch install supports CUDA capabilities sm_75 sm_80 sm_86 sm_90 sm_100 sm_120.
+If you want to use the NVIDIA GeForce GTX 1060 6GB GPU with PyTorch, please check the instructions at https://pytorch.org/get-started/locally/
+
+  queued_call()
+corpus : 173338 ticks, 1519814 arêtes
+
+construction — jusqu'à 12 ennemis par soldat
+  563383 observations en 63 s   mortalité 10.00%
+  ennemis par soldat : médiane 1, moyenne 1.8, max 12
+extraction des configurations défensives réelles
+  1848 configurations, 6.5 défenseurs, max 12
+  entraînement 1293   réglage 277   JAMAIS VU 278
+risque appris charge — AUC 0.6549 sur le corpus (expo valait 0,5005, le hasard)
+
+  563383 instants · mortalite 10.00% · ajustement sur 464195 · verification sur 99188
+  score BRUT : min 0.086 · mediane 0.464 · max 0.744 · moyenne 0.463
+  calibration : 60 noeuds · taux de 2.507% a 22.8%
+
+============================================================================
+  LES QUATRE VERIFICATIONS, deposees avant
+  --------------------------------------------------------------------------
+     V1  AUC  brut 0.6549  calibre 0.6548  ecart 0.00013   -> OK
+     V2  moyenne calibree 10.05% contre base 8.47%   -> ECHEC
+     V3  mort par pas au PLANCHER : 0.98% -> 0.277%   -> OK
+     V4  ajuste sur l entrainement, verifie sur l ecart   -> OK
+
+     survie sur 14 pas au plancher : 87.2% -> 96.2%
+
+============================================================================
+  LA CALIBRATION N EST PAS ECRITE — une verification a cede.
+  ==========================================================================

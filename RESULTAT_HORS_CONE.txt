@@ -1,0 +1,39 @@
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:384: UserWarning: Found GPU1 NVIDIA GeForce GTX 1060 6GB which is of compute capability (CC) 6.1.
+The following list shows the CCs this version of PyTorch was built for and the hardware CCs it supports:
+- 7.5 which supports hardware CC >=7.5,<8.0
+- 8.0 which supports hardware CC >=8.0,<9.0 except {8.7}
+- 8.6 which supports hardware CC >=8.6,<9.0 except {8.7}
+- 9.0 which supports hardware CC >=9.0,<10.0
+- 10.0 which supports hardware CC >=10.0,<11.0 except {10.1}
+- 12.0 which supports hardware CC >=12.0,<13.0
+Please follow the instructions at https://pytorch.org/get-started/locally/ to install a PyTorch release that supports one of these CUDA versions: 12.6
+  _warn_unsupported_code(d, device_cc, code_ccs)
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:502: UserWarning: 
+NVIDIA GeForce GTX 1060 6GB with CUDA capability sm_61 is not compatible with the current PyTorch installation.
+The current PyTorch install supports CUDA capabilities sm_75 sm_80 sm_86 sm_90 sm_100 sm_120.
+If you want to use the NVIDIA GeForce GTX 1060 6GB GPU with PyTorch, please check the instructions at https://pytorch.org/get-started/locally/
+
+  queued_call()
+extraction des configurations défensives réelles
+  1848 configurations, 6.5 défenseurs, max 12
+  entraînement 1293   réglage 277   JAMAIS VU 278
+risque appris charge — AUC 0.6549 sur le corpus (expo valait 0,5005, le hasard)
+
+==========================================================================
+  1. LA PART DU TRAJET PASSÉE HORS DE TOUT CÔNE
+  ------------------------------------------------------------------------
+     DROITE     54.5% du trajet hors de tout cône
+     CROCHET    64.9%
+     le crochet achète +10.3%   (exige >= +10 points pour avoir ACHETÉ)
+
+==========================================================================
+  2. LA GÉOMÉTRIE DU SCÉNARIO — y a-t-il un dos ?
+  ------------------------------------------------------------------------
+     défenseurs par configuration : 6.5
+     tour d'horizon couvert par au moins un cône : médiane 155°  (min 65° · max 305°)
+     configurations couvrant plus de 270° : 0.8%
+
+==========================================================================
+  LE CROCHET ACHÈTE BIEN DU TEMPS HORS DES CÔNES, et il perd quand même. Mon
+  hypothèse tombe : le scénario avait un flanc, et le contourner ne paie pas ici.
+  ========================================================================
