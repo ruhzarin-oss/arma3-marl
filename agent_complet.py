@@ -183,6 +183,26 @@ def risque(p, post, idx, post_poids=None):
     r = RISQUE(pc.unsqueeze(-1), ent, MSK[idx])
     return torch.sigmoid(r)          # ramene sur [0,1], comme expo
 
+# ============ LE CHAMP DE RISQUE — ETAGE 1 ============
+# Criteres deposes avant lancement : CRITERES_ETAGE1_PERCEPTION.md (+ addendum sur la taille
+# de la porte : 5 graines, succes a 4 sur 5).
+CHAMP_ACTIF = '--champ' in sys.argv
+CHAMP_PLACEBO = '--placebo' in sys.argv
+PORTEE_CHAMP = 35.0
+_a8 = torch.arange(8, device=dev, dtype=torch.float32) * (math.pi / 4)
+DIRS8 = torch.stack([torch.sin(_a8), torch.cos(_a8)], -1)     # (8,2), huit caps
+
+def champ_risque(p, post, idx):
+    """le prix d un pas de 35 m dans chacune des huit directions. (B,8)
+
+    Le PLACEBO tire huit nombres de bruit de meme echelle : meme capacite offerte au reseau,
+    zero information. C est le controle qui sait echouer."""
+    B = p.shape[0]
+    if CHAMP_PLACEBO:
+        return torch.rand(B, 8, device=dev)
+    pp = (p.unsqueeze(1) + DIRS8.unsqueeze(0) * PORTEE_CHAMP).reshape(B * 8, 2)
+    return risque(pp, post.repeat_interleave(8), idx.repeat_interleave(8)).reshape(B, 8)
+
 def percevoir(p, post, idx):
     """TOUT ce qu'on a, sans résumé : une ligne par entité, l'attention triera."""
     v = p.unsqueeze(1) - POS[idx]
@@ -198,11 +218,43 @@ def percevoir(p, post, idx):
     moi = torch.cat([p/300, p.norm(dim=-1,keepdim=True)/300,
                      torch.nn.functional.one_hot(post,3).float(),
                      MSK[idx].sum(1,keepdim=True)/DMAX,
-                     risque(p, post, idx).unsqueeze(-1)], -1)
+                     risque(p, post, idx).unsqueeze(-1)]
+                    + ([champ_risque(p, post, idx)] if CHAMP_ACTIF else []), -1)
     return moi, ent
 
-CE, CM = 9, 8
+CE, CM = 9, (8 + 8 if CHAMP_ACTIF else 8)   # +8 = le champ de risque (etage 1)
+print(f"observation : {CE} par entite, {CM} pour soi"
+      f"{' — CHAMP DE RISQUE ACTIF' if CHAMP_ACTIF else ''}"
+      f"{' (PLACEBO : bruit)' if CHAMP_PLACEBO else ''}", flush=True)
 H = 128
+
+if '--smoke' in sys.argv:
+    # QUATRE positions tres differentes, sur QUATRE configurations defensives reelles.
+    _i = torch.arange(min(4, NC), device=dev)
+    _p = torch.tensor([[0., 250.], [120., 120.], [250., 0.], [-180., 60.]],
+                      device=dev)[:len(_i)]
+    _po = torch.zeros(len(_i), dtype=torch.long, device=dev)
+    _c = champ_risque(_p, _po, _i)
+    print("\n  CHAMP DE RISQUE — huit directions, quatre positions")
+    print("  " + "-" * 68)
+    for _k in range(len(_i)):
+        _v = " ".join(f"{x:5.3f}" for x in _c[_k].tolist())
+        print(f"    p=({_p[_k,0]:7.1f},{_p[_k,1]:6.1f})   {_v}")
+    _ecart_dir = _c.std(dim=1).mean().item()      # dispersion ENTRE directions
+    _ecart_pos = _c.std(dim=0).mean().item()      # dispersion ENTRE positions
+    _moy = _c.mean().item()
+    print("  " + "-" * 68)
+    print(f"    moyenne du champ                     {_moy:.4f}")
+    print(f"    dispersion ENTRE DIRECTIONS          {_ecart_dir:.4f}"
+          f"   {'OK' if _ecart_dir > 0.01 else 'PLAT -> aucune information'}")
+    print(f"    dispersion ENTRE POSITIONS           {_ecart_pos:.4f}"
+          f"   {'OK' if _ecart_pos > 0.01 else 'INSENSIBLE A LA POSITION'}")
+    _moi, _ent = percevoir(_p, _po, _i)
+    print(f"    largeur de l observation : soi={_moi.shape[-1]} (attendu {CM}) "
+          f"· entite={_ent.shape[-1]} (attendu {CE})")
+    _ok = (_moi.shape[-1] == CM and (not CHAMP_ACTIF or _ecart_dir > 0.01))
+    print(f"\n  SMOKE {'PASSE' if _ok else 'ECHOUE — on ne lance rien'}\n")
+    sys.exit(0 if _ok else 1)
 
 class Politique(nn.Module):
     def __init__(s):

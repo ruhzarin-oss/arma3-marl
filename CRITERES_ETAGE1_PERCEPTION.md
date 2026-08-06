@@ -105,3 +105,100 @@ d environnements — le GPU est sous-employé, la 3090 est libre, Arma occupe le
 
 Si l étage 1 échoue, **l étage 2 n existe pas** et un trimestre est économisé.
 C est à ça que sert un chantier qui porte son propre couteau.
+
+---
+
+## Addendum — LA TAILLE DE LA PORTE, exigée par Fable et absente de la première version
+
+*6 août, avant tout lancement. Ce fichier avait un critère de mort ; il n'avait pas sa
+sensibilité. Une porte sans ce chiffre n'est pas une porte.*
+
+Le plan initial disait : « succès = +1 palier au moins sur **2 graines sur 3** ». J'ai calculé
+ce que ce dispositif sait voir, et **il ne sait pas voir grand-chose**.
+
+Le palier est une échelle à barreaux (60, 80, 95, 110, 125, 140 m). D'une graine à l'autre,
+sans aucun effet réel, il arrive qu'une graine gagne un barreau par simple chance de tirage —
+disons une fois sur trois, ce qui est l'ordre de grandeur observé sur les runs précédents.
+
+> Alors « 2 graines sur 3 » se produit **par hasard une fois sur cinq environ**.
+> Une porte qui s'ouvre toute seule 20 % du temps ne prouve rien.
+
+**Le dispositif est donc corrigé AVANT le lancement, et sur ce seul motif :**
+
+- **5 graines**, pas 3 ;
+- **succès = +1 palier au moins sur 4 graines sur 5.**
+
+Avec la même chance de gain fortuit, ce seuil ne s'atteint tout seul qu'environ **3 fois sur
+100**. C'est une porte.
+
+⟨coût : cinq curriculums au lieu de trois. Ils tiennent dans la journée et la nuit sur une
+3090 libre, et le goulot de cette machine est le CPU, pas le GPU.⟩
+
+### Ce que la porte ne saura pas voir, et qu'on ne prétendra pas
+
+Un gain **inférieur à un barreau** — un agent qui arrive un peu mieux au même palier — est
+**invisible** à ce dispositif. Si le champ de risque améliore la marge sans franchir le
+barreau suivant, on lira « pas d'effet », et ce sera faux. C'est le prix d'une métrique en
+escalier, et il est accepté ici parce que la question posée est un franchissement, pas un
+raffinement.
+
+> En conséquence : un ÉCHEC de l'étage 1 se rapportera comme **« pas de franchissement »**,
+> jamais comme « le champ n'apporte rien ».
+
+### Le placebo garde le même barème
+
+Le contrôle C1 (huit nombres de bruit) est jugé **au même seuil, sur les mêmes 5 graines**. Si
+le placebo passe aussi, c'est la taille du réseau qui paie, et le résultat tombe — quel que
+soit le score du vrai champ.
+
+---
+
+## Le smoke-test a REFUSÉ le lancement — et une erreur de chiffre à moi
+
+*6 août, 10h50. Aucune heure de GPU n'a été dépensée.*
+
+### 1. Correction : l'AUC du risque appris
+
+Ce fichier annonçait **0,714**. Le point de sauvegarde réellement chargé
+(`/mnt/data/corpus/risque_geo.pt`, le seul qui existe) rapporte **0,6549**.
+
+Le 0,7138 est bien mesuré — c'est le score de l'étude du 05/08 sur 99 188 observations tenues
+à l'écart. Mais **ce n'est pas ce que porte le modèle en service**. Les deux chiffres ne
+parlent pas de la même chose, et j'ai cité le plus flatteur sans vérifier l'artefact.
+
+> **Chiffre à utiliser désormais : 0,6549.** Il reste très au-dessus de l'`expo` morte
+> (0,5005), et l'argument de l'étage 1 ne dépend pas de l'écart entre les deux.
+
+### 2. Le smoke a mordu, et le diagnostic donne la cause
+
+```
+dispersion du champ entre les 8 directions   0,0077     seuil 0,010   REFUS
+```
+
+Cause mesurée : ce n'est **pas** un risque plat. Le risque appris varie bien d'une position à
+l'autre (écart-type 0,066 à 0,087 selon la distance). C'est la **portée de 35 m qui est un pas
+de fourmi** sur une approche de 250 m.
+
+```
+dispersion entre directions, selon la portee et la distance a l objectif
+  portee     40m     60m     90m    120m    160m    200m    250m
+     35m  0,0612  0,0430  0,0282  0,0186  0,0125  0,0104  0,0103
+     60m  0,0737  0,0701  0,0501  0,0332  0,0227  0,0176  0,0186
+    100m  0,0871  0,0814  0,0778  0,0569  0,0381  0,0293  0,0306
+    150m  0,0892  0,0878  0,0828  0,0752  0,0618  0,0442  0,0450
+```
+
+À 35 m, le champ ne devient informatif qu'**en deçà de 90 m** — c'est-à-dire une fois la
+manœuvre déjà jouée. Or l'agent part à 250 m et le palier du curriculum est à 125 m : sur tout
+le trajet qui décide, il lirait huit copies du même nombre.
+
+Le choix « 35 m » venait du 27/07, où il était calibré sur l'`expo` — la fonction qu'on a
+depuis mesurée à 0,5005. **Il a été hérité d'un instrument mort.**
+
+### 3. Ce que je ne fais pas
+
+Je ne baisse pas le seuil de dispersion de 0,010 à 0,007 pour faire passer le smoke. Et je ne
+change pas la portée de ma propre autorité : c'est un des trois choix de conception inscrits
+plus haut, et le modifier après diagnostic est un arbitrage, pas une correction de plomberie.
+
+**Décision demandée à Fable. Rien n'est lancé en attendant.**
