@@ -82,3 +82,25 @@ montait pendant que l exposition chutait de 28 %. Je savais QUE, pas COMMENT.⟩
 
 C est le résultat le plus utile que cette nuit puisse rendre, y compris — et surtout — s il
 démolit les deux corpus précédents. Un banc qui ne peut pas refuser n a jamais rien prouvé.
+
+---
+
+## Aveu : j ai vu 24 accrochages avant l heure
+
+*05h05.* Pour valider le dépouilleur `juger_a2.py` je l ai fait tourner sur le journal vif —
+24 accrochages, soit un dixième de la cible. **C était de la plomberie, pas une lecture.**
+Je le consigne parce que taire un coup d oeil est pire que l avoir donné.
+
+Ce que ça ne change pas : la règle d arrêt et les seuils, qui restent ceux déposés plus haut.
+Le jugement reste **unique**, à 09h00 ou à 120 accrochages par bras.
+
+Ce que ça a montré, et qui est une PISTE, pas un résultat : le témoin de mécanisme pointe
+**à l envers**. L axe hors du cône tenu est vu *davantage* (61 %) que l axe fixé (49 %).
+
+Si ça se confirme sur l effectif complet, l explication est déjà dans le dossier :
+**`knowsAbout` est une grandeur de CAMP, pas de soldat.** Figer le cap de chaque défenseur
+ne peut alors pas les aveugler — le camp continue de savoir. Ce qui voudrait dire que le
+« contrôle positif » n a jamais contrôlé quoi que ce soit, et que sa faillite depuis deux
+corpus n est pas du bruit mais une **impossibilité de construction**.
+
+À trancher à 09h00, pas maintenant.
