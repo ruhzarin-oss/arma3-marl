@@ -28,3 +28,30 @@ risque appris charge — AUC 0.6549 sur le corpus (expo valait 0,5005, le hasard
   part a knowsAbout >= 3,5 (connaissance quasi totale) — TRANQ 99.4%  DURE 91.5%
   part a knowsAbout = 0 — TRANQ 0.0%  DURE 0.0%
   distance mediane du plus proche — TRANQ 5.2 m  DURE 184.5 m
+
+=====================================================================
+CORRECTION du 07/08 — LA CONCLUSION PRECEDENTE ETAIT FAUSSE.
+
+Lu SUR PIECES dans leviathan/capture/hmt_capture_v9_battlelines.sqf, ligne 232 :
+
+    if (alive _b && {(_b getVariable ["hmt_side",3]) != _sa}) then {
+
+avec _sa = le camp de l observateur (ligne 215). L emetteur NE GARDE QUE LES UNITES
+D UN AUTRE CAMP. Les aretes du corpus filtrent donc bien par camp.
+
+Ce qui m avait fait conclure l inverse : knowsAbout = 4 et un plus proche a 5,2 m. Mais
+A CINQ METRES D UN ENNEMI, savoir tout de lui est NORMAL, meme s il tourne le dos.
+
+Ce que la mesure dit REELLEMENT, et qui tient :
+  la zone tranquille du corpus = UN SEUL ennemi, TRES PRES (5,2 m), qui regarde AILLEURS
+                                 (ecart au cone 128 degres)
+  la zone dure                 = un ennemi LOIN (184 m) et DANS son cone
+
+C est coherent avec deux acquis certifies : l arc de tir est un sursis de 4 s, et l angle
+mort est binaire (18/18 dedans, 0/26 dehors). Colle a un homme qui ne te regarde pas, tu es
+en securite ; loin et dans son champ, tu es mort.
+
+ET LA CONCLUSION SUR LA SANDBOX TIENT, RENFORCEE : elle pose 6,5 defenseurs, toujours, tous
+vivants, tous a portee. Elle ne peut pas exprimer « un seul ennemi, colle, qui regarde
+ailleurs ». C est pourquoi son score ne descend jamais sous 0,406 quand le corpus va a 0,086.
+Le defaut est bien la GEOMETRIE DU SCENARIO.
