@@ -28,7 +28,8 @@ LE PIÈGE, ÉCRIT D'AVANCE : ce simulateur est le nôtre. L'agent optimisera NOS
 ⟨juillet : 96 % en sandbox, 0/38 dans Arma⟩ AUCUN VERDICT NE SORT DE CE RUN. Arma tranchera.
 """
 import numpy as np, math, json, time, sys
-import torch, torch.nn as nn
+import torch
+import numpy as _np, torch.nn as nn
 
 D = '/mnt/data/corpus/tenseurs'
 dev = 'cuda'; torch.cuda.set_device(0)
@@ -135,12 +136,32 @@ def p_toucher(d, post_poids):
 PAS_PAR_FENETRE = 30.0 / 3.28        # 9,15 pas — la conversion MESUREE
 MODE_DES = '--des' in sys.argv       # jugement : la mort se TIRE. Entrainement : elle PONDERE.
 
+# LA CALIBRATION, ecrite le 07/08 apres reparation du decoupage (346 blocs de 100 s).
+# Sans elle la sortie du predicteur est un SCORE, pas une probabilite : plancher a 5,53 % de
+# mort par pas, et « hors de tout cone » n achete rien.
+_cal = _np.load('/mnt/data/corpus/calibration_risque.npz')
+CAL_X = torch.tensor(_cal['centres'], device=dev, dtype=torch.float32)
+CAL_Y = torch.tensor(_cal['taux'], device=dev, dtype=torch.float32)
+print(f"calibration chargee — {len(CAL_X)} noeuds, de {CAL_Y.min():.3%} a {CAL_Y.max():.1%}",
+      flush=True)
+
+def calibrer(s):
+    """score -> probabilite de mourir a 30 s. Interpolation lineaire, monotone."""
+    i = torch.searchsorted(CAL_X, s.contiguous().clamp(CAL_X[0], CAL_X[-1]))
+    i = i.clamp(1, len(CAL_X) - 1)
+    x0, x1 = CAL_X[i - 1], CAL_X[i]
+    y0, y1 = CAL_Y[i - 1], CAL_Y[i]
+    w = ((s.clamp(CAL_X[0], CAL_X[-1]) - x0) / (x1 - x0).clamp(min=1e-9)).clamp(0, 1)
+    return y0 + (y1 - y0) * w
+
 def p_mort_du_pas(p_xy, post_poids, idx):
     """probabilite de mourir PENDANT CE PAS, tiree du predicteur appris sur Arma. (B,)
 
     Le predicteur rend « mort dans les 30 s ». Taux constant sur la fenetre — le maillon
     assume, monotone donc sans effet sur le SENS de la pente."""
-    p30 = risque(p_xy, None, idx, post_poids).clamp(1e-6, 1 - 1e-6)
+    # LE SCORE DEVIENT UNE PROBABILITE. C est le seul endroit ou la calibration entre :
+    # le champ observe et le scalaire de risque gardent le score brut.
+    p30 = calibrer(risque(p_xy, None, idx, post_poids)).clamp(1e-6, 1 - 1e-6)
     return 1.0 - (1.0 - p30) ** (1.0 / PAS_PAR_FENETRE)
 
 # ---- LA CHAINE FAITE MAIN, MORTE le 06/08. Conservee pour memoire, plus jamais appelee.
