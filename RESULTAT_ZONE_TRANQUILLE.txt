@@ -1,0 +1,54 @@
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:384: UserWarning: Found GPU1 NVIDIA GeForce GTX 1060 6GB which is of compute capability (CC) 6.1.
+The following list shows the CCs this version of PyTorch was built for and the hardware CCs it supports:
+- 7.5 which supports hardware CC >=7.5,<8.0
+- 8.0 which supports hardware CC >=8.0,<9.0 except {8.7}
+- 8.6 which supports hardware CC >=8.6,<9.0 except {8.7}
+- 9.0 which supports hardware CC >=9.0,<10.0
+- 10.0 which supports hardware CC >=10.0,<11.0 except {10.1}
+- 12.0 which supports hardware CC >=12.0,<13.0
+Please follow the instructions at https://pytorch.org/get-started/locally/ to install a PyTorch release that supports one of these CUDA versions: 12.6
+  _warn_unsupported_code(d, device_cc, code_ccs)
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:502: UserWarning: 
+NVIDIA GeForce GTX 1060 6GB with CUDA capability sm_61 is not compatible with the current PyTorch installation.
+The current PyTorch install supports CUDA capabilities sm_75 sm_80 sm_86 sm_90 sm_100 sm_120.
+If you want to use the NVIDIA GeForce GTX 1060 6GB GPU with PyTorch, please check the instructions at https://pytorch.org/get-started/locally/
+
+  queued_call()
+corpus : 173338 ticks, 1519814 arêtes
+
+construction — jusqu'à 12 ennemis par soldat
+  563383 observations en 51 s   mortalité 10.00%
+  ennemis par soldat : médiane 1, moyenne 1.8, max 12
+extraction des configurations défensives réelles
+  1848 configurations, 6.5 défenseurs, max 12
+  entraînement 1293   réglage 277   JAMAIS VU 278
+risque appris charge — AUC 0.6549 sur le corpus (expo valait 0,5005, le hasard)
+
+  563383 instants · score min 0.086 · max 0.744
+  zone TRANQUILLE (< 0,20) : 2.5% des instants · mortalite reelle 2.35%
+  zone DURE       (> 0,60) : 18.1% · mortalite reelle 18.44%
+
+==============================================================================
+  DE QUOI EST FAITE CHAQUE ZONE  (mediane)
+  ----------------------------------------------------------------------------
+                           TRANQUILLE         DURE              sandbox ?
+  ennemis vivants                1.00         1.00   6,5 en moyenne, fixe
+  distance au + proche           5.22       184.52          de 40 a 250 m
+  ecart au cone le +           127.74        18.31         libre, 0 a 180
+  part dans un cone              0.17         0.81         45 % du trajet
+  suppression subie              0.00         0.00                ABSENTE
+
+==============================================================================
+  CE QUE LA SANDBOX PEUT EXPRIMER
+  ----------------------------------------------------------------------------
+     ennemis vivants dans la sandbox : 6.5 en moyenne, JAMAIS moins
+     ennemis dans la zone tranquille du corpus : quartiles 1 / 1 / 1
+     part de la zone tranquille avec <= 2 ennemis : 94.9%
+     part de la zone tranquille sans suppression subie : 98.1%
+
+==============================================================================
+  LA ZONE TRANQUILLE DU CORPUS EST FAITE DE SOLITUDE : peu d ennemis a portee.
+  La sandbox en pose 6,5, toujours, tous vivants, tous a portee. Elle ne peut pas
+  EXPRIMER cet etat — et c est pourquoi son score ne descend jamais.
+  -> le defaut est la GEOMETRIE DU SCENARIO, pas une entree du predicteur.
+  ============================================================================
