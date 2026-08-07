@@ -1,0 +1,11 @@
+
+  impacts sur assaillants : 2664
+  ------------------------------------------------------------------
+     JAMAIS designe par personne          921   34.6%
+     designe par quelqu un, un jour      1743   65.4%
+     designe par quelqu un dans la min   1292   48.5%   <- le controle lisait CA (seuil 80 %)
+     designe par SON TIREUR dans la min   831   31.2%
+  ------------------------------------------------------------------
+  LECTURE (b) : une part reelle des impacts vient de tirs SANS CIBLE ASSIGNEE —
+  arrosage, tir d opportunite. Le controle supposait que tout impact suit une
+  designation. C est FAUX dans Arma, et c est une propriete du monde, pas un bug.
