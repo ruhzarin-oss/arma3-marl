@@ -1,0 +1,44 @@
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:384: UserWarning: Found GPU1 NVIDIA GeForce GTX 1060 6GB which is of compute capability (CC) 6.1.
+The following list shows the CCs this version of PyTorch was built for and the hardware CCs it supports:
+- 7.5 which supports hardware CC >=7.5,<8.0
+- 8.0 which supports hardware CC >=8.0,<9.0 except {8.7}
+- 8.6 which supports hardware CC >=8.6,<9.0 except {8.7}
+- 9.0 which supports hardware CC >=9.0,<10.0
+- 10.0 which supports hardware CC >=10.0,<11.0 except {10.1}
+- 12.0 which supports hardware CC >=12.0,<13.0
+Please follow the instructions at https://pytorch.org/get-started/locally/ to install a PyTorch release that supports one of these CUDA versions: 12.6
+  _warn_unsupported_code(d, device_cc, code_ccs)
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:502: UserWarning: 
+NVIDIA GeForce GTX 1060 6GB with CUDA capability sm_61 is not compatible with the current PyTorch installation.
+The current PyTorch install supports CUDA capabilities sm_75 sm_80 sm_86 sm_90 sm_100 sm_120.
+If you want to use the NVIDIA GeForce GTX 1060 6GB GPU with PyTorch, please check the instructions at https://pytorch.org/get-started/locally/
+
+  queued_call()
+corpus : 173338 ticks, 1519814 arêtes
+
+construction — jusqu'à 12 ennemis par soldat
+  563383 observations en 60 s   mortalité 10.00%
+  ennemis par soldat : médiane 1, moyenne 1.8, max 12
+extraction des configurations défensives réelles
+  1848 configurations, 6.5 défenseurs, max 12
+  entraînement 1293   réglage 277   JAMAIS VU 278
+risque appris charge — AUC 0.6549 sur le corpus (expo valait 0,5005, le hasard)
+
+  563383 instants · mortalite globale 10.00%
+  decoupage : 346 blocs de 500 ticks (100 s) · marge 150 ticks
+  ajustement 315323 (9.72% de morts) · ecart 78091 (10.38%)
+  ecart de mortalite entre les deux moities : 0.66 points   ⟨hier, avec 57 blocs : 1,8 point⟩
+
+============================================================================
+  LES QUATRE VERIFICATIONS — criteres INCHANGES
+  --------------------------------------------------------------------------
+     V1  AUC brut 0.6563  calibre 0.6562  ecart 0.00015   -> OK
+     V2  moyenne calibree 9.73% contre base 10.38%  (ecart 0.65 pt)   -> OK
+     V3  mort par pas au plancher 0.98% -> 0.253%   -> OK
+     V4  ajustee sur l ajustement, verifiee sur l ecart, marge aux coutures   -> OK
+
+============================================================================
+  CALIBRATION ECRITE — /mnt/data/corpus/calibration_risque.npz
+  Le score devient une probabilite, l ordre n a pas bouge, et « hors de tout cone »
+  veut enfin dire quelque chose.
+  ==========================================================================
