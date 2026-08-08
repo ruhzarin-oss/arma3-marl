@@ -1,0 +1,44 @@
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:384: UserWarning: Found GPU1 NVIDIA GeForce GTX 1060 6GB which is of compute capability (CC) 6.1.
+The following list shows the CCs this version of PyTorch was built for and the hardware CCs it supports:
+- 7.5 which supports hardware CC >=7.5,<8.0
+- 8.0 which supports hardware CC >=8.0,<9.0 except {8.7}
+- 8.6 which supports hardware CC >=8.6,<9.0 except {8.7}
+- 9.0 which supports hardware CC >=9.0,<10.0
+- 10.0 which supports hardware CC >=10.0,<11.0 except {10.1}
+- 12.0 which supports hardware CC >=12.0,<13.0
+Please follow the instructions at https://pytorch.org/get-started/locally/ to install a PyTorch release that supports one of these CUDA versions: 12.6
+  _warn_unsupported_code(d, device_cc, code_ccs)
+/home/younes/arma3-marl/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:502: UserWarning: 
+NVIDIA GeForce GTX 1060 6GB with CUDA capability sm_61 is not compatible with the current PyTorch installation.
+The current PyTorch install supports CUDA capabilities sm_75 sm_80 sm_86 sm_90 sm_100 sm_120.
+If you want to use the NVIDIA GeForce GTX 1060 6GB GPU with PyTorch, please check the instructions at https://pytorch.org/get-started/locally/
+
+  queued_call()
+
+  88183 ticks · pas median 0.41 s
+
+============================================================================
+  HORIZON 2 s  (5 releves)
+  --------------------------------------------------------------------------
+     couverture (mesures aux DEUX instants) : 1.0% · 751 couples · 646 surs
+     EFFECTIF INSUFFISANT — on ne lit pas.
+
+============================================================================
+  HORIZON 5 s  (12 releves)
+  --------------------------------------------------------------------------
+     couverture (mesures aux DEUX instants) : 1.2% · 899 couples · 787 surs
+     EFFECTIF INSUFFISANT — on ne lit pas.
+
+============================================================================
+  HORIZON 10 s  (24 releves)
+  --------------------------------------------------------------------------
+     couverture (mesures aux DEUX instants) : 4.8% · 3518 couples · 3066 surs
+     transitions jugees 676 · dont vues ensuite 54
+     PERSISTANCE  AUC 0.5410   <- controle negatif
+     modele       AUC 0.7151   ecart +0.1741   LISIBLE
+     DIRECTION  54 cas tenus a l ecart — illisible
+
+============================================================================
+  ⟨la couverture est rapportee AVANT chaque resultat : a 4,4 % on ne lisait pas deux
+   etats du meme monde, on lisait deux echantillons differents.⟩
+  ==========================================================================

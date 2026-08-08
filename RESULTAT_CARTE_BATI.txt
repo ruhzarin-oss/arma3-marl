@@ -1,0 +1,14 @@
+=== releve du BATI : monde 8192 m, grille 163x163 au pas de 50 m, rayon 30 m ===
+  1/163 lignes (0 s)
+  21/163 lignes (3 s)
+  41/163 lignes (6 s)
+  61/163 lignes (10 s)
+  81/163 lignes (14 s)
+  101/163 lignes (18 s)
+  121/163 lignes (22 s)
+  141/163 lignes (26 s)
+  161/163 lignes (29 s)
+
+-> bati_stratis.npz | 26569 points, 0 manquants, 29 s
+   batiments : mediane 0, max 10 · arbres : mediane 0, max 35 · sur route 0.8%
+BATI_DONE
