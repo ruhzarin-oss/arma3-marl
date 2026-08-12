@@ -41,7 +41,7 @@ HMT_CX=__CX__; HMT_CY=__CY__; HMT_S=__S__; HMT_FRNG=__FRNG__;
   private _n=surfaceNormal (getPosASL _u); private _slope=(1-(_n select 2))*2.0/5.0;
   // dcover : distance au batiment le plus proche (proxy du champ de couvert), normalisee
   private _nb=nearestObjects [_u,["House","Building","Wall","Rock"],40]; private _dc=1;
-  if (count _nb>0) then { _dc=(_u distance (_nb select 0))/40 min 1 };
+  if (count _nb>0) then { _dc=(_u distance (_nb select 0))/30 min 1 };
   // ennemi vivant connu le plus proche
   private _ne=objNull; private _nd=1e9;
   { if (alive _x) then { private _d=_u distance _x; if (_d<_nd) then {_nd=_d;_ne=_x} } } forEach HMT_ENNEMI;
@@ -52,7 +52,7 @@ HMT_CX=__CX__; HMT_CY=__CY__; HMT_S=__S__; HMT_FRNG=__FRNG__;
   };
   private _dgx=-_ax/HMT_S; private _dgy=-_ay/HMT_S;
   // suffer : degats pris (delta) + fraction d'ennemis qui PEUVENT me toucher (vivant+portee+LOS)
-  private _dmg=(getVariable [_u,"HMT_LASTDMG",0]); private _dmgin=((damage _u - _dmg)*5) max 0 min 1; _u setVariable ["HMT_LASTDMG",damage _u];
+  private _dmg=(_u getVariable ["HMT_LASTDMG",0]); private _dmgin=((damage _u - _dmg)*5) max 0 min 1; _u setVariable ["HMT_LASTDMG",damage _u];
   private _nt=0; private _ndf=count HMT_ENNEMI;
   { if (alive _x) then { private _d=_u distance _x; private _ep=getPosASL _x; private _sp=getPosASL _u;
       private _lo=if (terrainIntersectASL [[(_sp select 0),(_sp select 1),(_sp select 2)+0.9],[(_ep select 0),(_ep select 1),(_ep select 2)+1.7]]) then {0} else {1};
@@ -66,7 +66,17 @@ HMT_CX=__CX__; HMT_CY=__CY__; HMT_S=__S__; HMT_FRNG=__FRNG__;
     _asup=if ((_nb2 forceWeaponFire ["",""]) isEqualTo []) then {0} else {0}; _asup=if (currentCommand _nb2=="FIRE" || (unitReady _nb2)) then {0} else {1}; };
   private _tf=0; { if (alive _x && (currentCommand _x=="FIRE")) then {_tf=_tf+1} } forEach HMT_FR; private _tff=_tf/(count HMT_FR max 1);
   private _ps=HMT_POST select _i; private _p0=if(_ps==0)then{1}else{0}; private _p1=if(_ps==1)then{1}else{0}; private _p2=if(_ps==2)then{1}else{0};
-  private _o=[_ax/HMT_S,_ay/HMT_S,_dgx,_dgy,_al,_slope,_dc,_los,_ndist, _dmgin,_ntf, _adx,_ady,_asup,_tff, _p0,_p1,_p2];
+  // L ARC, EN FIN DE VECTEUR (18-19) pour ne deplacer aucun indice existant : la face du
+  // defenseur le plus proche contre la direction sous laquelle il me voit.
+  private _arcs=0; private _arcc=1;
+  if (!isNull _ne) then {
+    private _df=getDir _ne; private _p2p=getPosATL _ne;
+    private _az=(_p2p select 0) atan2 (_p2p select 1);
+    _az=((getPosATL _u select 0)-(_p2p select 0)) atan2 ((getPosATL _u select 1)-(_p2p select 1));
+    private _rel=(_az-_df); while {_rel>180} do {_rel=_rel-360}; while {_rel<-180} do {_rel=_rel+360};
+    _arcs=sin _rel; _arcc=cos _rel;
+  };
+  private _o=[_ax/HMT_S,_ay/HMT_S,_dgx,_dgy,_al,_slope,_dc,_los,_ndist, _dmgin,_ntf, _adx,_ady,_asup,_tff, _p0,_p1,_p2, _arcs,_arcc];
   diag_log format ["HARMATTAN_OBS18 %1 %2", _i, _o];
 } forEach HMT_FR;
 '''
@@ -87,7 +97,7 @@ diag_log format ["HARMATTAN_ACTOK n=%1", count HMT_FR];
 '''
 
 OBS_RE = re.compile(r"HARMATTAN_OBS18 (\d+) \[([^\]]+)\]")
-OBS_DIM = 18
+OBS_DIM = 20
 N_ACT = 13
 
 

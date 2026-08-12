@@ -1,0 +1,12 @@
+private _d = createHashMap;
+_d set ["startType", "new"];
+_d set ["name", "HMT"];
+_d set ["startPos", markerPos "Synd_HQ"];
+_d set ["useNewNamespace", false];
+_d set ["factions", ["Vanilla_NATO_Arid", "Vanilla_CSAT_Arid", "Vanilla_FIA", "Vanilla_Civ", "Vanilla_LE"]];
+_d set ["addonVics", []];
+_d set ["DLC", []];
+_d set ["params", []];
+diag_log format ["Q_DEMARRAGE envoi %1", _d];
+[_d] call A3A_fnc_startGame;
+diag_log format ["Q_DEMARRAGE saveData=%1 startup=%2", !isNil "A3A_saveData", missionNamespace getVariable ["A3A_startupState", "?"]];

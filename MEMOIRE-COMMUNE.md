@@ -2105,3 +2105,57 @@ Fichiers : `collecte_prof.py`, `clone_prof.py`, `affine.sh`, `ckpt/clone.pt`,
    `nvidia-smi` par bus PCI. `CUDA_DEVICE_ORDER=PCI_BUS_ID` ajouté au lanceur.
 8. **Trois travaux tiennent sur la 3090** : mesure à 16 % d'occupation avec un seul, 99 % avec
    trois. Le goulot est le lancement des noyaux côté processeur, pas la carte.
+
+## 2026-08-10 — ANTISTASI : capteur + reset debout (socle, pas verdict)
+Antistasi Ultimate v11.9.12 (release officielle @A3U) tourne HEADLESS sur Stratis,
+port jeu 6072, pont TCP 5876. Serveur dedie propre, les 5 bancs en cours intacts.
+
+CAPTEUR — addon separe `@HMT_Capteur` charge en -serverMod. Antistasi reste VANILLA :
+l observateur est exterieur au monde observe. Emet toutes les 10 s sur le pont :
+  A3A_ETAT|t|date|hr|argent|tier|aggOcc|aggInv|soutien|compFIA|unites|groupes
+  A3A_ZONES|<marqueur>=<camp>, ... (26 zones Stratis)
+  A3A_LIEU|<marqueur>|<type>|<x>|<y>  (inventaire fixe, une fois)
+
+DEMARRAGE SANS JOUEUR — Antistasi attend `A3A_saveData` (choix admin). Injecte par le
+pont : startType=new, factions [Occ,Inv,Reb,Civ,Riv] = NATO_Arid / CSAT_Arid / FIA /
+Civ / LE, startPos = marqueur Synd_HQ. Campagne ouverte : hr=8 argent=1000 tier=1.
+
+RESET — la campagne entiere tient dans profileNamespace, un seul fichier
+(Player.vars.Arma3Profile, 148 077 octets). Point zero fige avec empreinte sha256
+ac97206e959c636d21998944bfd276777c3e50b32a9c5e5590d895ff54acdf96.
+`reset_antistasi.sh reset` = tue, restaure le fichier, relance ; `autoLoadLastGame=60`
+recharge SANS admin. CYCLE MESURE : etat identique revenu a t=75 s apres relance
+(hr=8 argent=1000 tier=1 aggOcc=1 aggInv=1 soutien=0 compFIA=5). Cout ~3 min/reset,
+dont 60 s de minimum impose par le parametre.
+
+PIEGES PAYES — `compile` ne passe pas par le preprocesseur : tout `//` casse la
+commande envoyee par le pont (nettoyage a l emission). Le template de mission d un
+addon n est pas trouve par nom : extraction dans mpmissions + #include reecrits en
+chemin absolu `\x\A3A\addons\maps\`. `pbo - unknown` au log = simple absence de
+numero de build, PAS une erreur de chargement.
+
+PAS ENCORE FAIT : aucun agent, aucun apprentissage, aucune action envoyee a la
+campagne. Socle seulement.
+
+## 2026-08-10 — VERDICT NEGATIF : l acceleration du temps ne sert a rien sur Antistasi
+Question : setTimeMultiplier accelere-t-il la CAMPAGNE, donc le debit d entrainement ?
+Mesure sur une 2e instance dediee (ports 6082/5886), point zero identique, la 1re
+instance intacte -> au passage, deux campagnes tournent en PARALLELE sans probleme.
+
+Ecrit avant la mesure : verdict NEGATIF si `time` reste a ~1 s/s pendant que `date`
+accelere. Controle positif : `date` DOIT accelerer, sinon la commande n a pas pris.
+
+RESULTAT sur 2 fenetres de 120 s :
+  temps MISSION : A = 1,00 s/s   B = 0,99 s/s   -> x0,99
+  horloge MONDE : A ~ x1         B ~ x16        -> controle PASSE
+Le battement economique d Antistasi est `time + 600` (fn_resourcecheck.sqf) = du temps
+MISSION. setTimeMultiplier ne touche que l horloge du monde. LEVIER MORT.
+
+CONSEQUENCE, plus dure que le chiffre : le tick economique vaut 10 MINUTES REELLES. Un
+episode de campagne qui a du sens se compte donc en HEURES, pas en minutes. A 14
+instances (mesure : 0,22 coeur et 1,8 Go a vide, plafond RAM ~23 instances), cela fait
+336 heures-serveur/jour, soit ~110 episodes de 3 h. Pas 35 000 decisions/jour.
+
+=> Antistasi au niveau CAMPAGNE n est pas un environnement d ENTRAINEMENT sur ce
+   materiel. C est un CERTIFICATEUR. Meme partage que sandbox/Arma, un etage plus haut :
+   pour apprendre, il faudra une replique symbolique rapide de la campagne.

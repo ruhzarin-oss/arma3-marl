@@ -1,0 +1,1 @@
+./arma3server_x64 -config=/mnt/data/harmattan-sandbox/staging/serverAP.cfg -profiles=/mnt/data/harmattan-sandbox/profilesAP -port=6012 -world=Stratis -autoInit -mod=@CBA_A3;@rhsusaf;@rhsafrf;@LAMBS_Danger;@PinnedDown_BattleLines;@PinnedDown_CoverConcealment -serverMod=@LAMBS_Danger 

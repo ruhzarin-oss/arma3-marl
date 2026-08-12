@@ -18,7 +18,7 @@ class AssaultTerrain:
                  emergent_expo=False, death_pen=0.4, suffer_pen=1.1, win_bonus=1.0, kill_w=1.5, arma_obs=False,
                  secure_task=False, approach_w=0.2, secure_only=False, supp_kill=1.0,
                  def_arc=math.pi, def_line=False, def_spread=1.0, def_rline=35.0, def_rand=False, nav_around=False, flank_kill=0.0,
-                 frein_feu=0.0, alerte=False, courbe=None, tir_par_pas=None, sec_par_pas=None, degat_par_impact=None, arc_obs=False, champ_risque=False, champ_R=35.0, stress=False, mission="assaut", arc_latence_s=None, supp_residuel=None, supp_persist=0.0, cible_unique=True):
+                 frein_feu=0.0, alerte=False, courbe=None, tir_par_pas=None, sec_par_pas=None, degat_par_impact=None, arc_obs=False, champ_risque=False, champ_R=35.0, stress=False, mission="assaut", arc_latence_s=None, supp_residuel=None, supp_persist=0.0, cible_unique=True, feu_sur_connu=0.0, feu_de_zone=0.0):
         # ---- COURBE N2 : LA SUPPRESSION MESUREE SUR ARMA (28/07) ----
         # `supp_residuel` = ce qu'il RESTE de capacite de nuire sous suppression pleine.
         # Mesure : 0.08 (cadence x0,57 x precision x0,14). None = ancien tout-ou-rien.
@@ -28,6 +28,39 @@ class AssaultTerrain:
         # trois defenseurs dans le meme pas de 3,28 s : pire pas 0,471 pour un seuil de
         # mort a 0,70. Mesure du 28/07. Defaut False = ancien monde.
         self.cible_unique = bool(cible_unique)
+        # --- LE FEU SUIT LA POSITION CONNUE -------------------------------------------
+        # C EST LE DERNIER GRAND ECART AVEC ARMA. Ici, rompre la ligne de vue coupait le feu
+        # AU PAS MEME : se glisser derriere une crete rendait invulnerable instantanement.
+        # Dans Arma le camp a une MEMOIRE — `knowsAbout` ne decroit pas (mesure : aucune
+        # decroissance en 300 s) — et les defenseurs continuent de battre la derniere
+        # position connue. C est pour cela qu ETRE VU TUE 2x PLUS FORT QUE VOIR NE PROTEGE :
+        # +75 % de mortalite sur 563 000 observations, effet CROISSANT avec la distance.
+        # `feu_sur_connu` = part du feu qui porte encore sur un homme DEJA VU mais
+        # momentanement hors de vue. 0 = ancien monde, ou le couvert est un interrupteur.
+        # Il se CALIBRE sur le verdict des +75 %, jamais au jugement.
+        # --- LE FEU DE ZONE ------------------------------------------------------------
+        # MESURE, ET ELLE EST BRUTALE : dans ce monde, un homme qui n est PAS vu
+        # geometriquement au pas courant a une mortalite EXACTEMENT NULLE. Pas faible : nulle.
+        # Le couvert n est pas « trop protecteur », c est un INTERRUPTEUR ABSOLU.
+        # Arma ne connait pas ca : etre vu y multiplie la mortalite par 1,75 seulement
+        # (563 000 observations) — les jamais-vus y meurent donc, a 4/7 du taux des vus.
+        #
+        # ⚠️ ET C EST `cible_unique` QUI TIENT L INTERRUPTEUR. La selection de cible exige
+        # `los > 0.5` : un homme jamais vu n est JAMAIS designe, donc `tir` vaut zero pour
+        # lui, donc aucun terme multiplie par `tir` ne peut l atteindre. Un premier essai qui
+        # planchonnait `los` DANS les termes de tir est reste parfaitement inerte — memes
+        # comptes a la dizaine pres sur neuf valeurs du bouton. Le feu de zone n est pas du
+        # tir vise attenue : c est un terme SEPARE, qui ne passe pas par la designation.
+        #
+        # Il ne touche PAS `exposed` : le prix de la manoeuvre reste ce que l agent voit
+        # vraiment, sinon on lui apprendrait que se cacher ne sert a rien.
+        # Il se CALIBRE sur le verdict des +75 %, jamais au jugement.
+        self.feu_de_zone = float(feu_de_zone)
+        if not (0.0 <= self.feu_de_zone <= 1.0):
+            raise ValueError("feu_de_zone est une fraction du feu vise, versee sans designation")
+        self.feu_sur_connu = float(feu_sur_connu)
+        if not (0.0 <= self.feu_sur_connu <= 1.0):
+            raise ValueError("feu_sur_connu est une fraction du feu qui suit un homme connu")
         self.supp_residuel = supp_residuel
         self.supp_persist = float(supp_persist)
         if supp_residuel is not None and not (0.0 <= supp_residuel <= 1.0):
@@ -137,6 +170,7 @@ class AssaultTerrain:
         self.ALERTE_PAR_TIR = 0.5      # 1,50 mesure pour trois tirs
         self.R_VUE_PLEINE = 30.0       # 4,00 mesure
         self.R_VUE_NULLE = 100.0       # 0,00 mesure
+        self.COUCHE_INVISIBLE_M = 120.0   # banc de l angle mort : couche invisible au-dela
         self.frein_feu = float(frein_feu)
         self._frein_pret = False   # last_exposed n existe qu apres le premier pas
         self.move = move; self.fire_range = fire_range; self.hit = hit; self.secure_r = secure_r
@@ -191,6 +225,8 @@ class AssaultTerrain:
             # instantanee et totale, les quatre defenseurs alertes en trois secondes.
             self.alerte_niv = torch.zeros(N, device=d)
             self.posture = torch.zeros(N, A, dtype=torch.long, device=d)
+            # cliquet PAR ATTAQUANT : a-t-il deja ete vu ? monotone, comme l alerte de camp.
+            self.a_connu = torch.zeros(N, A, device=d)
             self.prev_d = torch.zeros(N, device=d)
             for nm in ("hm", "slope", "cover", "dcover"):
                 setattr(self, nm, torch.zeros(N, self.terr_G, self.terr_G, device=d))
@@ -248,6 +284,8 @@ class AssaultTerrain:
         self.posture[idx] = 0
         if hasattr(self, 'alerte_niv'):
             self.alerte_niv[idx] = 0.0
+        if hasattr(self, 'a_connu'):
+            self.a_connu[idx] = 0.0
         if self.replica:
             for _ in range(10):
                 _w = self._sample_solid(self.apx[idx], self.apy[idx]) > 0.5
@@ -355,6 +393,22 @@ class AssaultTerrain:
         dehors = percue & (ecart > self._dfarc)
         # le compteur monte tant que la menace hors cone est la, retombe sinon
         self.d_attente = torch.where(dehors, self.d_attente + 1.0, torch.zeros_like(self.d_attente))
+        # ─── LE CLIQUET DEPENSE LE SURSIS ────────────────────────────────────────────────
+        # ⚠️ `alerte_niv` etait CALCULE PUIS JETE : il montait a chaque pas, monotone, et
+        # aucune ligne du fichier ne le lisait. Le cliquet mesure sur Arma — « l alerte se
+        # depense, elle ne se recupere jamais », aucune decroissance en 300 s — n avait donc
+        # aucun effet sur le monde.
+        # Ce qu il commande, et c est mesure aux deux bouts : le sursis de 4 s de l arc de tir
+        # est le temps qu il faut a un defenseur pour prendre a partie une menace QU IL NE
+        # CONNAISSAIT PAS. Un camp deja alerte n a plus ce temps a perdre. On interpole donc
+        # entre les deux ancres mesurees :
+        #     alerte 0,00  ->  sursis plein (4 s, mesure)
+        #     alerte 4,00  ->  sursis nul   (la menace est deja connue)
+        # C est ce qui fait qu en Arma se montrer une seule fois se paie sur TOUTE la
+        # traversee, alors que le gymnase ne facturait que le pas ou l on s est montre.
+        if self.alerte and hasattr(self, "alerte_niv"):
+            _deja = (self.alerte_niv / self.ALERTE_MAX).clamp(0.0, 1.0).unsqueeze(1)
+            self.d_attente = torch.maximum(self.d_attente, _deja * float(self.arc_latence_pas))
         # l'arc est OUVERT quand le sursis est ecoule, et se referme sans menace percue
         self.d_ouvert = (self.d_attente >= self.arc_latence_pas) & percue
 
@@ -560,6 +614,19 @@ class AssaultTerrain:
                                  + (self.apy - self.dpy[:, _di:_di + 1]) ** 2)
                 _dd = torch.where(_al > 0, _dd, torch.full_like(_dd, 1e4))
                 _dd = torch.where(_dv[:, _di:_di + 1] > 0, _dd, torch.full_like(_dd, 1e4))
+                # ⚠️ UN HOMME COUCHE AU-DELA DE 120 m NE SE FAIT PAS DETECTER. Mesure Arma
+                # certifiee (banc de l angle mort) : 18/18 reperages dans le cone contre 0/26
+                # hors, et le COUCHE devient invisible passe 120 m. Sans cette ligne, la
+                # posture ne servait qu a reduire la surface touchable — jamais a echapper au
+                # REGARD, qui est pourtant l essentiel de ce que la posture achete.
+                # ⚠️ Et ce n est PAS en contradiction avec la courbe de toucher, qui donne
+                # encore 16-18 % a 150-200 m couche : la courbe mesure le TOUCHER d une cible
+                # DEJA connue, cette ligne mesure la DETECTION d une cible qui ne l est pas.
+                # Deux grandeurs, deux mesures, et c est le cliquet d alerte qui les separe.
+                if self.postures and self.COUCHE_INVISIBLE_M is not None:
+                    _couche = (self.posture == 2)
+                    _loin = _dd > self.COUCHE_INVISIBLE_M
+                    _dd = torch.where(_couche & _loin, torch.full_like(_dd, 1e4), _dd)
                 _dmin = torch.minimum(_dmin, _dd.min(dim=1).values)
             _vu = ((self.R_VUE_NULLE - _dmin) / (self.R_VUE_NULLE - self.R_VUE_PLEINE)).clamp(0.0, 1.0)
             # (b) LE FEU DE L ATTAQUANT COUTE, sur TOUT LE GROUPE, quelle que soit la distance.
@@ -570,6 +637,7 @@ class AssaultTerrain:
 
         # --- feu des DEFENSEURS sur les attaquants (LOS du relief + portee + couvert) ---
         dmg_a = torch.zeros(N, A, device=d); exposed = torch.zeros(N, A, device=d)
+        self._vu_geo = torch.zeros(N, A, device=d)   # vu GEOMETRIQUEMENT a ce pas, avant tout bouton
         for di in range(D):
             bx = self.dpx[:, di:di + 1].expand(N, A); by = self.dpy[:, di:di + 1].expand(N, A)
             los = self._losc(self.hm, self.apx, self.apy, bx, by, self.scale, eye_a=self._eye(), eye_b=1.7)
@@ -605,6 +673,19 @@ class AssaultTerrain:
                     # et sans attenuation d ampleur (impacts 180/0 = 1,17).
                     _dans = _dans | self.d_ouvert[:, di:di + 1]
                 active = active * _dans.float()     # hors cône ET sursis non ecoule = ne peut pas tirer
+            # --- LE CLIQUET PAR ATTAQUANT. `los` devient « ce que le defenseur peut
+            # battre » : ce qu il VOIT, ou ce qu il A VU et bat encore a taux reduit.
+            # le cliquet se tient a jour MEME a bouton nul : sans ca on ne saurait pas
+            # mesurer le contraste « deja vu / jamais vu » dans le monde de reference.
+            self.a_connu = torch.maximum(self.a_connu, (los > 0.5).float() * _viv)
+            # ⚠️ LA VISIBILITE GEOMETRIQUE, RELEVEE AVANT LE BOUTON. Sans elle, l etiquette
+            # « vu / pas vu » derive du meme `los` que `feu_sur_connu` modifie : le traitement
+            # deplace l etiquette en meme temps que l effet, et le contraste MONTE avec le
+            # bouton (856 % puis 4086 % au premier balayage). Une mesure dont l etiquette
+            # depend du traitement ne mesure rien.
+            self._vu_geo = torch.maximum(self._vu_geo, (los > 0.5).float() * _viv)
+            if self.feu_sur_connu > 0.0:
+                los = torch.maximum(los, self.feu_sur_connu * self.a_connu)
             inr = (dist < self.fire_range).float()
             # SELECTION DE CIBLE. `tir` remplace `active` dans les DEGATS uniquement :
             # « etre vu » n'est pas « etre pris pour cible », et `exposed` doit rester la
@@ -626,6 +707,8 @@ class AssaultTerrain:
                     # courbe compterait le meme effet deux fois.
                     _p = self._p_balle(dist) * self.tir_par_pas * self.degat_par_impact
                     dmg_a += _p * efrac * tir
+                    if self.feu_de_zone > 0.0:      # le defenseur bat une ZONE : pas de designation, pas de vue
+                        dmg_a += _p * self.feu_de_zone * inr * active
                 else:
                     dmg_a += self.hit * efrac * inr * tir
                 if self.courbe is not None:
@@ -643,6 +726,8 @@ class AssaultTerrain:
                     _po = self.posture if self.postures else None
                     _p = self._p_balle(dist, _po) * self.tir_par_pas * self.degat_par_impact
                     dmg_a += _p * los * tir * (1.0 - 0.7 * incover)
+                    if self.feu_de_zone > 0.0:      # idem : le couvert attenue, il n annule plus
+                        dmg_a += _p * self.feu_de_zone * inr * active * (1.0 - 0.7 * incover)
                 else:
                     _exp = self._expose_lut[self.posture] if (self.postures and self.hull) else 1.0   # HULL-DOWN knob (posture basse = petite cible)
                     dmg_a += self.hit * los * inr * tir * (1.0 - 0.7 * incover) * _exp

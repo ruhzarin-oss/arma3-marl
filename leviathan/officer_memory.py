@@ -14,6 +14,13 @@ import numpy as np
 # Doctrine validée A>B>C>D (cibles > force > terrain > attrition). Pondération configurable par expé.
 DOCTRINE = {"cibles": 1.0, "force": 0.5, "terrain": 0.25, "attrition": 0.1}
 
+# Poids d'`exposition` — ABAISSÉ de 0.20 à 0.05 le 11/08/2026 (décision Younes).
+# Mesuré : à 0.20 ce drapeau BINAIRE pesait 20× un FOB perdu (0.010) et 1.6× une cible vitale
+# (0.125), alors qu'il ne fait pas partie des 7 faits ordonnés A>B>C>D — il écrasait à lui seul
+# toute la dimension terrain (0.25 pour les 25 FOB). À 0.05 il vaut le seuil de décision, soit
+# 5 FOB perdus ou 2 hommes. N'affecte que 13 des 1230 outcomes déjà gravés (1,1 %).
+W_EXPOSITION = 0.05
+
 
 def score_outcome(o, w=DOCTRINE):
     """7 faits bruts -> score scalaire (la décision était-elle bonne ?). + = mieux."""
@@ -22,7 +29,7 @@ def score_outcome(o, w=DOCTRINE):
     s -= w["force"]     * (o.get("pertes_amies", 0) / 20.0)           # B : un mort coûte cher
     s += w["terrain"]   * o.get("fobs_tenus_frac", 1.0)               # C : terrain tenu
     s += w["attrition"] * (o.get("pertes_ennemies", 0) / 10.0)        # D : ennemi saigné
-    s -= 0.2 * (o.get("exposition", 0))                               # coût d'opportunité (un FOB dégarni)
+    s -= W_EXPOSITION * (o.get("exposition", 0))                      # coût d'opportunité (un FOB dégarni)
     return round(s, 4)
 
 
