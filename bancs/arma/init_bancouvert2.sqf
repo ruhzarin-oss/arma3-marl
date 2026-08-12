@@ -20,7 +20,13 @@ if (isServer) then {
     // j ai lue decrit donc le monde du geste n2, pas celui-ci.
     // R15 : la calibration heritee est NULLE. Ce geste balaie son propre monde.
     // Un seul bras pendant le balayage : on regle le monde, on ne compare rien.
-    HMT_CALIBRE = true;
+    // BALAYAGE TERMINE ET LU : 1057 accrochages, onze reglages, aucun muet. Le monde de CE
+    // banc rend son point de fonctionnement a 13 defenseurs — survie 63 %, dans la bande.
+    // Et il dit autre chose : ici la prise passe de 67 % a 36 % de 4 a 14 defenseurs.
+    // L effectif est un levier FORT — le plateau du balayage n2 venait de son attaquant
+    // FIXE a 8, pas d une propriete du monde.
+    HMT_CALIBRE = false;
+    HMT_NDEF = 13;
     HMT_C3_CE = false;
     // LE CANAL PROPRE DU GESTE N3, dans SON fichier. Une copie du generateur ne peut
     // plus l emporter — c est exactement ce qui l a detruit le 10/08.

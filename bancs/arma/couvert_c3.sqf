@@ -62,8 +62,51 @@ HMT_C3_ARMER = {
     _u setVariable ["c3_arme", true];
     _u setVariable ["c3_feu", 0];
     _u addEventHandler ["FiredNear", {
-        params ["_unit", "", "_distance"];
-        if (_distance < 15) then { _unit setVariable ["c3_feu", time] };
+        params ["_unit", "_tireur", "_distance"];
+        // meme regle que le professeur : « sous le feu » veut dire SOUS LE FEU ADVERSE.
+        // Deux canaux qui comptent differemment le meme mot se contrediraient au depouillement.
+        if (!isNull _tireur && {!((side _tireur) isEqualTo (side _unit))} && {_distance < 15}) then {
+            _unit setVariable ["c3_feu", time];
+        };
+    }];
+};
+
+// ─── LE PROFESSEUR DU GESTE N°3 — reecrit le 11/08 avec le canal.
+// Specification, mot pour mot du protocole depose : « l equipe se jette a couvert au premier
+// tir proche, se couche, repart apres 10 s » ; le temoin « continue debout, meme axe, meme
+// lieu, meme effectif ». Le bras est publie par accrochage dans HMT_C3_BRAS par le
+// generateur ; ici on ne fait qu APPLIQUER, et seulement au bras professeur.
+HMT_C3_PROF = {
+    params ["_u"];
+    if (_u getVariable ["c3_prof_arme", false]) exitWith {};
+    _u setVariable ["c3_prof_arme", true];
+    _u addEventHandler ["FiredNear", {
+        params ["_unit", "_tireur", "_distance"];
+        // ⚠️ LE TIR DOIT ETRE ADVERSE. `FiredNear` se declenche pour tous les hommes PROCHES
+        // DU TIREUR — donc aussi quand le VOISIN tire. Mesure du 11/08 : les 90 premiers
+        // declenchements portaient tous une distance de ZERO, signature du camarade a deux
+        // metres. Le professeur se couchait au feu de son propre binome, ce qui le rendait
+        // bien plus facile a declencher que la specification ne le dit — et le temoin, lui,
+        // ne subissait pas ce biais puisqu il ne se couche jamais. L ecart entre les bras
+        // en etait gonfle. On exige donc que le tireur soit de l autre camp.
+        if (isNull _tireur) exitWith {};
+        if ((side _tireur) isEqualTo (side _unit)) exitWith {};
+        if (_distance >= 15) exitWith {};
+        if (_unit getVariable ["c3_a_terre", false]) exitWith {};
+        _unit setVariable ["c3_a_terre", true];
+        _unit setUnitPos "DOWN";
+        (format ["HMT|G|C3GESTE|%1|a_terre|%2|adverse|1",
+                 _unit getVariable ["hmt_id", -1], round _distance]) call HMT_LOG;
+        [_unit] spawn {
+            params ["_u"];
+            sleep 10;                      // le sursis depose : dix secondes au sol
+            if (alive _u) then {
+                _u setUnitPos "AUTO";
+                _u setVariable ["c3_a_terre", false];
+                (format ["HMT|G|C3GESTE|%1|repart|10",
+                         _u getVariable ["hmt_id", -1]]) call HMT_LOG;
+            };
+        };
     }];
 };
 
@@ -86,16 +129,32 @@ HMT_C3_ARMER = {
                 {
                     if (alive _x && {(_x getVariable ["hmt_axe", -1]) >= 0}) then {
                         [_x] call HMT_C3_ARMER;
+                        // le geste ne s applique QU AU BRAS PROFESSEUR. Le temoin reste
+                        // debout : c est ce qui fait la comparaison.
+                        if (!isNil "HMT_C3_BRAS") then {
+                            if (HMT_C3_BRAS getOrDefault [_id, false]) then { [_x] call HMT_C3_PROF };
+                        };
                         private _post = switch (toLower (animationState _x select [0,4])) do {
                             case "amov": { if ((stance _x) == "PRONE") then {2}
                                            else { if ((stance _x) == "CROUCH") then {1} else {0} } };
                             default { if ((stance _x) == "PRONE") then {2}
                                       else { if ((stance _x) == "CROUCH") then {1} else {0} } };
                         };
-                        private _sousFeu = if ((time - (_x getVariable ["c3_feu", -999])) < 2) then {1} else {0};
-                        (format ["HMT|G|COUVERT|%1|%2|%3|%4|%5", _id,
+                        // ⚠️ LA FENETRE DOIT ETRE PLUS LARGE QUE LE PAS D ECHANTILLONNAGE.
+                        // Premiere version : drapeau de 2 s, echantillonne toutes les 2 s.
+                        // Un evenement dont la duree egale la periode de mesure est invisible
+                        // une fois sur deux — et il l a ete ZERO fois sur 2087 echantillons
+                        // pendant que le geste, lui, se declenchait douze fois. Le canal
+                        // disait « personne sous le feu » d un monde ou l on tirait a 4 m.
+                        // Six secondes : trois fois le pas, donc au moins deux echantillons
+                        // portent la trace de chaque rafale.
+                        private _sousFeu = if ((time - (_x getVariable ["c3_feu", -999])) < 6) then {1} else {0};
+                        (format ["HMT|G|COUVERT|%1|%2|%3|%4|%5|%6", _id,
                                  _x getVariable ["hmt_id", -1],
-                                 _post, [_x] call HMT_C3_ACOUVERT, _sousFeu]) call HMT_LOG;
+                                 _post, [_x] call HMT_C3_ACOUVERT, _sousFeu,
+                                 (if (!isNil "HMT_C3_BRAS") then {
+                                     if (HMT_C3_BRAS getOrDefault [_id, false]) then {1} else {0}
+                                  } else {0})]) call HMT_LOG;
                     };
                 } forEach _unites;
             } forEach HMT_ACC;
