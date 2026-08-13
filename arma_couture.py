@@ -52,8 +52,40 @@ HMT_CX=__CX__; HMT_CY=__CY__; HMT_S=__S__; HMT_FRNG=__FRNG__;
   private _gy=((getTerrainHeightASL [_cx,_cy+6.25]) - (getTerrainHeightASL [_cx,_cy-6.25]))/2;
   private _slope=(sqrt (_gx*_gx + _gy*_gy))/5;
   // dcover : distance au batiment le plus proche (proxy du champ de couvert), normalisee
-  private _nb=nearestObjects [_u,["House","Building","Wall","Rock"],40]; private _dc=1;
-  if (count _nb>0) then { _dc=(_u distance (_nb select 0))/30 min 1 };
+  // ⚠️ `dcover` PORTAIT DEUX ECARTS A LA FOIS, et c est la quatrieme fois de la journee que
+  // deux colonnes du meme nom ne mesurent pas la meme chose.
+  //   1. LA GRANDEUR. Le gymnase appelle couvert `pente > 1,4 x pente moyenne` — son propre
+  //      commentaire dit « cretes/pentes = abris ». C est LE RELIEF QUI ABRITE. La couture
+  //      comptait des BATIMENTS (`nearestObjects House/Building/Wall/Rock`). Sur Stratis, a un
+  //      point tire au hasard, il n y a presque jamais de batiment a 30 m : mediane 1,000
+  //      plafonnee, contre 0,038 au gymnase. Un ecart de 26 fois qui n etait pas un ecart de
+  //      monde mais de definition — et « rapprocher » le gymnase de ca aurait ete corriger le
+  //      monde pour satisfaire un capteur qui ne mesure pas la bonne chose.
+  //   2. L UNITE. Le gymnase rend une distance EN CELLULES de 6,25 m, puis divise par 30.
+  //      La couture rendait des METRES divises par 30. Facteur 6,25 en plus du reste.
+  // On refait donc les DEUX a l identique : couvert = relief au-dessus du seuil, distance de
+  // Tchebychev en cellules (c est un max-pool 3x3 cote gymnase, donc Tchebychev), cap a 16
+  // cellules comme `_dist_field`, puis /30 plafonne a 1.
+  private _MOY = 2.315;   // pente moyenne de Stratis en m/cellule : 0,463 (mesure, 403 points) x 5
+  private _SEUIL = 1.4 * _MOY;
+  private _dcell = 16;
+  private _px = _p select 0; private _py = _p select 1;
+  private _k = 0;
+  while { _k <= 8 && _dcell >= 16 } do {
+    private _trouve = false;
+    for "_a" from -_k to _k do {
+      for "_bb" from -_k to _k do {
+        if (!_trouve && {(abs _a == _k) || (abs _bb == _k)}) then {
+          private _cx = _px + _a * 6.25; private _cy = _py + _bb * 6.25;
+          private _sx = ((getTerrainHeightASL [_cx+6.25,_cy]) - (getTerrainHeightASL [_cx-6.25,_cy]))/2;
+          private _sy = ((getTerrainHeightASL [_cx,_cy+6.25]) - (getTerrainHeightASL [_cx,_cy-6.25]))/2;
+          if ((sqrt (_sx*_sx + _sy*_sy)) > _SEUIL) then { _dcell = _k; _trouve = true };
+        };
+      };
+    };
+    _k = _k + 1;
+  };
+  private _dc = (_dcell / 30) min 1;
   // ennemi vivant connu le plus proche
   private _ne=objNull; private _nd=1e9;
   { if (alive _x) then { private _d=_u distance _x; if (_d<_nd) then {_nd=_d;_ne=_x} } } forEach HMT_ENNEMI;
