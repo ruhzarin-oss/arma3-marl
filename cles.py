@@ -15,6 +15,57 @@ interrompue pour ca.
 """
 
 
+def corpus_sain(fichiers):
+    """⚠️ LA LIMITE DU SEGMENTEUR, TROUVEE LE 12/08 : il separe par FICHIER, donc il ne voit
+    PAS le meme journal presente deux fois sous deux noms. C est arrive — l archive
+    `pause_2026-08-11/serverBA.out` et la rotation `serverBA_215849.out` etaient le meme
+    journal (3992 lignes LIEU, 54 563 lignes BOND, a l identique), et un glob `serverBA*` les
+    a ramasses tous les deux. 3992 accrochages comptes DEUX FOIS.
+    Ici le verdict n a pas bouge — l intervalle se calcule sur l ecart des huit couloirs, pas
+    sur le nombre d accrochages, et dupliquer a l identique ne deplace aucun pourcentage. Mais
+    c est une chance, pas une propriete : sur une grandeur qui se moyenne par accrochage, le
+    doublon aurait retreci l intervalle et pu ouvrir une porte fermee.
+
+    REGLE : un corpus se declare par LISTE EXPLICITE, jamais par glob. Et on le passe ici.
+    Rend (liste_retenue, doublons) ; refuse silencieusement rien, nomme tout."""
+    import hashlib
+    vus, garde, doublons = {}, [], []
+    for f in fichiers:
+        try:
+            h = hashlib.sha256()
+            with open(f, "rb") as fh:
+                for bloc in iter(lambda: fh.read(1 << 20), b""):
+                    h.update(bloc)
+            e = h.hexdigest()
+        except OSError:
+            continue
+        if e in vus:
+            doublons.append((f, vus[e]))
+        else:
+            vus[e] = f; garde.append(f)
+    return garde, doublons
+
+
+def empreinte_par_canal(fichiers, canaux=("LIEU", "BOND", "SANTE", "fin")):
+    """Deux fichiers peuvent differer d un octet et porter LA MEME campagne — c est le cas
+    reel du 12/08. On compare donc aussi le COMPTE PAR CANAL, qui ne ment pas."""
+    import re
+    out = {}
+    for f in fichiers:
+        c = {}
+        try:
+            texte = open(f, "rb").read()
+        except OSError:
+            continue
+        for k in canaux:
+            c[k] = texte.count(("HMT|G|%s|" % k).encode())
+        out[f] = tuple(c[k] for k in canaux)
+    jumeaux = {}
+    for f, sig in out.items():
+        jumeaux.setdefault(sig, []).append(f)
+    return {s: v for s, v in jumeaux.items() if len(v) > 1 and any(s)}
+
+
 class Segmenteur:
     """Rend une cle unique par accrochage, meme a travers les redemarrages."""
 

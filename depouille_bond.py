@@ -18,9 +18,32 @@
   · bras equilibres, et chaque couloir joue assez de fois pour etre lu.
 """
 import re, sys, math
+from cles import Segmenteur, corpus_sain, empreinte_par_canal
 from collections import defaultdict
 
-F = '/mnt/data/harmattan-sandbox/logs/serverBA.out'
+# ⚠️ SECONDE LECTURE : plusieurs journaux, et le SEGMENTEUR. Les identifiants d accrochage
+# repartent a 1 a chaque redemarrage ; sans lui, deux fichiers bout a bout fusionneraient des
+# accrochages differents portant le meme numero.
+F = sys.argv[1:] or ['/mnt/data/harmattan-sandbox/logs/serverBA.out']
+# ⚠️ LE CORPUS SE DECLARE, IL NE SE RAMASSE PAS. Un glob `serverBA*` a ramasse une
+# vingtaine de journaux etrangers ET le meme journal deux fois. On refuse les doublons ici,
+# bruyamment, avant de lire quoi que ce soit.
+F, _dbl = corpus_sain(F)
+for _a, _b in _dbl:
+    print(f"  ⚠️ DOUBLON PARFAIT ecarte : {_a}  ==  {_b}")
+_jum = empreinte_par_canal(F)
+for _sig, _v in _jum.items():
+    print(f"  ⚠️ MEMES COMPTES PAR CANAL {_sig} : {[__import__('os').path.basename(x) for x in _v]}")
+    print( "     -> meme campagne sous deux noms. On ne lit pas un corpus ambigu.")
+    raise SystemExit(1)
+print(f"  corpus : {len(F)} journal(aux) retenu(s)")
+_seg = Segmenteur()
+
+
+def _lignes(src):
+    for _f in src:
+        for _L in open(_f, encoding='utf-8', errors='ignore'):
+            yield _f, _L
 lieu = re.compile(r'HMT\|G\|LIEU\|(\d+)\|(\d+)\|(\d+)')
 arr  = re.compile(r'HMT\|G\|ARR\|(\d+)\|')
 sante = re.compile(r'HMT\|G\|SANTE\|(\d+)\|(\d+)\|(\d+)')
@@ -29,15 +52,22 @@ bond = re.compile(r'HMT\|G\|BOND\|(\d+)\|')
 bras, couloir, arrives, bonds = {}, {}, set(), defaultdict(int)
 grp = []
 err = 0
-for L in open(F, encoding='utf-8', errors='ignore'):
+for _f, L in _lignes(F):
     if re.search(r'(?i)script error|Error in expression|Undefined variable', L): err += 1
     m = lieu.search(L)
     if m:
-        i = int(m.group(1)); couloir[i] = int(m.group(2)); bras[i] = int(m.group(3)); continue
+        # ⚠️ LA LIGNE `LIEU` EST LE FLUX MAITRE : une par accrochage, en ordre croissant.
+        # C est elle qui fait avancer le segment ; tous les autres canaux le SUIVENT.
+        # Faute payee a l instant : j avais mis les bonds sous une cle (fichier, segment, id)
+        # et les couloirs sous un simple entier — ils ne pouvaient plus se rencontrer, et le
+        # controle « le professeur a reellement bondi » rendait 0 sur 1991 alors que le journal
+        # porte 54 563 lignes de bond. Le controle a attrape MA faute, pas celle du monde.
+        i = _seg.cle(_f, int(m.group(1)))
+        couloir[i] = int(m.group(2)); bras[i] = int(m.group(3)); continue
     m = arr.search(L)
-    if m: arrives.add(int(m.group(1))); continue
+    if m: arrives.add(_seg.cle_passive(_f, int(m.group(1)))); continue
     m = bond.search(L)
-    if m: bonds[int(m.group(1))] += 1; continue
+    if m: bonds[_seg.cle_passive(_f, int(m.group(1)))] += 1; continue
     m = sante.search(L)
     if m: grp.append((int(m.group(2)), int(m.group(3))))
 
@@ -98,11 +128,15 @@ def ec(v):
     m=moy(v); return math.sqrt(sum((x-m)**2 for x in v)/(len(v)-1)) if len(v)>1 else 0.0
 m, s = moy(ecarts), ec(ecarts)
 se = s/math.sqrt(len(ecarts))
-tc = {2:12.71,3:4.30,4:3.18,5:2.78,6:2.57,7:2.45,8:2.36}.get(len(ecarts), 2.26)
+# ⚠️ NIVEAU 99 %, PAS 95. C est le PEAGE DE LA SECONDE VUE, depose avant lancement :
+# « j ai regarde une fois, et une seconde lecture non tarifee gonfle la probabilite de passage
+# sous le nul — c est l arret optionnel par la porte de derriere. » Le seuil de 10 points, lui,
+# ne bouge pas d un cheveu. ⟨PROTOCOLE_BOND_SECONDE_LECTURE.md⟩
+tc = {2:63.66,3:9.92,4:5.84,5:4.60,6:4.03,7:3.71,8:3.50}.get(len(ecarts), 3.36)
 lo, hi = m - tc*se, m + tc*se
 sur = sum(1 for e in ecarts if e > 0)
 
-print(f"\n    ecart moyen apparie : {m:+.1f} points   intervalle 95 % [{lo:+.1f} ; {hi:+.1f}]")
+print(f"\n    ecart moyen apparie : {m:+.1f} points   intervalle 99 % [{lo:+.1f} ; {hi:+.1f}]")
 print(f"    couloirs ou le professeur gagne : {sur} sur {len(ecarts)}"
       + (f"   (un sur {2**len(ecarts)} par hasard)" if sur == len(ecarts) else ""))
 
