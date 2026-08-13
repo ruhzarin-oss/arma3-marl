@@ -11,6 +11,14 @@ if (isServer) then {
     (format ["HMT|G|EMPREINTE|%1|%2", "9365bf13a86d9d74", str (getMissionConfigValue "")]) call HMT_LOG;
     HMT_A2PUR = false; HMT_BOND = false; HMT_APPUI = false;
     HMT_COUVERT3 = true;
+    // ═══ LES SEPT LIEUX CERTIFIES — reparation du 12/08 ═══
+    // Le banc tirait un point AU HASARD a chaque accrochage : 763 accrochages, 763 lieux
+    // distincts, donc AUCUN appariement possible. Or le protocole du geste n°3 exige la
+    // decomposition par lieu ⟨regle 12⟩ et sept lieux ont ete CERTIFIES le 10/08 par le
+    // geometre (7 sur 8 ; le troisieme a echoue : silhouette 16 %, vus 28 %).
+    // C etait le second morceau manquant apres l ecrasement du generateur.
+    // Chaque entree : [[objectif], [depart], azimut] — le chemin qui a ete certifie.
+    HMT_LIEUX_C3 = [[[3150,1500],[3350,1700],225], [[2200,1650],[2400,1650],270], [[3400,2100],[3400,1900],0], [[2300,2150],[2500,2150],270], [[2800,2500],[2600,2300],45], [[3600,2600],[3800,2400],315], [[1850,2750],[2050,2550],315]];
     // ---- SON PROPRE BALAYAGE. LA CALIBRATION DU 10/08 NE VAUT PAS ICI.
     // On a cru qu un seul balayage servirait deux gestes : "chaque geste y lit SA bande sur SA
     // grandeur". C est faux, et la raison est dans le generateur, pas dans la statistique.

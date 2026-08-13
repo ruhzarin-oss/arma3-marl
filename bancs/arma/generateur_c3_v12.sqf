@@ -306,6 +306,16 @@ HMT_QUI_TIENT = {
                     HMT_AZ_IMPOSE = (_pt getDir HMT_DEPART);
                     HMT_LIEU_ID = HMT_LIEUX_AP find _L;
                 };
+                // GESTE N°3 : on joue les SEPT LIEUX CERTIFIES, pas un point au hasard.
+                // Meme mecanique que le geste n°2 juste au-dessus : objectif, depart et
+                // azimut viennent ensemble, parce qu ils ont ete certifies ENSEMBLE.
+                if (!isNil "HMT_LIEUX_C3") then {
+                    private _L = HMT_LIEUX_C3 select (floor (random (count HMT_LIEUX_C3)));
+                    _pt = [(_L select 0) select 0, (_L select 0) select 1, 0];
+                    HMT_DEPART = [(_L select 1) select 0, (_L select 1) select 1, 0];
+                    HMT_AZ_IMPOSE = (_L select 2);
+                    HMT_LIEU_ID = HMT_LIEUX_C3 find _L;
+                };
                 _n = _n + 1;
                 // LES QUATRE BRAS, TIRES AU SORT A CHAQUE ACCROCHAGE
                 //   0 frontal · 1 deux axes · 2 frontal FIGE · 3 deux axes FIGE

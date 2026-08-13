@@ -129,6 +129,19 @@ HMT_C3_PROF = {
                 {
                     if (alive _x && {(_x getVariable ["hmt_axe", -1]) >= 0}) then {
                         [_x] call HMT_C3_ARMER;
+                        // ═══ LE TEMOIN RESTE DEBOUT — reparation du 12/08 ═══
+                        // Mesure : le professeur se couchait sur 32,3 % des echantillons, le
+                        // temoin sur 31,8 %. AUCUN ECART. Le geste se declenchait bien (2221
+                        // mises a terre, toutes sous feu adverse) mais l IA d Arma couche le
+                        // temoin TOUTE SEULE sous le feu. Le protocole dit qu il « continue
+                        // debout, meme axe, meme lieu, meme effectif » — rien ne l y
+                        // contraignait. Deux bras qui font la meme chose ne mesurent rien.
+                        // C etait le premier morceau manquant apres l ecrasement du generateur.
+                        if (!isNil "HMT_C3_BRAS") then {
+                            if (!(HMT_C3_BRAS getOrDefault [_id, false])) then {
+                                _x setUnitPos "UP";
+                            };
+                        };
                         // le geste ne s applique QU AU BRAS PROFESSEUR. Le temoin reste
                         // debout : c est ce qui fait la comparaison.
                         if (!isNil "HMT_C3_BRAS") then {
