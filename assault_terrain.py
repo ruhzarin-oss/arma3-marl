@@ -18,7 +18,7 @@ class AssaultTerrain:
                  emergent_expo=False, death_pen=0.4, suffer_pen=1.1, win_bonus=1.0, kill_w=1.5, arma_obs=False, obs_dcover_arma=None, obs_sans_slope=None,
                  secure_task=False, approach_w=0.2, secure_only=False, supp_kill=1.0,
                  def_arc=math.pi, def_line=False, def_spread=1.0, def_rline=35.0, def_rand=False, nav_around=False, flank_kill=0.0,
-                 frein_feu=0.0, alerte=False, courbe=None, tir_par_pas=None, sec_par_pas=None, degat_par_impact=None, arc_obs=False, champ_risque=False, champ_R=35.0, stress=False, mission="assaut", arc_latence_s=None, supp_residuel=None, supp_persist=0.0, cible_unique=True, feu_sur_connu=0.0, feu_de_zone=0.0):
+                 frein_feu=0.0, alerte=False, courbe=None, tir_par_pas=None, sec_par_pas=None, degat_par_impact=None, arc_obs=False, champ_risque=False, champ_R=35.0, stress=False, mission="assaut", arc_latence_s=None, supp_residuel=None, supp_persist=0.0, cible_unique=True, feu_sur_connu=0.0, feu_de_zone=0.0, relief_stratis=False):
         # ---- COURBE N2 : LA SUPPRESSION MESUREE SUR ARMA (28/07) ----
         # `supp_residuel` = ce qu'il RESTE de capacite de nuire sous suppression pleine.
         # Mesure : 0.08 (cadence x0,57 x precision x0,14). None = ancien tout-ou-rien.
@@ -149,6 +149,19 @@ class AssaultTerrain:
         self.def_rand = def_rand   # RANDOMISE la géométrie défensive par épisode (arc/spread/rline/décentrage) -> pas de mémorisation « toujours à gauche » (condition Fable #1)
         self.nav_around = nav_around   # NAV CONSCIENTE DES MURS : cap tapant un mur -> longe (angle libre le plus proche du but), au lieu de s'arrêter net (= doMove Arma). Dissout la tension couvert<->traversée
         self.flank_kill = flank_kill   # FEU DE FLANC : dégâts/pas infligés à un défenseur depuis SON angle mort (il ne riposte pas) ; 0 = désactivé (mur balistique partout)
+        # ─── LE RELIEF SUIT LA CARTE, il n est plus une constante ───────────────────
+        # Depot du 12/08 : `gen_terrain` normalisait CHAQUE carte a la meme amplitude, donc
+        # toutes etaient egalement accidentees. On tire desormais `relief` par environnement
+        # dans la distribution MESUREE de Stratis (394 points, formule du gymnase des deux
+        # cotes). La pente etant lineaire en `relief`, reproduire les reliefs reproduit les
+        # pentes — par construction, pas par reglage. Le facteur d echelle vient du rapport
+        # des medianes, il n est pas choisi.
+        self.relief_stratis = bool(relief_stratis)
+        self._pentes_stratis = None
+        if self.relief_stratis:
+            import numpy as _np
+            _p = _np.load("/home/younes/arma3-marl/pentes_stratis.npy")
+            self._pentes_stratis = torch.tensor(_p, device=device, dtype=torch.float32)
         self.N = num_envs; self.A = A; self.D = D; self.R_spawn = R_spawn
         self.terr_R = terr_R; self.terr_G = terr_G; self.relief = relief
         # FREIN SOUS LE FEU (2026-07-30). Defaut 0 = comportement historique, non regressif.
@@ -243,7 +256,19 @@ class AssaultTerrain:
             self.slope[idx] = 0.0
             self.dcover[idx] = self._dcoverR if getattr(self, "_dcoverR", None) is not None else 0.0   # POINT 5 : vrai couvert variable
         else:
-            T = TG.gen_terrain(n, self.terr_G, d, self.g, relief=self.relief)
+            # ATTENTION : PAS DE TIRAGE DU RELIEF PAR CARTE. Premiere version : je tirais
+            # `relief` dans la distribution des pentes de Stratis — et j appliquais donc la
+            # variation DEUX FOIS, puisque chaque carte a deja son propre etalement interne.
+            # Mesure : le gymnase s etale de x0,26 a x2,68 autour de sa mediane, Stratis de
+            # x0,00 a x2,59. La variete etait DEJA la. Resultat : p99 a plus 46 pour cent.
+            # Ce qu il fallait : un FACTEUR D ECHELLE (mediane de Stratis sur mediane du
+            # gymnase = 0,408/0,563 = 0,725) et de VRAIES PLAINES, que le bruit lisse ne sait
+            # pas produire. Les deux sont MESURES, aucun n est choisi.
+            _rel, _plat = self.relief, 0.0
+            if self.relief_stratis:
+                _rel = self.relief * 0.725
+                _plat = 0.071
+            T = TG.gen_terrain(n, self.terr_G, d, self.g, relief=_rel, part_plate=_plat)
             for nm in ("hm", "slope", "cover", "dcover"):
                 getattr(self, nm)[idx] = T[nm]
         if getattr(self, "fixed_th", None) is not None:                        # AXE FIXE (carte-village dessinée : le décor est aligné sur une approche donnée)

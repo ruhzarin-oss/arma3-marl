@@ -58,6 +58,10 @@ print(f"\n  STRATIS — memes formules que le pont")
 ms, p99s, moys = stats(S, "slope")
 mc, p99c, moyc = stats(C, "dcover")
 
+import numpy as np
+np.save("/home/younes/arma3-marl/pentes_stratis.npy", np.array(S, dtype=np.float32))
+print(f"\n  {len(S)} pentes de Stratis conservees -> pentes_stratis.npy")
+
 print("\n  GYMNASE (a ramener dessus)")
 import torch
 from assault_terrain import AssaultTerrain

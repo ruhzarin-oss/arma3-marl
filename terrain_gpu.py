@@ -6,13 +6,43 @@ import math
 import torch
 
 
-def gen_terrain(N, G, device, gen, relief=22.0, cover_thr=1.4, road_w=2.2):
+def gen_terrain(N, G, device, gen, relief=22.0, cover_thr=1.4, road_w=2.2, part_plate=0.0):
     """N terrains G×G. Renvoie hm (relief, m), slope, cover/road (0/1), dcover/droad (dist en cellules)."""
     hm = torch.randn(N, G, G, generator=gen, device=device)
     for _ in range(4):                                   # lissage -> relief continu (collines)
         hm = (hm + torch.roll(hm, 1, 1) + torch.roll(hm, -1, 1) + torch.roll(hm, 1, 2) + torch.roll(hm, -1, 2)) / 5
     hm = hm - hm.amin((1, 2), keepdim=True)
+    # ⚠️ `relief` peut etre un TENSEUR (N,) — un relief PAR ENVIRONNEMENT. Avec un scalaire,
+    # la normalisation donnait a TOUTES les cartes la meme amplitude : c est elle qui
+    # interdisait les plaines. Mesure du 12/08 : le gymnase a un plancher de pente a 0,148
+    # quand Stratis descend a 0,000 et que le banc y joue souvent en plaine. L agent n avait
+    # jamais vu de terrain plat.
+    if torch.is_tensor(relief):
+        relief = relief.view(-1, 1, 1)
+    # ⚠️ `relief` peut etre un TENSEUR (N,) — un relief PAR ENVIRONNEMENT. Avec un scalaire,
+    # la normalisation donnait a TOUTES les cartes la meme amplitude : c est elle qui
+    # interdisait les plaines. Mesure du 12/08 : le gymnase a un plancher de pente a 0,148
+    # quand Stratis descend a 0,000 et que le banc y joue souvent en plaine. L agent n avait
+    # jamais vu de terrain plat.
+    if torch.is_tensor(relief):
+        relief = relief.view(-1, 1, 1)
+    # ⚠️ `relief` peut etre un TENSEUR (N,) — un relief PAR ENVIRONNEMENT. Avec un scalaire,
+    # la normalisation donnait a TOUTES les cartes la meme amplitude : c est elle qui
+    # interdisait les plaines. Mesure du 12/08 : le gymnase a un plancher de pente a 0,148
+    # quand Stratis descend a 0,000 et que le banc y joue souvent en plaine. L agent n avait
+    # jamais vu de terrain plat.
+    if torch.is_tensor(relief):
+        relief = relief.view(-1, 1, 1)
     hm = hm / hm.amax((1, 2), keepdim=True).clamp(min=1e-6) * relief
+    # ⚠️ DES PLAINES, PAS SEULEMENT DU BRUIT LISSE. Mesure du 12/08 : Stratis a un p01 de
+    # pente a 0,000 quand le gymnase plafonne son plancher a 0,107 meme apres mise a l echelle.
+    # Du bruit gaussien lisse n a pas de VRAIE plaine — il ondule partout. La cause n etait
+    # donc pas un coefficient mais une FORME de terrain manquante.
+    # On ecrete le bas du relief : les cellules sous le quantile `part_plate` sont ramenees au
+    # meme niveau. La part est MESUREE sur Stratis, pas choisie.
+    if part_plate > 0.0:
+        _seuil = torch.quantile(hm.reshape(N, -1), part_plate, dim=1).view(-1, 1, 1)
+        hm = torch.maximum(hm, _seuil)
     gy, gx = torch.gradient(hm, dim=(1, 2)); slope = (gx * gx + gy * gy).sqrt()
     cover = (slope > cover_thr * slope.mean((1, 2), keepdim=True)).float()   # crêtes/pentes = abris
     ang = torch.rand(N, generator=gen, device=device) * math.pi              # route : bande, direction/env

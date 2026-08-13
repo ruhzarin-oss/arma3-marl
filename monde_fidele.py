@@ -102,6 +102,11 @@ MONDE_ARMA = dict(
     obs_sans_slope=False,     # `slope` GARDEE — reparee cote Arma, pas retiree
     arc_obs=False,            # l arc ne se branche pas sans porte deposee ⟨Fable⟩
 
+    # ---- LE RELIEF SUIT LA CARTE (depot du 12/08) ----
+    # Stratis : pente p01 0,000 · mediane 0,408 · p99 1,057. Gymnase avant : 0,148 / 0,563 /
+    # 1,507 — jamais plat, alors que le banc joue souvent en plaine.
+    relief_stratis=True,
+
     # ---- L ARC DU DEFENSEUR : DEUX NOMBRES, CERTIFIES DEPUIS JUILLET ----
     # L agent ne PERCOIT PAS ou regarde le defenseur. Son observation est identique dans
     # l angle mort et dans la ligne de mire — seuls les degats different, et il ne peut donc
