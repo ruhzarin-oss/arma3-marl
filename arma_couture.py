@@ -38,7 +38,19 @@ HMT_CX=__CX__; HMT_CY=__CY__; HMT_S=__S__; HMT_FRNG=__FRNG__;
   private _ax=(_p select 0)-HMT_CX; private _ay=(_p select 1)-HMT_CY;
   private _al=if (alive _u) then {1} else {0};
   // slope : normale de terrain -> pente approx (0..~1), /5 comme le sandbox
-  private _n=surfaceNormal (getPosASL _u); private _slope=(1-(_n select 2))*2.0/5.0;
+  // ⚠️ LA PENTE SE CALCULE COMME AU GYMNASE, PAS PAR `surfaceNormal`.
+  // Mesure du 12/08 : `surfaceNormal` rendait une grandeur BORNEE A 0,40 (elle vaut
+  // (1-normale_z)*2/5, et normale_z est dans [0,1]) la ou le gymnase donne 0,589 de MEDIANE
+  // et 1,52 au 99e centile. Une pente vraie de 25 deg — la mediane du gymnase — sortait a
+  // 0,037 par cette formule : SEIZE FOIS TROP PETIT. Les deux colonnes portaient le meme
+  // nom et n etaient pas la meme grandeur.
+  // Le gymnase fait : gradient central du relief, en METRES PAR CELLULE de 6,25 m, puis /5.
+  // On le refait ici a l identique. C est reproductible et verifiable, ce que `surfaceNormal`
+  // n etait pas.
+  private _pu=getPosATL _u; private _cx=(_pu select 0); private _cy=(_pu select 1);
+  private _gx=((getTerrainHeightASL [_cx+6.25,_cy]) - (getTerrainHeightASL [_cx-6.25,_cy]))/2;
+  private _gy=((getTerrainHeightASL [_cx,_cy+6.25]) - (getTerrainHeightASL [_cx,_cy-6.25]))/2;
+  private _slope=(sqrt (_gx*_gx + _gy*_gy))/5;
   // dcover : distance au batiment le plus proche (proxy du champ de couvert), normalisee
   private _nb=nearestObjects [_u,["House","Building","Wall","Rock"],40]; private _dc=1;
   if (count _nb>0) then { _dc=(_u distance (_nb select 0))/30 min 1 };

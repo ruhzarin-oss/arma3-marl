@@ -15,7 +15,7 @@ class AssaultTerrain:
                  shell_obs=False, shellK=12, shell_R=60.0, suffer=False, D_min=2,
                  replica=False, replica_path="replica.npz", device="cuda:0", seed=0, postures=False, flat_los=False,
                  overwatch=False, ow_expo=0.05, hull=False, ow_dmg=0.3, ow_tofail=0.5, expose_lut=None,
-                 emergent_expo=False, death_pen=0.4, suffer_pen=1.1, win_bonus=1.0, kill_w=1.5, arma_obs=False,
+                 emergent_expo=False, death_pen=0.4, suffer_pen=1.1, win_bonus=1.0, kill_w=1.5, arma_obs=False, obs_dcover_arma=None, obs_sans_slope=None,
                  secure_task=False, approach_w=0.2, secure_only=False, supp_kill=1.0,
                  def_arc=math.pi, def_line=False, def_spread=1.0, def_rline=35.0, def_rand=False, nav_around=False, flank_kill=0.0,
                  frein_feu=0.0, alerte=False, courbe=None, tir_par_pas=None, sec_par_pas=None, degat_par_impact=None, arc_obs=False, champ_risque=False, champ_R=35.0, stress=False, mission="assaut", arc_latence_s=None, supp_residuel=None, supp_persist=0.0, cible_unique=True, feu_sur_connu=0.0, feu_de_zone=0.0):
@@ -199,7 +199,15 @@ class AssaultTerrain:
         self.secure_task = secure_task; self.approach_w = approach_w   # TÂCHE SÉCURISER : victoire = atteindre le FOB (comme Arma), pas juste tuer par le feu ; clôture = moteur
         self.secure_only = secure_only   # CALIBRATION Arma : la SEULE victoire = atteindre le FOB (on ne gagne PLUS en nettoyant au feu)
         self.supp_kill = supp_kill       # efficacité du feu attaquant vs défenseurs (Arma : ~0 contre des retranchés -> forcer à CLORE)
-        self.arma_obs = arma_obs   # obs ALLÉGÉE cheap-depuis-Arma (sans pente, sans coque) pour le pont SHAMAL->Arma
+        self.arma_obs = arma_obs
+        # ─── ABLATION (12/08). `arma_obs` changeait DEUX choses d un coup : il normalise
+        # `dcover` comme le pont (÷30 cape) ET il retire `slope`. La chute de 57,7 % a 29,9 %
+        # n avait donc aucune cause identifiee — on ne pouvait pas dire lequel des deux la
+        # portait. ⟨Fable : « ton experience est confondue ; ablation, chaque changement seul »⟩
+        # Les deux effets sont desormais pilotables separement ; `arma_obs` reste leur
+        # conjonction, donc aucun appel existant ne change de comportement.
+        self.obs_dcover_arma = self.arma_obs if obs_dcover_arma is None else bool(obs_dcover_arma)
+        self.obs_sans_slope = self.arma_obs if obs_sans_slope is None else bool(obs_sans_slope)   # obs ALLÉGÉE cheap-depuis-Arma (sans pente, sans coque) pour le pont SHAMAL->Arma
         self._expose_lut = torch.tensor(expose_lut if expose_lut is not None else [1.0, 0.5, 0.2], device=device)   # HULL-DOWN : profil de corps (debout/accroupi/couche) = fraction touchable
         self.n_actions = (13 if postures else 10)  # 0-7 caps, 8 HOLD, 9 SUPPRESS ; 10-12 postures (debout/accroupi/couche)
         if postures: self._eye_lut = torch.tensor([1.7, 1.0, 0.3], device=device)   # hauteur d'oeil par posture
@@ -474,14 +482,14 @@ class AssaultTerrain:
         dgx = -self.apx / S; dgy = -self.apy / S
         sl = TG.sample(self.slope, self.apx, self.apy, S) / 5.0
         _dcr = TG.sample(self.dcover, self.apx, self.apy, S)   # distance au bâti (cellules = m sur replica)
-        dc = (_dcr / 30.0).clamp(max=1.0) if self.arma_obs else (_dcr / self.terr_G)   # arma_obs : normalisé COMME le pont Arma (÷30 m capé)
+        dc = (_dcr / 30.0).clamp(max=1.0) if self.obs_dcover_arma else (_dcr / self.terr_G)   # arma_obs : normalisé COMME le pont Arma (÷30 m capé)
         ex = self.dpx.unsqueeze(1) - self.apx.unsqueeze(2); ey = self.dpy.unsqueeze(1) - self.apy.unsqueeze(2)  # (N,A,D)
         BIG = torch.tensor(1e18, device=self.dev)
         ed2 = torch.where(self._dalive().unsqueeze(1), ex * ex + ey * ey, BIG); km = ed2.argmin(2)
         bx = torch.gather(self.dpx, 1, km); by = torch.gather(self.dpy, 1, km)
         los = self._losc(self.hm, self.apx, self.apy, bx, by, S, eye_a=self._eye(), eye_b=1.7)
         nd = ed2.min(2).values.clamp(max=1e17).sqrt() / S
-        if self.arma_obs:            # obs Arma-cheap : sans la pente (slope), on garde dcover (~bâti proche) + LOS (checkVisibility)
+        if self.obs_sans_slope:      # obs Arma-cheap : sans la pente (slope), on garde dcover (~bâti proche) + LOS (checkVisibility)
             base = torch.stack([self.apx / S, self.apy / S, dgx, dgy, al.float(), dc, los, nd], dim=2)
         else:
             base = torch.stack([self.apx / S, self.apy / S, dgx, dgy, al.float(), sl, dc, los, nd], dim=2)

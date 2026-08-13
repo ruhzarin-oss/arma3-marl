@@ -81,7 +81,26 @@ MONDE_ARMA = dict(
     # `arma_obs` existait pour ca et je l avais ignore : il normalise `dcover` COMME LE PONT
     # (/30 m cape) et il RETIRE `slope` — precisement parce qu Arma ne sait pas la rendre
     # (surfaceNormal donne 0,01 la ou le gymnase genere 0,59).
-    arma_obs=True,
+    # ═══ LA CONFIGURATION DE REFERENCE, arretee le 12/08 apres ablation ═══
+    # `arma_obs` faisait DEUX choses d un coup et sa chute de 27,8 points n avait aucune cause
+    # identifiee. Ablation a quatre bras, memes graines, arc eteint partout :
+    #     slope + dcover gymnase ... 57,7 %  borne +11,2  passe
+    #     dcover comme le pont ..... 53,3 %  borne  +6,9  passe   <- RETENUE
+    #     slope retiree ............ 54,0 %  borne  +8,3  passe
+    #     les deux ................. 29,9 %  borne -15,4  TOMBE
+    # Chaque changement seul coute 4 points ; les deux ensemble en coutent 28. Ce n est pas une
+    # addition, c est une INTERACTION : l agent a deux sources de terrain partiellement
+    # redondantes, et il devient aveugle quand on les retire toutes les deux.
+    #
+    # ON GARDE DONC `slope` — mais elle n a jamais ete fausse ici. C etait la COUTURE qui la
+    # calculait par `surfaceNormal`, une grandeur bornee a 0,40 la ou le gymnase donne 0,589 de
+    # mediane. Reparee le 12/08 : gradient central du relief, metres par cellule de 6,25 m, /5.
+    # Verifie sur Stratis, 193 points : mediane 0,458 contre 0,589 au gymnase — elles se
+    # recouvrent enfin. Reparer le pont ne change RIEN a l entrainement ; ca rend la politique
+    # TRANSPORTABLE, ce qui est tout l objet.
+    obs_dcover_arma=True,     # `dcover` normalise comme le pont : ÷30 m cape
+    obs_sans_slope=False,     # `slope` GARDEE — reparee cote Arma, pas retiree
+    arc_obs=False,            # l arc ne se branche pas sans porte deposee ⟨Fable⟩
 
     # ---- L ARC DU DEFENSEUR : DEUX NOMBRES, CERTIFIES DEPUIS JUILLET ----
     # L agent ne PERCOIT PAS ou regarde le defenseur. Son observation est identique dans
@@ -93,7 +112,6 @@ MONDE_ARMA = dict(
     # explique qu il ne trouve pas le flanc : sans l arc, contourner est un detour gratuit
     # qui ne rapporte rien. Arma sait le fournir : la direction du defenseur le plus proche
     # est une ligne de SQF.
-    arc_obs=True,
 )
 
 # Ce qui exige une REPLIQUE de terrain reel et n a donc pas sa place dans le defaut :
