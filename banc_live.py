@@ -27,7 +27,12 @@ EXT, PORT = 5830, 6062
 MIS = "BancLive.Stratis"
 LOG = SB + "/logs/serverLV.out"
 OBJ = (1734.0, 5391.0)          # un des six terrains candidats certifies
-NDEF, NATT, DIST = 13, 8, 200.0
+# ⚠️ 170 m, PAS 200. Mesure du 12/08 : a 200 m les hommes naissent a `apy/S = -0,95` quand le
+# gymnase n a JAMAIS depasse -0,71 — quatre colonnes hors plage des le premier pas, simplement
+# parce que la geometrie ne correspondait pas. Le gymnase fait naitre a `R_spawn = 170` sur une
+# echelle `terr_R = 200`. On reprend ses chiffres exactement : ce n est pas un reglage, c est
+# le meme monde.
+NDEF, NATT, DIST = 13, 8, 170.0
 PAS_MAX, PERIODE = 60, 3.28     # meme pas que le gymnase : 3,28 s
 
 

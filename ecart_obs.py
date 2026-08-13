@@ -63,7 +63,7 @@ b = SocketBridge(5830)
 b.send(sans_com(SCENE)); time.sleep(3)
 perc = sans_com(C.perc_sqf())
 A = []
-for k in range(10):
+for k in range(30):
     b.send(perc, wait=False)
     time.sleep(1.2)
     o = C.parse_obs(b._log_lines(1200))
@@ -95,9 +95,14 @@ for j, cj in enumerate(COLS):
     gm = g.mean().item()
     a = A[:, cj]
     am, amin, amax = a.mean().item(), a.min().item(), a.max().item()
-    dedans = p1 <= am <= p99
-    if not dedans: hors.append(NOMS[cj])
+    # ⚠️ UN CRITERE DE POSITION NE VOIT PAS UNE CONSTANTE. `los` avait ete declare « ok »
+    # parce que sa moyenne (0,00) tombe dans la plage du gymnase [0 ; 1] — alors qu il est
+    # CONSTANT A ZERO sur Arma et vaut 0,69 de moyenne au gymnase. Une entree constante ne
+    # porte aucune information : elle sature le reseau, quelle que soit sa valeur.
+    constante = (amax - amin) < 1e-6 and (g.max() - g.min()).item() > 1e-6
+    dedans = (p1 <= am <= p99) and not constante
+    if not dedans: hors.append(NOMS[cj] + ("  (CONSTANTE)" if constante else ""))
     print(f"  {NOMS[cj]:<9}{f'{p1:.2f} .. {p99:.2f}':>22}{gm:>13.2f}{am:>11.2f}"
-          f"{f'{amin:.2f} .. {amax:.2f}':>20}   {'ok' if dedans else 'HORS'}")
+          f"{f'{amin:.2f} .. {amax:.2f}':>20}   {'ok' if dedans else ('CONSTANTE' if constante else 'HORS')}")
 print("  " + "-" * 92)
 print(f"  {len(hors)} colonnes sur {len(COLS)} hors distribution : {hors if hors else 'aucune'}")
