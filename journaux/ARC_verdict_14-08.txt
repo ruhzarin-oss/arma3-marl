@@ -1,0 +1,149 @@
+
+  L ARC — tentative unique, 800 iterations par bras, arc ETEINT dans SANS
+  ==========================================================================
+
+  entrainement — 14 entrees, 10 actions, 800 iterations de 256 episodes
+    iter    0  prise   0.0 %  metres   16.6
+    iter   20  prise   0.0 %  metres   30.6
+    iter   40  prise   0.0 %  metres   50.0
+    iter   60  prise   0.4 %  metres   63.3
+    iter   80  prise   0.4 %  metres   71.2
+    iter  100  prise   1.2 %  metres   75.3
+    iter  120  prise   0.4 %  metres   78.8
+    iter  140  prise   1.2 %  metres   81.3
+    iter  160  prise   0.8 %  metres   83.4
+    iter  180  prise   0.8 %  metres   85.2
+    iter  200  prise   1.6 %  metres   85.7
+    iter  220  prise   1.2 %  metres   86.6
+    iter  240  prise   2.3 %  metres   87.5
+    iter  260  prise   2.0 %  metres   86.5
+    iter  280  prise   2.3 %  metres   86.6
+    iter  300  prise   2.0 %  metres   88.5
+    iter  320  prise   4.7 %  metres   88.5
+    iter  340  prise   4.3 %  metres   88.3
+    iter  360  prise   8.2 %  metres   89.9
+    iter  380  prise   6.6 %  metres   88.2
+    iter  400  prise  10.9 %  metres   91.3
+    iter  420  prise  14.5 %  metres   89.9
+    iter  440  prise  18.0 %  metres   93.8
+    iter  460  prise  23.0 %  metres   93.7
+    iter  480  prise  27.3 %  metres   95.1
+    iter  500  prise  26.2 %  metres   93.5
+    iter  520  prise  31.2 %  metres   95.4
+    iter  540  prise  30.1 %  metres   94.9
+    iter  560  prise  32.8 %  metres   97.5
+    iter  580  prise  36.3 %  metres   95.9
+    iter  600  prise  35.2 %  metres   97.8
+    iter  620  prise  33.6 %  metres   95.7
+    iter  640  prise  34.0 %  metres   97.1
+    iter  660  prise  35.5 %  metres   95.6
+    iter  680  prise  34.8 %  metres  100.4
+    iter  700  prise  39.8 %  metres   98.2
+    iter  720  prise  33.6 %  metres   97.2
+    iter  740  prise  35.9 %  metres   98.1
+    iter  760  prise  41.8 %  metres  100.9
+    iter  780  prise  38.7 %  metres   99.5
+    iter  799  prise  37.1 %  metres  102.3
+  ARC   : prise  10.3 %   metres   70.3
+
+  entrainement — 12 entrees, 10 actions, 800 iterations de 256 episodes
+    iter    0  prise   0.0 %  metres   16.4
+    iter   20  prise   0.0 %  metres   31.5
+    iter   40  prise   0.0 %  metres   52.4
+    iter   60  prise   0.4 %  metres   67.4
+    iter   80  prise   0.0 %  metres   72.5
+    iter  100  prise   0.4 %  metres   75.7
+    iter  120  prise   0.8 %  metres   79.1
+    iter  140  prise   0.0 %  metres   82.0
+    iter  160  prise   0.8 %  metres   84.1
+    iter  180  prise   0.4 %  metres   85.7
+    iter  200  prise   1.6 %  metres   84.9
+    iter  220  prise   0.8 %  metres   86.8
+    iter  240  prise   1.6 %  metres   87.4
+    iter  260  prise   0.8 %  metres   88.6
+    iter  280  prise   2.3 %  metres   89.0
+    iter  300  prise   2.0 %  metres   91.0
+    iter  320  prise   2.7 %  metres   90.1
+    iter  340  prise   3.9 %  metres   91.2
+    iter  360  prise   5.5 %  metres   92.0
+    iter  380  prise   5.1 %  metres   92.3
+    iter  400  prise   6.6 %  metres   92.4
+    iter  420  prise  10.2 %  metres   92.9
+    iter  440  prise  10.2 %  metres   91.6
+    iter  460  prise  14.8 %  metres   94.2
+    iter  480  prise  14.8 %  metres   91.8
+    iter  500  prise  19.1 %  metres   95.9
+    iter  520  prise  17.6 %  metres   94.2
+    iter  540  prise  19.1 %  metres   96.4
+    iter  560  prise  21.5 %  metres   95.3
+    iter  580  prise  19.5 %  metres   96.6
+    iter  600  prise  19.9 %  metres   96.9
+    iter  620  prise  23.4 %  metres   97.7
+    iter  640  prise  19.9 %  metres   96.1
+    iter  660  prise  25.0 %  metres   98.7
+    iter  680  prise  24.6 %  metres   96.1
+    iter  700  prise  20.3 %  metres   99.0
+    iter  720  prise  27.7 %  metres   98.0
+    iter  740  prise  30.1 %  metres  100.2
+    iter  760  prise  27.3 %  metres   97.0
+    iter  780  prise  28.9 %  metres  102.4
+    iter  799  prise  30.9 %  metres  103.7
+  SANS  : prise  51.1 %   metres  114.8
+
+  entrainement — 14 entrees, 10 actions, 800 iterations de 256 episodes
+    iter    0  prise   0.0 %  metres   19.0
+    iter   20  prise   0.0 %  metres   26.3
+    iter   40  prise   0.0 %  metres   45.4
+    iter   60  prise   0.0 %  metres   63.8
+    iter   80  prise   0.8 %  metres   71.8
+    iter  100  prise   0.0 %  metres   77.0
+    iter  120  prise   1.2 %  metres   78.6
+    iter  140  prise   0.0 %  metres   80.0
+    iter  160  prise   0.8 %  metres   82.9
+    iter  180  prise   0.8 %  metres   84.0
+    iter  200  prise   1.2 %  metres   84.5
+    iter  220  prise   0.0 %  metres   86.0
+    iter  240  prise   1.2 %  metres   87.9
+    iter  260  prise   0.8 %  metres   89.4
+    iter  280  prise   2.7 %  metres   90.3
+    iter  300  prise   1.2 %  metres   91.8
+    iter  320  prise   1.6 %  metres   90.6
+    iter  340  prise   1.2 %  metres   92.0
+    iter  360  prise   3.9 %  metres   93.2
+    iter  380  prise   2.3 %  metres   93.8
+    iter  400  prise   7.4 %  metres   94.3
+    iter  420  prise   5.9 %  metres   95.2
+    iter  440  prise  10.9 %  metres   95.6
+    iter  460  prise  12.9 %  metres   96.5
+    iter  480  prise  19.9 %  metres   97.9
+    iter  500  prise  25.4 %  metres   98.8
+    iter  520  prise  21.9 %  metres   96.9
+    iter  540  prise  23.0 %  metres   98.0
+    iter  560  prise  24.2 %  metres   97.3
+    iter  580  prise  25.4 %  metres  100.0
+    iter  600  prise  25.0 %  metres   98.9
+    iter  620  prise  25.4 %  metres  100.1
+    iter  640  prise  29.7 %  metres   97.3
+    iter  660  prise  33.2 %  metres   99.9
+    iter  680  prise  31.6 %  metres   98.2
+    iter  700  prise  31.6 %  metres  100.0
+    iter  720  prise  34.4 %  metres   99.6
+    iter  740  prise  38.7 %  metres   99.9
+    iter  760  prise  34.4 %  metres   99.0
+    iter  780  prise  38.7 %  metres  100.5
+    iter  799  prise  38.7 %  metres  100.5
+  BRUIT : prise   4.3 %   metres   80.5
+  ==========================================================================
+
+  LA PORTE — 5 points, lue SUR LA BORNE, appariee par graine
+    ARC   contre SANS :  -40.8 pt   borne  -43.4
+    BRUIT contre SANS :  -46.8 pt   borne  -49.6   (controle nul)
+
+    TOMBE  l arc rend >= 5 points, sur la borne
+    PASSE  CONTROLE NUL : le bruit ne passe pas le seuil
+    TOMBE  anti-planque : 70.3 m contre 114.8 m
+  ==========================================================================
+    L ARC N EST PAS RETENU. Par le depot : on n ajoute PAS une treizieme idee a la
+    perception — c est l ALGORITHME qui se redepose. La tentative est consommee.
+
+    ⚠️ AUCUN VERDICT DE MISSION. Le monde est le notre ; Arma tranchera.
