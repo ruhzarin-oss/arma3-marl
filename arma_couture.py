@@ -66,12 +66,38 @@ HMT_CX=__CX__; HMT_CY=__CY__; HMT_S=__S__; HMT_FRNG=__FRNG__;
   // On refait donc les DEUX a l identique : couvert = relief au-dessus du seuil, distance de
   // Tchebychev en cellules (c est un max-pool 3x3 cote gymnase, donc Tchebychev), cap a 16
   // cellules comme `_dist_field`, puis /30 plafonne a 1.
-  private _MOY = 2.315;   // pente moyenne de Stratis en m/cellule : 0,463 (mesure, 403 points) x 5
-  private _SEUIL = 1.4 * _MOY;
+  // ⚠️ LE SEUIL EST LOCAL, PAS GLOBAL — terrain_gpu.py:47 LU le 14/08.
+  //   cover = (slope > cover_thr * slope.mean((1,2), keepdim=True))
+  // La moyenne est celle DE L ENVIRONNEMENT, pas une constante de carte. L ancien code
+  // employait `1.4 * 2.315`, ou 2,315 = pente moyenne de Stratis x 5 : le x5 venait de la
+  // normalisation de la colonne `slope` et n avait rien a faire dans une comparaison de
+  // gradients bruts, et surtout un seuil GLOBAL ne trouve aucun couvert sur un site a relief
+  // doux — il rend alors le garde-fou 16/30 = 0,533. Mesure du 14/08 : 78,3 % de garde-fou
+  // sur le site plat, 60,1 % des decisions au-dessus du 99e centile du gymnase sur 20
+  // episodes. QUATRIEME fois que cette colonne est fausse.
+  // On calcule donc la moyenne UNE FOIS sur 64x64 cellules de 6,25 m centrees sur l objectif
+  // — 400 m de cote, soit le `terr_R = 200` du gymnase — et on la garde.
+  if (isNil "HMT_COVER_MOY") then {
+      private _s = 0; private _n = 0;
+      private _o = if (isNil "HMT_OBJ") then {[worldSize/2, worldSize/2]} else {HMT_OBJ};
+      for "_a" from -32 to 31 do {
+          for "_bb" from -32 to 31 do {
+              private _cx = (_o select 0) + _a * 6.25; private _cy = (_o select 1) + _bb * 6.25;
+              private _gx2 = ((getTerrainHeightASL [_cx+6.25,_cy]) - (getTerrainHeightASL [_cx-6.25,_cy]))/2;
+              private _gy2 = ((getTerrainHeightASL [_cx,_cy+6.25]) - (getTerrainHeightASL [_cx,_cy-6.25]))/2;
+              _s = _s + (sqrt (_gx2*_gx2 + _gy2*_gy2)); _n = _n + 1;
+          };
+      };
+      HMT_COVER_MOY = _s / _n;
+      diag_log format ["HMT|COUT|cover_moy|%1|seuil|%2", HMT_COVER_MOY, 1.4 * HMT_COVER_MOY];
+  };
+  private _SEUIL = 1.4 * HMT_COVER_MOY;
   private _dcell = 16;
   private _px = _p select 0; private _py = _p select 1;
   private _k = 0;
-  while { _k <= 8 && _dcell >= 16 } do {
+  // ⚠️ 15, PAS 8. `_dist_field(cover, G, iters=16)` cherche jusqu a 15 avant de rendre 16
+  // comme sentinelle. S arreter a 8 rendait la sentinelle deux fois trop tot.
+  while { _k <= 15 && _dcell >= 16 } do {
     private _trouve = false;
     for "_a" from -_k to _k do {
       for "_bb" from -_k to _k do {
