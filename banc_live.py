@@ -26,7 +26,12 @@ SB = "/mnt/data/harmattan-sandbox"
 EXT, PORT = 5830, 6062
 MIS = "BancLive.Stratis"
 LOG = SB + "/logs/serverLV.out"
-OBJ = (1734.0, 5391.0)          # un des six terrains candidats certifies
+OBJ = (4644.0, 5652.0)   # ⚠️ SITE CHANGE LE 14/08 — VERDICT_SITE_LIVE.md.
+# L ancien (1734,5391) etait une PLAINE : mediane slope 0,000 contre 0,368 au gymnase,
+# 58,3 pourcent de pentes rigoureusement nulles, et dcover coince sur son garde-fou
+# (16/30 = 0,533) dans 78,3 pourcent des cas. 100 pourcent des decisions arrivaient hors
+# distribution et la politique se figeait. Nouveau site : ecart de pente 0,006, zero
+# pente nulle, garde-fou a 3,3 pourcent. Choisi par 80 candidats et une regle deposee AVANT.          # un des six terrains candidats certifies
 # ⚠️ 170 m, PAS 200. Mesure du 12/08 : a 200 m les hommes naissent a `apy/S = -0,95` quand le
 # gymnase n a JAMAIS depasse -0,71 — quatre colonnes hors plage des le premier pas, simplement
 # parce que la geometrie ne correspondait pas. Le gymnase fait naitre a `R_spawn = 170` sur une
