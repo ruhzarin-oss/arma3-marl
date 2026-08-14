@@ -2159,3 +2159,47 @@ instances (mesure : 0,22 coeur et 1,8 Go a vide, plafond RAM ~23 instances), cel
 => Antistasi au niveau CAMPAGNE n est pas un environnement d ENTRAINEMENT sur ce
    materiel. C est un CERTIFICATEUR. Meme partage que sandbox/Arma, un etage plus haut :
    pour apprendre, il faudra une replique symbolique rapide de la campagne.
+
+---
+
+## 2026-08-14 — A3C sur serveur dédié : porte de chargement FRANCHIE, porte d'effet NON
+
+Mod ARMA 3 COMMAND (successeur de C2, atelier `491016790`, PRE-ALPHA #001), installé en
+`@A3C` dans le bac à sable. Banc : `banc_a3c.py`, mission `BancA3C.Stratis`, ports 5840/6072.
+Les 4 bancs préexistants n'ont pas été touchés.
+
+**PORTE 0 — le mod vit sur un serveur dédié, sans joueur. CERTIFIÉ.**
+`A3C_PORTE0 cls=true shared=98 hc=74 rail=7 main=67 squad=0 mcss=46`
+246 fonctions globales enregistrées en missionNamespace. `A3C_Init.sqf:121` fait
+`if (isDedicated) exitWith {}` : ce qui tombe est `ai_squad` + toute l'UI, c.-à-d. exactement
+la couche d'emballage qui lit les globals d'interface. Ce qui reste est la couche exécutante.
+`squad=0` était PRÉDIT avant la mesure ; s'il avait été > 0, j'aurais mal lu le fichier.
+
+**PORTE 1 — la fonction s'exécute et mord. CERTIFIÉ.**
+`[_units, _building] call A3C_ai_shared_fnc_actionClearBuilding` : 6/6 manches sans erreur SQF,
+7,83 hommes sur 8 marqués `A3C_CLEARING`. Elle ne se contente pas de se charger.
+
+**PORTE 2 — bat-elle un ordre écrit à la main ? NON ÉTABLI.**
+12 manches (6/6), Stratis, `Land_i_Shop_01_V1_F` à Agia Marina (10 positions, 4 niveaux),
+6 défenseurs `disableAI PATH` dedans, 8 assaillants à 60 m, 120 s.
+Témoin : un `doMove` par position intérieure distincte.
+Test de permutation exact (924 partitions) :
+
+| mesure | A3C | témoin | écart | p |
+|---|---|---|---|---|
+| hommes entrés (pic) | 1,33 | 0,83 | +0,50 | 0,576 |
+| défenseurs tués | 4,83 | 4,17 | +0,67 | 0,541 |
+| assaillants survivants | 4,67 | 4,33 | +0,33 | 0,896 |
+
+**POURQUOI LE BANC NE TRANCHE PAS.** Ce n'est pas A3C qui échoue, c'est le monde qui ne force
+rien. 4,83 défenseurs sur 6 meurent SANS que personne n'entre : le bâtiment est nettoyé au feu
+depuis l'extérieur, donc la routine d'entrée n'a jamais eu à décider quoi que ce soit. Même
+famille que `sandbox-sans-letalite-arriver-inconditionnel` : un tarif ne sépare rien dans un
+monde où le comportement mesuré n'est pas nécessaire.
+
+**CE QU'IL FAUDRAIT.** Garnison sur les niveaux hauts, hors vue depuis l'axe d'approche, pour
+que l'entrée soit le SEUL chemin vers la victoire. Tant que le feu extérieur suffit, aucun
+`actionClearBuilding` ne peut se distinguer d'un `doMove`.
+
+Outillage : `~/a3c/pbo.py` (lecture PBO + LZSS + dérapification config.bin), `~/a3c/analyze.py`,
+`banc_a3c.py`, `sonde_bat.py`. Détail : `logs_train/banc_a3c.json`.
