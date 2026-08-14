@@ -70,8 +70,15 @@ for "_i" from 1 to %d do {
 private _ga = createGroup west; HMT_FR = [];
 private _az = random 360;
 for "_i" from 1 to %d do {
-    private _p = [(HMT_OBJ select 0) + %f * sin _az + (_i * 6),
-                  (HMT_OBJ select 1) + %f * cos _az, 0];
+    // ⚠️ LA FORMULE DU GYMNASE, RECOPIEE — assault_terrain.py:316. Ce n est pas un reglage.
+    // Le banc formait UNE SEULE FILE le long de x : `apy` etait IDENTIQUE pour les huit
+    // hommes, variance rigoureusement nulle sur une coordonnee entiere. Les huit recevaient
+    // donc la meme observation et la meme action — mesure du 14/08 : etalement 0,069 contre
+    // 0,160 au gymnase, et 100 pourcent d action 2 sur Arma.
+    // Le gymnase fait : apx = sx + (ar %% 2)*6 - 3  ·  apy = sy + (ar - 1)*6, avec ar = 0..7.
+    // L indice SQF va de 1 a 8, donc ar = _i - 1.
+    private _p = [(HMT_OBJ select 0) + %f * sin _az + (((_i - 1) mod 2) * 6 - 3),
+                  (HMT_OBJ select 1) + %f * cos _az + ((_i - 2) * 6), 0];
     private _u = _ga createUnit ["B_Soldier_F", _p, [], 0, "NONE"];
     _u setPosATL _p; _u setSkill 0.5;
     // PATH coupe : c est la politique qui pilote, par setVelocity — comme au gymnase.
