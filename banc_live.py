@@ -136,6 +136,7 @@ if __name__ == "__main__":
     time.sleep(2)
 
     pol = charger()
+    RELEVE = []
     perc = C.perc_sqf()
     print(f"\n  {'pas':>4}{'obs recues':>12}{'vivants':>9}{'def':>6}{'dmin':>7}  actions", flush=True)
     for t in range(PAS_MAX):
@@ -156,6 +157,10 @@ if __name__ == "__main__":
         with torch.no_grad():
             lo, _ = pol(o[:, COLS])
         acts = lo.argmax(-1).tolist()
+        # ═══ RELEVE ⟨Fable, 14/08⟩ : on garde les 18 colonnes BRUTES telles qu Arma les
+        # produit, plus les logits et l action. C est la premiere machoire. La seconde est
+        # le rejeu hors-ligne : un releve seul donne un indice, le rejeu donne un verdict.
+        RELEVE.append((t, o.numpy().copy(), lo.numpy().copy(), list(acts)))
         b.send(sans_commentaires(C.acts_to_sqf(acts)), wait=False)
         b.send(sans_commentaires(ETAT), wait=False)
         time.sleep(0.3)
@@ -170,5 +175,17 @@ if __name__ == "__main__":
             print(f"\n  fin au pas {t} : vivants={m.group(1)} dmin={m.group(3)}")
             break
         time.sleep(max(0.0, PERIODE - 0.7))
+    # ⚠️ REGLE 17 : le fichier porte son STATUT dans sa donnee, pas dans sa prose.
+    # `montage` = aucune ligne d ici n est citable dans une lecture.
+    import numpy as _np
+    # ⚠️ APLATI, PAS EMPILE. Le nombre d hommes VIVANTS baisse en cours d episode (8 puis 7
+    # puis moins) : `np.stack` refuse des tableaux de formes differentes. Une ligne par
+    # DECISION, avec son numero de pas — c est de toute facon la forme que le rejeu emploie.
+    _np.savez("/tmp/releve_live.npz", statut="montage",
+              pas=_np.concatenate([_np.full(len(r[3]), r[0]) for r in RELEVE]) if RELEVE else _np.zeros(0),
+              obs18=_np.concatenate([r[1] for r in RELEVE]) if RELEVE else _np.zeros((0, 18)),
+              logits=_np.concatenate([r[2] for r in RELEVE]) if RELEVE else _np.zeros((0, 10)),
+              actions=_np.concatenate([_np.array(r[3]) for r in RELEVE]) if RELEVE else _np.zeros(0))
+    print(f"\n  RELEVE : {len(RELEVE)} pas ecrits dans /tmp/releve_live.npz (statut=montage)")
     print("\n  BANC DE MONTAGE TERMINE. Ce qu il prouve : la chaine tourne bout en bout.", flush=True)
     print("  Ce qu il ne prouve pas : aucun verdict de concordance sans repetitions.")
