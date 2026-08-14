@@ -49,7 +49,8 @@ for f in F:
             D[seg.cle_passive(f, int(m.group(1)))] = dict(campDef=int(m.group(2)), nAtt=int(m.group(4))); continue
         m = fin.search(line)
         if m:
-            R[seg.cle_passive(f, int(m.group(1)))] = dict(ve=int(m.group(6)), vo=int(m.group(7))); continue
+            R[seg.cle_passive(f, int(m.group(1)))] = dict(ve=int(m.group(6)), vo=int(m.group(7)),
+                                                          pris=int(m.group(5))); continue
         m = couv.search(line)
         if m:
             k = seg.cle_passive(f, int(m.group(1)))
@@ -66,7 +67,7 @@ E = []
 for k in clos:
     d, r = D[k], R[k]
     surv = r['vo'] if d['campDef'] == 0 else r['ve']
-    E.append(dict(k=k, lieu=L[k], bras=BRAS[k], nAtt=d['nAtt'],
+    E.append(dict(k=k, lieu=L[k], bras=BRAS[k], nAtt=d['nAtt'], pris=r.get('pris', 0),
                   survie=100.0 * surv / max(d['nAtt'], 1), couche=couche.get(k, 0), n=nsamp.get(k, 0)))
 P = [e for e in E if e['bras'] == 1]; T = [e for e in E if e['bras'] == 0]
 print(f"  {len(E)} accrochages clos · {len(P)} professeur · {len(T)} temoin")
@@ -96,6 +97,29 @@ assez = [l for l in lieux if sum(1 for e in P if e['lieu'] == l) >= 20
          and sum(1 for e in T if e['lieu'] == l) >= 20]
 dire("chaque lieu joue assez de fois", len(assez) >= 2,
      f"{len(assez)} lieux sur {len(lieux)} avec >= 20 accrochages par bras")
+
+# ─── L AIGUILLE, LIEU PAR LIEU ⟨regle 2⟩ ────────────────────────────────────────────────
+# ⚠️ UN LIEU CERTIFIE PAR LE GEOMETRE PEUT ETRE INJOUABLE. Mesure du 12/08 : le lieu
+# (1850,2750) rend TROIS prises sur quarante-quatre — 7 % — avec trente-cinq accrochages
+# finis au chronometre, quand ses voisins sont entre 43 et 59 %. Il a pourtant passe la
+# certification geometrique : couvert servi, vues, silhouette, tout y etait.
+# La geometrie dit que le lieu EST un couloir ; elle ne dit pas qu on peut y jouer. Un lieu
+# dont l aiguille est au butoir ne separe rien, quel que soit son ecart — la regle 2 le dit
+# au point de fonctionnement du jugement, et c est ici ce point.
+# On les ECARTE, et on les NOMME. Jamais silencieusement.
+BANDE = (20.0, 80.0)
+au_butoir = []
+for l in list(assez):
+    pr = 100.0 * sum(1 for e in E if e['lieu'] == l and e.get('pris', 0)) / max(
+        sum(1 for e in E if e['lieu'] == l), 1)
+    if not (BANDE[0] <= pr <= BANDE[1]):
+        au_butoir.append((l, pr)); assez.remove(l)
+for l, pr in au_butoir:
+    print(f"    {'ECARTE':>6}  lieu {str(l):<16} aiguille au butoir : {pr:.0f} % de prise")
+dire("aiguille dans la bande 20-80 %, LIEU PAR LIEU", not au_butoir,
+     f"{len(au_butoir)} lieu(x) ecarte(s) · {len(assez)} retenu(s)")
+dire("assez de lieux RETENUS pour apparier", len(assez) >= 2,
+     f"{len(assez)} lieux dans la bande avec l effectif requis")
 
 if not ok:
     print("\n  AUCUN VERDICT. Un controle est tombe — le banc ne mesure pas ce qu il pretend.")

@@ -83,8 +83,12 @@ print(f"\n  pre-vols : {len(pre)} · essais juges : {len(E)}  ("
 # seuils ci-dessous ; ils ne certifient rien et ne se relisent pas sous ce protocole.
 # ═══════════════════════════════════════════════════════════════════════════════════════
 PARTIELS = ('session1.out', 'session2.out', 'session3.out', 'session4.out')
+import os as _os
 for _f in F:
-    if any(_p in _f for _p in PARTIELS):
+    # ⚠️ COMPARAISON EXACTE SUR LE NOM DE FICHIER, pas une sous-chaine. Premiere version :
+    # `sessionN.out in chemin` refusait aussi `c2_sessionN.out` — les journaux de la campagne
+    # REDEPOSEE, qui n ont rien de partiel. Un garde-fou trop large refuse le travail neuf.
+    if _os.path.basename(_f) in PARTIELS:
         print(f"\n  REFUS : {_f} est un PARTIEL de la campagne close le 11/08.")
         print("  Les partiels ont dimensionne ce protocole ; les relire sous lui serait")
         print("  exactement l interdit depose. ⟨Fable : « aucune relecture des 48 »⟩")
