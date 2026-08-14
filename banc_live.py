@@ -10,7 +10,8 @@ LA BOUCLE : PERC18 (18 colonnes sorties du JEU) -> selection base9+posture3 -> p
 ⚠️ CE QUI EST DECLARE AVANT LE PREMIER PAS :
   · la politique NE SE COUCHE JAMAIS (elle n a pas les actions 10/11/12). Sur Arma, ou se
     montrer coute 4,00 DEFINITIVEMENT, c est un handicap a elle, pas au portage.
-  · le monde d entrainement : 13 defenseurs, 8 attaquants, 200 m. On le reproduit.
+  · le monde d entrainement : 4 defenseurs, 4 attaquants, 200 m (LU dans l env le 14/08,
+    apres qu une affirmation de ce meme docstring a menti pendant des semaines). On le reproduit.
   · CE RUN EST UN BANC DE MONTAGE, pas un verdict : il prouve que la chaine tourne et que
     les 18 colonnes sortent du jeu. Le verdict de concordance demandera des repetitions.
 """
@@ -37,7 +38,14 @@ OBJ = (4644.0, 5652.0)   # ⚠️ SITE CHANGE LE 14/08 — VERDICT_SITE_LIVE.md.
 # parce que la geometrie ne correspondait pas. Le gymnase fait naitre a `R_spawn = 170` sur une
 # echelle `terr_R = 200`. On reprend ses chiffres exactement : ce n est pas un reglage, c est
 # le meme monde.
-NDEF, NATT, DIST = 13, 8, 170.0
+# ⚠️ 4 CONTRE 4, PAS 13 CONTRE 8. Le docstring de ce fichier a affirme pendant des semaines
+# que le monde d entrainement etait « 13 defenseurs, 8 attaquants » et qu on le reproduisait.
+# C ETAIT FAUX : `MONDE_ARMA` ne fixe ni `A` ni `D`, donc le gymnase entraine sur les defauts
+# d `AssaultTerrain`, soit A=4 et D=4. Verifie le 14/08 : `e.A=4, e.D=4`.
+# La politique n avait donc JAMAIS rencontre treize defenseurs. Tripler la menace ecrase `nd`
+# et tuait les huit hommes en quatorze pas. Le 51,1 pourcent du gymnase et le 0 pourcent du
+# banc ne mesuraient pas le meme monde. On reprend les chiffres du gymnase, pas les miens.
+NDEF, NATT, DIST = 4, 4, 170.0
 PAS_MAX, PERIODE = 60, 3.28     # meme pas que le gymnase : 3,28 s
 
 
