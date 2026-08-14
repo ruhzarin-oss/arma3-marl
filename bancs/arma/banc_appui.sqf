@@ -418,6 +418,13 @@ call compile preprocessFileLineNumbers "capacites.sqf";
         {
             _x setVariable ["ap_n", 0];
             _x setUnitLoadout (_x getVariable "ap_load");
+            // ⚠️ ET ON LA REMET EN MAIN. `setUnitLoadout` rend l arme au SAC ; elle n est pas
+            // forcement SELECTIONNEE. Regression du 14/08 : apres le `removeAllWeapons` pose
+            // la veille au bras temoin, le bras natif tirait 292 coups sur le terrain 0 puis
+            // ZERO A TROIS sur les cinq suivants — campagnes 1 et 2 tiraient 273 a 480 coups
+            // sur les SIX terrains. `commandSuppressiveFire` sur un homme sans arme en main
+            // ne fait rien.
+            if (!(primaryWeapon _x isEqualTo "")) then { _x selectWeapon (primaryWeapon _x) };
             if (_bras != 0) then { [_x] call HMT_DOTER };
             _x doTarget objNull; _x doWatch objNull;
             _x setCombatMode "BLUE"; _x setBehaviour "COMBAT";
@@ -517,6 +524,26 @@ call compile preprocessFileLineNumbers "capacites.sqf";
                     // Copier une ligne sans savoir ce qu elle fait, c est l inverse de la
                     // regle 7 : l inventaire oblige a LIRE, pas a recopier.
                     { _x commandSuppressiveFire _c } forEach HMT_APP;
+                    // ═══ OU VONT LES BALLES — lecture pure, canal 6 decompose ═══
+                    // Le banc rend 37,5 pour cent d essais natifs sans AUCUN impact sur les
+                    // murets, alors que le groupe tire 46 coups en moyenne. Un groupe qui tire
+                    // 46 coups A PRIS SON ORDRE : ce n est donc pas la panne d ordre, c en est
+                    // une AUTRE, et on ne repare pas ce qu on n a pas separe.
+                    // On releve, sans rien commander : la cible que le tireur s est donnee,
+                    // l ecart angulaire entre son arme et le muret vise, et s il le VOIT.
+                    {
+                        private _u = _x;
+                        private _cib = assignedTarget _u;
+                        private _dir = _u getDir _c;
+                        private _ecart = abs ((_dir - (getDir _u) + 540) mod 360 - 180);
+                        private _v = [objNull, "VIEW"] checkVisibility [eyePos _u, getPosASL _c];
+                        (format ["HMT|AP|BALLE|%1|%2|cible|%3|ecart|%4|vue|%5|dist|%6",
+                                 (missionNamespace getVariable ["HMT_SITE", -1]),
+                                 _forEachIndex,
+                                 (if (isNull _cib) then {"nulle"} else {typeOf _cib}),
+                                 round _ecart, (round (_v * 100)) / 100,
+                                 round (_u distance _c)]) call HMT_LOG;
+                    } forEach HMT_APP;
                     sleep 4;
                 };
             };
