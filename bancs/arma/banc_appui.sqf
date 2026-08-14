@@ -455,7 +455,7 @@ call compile preprocessFileLineNumbers "capacites.sqf";
             };
             // BRAS 2 : le feu de suppression NATIF. Il a besoin d un mode de combat qui
             // autorise le tir ; AUTOTARGET reste coupe pour qu il ne choisisse pas ses cibles.
-            if (_bras == 2) then { _x setCombatMode "RED" };
+            if (_bras == 2 || _bras == 3) then { _x setCombatMode "RED" };
         } forEach HMT_APP;
         HMT_ANGLES = [];
         HMT_VISES = [];
@@ -507,6 +507,10 @@ call compile preprocessFileLineNumbers "capacites.sqf";
         private _feu = [_bras, _T] spawn {
             params ["_b", "_T"];
             if (_b == 0) exitWith {};
+            // BRAS 3 — ESSAI A ⟨Fable, 14/08⟩ : preparation IDENTIQUE au bras 2, et AUCUN
+            // ordre. Si les 347 coups du terrain 0 partent quand meme, l ordre est mort
+            // partout et le bras natif n a jamais existe. Critere depose avant mesure.
+            if (_b == 3) exitWith {};
             // ⟨Antistasi, fn_suppressingFire : `commandSuppressiveFire` + `suppressFor`. Huit
             //  lignes la ou j en ai ecrit deux cents. On les met AU BANC plutot que de les
             //  croire : c est le moteur contre mon script, et le temoin arbitre.⟩
@@ -715,6 +719,13 @@ call compile preprocessFileLineNumbers "capacites.sqf";
     //  lignes n a jamais ete le feu, ce sont les onze controles que leurs pannes ont forces. »⟩
     private _sess = missionNamespace getVariable ["HMT_SESSION", 1];
     _plan pushBack [2, _sess]; _plan pushBack [0, _sess];
+    // ─── ESSAI A : terrain 0 seulement, bras 2 (AVEC ordre) contre bras 3 (SANS ordre).
+    if (missionNamespace getVariable ["HMT_AUTOPSIE", false]) then {
+        HMT_SITES = [HMT_SITES select 0];
+        _plan = [];
+        for "_i" from 1 to 3 do { _plan pushBack [2, _sess]; _plan pushBack [3, _sess] };
+        "HMT|AP|AUTOPSIE|essai_A|terrain_0|bras2_x3_contre_bras3_x3" call HMT_LOG;
+    };
     // LA SESSION EST UN BLOC. Chaque session joue UNE repetition par terrain et par bras ;
     // trois sessions donnent les trois repetitions. La stabilite inter-session se lit alors
     // sur le RATIO qui decide — la propriete que le mecanisme utilise — au lieu de se lire sur
