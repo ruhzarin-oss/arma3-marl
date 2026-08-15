@@ -97,8 +97,14 @@ for "_i" from 1 to %d do {
         // AUCUN disableAI : l IA d Arma joue entiere, elle choisit son chemin.
         _u setBehaviour "COMBAT"; _u setCombatMode "RED"; _u allowFleeing 0;
     } else {
+        // ⚠️ `RED`, PAS `BLUE`. `combatMode "BLUE"` signifie « NE JAMAIS TIRER » dans le
+        // moteur : les attaquants du banc n ont donc jamais tire une balle en 67 episodes.
+        // Mesure du 15/08 : memes deux `disableAI`, BLUE = 0 coup, RED = 145 coups, et la
+        // progression est IDENTIQUE (154 m) — la politique garde tout son controle du
+        // deplacement. Rendre les facultes d IA (AUTOCOMBAT/FSM) est au contraire le PIRE
+        // des quatre bras : 14 coups et 111 m, l IA pilote contre la politique.
         _u disableAI "AUTOCOMBAT"; _u disableAI "FSM";
-        _u setBehaviour "AWARE"; _u setCombatMode "BLUE";
+        _u setBehaviour "COMBAT"; _u setCombatMode "RED"; _u allowFleeing 0;
     };
     // ⚠️ L ARME EN MAIN, PAS DANS LE SAC. `forceWeaponFire` (action 9) et
     // `commandSuppressiveFire` emploient tous deux `currentWeapon` : arme non selectionnee,
