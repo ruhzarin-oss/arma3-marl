@@ -165,7 +165,20 @@ if __name__ == "__main__":
     if not ok:
         print("  la scene ne s est pas creee — on ne joue pas.", flush=True)
         sys.exit(1)
-    b.send(sans_commentaires(C.WAKE))
+    # ⚠️ `WAKE` RECOUPE FSM ET AUTOCOMBAT SUR TOUS LES ATTAQUANTS. Il est envoye APRES la
+    # scene, donc il defaisait le bras natif trois lignes plus loin : `disableAI "FSM"` retire
+    # la machine a decision de l IA, et les hommes ne suivaient plus leur point de passage.
+    # Mesure du 15/08 : deplacement median 0,07 m/pas, 18 episodes sur 20 au bout des 60 pas,
+    # 2 morts. Le controle positif depose (« le natif doit BOUGER, > 1 m/pas ») l a attrape.
+    # Huitieme fois du jour qu une etape ULTERIEURE annule silencieusement une etape anterieure.
+    if BRAS == "natif":
+        b.send(sans_commentaires(
+            '{ _x enableAI "ALL"; _x setBehaviour "COMBAT"; _x setCombatMode "RED" } forEach HMT_ENNEMI;\n'
+            '{ _x enableAI "ALL"; _x setBehaviour "COMBAT"; _x setCombatMode "RED" } forEach HMT_FR;\n'
+            'HMT_POST = []; { HMT_POST pushBack 0 } forEach HMT_FR;\n'
+            'diag_log "HARMATTAN_WAKE natif ok";\n'))
+    else:
+        b.send(sans_commentaires(C.WAKE))
     time.sleep(2)
 
     pol = charger()
