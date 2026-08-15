@@ -1,0 +1,22 @@
+=== 20 EPISODES — banc live 4 contre 4, site (4644,5652) ===
+  episode 1  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 29
+  episode 2  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 21
+  episode 3  OK   HARMATTAN_SCENE def=4 att=4   60 pas
+  episode 4  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 17
+  episode 5  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 8
+  episode 6  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 13
+  episode 7  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 50
+  episode 8  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 19
+  episode 9  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 12
+  episode 10  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 17
+  episode 11  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 13
+  episode 12  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 12
+  episode 13  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 16
+  episode 14  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 16
+  episode 15  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 17
+  episode 16  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 13
+  episode 17  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 13
+  episode 18  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 16
+  episode 19  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 13
+  episode 20  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 16
+=== TERMINE : 20 releves sur 20 ===
