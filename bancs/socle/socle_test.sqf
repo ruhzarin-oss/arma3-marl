@@ -41,6 +41,8 @@ call compile preprocessFileLineNumbers "socle.sqf";
     _res pushBack (["T3_FSM_recoupee",   false, { { _x disableAI "PATH" } forEach (_this select 0) }] call HMT_CAS);
     _res pushBack (["T4_ne_tire_pas",    false, { { _x disableAI "FIREWEAPON" } forEach (_this select 0) }] call HMT_CAS);
     _res pushBack (["T5_immobile",       false, { { _x disableAI "MOVE"; _x setVariable ["hmt_mode","statue",true] } forEach (_this select 0) }] call HMT_CAS);
+    // CLIQUET : la faute du 15/08 au soir devient un test permanent.
+    _res pushBack (["T6_combatMode_BLUE", false, { { _x setCombatMode "BLUE" } forEach (_this select 0) }] call HMT_CAS);
 
     private _n = { _x } count _res;
     (format ["HMT|ST|BILAN|%1|sur|%2", _n, count _res]) call HMT_LOG;

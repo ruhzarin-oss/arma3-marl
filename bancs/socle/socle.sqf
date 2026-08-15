@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.0.0-15082026";
+HMT_SOCLE_VERSION = "1.1.0-15082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -82,8 +82,14 @@ HMT_PILOTER = {
     _u enableAI "ALL";
     switch (_mode) do {
         case "natif":  { _u setBehaviour "COMBAT"; _u setCombatMode "RED"; _u allowFleeing 0 };
+        // ⚠️ `RED`, PAS `BLUE`. `combatMode "BLUE"` signifie « NE JAMAIS TIRER » dans le
+        // moteur. Les attaquants du banc live l ont porte pendant 67 episodes : ZERO balle.
+        // Mesure du 15/08 : memes deux `disableAI`, BLUE = 0 coup, RED = 145, et la
+        // progression est IDENTIQUE (154 m) — la politique garde tout son deplacement.
+        // ⚠️ ET J AI EXTRAIT CE SOCLE DES BANCS FAUTIFS SANS LE QUESTIONNER : la v1.0.0
+        // portait la faute. C est precisement ce que le cliquet doit rendre impossible.
         case "pilote": { _u disableAI "AUTOCOMBAT"; _u disableAI "FSM";
-                         _u setBehaviour "AWARE"; _u setCombatMode "BLUE" };
+                         _u setBehaviour "COMBAT"; _u setCombatMode "RED"; _u allowFleeing 0 };
         case "statue": { _u disableAI "PATH"; _u disableAI "FSM"; _u disableAI "AUTOCOMBAT";
                          _u setBehaviour "COMBAT"; _u setCombatMode "RED" };
         default { diag_log format ["HMT|SOCLE|ERREUR|mode inconnu %1", _mode] };
@@ -123,6 +129,15 @@ HMT_PREVOL = {
         private _fsm = _x checkAIFeature "FSM";
         if (_m == "natif" && !_fsm) then { _ec pushBack "T3 mode natif mais FSM COUPEE (WAKE ?)" };
         if (_m == "pilote" && !(_x checkAIFeature "PATH")) then { _ec pushBack "T3 mode pilote mais PATH coupe (les JAMBES)" };
+    } forEach _hommes;
+
+    // T6 · combatMode ⟨CLIQUET, faute du 15/08⟩ : un homme en "BLUE" ne tirera JAMAIS.
+    // 67 episodes ont ete joues par des attaquants desarmes par ce seul mot.
+    {
+        private _m = _x getVariable ["hmt_mode", "?"];
+        if (_m != "statue" && {(combatMode (group _x)) == "BLUE" || {(combatMode _x) == "BLUE"}}) then {
+            _ec pushBack format ["T6 combatMode BLUE = NE JAMAIS TIRER (mode %1)", _m];
+        };
     } forEach _hommes;
 
     // ── PREUVES D ACTE : le monde fait-il vraiment ce que je crois ? ──
