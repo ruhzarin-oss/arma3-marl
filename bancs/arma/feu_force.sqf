@@ -23,6 +23,15 @@ HMT_APPUYER = {
     _t disableAI "AUTOCOMBAT"; _t disableAI "FSM"; _t disableAI "PATH";
     _t setBehaviour "AWARE"; _t setCombatMode "BLUE"; _t allowDamage false;
     _t setSkill 0.5;
+    // ⚠️ L ARME EN MAIN, PAS DANS LE SAC. Meme faute que le banc d appui ce matin :
+    // `forceWeaponFire` et `commandSuppressiveFire` emploient `currentWeapon` ; si l arme
+    // n est pas SELECTIONNEE, les deux ne font rien. Premier passage : ZERO balle dans les
+    // DEUX bras, et le controle positif (tuer une cible a decouvert) est tombe.
+    // Reparee ce matin dans banc_appui.sqf, PAS reportee dans ce banc neuf.
+    _t selectWeapon (primaryWeapon _t);
+    _t setUnitPos "UP";
+    (format ["HMT|FF|ARME|primaire|%1|en_main|%2|munitions|%3",
+             primaryWeapon _t, currentWeapon _t, _t ammo (primaryWeapon _t)]) call HMT_LOG;
     // la cible, derriere un muret
     private _gd = createGroup east;
     private _c = _gd createUnit ["O_Soldier_F", _o, [], 0, "NONE"];
@@ -39,6 +48,9 @@ HMT_APPUYER = {
     _c addEventHandler ["Fired", { HMT_RIPOSTE pushBack [time, missionNamespace getVariable ["HMT_FEN", "silence"]] }];
 
     sleep 3;
+    if ((currentWeapon _t) isEqualTo "") exitWith {
+        "HMT|FF|ECHEC|arme_pas_en_main_on_ne_mesure_pas" call HMT_LOG;
+    };
     "HMT|FF|debut" call HMT_LOG;
 
     {
