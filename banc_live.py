@@ -100,6 +100,12 @@ for "_i" from 1 to %d do {
         _u disableAI "AUTOCOMBAT"; _u disableAI "FSM";
         _u setBehaviour "AWARE"; _u setCombatMode "BLUE";
     };
+    // ⚠️ L ARME EN MAIN, PAS DANS LE SAC. `forceWeaponFire` (action 9) et
+    // `commandSuppressiveFire` emploient tous deux `currentWeapon` : arme non selectionnee,
+    // aucun des deux ne fait rien. Mesure du 15/08 au soir : le banc du feu force a rendu
+    // ZERO balle dans les DEUX bras et son controle positif est tombe. Meme faute que le
+    // banc d appui ce matin, reparee la-bas et pas reportee ici ni dans ce banc.
+    _u selectWeapon (primaryWeapon _u);
     _u setVariable ["HMT_LASTDMG", 0];
     HMT_FR pushBack _u;
     // MESURE DU 11/08 — poussee continue de 6 m/s pendant 8 s, ~48 m attendus :
@@ -116,7 +122,8 @@ if (HMT_BRAS == "natif") then {
     private _w = _ga addWaypoint [HMT_OBJ, 0];
     _w setWaypointType "SAD"; _w setWaypointBehaviour "COMBAT"; _w setWaypointSpeed "NORMAL";
 };
-diag_log format ["HARMATTAN_SCENE def=%%1 att=%%2", count HMT_ENNEMI, count HMT_FR];
+diag_log format ["HARMATTAN_SCENE def=%%1 att=%%2 enmain=%%3", count HMT_ENNEMI, count HMT_FR,
+  ({(currentWeapon _x) != ""} count HMT_FR)];
 '''.replace("HMT_BRAS", '"' + BRAS + '"') % (OBJ[0], OBJ[1], NDEF, NATT, DIST, DIST)
 
 ETAT = '''
