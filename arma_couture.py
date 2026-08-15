@@ -187,8 +187,28 @@ HMT_NORDRE = (missionNamespace getVariable ["HMT_NORDRE", 0]) + 1;
       };
   }
   else { if (_a==9) then {
+      // ⚠️ L APPUI NE SE DEMANDE PLUS, IL SE DECLENCHE ⟨Fable, 15/08⟩.
+      // `doSuppressiveFire` ORIENTE la visee sans declencher le feu : mesure du 15/08 au
+      // matin, 94 pourcent des balles partaient SANS ordre, 3 paires sur 3 — l ordre etait
+      // un repartiteur de visee, pas un declencheur. On force donc la cadence nous-memes,
+      // 3 coups/s, avec le meme jeton HMT_NORDRE que le mouvement pour qu un ordre neuf
+      // coupe le precedent.
       private _ne=objNull; private _nd=1e9; { if (alive _x) then { private _d=_u distance _x; if(_d<_nd) then {_nd=_d;_ne=_x} } } forEach HMT_ENNEMI;
-      _u setVelocity [0,0,0]; if (!isNull _ne) then { _u doTarget _ne; _u doSuppressiveFire _ne };
+      _u setVelocity [0,0,0];
+      if (!isNull _ne) then {
+          private _mien = HMT_NORDRE; private _p = getPosATL _ne;
+          [_u,_p,_mien] spawn {
+              params ["_u","_p","_mien"];
+              private _t0 = time;
+              while { alive _u && time - _t0 < 3.28
+                      && {(missionNamespace getVariable ["HMT_NORDRE",0]) == _mien} } do {
+                  _u setDir (_u getDir _p); _u doWatch _p;
+                  _u forceWeaponFire [currentWeapon _u, currentMuzzle _u];
+                  sleep 0.33;
+              };
+              _u doWatch objNull;
+          };
+      };
     } else { _u setVelocity [0,0,0]; }; };
   if (_a>=10) then { private _pv=_a-10; HMT_POST set [_i,_pv];
      _u setUnitPos (["UP","MIDDLE","DOWN"] select _pv); };

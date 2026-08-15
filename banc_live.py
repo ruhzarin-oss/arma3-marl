@@ -192,6 +192,24 @@ if __name__ == "__main__":
         acts = lo.argmax(-1).tolist()
         if BRAS == "natif":
             acts = []                       # l IA d Arma pilote : AUCUN ordre envoye
+        elif BRAS == "script":
+            # ═══ FEU-ET-MOUVEMENT SCRIPTE ⟨Fable, 15/08⟩ ═══
+            # « Une politique fixe idiote — l un appuie pendant que l autre bondit, on
+            #  alterne. Si le script ne bat pas FLANC, aucune politique posee dessus ne le
+            #  battra. »  C est le proces du GESTE, a vocabulaire ferme, sans apprentissage.
+            _apx = o[:, 0] * 200.0; _apy = o[:, 1] * 200.0
+            _cap = lambda dx, dy: (torch.round(torch.atan2(dx, dy) / (math.pi/4.0)).long() % 8)
+            _a = _cap(-_apx, -_apy)                       # tout le monde cap vers l objectif
+            # une equipe bondit pendant que l autre appuie ; on echange tous les 3 pas
+            _demi = max(1, len(o)//2)
+            _bond_dabord = ((t // 3) % 2 == 0)
+            _appui = torch.zeros(len(o), dtype=torch.bool)
+            if _bond_dabord: _appui[_demi:] = True
+            else:            _appui[:_demi] = True
+            # on n appuie que si l ennemi est a portee utile (0,9 x portee du gymnase)
+            _d = torch.sqrt(_apx**2 + _apy**2)
+            _a = torch.where(_appui & (_d < 110.0*0.9), torch.full_like(_a, 9), _a)
+            acts = _a.tolist()
         elif BRAS == "flanc":
             # doctrine portee TELLE QUELLE de boucle.py : cap vers l objectif ; les deux
             # premiers appuient (9) sous 0,9 x portee ; les autres crochetent 14 pas.
