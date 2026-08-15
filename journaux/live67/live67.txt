@@ -1,0 +1,69 @@
+=== 67 EPISODES — taille DERIVEE (9 morts/20 ep, il en faut 30) ===
+  episode 1  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 37
+  episode 2  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 31
+  episode 3  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 18
+  episode 4  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 19
+  episode 5  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 22
+  episode 6  OK   HARMATTAN_SCENE def=4 att=4   60 pas
+  episode 7  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 16
+  episode 8  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 11
+  episode 9  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 11
+  episode 10  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 7
+  episode 11  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 7
+  episode 12  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 47
+  episode 13  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 17
+  episode 14  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 12
+  episode 15  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 28
+  episode 16  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 35
+  episode 17  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 26
+  episode 18  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 15
+  episode 19  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 10
+  episode 20  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 10
+  episode 21  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 11
+  episode 22  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 13
+  episode 23  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 27
+  episode 24  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 32
+  episode 25  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 19
+  episode 26  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 19
+  episode 27  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 13
+  episode 28  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 11
+  episode 29  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 19
+  episode 30  OK   HARMATTAN_SCENE def=4 att=4   60 pas
+  episode 31  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 9
+  episode 32  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 16
+  episode 33  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 8
+  episode 34  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 14
+  episode 35  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 14
+  episode 36  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 22
+  episode 37  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 25
+  episode 38  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 11
+  episode 39  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 20
+  episode 40  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 17
+  episode 41  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 18
+  episode 42  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 34
+  episode 43  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 36
+  episode 44  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 39
+  episode 45  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 14
+  episode 46  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 23
+  episode 47  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 6
+  episode 48  OK   HARMATTAN_SCENE def=4 att=4   60 pas
+  episode 49  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 19
+  episode 50  OK   HARMATTAN_SCENE def=4 att=4   60 pas
+  episode 51  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 10
+  episode 52  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 9
+  episode 53  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 13
+  episode 54  OK   HARMATTAN_SCENE def=4 att=4   60 pas
+  episode 55  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 21
+  episode 56  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 32
+  episode 57  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 28
+  episode 58  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 25
+  episode 59  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 31
+  episode 60  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 8
+  episode 61  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 10
+  episode 62  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 24
+  episode 63  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 17
+  episode 64  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 26
+  episode 65  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 45
+  episode 66  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 12
+  episode 67  OK   HARMATTAN_SCENE def=4 att=4   fin au pas 24
+=== TERMINE : 67 releves sur 67 ===
