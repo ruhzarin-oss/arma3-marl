@@ -128,13 +128,25 @@ HMT_PREVOL = {
     // ── PREUVES D ACTE : le monde fait-il vraiment ce que je crois ? ──
     private _t = _hommes select 0;
     // T4 · une BALLE REELLE part (regle 16 : juger l acte, pas l etat)
+    // ⚠️ IL FAUT UNE CIBLE ACQUERABLE. Mesure du 15/08 (trois balayages) : viser une position
+    // vide sans ennemi dans la scene ne produit AUCUN coup — c est ce qui rendait le banc
+    // `feu_force` muet, sa cible etant derriere un muret. Sans mannequin, ce test declarerait
+    // ROUGE un monde parfaitement sain.
+    private _gm = createGroup east;
+    private _mann = _gm createUnit ["O_Soldier_F", [(getPosATL _t select 0), (getPosATL _t select 1) + 45, 0], [], 0, "NONE"];
+    _mann setPosATL [(getPosATL _t select 0), (getPosATL _t select 1) + 45, 0];
+    _mann disableAI "PATH"; _mann setBehaviour "CARELESS"; _mann allowDamage false;
+    _t reveal [_mann, 4];
+    sleep 2;
     HMT_PV_COUPS = 0;
     private _eh = _t addEventHandler ["Fired", { HMT_PV_COUPS = HMT_PV_COUPS + 1 }];
-    private _cible = [(getPosATL _t select 0), (getPosATL _t select 1) + 50, 0];
     private _t0 = time;
-    while { time - _t0 < 4 } do { _t setDir (_t getDir _cible); _t forceWeaponFire [currentWeapon _t, currentMuzzle _t]; sleep 0.33 };
+    while { time - _t0 < 6 } do { _t doWatch _mann; _t doTarget _mann;
+        _t forceWeaponFire [currentWeapon _t, currentMuzzle _t]; sleep 0.33 };
     _t removeEventHandler ["Fired", _eh];
-    if (HMT_PV_COUPS < 3) then { _ec pushBack format ["T4 AUCUNE BALLE REELLE (%1 en 4 s)", HMT_PV_COUPS] };
+    _t doTarget objNull; _t doWatch objNull;
+    deleteVehicle _mann; deleteGroup _gm;
+    if (HMT_PV_COUPS < 1) then { _ec pushBack format ["T4 AUCUNE BALLE REELLE (%1 en 6 s, cible acquerable)", HMT_PV_COUPS] };
 
     // T5 · un homme PARCOURT du terrain (setVelocity est une IMPULSION, pas une consigne)
     private _p0 = getPosATL _t; private _t1 = time;
