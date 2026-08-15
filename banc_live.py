@@ -23,6 +23,9 @@ import torch
 from porter_boucle import charger, COLS
 from boucle import NA
 
+# ⚠️ BRAS DE BASELINE ⟨Fable, 15/08⟩ : « 11,9 % n a pas de sens tant qu on ne sait pas ce
+# que le MEILLEUR CORPS CONNU fait sur ce banc. » Trois bras, meme banc, meme site.
+BRAS = sys.argv[1] if len(sys.argv) > 1 else "politique"
 SB = "/mnt/data/harmattan-sandbox"
 EXT, PORT = 5830, 6062
 MIS = "BancLive.Stratis"
@@ -90,8 +93,14 @@ for "_i" from 1 to %d do {
     private _u = _ga createUnit ["B_Soldier_F", _p, [], 0, "NONE"];
     _u setPosATL _p; _u setSkill 0.5;
     // PATH coupe : c est la politique qui pilote, par setVelocity — comme au gymnase.
-    _u disableAI "AUTOCOMBAT"; _u disableAI "FSM";
-    _u setBehaviour "AWARE"; _u setCombatMode "BLUE"; _u setVariable ["HMT_LASTDMG", 0];
+    if (HMT_BRAS == "natif") then {
+        // AUCUN disableAI : l IA d Arma joue entiere, elle choisit son chemin.
+        _u setBehaviour "COMBAT"; _u setCombatMode "RED"; _u allowFleeing 0;
+    } else {
+        _u disableAI "AUTOCOMBAT"; _u disableAI "FSM";
+        _u setBehaviour "AWARE"; _u setCombatMode "BLUE";
+    };
+    _u setVariable ["HMT_LASTDMG", 0];
     HMT_FR pushBack _u;
     // MESURE DU 11/08 — poussee continue de 6 m/s pendant 8 s, ~48 m attendus :
     //   PATH+AUTOCOMBAT+FSM ....  9 m     disableAI ALL ....  9 m
@@ -103,8 +112,12 @@ for "_i" from 1 to %d do {
     // decide, pas l IA d Arma — mais PATH reste actif.
 };
 HMT_POST = []; { HMT_POST pushBack 0 } forEach HMT_FR;
+if (HMT_BRAS == "natif") then {
+    private _w = _ga addWaypoint [HMT_OBJ, 0];
+    _w setWaypointType "SAD"; _w setWaypointBehaviour "COMBAT"; _w setWaypointSpeed "NORMAL";
+};
 diag_log format ["HARMATTAN_SCENE def=%%1 att=%%2", count HMT_ENNEMI, count HMT_FR];
-''' % (OBJ[0], OBJ[1], NDEF, NATT, DIST, DIST)
+'''.replace("HMT_BRAS", '"' + BRAS + '"') % (OBJ[0], OBJ[1], NDEF, NATT, DIST, DIST)
 
 ETAT = '''
 private _v = 0; private _dmin = 1e9;
@@ -177,11 +190,26 @@ if __name__ == "__main__":
         with torch.no_grad():
             lo, _ = pol(o[:, COLS])
         acts = lo.argmax(-1).tolist()
+        if BRAS == "natif":
+            acts = []                       # l IA d Arma pilote : AUCUN ordre envoye
+        elif BRAS == "flanc":
+            # doctrine portee TELLE QUELLE de boucle.py : cap vers l objectif ; les deux
+            # premiers appuient (9) sous 0,9 x portee ; les autres crochetent 14 pas.
+            _apx = o[:, 0] * 200.0; _apy = o[:, 1] * 200.0      # obs = apx/S, S = terr_R
+            _cap = lambda dx, dy: (torch.round(torch.atan2(dx, dy) / (math.pi/4.0)).long() % 8)
+            _a = _cap(-_apx, -_apy)
+            _d = torch.sqrt(_apx**2 + _apy**2)
+            _f = torch.zeros(len(o), dtype=torch.bool); _f[:2] = True
+            _a = torch.where(_f & (_d < 110.0*0.9), torch.full_like(_a, 9), _a)
+            if t < 14:
+                _a = torch.where(~_f, _cap(-_apy, _apx), _a)
+            acts = _a.tolist()
         # ═══ RELEVE ⟨Fable, 14/08⟩ : on garde les 18 colonnes BRUTES telles qu Arma les
         # produit, plus les logits et l action. C est la premiere machoire. La seconde est
         # le rejeu hors-ligne : un releve seul donne un indice, le rejeu donne un verdict.
-        RELEVE.append((t, o.numpy().copy(), lo.numpy().copy(), list(acts)))
-        b.send(sans_commentaires(C.acts_to_sqf(acts)), wait=False)
+        RELEVE.append((t, o.numpy().copy(), lo.numpy().copy(), list(acts) if acts else [-1]*len(o)))
+        if acts:
+            b.send(sans_commentaires(C.acts_to_sqf(acts)), wait=False)
         b.send(sans_commentaires(ETAT), wait=False)
         time.sleep(0.3)
         m = None
