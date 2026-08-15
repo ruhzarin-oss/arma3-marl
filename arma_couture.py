@@ -164,8 +164,28 @@ HMT_CX=__CX__; HMT_CY=__CY__; HMT_S=__S__; HMT_FRNG=__FRNG__;
 # --- 3) ACTION : 13 actions -> SQF (caps 0-7, HOLD 8, SUPPRESS 9, postures 10/11/12) ---
 ACT_TPL = r'''
 HMT_ACT=[__ACTS__]; HMT_SPD=__SPD__;
+// ⚠️ `setVelocity` EST UNE IMPULSION, PAS UNE CONSIGNE. Mesure du 15/08, sonde a trois bras,
+// controles positifs passes : emise UNE FOIS par periode de 3,28 s elle rend 2,58 m ;
+// reemise a 10 Hz elle rend 20,22 m, soit exactement les 6 m/s x 3,28 s attendus. Facteur 7,8.
+// Le banc envoyait donc une pichenette toutes les 3,28 s en croyant donner une vitesse : les
+// hommes avancaient 2,8x moins qu au gymnase A RENDEMENT DE PILOTAGE IDENTIQUE (0,46 contre
+// 0,42) — le cerveau transferait, le corps non. Voir VERDICT_CORPS.md et DEPOT_LIMITEUR.md.
+// Le jeton HMT_NORDRE coupe la boucle des que l ordre SUIVANT arrive : sans lui, deux boucles
+// se disputeraient le meme homme et la derniere emise gagnerait au hasard.
+HMT_NORDRE = (missionNamespace getVariable ["HMT_NORDRE", 0]) + 1;
 { private _i=_forEachIndex; private _a=HMT_ACT select _i; private _u=_x;
-  if (_a<8) then { private _h=_a*45; _u setVelocity [HMT_SPD*sin _h, HMT_SPD*cos _h, 0]; }
+  if (_a<8) then {
+      private _h=_a*45; private _vx=HMT_SPD*sin _h; private _vy=HMT_SPD*cos _h;
+      private _mien = HMT_NORDRE;
+      [_u,_vx,_vy,_mien] spawn {
+          params ["_u","_vx","_vy","_mien"];
+          private _t0 = time;
+          while { alive _u && time - _t0 < 3.28
+                  && {(missionNamespace getVariable ["HMT_NORDRE",0]) == _mien} } do {
+              _u setVelocity [_vx,_vy,0]; sleep 0.1;
+          };
+      };
+  }
   else { if (_a==9) then {
       private _ne=objNull; private _nd=1e9; { if (alive _x) then { private _d=_u distance _x; if(_d<_nd) then {_nd=_d;_ne=_x} } } forEach HMT_ENNEMI;
       _u setVelocity [0,0,0]; if (!isNull _ne) then { _u doTarget _ne; _u doSuppressiveFire _ne };
@@ -173,7 +193,10 @@ HMT_ACT=[__ACTS__]; HMT_SPD=__SPD__;
   if (_a>=10) then { private _pv=_a-10; HMT_POST set [_i,_pv];
      _u setUnitPos (["UP","MIDDLE","DOWN"] select _pv); };
 } forEach HMT_FR;
-diag_log format ["HARMATTAN_ACTOK n=%1", count HMT_FR];
+// Le FPS est journalise A CHAQUE PAS : la reemission a 10 Hz est exactement ce que le
+// limiteur evitait, et deployer sans mesurer son cout serait refaire la faute de celui
+// qui l a pose. Mesure a UN homme : 48,8 FPS. Le banc en a quatre.
+diag_log format ["HARMATTAN_ACTOK n=%1 fps=%2", count HMT_FR, diag_fps];
 '''
 
 OBS_RE = re.compile(r"HARMATTAN_OBS18 (\d+) \[([^\]]+)\]")
