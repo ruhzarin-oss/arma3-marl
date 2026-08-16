@@ -25,6 +25,11 @@ from banc_live import SCENE, sans_commentaires
 
 N    = int(sys.argv[1]) if len(sys.argv) > 1 else 50
 MODE = sys.argv[2] if len(sys.argv) > 2 else "normal"
+# ⚠️ LE DELAI D ECHAUFFEMENT EST UN PARAMETRE, PAS UNE CONSTANTE. Mesure du 16/08 : les
+# echecs de T5 se concentrent aux tirages 1-3 d une session (4 m, 10 m, puis 18-24 m sur
+# les quatorze suivants), et la nuit tirait son prevol 48 s apres un serveur NEUF a chaque
+# episode — toujours dans la zone froide, d ou 70 % de rouges contre 4 % a la porte.
+CHAUD = int(sys.argv[3]) if len(sys.argv) > 3 else 45
 SB   = "/mnt/data/harmattan-sandbox"
 EXT, PORT = 5830, 6062
 LOG  = SB + "/logs/serverPV.out"
@@ -43,7 +48,8 @@ if __name__ == "__main__":
        "-port=%d -world=Stratis -autoInit "
        "-mod='@CBA_A3;@rhsusaf;@rhsafrf;@LAMBS_Danger;@PinnedDown_BattleLines;@PinnedDown_CoverConcealment' "
        ">> '%s' 2>&1 < /dev/null & disown" % (SB, EXT, SB, SB, PORT, LOG))
-    time.sleep(45)
+    print('  echauffement : %d s' % CHAUD, flush=True)
+    time.sleep(CHAUD)
     b = SocketBridge(EXT); time.sleep(3)
     b.send(sans_commentaires(SCENE), wait=False)
     time.sleep(6)
