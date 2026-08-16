@@ -167,3 +167,9 @@ if __name__ == "__main__":
           f" · couche invisible au-dela de {e.COUCHE_INVISIBLE_M} m")
     o = e.reset()
     print(f"    observation : {tuple(o.shape)}")
+
+
+# ── LE MONDE OPERE (chirurgie du couvert, 16/08) ──
+# Un seul changement : le couvert scalaire est retire, la protection ne vient plus
+# que de la rupture de vue, qui est DIRECTIONNELLE. Voir DEPOT_CHIRURGIE_COUVERT.md.
+MONDE_OPERE = dict(MONDE_ARMA, couvert_directionnel=True)

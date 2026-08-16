@@ -14,6 +14,10 @@ class AssaultTerrain:
                  grid_obs=False, gridK=8, gridspan=80.0, team_obs=False, role_obs=False,
                  shell_obs=False, shellK=12, shell_R=60.0, suffer=False, D_min=2,
                  replica=False, replica_path="replica.npz", device="cuda:0", seed=0, postures=False, flat_los=False,
+                 couvert_directionnel=False,   # ⚠️ CHIRURGIE 16/08 : retire le multiplicateur scalaire
+                                               # `1 - 0,7*incover`. La protection ne vient alors que de `los`,
+                                               # directionnel par construction. Eteint par defaut : le monde
+                                               # existant ne bouge pas tant qu on ne l allume pas.
                  overwatch=False, ow_expo=0.05, hull=False, ow_dmg=0.3, ow_tofail=0.5, expose_lut=None,
                  emergent_expo=False, death_pen=0.4, suffer_pen=1.1, win_bonus=1.0, kill_w=1.5, arma_obs=False, obs_dcover_arma=None, obs_sans_slope=None,
                  secure_task=False, approach_w=0.2, secure_only=False, supp_kill=1.0,
@@ -206,6 +210,7 @@ class AssaultTerrain:
         self.g = torch.Generator(device=device).manual_seed(seed)
         self.postures = postures
         self.flat_los = flat_los
+        self.couvert_directionnel = couvert_directionnel
         self.overwatch = overwatch; self.ow_expo = ow_expo
         self.hull = hull; self.ow_dmg = ow_dmg; self.ow_tofail = ow_tofail; self.emergent_expo = emergent_expo
         self.death_pen = death_pen; self.suffer_pen = suffer_pen; self.win_bonus = win_bonus; self.kill_w = kill_w   # knobs récompense (défauts = comportement historique)
@@ -758,12 +763,12 @@ class AssaultTerrain:
                     # gratuit, et donc la manoeuvre depourvue de sens.
                     _po = self.posture if self.postures else None
                     _p = self._p_balle(dist, _po) * self.tir_par_pas * self.degat_par_impact
-                    dmg_a += _p * los * tir * (1.0 - 0.7 * incover)
+                    dmg_a += _p * los * tir * (1.0 if self.couvert_directionnel else (1.0 - 0.7 * incover))
                     if self.feu_de_zone > 0.0:      # idem : le couvert attenue, il n annule plus
-                        dmg_a += _p * self.feu_de_zone * inr * active * (1.0 - 0.7 * incover)
+                        dmg_a += _p * self.feu_de_zone * inr * active * (1.0 if self.couvert_directionnel else (1.0 - 0.7 * incover))
                 else:
                     _exp = self._expose_lut[self.posture] if (self.postures and self.hull) else 1.0   # HULL-DOWN knob (posture basse = petite cible)
-                    dmg_a += self.hit * los * inr * tir * (1.0 - 0.7 * incover) * _exp
+                    dmg_a += self.hit * los * inr * tir * (1.0 if self.couvert_directionnel else (1.0 - 0.7 * incover)) * _exp
                 if self.courbe is not None:
                     exposed = torch.maximum(exposed, los * active * self._p_norm(dist))
                 else:
