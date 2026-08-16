@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.9.0-16082026";
+HMT_SOCLE_VERSION = "1.10.0-16082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -181,6 +181,18 @@ HMT_PREVOL = {
         false
     };
     private _t = [_gt, "B_Soldier_F", _pt, "temoin"] call HMT_POSER_HOMME;
+
+    // ⚠️ LE DISPOSITIF DE SABOTAGE ⟨regle 18 : aucun critere ne juge sans avoir ete juge⟩.
+    // Une porte doit avoir ete EXECUTEE sur un cas passant ET sur un cas echouant. Sans ce
+    // levier, « T4 est vert » ne prouve pas que T4 sait rougir — il prouve seulement qu il
+    // n a pas rougi. Le sabotage est donc PART DU SOCLE, pas un bricolage de banc.
+    //   `HMT_SABOTER = "munitions"` retire les cartouches du temoin : T4 DOIT rougir.
+    // Toute autre valeur, ou aucune, laisse le prevol intact.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "munitions") then {
+        _t setVehicleAmmo 0;
+        (format ["HMT|SOCLE|SABOTAGE|munitions|mun_restantes|%1",
+                 count (magazines _t)]) call HMT_LOG;
+    };
     _t allowDamage false;
     sleep 1;
 
