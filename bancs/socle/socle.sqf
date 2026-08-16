@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.2.0-16082026";
+HMT_SOCLE_VERSION = "1.3.0-16082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -92,6 +92,15 @@ HMT_PILOTER = {
                          _u setBehaviour "COMBAT"; _u setCombatMode "RED"; _u allowFleeing 0 };
         case "statue": { _u disableAI "PATH"; _u disableAI "FSM"; _u disableAI "AUTOCOMBAT";
                          _u setBehaviour "COMBAT"; _u setCombatMode "RED" };
+        // ⚠️ LE TEMOIN DU PREVOL GARDE `AUTOCOMBAT`. Sonde du 16/08, trois bras : le tir suit
+        // `AUTOCOMBAT` et rien d autre — temoin sans (0 coup), attaquant avec (13), temoin
+        // pose AU LIEU MEME de la scene et toujours sans (0). Un temoin qui ne peut pas tirer
+        // ne peut pas PROUVER qu une balle part, donc il bloquait tout le banc.
+        // ⚠️ ANOMALIE OUVERTE : la scene appelle `disableAI "AUTOCOMBAT"` sur ses attaquants
+        // et ils l ont pourtant ACTIF. L ordre ne prend pas, et on ne sait pas pourquoi.
+        // Voir ANOMALIE_AUTOCOMBAT.md — a mesurer, pas a deviner.
+        case "temoin": { _u disableAI "FSM";
+                         _u setBehaviour "COMBAT"; _u setCombatMode "RED"; _u allowFleeing 0 };
         default { diag_log format ["HMT|SOCLE|ERREUR|mode inconnu %1", _mode] };
     };
     _u setVariable ["hmt_mode", _mode, true];
@@ -148,7 +157,7 @@ HMT_PREVOL = {
     private _gt = createGroup west;
     private _ref = _hommes select 0;
     private _pt = [(getPosATL _ref select 0) + 300, (getPosATL _ref select 1) + 300, 0];
-    private _t = [_gt, "B_Soldier_F", _pt, (_ref getVariable ["hmt_mode","pilote"])] call HMT_POSER_HOMME;
+    private _t = [_gt, "B_Soldier_F", _pt, "temoin"] call HMT_POSER_HOMME;
     _t allowDamage false;
     sleep 1;
 
