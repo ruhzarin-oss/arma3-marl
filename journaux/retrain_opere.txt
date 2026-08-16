@@ -1,0 +1,16 @@
+  monde : couvert_directionnel = True
+
+  entrainement — 12 entrees, 10 actions, 140 iterations de 256 episodes
+    iter    0  prise   0.0 %  metres   18.0
+    iter   20  prise   0.0 %  metres   32.0
+    iter   40  prise   0.4 %  metres   49.3
+    iter   60  prise   0.0 %  metres   63.6
+    iter   80  prise   0.0 %  metres   70.3
+    iter  100  prise   0.0 %  metres   75.0
+    iter  120  prise   0.4 %  metres   78.4
+    iter  139  prise   0.8 %  metres   80.1
+  entraine en 12.2 min
+  sauve : boucle_pol_opere.pt
+  appris       4.3 %   (103.1 m)
+  frontal      4.4 %   (105.6 m)
+  flanc       25.0 %   ( 91.6 m)
