@@ -50,6 +50,12 @@ HMT_PEUT_TIRER = {
     if !([_u] call HMT_PEUT_COMBATTRE) exitWith { false };
     if (!(canFire _u)) exitWith { false };
     if ((_u ammo (primaryWeapon _u)) <= 0) exitWith { false };
+    // ⚠️ ET L ARME DOIT ETRE EN MAIN. Ce controle a laisse passer la regression du 14/08 :
+    // il comptait 9 fusils sur 9 alors que les appuis ne tiraient plus. Il verifiait que
+    // l arme EXISTE et qu elle est CHARGEE — l abstraction commode — au lieu de la propriete
+    // que le mecanisme emploie : peut-il tirer MAINTENANT. Un fusil dans le sac ne tire pas.
+    // Sixieme fois de la journee que cette faute se presente ⟨regle 6⟩.
+    if ((currentWeapon _u) isEqualTo "") exitWith { false };
     true
 };
 

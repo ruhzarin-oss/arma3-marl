@@ -1,3 +1,4 @@
+HMT_AUTOPSIE = true;
 // ETAGE 1 DU GESTE N2 - CAMPAGNE REDEPOSEE, SESSION 1.
 // Les 48 essais des quatre sessions precedentes sont des PARTIELS : ils ont DIMENSIONNE les
 // nouveaux seuils, ils ne certifient rien et ne se relisent pas sous ce protocole.
@@ -22,7 +23,7 @@
 if (isServer) then {
     HMT_LOG = { diag_log _this };
     HMT_PHASE = 3;
-    HMT_SESSION = 2;
+    HMT_SESSION = 1;
     HMT_CANDIDATS = [
         [1734,5391,0], [3416,5931,0], [4601,4431,0],
         [4783,5298,0], [2172,4643,0], [3450,6750,0]

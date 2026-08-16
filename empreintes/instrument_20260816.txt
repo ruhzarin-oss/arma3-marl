@@ -1,0 +1,8 @@
+# Empreintes de l instrument — 2026-08-16T13:04:14+02:00
+socle           015440a4a56bf731  
+banc_live.py    72f3b2833f50956e
+arma_couture.py 72d5364e59deafa1
+monde_fidele.py 7bdab4a04257404d
+mission BancLive 3eee642256753a63
+site            (4644, 5652)
+combatMode att  setCombatMode "RED" setCombatMode "RED" 
