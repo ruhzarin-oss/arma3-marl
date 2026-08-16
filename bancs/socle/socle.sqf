@@ -174,7 +174,16 @@ HMT_PREVOL = {
     while { time - _t0 < 6 } do { _t doWatch _mann; _t doTarget _mann;
         _t forceWeaponFire [currentWeapon _t, currentMuzzle _t]; sleep 0.33 };
     _t removeEventHandler ["Fired", _eh];
-    if (HMT_PV_COUPS < 1) then { _ec pushBack format ["T4 AUCUNE BALLE REELLE (%1 en 6 s)", HMT_PV_COUPS] };
+    // ⚠️ T4 DIT L ETAT DU TEMOIN QUAND IL ECHOUE. Sans cela son refus est muet, et j ai
+    // deja perdu deux gestes a deviner ce qui manquait a cet homme.
+    if (HMT_PV_COUPS < 1) then {
+        _ec pushBack format ["T4 AUCUNE BALLE REELLE (0 en 6 s) — arme:%1 autoc:%2 fsm:%3 path:%4 mode:%5 dist:%6 vue:%7 mun:%8",
+            (if ((currentWeapon _t) == "") then {"AUCUNE"} else {"oui"}),
+            _t checkAIFeature "AUTOCOMBAT", _t checkAIFeature "FSM", _t checkAIFeature "PATH",
+            combatMode _t, round (_t distance _mann),
+            round (100 * ([objNull,"VIEW"] checkVisibility [eyePos _t, eyePos _mann])) / 100,
+            _t ammo (primaryWeapon _t)];
+    };
 
     // T5 · un homme PARCOURT du terrain (setVelocity est une IMPULSION, pas une consigne)
     _t doTarget objNull; _t doWatch objNull;
