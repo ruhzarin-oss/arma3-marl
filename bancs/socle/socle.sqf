@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.1.0-15082026";
+HMT_SOCLE_VERSION = "1.2.0-16082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -140,16 +140,22 @@ HMT_PREVOL = {
         };
     } forEach _hommes;
 
-    // ── PREUVES D ACTE : le monde fait-il vraiment ce que je crois ? ──
-    private _t = _hommes select 0;
-    // T4 · une BALLE REELLE part (regle 16 : juger l acte, pas l etat)
-    // ⚠️ IL FAUT UNE CIBLE ACQUERABLE. Mesure du 15/08 (trois balayages) : viser une position
-    // vide sans ennemi dans la scene ne produit AUCUN coup — c est ce qui rendait le banc
-    // `feu_force` muet, sa cible etant derriere un muret. Sans mannequin, ce test declarerait
-    // ROUGE un monde parfaitement sain.
+    // ── PREUVES D ACTE, SUR UN BINOME JETABLE ──
+    // ⚠️ Elles font TIRER et DEPLACER. Les passer sur les hommes de l episode corromprait
+    // la scene qu elles doivent garantir : T5 deplace de 24 m, T4 vide un chargeur.
+    // On les passe donc sur un homme temporaire, pose a 300 m, arme et pilote PAR LE SOCLE
+    // — donc representatif — et supprime aussitot.
+    private _gt = createGroup west;
+    private _ref = _hommes select 0;
+    private _pt = [(getPosATL _ref select 0) + 300, (getPosATL _ref select 1) + 300, 0];
+    private _t = [_gt, "B_Soldier_F", _pt, (_ref getVariable ["hmt_mode","pilote"])] call HMT_POSER_HOMME;
+    _t allowDamage false;
+    sleep 1;
+
+    // T4 · une BALLE REELLE part ⟨regle 16 : juger l acte, pas l etat⟩
     private _gm = createGroup east;
-    private _mann = _gm createUnit ["O_Soldier_F", [(getPosATL _t select 0), (getPosATL _t select 1) + 45, 0], [], 0, "NONE"];
-    _mann setPosATL [(getPosATL _t select 0), (getPosATL _t select 1) + 45, 0];
+    private _mann = _gm createUnit ["O_Soldier_F", [(_pt select 0), (_pt select 1) + 45, 0], [], 0, "NONE"];
+    _mann setPosATL [(_pt select 0), (_pt select 1) + 45, 0];
     _mann disableAI "PATH"; _mann setBehaviour "CARELESS"; _mann allowDamage false;
     _t reveal [_mann, 4];
     sleep 2;
@@ -159,15 +165,16 @@ HMT_PREVOL = {
     while { time - _t0 < 6 } do { _t doWatch _mann; _t doTarget _mann;
         _t forceWeaponFire [currentWeapon _t, currentMuzzle _t]; sleep 0.33 };
     _t removeEventHandler ["Fired", _eh];
-    _t doTarget objNull; _t doWatch objNull;
-    deleteVehicle _mann; deleteGroup _gm;
-    if (HMT_PV_COUPS < 1) then { _ec pushBack format ["T4 AUCUNE BALLE REELLE (%1 en 6 s, cible acquerable)", HMT_PV_COUPS] };
+    if (HMT_PV_COUPS < 1) then { _ec pushBack format ["T4 AUCUNE BALLE REELLE (%1 en 6 s)", HMT_PV_COUPS] };
 
     // T5 · un homme PARCOURT du terrain (setVelocity est une IMPULSION, pas une consigne)
+    _t doTarget objNull; _t doWatch objNull;
     private _p0 = getPosATL _t; private _t1 = time;
     while { time - _t1 < 4 } do { _t setVelocity [0, 6, 0]; sleep 0.1 };
     private _m = _p0 distance2D (getPosATL _t);
     if (_m < 10) then { _ec pushBack format ["T5 IMMOBILE : %1 m en 4 s (attendu ~24)", round _m] };
+
+    deleteVehicle _mann; deleteVehicle _t; deleteGroup _gm; deleteGroup _gt;
 
     private _vert = (count _ec == 0);
     (format ["HMT|SOCLE|PREVOL|%1|version|%2|hommes|%3|ecarts|%4",
