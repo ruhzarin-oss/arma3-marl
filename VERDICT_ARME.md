@@ -1,3 +1,8 @@
+> SURSITAIRE le 16/08/2026 — mesure prise SANS prevol. Le temoin naissait a 300 m au hasard
+> sur le meme relief : le regime a 28 pourcent d echec existait probablement deja, non compte.
+> Le bandeau emporte les DEUX moities: le 44,8 % ET le  le gymnase surestime d un tiers .
+> Voir DEPOT_REPARATION_TEMOIN.md.
+
 # VERDICT — L'AGENT ARMÉ PREND L'OBJECTIF PRESQUE UNE FOIS SUR DEUX
 
 Mesuré le 16/08/2026. 67 épisodes, banc live 4 contre 4, site (4644, 5652), corps réparé,
