@@ -1,3 +1,8 @@
+> ⛔ **CE VERDICT EST RETIRE.** Le banc des jambes v3 (16/08, commit ) le
+> refute : la primitive en service deplace un fantassin POSE de 12,2 m par ordre,
+> au sol 100 % du temps, 7 essais sur 7. Ce qui survit — T5 est instable, un essai
+> sur quatre a 0,6 m — est repris dans .
+
 # VERDICT — LE PRÉVOL A ATTRAPÉ UNE PANNE DU CORPS
 
 16/08/2026, ~19 h. Socle `1.8.0`, sonde du geste sur le commit `8f10a98`.
