@@ -1,0 +1,12 @@
+private _civ = ["C_man_1","C_man_polo_1_F","C_man_polo_2_F","C_Man_casual_1_F","C_Man_casual_4_F","C_man_hunter_1_F","C_man_w_worker_F","C_man_p_fugitive_F","C_journalist_F","C_Man_Fisherman_01_F"];
+private _veh = ["C_Offroad_01_F","C_Hatchback_01_F","C_Hatchback_01_sport_F","C_Van_01_transport_F","C_SUV_01_F","C_Quadbike_01_F","C_Truck_02_transport_F","C_Truck_02_covered_F","C_Boat_Civil_01_F","C_Van_01_fuel_F"];
+private _ani = ["Goat_random_F","Sheep_random_F","Hen_random_F","Cock_random_F","Rabbit_F"];
+private _prop = ["Land_BagFence_Long_F","RoadCone_L_F","RoadCone_F","Land_PortableLight_single_F","Land_HBarrier_1_F","Land_Cargo_Patrol_V1_F","Land_CncBarrierMedium_F","Land_City_8m_F"];
+diag_log ("HARMATTAN_W civ_OK " + str (_civ select {isClass (configFile >> "CfgVehicles" >> _x)}));
+diag_log ("HARMATTAN_W civ_MISS " + str (_civ select {!isClass (configFile >> "CfgVehicles" >> _x)}));
+diag_log ("HARMATTAN_W veh_OK " + str (_veh select {isClass (configFile >> "CfgVehicles" >> _x)}));
+diag_log ("HARMATTAN_W veh_MISS " + str (_veh select {!isClass (configFile >> "CfgVehicles" >> _x)}));
+diag_log ("HARMATTAN_W ani_OK " + str (_ani select {isClass (configFile >> "CfgVehicles" >> _x)}));
+diag_log ("HARMATTAN_W prop_OK " + str (_prop select {isClass (configFile >> "CfgVehicles" >> _x)}));
+diag_log ("HARMATTAN_W prop_MISS " + str (_prop select {!isClass (configFile >> "CfgVehicles" >> _x)}));
+diag_log "HARMATTAN_W_DONE";
