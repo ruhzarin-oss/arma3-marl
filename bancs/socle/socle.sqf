@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.6.0-16082026";
+HMT_SOCLE_VERSION = "1.7.0-16082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -223,6 +223,18 @@ HMT_PREVOL = {
             _t ammo (primaryWeapon _t)];
     };
 
+    // ⚠️ LE MANNEQUIN MEURT AVANT T5. Il etait supprime APRES, donc VIVANT pendant le test
+    // de deplacement — un ennemi a 40 m a decouvert. Et le temoin garde `AUTOCOMBAT`, ce qui
+    // lui permet de tirer en T4 : l IA le re-engageait et refusait d avancer. `doTarget
+    // objNull` ne suffit pas, `AUTOCOMBAT` reacquiert de lui-meme, c est sa fonction.
+    // Corrobore par la sonde des combinaisons du 15/08 : 111 m avec les facultes d IA
+    // actives contre 154 sans. T4 et T5 etaient en CONFLIT sur le meme homme.
+    // ⚠️ Ce correctif est le PROCES du diagnostic ⟨Fable⟩ : si T5 ne verdit pas, la cause
+    // accusee est innocentee et l eau redevient suspect n°1 — d ou le journal ci-dessous,
+    // dans LE MEME commit.
+    deleteVehicle _mann; deleteGroup _gm;
+    sleep 1;
+
     // T5 · un homme PARCOURT du terrain (setVelocity est une IMPULSION, pas une consigne)
     _t doTarget objNull; _t doWatch objNull;
     private _p0 = getPosATL _t; private _t1 = time;
@@ -230,12 +242,24 @@ HMT_PREVOL = {
     private _m = _p0 distance2D (getPosATL _t);
     if (_m < 10) then { _ec pushBack format ["T5 IMMOBILE : %1 m en 4 s (attendu ~24)", round _m] };
 
-    deleteVehicle _mann; deleteVehicle _t; deleteGroup _gm; deleteGroup _gt;
+    deleteVehicle _t; deleteGroup _gt;
 
     // ⚠️ LES ECARTS SONT EXPOSES. Le journal du socle part dans le RPT, invisible du pont :
     // un prevol rouge etait donc MUET sur sa raison. On les garde dans une globale que le
     // pilote peut demander par la socket.
     HMT_PV_ECARTS = _ec;
+    // ⚠️ LE JOURNAL DES POSITIONS, DANS LE MEME COMMIT QUE LE CORRECTIF. L hypothese de
+    // l eau n est PAS verifiee : si l echantillonneur pose des temoins dans l eau, il
+    // contamine aussi T1-T4, donc les VERTS. Sans ce journal, elle resterait indecidable.
+    (format ["HMT|SOCLE|LIEU|x|%1|y|%2|hauteur|%3|eau|%4|pente|%5|meilleure_pente|%6",
+             round (_pt select 0), round (_pt select 1),
+             round (getTerrainHeightASL [_pt select 0, _pt select 1]),
+             surfaceIsWater [_pt select 0, _pt select 1],
+             round (100 * ([_pt select 0, _pt select 1] call HMT_G_SLOPE)) / 100,
+             round (100 * _meilleure) / 100]) call HMT_LOG;
+    HMT_PV_LIEU = [_pt select 0, _pt select 1,
+                   surfaceIsWater [_pt select 0, _pt select 1], _meilleure];
+
     private _vert = (count _ec == 0);
     (format ["HMT|SOCLE|PREVOL|%1|version|%2|hommes|%3|ecarts|%4",
              (if (_vert) then {"VERT"} else {"ROUGE"}), HMT_SOCLE_VERSION, count _hommes,
