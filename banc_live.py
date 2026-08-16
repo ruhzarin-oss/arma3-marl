@@ -202,28 +202,33 @@ if __name__ == "__main__":
     # ⚠️ LE SOCLE SE CHARGE PAR FICHIER, PAS PAR LA SOCKET. 197 lignes envoyees en inline
     # ne passent pas — piege deja paye par le projet (« gros inline -> fichier »). Le fichier
     # est depose dans la mission ; le jeu le compile lui-meme.
+    # ⚠️ LE JOURNAL DU SOCLE EST INVISIBLE DU PONT. Le pont ne reecrit `diag_log` en
+    # `callExtension "o|"` que dans le texte QU IL ENVOIE ; un fichier compile par le jeu
+    # ecrit dans le RPT, pas dans la socket. Diagnostic du 16/08 : le socle se charge bien
+    # (`HMT_PREVOL` defini = true), c est mon controle qui cherchait un marqueur qui n arrive
+    # jamais. On ne lit donc plus SON journal : on lui DEMANDE son resultat par la socket.
     b.send(sans_commentaires('call compile preprocessFileLineNumbers "socle.sqf";'), wait=False)
-    time.sleep(2.0)
-    _pret = any("HMT|SOCLE|pret" in L for L in b._log_lines(300))
-    print(f"  socle charge : {_pret}", flush=True)
-    if not _pret:
-        print("  ⛔ LE SOCLE NE S EST PAS CHARGE — aucun episode.", flush=True); sys.exit(3)
-    # ⚠️ `spawn`, PAS `call` : HMT_PREVOL contient des `sleep`, qui n existent que dans un
-    # contexte PLANIFIE. En `call` il meurt sans un mot — et le prevol rendait « AUCUNE
-    # REPONSE », donc ROUGE, donc zero episode. Le refus etait juste, la cause etait moi.
-    b.send(sans_commentaires('[] spawn { HMT_PV = [HMT_FR] call HMT_PREVOL; };'), wait=False)
+    time.sleep(2.5)
+    b.send(sans_commentaires('HMT_PV = nil; [] spawn { HMT_PV = [HMT_FR] call HMT_PREVOL; };'), wait=False)
     _vert, _rap = None, ""
-    for _ in range(60):          # le prevol dort ~15 s (T4 6 s + T5 4 s + poses)
-        time.sleep(1.0)
-        for L in reversed(b._log_lines(400)):
-            if "HMT|SOCLE|PREVOL|" in L:
-                _rap = L.strip(); _vert = "|VERT|" in L; break
+    for _ in range(45):                      # le prevol dort ~15 s
+        time.sleep(1.5)
+        b.send(sans_commentaires(
+            'diag_log format ["HMT|PV|%1|%2", (if (isNil "HMT_PV") then {"attente"} else {HMT_PV}), HMT_SOCLE_VERSION];'),
+            wait=False)
+        time.sleep(0.6)
+        for L in reversed(b._log_lines(300)):
+            if "HMT|PV|" in L:
+                _rap = L.strip()
+                if "|true|" in L:  _vert = True
+                if "|false|" in L: _vert = False
+                break
         if _vert is not None: break
-    print(f"  PREVOL : {_rap[:150] if _rap else 'AUCUNE REPONSE'}", flush=True)
-    if not _vert:
-        print("  ⛔ PREVOL ROUGE — aucun episode ne sera joue.", flush=True)
+    print(f"  PREVOL : {_rap[-90:] if _rap else 'AUCUNE REPONSE'}", flush=True)
+    if _vert is not True:
+        print("  ⛔ PREVOL NON VERT — aucun episode ne sera joue.", flush=True)
         sys.exit(2)
-    print(f"  ✓ prevol vert, socle {HMT_SOCLE if False else ''}".rstrip(), flush=True)
+    print("  ✓ prevol VERT", flush=True)
 
     pol = charger()
     RELEVE = []
