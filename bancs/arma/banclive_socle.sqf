@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.5.0-16082026";
+HMT_SOCLE_VERSION = "1.6.0-16082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -154,9 +154,32 @@ HMT_PREVOL = {
     // la scene qu elles doivent garantir : T5 deplace de 24 m, T4 vide un chargeur.
     // On les passe donc sur un homme temporaire, pose a 300 m, arme et pilote PAR LE SOCLE
     // — donc representatif — et supprime aussitot.
+    // ⚠️ LE TEMOIN NAIT SUR UN TERRAIN VERIFIE PLAT. Il naissait a 300 m au hasard : quand
+    // le relief masquait son mannequin, T4 echouait avec `vue:0` et le prevol bloquait tout
+    // le banc — 28 % des episodes refuses le 16/08. Pire, les episodes qui PASSAIENT etaient
+    // alors biaises vers les scenes plates.
+    // Depuis cette reparation, le temoin ne teste QUE LA CHAINE DE TIR — arme en main,
+    // chargee, une balle qui part sur ordre. Il ne teste PLUS la scene ni son relief.
     private _gt = createGroup west;
     private _ref = _hommes select 0;
-    private _pt = [(getPosATL _ref select 0) + 300, (getPosATL _ref select 1) + 300, 0];
+    private _pt = []; private _meilleure = 99;
+    for "_k" from 0 to 23 do {
+        private _a = _k * 15; private _r = 250 + (_k mod 4) * 40;
+        private _c = [(getPosATL _ref select 0) + _r * sin _a, (getPosATL _ref select 1) + _r * cos _a];
+        // pente moyenne sur le carre de 60 m ou le temoin va vivre et tirer
+        private _s = 0;
+        for "_i" from -4 to 4 step 4 do { for "_j" from -4 to 4 step 4 do {
+            _s = _s + ([(_c select 0) + _i*6.25, (_c select 1) + _j*6.25] call HMT_G_SLOPE);
+        }};
+        _s = _s / 9;
+        if ((getTerrainHeightASL _c) > 3 && _s < _meilleure) then { _meilleure = _s; _pt = [_c select 0, _c select 1, 0] };
+        if (_meilleure < 0.10) exitWith {};
+    };
+    if (count _pt == 0) exitWith {
+        HMT_PV_ECARTS = ["T0 AUCUN TERRAIN PLAT trouve pour le temoin en 24 essais"];
+        "HMT|SOCLE|PREVOL|ROUGE|aucun terrain plat" call HMT_LOG;
+        false
+    };
     private _t = [_gt, "B_Soldier_F", _pt, "temoin"] call HMT_POSER_HOMME;
     _t allowDamage false;
     sleep 1;
