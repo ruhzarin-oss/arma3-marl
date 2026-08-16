@@ -226,6 +226,12 @@ if __name__ == "__main__":
         if _vert is not None: break
     print(f"  PREVOL : {_rap[-90:] if _rap else 'AUCUNE REPONSE'}", flush=True)
     if _vert is not True:
+        b.send(sans_commentaires(
+            'diag_log format ["HMT|PVE|%1", (if (isNil "HMT_PV_ECARTS") then {"(pas d ecarts : le prevol n a pas fini)"} else {HMT_PV_ECARTS})];'),
+            wait=False)
+        time.sleep(2.0)
+        _e = [L for L in b._log_lines(300) if "HMT|PVE|" in L]
+        print(f"  ECARTS : {_e[-1].strip()[-200:] if _e else 'illisibles'}", flush=True)
         print("  ⛔ PREVOL NON VERT — aucun episode ne sera joue.", flush=True)
         sys.exit(2)
     print("  ✓ prevol VERT", flush=True)

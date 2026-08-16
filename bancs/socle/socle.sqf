@@ -176,6 +176,10 @@ HMT_PREVOL = {
 
     deleteVehicle _mann; deleteVehicle _t; deleteGroup _gm; deleteGroup _gt;
 
+    // ⚠️ LES ECARTS SONT EXPOSES. Le journal du socle part dans le RPT, invisible du pont :
+    // un prevol rouge etait donc MUET sur sa raison. On les garde dans une globale que le
+    // pilote peut demander par la socket.
+    HMT_PV_ECARTS = _ec;
     private _vert = (count _ec == 0);
     (format ["HMT|SOCLE|PREVOL|%1|version|%2|hommes|%3|ecarts|%4",
              (if (_vert) then {"VERT"} else {"ROUGE"}), HMT_SOCLE_VERSION, count _hommes,
