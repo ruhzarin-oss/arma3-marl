@@ -1,3 +1,5 @@
+> ⚠️ **SURSITAIRE le 16/08** — mesure prise sur des hommes desarmes (). La grandeur n en depend pas directement, mais le verdict n est PAS citable avant refonte sous socle 1.2.0. Voir REGISTRE_BLUE.md.
+
 # VERDICT — la politique se fige parce que ARMA LA NOURRIT HORS DE SA DISTRIBUTION
 
 Mesuré le 14/08/2026, sur décision de Fable (relevé **+ rejeu hors-ligne**, les deux

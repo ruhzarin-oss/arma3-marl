@@ -1,3 +1,5 @@
+> ⚠️ **SURSITAIRE le 16/08** — mesure prise sur des hommes desarmes (). La grandeur n en depend pas directement, mais le verdict n est PAS citable avant refonte sous socle 1.2.0. Voir REGISTRE_BLUE.md.
+
 # Le couvert du gymnase NE CACHE PAS — confirmé. Côté Arma : INDÉCIS, et mes bandes ont un trou.
 
 Mesuré le 15/08/2026. Critères déposés dans `DEPOT_CACHER.md`. Contrôle positif passé

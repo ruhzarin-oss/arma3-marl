@@ -1,3 +1,5 @@
+> ⚠️ **SURSITAIRE le 16/08** — mesure prise sur des hommes desarmes (). La grandeur n en depend pas directement, mais le verdict n est PAS citable avant refonte sous socle 1.2.0. Voir REGISTRE_BLUE.md.
+
 # VERDICT — le tarif n'explique RIEN. La piste est fermée, et elle en ouvre une autre.
 
 Mesuré le 15/08/2026. Critères déposés avant dans `DEPOT_TARIF.md` (`513adf3`).

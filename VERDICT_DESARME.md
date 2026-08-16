@@ -1,3 +1,5 @@
+> ⛔ **ANNULE le 16/08** — mesure faite avec les attaquants en  (« ne jamais tirer »). Voir REGISTRE_BLUE.md et VERDICT_ARME.md.
+
 # VERDICT — L'AGENT N'A JAMAIS TIRÉ. Le banc live mesurait une marche sous le feu.
 
 Mesuré le 15/08/2026. Critères déposés avant dans `DEPOT_PILOTE_TIRE.md` (`d14fe8b`).

@@ -1,3 +1,5 @@
+> ⛔ **ANNULE le 16/08** — mesure faite avec les attaquants en  (« ne jamais tirer »). Voir REGISTRE_BLUE.md et VERDICT_ARME.md.
+
 # VERDICT — la politique NE TRANSFÈRE PAS. 0/20 sur Arma contre 59,4 % au gymnase.
 
 Mesuré le 15/08/2026. Critères déposés dans `DEPOT_20_EPISODES.md` (`53bcc51`), repris à

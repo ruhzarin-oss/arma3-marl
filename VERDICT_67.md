@@ -1,3 +1,5 @@
+> ⛔ **ANNULE le 16/08** — mesure faite avec les attaquants en  (« ne jamais tirer »). Voir REGISTRE_BLUE.md et VERDICT_ARME.md.
+
 # Les 67 épisodes — l'écart de transfert est SERRÉ, le gel est RÉEL, B reste illisible
 
 Mesuré le 15/08/2026, 15h53. Critères déposés le matin (`15b1a7d`), avenant (`b820d0c`),

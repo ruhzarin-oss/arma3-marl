@@ -1,3 +1,5 @@
+> ⚠️ **SURSITAIRE le 16/08** — mesure prise sur des hommes desarmes (). La grandeur n en depend pas directement, mais le verdict n est PAS citable avant refonte sous socle 1.2.0. Voir REGISTRE_BLUE.md.
+
 # VERDICT — l'exposition est CHOISIE, pas subie. L'hypothèse de Fable est réfutée.
 
 Mesuré le 15/08/2026. Critères déposés avant dans `DEPOT_SUBIE.md` (`405f92c`).

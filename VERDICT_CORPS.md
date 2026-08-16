@@ -1,3 +1,5 @@
+> ⚠️ **SURSITAIRE le 16/08** — mesure prise sur des hommes desarmes (). La grandeur n en depend pas directement, mais le verdict n est PAS citable avant refonte sous socle 1.2.0. Voir REGISTRE_BLUE.md.
+
 # ADDENDUM au verdict de transfert — LE CERVEAU A TRANSFÉRÉ, LE CORPS NON
 
 Mesuré le 15/08/2026, sur les relevés des 20 épisodes déjà acquis. Complète

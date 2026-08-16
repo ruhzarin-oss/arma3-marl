@@ -1,3 +1,5 @@
+> ⛔ **ANNULE le 16/08** — mesure faite avec les attaquants en  (« ne jamais tirer »). Voir REGISTRE_BLUE.md et VERDICT_ARME.md.
+
 # Série 3 — les premières prises sur Arma, et l'écart de transfert qui TIENT
 
 Mesuré le 15/08/2026, corps réparé (réémission `setVelocity` à 10 Hz, ×14,1 de déplacement).
