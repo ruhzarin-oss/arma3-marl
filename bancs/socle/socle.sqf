@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.4.0-16082026";
+HMT_SOCLE_VERSION = "1.5.0-16082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -184,13 +184,15 @@ HMT_PREVOL = {
     HMT_PV_COUPS = 0;
     private _eh = _t addEventHandler ["Fired", { HMT_PV_COUPS = HMT_PV_COUPS + 1 }];
     private _t0 = time;
-    while { time - _t0 < 6 } do { _t doWatch _mann; _t doTarget _mann;
+    // fenetre de 12 s, alignee sur la latence MESUREE de l IA (coups a 4-19 en 8 s,
+    // balayages du 15/08). Le seuil reste 1 balle : c est la fenetre qui etait trop courte.
+    while { time - _t0 < 12 } do { _t doWatch _mann; _t doTarget _mann;
         _t forceWeaponFire [currentWeapon _t, currentMuzzle _t]; sleep 0.33 };
     _t removeEventHandler ["Fired", _eh];
     // ⚠️ T4 DIT L ETAT DU TEMOIN QUAND IL ECHOUE. Sans cela son refus est muet, et j ai
     // deja perdu deux gestes a deviner ce qui manquait a cet homme.
     if (HMT_PV_COUPS < 1) then {
-        _ec pushBack format ["T4 AUCUNE BALLE REELLE (0 en 6 s) — arme:%1 autoc:%2 fsm:%3 path:%4 mode:%5 dist:%6 vue:%7 mun:%8",
+        _ec pushBack format ["T4 AUCUNE BALLE REELLE (0 en 12 s) — arme:%1 autoc:%2 fsm:%3 path:%4 mode:%5 dist:%6 vue:%7 mun:%8",
             (if ((currentWeapon _t) == "") then {"AUCUNE"} else {"oui"}),
             _t checkAIFeature "AUTOCOMBAT", _t checkAIFeature "FSM", _t checkAIFeature "PATH",
             combatMode _t, round (_t distance _mann),
