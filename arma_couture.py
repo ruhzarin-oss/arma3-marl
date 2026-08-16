@@ -179,11 +179,21 @@ HMT_NORDRE = (missionNamespace getVariable ["HMT_NORDRE", 0]) + 1;
       private _mien = HMT_NORDRE;
       [_u,_vx,_vy,_mien] spawn {
           params ["_u","_vx","_vy","_mien"];
-          private _t0 = time;
+          private _t0 = time; private _p0 = getPosATL _u; private _nsol = 0; private _n = 0;
           while { alive _u && time - _t0 < 3.28
                   && {(missionNamespace getVariable ["HMT_NORDRE",0]) == _mien} } do {
-              _u setVelocity [_vx,_vy,0]; sleep 0.1;
+              _u setVelocity [_vx,_vy,0];
+              _n = _n + 1; if (isTouchingGround _u) then { _nsol = _nsol + 1 };
+              sleep 0.1;
           };
+          // ⚠️ LE CORPS MARCHE-T-IL OU VOLE-T-IL ? T5 du prevol, 16/08, 4 tirages, separation
+          // PARFAITE : `setVelocity` a Z=0 rend 25 m quand l homme NE TOUCHE PAS le sol
+          // (animation `afal`, il tombe) et 0-1 m quand il le touche. C est la MEME primitive
+          // qu ici. Les 20,22 m deposes le 15/08 pourraient donc etre un artefact de vol.
+          // On releve la part de temps au sol et les metres reellement parcourus par ordre.
+          diag_log format ["HMT|CORPS|SOL|part_au_sol|%1|m_par_ordre|%2|n|%3",
+                           round (100 * _nsol / (_n max 1)),
+                           round (10 * (_p0 distance2D (getPosATL _u))) / 10, _n];
       };
   }
   else { if (_a==9) then {

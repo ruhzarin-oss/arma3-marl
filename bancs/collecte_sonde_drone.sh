@@ -26,10 +26,25 @@ echo "=== collecte : cible $CIBLE reps, $LOT par lot ==="
 while [ "$fait" -lt "$CIBLE" ] && [ "$run" -lt 40 ]; do
   run=$((run + 1))
   /home/younes/arma3-marl/bancs/lancer_sonde_drone.sh "$LOT" > /dev/null 2>&1
-  sleep 25                                  # le serveur doit exister avant qu on guette sa mort
-  # on attend TERMINE, ou la mort du serveur, ou le plafond de temps
+
+  # ── 1. la sonde a-t-elle seulement DEMARRE ? ──
+  # ⚠️ On ne guette plus la seule presence du process. Mesure du 16/08 : 5 lots sur 6
+  # rendaient zero en ~80 s — le serveur ne demarrait pas (port pas encore libere apres
+  # le pkill). Un lot qui ne demarre pas doit se DIRE, pas se compter en silence.
+  demarre=0
+  for i in $(seq 1 24); do
+    grep -aq "HMT|DR|debut" "$LOG" && { demarre=1; break; }
+    sleep 5
+  done
+  if [ "$demarre" -eq 0 ]; then
+    echo "lot $run : LA SONDE N A PAS DEMARRE en 120 s -- $(tail -1 "$LOG" 2>/dev/null | cut -c1-90)"
+    pkill -9 -f "staging/serverDR\.cfg" 2>/dev/null; sleep 12
+    continue
+  fi
+
+  # ── 2. on attend les 3 bras, la mort du serveur, ou le plafond ──
   for i in $(seq 1 60); do
-    grep -aq "HMT|DR|TERMINE" "$LOG" && break
+    [ "$(grep -ac "HMT|DR|rep|" "$LOG" 2>/dev/null)" -ge $((LOT * 3)) ] && break
     pgrep -f "staging/serverDR\.cfg" > /dev/null || { sleep 5; break; }
     sleep 10
   done
@@ -45,7 +60,13 @@ while [ "$fait" -lt "$CIBLE" ] && [ "$run" -lt 40 ]; do
       grep -a "HMT|DR|rep|$r|" "$LOG" | sed "s/|rep|$r|/|rep|$fait|/" >> "$CUM"
     fi
   done
-  echo "lot $run : +$garde retenues -> $fait/$CIBLE"
-  pkill -9 -f "staging/serverDR\.cfg" 2>/dev/null; sleep 3
+  if [ "$garde" -eq 0 ]; then
+    echo "lot $run : DEMARRE mais repetition INCOMPLETE ($(grep -ac 'HMT|DR|rep|' "$LOG" 2>/dev/null) lignes sur $((LOT * 3)))"
+  else
+    echo "lot $run : +$garde retenue -> $fait/$CIBLE"
+  fi
+  # 12 s et pas 3 : le port doit etre rendu avant la relance, sinon le serveur suivant
+  # ne demarre pas du tout (5 lots perdus le 16/08)
+  pkill -9 -f "staging/serverDR\.cfg" 2>/dev/null; sleep 12
 done
 echo "=== collecte terminee : $fait reps dans $CUM ==="
