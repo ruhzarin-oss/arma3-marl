@@ -1,0 +1,10 @@
+{
+ "empreinte": "efecae3b5ec74449ee51ead6a0af2acf0708f22285dc1c008181051a407b844a",
+ "sondes": {
+  "debout_par_la_fenetre": true,
+  "accroupi_sous_allege": false,
+  "derriere_le_trumeau": false,
+  "ctrl_pos_ouverture": true,
+  "ctrl_pos_terrain": true
+ }
+}

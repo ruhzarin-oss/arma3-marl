@@ -1,0 +1,25 @@
+  lancement du serveur live...
+  pont TCP ouvert
+  scene : 4 defenseurs, 4 attaquants a 170 m
+  scene confirmee par le jeu : HARMATTAN_SCENE def=4 att=4 enmain=4
+
+   pas  obs recues  vivants   def   dmin  actions
+     0           2        4     4    158  [1, 1]
+     5           4        4     4    111  [0, 0, 1, 1]
+    10           4        4     3     74  [0, 0, 1, 0]
+    15           4        4     3     74  [0, 0, 1, 0]
+    20           4        3     3     74  [0, 0, 1, 0]
+    25           4        3     3     66  [0, 0, 1, 0]
+    30           4        3     3     63  [0, 0, 1, 0]
+    35           4        2     3     57  [0, 0, 1, 0]
+    40           4        1     3     63  [0, 0, 1, 0]
+    45           4        1     3     63  [0, 0, 1, 0]
+    50           4        1     3     63  [0, 0, 1, 0]
+    55           4        1     3     63  [0, 0, 1, 0]
+
+  fin au pas 58 : vivants=0 dmin=1
+
+  RELEVE : 59 pas ecrits dans /tmp/releve_live.npz (statut=montage)
+
+  BANC DE MONTAGE TERMINE. Ce qu il prouve : la chaine tourne bout en bout.
+  Ce qu il ne prouve pas : aucun verdict de concordance sans repetitions.

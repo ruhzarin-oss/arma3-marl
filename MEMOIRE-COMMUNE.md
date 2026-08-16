@@ -2203,3 +2203,339 @@ que l'entrée soit le SEUL chemin vers la victoire. Tant que le feu extérieur s
 
 Outillage : `~/a3c/pbo.py` (lecture PBO + LZSS + dérapification config.bin), `~/a3c/analyze.py`,
 `banc_a3c.py`, `sonde_bat.py`. Détail : `logs_train/banc_a3c.json`.
+
+---
+
+## 2026-08-14 (soir) — Usine à corpus A3C : la GÉOMÉTRIE d'A3C ne vaut pas mieux qu'un `doMove`
+
+Question : l'usine à corpus A3C produit-elle une géométrie que LAMBS ne produisait pas déjà ?
+Banc `usine_corpus.py`, 18 manches (6 par bras), 1 440 ticks, Stratis.
+
+**LE MONDE FORCE L'ENTRÉE, ET C'EST MESURÉ.** `Land_i_House_Big_01_V1_F` : ses 9 positions
+intérieures sont **9/9 hors de vue** des 8 points de départ (`lineIntersects`). La garnison ne
+peut pas être tuée depuis l'extérieur. Correction majeure du banc du matin, où le bâtiment
+tombait au feu à 60 m.
+
+**DEUX PANNES SILENCIEUSES ATTRAPÉES EN CHEMIN.**
+1. Le filtre « garnison à l'étage » par `worldToModel z > 3` ne matchait **rien** — zéro position
+   sur tous les bâtiments testés, y compris une tour de 25 m — et retombait sans bruit sur
+   toutes les positions. Le premier smoke tournait dans le monde cassé.
+2. La métrique « dedans » (à 2,5 m d'une position cataloguée) donnait 0 alors que les hommes
+   étaient **à 0,9 m du centre et 2,9 m de haut**, donc à l'étage. Remplacée par boîte
+   englobante réelle + toit au-dessus de la tête.
+Le contrôle positif (bras `SCRIPT`, `doMove` par position) a servi exactement à ça.
+
+**SÉPARABILITÉ** — géométrie seule, découpage PAR MANCHE, 200 rebats d'étiquette au niveau manche :
+
+| paire | AUC | p |
+|---|---|---|
+| A3C vs LAMBS | 1,000 | 0,0050 |
+| A3C vs LAMBS, **sans aucun trait de distance** | 1,000 | 0,0050 |
+| LAMBS vs SCRIPT | 1,000 | 0,0050 |
+| **A3C vs SCRIPT** | **0,889** | **0,0647** |
+
+**ISSUES** — permutation exacte, 924 partitions, n=6/6 :
+
+| | A3C | LAMBS | SCRIPT |
+|---|---|---|---|
+| défenseurs tués /6 | **2,67** | 0,83 | 0,83 |
+| pic hommes dedans /8 | 2,00 | 0,83 | 1,83 |
+| distance mini (m) | 1,97 | 5,48 | 4,90 |
+
+A3C vs LAMBS : tués p=0,0022, dedans p=0,013.
+A3C vs SCRIPT : tués p=0,0108, **dedans p=1,0000**.
+
+**VERDICT.** A3C tue 3,2× plus de défenseurs que le `doMove` naïf (p=0,011) **avec exactement
+le même nombre d'hommes à l'intérieur** (2,00 contre 1,83, p=1,0000) et une géométrie que le
+juge ne sait pas distinguer (p=0,065). Son avantage n'est donc PAS dans les positions ni dans
+les mouvements. Il est dans ce que le flux de positions ne contient pas : qui engage quoi,
+dans quel ordre.
+Conséquence directe : **cloner les trajectoires d'A3C n'apprendrait rien qu'un `doMove`
+n'apprenne déjà.** Pour distiller A3C il faut capter ses DÉCISIONS, pas sa géométrie.
+LAMBS, lui, écrit bien une géométrie distincte (p=0,005) — mais c'est la moins performante.
+
+**LIMITES, À LIRE AVANT DE CITER.** n=6 par bras : p=0,065 veut dire « non établi », pas
+« identiques ». Un seul verbe, un seul bâtiment, une seule carte. LAMBS est chargé dans les
+trois bras (son étage danger est un ambiant constant, assumé). Et surtout : mes 25 traits sont
+des features RÉSUMÉES par tick — or `geometrie-brute-bat-sept-nombres` dit que ce format
+sature. Une représentation brute séparerait peut-être A3C de SCRIPT là où la mienne échoue.
+
+Fichiers : `usine_corpus.py`, `juge_corpus.py`, `sonde_vue.py`, corpus
+`logs_train/corpus_a3c_lambs.jsonl` (2 160 lignes).
+
+---
+
+## 2026-08-14 (nuit) — Le corpus de décisions POSÉ est VALIDE. Et l'étiquette à apprendre est la PARTITION.
+
+Balayage `balayage_modeles.py` : on ne parcourt plus des cartes, on **fait apparaître** chaque
+modèle de bâtiment sur la piste de Stratis. Raison : le balayage du terrain avait donné 145
+bâtiments mais **26 types** et 50 décisions distinctes — le plafond n'est pas le nombre de
+bâtiments, c'est le nombre de **modèles**. Criblage de toutes les classes dérivées de `House` :
+**707 modèles** à ≥ 4 positions intérieures, avec CUP Terrains chargé.
+
+**CONTRÔLE : un bâtiment posé vaut-il un bâtiment du terrain ?** 52 cas fermés, cap apparié.
+
+| critère | accord |
+|---|---|
+| nombre de **pièces** | **51/52 (98 %)** |
+| **partition** (qui va avec qui) | **52/52 (100 %)** |
+| affectation avec étiquettes de pièces | 44/52 (85 %) |
+
+Stable à 6,5 s **et** à 14,0 s de fenêtre de capture → ce n'est pas un artefact de timing.
+**Le corpus posé est validé.**
+
+**TROIS COMPARAISONS FAUSSES AVANT LA BONNE, à ne pas refaire :**
+1. Clés `int` contre clés `str` — le JSON relu rend des chaînes, le calcul frais des entiers.
+   Tous les « écarts » étaient des égalités. 59 % annoncé, faux.
+2. Fenêtres inégales — 6,5 s contre 7,0 s côté terrain. **L'affectation GROSSIT avec le temps**
+   (le moniteur d'A3C réassigne les binômes qui ont fini) : 10 des 19 écarts étaient des plans
+   tronqués. À 14 s le biais s'inverse, le posé capte PLUS que le terrain.
+3. Étiquettes de pièces — l'id d'une pièce est un **rang de tri par distance au centre**
+   (`BIS_fnc_sortBy`), qui bascule sur les ex æquo. Les divergences restantes étaient des
+   PERMUTATIONS : mêmes groupes, étiquettes échangées.
+
+**CONSÉQUENCE POUR L'ENTRAÎNEMENT — l'étiquette à apprendre est la PARTITION des hommes, pas
+l'identifiant de pièce.** Apprendre l'id, c'est apprendre un rang de tri instable : du bruit.
+De même, ne jamais apprendre sur l'affectation accumulée — seulement sur l'assignation initiale,
+sinon la cible dépend de la durée d'observation.
+
+Fichiers : `balayage_modeles.py`, `controle_cap.py`, `logs_train/corpus_modeles.jsonl`,
+`logs_train/controle_cap.json`, `logs_train/controle_cap_long.json`.
+
+---
+
+## 2026-08-14 (nuit) — Le découpage en pièces N'EST PAS apprenable depuis les seules positions
+
+`mesure_decoupage.py`, 707 modèles, cible = la partition des positions intérieures en pièces
+produite par `A3C_main_fnc_buildingCreateRooms`. Critère : indice de Rand ajusté, découpage
+**par bâtiment**, τ du bras DISTANCE réglé sur les plis d'apprentissage.
+
+| bras | ARI |
+|---|---|
+| TOUT (une seule pièce) | 0,000 |
+| **ÉTAGE** (même hauteur) | **0,325** |
+| DISTANCE (< τ appris) | 0,172 |
+| ÉTAGE + DISTANCE | 0,188 |
+| **APPRIS** (régression sur paires) | **0,278** |
+
+**APPRIS perd contre la règle bête, −0,047.** Contrôle de permutation : 0,063 et 0,077, donc
+le nul est bien à zéro et les scores mesurent quelque chose de réel.
+
+**⚠️ NE PAS LIRE « A3C EST TRIVIAL ».** C'est l'inverse. Si le découpage était un seuil de
+distance, DISTANCE ferait ~1,0 : il fait 0,172. Si c'était une règle d'étage, ÉTAGE ferait
+~1,0 : il fait 0,325. **Aucune règle simple ne reproduit ce découpage** — la cible est riche.
+Ce qui échoue, c'est l'ENTRÉE : A3C découpe par `lineIntersects` entre positions, donc par les
+**MURS**, et je ne donne au modèle que les positions où un homme se tient. L'information qui
+détermine la réponse est absente de la question. Cette limite était **écrite avant la mesure**.
+
+**CONSÉQUENCE.** Pour apprendre ce découpage il faut nourrir le modèle avec l'**occupation du
+volume** (grille de lancers de rayon, voxels, nuage de points), pas avec les positions de
+station. Et attention au piège circulaire : donner directement la visibilité par paires, c'est
+réimplémenter A3C, pas l'apprendre. L'intérêt d'apprendre n'existe que pour retrouver les
+pièces depuis des données de CAPTEUR — ce qui est exactement le problème d'Isaac / UE5, pas
+celui d'Arma où l'on peut simplement appeler A3C.
+
+**Biais connu de cette mesure** : les positions qu'A3C écarte (balcons, seuils) deviennent des
+pièces singleton dans ma cible. Le modèle doit donc aussi trier dedans/dehors, ce qu'aucun
+seuil géométrique ne peut faire. La tâche est plus dure que « grouper l'intérieur ».
+
+Corpus figé : `logs_train/corpus_modeles.jsonl` (707), `logs_train/corpus_decoupage.jsonl` (707,
+positions + appartenance + portes, repère modèle). Zéro muet des deux côtés.
+
+---
+
+## 2026-08-14 (nuit) — HYDRA transposé : le dégagement porte une information réelle, mais ne suffit pas
+
+Méthode de Hydra (MIT-SPARK, arXiv 2201.13360) : chaque endroit de l'espace libre porte sa
+distance au plus proche obstacle ; on élague sous un seuil, ce qui **ferme les portes** ; les
+composantes connexes restantes sont les pièces. Transposé **aux arêtes** ici : pour chaque
+paire de positions, 3 points le long du segment × 8 rayons, on garde le dégagement minimal =
+largeur du passage. Un segment traversant un mur donne 0,00.
+
+707 modèles, même cible et mêmes plis que la mesure précédente, tous les bras **rejugés sur le
+même sous-ensemble tronqué à 80 positions** (4 bâtiments concernés sur 707).
+
+| bras | ARI |
+|---|---|
+| TOUT | 0,000 |
+| DISTANCE | 0,182 |
+| APPRIS (régression sur paires) | 0,314 |
+| ÉTAGE | 0,325 |
+| HYDRA seul | 0,326 |
+| **HYDRA + ÉTAGE** | **0,438** |
+
+τ retenu : **1,2 m** sur 4 plis sur 5 (0,8 sur le cinquième). C'est une largeur de porte —
+le paramètre est physiquement interprétable, pas un réglage aveugle.
+
+**Test apparié ÉTAGE contre ÉTAGE+HYDRA sur les 707 bâtiments : gain +0,102, p = 0,00005**
+(20 000 permutations de signe). Mais **meilleur sur 341, PIRE sur 235, identique sur 131** —
+le gain est réel en moyenne, pas uniforme.
+
+**⚠️ NE PAS ÉCRIRE « LE DÉGAGEMENT SUFFIT ».** Mon script l'a imprimé parce que le gain
+dépassait son seuil de +0,05 ; le mot est faux. HYDRA **seul** (0,326) ne fait pas mieux que la
+règle d'étage (0,325). Le gain vient de la **complémentarité** : l'étage sépare verticalement,
+la dilatation sépare horizontalement à travers les portes. Et 0,438 reste loin de 1,0.
+
+**LECTURE.** Un scalaire de mur par endroit est **nécessaire et complémentaire, pas suffisant**.
+A3C décide par visibilité mutuelle entre TOUTES les paires — une relation globale, que la
+largeur locale d'un passage n'approxime qu'en partie. Pour aller plus loin il faut l'occupation
+du volume (voxels / ESDF / axe médian), c'est-à-dire Hydra pour de vrai et non transposé.
+
+**Écart assumé avec Hydra** : ses lieux sont échantillonnés sur l'axe médian, où le dégagement
+est localement maximal ; mes `buildingPos` sont des points de station souvent collés au mur.
+Et mon échantillonnage à 3 points coupe une arête qui frôle un angle de mur.
+
+Corpus : `logs_train/corpus_degagement.jsonl` (707, zéro muet). Scripts `recolte_degagement.py`,
+`mesure_hydra.py`.
+
+---
+
+## 2026-08-15 — RE-VERDICT : la géométrie d'A3C EST séparable. Le n=6 mentait.
+
+`usine_bis.py` : 20 manches ajoutées au corpus, même monde, même protocole (120 ticks par
+manche, vérifié). A3C contre le témoin `doMove` passe de 6 à **16 manches par bras**.
+
+| échantillon | AUC | p |
+|---|---|---|
+| n=6 par bras (14/08) | 0,889 | 0,0647 → « non établi » |
+| **n=16 par bras (15/08)** | **0,930** | **0,0050 → SÉPARABLE** |
+
+Contrôle A3C contre LAMBS, inchangé : AUC 1,000, p=0,005.
+
+**CE QUE ÇA CASSE.** Toute la lecture du 14/08 au soir reposait sur « la géométrie d'A3C ne
+porte pas son avantage », déduit d'un p=0,065. Un AUC de 0,889 est déjà une séparation forte ;
+lire ce p comme une égalité, c'était prendre un accord obtenu sur trop peu pour un accord —
+la faute que le projet a déjà nommée. L'affirmation « cloner les trajectoires d'A3C
+n'apprendrait rien qu'un `doMove` n'apprenne déjà » est **RÉFUTÉE**.
+
+**CE QUI TIENT ENCORE.** A3C fait entrer le même nombre d'hommes que le témoin (2,00 contre
+1,83, p=1,0000) et tue 3,2× plus (p=0,0108). Son avantage n'est donc pas expliqué par
+« combien entrent ».
+
+**CE QUI N'EST TOUJOURS PAS ÉTABLI.** Que la différence de géométrie CAUSE la différence
+d'issue. Séparable n'est pas porteur.
+
+**CONSÉQUENCE SUR LA DÉCISION D'ARRÊT.** L'argument principal de la clôture du fil
+« découpage en pièces » était : les positions sont inertes, donc le découpage — qui ne produit
+que des positions — ne peut pas porter le 3,2×. **Cette prémisse est morte.** Les autres
+arguments tiennent indépendamment : l'indice de Rand est une métrique intermédiaire sans lien
+mesuré avec l'issue ; on apprend ce qui ne se calcule pas et le découpage se calcule ; le
+goulot mesuré reste le choix de l'officier. Le test qui trancherait vraiment reste celui-là :
+brancher trois découpages dans le même assaut et compter les morts.
+
+Sauvegarde de l'état antérieur : `logs_train/corpus_a3c_lambs.AVANT-DOUBLEMENT.jsonl`.
+
+---
+
+## 2026-08-15 — LE BANC RETROUVE 1 DEFAUT SUR 3 A L AVEUGLE. Le produit-verdict est partiel.
+
+Premiere mesure du PRODUIT lui-meme, sur une IA EXTERIEURE et reelle : DCO_AI Reforger
+(github.com/817r/DCOReforger, 19 200 lignes, 22 000 telechargements, mis a jour le 12/08).
+Trois defauts trouves EN LISANT son code, recopies a l identique dans le gymnase
+(`monde_fidele`), puis reparés un par un. Question : mes instruments, ne voyant que des
+TRAJECTOIRES, les retrouvent-ils ? Outils : `banc_dco.py`, `lire_dco.py`,
+`logs_train/banc_dco.jsonl` (6 bras x 600 episodes, 256 env).
+
+| bras | prise | cout | vus | accord couvert | haltes |
+|---|---|---|---|---|---|
+| DCO | 0,000 | 0,0216 | 0,413 | 0,518 | 0,247 |
+| DCO+R1 flanc voyant | 0,005 | 0,0276 | 0,628 | 0,565 | 0,243 |
+| DCO+R2 suppression saine | 0,002 | 0,0225 | 0,403 | 0,492 | 0,193 |
+| DCO+R3 camaraderie bornee | 0,000 | 0,0235 | 0,424 | 0,497 | 0,260 |
+| FRONTAL (controle positif) | 0,050 | 0,0269 | 0,884 | 0,538 | 0,109 |
+| DCO' (controle nul) | 0,000 | 0,0226 | 0,386 | 0,502 | 0,255 |
+
+**LES DEUX CONTROLES PASSENT.** G0 : le cout separe FRONTAL de DCO de +25,0 % (p = 0,00005) —
+le banc voit un assaut frontal. G0b : DCO contre lui-meme sur autres graines ne sort sur
+AUCUNE des six metriques (p de 0,29 a 1,00) — le banc n invente pas de differences. Sans ces
+deux-la, rien de ce qui suit ne serait lisible.
+
+**G2 PASSE — la suppression auto-amplifiee se voit dans la seule trajectoire.** Les haltes
+sous le feu tombent de 0,247 a 0,193 quand on repare la ligne `x += clamp(x + y)`, soit
+−22,0 %, p = 0,00005. Un juge exterieur qui ne verrait que des positions detecterait ce
+defaut. **C est la preuve de principe du produit-verdict.**
+
+**G1 TOMBE, et la moitie du signal est pourtant la.** L accord entre le cote pris et le cote
+le plus couvert vaut 0,518 sur DCO : le contournement ignore le monde, exactement comme
+prevu. Mais ma reparation ne monte qu a 0,565 (p = 0,0016 contre le hasard) quand la porte
+exigeait 0,65. La cause est mon instrument : je lis le cote par l integrale laterale de la
+trajectoire, un proxy bruite du cote CHOISI. Le defaut est visible, le contraste ne l est pas.
+
+**G3 TOMBE, et l instrument est confondu.** La pente haltes/vivants est bien negative et
+significative sur DCO (−0,046, p = 0,0004) — mais elle l est tout autant sur DCO+R3 (−0,042,
+p = 0,0016), ou la camaraderie est bornee. Elle ne mesure donc PAS la camaraderie : elle
+mesure la survie (plus on est nombreux, moins on a subi). **Une metrique qui bouge pareil
+dans les deux bras ne mesure pas ce qu on croit.**
+
+**VERDICT : 1 defaut sur 3 retrouve a l aveugle, controles passes.** Le produit-verdict
+fonctionne, il ne suffit pas encore. Lire le code reste necessaire pour deux defauts sur
+trois — ce qui est en soi un resultat commercial : le service, ce n est pas un banc
+automatique, c est un banc PLUS une lecture.
+
+**CINQ FAUTES DE MESURE, TOUTES LES MIENNES, DANS LA MEME JOURNEE.**
+1. « son `>=` prend toujours la gauche » : FAUX. Les deux notes sont egales a 6e-08 pres, et
+   l arrondi flottant departe — 64 a 69 % de gauche. Le fond est pire (la note ne porte
+   aucune information) mais l enonce etait faux et la sonde pre-enregistree testait un cote.
+2. la mesure de halte ecrasait la distance precedente AVANT de calculer l avance : elle
+   valait identiquement « sous le feu ». **Elle ne pouvait pas echouer.**
+3. `MORALE_SUPPRESSION_RECOVERY` transcrit `0,0005` au lieu de `0,0005 x 0,001` — mille fois
+   trop grand. La decroissance depassait la valeur et le stress CHANGEAIT DE SIGNE a chaque
+   pas : D2 etait eteint, DCO et DCO+R2 rendaient des chiffres identiques.
+4. la sonde D3 comparait deux stress A SATURATION (4,50 contre 4,50) et croyait mesurer.
+5. **le jouet jugeait l ETAT et non l ACTE.** Il validait que le stress differait entre les
+   bras ; il ne verifiait pas que cette difference franchissait un seuil de decision. C est
+   la table qui a attrape la faute 3, pas lui. Le jouet porte desormais une sonde d ACTE :
+   les bras doivent emettre des ACTIONS differentes. Regle 16, ratee puis reparee.
+
+**LIMITE ASSUMEE.** Les quatre bras DCO ne prennent quasiment jamais l objectif (0,000 a
+0,005 contre 0,050 pour FRONTAL) : le cout `expo/metre` est donc un rapport a petit
+denominateur, instable. Aucune porte ne repose sur `prise`, mais toute lecture future de ce
+banc doit le savoir.
+
+**CE QUI NE SE DEDUIT PAS DE CE BANC.** Que DCO se comporte ainsi DANS REFORGER. On a mesure
+ses trois MECANISMES dans mon gymnase, pas son binaire dans son moteur. C est un choix
+assume : Enfusion n a ni pont, ni replique, ni lac ici.
+
+---
+
+## 2026-08-15 — A3C ÉTAIT INFIRME. Réparé, il tue 4,7× plus que le témoin.
+
+**LA PANNE.** `A3C_Init.sqf:122` fait `if (isDedicated) exitWith {}` avant de charger
+`A3C_InitValuesClient.sqf` — or **49 variables de ce fichier sont lues par les modules chargés
+côté serveur**. `fnc_actionExecuteUnitPlot.sqf` boucle sur `waitUntil {!A3C_REFRESHING}` avec
+la variable indéfinie : erreur SQF à chaque image et par homme. Volume dans les journaux de la
+journée : **3 283 502 erreurs / 1,10 Go** pour un banc, 1 446 146 pour un autre, 755 729 pour un
+troisième. Un serveur en est mort. **Je n'avais jamais ouvert le journal serveur.**
+
+**LE CORRECTIF.** `a3c_init_serveur.sqf` : 48+1 variables gelées à leur valeur client par
+défaut, garde `isNil`. Référentiel = l'HÉBERGÉ (où le fichier client s'exécute), pas le dédié
+tel que livré, qui est un état cassé jamais testé par l'auteur. Audit : 13 seulement sont
+vraiment gelées (jamais réécrites côté serveur) et **les 13 portent la valeur PASSANTE**.
+Limites déclarées : `A3C_BOARD_UNITS_ACTIVE` et `A3C_HC_NearStatics` gelés vides fausseraient
+un banc de transport ou de High Command, pas un banc de nettoyage.
+
+**RÉSULTAT, 20 manches, 10 par bras, 0 erreur SQF sur tout le lot :**
+
+| | A3C réparé | témoin `doMove` | écart | p |
+|---|---|---|---|---|
+| défenseurs tués /6 | **4,20** | **0,90** | **+3,30** | **0,00010** |
+| hommes entrés (pic) /8 | 3,30 | 2,00 | +1,30 | 0,108 |
+
+Permutation exacte, 184 756 partitions. Détail A3C : 3,3,2,5,5,3,6,5,5,5. Témoin : 0,2,1,3,0,1,1,0,0,1.
+
+**LECTURE.** En état dégradé on mesurait 2,67 contre 0,83 (ratio 3,2×). Réparé : 4,20 contre
+0,90 (ratio **4,7×**). **Le correctif fait bondir A3C de +57 % et laisse le témoin immobile
+(0,83 → 0,90)** — contrôle négatif involontaire mais bienvenu : le correctif agit sur A3C, pas
+sur le monde. A3C est nettement plus fort que tout ce qu'on avait mesuré.
+
+**CE QUI TIENT MALGRÉ LA RÉPARATION.** Même réparé, A3C ne fait PAS entrer significativement
+plus d'hommes que le témoin (3,30 contre 2,00, p=0,108) tout en tuant 4,7× plus. L'avantage
+n'est toujours pas « combien entrent ».
+
+**GARDE PERMANENTE AJOUTÉE AU HARNAIS.** Chaque manche porte désormais son manifeste de santé
+du monde — erreurs SQF, serveur vivant, nombre de ticks — et toute manche hors seuil est VOID
+**sans intervention humaine**. Le journal d'un gigaoctet n'avait pas été vu parce que rien
+dans le pipeline ne le lisait. `lance_serveur` attend aussi que le port se libère et retente
+3 fois : une part des « morts du pont » du projet était une collision de ports à la relance.
+
+Corpus : `logs_train/corpus_sain.jsonl`. Séparabilité géométrique sur corpus sain : en cours.

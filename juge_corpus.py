@@ -37,6 +37,9 @@ def traits(d):
     st = [0, 0, 0, 0]
     for u in v: st[min(u[3], 3)] += 1
     xs = [u[0] for u in v]; ys = [u[1] for u in v]
+    import os
+    if os.environ.get("SANS_DISTANCE"):
+        return (z[:8] + st + [len(v), float(np.std(xs)), float(np.std(ys))])
     return (dist[:8] + z[:8] + st + [len(v), float(np.std(xs)), float(np.std(ys)),
             float(np.mean(dist)), float(max(dist) - min(dist))])
 
@@ -45,12 +48,16 @@ def charge():
     X, y, g = [], [], []
     for l in open(CHEMIN):
         d = json.loads(l)
-        if d["bras"] not in ("A3C", "LAMBS"):
+        import os
+        pa = os.environ.get("PAIRE", "A3C:LAMBS").split(":")
+        if d.get("manifeste") or "u" not in d:
+            continue
+        if d["bras"] not in pa:
             continue
         f = traits(d)
         if f is None:
             continue
-        X.append(f); y.append(1 if d["bras"] == "A3C" else 0); g.append(d["rid"])
+        X.append(f); y.append(1 if d["bras"] == pa[0] else 0); g.append(d["rid"])
     return np.array(X, float), np.array(y), np.array(g)
 
 
@@ -100,8 +107,10 @@ if __name__ == "__main__":
     yg = {}
     for i in range(len(g)): yg[int(g[i])] = int(y[i])
     na = sum(1 for r in yg if yg[r] == 1); nl = len(yg) - na
-    print("corpus : %d ticks, %d manches (A3C=%d, LAMBS=%d), %d traits geometriques"
-          % (len(X), len(yg), na, nl, X.shape[1]))
+    import os
+    pa = os.environ.get("PAIRE", "A3C:LAMBS").split(":")
+    print("corpus : %d ticks, %d manches (%s=%d, %s=%d), %d traits geometriques"
+          % (len(X), len(yg), pa[0], na, pa[1], nl, X.shape[1]))
     if na < 3 or nl < 3:
         print("pas assez de manches"); sys.exit(1)
 

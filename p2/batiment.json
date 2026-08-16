@@ -1,0 +1,4773 @@
+{
+ "emprise_m": [
+  [
+   -6.0,
+   -6.5
+  ],
+  [
+   8.0,
+   -6.5
+  ],
+  [
+   8.0,
+   2.5
+  ],
+  [
+   0.0,
+   2.5
+  ],
+  [
+   0.0,
+   9.5
+  ],
+  [
+   -6.0,
+   9.5
+  ]
+ ],
+ "hauteur_m": 6.5,
+ "n_niveaux": 2,
+ "h_etage_m": 3.0,
+ "escalier_xy": [
+  -4.8,
+  -0.6
+ ],
+ "escalier": {
+  "n_marches": 17,
+  "montee_m": 0.1765,
+  "giron_m": 0.28,
+  "largeur_m": 1.1,
+  "bas_m": [
+   -4.8,
+   -0.46,
+   0.1765
+  ],
+  "haut_m": [
+   -4.8,
+   4.02,
+   3.0
+  ]
+ },
+ "tremie": [
+  -5.55,
+  -4.05,
+  -0.8,
+  4.56
+ ],
+ "allege_m": 0.9,
+ "linteau_m": 2.1,
+ "pas_fenetre_m": 3.5,
+ "ouvertures": [
+  {
+   "type": "fenetre",
+   "arete": 0,
+   "centre_m": [
+    -3.1333,
+    -6.5,
+    1.5
+   ],
+   "normale": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 0.9,
+   "haut_m": 2.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 0,
+   "centre_m": [
+    5.1333,
+    -6.5,
+    1.5
+   ],
+   "normale": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 0.9,
+   "haut_m": 2.1
+  },
+  {
+   "type": "porte",
+   "arete": 0,
+   "centre_m": [
+    1.0,
+    -6.5,
+    1.05
+   ],
+   "normale": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "largeur_m": 1.0,
+   "bas_m": 0.0,
+   "haut_m": 2.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 1,
+   "centre_m": [
+    8.0,
+    -3.85,
+    1.5
+   ],
+   "normale": [
+    1.0,
+    -0.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 0.9,
+   "haut_m": 2.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 1,
+   "centre_m": [
+    8.0,
+    -0.15,
+    1.5
+   ],
+   "normale": [
+    1.0,
+    -0.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 0.9,
+   "haut_m": 2.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 2,
+   "centre_m": [
+    4.0,
+    2.5,
+    1.5
+   ],
+   "normale": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 0.9,
+   "haut_m": 2.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 3,
+   "centre_m": [
+    0.0,
+    6.0,
+    1.5
+   ],
+   "normale": [
+    1.0,
+    -0.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 0.9,
+   "haut_m": 2.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 4,
+   "centre_m": [
+    -3.0,
+    9.5,
+    1.5
+   ],
+   "normale": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 0.9,
+   "haut_m": 2.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 5,
+   "centre_m": [
+    -6.0,
+    6.9,
+    1.5
+   ],
+   "normale": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 0.9,
+   "haut_m": 2.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 5,
+   "centre_m": [
+    -6.0,
+    3.3,
+    1.5
+   ],
+   "normale": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 0.9,
+   "haut_m": 2.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 5,
+   "centre_m": [
+    -6.0,
+    -0.3,
+    1.5
+   ],
+   "normale": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 0.9,
+   "haut_m": 2.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 5,
+   "centre_m": [
+    -6.0,
+    -3.9,
+    1.5
+   ],
+   "normale": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 0.9,
+   "haut_m": 2.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 10,
+   "centre_m": [
+    -3.1333,
+    -6.5,
+    4.5
+   ],
+   "normale": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 3.9,
+   "haut_m": 5.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 10,
+   "centre_m": [
+    1.0,
+    -6.5,
+    4.5
+   ],
+   "normale": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 3.9,
+   "haut_m": 5.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 10,
+   "centre_m": [
+    5.1333,
+    -6.5,
+    4.5
+   ],
+   "normale": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 3.9,
+   "haut_m": 5.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 11,
+   "centre_m": [
+    8.0,
+    -3.85,
+    4.5
+   ],
+   "normale": [
+    1.0,
+    -0.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 3.9,
+   "haut_m": 5.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 11,
+   "centre_m": [
+    8.0,
+    -0.15,
+    4.5
+   ],
+   "normale": [
+    1.0,
+    -0.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 3.9,
+   "haut_m": 5.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 12,
+   "centre_m": [
+    4.0,
+    2.5,
+    4.5
+   ],
+   "normale": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 3.9,
+   "haut_m": 5.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 13,
+   "centre_m": [
+    0.0,
+    6.0,
+    4.5
+   ],
+   "normale": [
+    1.0,
+    -0.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 3.9,
+   "haut_m": 5.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 14,
+   "centre_m": [
+    -3.0,
+    9.5,
+    4.5
+   ],
+   "normale": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 3.9,
+   "haut_m": 5.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 15,
+   "centre_m": [
+    -6.0,
+    6.9,
+    4.5
+   ],
+   "normale": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 3.9,
+   "haut_m": 5.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 15,
+   "centre_m": [
+    -6.0,
+    3.3,
+    4.5
+   ],
+   "normale": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 3.9,
+   "haut_m": 5.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 15,
+   "centre_m": [
+    -6.0,
+    -0.3,
+    4.5
+   ],
+   "normale": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 3.9,
+   "haut_m": 5.1
+  },
+  {
+   "type": "fenetre",
+   "arete": 15,
+   "centre_m": [
+    -6.0,
+    -3.9,
+    4.5
+   ],
+   "normale": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "largeur_m": 1.2,
+   "bas_m": 3.9,
+   "haut_m": 5.1
+  }
+ ],
+ "solides": [
+  {
+   "nom": "dalle_rdc_0",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -6.25,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_1",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -5.75,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_2",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -5.25,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_3",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -4.75,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_4",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -4.25,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_5",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -3.75,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_6",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -3.25,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_7",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -2.75,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_8",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -2.25,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_9",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -1.75,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_10",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -1.25,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_11",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -0.75,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_12",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -0.25,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_13",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    0.25,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_14",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    0.75,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_15",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    1.25,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_16",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    1.75,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_17",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    2.25,
+    -0.1
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_18",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    2.75,
+    -0.1
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_19",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    3.25,
+    -0.1
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_20",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    3.75,
+    -0.1
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_21",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    4.25,
+    -0.1
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_22",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    4.75,
+    -0.1
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_23",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    5.25,
+    -0.1
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_24",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    5.75,
+    -0.1
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_25",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    6.25,
+    -0.1
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_26",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    6.75,
+    -0.1
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_27",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    7.25,
+    -0.1
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_28",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    7.75,
+    -0.1
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_29",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    8.25,
+    -0.1
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_30",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    8.75,
+    -0.1
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_rdc_31",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    9.25,
+    -0.1
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "mur0_allege_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    -2.75,
+    -6.5,
+    0.45
+   ],
+   "demi_m": [
+    3.25,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur0_allege_7.5",
+   "type": "mur_ext",
+   "centre_m": [
+    4.75,
+    -6.5,
+    0.45
+   ],
+   "demi_m": [
+    3.25,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur0_trumeau_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    -4.867,
+    -6.5,
+    1.5
+   ],
+   "demi_m": [
+    1.133,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur0_trumeau_3.5",
+   "type": "mur_ext",
+   "centre_m": [
+    -1.017,
+    -6.5,
+    1.5
+   ],
+   "demi_m": [
+    1.517,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur0_trumeau_7.5",
+   "type": "mur_ext",
+   "centre_m": [
+    3.017,
+    -6.5,
+    1.5
+   ],
+   "demi_m": [
+    1.517,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur0_trumeau_11.7",
+   "type": "mur_ext",
+   "centre_m": [
+    6.867,
+    -6.5,
+    1.5
+   ],
+   "demi_m": [
+    1.133,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur0_linteau",
+   "type": "mur_ext",
+   "centre_m": [
+    1.0,
+    -6.5,
+    2.55
+   ],
+   "demi_m": [
+    7.0,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur1_allege_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    8.0,
+    -2.0,
+    0.45
+   ],
+   "demi_m": [
+    4.5,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur1_trumeau_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    8.0,
+    -5.475,
+    1.5
+   ],
+   "demi_m": [
+    1.025,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur1_trumeau_3.3",
+   "type": "mur_ext",
+   "centre_m": [
+    8.0,
+    -2.0,
+    1.5
+   ],
+   "demi_m": [
+    1.25,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur1_trumeau_7.0",
+   "type": "mur_ext",
+   "centre_m": [
+    8.0,
+    1.475,
+    1.5
+   ],
+   "demi_m": [
+    1.025,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur1_linteau",
+   "type": "mur_ext",
+   "centre_m": [
+    8.0,
+    -2.0,
+    2.55
+   ],
+   "demi_m": [
+    4.5,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur2_allege_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    4.0,
+    2.5,
+    0.45
+   ],
+   "demi_m": [
+    4.0,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur2_trumeau_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    6.3,
+    2.5,
+    1.5
+   ],
+   "demi_m": [
+    1.7,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur2_trumeau_4.6",
+   "type": "mur_ext",
+   "centre_m": [
+    1.7,
+    2.5,
+    1.5
+   ],
+   "demi_m": [
+    1.7,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur2_linteau",
+   "type": "mur_ext",
+   "centre_m": [
+    4.0,
+    2.5,
+    2.55
+   ],
+   "demi_m": [
+    4.0,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur3_allege_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    0.0,
+    6.0,
+    0.45
+   ],
+   "demi_m": [
+    3.5,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur3_trumeau_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    0.0,
+    3.95,
+    1.5
+   ],
+   "demi_m": [
+    1.45,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur3_trumeau_4.1",
+   "type": "mur_ext",
+   "centre_m": [
+    0.0,
+    8.05,
+    1.5
+   ],
+   "demi_m": [
+    1.45,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur3_linteau",
+   "type": "mur_ext",
+   "centre_m": [
+    0.0,
+    6.0,
+    2.55
+   ],
+   "demi_m": [
+    3.5,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur4_allege_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    -3.0,
+    9.5,
+    0.45
+   ],
+   "demi_m": [
+    3.0,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur4_trumeau_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    -1.2,
+    9.5,
+    1.5
+   ],
+   "demi_m": [
+    1.2,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur4_trumeau_3.6",
+   "type": "mur_ext",
+   "centre_m": [
+    -4.8,
+    9.5,
+    1.5
+   ],
+   "demi_m": [
+    1.2,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur4_linteau",
+   "type": "mur_ext",
+   "centre_m": [
+    -3.0,
+    9.5,
+    2.55
+   ],
+   "demi_m": [
+    3.0,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur5_allege_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    -6.0,
+    1.5,
+    0.45
+   ],
+   "demi_m": [
+    8.0,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": -90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur5_trumeau_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    -6.0,
+    8.5,
+    1.5
+   ],
+   "demi_m": [
+    1.0,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": -90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur5_trumeau_3.2",
+   "type": "mur_ext",
+   "centre_m": [
+    -6.0,
+    5.1,
+    1.5
+   ],
+   "demi_m": [
+    1.2,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": -90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur5_trumeau_6.8",
+   "type": "mur_ext",
+   "centre_m": [
+    -6.0,
+    1.5,
+    1.5
+   ],
+   "demi_m": [
+    1.2,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": -90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur5_trumeau_10.4",
+   "type": "mur_ext",
+   "centre_m": [
+    -6.0,
+    -2.1,
+    1.5
+   ],
+   "demi_m": [
+    1.2,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": -90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur5_trumeau_14.0",
+   "type": "mur_ext",
+   "centre_m": [
+    -6.0,
+    -5.5,
+    1.5
+   ],
+   "demi_m": [
+    1.0,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": -90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur5_linteau",
+   "type": "mur_ext",
+   "centre_m": [
+    -6.0,
+    1.5,
+    2.55
+   ],
+   "demi_m": [
+    8.0,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": -90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "cloison1_1",
+   "type": "cloison",
+   "centre_m": [
+    -5.775,
+    1.5,
+    1.5
+   ],
+   "demi_m": [
+    0.225,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison1_2",
+   "type": "cloison",
+   "centre_m": [
+    -1.262,
+    1.5,
+    1.5
+   ],
+   "demi_m": [
+    2.788,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison1_3",
+   "type": "cloison",
+   "centre_m": [
+    5.213,
+    1.5,
+    1.5
+   ],
+   "demi_m": [
+    2.787,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison1_4",
+   "type": "cloison",
+   "centre_m": [
+    1.975,
+    1.5,
+    2.55
+   ],
+   "demi_m": [
+    0.45,
+    0.05,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison2_5",
+   "type": "cloison",
+   "centre_m": [
+    1.0,
+    -4.725,
+    1.5
+   ],
+   "demi_m": [
+    0.05,
+    1.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison2_6",
+   "type": "cloison",
+   "centre_m": [
+    1.0,
+    -0.275,
+    1.5
+   ],
+   "demi_m": [
+    0.05,
+    1.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison2_7",
+   "type": "cloison",
+   "centre_m": [
+    1.0,
+    -2.5,
+    2.55
+   ],
+   "demi_m": [
+    0.05,
+    0.45,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison3_8",
+   "type": "cloison",
+   "centre_m": [
+    -4.475,
+    -2.5,
+    1.5
+   ],
+   "demi_m": [
+    1.525,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison3_9",
+   "type": "cloison",
+   "centre_m": [
+    -0.525,
+    -2.5,
+    1.5
+   ],
+   "demi_m": [
+    1.525,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison3_10",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    -2.5,
+    2.55
+   ],
+   "demi_m": [
+    0.45,
+    0.05,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison4_11",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    -5.725,
+    1.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison4_12",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    -3.275,
+    1.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison4_13",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    -4.5,
+    2.55
+   ],
+   "demi_m": [
+    0.05,
+    0.45,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison5_14",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    -1.725,
+    1.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison5_15",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    0.725,
+    1.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison5_16",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    -0.5,
+    2.55
+   ],
+   "demi_m": [
+    0.05,
+    0.45,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison6_17",
+   "type": "cloison",
+   "centre_m": [
+    2.525,
+    -2.5,
+    1.5
+   ],
+   "demi_m": [
+    1.525,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison6_18",
+   "type": "cloison",
+   "centre_m": [
+    6.475,
+    -2.5,
+    1.5
+   ],
+   "demi_m": [
+    1.525,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison6_19",
+   "type": "cloison",
+   "centre_m": [
+    4.5,
+    -2.5,
+    2.55
+   ],
+   "demi_m": [
+    0.45,
+    0.05,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison7_20",
+   "type": "cloison",
+   "centre_m": [
+    4.5,
+    -5.725,
+    1.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison7_21",
+   "type": "cloison",
+   "centre_m": [
+    4.5,
+    -3.275,
+    1.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison7_22",
+   "type": "cloison",
+   "centre_m": [
+    4.5,
+    -4.5,
+    2.55
+   ],
+   "demi_m": [
+    0.05,
+    0.45,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison8_23",
+   "type": "cloison",
+   "centre_m": [
+    4.5,
+    -1.725,
+    1.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison8_24",
+   "type": "cloison",
+   "centre_m": [
+    4.5,
+    0.725,
+    1.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison8_25",
+   "type": "cloison",
+   "centre_m": [
+    4.5,
+    -0.5,
+    2.55
+   ],
+   "demi_m": [
+    0.05,
+    0.45,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison10_26",
+   "type": "cloison",
+   "centre_m": [
+    -4.725,
+    5.5,
+    1.5
+   ],
+   "demi_m": [
+    1.275,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison10_27",
+   "type": "cloison",
+   "centre_m": [
+    -1.275,
+    5.5,
+    1.5
+   ],
+   "demi_m": [
+    1.275,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison10_28",
+   "type": "cloison",
+   "centre_m": [
+    -3.0,
+    5.5,
+    2.55
+   ],
+   "demi_m": [
+    0.45,
+    0.05,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison11_29",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    2.275,
+    1.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison11_30",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    4.725,
+    1.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison11_31",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    3.5,
+    2.55
+   ],
+   "demi_m": [
+    0.05,
+    0.45,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison12_32",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    6.275,
+    1.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison12_33",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    8.725,
+    1.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison12_34",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    7.5,
+    2.55
+   ],
+   "demi_m": [
+    0.05,
+    0.45,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "dalle_n1_0",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -6.25,
+    2.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_1",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -5.75,
+    2.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_2",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -5.25,
+    2.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_3",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -4.75,
+    2.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_4",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -4.25,
+    2.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_5",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -3.75,
+    2.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_6",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -3.25,
+    2.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_7",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -2.75,
+    2.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_8",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -2.25,
+    2.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_9",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -1.75,
+    2.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_10",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -1.25,
+    2.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_11",
+   "type": "dalle",
+   "centre_m": [
+    -5.775,
+    -0.75,
+    2.9
+   ],
+   "demi_m": [
+    0.225,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_12",
+   "type": "dalle",
+   "centre_m": [
+    1.975,
+    -0.75,
+    2.9
+   ],
+   "demi_m": [
+    6.025,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_13",
+   "type": "dalle",
+   "centre_m": [
+    -5.775,
+    -0.25,
+    2.9
+   ],
+   "demi_m": [
+    0.225,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_14",
+   "type": "dalle",
+   "centre_m": [
+    1.975,
+    -0.25,
+    2.9
+   ],
+   "demi_m": [
+    6.025,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_15",
+   "type": "dalle",
+   "centre_m": [
+    -5.775,
+    0.25,
+    2.9
+   ],
+   "demi_m": [
+    0.225,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_16",
+   "type": "dalle",
+   "centre_m": [
+    1.975,
+    0.25,
+    2.9
+   ],
+   "demi_m": [
+    6.025,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_17",
+   "type": "dalle",
+   "centre_m": [
+    -5.775,
+    0.75,
+    2.9
+   ],
+   "demi_m": [
+    0.225,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_18",
+   "type": "dalle",
+   "centre_m": [
+    1.975,
+    0.75,
+    2.9
+   ],
+   "demi_m": [
+    6.025,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_19",
+   "type": "dalle",
+   "centre_m": [
+    -5.775,
+    1.25,
+    2.9
+   ],
+   "demi_m": [
+    0.225,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_20",
+   "type": "dalle",
+   "centre_m": [
+    1.975,
+    1.25,
+    2.9
+   ],
+   "demi_m": [
+    6.025,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_21",
+   "type": "dalle",
+   "centre_m": [
+    -5.775,
+    1.75,
+    2.9
+   ],
+   "demi_m": [
+    0.225,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_22",
+   "type": "dalle",
+   "centre_m": [
+    1.975,
+    1.75,
+    2.9
+   ],
+   "demi_m": [
+    6.025,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_23",
+   "type": "dalle",
+   "centre_m": [
+    -5.775,
+    2.25,
+    2.9
+   ],
+   "demi_m": [
+    0.225,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_24",
+   "type": "dalle",
+   "centre_m": [
+    1.975,
+    2.25,
+    2.9
+   ],
+   "demi_m": [
+    6.025,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_25",
+   "type": "dalle",
+   "centre_m": [
+    -5.775,
+    2.75,
+    2.9
+   ],
+   "demi_m": [
+    0.225,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_26",
+   "type": "dalle",
+   "centre_m": [
+    -2.025,
+    2.75,
+    2.9
+   ],
+   "demi_m": [
+    2.025,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_27",
+   "type": "dalle",
+   "centre_m": [
+    -5.775,
+    3.25,
+    2.9
+   ],
+   "demi_m": [
+    0.225,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_28",
+   "type": "dalle",
+   "centre_m": [
+    -2.025,
+    3.25,
+    2.9
+   ],
+   "demi_m": [
+    2.025,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_29",
+   "type": "dalle",
+   "centre_m": [
+    -5.775,
+    3.75,
+    2.9
+   ],
+   "demi_m": [
+    0.225,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_30",
+   "type": "dalle",
+   "centre_m": [
+    -2.025,
+    3.75,
+    2.9
+   ],
+   "demi_m": [
+    2.025,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_31",
+   "type": "dalle",
+   "centre_m": [
+    -5.775,
+    4.25,
+    2.9
+   ],
+   "demi_m": [
+    0.225,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_32",
+   "type": "dalle",
+   "centre_m": [
+    -2.025,
+    4.25,
+    2.9
+   ],
+   "demi_m": [
+    2.025,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_33",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    4.75,
+    2.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_34",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    5.25,
+    2.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_35",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    5.75,
+    2.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_36",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    6.25,
+    2.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_37",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    6.75,
+    2.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_38",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    7.25,
+    2.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_39",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    7.75,
+    2.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_40",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    8.25,
+    2.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_41",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    8.75,
+    2.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n1_42",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    9.25,
+    2.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "mur10_allege_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    1.0,
+    -6.5,
+    3.45
+   ],
+   "demi_m": [
+    7.0,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur10_trumeau_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    -4.867,
+    -6.5,
+    4.5
+   ],
+   "demi_m": [
+    1.133,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur10_trumeau_3.5",
+   "type": "mur_ext",
+   "centre_m": [
+    -1.067,
+    -6.5,
+    4.5
+   ],
+   "demi_m": [
+    1.467,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur10_trumeau_7.6",
+   "type": "mur_ext",
+   "centre_m": [
+    3.067,
+    -6.5,
+    4.5
+   ],
+   "demi_m": [
+    1.467,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur10_trumeau_11.7",
+   "type": "mur_ext",
+   "centre_m": [
+    6.867,
+    -6.5,
+    4.5
+   ],
+   "demi_m": [
+    1.133,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur10_linteau",
+   "type": "mur_ext",
+   "centre_m": [
+    1.0,
+    -6.5,
+    5.55
+   ],
+   "demi_m": [
+    7.0,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur11_allege_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    8.0,
+    -2.0,
+    3.45
+   ],
+   "demi_m": [
+    4.5,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur11_trumeau_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    8.0,
+    -5.475,
+    4.5
+   ],
+   "demi_m": [
+    1.025,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur11_trumeau_3.3",
+   "type": "mur_ext",
+   "centre_m": [
+    8.0,
+    -2.0,
+    4.5
+   ],
+   "demi_m": [
+    1.25,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur11_trumeau_7.0",
+   "type": "mur_ext",
+   "centre_m": [
+    8.0,
+    1.475,
+    4.5
+   ],
+   "demi_m": [
+    1.025,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur11_linteau",
+   "type": "mur_ext",
+   "centre_m": [
+    8.0,
+    -2.0,
+    5.55
+   ],
+   "demi_m": [
+    4.5,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur12_allege_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    4.0,
+    2.5,
+    3.45
+   ],
+   "demi_m": [
+    4.0,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur12_trumeau_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    6.3,
+    2.5,
+    4.5
+   ],
+   "demi_m": [
+    1.7,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur12_trumeau_4.6",
+   "type": "mur_ext",
+   "centre_m": [
+    1.7,
+    2.5,
+    4.5
+   ],
+   "demi_m": [
+    1.7,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur12_linteau",
+   "type": "mur_ext",
+   "centre_m": [
+    4.0,
+    2.5,
+    5.55
+   ],
+   "demi_m": [
+    4.0,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur13_allege_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    0.0,
+    6.0,
+    3.45
+   ],
+   "demi_m": [
+    3.5,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur13_trumeau_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    0.0,
+    3.95,
+    4.5
+   ],
+   "demi_m": [
+    1.45,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur13_trumeau_4.1",
+   "type": "mur_ext",
+   "centre_m": [
+    0.0,
+    8.05,
+    4.5
+   ],
+   "demi_m": [
+    1.45,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur13_linteau",
+   "type": "mur_ext",
+   "centre_m": [
+    0.0,
+    6.0,
+    5.55
+   ],
+   "demi_m": [
+    3.5,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur14_allege_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    -3.0,
+    9.5,
+    3.45
+   ],
+   "demi_m": [
+    3.0,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur14_trumeau_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    -1.2,
+    9.5,
+    4.5
+   ],
+   "demi_m": [
+    1.2,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur14_trumeau_3.6",
+   "type": "mur_ext",
+   "centre_m": [
+    -4.8,
+    9.5,
+    4.5
+   ],
+   "demi_m": [
+    1.2,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur14_linteau",
+   "type": "mur_ext",
+   "centre_m": [
+    -3.0,
+    9.5,
+    5.55
+   ],
+   "demi_m": [
+    3.0,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": 180.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur15_allege_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    -6.0,
+    1.5,
+    3.45
+   ],
+   "demi_m": [
+    8.0,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": -90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur15_trumeau_0.0",
+   "type": "mur_ext",
+   "centre_m": [
+    -6.0,
+    8.5,
+    4.5
+   ],
+   "demi_m": [
+    1.0,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": -90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur15_trumeau_3.2",
+   "type": "mur_ext",
+   "centre_m": [
+    -6.0,
+    5.1,
+    4.5
+   ],
+   "demi_m": [
+    1.2,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": -90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur15_trumeau_6.8",
+   "type": "mur_ext",
+   "centre_m": [
+    -6.0,
+    1.5,
+    4.5
+   ],
+   "demi_m": [
+    1.2,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": -90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur15_trumeau_10.4",
+   "type": "mur_ext",
+   "centre_m": [
+    -6.0,
+    -2.1,
+    4.5
+   ],
+   "demi_m": [
+    1.2,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": -90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur15_trumeau_14.0",
+   "type": "mur_ext",
+   "centre_m": [
+    -6.0,
+    -5.5,
+    4.5
+   ],
+   "demi_m": [
+    1.0,
+    0.15,
+    0.6
+   ],
+   "yaw_deg": -90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "mur15_linteau",
+   "type": "mur_ext",
+   "centre_m": [
+    -6.0,
+    1.5,
+    5.55
+   ],
+   "demi_m": [
+    8.0,
+    0.15,
+    0.45
+   ],
+   "yaw_deg": -90.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.3
+  },
+  {
+   "nom": "cloison1_35",
+   "type": "cloison",
+   "centre_m": [
+    -5.775,
+    1.5,
+    4.5
+   ],
+   "demi_m": [
+    0.225,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison1_36",
+   "type": "cloison",
+   "centre_m": [
+    -1.262,
+    1.5,
+    4.5
+   ],
+   "demi_m": [
+    2.788,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison1_37",
+   "type": "cloison",
+   "centre_m": [
+    5.213,
+    1.5,
+    4.5
+   ],
+   "demi_m": [
+    2.787,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison1_38",
+   "type": "cloison",
+   "centre_m": [
+    1.975,
+    1.5,
+    5.55
+   ],
+   "demi_m": [
+    0.45,
+    0.05,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison2_39",
+   "type": "cloison",
+   "centre_m": [
+    1.0,
+    -4.725,
+    4.5
+   ],
+   "demi_m": [
+    0.05,
+    1.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison2_40",
+   "type": "cloison",
+   "centre_m": [
+    1.0,
+    -0.275,
+    4.5
+   ],
+   "demi_m": [
+    0.05,
+    1.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison2_41",
+   "type": "cloison",
+   "centre_m": [
+    1.0,
+    -2.5,
+    5.55
+   ],
+   "demi_m": [
+    0.05,
+    0.45,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison3_42",
+   "type": "cloison",
+   "centre_m": [
+    -4.475,
+    -2.5,
+    4.5
+   ],
+   "demi_m": [
+    1.525,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison3_43",
+   "type": "cloison",
+   "centre_m": [
+    -0.525,
+    -2.5,
+    4.5
+   ],
+   "demi_m": [
+    1.525,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison3_44",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    -2.5,
+    5.55
+   ],
+   "demi_m": [
+    0.45,
+    0.05,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison4_45",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    -5.725,
+    4.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison4_46",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    -3.275,
+    4.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison4_47",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    -4.5,
+    5.55
+   ],
+   "demi_m": [
+    0.05,
+    0.45,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison5_48",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    -1.725,
+    4.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison5_49",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    0.725,
+    4.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison5_50",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    -0.5,
+    5.55
+   ],
+   "demi_m": [
+    0.05,
+    0.45,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison6_51",
+   "type": "cloison",
+   "centre_m": [
+    2.525,
+    -2.5,
+    4.5
+   ],
+   "demi_m": [
+    1.525,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison6_52",
+   "type": "cloison",
+   "centre_m": [
+    6.475,
+    -2.5,
+    4.5
+   ],
+   "demi_m": [
+    1.525,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison6_53",
+   "type": "cloison",
+   "centre_m": [
+    4.5,
+    -2.5,
+    5.55
+   ],
+   "demi_m": [
+    0.45,
+    0.05,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison7_54",
+   "type": "cloison",
+   "centre_m": [
+    4.5,
+    -5.725,
+    4.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison7_55",
+   "type": "cloison",
+   "centre_m": [
+    4.5,
+    -3.275,
+    4.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison7_56",
+   "type": "cloison",
+   "centre_m": [
+    4.5,
+    -4.5,
+    5.55
+   ],
+   "demi_m": [
+    0.05,
+    0.45,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison8_57",
+   "type": "cloison",
+   "centre_m": [
+    4.5,
+    -1.725,
+    4.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison8_58",
+   "type": "cloison",
+   "centre_m": [
+    4.5,
+    0.725,
+    4.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison8_59",
+   "type": "cloison",
+   "centre_m": [
+    4.5,
+    -0.5,
+    5.55
+   ],
+   "demi_m": [
+    0.05,
+    0.45,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison10_60",
+   "type": "cloison",
+   "centre_m": [
+    -4.725,
+    5.5,
+    4.5
+   ],
+   "demi_m": [
+    1.275,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison10_61",
+   "type": "cloison",
+   "centre_m": [
+    -1.275,
+    5.5,
+    4.5
+   ],
+   "demi_m": [
+    1.275,
+    0.05,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison10_62",
+   "type": "cloison",
+   "centre_m": [
+    -3.0,
+    5.5,
+    5.55
+   ],
+   "demi_m": [
+    0.45,
+    0.05,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison11_63",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    2.275,
+    4.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison11_64",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    4.725,
+    4.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison11_65",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    3.5,
+    5.55
+   ],
+   "demi_m": [
+    0.05,
+    0.45,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison12_66",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    6.275,
+    4.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison12_67",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    8.725,
+    4.5
+   ],
+   "demi_m": [
+    0.05,
+    0.775,
+    1.5
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "cloison12_68",
+   "type": "cloison",
+   "centre_m": [
+    -2.5,
+    7.5,
+    5.55
+   ],
+   "demi_m": [
+    0.05,
+    0.45,
+    0.45
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "platre",
+   "epaisseur_m": 0.1
+  },
+  {
+   "nom": "dalle_n2_0",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -6.25,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_1",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -5.75,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_2",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -5.25,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_3",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -4.75,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_4",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -4.25,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_5",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -3.75,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_6",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -3.25,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_7",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -2.75,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_8",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -2.25,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_9",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -1.75,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_10",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -1.25,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_11",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -0.75,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_12",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    -0.25,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_13",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    0.25,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_14",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    0.75,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_15",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    1.25,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_16",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    1.75,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_17",
+   "type": "dalle",
+   "centre_m": [
+    1.0,
+    2.25,
+    5.9
+   ],
+   "demi_m": [
+    7.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_18",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    2.75,
+    5.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_19",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    3.25,
+    5.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_20",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    3.75,
+    5.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_21",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    4.25,
+    5.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_22",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    4.75,
+    5.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_23",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    5.25,
+    5.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_24",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    5.75,
+    5.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_25",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    6.25,
+    5.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_26",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    6.75,
+    5.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_27",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    7.25,
+    5.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_28",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    7.75,
+    5.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_29",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    8.25,
+    5.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_30",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    8.75,
+    5.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "dalle_n2_31",
+   "type": "dalle",
+   "centre_m": [
+    -3.0,
+    9.25,
+    5.9
+   ],
+   "demi_m": [
+    3.0,
+    0.25,
+    0.1
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.2
+  },
+  {
+   "nom": "marche_00",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    -0.46,
+    0.088
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_01",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    -0.18,
+    0.265
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_02",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    0.1,
+    0.441
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_03",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    0.38,
+    0.618
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_04",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    0.66,
+    0.794
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_05",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    0.94,
+    0.971
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_06",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    1.22,
+    1.147
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_07",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    1.5,
+    1.324
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_08",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    1.78,
+    1.5
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_09",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    2.06,
+    1.676
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_10",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    2.34,
+    1.853
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_11",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    2.62,
+    2.029
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_12",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    2.9,
+    2.206
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_13",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    3.18,
+    2.382
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_14",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    3.46,
+    2.559
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_15",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    3.74,
+    2.735
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  },
+  {
+   "nom": "marche_16",
+   "type": "marche",
+   "centre_m": [
+    -4.8,
+    4.02,
+    2.912
+   ],
+   "demi_m": [
+    0.55,
+    0.14,
+    0.088
+   ],
+   "yaw_deg": 0.0,
+   "materiau": "beton",
+   "epaisseur_m": 0.18
+  }
+ ]
+}
