@@ -21,8 +21,12 @@ GRAINES_TEST = [101, 102, 103, 104, 105, 106]     # JAMAIS vues a l entrainement
 NA = 10                                            # 8 caps + tenir + feu
 
 
+# ⚠️ LE MONDE EST UNE VARIABLE DE MODULE. Par defaut le monde de reference — rien ne
+# bouge pour qui ne la touche pas. Un entrainement sur le monde OPERE fait `B.CFG = MONDE_OPERE`.
+CFG = MONDE_ARMA
+
 def monde(n, seed):
-    return AssaultTerrain(num_envs=n, seed=seed, device=DEV, max_steps=PAS, **MONDE_ARMA)
+    return AssaultTerrain(num_envs=n, seed=seed, device=DEV, max_steps=PAS, **CFG)
 
 
 def cap(dx, dy):
