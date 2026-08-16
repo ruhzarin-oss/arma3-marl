@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.3.0-16082026";
+HMT_SOCLE_VERSION = "1.4.0-16082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -162,10 +162,23 @@ HMT_PREVOL = {
     sleep 1;
 
     // T4 · une BALLE REELLE part ⟨regle 16 : juger l acte, pas l etat⟩
+    // ⚠️ LE MANNEQUIN DOIT ETRE VU. Mesure du 16/08 : T4 echouait avec `vue:0` — arme en
+    // main, AUTOCOMBAT actif, 30 cartouches, 48 m, et le relief entre les deux. Le test
+    // mesurait « sait-il tirer » et butait sur « peut-il voir ». D ou son INTERMITTENCE :
+    // le temoin nait a 300 m au hasard, donc la visibilite change a chaque episode.
+    // On cherche donc une place D OU IL LE VOIT, et on le dit si on n en trouve aucune.
     private _gm = createGroup east;
-    private _mann = _gm createUnit ["O_Soldier_F", [(_pt select 0), (_pt select 1) + 45, 0], [], 0, "NONE"];
-    _mann setPosATL [(_pt select 0), (_pt select 1) + 45, 0];
+    private _mann = _gm createUnit ["O_Soldier_F", [(_pt select 0), (_pt select 1) + 40, 0], [], 0, "NONE"];
     _mann disableAI "PATH"; _mann setBehaviour "CARELESS"; _mann allowDamage false;
+    private _vu = 0; private _k = 0;
+    while { _vu < 0.3 && _k < 12 } do {
+        private _a = _k * 30; private _r = 30 + (_k mod 3) * 8;
+        _mann setPosATL [(_pt select 0) + _r * sin _a, (_pt select 1) + _r * cos _a, 0];
+        sleep 0.4;
+        _vu = [objNull,"VIEW"] checkVisibility [eyePos _t, eyePos _mann];
+        _k = _k + 1;
+    };
+    if (_vu < 0.3) then { _ec pushBack format ["T4 PLACE SANS VUE : 12 essais, meilleure vue %1", round (100*_vu)/100] };
     _t reveal [_mann, 4];
     sleep 2;
     HMT_PV_COUPS = 0;
@@ -174,7 +187,16 @@ HMT_PREVOL = {
     while { time - _t0 < 6 } do { _t doWatch _mann; _t doTarget _mann;
         _t forceWeaponFire [currentWeapon _t, currentMuzzle _t]; sleep 0.33 };
     _t removeEventHandler ["Fired", _eh];
-    if (HMT_PV_COUPS < 1) then { _ec pushBack format ["T4 AUCUNE BALLE REELLE (%1 en 6 s)", HMT_PV_COUPS] };
+    // ⚠️ T4 DIT L ETAT DU TEMOIN QUAND IL ECHOUE. Sans cela son refus est muet, et j ai
+    // deja perdu deux gestes a deviner ce qui manquait a cet homme.
+    if (HMT_PV_COUPS < 1) then {
+        _ec pushBack format ["T4 AUCUNE BALLE REELLE (0 en 6 s) — arme:%1 autoc:%2 fsm:%3 path:%4 mode:%5 dist:%6 vue:%7 mun:%8",
+            (if ((currentWeapon _t) == "") then {"AUCUNE"} else {"oui"}),
+            _t checkAIFeature "AUTOCOMBAT", _t checkAIFeature "FSM", _t checkAIFeature "PATH",
+            combatMode _t, round (_t distance _mann),
+            round (100 * ([objNull,"VIEW"] checkVisibility [eyePos _t, eyePos _mann])) / 100,
+            _t ammo (primaryWeapon _t)];
+    };
 
     // T5 · un homme PARCOURT du terrain (setVelocity est une IMPULSION, pas une consigne)
     _t doTarget objNull; _t doWatch objNull;
