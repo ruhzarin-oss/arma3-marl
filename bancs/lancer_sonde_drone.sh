@@ -17,7 +17,14 @@ pkill -9 -f "staging/serverDR\.cfg" 2>/dev/null; sleep 3
 
 rm -rf "$MIS"; mkdir -p "$MIS"
 cp "$SB/arma3server/mpmissions/Anomalie2.Stratis/mission.sqm" "$MIS/"
-cp "$REPO/bancs/socle/socle.sqf"        "$MIS/"
+# ⛔ SOCLE FIGE, PAS LE SOCLE VIVANT. Mesure du 16/08 : une autre session developpe le
+# socle pendant que je mesure — 1.5.0, 1.6.0 puis 1.10.0 en une heure, et la 1.9.0 change
+# la gestion d AUTOCOMBAT, or mon escouade est en mode `natif`. Recopier le socle vivant a
+# chaque lot, c est mesurer 20 repetitions dans 20 mondes differents.
+# Le fige se cree une fois (voir figer_socle.sh) et ne bouge plus de tout le run.
+FIGE="$REPO/bancs/socle/socle_fige_drone.sqf"
+if [ ! -f "$FIGE" ]; then echo "ERREUR : socle fige absent, lancer figer_socle.sh" >&2; exit 1; fi
+cp "$FIGE" "$MIS/socle.sqf"
 cp "$REPO/bancs/arma/sonde_drone.sqf"   "$MIS/"
 cat > "$MIS/init.sqf" <<EOF
 if (isServer) then { [] spawn { sleep 5; HMT_DR_REPS = $REPS; execVM "sonde_drone.sqf"; }; };
@@ -40,4 +47,4 @@ HMT_EXT_PORT=5840 LD_LIBRARY_PATH=.:./linux64 nohup setsid ./arma3server_x64 \
   >> "$LOG" 2>&1 < /dev/null &
 disown
 echo "sonde drone lancee : $REPS reps, port 6082, log $LOG"
-echo "duree attendue : ~$(( (REPS * 3 * 58 + 60) / 60 )) min"
+echo "duree attendue : ~$(( (REPS * 3 * 47 + 60) / 60 )) min"

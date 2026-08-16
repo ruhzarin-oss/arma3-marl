@@ -63,6 +63,9 @@ while [ "$fait" -lt "$CIBLE" ] && [ "$run" -lt 40 ]; do
     if grep -aq "HMT|DR|rep|$r|bras|AUCUN" "$LOG" 2>/dev/null; then n=3; fi
     if [ "$n" -ge 3 ] && [ "$fait" -lt "$CIBLE" ]; then
       fait=$((fait + 1)); garde=$((garde + 1))
+      # on emporte l empreinte du monde AVEC la repetition : sans elle on ne saurait pas
+      # dire, apres coup, si les 20 repetitions ont partage le meme socle
+      grep -a "HMT|DR|debut" "$LOG" | tail -1 | sed "s/^/#rep$fait /" >> "$CUM"
       grep -a "HMT|DR|rep|$r|" "$LOG" | sed "s/|rep|$r|/|rep|$fait|/" >> "$CUM"
     fi
   done
