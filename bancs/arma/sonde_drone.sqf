@@ -32,6 +32,30 @@ HMT_DR_N  = 0;    // tirs de l escouade au sol
 HMT_DR_T1 = -1;   // temps au premier tir
 HMT_DR_NE = 0;    // tirs de l ENNEMI — s il tire, le bruit donne une detection native : VOID
 
+// ───────────────────────────────────────────── OU EST L ENNEMI, ET VOIT-ON JUSQU A LUI
+// La position de l ennemi ne depend que de l azimut : on la calcule au lieu de la lire
+// sur une unite, pour pouvoir la connaitre AVANT de poser quoi que ce soit.
+HMT_DR_POS_ENNEMI = {
+    params ["_az"];
+    [(HMT_DR_ORIGINE select 0) + HMT_DR_DIST * sin (_az + 180),
+     (HMT_DR_ORIGINE select 1) + HMT_DR_DIST * cos (_az + 180)]
+};
+
+// ⚠️ LIGNE DE VUE PAR LE CALCUL, PAS PAR DES HOMMES. La version d avant posait puis
+// detruisait JUSQU A 12 ESCOUADES COMPLETES par repetition rien que pour tester un
+// azimut. Mesure du 16/08 : le serveur mourait AVANT le premier bras, donc avant qu
+// aucun aeronef n existe — c etait cette valse d unites. Un test de visibilite ne doit
+// rien creer. Hauteur d oeil 1,70 m des deux cotes.
+HMT_DR_LOS_GEO = {
+    params ["_az"];
+    private _pe = [_az] call HMT_DR_POS_ENNEMI;
+    private _x1 = HMT_DR_ORIGINE select 0; private _y1 = HMT_DR_ORIGINE select 1;
+    private _x2 = _pe select 0;            private _y2 = _pe select 1;
+    private _p1 = [_x1, _y1, (getTerrainHeightASL [_x1, _y1]) + 1.7];
+    private _p2 = [_x2, _y2, (getTerrainHeightASL [_x2, _y2]) + 1.7];
+    (count (lineIntersectsSurfaces [_p1, _p2, objNull, objNull, true, 1, "VIEW", "GEOM"])) == 0
+};
+
 // ───────────────────────────────────────────── POSER LA SCENE
 // Renvoie [grpSol, unites, ennemi, grpEnn, vue]. L ennemi est a _az + 180 : DERRIERE.
 HMT_DR_POSER = {
@@ -90,8 +114,8 @@ HMT_DR_DEPOSER = {
 // son ventre, hors du champ de l equipage. Lache a 300 m et rentrant en oblique, il passe
 // a 4,0 en 15 s. Le placement etait la faute, pas l engin.
 HMT_DR_DRONE_POSER = {
-    params ["_e", "_az"];
-    private _p = getPosATL _e;
+    params ["_az"];
+    private _p = [_az] call HMT_DR_POS_ENNEMI;
     // 300 m PERPENDICULAIREMENT a l axe escouade-ennemi : il observe depuis le flanc,
     // sans jamais s interposer entre l escouade et sa cible
     private _dx = (_p select 0) + 300 * sin (_az + 90);
@@ -124,19 +148,14 @@ HMT_DR_DRONE_DEPOSER = {
 
 // ───────────────────────────────────────────── JOUER UN BRAS
 // _bras : "A0" (pas de drone) | "A1" (drone, tuyau coupe) | "B" (drone + reveal 4)
+// ⚠️ L AERONEF ARRIVE DE L EXTERIEUR : il est cree UNE fois par repetition et PARTAGE
+// par les bras A1 et B. Chaque naissance et chaque mort d un appareil en vol secoue le
+// serveur, et le serveur meurt. On en cree un seul au lieu de deux.
 HMT_DR_JOUER = {
-    params ["_rep", "_bras", "_az"];
+    params ["_rep", "_bras", "_az", "_drone"];
 
     private _s = [_az] call HMT_DR_POSER;
     _s params ["_grpSol", "_unites", "_e", "_grpEnn", "_vue"];
-
-    if (_vue < HMT_DR_VUE_MIN) exitWith {
-        [_grpSol, _unites, _e, _grpEnn] call HMT_DR_DEPOSER;
-        -1                                        // signale au rang du dessus : azimut a rejeter
-    };
-
-    private _drone = objNull;
-    if (_bras != "A0") then { _drone = [_e, _az] call HMT_DR_DRONE_POSER };
     // ⚠️ LA MEME ATTENTE POUR LES TROIS BRAS. Smoke du 16/08 : seuls A1 et B attendaient le
     // drone, donc A0 n avait que 30 s d exposition contre 50 — le temoin etait AVANTAGE, et
     // son « il ne tire pas » pouvait n etre qu un manque de temps.
@@ -171,7 +190,10 @@ HMT_DR_JOUER = {
             // on REPETE l ordre toutes les 5 s : sans ca l engin derive (1850 m en 40 s
             // pour l avion, mesure du 16/08) et l observateur quitte la zone qu il observe
             _tick = _tick + 1;
-            if (_tick % 10 == 0) then { _drone doMove [getPosATL _e select 0, getPosATL _e select 1, 80] };
+            if (_tick % 10 == 0) then {
+                private _pe = [_az] call HMT_DR_POS_ENNEMI;
+                _drone doMove [_pe select 0, _pe select 1, 80];
+            };
             // ⚠️ on interroge LE VEHICULE ET TOUT L EQUIPAGE. Smoke du 16/08 : `driver _d`
             // rendait 0 sur 4/4 reps alors que le CAMP savait — on lisait la mauvaise entite,
             // et le bras A1 aurait ete declare VOID a tort.
@@ -194,7 +216,7 @@ HMT_DR_JOUER = {
              round (100 * _sait_drone) / 100, round (100 * _sait_grp) / 100, round (100 * _sait_camp) / 100,
              HMT_DR_NE, _void, round (100 * _sait_grp0) / 100]) call HMT_LOG;
 
-    [_drone] call HMT_DR_DRONE_DEPOSER;
+    // l aeronef N EST PAS demonte ici : il appartient a la repetition, pas au bras
     [_grpSol, _unites, _e, _grpEnn] call HMT_DR_DEPOSER;
     sleep 2;
     HMT_DR_N
@@ -207,21 +229,24 @@ HMT_DR_JOUER = {
              HMT_DR_REPS, HMT_DR_FEN, HMT_DR_DIST, HMT_SOCLE_VERSION]) call HMT_LOG;
 
     for "_rep" from 1 to HMT_DR_REPS do {
-        // ── on cherche UN azimut ou la ligne de vue passe, et les trois bras le partagent ──
+        // ── un azimut ou la ligne de vue passe : PAR LE CALCUL, sans poser un seul homme ──
         private _az = -1; private _k = 0;
         while { _az < 0 && _k < HMT_DR_ESSAIS } do {
             private _cand = random 360;
-            private _s = [_cand] call HMT_DR_POSER;
-            _s params ["_g", "_u", "_e2", "_ge", "_vue"];
-            [_g, _u, _e2, _ge] call HMT_DR_DEPOSER;
-            if (_vue >= HMT_DR_VUE_MIN) then { _az = _cand };
+            if ([_cand] call HMT_DR_LOS_GEO) then { _az = _cand };
             _k = _k + 1;
         };
         if (_az < 0) then {
             (format ["HMT|DR|rep|%1|bras|AUCUN|az|-1|tirs|-1|t1|-1|vue|0|saitdrone|0|saitgrp|0|saitcamp|0|tirsenn|0|void|1|saitgrp0|0",
                      _rep]) call HMT_LOG;
         } else {
-            { [_rep, _x, _az] call HMT_DR_JOUER } forEach ["A0", "A1", "B"];
+            // A0 d abord, SANS aeronef : le temoin ne doit jamais partager le ciel
+            [_rep, "A0", _az, objNull] call HMT_DR_JOUER;
+            // puis UN SEUL aeronef pour A1 et B
+            private _drone = [_az] call HMT_DR_DRONE_POSER;
+            [_rep, "A1", _az, _drone] call HMT_DR_JOUER;
+            [_rep, "B",  _az, _drone] call HMT_DR_JOUER;
+            [_drone] call HMT_DR_DRONE_DEPOSER;
         };
     };
 

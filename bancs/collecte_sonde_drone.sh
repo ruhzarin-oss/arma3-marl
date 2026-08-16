@@ -31,13 +31,15 @@ while [ "$fait" -lt "$CIBLE" ] && [ "$run" -lt 40 ]; do
   # ⚠️ On ne guette plus la seule presence du process. Mesure du 16/08 : 5 lots sur 6
   # rendaient zero en ~80 s — le serveur ne demarrait pas (port pas encore libere apres
   # le pkill). Un lot qui ne demarre pas doit se DIRE, pas se compter en silence.
+  # 300 s : mesure du 16/08, 2 lots perdus parce que le serveur bootait ENCORE a 120 s
+  # (CBA + RHS + LAMBS + PinnedDown, c est lourd a charger)
   demarre=0
-  for i in $(seq 1 24); do
+  for i in $(seq 1 60); do
     grep -aq "HMT|DR|debut" "$LOG" && { demarre=1; break; }
     sleep 5
   done
   if [ "$demarre" -eq 0 ]; then
-    echo "lot $run : LA SONDE N A PAS DEMARRE en 120 s -- $(tail -1 "$LOG" 2>/dev/null | cut -c1-90)"
+    echo "lot $run : LA SONDE N A PAS DEMARRE en 300 s -- $(tail -1 "$LOG" 2>/dev/null | cut -c1-90)"
     pkill -9 -f "staging/serverDR\.cfg" 2>/dev/null; sleep 12
     continue
   fi
