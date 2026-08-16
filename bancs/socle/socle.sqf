@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.11.0-16082026";
+HMT_SOCLE_VERSION = "1.12.0-16082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -295,7 +295,17 @@ HMT_PREVOL = {
              behaviour _t, _anims select 0, _anims select (9 min ((count _anims) - 1)),
              _anims select ((count _anims) - 1),
              stance _t, isTouchingGround _t]) call HMT_LOG;
-    if (_m < 10) then { _ec pushBack format ["T5 IMMOBILE : %1 m en 4 s (attendu ~24)", round _m] };
+    // ⚠️ T5 DIT L ETAT DU TEMOIN QUAND IL ECHOUE — comme T4 le fait depuis ce matin. Un refus
+    // muet a deja coute quatre diagnostics faux dans la seule journee du 16/08. Deux choses
+    // separent les causes : le temoin est-il CONNU des ennemis (donc sous le feu d un monde
+    // reveille), et son `AUTOCOMBAT` a-t-il vraiment ete retire ?
+    private _su = 0;
+    { private _k = _x knowsAbout _t; if (_k > _su) then { _su = _k } } forEach (allUnits select { side _x == east });
+    (format ["HMT|SOCLE|T5|m|%1|connu_des_ennemis|%2|autocombat_reel|%3|fsm|%4|path|%5|degats|%6",
+             round _m, round (100 * _su) / 100, _t checkAIFeature "AUTOCOMBAT",
+             _t checkAIFeature "FSM", _t checkAIFeature "PATH",
+             round (100 * (damage _t)) / 100]) call HMT_LOG;
+    if (_m < 10) then { _ec pushBack format ["T5 IMMOBILE : %1 m en 4 s (attendu ~24) — connu:%2 autoc:%3 path:%4 degats:%5", round _m, round (100*_su)/100, _t checkAIFeature "AUTOCOMBAT", _t checkAIFeature "PATH", round (100*(damage _t))/100] };
 
     deleteVehicle _t; deleteGroup _gt;
 
