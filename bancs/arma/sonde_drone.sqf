@@ -56,6 +56,27 @@ HMT_DR_LOS_GEO = {
     (count (lineIntersectsSurfaces [_p1, _p2, objNull, objNull, true, 1, "VIEW", "GEOM"])) == 0
 };
 
+// ⚠️ LE CALCUL NE SUFFIT PAS. Mesure du 16/08 : un azimut valide geometriquement rendait
+// `vue = 0,12` au moteur — `lineIntersectsSurfaces` ne voit que le solide, la visibilite
+// du moteur tient compte de la vegetation et de l atmosphere. Les criteres deposes
+// exigent 0,5 : on le VERIFIE, avec DEUX hommes et non une escouade entiere.
+HMT_DR_VUE_REELLE = {
+    params ["_az"];
+    private _pe = [_az] call HMT_DR_POS_ENNEMI;
+    private _g1 = createGroup west;
+    private _a = _g1 createUnit ["B_Soldier_F", [HMT_DR_ORIGINE select 0, HMT_DR_ORIGINE select 1, 0], [], 0, "NONE"];
+    _a setPosATL [HMT_DR_ORIGINE select 0, HMT_DR_ORIGINE select 1, 0];
+    _a disableAI "ALL"; _a setUnitPos "UP"; _a allowDamage false;
+    private _g2 = createGroup east;
+    private _b = _g2 createUnit ["O_Soldier_F", [_pe select 0, _pe select 1, 0], [], 0, "NONE"];
+    _b setPosATL [_pe select 0, _pe select 1, 0];
+    _b disableAI "ALL"; _b setUnitPos "UP"; _b allowDamage false;
+    sleep 1;
+    private _v = [objNull, "VIEW"] checkVisibility [eyePos _a, eyePos _b];
+    deleteVehicle _a; deleteVehicle _b; deleteGroup _g1; deleteGroup _g2;
+    _v
+};
+
 // ───────────────────────────────────────────── POSER LA SCENE
 // Renvoie [grpSol, unites, ennemi, grpEnn, vue]. L ennemi est a _az + 180 : DERRIERE.
 HMT_DR_POSER = {
@@ -229,11 +250,13 @@ HMT_DR_JOUER = {
              HMT_DR_REPS, HMT_DR_FEN, HMT_DR_DIST, HMT_SOCLE_VERSION]) call HMT_LOG;
 
     for "_rep" from 1 to HMT_DR_REPS do {
-        // ── un azimut ou la ligne de vue passe : PAR LE CALCUL, sans poser un seul homme ──
+        // ── l azimut : prefiltre PAR LE CALCUL (gratuit), puis VERIFICATION au moteur ──
         private _az = -1; private _k = 0;
         while { _az < 0 && _k < HMT_DR_ESSAIS } do {
             private _cand = random 360;
-            if ([_cand] call HMT_DR_LOS_GEO) then { _az = _cand };
+            if ([_cand] call HMT_DR_LOS_GEO) then {
+                if (([_cand] call HMT_DR_VUE_REELLE) >= HMT_DR_VUE_MIN) then { _az = _cand };
+            };
             _k = _k + 1;
         };
         if (_az < 0) then {
