@@ -201,9 +201,12 @@ if __name__ == "__main__":
     # « La volonte n est pas un mecanisme » : l episode ne demarre pas sans le vert.
     _socle = open("/home/younes/arma3-marl/bancs/socle/socle.sqf").read()
     b.send(sans_commentaires(_socle), wait=False); time.sleep(1.5)
-    b.send(sans_commentaires("HMT_PV = [HMT_FR] call HMT_PREVOL;"), wait=False)
+    # ⚠️ `spawn`, PAS `call` : HMT_PREVOL contient des `sleep`, qui n existent que dans un
+    # contexte PLANIFIE. En `call` il meurt sans un mot — et le prevol rendait « AUCUNE
+    # REPONSE », donc ROUGE, donc zero episode. Le refus etait juste, la cause etait moi.
+    b.send(sans_commentaires('[] spawn { HMT_PV = [HMT_FR] call HMT_PREVOL; };'), wait=False)
     _vert, _rap = None, ""
-    for _ in range(40):
+    for _ in range(60):          # le prevol dort ~15 s (T4 6 s + T5 4 s + poses)
         time.sleep(1.0)
         for L in reversed(b._log_lines(400)):
             if "HMT|SOCLE|PREVOL|" in L:
