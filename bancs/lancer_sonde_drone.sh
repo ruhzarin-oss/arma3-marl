@@ -39,9 +39,19 @@ EOF
 
 mkdir -p "$SB/profilesDR"; : > "$LOG"
 cd "$SB/arma3server" || exit 1
+
+# ⛔ ON SE LANCE SOUS UN AUTRE NOM, ET VOICI POURQUOI. Mesure du 16/08 : le serveur mourait
+# silencieusement toutes les ~5 min, sans erreur ni message. Ce n etait pas une instabilite :
+# `nuit_natif.sh` (et 15 autres scripts du depot) commencent chaque episode par
+#     for p in $(pgrep -f arma3server_x64); do kill $p; done
+# qui tue TOUS les serveurs Arma de la machine, pas seulement les leurs. Un lien dur sous un
+# nom different rend notre instance invisible a ce filet, SANS toucher a leur travail.
+# Nous, on ne tue que par fichier de config : jamais leurs serveurs.
+BIN=arma3server_dr64
+[ -f "$BIN" ] || ln -f arma3server_x64 "$BIN"
 # ⚠️ `nohup` EN PLUS de `setsid` : sans lui le serveur meurt avec la session ssh qui l a
 # lance (mesure du 16/08 : log a 0 octet, aucun process, la sonde n avait jamais tourne).
-HMT_EXT_PORT=5840 LD_LIBRARY_PATH=.:./linux64 nohup setsid ./arma3server_x64 \
+HMT_EXT_PORT=5840 LD_LIBRARY_PATH=.:./linux64 nohup setsid ./"$BIN" \
   -config="$SB/staging/serverDR.cfg" -profiles="$SB/profilesDR" \
   -port=6082 -world=Stratis -autoInit -mod="$MODS" -serverMod="@LAMBS_Danger" \
   >> "$LOG" 2>&1 < /dev/null &

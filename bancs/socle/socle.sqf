@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.10.0-16082026";
+HMT_SOCLE_VERSION = "1.11.0-16082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -258,6 +258,15 @@ HMT_PREVOL = {
     // Supprimer le mannequin plus tot ne suffisait pas : l IA garde la menace en memoire
     // quelques secondes apres la mort de la cible et reprend la main sur le deplacement.
     _t disableAI "AUTOCOMBAT";
+
+    // ⚠️ LE CONTROLE POSITIF DE T5 ⟨audit Fable, 16/08 : « un test qui rend zero rouge sur
+    // cinquante est soit repare, soit devenu INCAPABLE d echouer, et tu ne sais pas lequel »⟩.
+    // T4 avait son sabotage (les munitions) et pas T5. Retirer `PATH`, ce sont les JAMBES —
+    // mesure du 15/08, 9 m au lieu de 48. T5 DOIT rougir.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "jambes") then {
+        _t disableAI "PATH";
+        (format ["HMT|SOCLE|SABOTAGE|jambes|path|%1", _t checkAIFeature "PATH"]) call HMT_LOG;
+    };
     sleep 0.5;
 
     // T5 · un homme PARCOURT du terrain (setVelocity est une IMPULSION, pas une consigne)
@@ -294,6 +303,43 @@ HMT_PREVOL = {
     // un prevol rouge etait donc MUET sur sa raison. On les garde dans une globale que le
     // pilote peut demander par la socket.
     HMT_PV_ECARTS = _ec;
+    // ═══ T7 · PAR QUEL CANAL PART LE FEU DE L HOMME SERVI ? ═══════════════════════════
+    // ⚠️ T4 CERTIFIE UN CANAL QUE LA POLITIQUE N EMPRUNTE PAS. Verifie le 16/08 :
+    // `arma_couture.py:27` pose `disableAI "AUTOCOMBAT"` sur l homme servi, alors que le
+    // temoin de T4 le GARDE — et il le garde parce que, mesure le meme jour,
+    // `forceWeaponFire` SEUL ne fait pas tirer. Le vert de T4 couvre donc une capacite que
+    // la politique n a pas, et le feu de la politique n est certifie par AUCUN test.
+    // T7 le certifie : un homme dans le mode SERVI (`pilote`), et le canal EXACT de
+    // l action 9 de la couture — `setDir` + `doWatch` + `forceWeaponFire` a 3 coups/s.
+    // ⚠️ Et il RELEVE `AUTOCOMBAT` reellement actif : `ANOMALIE_AUTOCOMBAT.md` dit que
+    // l ordre ne prend pas sur les attaquants. Si l homme servi tire, c est ou bien par ce
+    // canal, ou bien par une faculte qu on croit coupee. T7 dit lequel.
+    private _g7 = createGroup west;
+    private _u7 = [_g7, "B_Soldier_F", [(_pt select 0) + 6, (_pt select 1), 0], "pilote"] call HMT_POSER_HOMME;
+    private _gm7 = createGroup east;
+    private _m7 = _gm7 createUnit ["O_Soldier_F", [(_pt select 0) + 6, (_pt select 1) + 35, 0], [], 0, "NONE"];
+    [_m7] call HMT_ARMER;
+    sleep 1.5;
+    HMT_PV_C7 = 0;
+    private _eh7 = _u7 addEventHandler ["Fired", { HMT_PV_C7 = HMT_PV_C7 + 1 }];
+    _u7 reveal [_m7, 4];
+    private _tt7 = time;
+    while { time - _tt7 < 4 } do {
+        _u7 setDir (_u7 getDir _m7); _u7 doWatch _m7;
+        _u7 forceWeaponFire [currentWeapon _u7, currentMuzzle _u7];
+        sleep 0.33;
+    };
+    _u7 removeEventHandler ["Fired", _eh7];
+    private _a7 = _u7 checkAIFeature "AUTOCOMBAT";
+    (format ["HMT|SOCLE|T7|coups|%1|autocombat_reel|%2|fsm|%3|arme|%4|vue|%5",
+             HMT_PV_C7, _a7, _u7 checkAIFeature "FSM", currentWeapon _u7,
+             round (100 * ([objNull,"VIEW"] checkVisibility [eyePos _u7, eyePos _m7])) / 100]) call HMT_LOG;
+    if (HMT_PV_C7 < 1) then {
+        _ec pushBack format ["T7 LE CANAL DE FEU DE L HOMME SERVI EST MUET (0 coup en 4 s) — autoc:%1 fsm:%2 arme:%3", _a7, _u7 checkAIFeature "FSM", currentWeapon _u7];
+    };
+    HMT_PV_CANAL = [HMT_PV_C7, _a7];
+    deleteVehicle _m7; deleteVehicle _u7; deleteGroup _gm7; deleteGroup _g7;
+
     // ⚠️ LE JOURNAL DES POSITIONS, DANS LE MEME COMMIT QUE LE CORRECTIF. L hypothese de
     // l eau n est PAS verifiee : si l echantillonneur pose des temoins dans l eau, il
     // contamine aussi T1-T4, donc les VERTS. Sans ce journal, elle resterait indecidable.
