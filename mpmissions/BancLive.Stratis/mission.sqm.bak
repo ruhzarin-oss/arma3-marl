@@ -1,0 +1,45 @@
+version=54;
+class Mission
+{
+	class Intel
+	{
+		startWeather=0.3;
+		startWind=0.1;
+		startFog=0;
+		year=2035;
+		month=6;
+		day=24;
+		hour=12;
+		minute=0;
+	};
+	class Entities
+	{
+		items=1;
+		class Item0
+		{
+			dataType="Group";
+			side="West";
+			class Entities
+			{
+				items=1;
+				class Item0
+				{
+					dataType="Object";
+					class PositionInfo
+					{
+						position[]={1000,5,1000};
+					};
+					side="West";
+					flags=7;
+					class Attributes
+					{
+						isPlayable=1;
+					};
+					type="B_Soldier_F";
+					id=1;
+				};
+			};
+			id=0;
+		};
+	};
+};

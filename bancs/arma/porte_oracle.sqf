@@ -28,7 +28,11 @@ HMT_PO_ECART   = 120;            // m, decalage lateral des deux axes au milieu
 HMT_PO_PLANQUE = 30;             // m, distance de la planque a son axe
 HMT_PO_PRISE   = 15;             // m, rayon de prise
 HMT_PO_TENUE   = 20;             // s, il faut etre encore vivant apres
-HMT_PO_PLAFOND = 150;            // s, plafond de temps
+// ⚠️ 280 s, ET LA MARCHE EN `AWARE`. Re-dimensionnement du 17/08 : a 150 s en conduite
+// COMBAT, PERSONNE n atteignait l objectif — le bras ORACLE traversait pourtant sans
+// etre vu (expo 0, 4 survivants) et s arretait a 146 m sur 200. Les hommes rampaient a
+// ~1 m/s pour un trajet en deux jambes de ~460 m. On ne lit pas un monde injouable.
+HMT_PO_PLAFOND = 280;            // s, plafond de temps
 if (isNil "HMT_PO_REPS") then { HMT_PO_REPS = 20 };
 
 // ── geometrie : tout se deduit du cap et du cote ──
@@ -94,9 +98,9 @@ HMT_PO_JOUER = {
     };
     // deux jambes : le milieu choisi, puis l objectif
     private _w1 = _ga addWaypoint [[_choisi select 0, _choisi select 1, 0], 0];
-    _w1 setWaypointType "MOVE"; _w1 setWaypointSpeed "NORMAL"; _w1 setWaypointBehaviour "COMBAT";
+    _w1 setWaypointType "MOVE"; _w1 setWaypointSpeed "FULL"; _w1 setWaypointBehaviour "AWARE";
     private _w2 = _ga addWaypoint [[_o select 0, _o select 1, 0], 0];
-    _w2 setWaypointType "MOVE"; _w2 setWaypointSpeed "NORMAL"; _w2 setWaypointBehaviour "COMBAT";
+    _w2 setWaypointType "MOVE"; _w2 setWaypointSpeed "FULL"; _w2 setWaypointBehaviour "AWARE";
     sleep 2;
 
     // ── la mesure ──

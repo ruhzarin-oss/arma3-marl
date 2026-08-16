@@ -50,7 +50,17 @@ fait ; il n'a rien à faire dans une porte qui juge une décision.
 ⛔ **Pas les éliminations.** Trois verdicts du projet disent qu'elles ne bougent pas : le flanc
 donne +17,3 points de tenue et **zéro** sur l'élimination.
 
-Plafond de temps : **150 s** par répétition. **20 répétitions** par bras (~2 h 20).
+Plafond de temps : **280 s** par bras. **20 répétitions** (~2 h 30).
+
+### ⚠️ AMENDEMENT DU 17/08 — le monde était injouable, et le dépôt l'avait prévu
+
+Premier lancement, 5 répétitions : **prise = 0 dans les trois bras, toujours**. Le bras
+ORACLE traversait pourtant proprement — `expo 0`, 4 survivants — mais s'arrêtait à 146 m
+sur 200, faute de temps : en conduite `COMBAT` les hommes rampent à ~1 m/s pour un trajet
+en deux jambes de ~460 m. C'est la branche « **l'objectif est injouable** » écrite avant.
+**Deux changements, tous deux de MONDE, aucun de seuil** : plafond 150 → 280 s, et marche
+en `AWARE`/`FULL` au lieu de `COMBAT`/`NORMAL` — une marche à l'ennemi, pas un ramper.
+Identique dans les trois bras. **Les 5 répétitions du premier lancement sont jetées.**
 
 ## LA PRÉCONDITION — le contrôle positif de CETTE porte
 
