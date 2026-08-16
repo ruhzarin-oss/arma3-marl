@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.7.0-16082026";
+HMT_SOCLE_VERSION = "1.8.0-16082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -238,8 +238,29 @@ HMT_PREVOL = {
     // T5 · un homme PARCOURT du terrain (setVelocity est une IMPULSION, pas une consigne)
     _t doTarget objNull; _t doWatch objNull;
     private _p0 = getPosATL _t; private _t1 = time;
-    while { time - _t1 < 4 } do { _t setVelocity [0, 6, 0]; sleep 0.1 };
+    // ⚠️ LE JOURNAL DU GESTE ⟨une passe, quatre causes⟩. 1 m en 4 s n est pas 9 m : ce n est
+    // pas un homme sans jambes, c est un homme qui ne bouge PAS. Quatre causes possibles,
+    // et chacune ecrit une signature differente ici :
+    //   (a) POSTURE  — couche/genou apres avoir tire en T4 : anim contient Ppne/Pknl
+    //   (b) IA       — re-engagement : conduite = COMBAT et la vitesse relue retombe a 0
+    //   (c) OBSTACLE — vitesse relue = 6 mais deplacement nul
+    //   (d) FIGE     — vitesse relue = 0 des la 1re relecture (impulsion jamais appliquee)
+    private _vrelue = []; private _anims = [];
+    while { time - _t1 < 4 } do {
+      _t setVelocity [0, 6, 0];
+      _vrelue pushBack (round (10 * ((velocity _t) select 1)) / 10);
+      _anims pushBack (animationState _t);
+      sleep 0.1;
+    };
     private _m = _p0 distance2D (getPosATL _t);
+    (format ["HMT|SOCLE|GESTE|m|%1|v_apres|%2|v_mediane|%3|v_fin|%4|conduite|%5|anim0|%6|anim9|%7|animfin|%8|posture|%9|sol|%10",
+             round _m,
+             _vrelue select 0,
+             _vrelue select (round ((count _vrelue) / 2)),
+             _vrelue select ((count _vrelue) - 1),
+             behaviour _t, _anims select 0, _anims select (9 min ((count _anims) - 1)),
+             _anims select ((count _anims) - 1),
+             stance _t, isTouchingGround _t]) call HMT_LOG;
     if (_m < 10) then { _ec pushBack format ["T5 IMMOBILE : %1 m en 4 s (attendu ~24)", round _m] };
 
     deleteVehicle _t; deleteGroup _gt;
