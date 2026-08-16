@@ -23,7 +23,7 @@ HMT_DR_ORIGINE = [4644, 5652];
 HMT_DR_DIST    = 300;     // m — ennemi DERRIERE l escouade, hors de son cone
 HMT_DR_FEN     = 30;      // s — fenetre d observation par bras
 HMT_DR_VUE_MIN = 0.5;     // LOS exigee : revele, l homme doit POUVOIR tirer
-HMT_DR_ESSAIS  = 12;      // azimuts essayes avant de declarer la repetition VOID
+HMT_DR_ESSAIS  = 20;      // azimuts essayes avant de declarer la repetition VOID
 if (isNil "HMT_DR_REPS") then { HMT_DR_REPS = 20 };
 
 // ── compteurs globaux (les event handlers ne voient pas les variables privees) ──
@@ -250,13 +250,16 @@ HMT_DR_JOUER = {
              HMT_DR_REPS, HMT_DR_FEN, HMT_DR_DIST, HMT_SOCLE_VERSION]) call HMT_LOG;
 
     for "_rep" from 1 to HMT_DR_REPS do {
-        // ── l azimut : prefiltre PAR LE CALCUL (gratuit), puis VERIFICATION au moteur ──
+        // ── l azimut : LA MESURE DU MOTEUR, et elle seule ──
+        // ⛔ Le prefiltre geometrique a ete RETIRE. `lineIntersectsSurfaces` ne teste pas le
+        // relief mais les OBJETS : sur Stratis le moindre arbre sur 300 m opposait son veto,
+        // et la plupart des repetitions mouraient en « aucun azimut trouve ». Le critere
+        // depose n a jamais exige que ca : il exige `vue >= 0,5` MESUREE PAR LE MOTEUR.
+        // La verification a deux hommes est assez legere pour etre la seule.
         private _az = -1; private _k = 0;
         while { _az < 0 && _k < HMT_DR_ESSAIS } do {
             private _cand = random 360;
-            if ([_cand] call HMT_DR_LOS_GEO) then {
-                if (([_cand] call HMT_DR_VUE_REELLE) >= HMT_DR_VUE_MIN) then { _az = _cand };
-            };
+            if (([_cand] call HMT_DR_VUE_REELLE) >= HMT_DR_VUE_MIN) then { _az = _cand };
             _k = _k + 1;
         };
         if (_az < 0) then {

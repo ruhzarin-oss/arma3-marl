@@ -57,6 +57,10 @@ while [ "$fait" -lt "$CIBLE" ] && [ "$run" -lt 40 ]; do
     # ajoutait un SECOND zero et le test entier explosait (mesure du 16/08, 2 lots perdus).
     n=$(grep -ac "HMT|DR|rep|$r|" "$LOG" 2>/dev/null)
     n=${n:-0}
+    # ⚠️ UNE REPETITION SANS AZIMUT EST UN VOID, PAS UNE PERTE. Les criteres deposes la
+    # comptent (plafond : 4 VOID sur 20). La jeter en silence serait choisir ses donnees
+    # apres coup. Elle tient en UNE ligne `bras|AUCUN`, et elle est retenue comme telle.
+    if grep -aq "HMT|DR|rep|$r|bras|AUCUN" "$LOG" 2>/dev/null; then n=3; fi
     if [ "$n" -ge 3 ] && [ "$fait" -lt "$CIBLE" ]; then
       fait=$((fait + 1)); garde=$((garde + 1))
       grep -a "HMT|DR|rep|$r|" "$LOG" | sed "s/|rep|$r|/|rep|$fait|/" >> "$CUM"
