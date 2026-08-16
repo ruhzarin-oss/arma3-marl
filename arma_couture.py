@@ -191,9 +191,12 @@ HMT_NORDRE = (missionNamespace getVariable ["HMT_NORDRE", 0]) + 1;
           // (animation `afal`, il tombe) et 0-1 m quand il le touche. C est la MEME primitive
           // qu ici. Les 20,22 m deposes le 15/08 pourraient donc etre un artefact de vol.
           // On releve la part de temps au sol et les metres reellement parcourus par ordre.
-          diag_log format ["HMT|CORPS|SOL|part_au_sol|%1|m_par_ordre|%2|n|%3",
+          // ⚠️ `HMT_LOG` ET NON `diag_log` : le pont REECRIT `diag_log` en `callExtension "o|"`
+          // dans tout texte qu il envoie — et ACT_TPL est du texte qu il envoie. Un `diag_log`
+          // ici part donc dans le SOCKET et jamais dans le journal. Piege deja paye le 15/08.
+          if (!isNil "HMT_LOG") then { (format ["HMT|CORPS|SOL|part_au_sol|%1|m_par_ordre|%2|n|%3",
                            round (100 * _nsol / (_n max 1)),
-                           round (10 * (_p0 distance2D (getPosATL _u))) / 10, _n];
+                           round (10 * (_p0 distance2D (getPosATL _u))) / 10, _n]) call HMT_LOG };
       };
   }
   else { if (_a==9) then {
