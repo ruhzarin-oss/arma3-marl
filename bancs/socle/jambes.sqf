@@ -39,14 +39,18 @@ HMT_JAMBES = {
     private _cx = 4644; private _cy = 5652;
     //          nom                       mode         prim  Z    forcer duree tir
     private _bras = [
+        // ⚠️ ORDRE IMPOSE PAR LE CLIQUET DU 16/08 : LES BRAS DECISIFS D ABORD. Le bras 7
+        // decidait a lui seul du sort d un verdict et il etait DERNIER ; le minuteur a coupe
+        // a 51 essais sur 64 et il a fini a n = 4. Un banc tronque doit l etre par la queue,
+        // jamais par ce qui tranche.
         ["0_CONTROLE_natif_15s",       "natif",     "mov", 0.0, false, 15.0, false],
+        ["7_REPRO_T5_temoin_apres_tir","temoin",    "vel", 0.0, false,  4.0, true ],
         ["1_pilote_vel_plat",          "pilote",    "vel", 0.0, false,  3.28,false],
         ["2_pilote_vel_haut",          "pilote",    "vel", 1.5, false,  3.28,false],
         ["3_pilote_domove",            "pilote",    "mov", 0.0, false,  3.28,false],
         ["4_natif_domove",             "natif",     "mov", 0.0, false,  3.28,false],
         ["5_sansengag_domove",         "sansengag", "mov", 0.0, false,  3.28,false],
-        ["6_sansengag_domove_force",   "sansengag", "mov", 0.0, true,   3.28,false],
-        ["7_REPRO_T5_temoin_apres_tir","temoin",    "vel", 0.0, false,  4.0, true ]
+        ["6_sansengag_domove_force",   "sansengag", "mov", 0.0, true,   3.28,false]
     ];
     for "_r" from 1 to _nrep do {
         {

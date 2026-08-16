@@ -52,8 +52,16 @@ if __name__ == "__main__":
 
     # Le journal du banc est ECRIT PAR LE JEU (fichier compile par le jeu, pas texte envoye
     # par le pont) : il va dans le .out, jamais dans la socket. On lit donc le fichier.
+    # ⚠️ CLIQUET DU 16/08 — LE LANCEUR VERIFIE SON BUDGET AVANT DE PARTIR.
+    # Le minuteur de la v2 est reste cale sur un banc plus court : il a coupe a 51 essais
+    # sur 64, et le bras tronque est justement le SEUL qui decidait du verdict, parce qu il
+    # etait dernier. Il a fini a n = 4. On calcule desormais bras x essais x duree, et on
+    # refuse de partir plutot que de tronquer en silence.
+    DUREE_BRAS = 17 + 6 * 5.3 + 12          # controle 15 s + six bras + la reproduction de T5
+    BUDGET = 60 + NREP * DUREE_BRAS * 1.25  # 25 % de marge pour le serveur
+    print("  budget : %d bras-secondes par repetition, %d s au total" % (DUREE_BRAS, BUDGET), flush=True)
     t0 = time.time(); vu = 0
-    while time.time() - t0 < 60 + NREP * 42:
+    while time.time() - t0 < BUDGET:
         time.sleep(10)
         try: txt = open(LOG, errors="ignore").read()
         except Exception: txt = ""
@@ -63,6 +71,10 @@ if __name__ == "__main__":
     sh("pkill -f arma3server_x64")
     time.sleep(2)
 
+    if "HMT|JAMBES|FINI" not in open(LOG, errors="ignore").read():
+        print("\n  ⛔ LE BANC N A PAS FINI dans son budget — les essais sont TRONQUES,")
+        print("     et un banc tronque ne se lit pas : le dernier bras est sous-echantillonne.")
+        sys.exit(5)
     L = [l for l in open(LOG, errors="ignore") if "HMT|JAMBES|bras" in l]
     print("\n  essais releves : %d\n" % len(L), flush=True)
     par = {}

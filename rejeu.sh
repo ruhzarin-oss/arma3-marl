@@ -1,0 +1,23 @@
+#!/bin/bash
+# ═══ LE REJEU APPARIE DE LA POLITIQUE ════════════════════════════════════════════════
+# ⟨AMENDEMENT_NATIF.md § B⟩ Le 44,8 % a ete joue SANS ce prevol. Une certification plus
+# stricte jette plus de mondes defectueux, donc NATIF tire d une distribution plus propre
+# et le biais pousse DANS LE SENS DU RETRAIT de l acquis. La comparaison n est licite que
+# contre une politique REJOUEE sous le meme prevol. Meme forme que la nuit natif.
+# ⚠️ NE PAS LANCER avant que T5 ait son controle positif et que T7 ait certifie le canal
+# de feu — la politique, elle, emprunte ce canal.
+cd /home/younes/arma3-marl || exit 1
+mkdir -p /mnt/data/politique
+for PASSE in 1 2; do
+  echo "═══ PASSE $PASSE — $(date +%H:%M) ═══"
+  for i in $(seq 1 67); do
+    for p in $(pgrep -f arma3server_x64); do kill $p 2>/dev/null; done
+    sleep 3
+    rm -f /tmp/releve_live.npz
+    timeout 330 ./.venv/bin/python banc_live.py politique > /mnt/data/politique/p${PASSE}_e${i}.txt 2>&1
+    if [ -f /tmp/releve_live.npz ]; then cp /tmp/releve_live.npz /mnt/data/politique/p${PASSE}_e${i}.npz; fi
+    echo "  p${PASSE} e${i}/67  $(date +%H:%M)  npz=$([ -f /mnt/data/politique/p${PASSE}_e${i}.npz ] && echo oui || echo NON)"
+  done
+done
+for p in $(pgrep -f arma3server_x64); do kill $p 2>/dev/null; done
+echo "═══ REJEU TERMINE — $(date +%H:%M) ═══"
