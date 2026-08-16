@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.12.0-16082026";
+HMT_SOCLE_VERSION = "1.13.0-16082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -271,6 +271,13 @@ HMT_PREVOL = {
 
     // T5 · un homme PARCOURT du terrain (setVelocity est une IMPULSION, pas une consigne)
     _t doTarget objNull; _t doWatch objNull;
+    // ⚠️ LE CLIQUET DU BANC DES JAMBES, QUE JE N AVAIS PAS TRANSPOSE ICI. Ce banc a etabli
+    // le 16/08 que les bras `setVelocity` dependent du NOMBRE d impulsions emises, et pas
+    // les bras `doMove` — d ou son ecartement sous 25 iterations. T5 emet `setVelocity` a
+    // 10 Hz et ne comptait rien. Or un serveur charge emet moins d impulsions dans la meme
+    // fenetre : le reveil met huit hommes en IA complete, et T5 rougit 17 fois sur 20 avec
+    // reveil contre 2 sur 12 sans. `nt` et `fps` disent si c est la cadence qui tombe.
+    private _nt = 0;
     private _p0 = getPosATL _t; private _t1 = time;
     // ⚠️ LE JOURNAL DU GESTE ⟨une passe, quatre causes⟩. 1 m en 4 s n est pas 9 m : ce n est
     // pas un homme sans jambes, c est un homme qui ne bouge PAS. Quatre causes possibles,
@@ -282,6 +289,7 @@ HMT_PREVOL = {
     private _vrelue = []; private _anims = [];
     while { time - _t1 < 4 } do {
       _t setVelocity [0, 6, 0];
+      _nt = _nt + 1;
       _vrelue pushBack (round (10 * ((velocity _t) select 1)) / 10);
       _anims pushBack (animationState _t);
       sleep 0.1;
@@ -301,10 +309,10 @@ HMT_PREVOL = {
     // reveille), et son `AUTOCOMBAT` a-t-il vraiment ete retire ?
     private _su = 0;
     { private _k = _x knowsAbout _t; if (_k > _su) then { _su = _k } } forEach (allUnits select { side _x == east });
-    (format ["HMT|SOCLE|T5|m|%1|connu_des_ennemis|%2|autocombat_reel|%3|fsm|%4|path|%5|degats|%6",
+    (format ["HMT|SOCLE|T5|nt|%7|fps|%8|m|%1|connu_des_ennemis|%2|autocombat_reel|%3|fsm|%4|path|%5|degats|%6",
              round _m, round (100 * _su) / 100, _t checkAIFeature "AUTOCOMBAT",
              _t checkAIFeature "FSM", _t checkAIFeature "PATH",
-             round (100 * (damage _t)) / 100]) call HMT_LOG;
+             round (100 * (damage _t)) / 100, _nt, round (diag_fps)]) call HMT_LOG;
     if (_m < 10) then { _ec pushBack format ["T5 IMMOBILE : %1 m en 4 s (attendu ~24) — connu:%2 autoc:%3 path:%4 degats:%5", round _m, round (100*_su)/100, _t checkAIFeature "AUTOCOMBAT", _t checkAIFeature "PATH", round (100*(damage _t))/100] };
 
     deleteVehicle _t; deleteGroup _gt;
