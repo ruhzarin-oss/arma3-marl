@@ -19,6 +19,9 @@ import sys, os, time, subprocess
 sys.path.insert(0, "/home/younes/arma3-marl")
 from arma_socket_bridge import SocketBridge
 import arma_couture as C
+# ⚠️ LA SCENE VIT DANS `banc_live.py`, pas dans la couture. On l IMPORTE au lieu de la
+# recopier : deux scenes qui derivent l une de l autre, c est deux mondes qu on croit pareils.
+from banc_live import SCENE, sans_commentaires
 
 N    = int(sys.argv[1]) if len(sys.argv) > 1 else 50
 MODE = sys.argv[2] if len(sys.argv) > 2 else "normal"
@@ -42,9 +45,11 @@ if __name__ == "__main__":
        ">> '%s' 2>&1 < /dev/null & disown" % (SB, EXT, SB, SB, PORT, LOG))
     time.sleep(45)
     b = SocketBridge(EXT); time.sleep(3)
-    sc = C.SCENE if hasattr(C, "SCENE") else None
-    b.send(C.scene_sqf(NDEF, NATT, DIST) if hasattr(C, "scene_sqf") else sc, wait=False)
+    b.send(sans_commentaires(SCENE), wait=False)
     time.sleep(6)
+    lg = [L for L in b._log_lines(400) if "HARMATTAN_SCENE" in L]
+    print("  scene : %s" % (lg[-1][-40:] if lg else "AUCUNE — on n ira pas plus loin"), flush=True)
+    if not lg: sys.exit(1)
     b.send('call compile preprocessFileLineNumbers "socle.sqf";', wait=False); time.sleep(3)
     b.send('HMT_SABOTER = "%s";' % ("munitions" if MODE == "sabotage" else ""), wait=False)
     time.sleep(1)
