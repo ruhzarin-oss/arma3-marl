@@ -59,10 +59,21 @@ if __name__ == "__main__":
     b.send('call compile preprocessFileLineNumbers "socle.sqf";', wait=False); time.sleep(3)
     b.send('HMT_SABOTER = "%s";' % ("munitions" if MODE == "sabotage" else ""), wait=False)
     time.sleep(1)
+    # Le reveil fait partie du monde. `banc_live.py natif` l envoie ENTRE la scene et le
+    # prevol ; la porte du 16/08 n en envoyait aucun, et c est pour ca qu elle a certifie
+    # un monde que la nuit ne jouait pas.
+    WAKE_NATIF = ('{ _x enableAI "ALL"; _x setBehaviour "COMBAT"; _x setCombatMode "RED" } forEach HMT_ENNEMI;\n'
+                  '{ _x enableAI "ALL"; _x setBehaviour "COMBAT"; _x setCombatMode "RED" } forEach HMT_FR;\n'
+                  'HMT_POST = []; { HMT_POST pushBack 0 } forEach HMT_FR;\n')
+    if MODE == "natif":
+        b.send(sans_commentaires(WAKE_NATIF), wait=False); time.sleep(2)
+        print("  reveil NATIF envoye — regime de la nuit", flush=True)
     print("  socle charge — mode %s, %d tirages" % (MODE, N), flush=True)
 
     verts, ech, det = 0, 0, []
     for i in range(1, N + 1):
+        if MODE == "compare":
+            b.send(sans_commentaires(WAKE_NATIF if i % 2 else C.WAKE), wait=False); time.sleep(2)
         b.send('HMT_PV = nil; [] spawn { HMT_PV = [HMT_FR] call HMT_PREVOL; };', wait=False)
         r = None
         for _ in range(40):
