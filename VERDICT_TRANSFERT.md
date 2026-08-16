@@ -1,4 +1,6 @@
-> ⛔ **ANNULE le 16/08** — mesure faite avec les attaquants en  (« ne jamais tirer »). Voir REGISTRE_BLUE.md et VERDICT_ARME.md.
+> ⛔ **ANNULÉ le 16/08/2026** — mesure faite avec les attaquants en `combatMode "BLUE"`,
+> qui signifie « ne jamais tirer ». Les hommes n'ont pas combattu. Voir `REGISTRE_BLUE.md`
+> et `VERDICT_ARME.md` (30/67 = 44,8 % une fois armés).
 
 # VERDICT — la politique NE TRANSFÈRE PAS. 0/20 sur Arma contre 59,4 % au gymnase.
 

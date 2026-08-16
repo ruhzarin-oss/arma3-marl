@@ -1,4 +1,7 @@
-> ⚠️ **SURSITAIRE le 16/08** — mesure prise sur des hommes desarmes (). La grandeur n en depend pas directement, mais le verdict n est PAS citable avant refonte sous socle 1.2.0. Voir REGISTRE_BLUE.md.
+> ⚠️ **SURSITAIRE le 16/08/2026** — mesure prise sur des hommes désarmés (`combatMode "BLUE"`).
+> La grandeur n'en dépend pas directement, mais la trajectoire d'un homme qui ne riposte pas
+> n'est pas celle d'un homme qui combat. **Non citable** avant refonte sous socle 1.2.0.
+> Voir `REGISTRE_BLUE.md`.
 
 # VERDICT — le tarif n'explique RIEN. La piste est fermée, et elle en ouvre une autre.
 

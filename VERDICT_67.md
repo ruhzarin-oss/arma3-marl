@@ -1,4 +1,6 @@
-> ⛔ **ANNULE le 16/08** — mesure faite avec les attaquants en  (« ne jamais tirer »). Voir REGISTRE_BLUE.md et VERDICT_ARME.md.
+> ⛔ **ANNULÉ le 16/08/2026** — mesure faite avec les attaquants en `combatMode "BLUE"`,
+> qui signifie « ne jamais tirer ». Les hommes n'ont pas combattu. Voir `REGISTRE_BLUE.md`
+> et `VERDICT_ARME.md` (30/67 = 44,8 % une fois armés).
 
 # Les 67 épisodes — l'écart de transfert est SERRÉ, le gel est RÉEL, B reste illisible
 

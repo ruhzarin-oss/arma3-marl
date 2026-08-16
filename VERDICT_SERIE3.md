@@ -1,4 +1,6 @@
-> ⛔ **ANNULE le 16/08** — mesure faite avec les attaquants en  (« ne jamais tirer »). Voir REGISTRE_BLUE.md et VERDICT_ARME.md.
+> ⛔ **ANNULÉ le 16/08/2026** — mesure faite avec les attaquants en `combatMode "BLUE"`,
+> qui signifie « ne jamais tirer ». Les hommes n'ont pas combattu. Voir `REGISTRE_BLUE.md`
+> et `VERDICT_ARME.md` (30/67 = 44,8 % une fois armés).
 
 # Série 3 — les premières prises sur Arma, et l'écart de transfert qui TIENT
 
