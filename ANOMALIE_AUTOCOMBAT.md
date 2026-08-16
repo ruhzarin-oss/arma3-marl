@@ -1,3 +1,7 @@
+> ✅ **CLOSE le 16/08/2026 — NON CONFIRMEE.** Trois mesures (11 lectures pas-a-pas,
+> le format innocente, 7 lectures sur l engagement soutenu) montrent que 
+> prend et TIENT. L attribution des 44,8 % est retablie. Voir .
+
 # Anomalie ouverte — `disableAI "AUTOCOMBAT"` ne prend pas sur les attaquants du banc
 
 Constatée le 16/08/2026 par la sonde du témoin. **Non expliquée, non devinée.**
