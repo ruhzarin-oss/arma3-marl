@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.8.0-16082026";
+HMT_SOCLE_VERSION = "1.9.0-16082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -234,6 +234,19 @@ HMT_PREVOL = {
     // dans LE MEME commit.
     deleteVehicle _mann; deleteGroup _gm;
     sleep 1;
+
+    // ⚠️ `AUTOCOMBAT` EST RETIRE ENTRE T4 ET T5, ET C EST MESURE.
+    // T4 exige que l homme tire DE LUI-MEME, donc `AUTOCOMBAT` actif — sonde du 16/08, « le
+    // tir suit AUTOCOMBAT et rien d autre ». T5 exige qu il obeisse a une consigne de
+    // deplacement, donc qu aucune IA ne reprenne la main. Deux etats INCOMPATIBLES sur le
+    // meme homme : l etat doit changer ENTRE les deux tests, pas avant ni apres.
+    // Banc des jambes v3 (`11fa45c`), les deux bras dans la MEME passe :
+    //   bras 1, `AUTOCOMBAT` coupe ......... 12,2 m, 7 essais sur 7, dispersion 11,6-12,5
+    //   bras 7, `AUTOCOMBAT` garde + tir ... 0,6 a 14,9 m, UN essai sur QUATRE tombe a 0,6
+    // Supprimer le mannequin plus tot ne suffisait pas : l IA garde la menace en memoire
+    // quelques secondes apres la mort de la cible et reprend la main sur le deplacement.
+    _t disableAI "AUTOCOMBAT";
+    sleep 0.5;
 
     // T5 · un homme PARCOURT du terrain (setVelocity est une IMPULSION, pas une consigne)
     _t doTarget objNull; _t doWatch objNull;
