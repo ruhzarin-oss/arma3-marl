@@ -194,6 +194,27 @@ if __name__ == "__main__":
         b.send(sans_commentaires(C.WAKE))
     time.sleep(2)
 
+    # ═══ LE PREVOL ⟨Fable : « pas de prevol vert, pas d episode »⟩ ═══
+    # Le socle RELIT le monde avant de jouer. Six tests, tous nes d une faute payee :
+    #   T1 arme en main · T2 chargeur · T3 mode declare = mode reel (WAKE recoupait FSM)
+    #   T4 une BALLE REELLE part · T5 24 m parcourus · T6 combatMode (BLUE = jamais tirer)
+    # « La volonte n est pas un mecanisme » : l episode ne demarre pas sans le vert.
+    _socle = open("/home/younes/arma3-marl/bancs/socle/socle.sqf").read()
+    b.send(sans_commentaires(_socle), wait=False); time.sleep(1.5)
+    b.send(sans_commentaires("HMT_PV = [HMT_FR] call HMT_PREVOL;"), wait=False)
+    _vert, _rap = None, ""
+    for _ in range(40):
+        time.sleep(1.0)
+        for L in reversed(b._log_lines(400)):
+            if "HMT|SOCLE|PREVOL|" in L:
+                _rap = L.strip(); _vert = "|VERT|" in L; break
+        if _vert is not None: break
+    print(f"  PREVOL : {_rap[:150] if _rap else 'AUCUNE REPONSE'}", flush=True)
+    if not _vert:
+        print("  ⛔ PREVOL ROUGE — aucun episode ne sera joue.", flush=True)
+        sys.exit(2)
+    print(f"  ✓ prevol vert, socle {HMT_SOCLE if False else ''}".rstrip(), flush=True)
+
     pol = charger()
     RELEVE = []
     perc = C.perc_sqf()
