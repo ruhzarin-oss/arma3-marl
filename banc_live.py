@@ -199,8 +199,15 @@ if __name__ == "__main__":
     #   T1 arme en main · T2 chargeur · T3 mode declare = mode reel (WAKE recoupait FSM)
     #   T4 une BALLE REELLE part · T5 24 m parcourus · T6 combatMode (BLUE = jamais tirer)
     # « La volonte n est pas un mecanisme » : l episode ne demarre pas sans le vert.
-    _socle = open("/home/younes/arma3-marl/bancs/socle/socle.sqf").read()
-    b.send(sans_commentaires(_socle), wait=False); time.sleep(1.5)
+    # ⚠️ LE SOCLE SE CHARGE PAR FICHIER, PAS PAR LA SOCKET. 197 lignes envoyees en inline
+    # ne passent pas — piege deja paye par le projet (« gros inline -> fichier »). Le fichier
+    # est depose dans la mission ; le jeu le compile lui-meme.
+    b.send(sans_commentaires('call compile preprocessFileLineNumbers "socle.sqf";'), wait=False)
+    time.sleep(2.0)
+    _pret = any("HMT|SOCLE|pret" in L for L in b._log_lines(300))
+    print(f"  socle charge : {_pret}", flush=True)
+    if not _pret:
+        print("  ⛔ LE SOCLE NE S EST PAS CHARGE — aucun episode.", flush=True); sys.exit(3)
     # ⚠️ `spawn`, PAS `call` : HMT_PREVOL contient des `sleep`, qui n existent que dans un
     # contexte PLANIFIE. En `call` il meurt sans un mot — et le prevol rendait « AUCUNE
     # REPONSE », donc ROUGE, donc zero episode. Le refus etait juste, la cause etait moi.
