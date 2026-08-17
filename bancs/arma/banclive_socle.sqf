@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "2.7.0-17082026";
+HMT_SOCLE_VERSION = "2.8.0-17082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -560,7 +560,17 @@ HMT_PREVOL = {
     // cinquante est soit repare, soit devenu INCAPABLE d echouer, et tu ne sais pas lequel »⟩.
     // T4 avait son sabotage (les munitions) et pas T5. Retirer `PATH`, ce sont les JAMBES —
     // mesure du 15/08, 9 m au lieu de 48. T5 DOIT rougir.
+    // ⚠️ LE LEVIER « jambes » ETAIT INOPERANT PAR NATURE, ET N AVAIT JAMAIS ETE EXECUTE.
+    // Il retire `PATH`, donc le pathfinding — mais T5 se deplace par `setVelocity`, une
+    // IMPULSION PHYSIQUE qui ne passe pas par le pathfinding. Mesure du 17/08 : 1 rouge sur
+    // 3 seulement, les deux autres tirages restant verts jambes retirees.
+    // C est la MEME faute que sur le placeur cet apres-midi (`disableAI "PATH"` la aussi),
+    // et ce levier vivait depuis le socle 1.11.0 sans avoir jamais ete joue — exactement ce
+    // que la regle 18 interdit : un critere qui n a pas ete juge.
+    // On sabote donc L IMPULSION, comme pour l acte 2 du placeur.
+    private _vyT5 = 6;
     if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "jambes") then {
+        _vyT5 = 0;
         _t disableAI "PATH";
         (format ["HMT|SOCLE|SABOTAGE|jambes|path|%1", _t checkAIFeature "PATH"]) call HMT_LOG;
     };
@@ -576,7 +586,7 @@ HMT_PREVOL = {
     // 10 Hz et ne comptait rien. Or un serveur charge emet moins d impulsions dans la meme
     // fenetre : le reveil met huit hommes en IA complete, et T5 rougit 17 fois sur 20 avec
     // reveil contre 2 sur 12 sans. `nt` et `fps` disent si c est la cadence qui tombe.
-    private _mnt = [_t, 4] call HMT_MARCHER;
+    private _mnt = [_t, 4, _vyT5] call HMT_MARCHER;
     private _m = _mnt select 0; private _nt = _mnt select 1;
 
     (format ["HMT|SOCLE|GESTE|m|%1|v_apres|%2|v_mediane|%3|v_fin|%4|conduite|%5|anim0|%6|anim9|%7|animfin|%8|posture|%9|sol|%10",
