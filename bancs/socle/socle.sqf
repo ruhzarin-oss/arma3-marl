@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.14.0-17082026";
+HMT_SOCLE_VERSION = "2.0.0-17082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -68,6 +68,58 @@ HMT_ARMER = {
     _u setUnitPos "UP";
     _u setVariable ["hmt_arme_declaree", true, true];
     ((currentWeapon _u) != "")                    // RELECTURE : l arme est-elle EN MAIN ?
+};
+
+// ─────────────────────────────────────────────── BRIQUE 5 : LE LIEU SE JUGE A L ACTE
+// ⚠️ NEE DU VERDICT DU 17/08 (`VERDICT_LIEU_EST_LA_CAUSE.md`). L ancien placeur retenait le
+// point de PENTE MOYENNE MINIMALE sur un carre de 60 m. Mesure : 18 echecs sur 18 aux trois
+// lieux qu il avait retenus, contre 3 sur 12 a deux autres — et la pente NE SEPARE PAS
+// (session 8 a 0,01, parfaitement plate, morte 5 fois sur 6). Ce qui bloque un homme est
+// l ENCOMBREMENT, invisible pour une pente moyennee.
+//
+// ⚠️ ET IL OPTIMISAIT. Un placeur qui choisit « le meilleur » fabrique un monde biaise vers
+// le facile ⟨Fable⟩. Le v2 tire les candidats en ordre ALEATOIRE et RECOIT LE PREMIER qui
+// passe. Le pre-filtre bon marche (eau, hauteur, vue) sert a ORDONNER et a rejeter vite —
+// il ne RECOIT jamais : `path:true` figurait dans toutes les signatures d echec du 16-17/08
+// pendant que l homme restait cloue. L etat du moteur a menti toute la semaine ; seul l ACTE
+// recoit.
+HMT_G_PRATICABLE = {
+    params ["_c"];
+    private _x = _c select 0; private _y = _c select 1;
+    // ── rejets bon marche, qui n autorisent RIEN et ne font qu economiser l acte
+    if (surfaceIsWater [_x, _y]) exitWith { ["eau", 0, 0] };
+    if ((getTerrainHeightASL [_x, _y]) <= 3) exitWith { ["bord de mer", 0, 0] };
+    // ── ACTE 1 · VOIT-ON A 40 m ? (la distance ou T4 pose son mannequin)
+    private _z = (getTerrainHeightASL [_x, _y]) + 1.5;
+    private _vue = 0;
+    for "_i" from 0 to 5 do {
+        private _a = _i * 60;
+        private _dx = _x + 40 * sin _a; private _dy = _y + 40 * cos _a;
+        private _v = [objNull, "VIEW"] checkVisibility
+            [[_x, _y, _z], [_dx, _dy, (getTerrainHeightASL [_dx, _dy]) + 1.5]];
+        if (_v > _vue) then { _vue = _v };
+    };
+    if (_vue < 0.5) exitWith { ["sans vue", 0, _vue] };
+    // ── ACTE 2 · UN HOMME PARCOURT-IL SES 24 m ? C est le geste exact de T5.
+    private _g = createGroup west;
+    private _u = _g createUnit ["B_Soldier_F", [_x, _y, 0], [], 0, "NONE"];
+    if (isNull _u) exitWith { deleteGroup _g; ["naissance refusee", 0, _vue] };
+    [_u] call HMT_ARMER;
+    [_u, "statue"] call HMT_PILOTER;      // ni IA de combat ni decision : on teste le TERRAIN
+    _u enableAI "PATH";                   // ...mais les JAMBES restent, sinon on mesure une statue
+    _u setDir 0;
+    sleep 1.5;
+    // ⚠️ LE LEVIER DE SABOTAGE ⟨regle 18⟩ : sans lui, « le placeur accepte » ne prouve pas
+    // qu il sait REFUSER. `HMT_SABOTER = "traverse"` retire les jambes du testeur : AUCUN
+    // lieu ne doit plus etre recu, et le prevol doit rougir en T0.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "traverse") then {
+        _u disableAI "PATH";
+    };
+    private _p0 = getPosATL _u; private _t0 = time;
+    while { alive _u && time - _t0 < 4 } do { _u setVelocity [0, 6, 0]; sleep 0.1 };
+    private _m = _p0 distance2D (getPosATL _u);
+    deleteVehicle _u; deleteGroup _g;
+    [(if (_m >= 18) then {"recu"} else {"encombre"}), round _m, _vue]
 };
 
 // ─────────────────────────────────────────────── BRIQUE 3 : LE PILOTAGE
@@ -177,21 +229,38 @@ HMT_PREVOL = {
                  round (_pt select 1), round (100 * _meilleure) / 100]) call HMT_LOG;
     };
     if (isNil "HMT_LIEU_FORCE") then {
-    for "_k" from 0 to 23 do {
-        private _a = _k * 15; private _r = 250 + (_k mod 4) * 40;
-        private _c = [(getPosATL _ref select 0) + _r * sin _a, (getPosATL _ref select 1) + _r * cos _a];
-        // pente moyenne sur le carre de 60 m ou le temoin va vivre et tirer
-        private _s = 0;
-        for "_i" from -4 to 4 step 4 do { for "_j" from -4 to 4 step 4 do {
-            _s = _s + ([(_c select 0) + _i*6.25, (_c select 1) + _j*6.25] call HMT_G_SLOPE);
-        }};
-        _s = _s / 9;
-        if ((getTerrainHeightASL _c) > 3 && _s < _meilleure) then { _meilleure = _s; _pt = [_c select 0, _c select 1, 0] };
-        if (_meilleure < 0.10) exitWith {};
-    };
+        // 24 candidats, MELANGES : angles k*15, rayons 250 a 370. On ne cherche plus le
+        // meilleur, on prend LE PREMIER RECU.
+        private _cands = [];
+        for "_k" from 0 to 23 do {
+            private _a = _k * 15; private _r = 250 + (_k mod 4) * 40;
+            _cands pushBack [(getPosATL _ref select 0) + _r * sin _a,
+                             (getPosATL _ref select 1) + _r * cos _a];
+        };
+        // melange de Fisher-Yates : `BIS_fnc_arrayShuffle` n est pas garanti sur un serveur
+        // sans le module fonctions, et une dependance silencieuse est une economie non declaree.
+        for "_k" from (count _cands) - 1 to 1 step -1 do {
+            private _q = floor (random (_k + 1));
+            private _tmp = _cands select _k;
+            _cands set [_k, _cands select _q]; _cands set [_q, _tmp];
+        };
+        private _essais = 0;
+        {
+            _essais = _essais + 1;
+            private _r = [_x] call HMT_G_PRATICABLE;
+            (format ["HMT|SOCLE|CANDIDAT|n|%1|x|%2|y|%3|verdict|%4|metres|%5|vue|%6",
+                     _essais, round (_x select 0), round (_x select 1),
+                     _r select 0, _r select 1, round (100 * (_r select 2)) / 100]) call HMT_LOG;
+            if ((_r select 0) == "recu") exitWith {
+                _pt = [_x select 0, _x select 1, 0];
+                _meilleure = [(_x select 0), (_x select 1)] call HMT_G_SLOPE;
+            };
+        } forEach _cands;
+        (format ["HMT|SOCLE|PLACEUR|candidats_essayes|%1|recu|%2", _essais,
+                 (count _pt > 0)]) call HMT_LOG;
     };
     if (count _pt == 0) exitWith {
-        HMT_PV_ECARTS = ["T0 AUCUN TERRAIN PLAT trouve pour le temoin en 24 essais"];
+        HMT_PV_ECARTS = ["T0 AUCUN LIEU PRATICABLE recu sur 24 candidats (traverse 18 m ET vue 40 m)"];
         "HMT|SOCLE|PREVOL|ROUGE|aucun terrain plat" call HMT_LOG;
         false
     };
