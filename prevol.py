@@ -67,7 +67,11 @@ if __name__ == "__main__":
     print("  scene : %s" % (lg[-1][-40:] if lg else "AUCUNE — on n ira pas plus loin"), flush=True)
     if not lg: sys.exit(1)
     b.send('call compile preprocessFileLineNumbers "socle.sqf";', wait=False); time.sleep(3)
-    b.send('HMT_SABOTER = "%s";' % ("munitions" if MODE == "sabotage" else ""), wait=False)
+    # ⚠️ LES QUATRE SABOTAGES doivent etre rejoues sur le hash que la porte certifie
+    # ⟨ligne 4 du critere⟩. « sabotage » vide les munitions du temoin de T4 ; « jambes »
+    # retire `PATH` au temoin de T5. Les deux du placeur (traverse, tir) passent par le smoke.
+    _sab = {"sabotage": "munitions", "jambes": "jambes"}.get(MODE, "")
+    b.send('HMT_SABOTER = "%s";' % _sab, wait=False)
     time.sleep(1)
     # Le reveil fait partie du monde. `banc_live.py natif` l envoie ENTRE la scene et le
     # prevol ; la porte du 16/08 n en envoyait aucun, et c est pour ca qu elle a certifie
@@ -184,13 +188,14 @@ if __name__ == "__main__":
 
     print("\n  ── %d tirages : %d verts, %d echecs, %d sans reponse ──"
           % (verts + ech + sansrep, verts, ech, sansrep), flush=True)
-    if MODE == "sabotage":
+    if MODE in ("sabotage", "jambes"):
         if ech == 0:
             print("  ⛔ LE SABOTAGE N A RIEN FAIT ROUGIR. La porte ne mesure rien. ARRET TOTAL."); sys.exit(2)
-        rouges_t4 = sum(1 for _, d in det if "T4" in d)
-        print("  ✓ le sabotage fait rougir : %d echecs, dont %d sur T4" % (ech, rouges_t4))
+        _cible = "T4" if MODE == "sabotage" else "T5"
+        rouges_t4 = sum(1 for _, d in det if _cible in d)
+        print("  ✓ le sabotage fait rougir : %d echecs, dont %d sur %s" % (ech, rouges_t4, _cible))
         if rouges_t4 == 0:
-            print("  ⛔ mais AUCUN sur T4 — ce n est pas la panne qu on a fabriquee. ARRET."); sys.exit(3)
+            print("  ⛔ mais AUCUN sur %s — ce n est pas la panne qu on a fabriquee. ARRET." % _cible); sys.exit(3)
     else:
         if ech > MAX_ECHECS: print("  ⛔ PORTE TOMBEE (%d echecs > %d)" % (ech, MAX_ECHECS)); sys.exit(4)
         print("  ✓ PORTE TENUE : %d echecs sur %d, seuil %d" % (ech, verts + ech, MAX_ECHECS))
