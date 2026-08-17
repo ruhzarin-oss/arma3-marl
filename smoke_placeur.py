@@ -90,9 +90,27 @@ if __name__ == "__main__":
                 r = L[-1].split("HMT|R2|")[1].strip().strip('"'); break
         sab[nom] = r or "AUCUNE REPONSE"
         print("    %-18s → %s" % (nom, sab[nom]), flush=True)
+    print("\n  ══ A2 · SAIT-IL REFUSER SUR LE CANAL DU TIR ? (arme vidée) ══", flush=True)
+    b.send('HMT_SABOTER = "tir";', wait=False); time.sleep(1)
+    sab2 = {}
+    for nom, x, y in LIEUX[3:]:
+        b.send('HMT_R3 = nil; [] spawn { HMT_R3 = [[%d,%d]] call HMT_G_PRATICABLE; };' % (x, y), wait=False)
+        r = None
+        for _ in range(16):
+            time.sleep(1.5)
+            b.send('diag_log format ["HMT|R3|%1", (if (isNil "HMT_R3") then {"attente"} else {HMT_R3})];', wait=False)
+            time.sleep(0.5)
+            L = [l for l in b._log_lines(80) if "HMT|R3|" in l]
+            if L and "attente" not in L[-1]:
+                r = L[-1].split("HMT|R3|")[1].strip().strip('"'); break
+        sab2[nom] = r or "AUCUNE REPONSE"
+        print("    %-18s → %s" % (nom, sab2[nom]), flush=True)
     sh("for p in $(pgrep -f arma3server_x64); do kill $p; done")
 
     print("\n  ══ VERDICT ══", flush=True)
+    if any("recu" in (v or "") for v in sab2.values()):
+        print("  ⛔ ARME VIDÉE ET LIEU ENCORE REÇU — l'acte de tir ne juge rien. ARRÊT."); sys.exit(4)
+    print("  ✓ A2 · arme vidée → aucun lieu reçu : l'acte de TIR juge bien")
     recu = lambda s: "recu" in (s or "")
     encore = [k for k, v in sab.items() if recu(v)]
     if encore:
