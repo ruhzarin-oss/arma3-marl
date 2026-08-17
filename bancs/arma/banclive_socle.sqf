@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "2.6.2-17082026";
+HMT_SOCLE_VERSION = "2.7.0-17082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -162,12 +162,24 @@ HMT_CERTIFIER_POSITIONS = {
 // l action 9 de la couture, elle, tire sans s arreter. On paie les 4 s ⟨regle 6⟩.
 
 HMT_MARCHER = {
+    // ⚠️ LA TELEMETRIE DU GESTE VIT ICI, PAS CHEZ UN SEUL APPELANT. Le refactoring B1 l avait
+    // AVALEE avec le reste de la boucle de T5 : la vitesse relue et l animation, celles-la
+    // meme qui ont refute trois hypotheses le 16/08 (l impulsion est appliquee, l IA ne la
+    // fait pas retomber, la posture reste debout). En la remontant dans la brique, elle
+    // profite desormais a l acte 2 du placeur autant qu a T5 — c est ce que « composer »
+    // devait donner des le depart.
     params ["_u", "_duree", ["_vy", 6]];
     private _p0 = getPosATL _u; private _t0 = time; private _nt = 0;
+    private _vrelue = []; private _anims = [];
     while { alive _u && time - _t0 < _duree } do {
-        _u setVelocity [0, _vy, 0]; _nt = _nt + 1; sleep 0.1;
+        _u setVelocity [0, _vy, 0]; _nt = _nt + 1;
+        _vrelue pushBack (round (10 * ((velocity _u) select 1)) / 10);
+        _anims pushBack (animationState _u);
+        sleep 0.1;
     };
-    [_p0 distance2D (getPosATL _u), _nt]      // [metres, iterations]
+    private _vmed = if (count _vrelue > 0) then { _vrelue select (round ((count _vrelue) / 2)) } else { -1 };
+    [_p0 distance2D (getPosATL _u), _nt, _vmed,
+     (if (count _anims > 0) then { _anims select ((count _anims) - 1) } else { "" })]
 };
 
 HMT_TIRER_C9 = {
@@ -284,6 +296,10 @@ HMT_G_PRATICABLE = {
     // divergence certificateur/servi relevee par Fable le 17/08. Le certificateur tire parce
     // qu on lui DONNE la cible ; l homme servi ne l a pas. Non mesure proprement : un accident
     // n est pas une mesure, et B2 reste a faire.
+    // ⚠️ LE SABOTAGE DU TIR AVAIT DISPARU LUI AUSSI — troisieme chose que B1 a avalee, apres
+    // le `reveal` et la telemetrie. Sans lui, « l acte de tir recoit » ne prouve pas qu il
+    // sait REFUSER, et le smoke l a dit : arme videe, lieu encore recu avec 9 coups.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "tir") then { _u2 setVehicleAmmo 0 };
     _u2 reveal [_mm, 4];
     private _coups = [_u2, _mm, 4] call HMT_TIRER_C9;
     deleteVehicle _mm; deleteVehicle _u2; deleteGroup _gm; deleteGroup _g2;
