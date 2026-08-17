@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "2.1.0-17082026";
+HMT_SOCLE_VERSION = "2.2.0-17082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -457,7 +457,15 @@ HMT_PREVOL = {
     // l ordre ne prend pas sur les attaquants. Si l homme servi tire, c est ou bien par ce
     // canal, ou bien par une faculte qu on croit coupee. T7 dit lequel.
     private _g7 = createGroup west;
-    private _u7 = [_g7, "B_Soldier_F", [(_pt select 0) + 6, (_pt select 1), 0], "pilote"] call HMT_POSER_HOMME;
+    // ⚠️ T7 TESTE LE LIEU QUE LE PLACEUR A VALIDE, PAS SIX METRES A COTE.
+    // Porte du 17/08 : 23 echecs T7 sur 40, et le releve du socle SEPARE PARFAITEMENT —
+    // `vue|0` rend 0 coup, `vue|1` rend 12. T7 n echouait pas sur le canal de feu, il
+    // echouait parce que SON mannequin n etait pas visible. L acte 3 du placeur valide le
+    // point EXACT avec un mannequin a 40 m plein nord ; T7 posait le sien a `_pt + 6` et
+    // 35 m. Six metres suffisent a passer derriere un arbre. Le `+6` evitait un chevauchement
+    // avec le temoin de T5 — mais celui-ci est deja supprime a ce stade.
+    // DEUX TESTS DU MEME SOCLE DOIVENT S ACCORDER SUR LA GEOMETRIE QU ILS EXIGENT.
+    private _u7 = [_g7, "B_Soldier_F", [(_pt select 0), (_pt select 1), 0], "pilote"] call HMT_POSER_HOMME;
     // ⚠️ REVUE 17/08 : NI `_u7` NI `_m7` n avaient `allowDamage false`, contrairement au
     // binome de T4 (lignes 196 et 207). Et `_m7` etait ARME (HMT_ARMER) et en IA LIBRE —
     // il ne passait jamais par HMT_PILOTER — a 35 m d un homme en mode `pilote`, donc
@@ -466,7 +474,7 @@ HMT_PREVOL = {
     // refusait tout l episode pour un MORT et non pour un canal de feu muet.
     _u7 allowDamage false;
     private _gm7 = createGroup east;
-    private _m7 = _gm7 createUnit ["O_Soldier_F", [(_pt select 0) + 6, (_pt select 1) + 35, 0], [], 0, "NONE"];
+    private _m7 = _gm7 createUnit ["O_Soldier_F", [(_pt select 0), (_pt select 1) + 40, 0], [], 0, "NONE"];
     [_m7] call HMT_ARMER;
     _m7 allowDamage false; _m7 disableAI "PATH"; _m7 disableAI "AUTOCOMBAT";
     _m7 setBehaviour "CARELESS";
