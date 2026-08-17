@@ -3,7 +3,13 @@
 
 Deux contrôles, tous deux exigibles avant de certifier quoi que ce soit :
 
-  A · IL SAIT REFUSER — `HMT_SABOTER = "traverse"` retire les jambes du testeur.
+  A · IL SAIT REFUSER — DEUX PREUVES, ET LA PREMIERE ETAIT DEJA LA
+      ⚠️ La preuve la plus forte est le contrôle B lui-même : les trois lieux morts rendent
+      3, 8 et 14 m et sont REJETES. Le phénomène y est connu massif, et leurs étiquettes
+      viennent de l'ANCIEN socle — donc indépendamment de ce placeur. C'est le cas échouant
+      exigé par la règle 18, et il était sous mes yeux.
+      Le sabotage ci-dessous ferme l'autre moitié : que la MESURE et le SEUIL ne soient pas
+      court-circuités. — `HMT_SABOTER = "traverse"` retire les jambes du testeur.
       ATTENDU : AUCUN lieu reçu sur 24 candidats, et le prévol rouge en T0.
       Si le sabotage ne fait rien refuser, le placeur ne juge pas : ARRÊT TOTAL.
 

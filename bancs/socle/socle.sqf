@@ -112,11 +112,16 @@ HMT_G_PRATICABLE = {
     // ⚠️ LE LEVIER DE SABOTAGE ⟨regle 18⟩ : sans lui, « le placeur accepte » ne prouve pas
     // qu il sait REFUSER. `HMT_SABOTER = "traverse"` retire les jambes du testeur : AUCUN
     // lieu ne doit plus etre recu, et le prevol doit rougir en T0.
-    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "traverse") then {
-        _u disableAI "PATH";
-    };
+    // ⚠️ LE SABOTAGE DOIT ATTAQUER CE QUE LE TEST EMPLOIE ⟨regle 6, appliquee au sabotage⟩.
+    // Premiere version : `disableAI "PATH"`. INOPERANT PAR NATURE — `setVelocity` est une
+    // IMPULSION PHYSIQUE et ne passe pas par le pathfinding ; les deux lieux recus rendaient
+    // toujours 25 m et 22 m sous sabotage. Fait etabli du projet, et oublie en concevant le
+    // levier. On sabote donc l IMPULSION elle-meme : vitesse nulle, immobilite certaine, et
+    // le test doit rendre « encombre ».
+    private _vy = 6;
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "traverse") then { _vy = 0 };
     private _p0 = getPosATL _u; private _t0 = time;
-    while { alive _u && time - _t0 < 4 } do { _u setVelocity [0, 6, 0]; sleep 0.1 };
+    while { alive _u && time - _t0 < 4 } do { _u setVelocity [0, _vy, 0]; sleep 0.1 };
     private _m = _p0 distance2D (getPosATL _u);
     deleteVehicle _u; deleteGroup _g;
     [(if (_m >= 18) then {"recu"} else {"encombre"}), round _m, _vue]
