@@ -93,6 +93,7 @@ if __name__ == "__main__":
     pont("debut")
 
     verts, ech, det = 0, 0, []
+    ecartes = 0
     sansrep = 0                      # REVUE 17/08 : les pannes de pont, comptees A PART
     # ⚠️ LES CINQ LIEUX SONT ALTERNES DANS LA MEME SESSION. C est le point du protocole :
     # si les lieux morts echouent et les vivants passent COTE A COTE sous le meme serveur,
@@ -107,6 +108,18 @@ if __name__ == "__main__":
             print("  lieu force : %s" % nom, flush=True)
         if MODE == "compare":
             b.send(sans_commentaires(WAKE_NATIF if i % 2 else C.WAKE), wait=False); time.sleep(2)
+        # ⚠️ ON N ENCHAINE JAMAIS SUR UN PREVOL NON TERMINE — seconde moitie du correctif A2,
+        # que je n avais pas posee. Le jeton de generation empeche bien deux prevols d ecrire
+        # ensemble, mais si python lance le suivant, le precedent ABANDONNE et rend `false`
+        # SANS ecart. Lot 1 de la porte du 17/08 : cinq echecs a ecart vide, en cascade apres
+        # un seul « PREVOL LENT ». Un tirage dont l INSTRUMENT n a pas fini n est pas un echec
+        # DU MONDE : on attend la fin, et si l attente expire on ECARTE le tirage.
+        for _att in range(30):
+            b.send('diag_log format ["HMT|FIN|%1", HMT_PV_ETAPE];', wait=False); time.sleep(0.6)
+            _f = [L for L in b._log_lines(80) if "HMT|FIN|" in L]
+            _et = _f[-1].split("HMT|FIN|")[1][:20].strip().strip('"') if _f else ""
+            if _et in ("fini", "neant", ""): break
+            time.sleep(1.4)
         b.send('HMT_PV = nil; [] spawn { HMT_PV = [HMT_FR] call HMT_PREVOL; };', wait=False)
         # ⚠️ TIMEOUT PAR ETAPE ⟨lecture de Fable⟩. Le plafond etait GLOBAL contre un prevol
         # de duree VARIABLE : au depassement on enchainait sur un prevol encore vivant. On
@@ -149,6 +162,14 @@ if __name__ == "__main__":
             ech += 1
             b.send('diag_log format ["HMT|PVE|%1", (if (isNil "HMT_PV_ECARTS") then {"?"} else {HMT_PV_ECARTS})];', wait=False)
             time.sleep(0.6)
+            # ⚠️ UN PREVOL ABANDONNE N EST PAS UN ECHEC DU MONDE. Le socle journalise
+            # « HMT|SOCLE|PREVOL|ABANDONNE » quand une generation plus recente l a double.
+            # Ces tirages sortent du compte au lieu de charger la porte a tort.
+            _ab = [L for L in b._log_lines(200) if "PREVOL|ABANDONNE" in L]
+            if _ab and (i, "ABANDONNE") not in det:
+                ech -= 1; ecartes += 1; det.append((i, "ECARTE / prevol abandonne (generation doublee)"))
+                print("    %2d/%d  ECARTE — prevol abandonne" % (i, N), flush=True)
+                continue
             e = [L for L in b._log_lines(200) if "HMT|PVE|" in L]
             det.append((i, e[-1].split("HMT|PVE|")[1][:110] if e else "?"))
         print("    %2d/%d  vert=%d  echec=%d%s" % (i, N, verts, ech,
