@@ -32,7 +32,7 @@ MODE = sys.argv[2] if len(sys.argv) > 2 else "normal"
 CHAUD = int(sys.argv[3]) if len(sys.argv) > 3 else 45
 SB   = "/mnt/data/harmattan-sandbox"
 EXT, PORT = 5830, 6062
-LOG  = SB + "/logs/serverPV.out"
+LOG  = SB + "/logs/serverPV%s.out" % (os.environ.get("HMT_SESSION", ""))
 OBJ, NDEF, NATT, DIST = (4644.0, 5652.0), 4, 4, 170.0
 MAX_ECHECS = 2
 
@@ -69,6 +69,18 @@ if __name__ == "__main__":
         b.send(sans_commentaires(WAKE_NATIF), wait=False); time.sleep(2)
         print("  reveil NATIF envoye — regime de la nuit", flush=True)
     print("  socle charge — mode %s, %d tirages" % (MODE, N), flush=True)
+
+    # `callExtension "version"` rend « hmt_native 1.2 | <etat> | jetes ring=N send=N ligne=N ».
+    # Le bind est hors de cause : s il avait echoue, le pont ne se serait pas connecte et la
+    # session aurait AVORTE — or les mortes creaient bien leur scene. On mesure les JETES.
+    def pont(quand):
+        b.send('diag_log format ["HMT|PONT|%s|%%1", ("hmt_native" callExtension "version")];' % quand, wait=False)
+        time.sleep(1.2)
+        ls = [L for L in b._log_lines(150) if "HMT|PONT|" + quand in L]
+        e = ls[-1].split("HMT|PONT|")[1][:120].rstrip('"') if ls else quand + "|AUCUNE REPONSE"
+        print("  pont %s" % e, flush=True)
+        return e
+    pont("debut")
 
     verts, ech, det = 0, 0, []
     sansrep = 0                      # REVUE 17/08 : les pannes de pont, comptees A PART
@@ -112,6 +124,7 @@ if __name__ == "__main__":
             sys.exit(5)
         if MODE == "normal" and ech > MAX_ECHECS:
             print("\n  ⛔ COUPURE AU %dE ECHEC — la porte tombe, la nuit reste vide." % ech, flush=True); break
+    pont("fin")
     sh("for p in $(pgrep -f arma3server_x64); do kill $p; done")
 
     print("\n  ── %d tirages : %d verts, %d echecs, %d sans reponse ──"
