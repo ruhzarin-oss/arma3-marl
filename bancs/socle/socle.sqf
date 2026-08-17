@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.13.0-16082026";
+HMT_SOCLE_VERSION = "1.14.0-17082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -163,6 +163,20 @@ HMT_PREVOL = {
     private _gt = createGroup west;
     private _ref = _hommes select 0;
     private _pt = []; private _meilleure = 99;
+
+    // ⚠️ DISPOSITIF DE TEST — LE LIEU FORCE. Le placeur ci-dessous balaye 24 points FIXES
+    // autour du premier attaquant (angles k*15, rayons 250 a 370) : AUCUN alea, donc le lieu
+    // est fixe par SESSION, et c est la structure exacte du destin de session mesure le
+    // 17/08 (X2 = 56,6). Voir DESTIN_EST_LE_LIEU.md.
+    // Ce levier permet de REJOUER un lieu connu et de voir si le destin le suit. Il ne change
+    // rien quand la variable n est pas posee.
+    if (!isNil "HMT_LIEU_FORCE") then {
+        _pt = [(HMT_LIEU_FORCE select 0), (HMT_LIEU_FORCE select 1), 0];
+        _meilleure = [(_pt select 0), (_pt select 1)] call HMT_G_SLOPE;
+        (format ["HMT|SOCLE|LIEU_FORCE|x|%1|y|%2|pente|%3", round (_pt select 0),
+                 round (_pt select 1), round (100 * _meilleure) / 100]) call HMT_LOG;
+    };
+    if (isNil "HMT_LIEU_FORCE") then {
     for "_k" from 0 to 23 do {
         private _a = _k * 15; private _r = 250 + (_k mod 4) * 40;
         private _c = [(getPosATL _ref select 0) + _r * sin _a, (getPosATL _ref select 1) + _r * cos _a];
@@ -174,6 +188,7 @@ HMT_PREVOL = {
         _s = _s / 9;
         if ((getTerrainHeightASL _c) > 3 && _s < _meilleure) then { _meilleure = _s; _pt = [_c select 0, _c select 1, 0] };
         if (_meilleure < 0.10) exitWith {};
+    };
     };
     if (count _pt == 0) exitWith {
         HMT_PV_ECARTS = ["T0 AUCUN TERRAIN PLAT trouve pour le temoin en 24 essais"];

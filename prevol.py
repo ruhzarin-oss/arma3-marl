@@ -84,7 +84,17 @@ if __name__ == "__main__":
 
     verts, ech, det = 0, 0, []
     sansrep = 0                      # REVUE 17/08 : les pannes de pont, comptees A PART
+    # ⚠️ LES CINQ LIEUX SONT ALTERNES DANS LA MEME SESSION. C est le point du protocole :
+    # si les lieux morts echouent et les vivants passent COTE A COTE sous le meme serveur,
+    # l effet de session est elimine comme explication concurrente.
+    LIEUX = [("mort_4989_5877", 4989, 5877), ("vif_4776_5196", 4776, 5196),
+             ("mort_4716_5207", 4716, 5207), ("vif_4445_6138", 4445, 6138),
+             ("mort_4210_5369", 4210, 5369)]
     for i in range(1, N + 1):
+        if MODE == "lieux":
+            nom, lx, ly = LIEUX[(i - 1) % len(LIEUX)]
+            b.send('HMT_LIEU_FORCE = [%d, %d];' % (lx, ly), wait=False); time.sleep(0.6)
+            print("  lieu force : %s" % nom, flush=True)
         if MODE == "compare":
             b.send(sans_commentaires(WAKE_NATIF if i % 2 else C.WAKE), wait=False); time.sleep(2)
         b.send('HMT_PV = nil; [] spawn { HMT_PV = [HMT_FR] call HMT_PREVOL; };', wait=False)
