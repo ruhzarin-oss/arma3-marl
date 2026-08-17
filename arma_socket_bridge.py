@@ -47,6 +47,17 @@ def to_socket_out(sqf):
                 m += 1
             out.append("\"hmt_native\" callExtension (\"o|\" + %s)" % sqf[k:m + 1])
             i = m + 1; continue
+        # REVUE 17/08 : toute forme autre que `diag_log format [...]` et `diag_log "..."`
+        # tombait ici et RESTAIT un diag_log — elle partait donc au RPT, que la voie native
+        # ne lit plus par construction (cf. docstring). Or le socle journalise par
+        # `HMT_LOG = { diag_log _this }` : ces lignes de mesure etaient perdues en silence.
+        # On reecrit aussi la forme generique `diag_log <expr>;`, uniquement quand l expr
+        # est simple (pas de bloc, pas de tableau, pas de chaine) — sinon on laisse.
+        _fin = sqf.find(";", k)
+        _seg = sqf[k:_fin].strip() if _fin > k else ""
+        if _seg and not any(ch in _seg for ch in "{}[]\""):
+            out.append("\"hmt_native\" callExtension (\"o|\" + str (%s))" % _seg)
+            i = _fin; continue
         out.append(sqf[j:k]); i = k
     return "".join(out)
 
@@ -54,6 +65,7 @@ def to_socket_out(sqf):
 class SocketBridge:
     def __init__(self, port, host="127.0.0.1", connect_timeout=30):
         self.lines = collections.deque(maxlen=60000)
+        self.alive = True      # REVUE 17/08 : le pont sait desormais dire qu il est mort
         self.n = 0; self._buf = b""
         deadline = time.time() + connect_timeout
         while True:
@@ -73,12 +85,15 @@ class SocketBridge:
             time.sleep(0.05)
 
     def _reader(self):
+        # REVUE 17/08 : ce thread mourait en SILENCE. Apres sa mort `self.lines` cesse de
+        # grandir et toute lecture rend un tampon FIGE, sans que rien ne le signale.
         while True:
             try:
                 data = self.sock.recv(65536)
             except OSError:
-                return
-            if not data: return
+                self.alive = False; return
+            if not data:
+                self.alive = False; return
             self._buf += data
             while b"\n" in self._buf:
                 ln, self._buf = self._buf.split(b"\n", 1)
@@ -102,6 +117,12 @@ class SocketBridge:
         if wait:
             pat = "HARMATTAN_RECV cmd %d" % n; t0 = time.time()
             while time.time() - t0 < timeout:
-                if any(pat in ln for ln in list(self.lines)[-2000:]): break
+                if any(pat in ln for ln in list(self.lines)[-2000:]): return n
+                if not self.alive:
+                    raise ConnectionError("pont MORT pendant l attente de l ordre %d" % n)
                 time.sleep(0.02)
+            # REVUE 17/08 : le timeout rendait `n` comme un succes — un ordre JAMAIS
+            # execute etait indiscernable d un ordre acquitte. « mieux vaut un arret
+            # qu un chiffre invente » (assault_terrain.py:86).
+            raise TimeoutError("ordre %d NON acquitte apres %.1f s" % (n, timeout))
         return n

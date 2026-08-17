@@ -58,7 +58,17 @@ def points_interieurs(poly, n, dev, marge=1.0):
     xs = [p[0] for p in poly]
     ys = [p[1] for p in poly]
     out = []
+    _essais = 0
+    # REVUE 17/08 : tirage par rejet SANS BORNE. Sur une emprise etroite — ce que produit
+    # n importe quelle emprise OSM reelle — ou la marge rejette tous les candidats des
+    # quatre cotes, la boucle tournait indefiniment : pas de plantage, pas de log, pas de
+    # timeout. Le banc occupait le GPU la nuit entiere sans rien produire.
     while sum(o.shape[0] for o in out) < n:
+        _essais += 1
+        if _essais > 200:
+            raise RuntimeError(
+                "points_interieurs : %d/%d points apres 200 tirages — l emprise est trop "
+                "etroite pour une marge de %.1f m" % (sum(o.shape[0] for o in out), n, marge))
         c = torch.rand(n * 4, 2, device=dev)
         c[:, 0] = c[:, 0] * (max(xs) - min(xs)) + min(xs)
         c[:, 1] = c[:, 1] * (max(ys) - min(ys)) + min(ys)
@@ -84,6 +94,16 @@ def entrees_candidates(b, poly, dev, par_arete=2):
     """
     pts, etiq = [], []
     n = len(poly)
+    # REVUE 17/08 : la normale rentrante (ligne suivante) DEDUIT le sens trigonometrique du
+    # polygone sans jamais le verifier. `kit.py:68` le force, mais une emprise venue d un
+    # autre producteur (TwinBLD, CityBLD, un JSON ecrit a la main) en sens horaire poserait
+    # toutes les entrees A L EXTERIEUR du batiment — et `en_espace_libre` les accepterait,
+    # puisque l air libre est precisement degage. On verifie a la frontiere.
+    _aire = sum(poly[i][0] * poly[(i + 1) % n][1] - poly[(i + 1) % n][0] * poly[i][1]
+                for i in range(n)) / 2.0
+    if _aire <= 0:
+        raise ValueError("emprise en sens HORAIRE (aire signee %.1f) : la normale rentrante "
+                         "serait inversee et les entrees se poseraient dehors" % _aire)
     for i in range(n):
         x0, y0 = poly[i]
         x1, y1 = poly[(i + 1) % n]

@@ -79,7 +79,12 @@ if __name__ == "__main__":
     print("\n  essais releves : %d\n" % len(L), flush=True)
     par = {}
     for l in L:
-        d = dict(re.findall(r"\|(\w+)\|([^|\n\"]+)", l))
+        # REVUE 17/08 : le motif consommait les DEUX barres qui delimitent la cle, donc
+        # les paires etaient decalees d un cran : sur `HMT|JAMBES|bras|...` il rendait
+        # {JAMBES: bras, ...} sans cle `bras` ni `m` -> KeyError des la 1re ligne relue,
+        # et le controle positif `4_natif_domove` n etait JAMAIS atteint.
+        _t = l[l.index("HMT|JAMBES|"):].strip().split("|")
+        d = dict(zip(_t[2::2], _t[3::2]))
         par.setdefault(d["bras"], []).append((float(d["m"]), float(d["sol"])))
     med = lambda v: sorted(v)[len(v)//2] if v else float("nan")
 

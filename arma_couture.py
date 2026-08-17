@@ -143,7 +143,7 @@ HMT_CX=__CX__; HMT_CY=__CY__; HMT_S=__S__; HMT_FRNG=__FRNG__;
   { if (_x!=_u && alive _x) then { private _d=_u distance _x; if (_d<_nd2) then {_nd2=_d;_nb2=_x} } } forEach HMT_FR;
   private _adx=0; private _ady=0; private _asup=0;
   if (!isNull _nb2) then { private _q=getPosATL _nb2; _adx=((_q select 0)-(_p select 0))/HMT_S; _ady=((_q select 1)-(_p select 1))/HMT_S;
-    _asup=if ((_nb2 forceWeaponFire ["",""]) isEqualTo []) then {0} else {0}; _asup=if (currentCommand _nb2=="FIRE" || (unitReady _nb2)) then {0} else {1}; };
+    _asup=if (currentCommand _nb2=="FIRE" || (unitReady _nb2)) then {0} else {1}; };
   private _tf=0; { if (alive _x && (currentCommand _x=="FIRE")) then {_tf=_tf+1} } forEach HMT_FR; private _tff=_tf/(count HMT_FR max 1);
   private _ps=HMT_POST select _i; private _p0=if(_ps==0)then{1}else{0}; private _p1=if(_ps==1)then{1}else{0}; private _p2=if(_ps==2)then{1}else{0};
   // L ARC, EN FIN DE VECTEUR (18-19) pour ne deplacer aucun indice existant : la face du
@@ -261,8 +261,17 @@ def _selftest():
     sys.path.insert(0, "/home/younes/arma3-marl")
     from train_koth_gpu import Net
     dev = "cpu"
-    net = Net(OBS_DIM, N_ACT, 512, 3).to(dev)
     sd = torch.load("/home/younes/arma3-marl/shamal_arma.pt", map_location=dev)
+    # REVUE 17/08 : le fichier se contredisait — en-tete et `parse_obs` a 18 entrees,
+    # `OBS_DIM` a 20. L autotest ne pouvait donc PAS passer, et imprimait quand meme
+    # « VALIDEE hors-ligne ». On refuse bruyamment au lieu de rassurer a tort.
+    _lin = [v for v in sd.values() if getattr(v, "ndim", 0) == 2]
+    if _lin and _lin[0].shape[1] != OBS_DIM:
+        raise SystemExit(
+            "CONTRADICTION : shamal_arma.pt attend %d entrees, OBS_DIM=%d. "
+            "Choisis : soit le .pt est reentraine a %d, soit OBS_DIM revient a %d."
+            % (_lin[0].shape[1], OBS_DIM, OBS_DIM, _lin[0].shape[1]))
+    net = Net(OBS_DIM, N_ACT, 512, 3).to(dev)
     net.load_state_dict(sd); net.eval()
     print("[selftest] shamal_arma.pt charge dans Net(%d,%d) OK" % (OBS_DIM, N_ACT))
 

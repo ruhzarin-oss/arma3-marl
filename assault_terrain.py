@@ -254,6 +254,11 @@ class AssaultTerrain:
             # cliquet PAR ATTAQUANT : a-t-il deja ete vu ? monotone, comme l alerte de camp.
             self.a_connu = torch.zeros(N, A, device=d)
             self.prev_d = torch.zeros(N, device=d)
+            # REVUE 17/08 : distance GELEE a la mort. Sans elle, `cur` etait une moyenne
+            # sur les SURVIVANTS : perdre l homme de queue faisait baisser la moyenne et
+            # etait paye comme une progression, et une escouade ANEANTIE (denominateur
+            # ramene a 1 par clamp) etait comptee A L OBJECTIF.
+            self._dlast = torch.zeros(N, A, device=d)
             for nm in ("hm", "slope", "cover", "dcover"):
                 setattr(self, nm, torch.zeros(N, self.terr_G, self.terr_G, device=d))
         if self.replica:
@@ -332,6 +337,7 @@ class AssaultTerrain:
                 self.apy[idx] = torch.where(_w, self.apy[idx] * 0.92, self.apy[idx])
         self.t[idx] = 0
         self.prev_d[idx] = torch.sqrt(self.apx[idx] ** 2 + self.apy[idx] ** 2).mean(1) / self.scale
+        self._dlast[idx] = torch.sqrt(self.apx[idx] ** 2 + self.apy[idx] ** 2) / self.scale
         if not hasattr(self, "_prev_dk"):
             self._prev_dk = torch.zeros(self.N, device=d); self.last_supp = torch.zeros(self.N, self.A, device=d)
             ar = torch.arange(self.A, device=d)
@@ -810,7 +816,11 @@ class AssaultTerrain:
         wiped = ~al2.any(1)
         timeout = self.t >= self.max_steps
         done = win | wiped | timeout
-        cur = (ndist * al2.float()).sum(1) / al2.float().sum(1).clamp(min=1) / self.scale   # dist a l'objectif (pour entrer en portee)
+        # REVUE 17/08 : la distance de chaque homme est GELEE a sa mort, donc une mort ne
+        # deplace plus la moyenne. Un aneantissement laisse `cur` inchange -> le terme de
+        # progression vaut 0 au lieu de +approach_w*prev_d (soit +0,17 au depart).
+        self._dlast = torch.where(al2, ndist / self.scale, self._dlast)
+        cur = self._dlast.mean(1)                                  # dist a l'objectif (pour entrer en portee)
         losses = 1.0 - al2.float().sum(1) / self.A
         dk = (self.D - self._dalive().float().sum(1)) / self.D     # fraction defenseurs neutralises
         if self.overwatch:                                         # OVERWATCH/DEFILEMENT v2 : engager DEPUIS le couvert (pas rompre le LOS)

@@ -267,7 +267,11 @@ def run_live(steps=30, wake=40):
 
     def read():
         r = b.query('call HMT_READ;', r'HARMATTAN_RX (.+)', want=1, timeout=12)
-        return parse_rx(r[-1].group(1)) if r else ([], [])
+        # REVUE 17/08 : `([], [])` = un monde SANS coquilles et SANS ennemis. Une panne
+        # du pont etait lue comme un fait du monde, et toujours dans le sens du succes.
+        if not r:
+            raise RuntimeError("read() : aucune reponse d Arma — pas de monde a lire")
+        return parse_rx(r[-1].group(1))
 
     print("=== RUN 1 LIVE : coquilles-AGENTS vers le HVT (regarde au spectateur) ===", flush=True)
     prev = None
@@ -325,7 +329,11 @@ def run_fight(steps=40, n_fs=9, fob=(3253, 2984)):
 
     def read_def():
         r = b.query('call HMT_READ;', r'HARMATTAN_RX (.+)', want=1, timeout=12)
-        return parse_rx(r[-1].group(1)) if r else ([], [])
+        # REVUE 17/08 : `([], [])` = un monde SANS coquilles et SANS ennemis. Une panne
+        # du pont etait lue comme un fait du monde, et toujours dans le sens du succes.
+        if not r:
+            raise RuntimeError("read() : aucune reponse d Arma — pas de monde a lire")
+        return parse_rx(r[-1].group(1))
 
     def read_fs():
         r = b.query('diag_log format ["HARMATTAN_FS %1", HMT_FS apply {[round ((getPosATL _x)#0), round ((getPosATL _x)#1), [0,1] select (alive _x)]}];', r'HARMATTAN_FS (\[.*\])', want=1, timeout=12)

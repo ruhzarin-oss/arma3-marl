@@ -334,9 +334,18 @@ HMT_PREVOL = {
     // canal, ou bien par une faculte qu on croit coupee. T7 dit lequel.
     private _g7 = createGroup west;
     private _u7 = [_g7, "B_Soldier_F", [(_pt select 0) + 6, (_pt select 1), 0], "pilote"] call HMT_POSER_HOMME;
+    // ⚠️ REVUE 17/08 : NI `_u7` NI `_m7` n avaient `allowDamage false`, contrairement au
+    // binome de T4 (lignes 196 et 207). Et `_m7` etait ARME (HMT_ARMER) et en IA LIBRE —
+    // il ne passait jamais par HMT_PILOTER — a 35 m d un homme en mode `pilote`, donc
+    // AUTOCOMBAT coupe et incapable de riposter. `_m7` pouvait donc ABATTRE le temoin
+    // pendant les 4 s du test : HMT_PV_C7 restait a 0, T7 rougissait, et le prevol
+    // refusait tout l episode pour un MORT et non pour un canal de feu muet.
+    _u7 allowDamage false;
     private _gm7 = createGroup east;
     private _m7 = _gm7 createUnit ["O_Soldier_F", [(_pt select 0) + 6, (_pt select 1) + 35, 0], [], 0, "NONE"];
     [_m7] call HMT_ARMER;
+    _m7 allowDamage false; _m7 disableAI "PATH"; _m7 disableAI "AUTOCOMBAT";
+    _m7 setBehaviour "CARELESS";
     sleep 1.5;
     HMT_PV_C7 = 0;
     private _eh7 = _u7 addEventHandler ["Fired", { HMT_PV_C7 = HMT_PV_C7 + 1 }];
@@ -371,9 +380,16 @@ HMT_PREVOL = {
                    surfaceIsWater [_pt select 0, _pt select 1], _meilleure];
 
     private _vert = (count _ec == 0);
-    (format ["HMT|SOCLE|PREVOL|%1|version|%2|hommes|%3|ecarts|%4",
+    // ⚠️ REVUE 17/08 : `HMT_SABOTER` est une globale de missionNamespace que RIEN ne
+    // remet a zero. Un banc qui la pose puis plante la laisse en place, et TOUTES les
+    // sessions suivantes rougissent en T4 avec une ligne de verdict IDENTIQUE a celle
+    // d un vrai rouge. Un sabotage oublie devenait un verdict. Le champ est AJOUTE en
+    // fin de ligne pour ne pas deplacer les champs que les lecteurs existants comptent.
+    private _sab = missionNamespace getVariable ["HMT_SABOTER", ""];
+    (format ["HMT|SOCLE|PREVOL|%1|version|%2|hommes|%3|ecarts|%4|sabotage|%5",
              (if (_vert) then {"VERT"} else {"ROUGE"}), HMT_SOCLE_VERSION, count _hommes,
-             (if (_vert) then {"aucun"} else {str _ec})]) call HMT_LOG;
+             (if (_vert) then {"aucun"} else {str _ec}),
+             (if (_sab == "") then {"aucun"} else {_sab})]) call HMT_LOG;
     _vert
 };
 

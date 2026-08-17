@@ -66,7 +66,10 @@ if __name__ == '__main__':
     print('  ETENDUE (meilleure - pire graine) : %.1f points' % et)
     print('  ecart-type entre graines          : %.1f points' % sd)
     print('  moyenne                           : %.1f%%' % (sum(pr) / len(pr)))
-    print('  (rappel : tous les verdicts du 28/07 reposent sur la GRAINE 7 = %.1f%%)' % res[7]['prise'] if 7 in res else '')
+    # REVUE 17/08 : `res[s]['prise']` est une FRACTION (0-1) ; le %% l affichait 100 fois
+    # trop petit — une prise de 40 %% s imprimait « 0,4 %% » sur la ligne meme qui sert
+    # d ancrage aux verdicts du 28/07.
+    print('  (rappel : tous les verdicts du 28/07 reposent sur la GRAINE 7 = %.1f%%)' % (100 * res[7]['prise']) if 7 in res else '')
     print('')
     print('=== LECTURE (criteres figes) ===')
     if et <= 5:

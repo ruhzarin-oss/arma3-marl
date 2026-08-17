@@ -79,7 +79,11 @@ def jouer(e, choisir, garder=False):
         # cassait le telescopage. Terme SIGNE = faconnage par potentiel ⟨Ng, Harada & Russell
         # 1999⟩ : sa somme vaut k x (depart - arrivee), bornee, et il est PROUVE qu il ne
         # deplace pas la politique optimale. Il guide sans pouvoir mentir.
-        gagne = dprec - d                            # SIGNE : reculer coute ce qu avancer rapporte
+        # REVUE 17/08 : le theoreme ⟨Ng, Harada & Russell 1999⟩ invoque ci-dessus exige
+        # F = γ·Φ(s') − Φ(s). Le code payait Φ(s') − Φ(s), SANS le γ, alors que les retours
+        # sont actualises a 0,99 (ligne 119) : le telescopage ne tenait plus, et un
+        # aller-retour rapportait ~+0,026 net en retour actualise au lieu de zero.
+        gagne = dprec - 0.99 * d                     # SIGNE : reculer coute ce qu avancer rapporte
         dprec = d; dmin = torch.minimum(dmin, torch.where(fini, dmin, d))
         neuf = info["took"] & ~fini
         # 0,001 et non 0,01 : a 114 metres le guide valait 1,14, PLUS que le but a 1,0.
@@ -93,7 +97,12 @@ def jouer(e, choisir, garder=False):
         if bool(fini.all()):
             break
     stats = dict(prise=100.0 * float(pris.float().mean()),
-                 metres=float((d0 - dmin).mean()))
+                 # REVUE 17/08 : `d0 - dmin` est le point le PLUS PROFOND jamais atteint,
+                 # pas la position TENUE. Une politique qui pointe a 20 m au pas 30 puis se
+                 # terre affiche un maximum et fait PASSER G3 — precisement le comportement
+                 # que la porte pretend exclure. On rend les deux.
+                 metres=float((d0 - dmin).mean()),
+                 metres_tenus=float((d0 - dprec).mean()))
     return stats, lps, vals, rs, masques
 
 

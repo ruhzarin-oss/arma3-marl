@@ -6,7 +6,10 @@ S = []
 for f in sorted(glob.glob("/mnt/data/unite/s*.txt"), key=lambda x: int(re.search(r"s(\d+)", x).group(1))):
     t = open(f, errors="ignore").read()
     k = len(re.findall(r"\d+/6\s+vert=", t))
-    r = t.count("T5 IMMOBILE")
+    # REVUE 17/08 : `prevol.py` imprime chaque ecart DEUX fois (en ligne au tirage, puis
+    # dans la recapitulation), donc les rouges etaient comptes double : p_chapeau pouvait
+    # depasser 1, et alors p(1-p) <= 0 rendait le X2 negatif ou divisait par zero.
+    r = min(t.count("T5 IMMOBILE"), k)
     if k: S.append((int(re.search(r"s(\d+)", f).group(1)), k, r))
 tot_k = sum(k for _, k, _ in S); tot_r = sum(r for _, _, r in S)
 p = tot_r / tot_k

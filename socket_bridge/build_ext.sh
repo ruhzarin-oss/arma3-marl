@@ -20,9 +20,16 @@ echo "   exports :"; x86_64-w64-mingw32-objdump -p "$HERE/hmt_ext_x64.dll" 2>/de
 echo "== 3. Pose la DLL dans la racine du client Arma =="
 cp -v "$HERE/hmt_ext_x64.dll" "$ARMA_CLIENT/hmt_ext_x64.dll"
 
-echo "== 4. Dossier-pont /tmp/hmt_bridge (où Python écrit, où la DLL lit via Z:) =="
-mkdir -p /tmp/hmt_bridge
-echo "OK : /tmp/hmt_bridge prêt (Wine: Z:\\tmp\\hmt_bridge)"
+# REVUE 17/08 : ce script préparait /tmp/hmt_bridge (= Z:\tmp\hmt_bridge) alors que la DLL
+# lit C:\hmt_bridge (DEFAULT_BRIDGE dans hmt_ext_x64.c). fopen échouait donc, et son échec
+# renvoie "" — exactement le code de retour de « pas encore écrit ». Absence de fichier et
+# mauvais chemin étaient LE MÊME SIGNAL, et l'actuateur repollait indéfiniment.
+echo "== 4. Dossier-pont — ATTENTION AU CHEMIN =="
+echo "   la DLL ouvre  : C:\\hmt_bridge\\cmd_<N>.sqf   (DEFAULT_BRIDGE, hmt_ext_x64.c)"
+echo "   surchargeable : variable d'environnement HMT_BRIDGE_WIN"
+echo "   Ce script ne crée plus /tmp/hmt_bridge : ce chemin (Z:\\tmp\\hmt_bridge) n'est PAS"
+echo "   celui que la DLL lit. Crée le dossier dans le préfixe Proton (drive_c/hmt_bridge),"
+echo "   ou pose HMT_BRIDGE_WIN — et vérifie que Python écrit bien au même endroit."
 
 echo
 echo "PRÊT. Suite = test en jeu (voir README-SOCKET.md) :"

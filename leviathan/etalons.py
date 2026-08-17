@@ -205,6 +205,15 @@ def main():
     if not exigence:
         print("    l'exposimetre n'a PAS de sentinelle la ou il etait aveugle. Dit tel quel.", flush=True)
 
+    # REVUE 17/08 : `--verifier` SANS reference sautait la verification en silence, puis
+    # la branche `a.poser or not os.path.exists(REF)` POSAIT le run courant comme nouvel
+    # etalon, exit 0. Sur une machine neuve ou apres effacement, un monde derive devenait
+    # la reference et la nuit entiere validait la derive contre elle-meme.
+    if a.verifier and not os.path.exists(REF):
+        print("", flush=True)
+        print("  ⛔ --verifier SANS REFERENCE : il n'y a rien contre quoi vérifier.", flush=True)
+        print("     Utilise --poser explicitement si tu veux fixer l'étalon.", flush=True)
+        return 3
     if a.verifier and os.path.exists(REF):
         anc = json.load(open(REF))["etalons"]
         print("", flush=True)
@@ -231,7 +240,7 @@ def main():
             return 2
         print("  -> tous les etalons sont dans leur bande. On peut mesurer.", flush=True)
 
-    if a.poser or not os.path.exists(REF):
+    if a.poser or (not a.verifier and not os.path.exists(REF)):
         json.dump({"quand": time.strftime("%Y-%m-%d %H:%M"), "etalons": ref,
                    "exigence_110m": exigence, "agent": ptnom, "eval": a.eval},
                   open(REF, "w"), indent=1)

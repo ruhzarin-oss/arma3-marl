@@ -71,20 +71,32 @@ if __name__ == "__main__":
     print("  socle charge — mode %s, %d tirages" % (MODE, N), flush=True)
 
     verts, ech, det = 0, 0, []
+    sansrep = 0                      # REVUE 17/08 : les pannes de pont, comptees A PART
     for i in range(1, N + 1):
         if MODE == "compare":
             b.send(sans_commentaires(WAKE_NATIF if i % 2 else C.WAKE), wait=False); time.sleep(2)
         b.send('HMT_PV = nil; [] spawn { HMT_PV = [HMT_FR] call HMT_PREVOL; };', wait=False)
         r = None
+        # REVUE 17/08 : on lisait la DERNIERE ligne `HMT|PV|` du tampon, sans borne de
+        # fraicheur. Sur serveur charge, une ligne du tirage PRECEDENT (true/false, jamais
+        # « attente ») validait le tirage courant en 2 s pendant que son propre prevol
+        # tournait encore — les deux se superposaient sur les globales HMT_PV_COUPS.
+        # La reponse porte desormais le NUMERO du tirage.
+        _tag = "HMT|PV|%d|" % i
         for _ in range(40):
             time.sleep(1.5)
-            b.send('diag_log format ["HMT|PV|%1|%2", (if (isNil "HMT_PV") then {"attente"} else {HMT_PV}), HMT_SOCLE_VERSION];', wait=False)
+            if not getattr(b, "alive", True):
+                break
+            b.send('diag_log format ["HMT|PV|%d|%%1|%%2", (if (isNil "HMT_PV") then {"attente"} else {HMT_PV}), HMT_SOCLE_VERSION];' % i, wait=False)
             time.sleep(0.4)
-            ls = [L for L in b._log_lines(200) if "HMT|PV|" in L]
+            ls = [L for L in b._log_lines(200) if _tag in L]
             if ls and "attente" not in ls[-1]:
-                r = "true" in ls[-1].split("HMT|PV|")[1][:6]; break
+                r = "true" in ls[-1].split(_tag)[1][:6]; break
         if r is None:
-            ech += 1; det.append((i, "SANS REPONSE"))
+            # REVUE 17/08 : « SANS REPONSE » entrait dans le MEME compteur que les vrais
+            # rouges, puis « PORTE TOMBEE » (exit 4) : une panne du pont etait rendue
+            # comme un verdict sur la tactique. Elle est comptee a part.
+            sansrep += 1; det.append((i, "SANS REPONSE"))
         elif r:
             verts += 1
         else:
@@ -95,11 +107,15 @@ if __name__ == "__main__":
             det.append((i, e[-1].split("HMT|PVE|")[1][:110] if e else "?"))
         print("    %2d/%d  vert=%d  echec=%d%s" % (i, N, verts, ech,
               ("   ← " + det[-1][1][:70]) if det and det[-1][0] == i else ""), flush=True)
+        if sansrep >= 3:
+            print("\n  ⛔ TROIS TIRAGES SANS REPONSE : c'est le PONT qui est muet, pas la\n     porte. AUCUN verdict n'est rendu sur la tactique.", flush=True)
+            sys.exit(5)
         if MODE == "normal" and ech > MAX_ECHECS:
             print("\n  ⛔ COUPURE AU %dE ECHEC — la porte tombe, la nuit reste vide." % ech, flush=True); break
     sh("for p in $(pgrep -f arma3server_x64); do kill $p; done")
 
-    print("\n  ── %d tirages : %d verts, %d echecs ──" % (verts + ech, verts, ech), flush=True)
+    print("\n  ── %d tirages : %d verts, %d echecs, %d sans reponse ──"
+          % (verts + ech + sansrep, verts, ech, sansrep), flush=True)
     if MODE == "sabotage":
         if ech == 0:
             print("  ⛔ LE SABOTAGE N A RIEN FAIT ROUGIR. La porte ne mesure rien. ARRET TOTAL."); sys.exit(2)

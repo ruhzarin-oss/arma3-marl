@@ -18,6 +18,7 @@ class NativeBridge:
         self.sock = socket.create_connection((host, port), timeout=timeout)
         self.sock.settimeout(None)
         self.lines = deque(maxlen=50000)
+        self.alive = True      # REVUE 17/08 : le pont sait desormais dire qu il est mort
         self.counter = 0
         self._buf = b""
         self._lock = threading.Lock()
@@ -26,13 +27,16 @@ class NativeBridge:
         time.sleep(0.3)                                              # laisse arriver le HMT_SYNC
 
     def _read_loop(self):
+        # REVUE 17/08 : ce thread mourait en SILENCE (3e client de pont du depot avec le
+        # meme defaut). Apres sa mort, `query()` rend [] pour toujours et les appelants
+        # ecrivent la panne dans la mesure comme un fait du monde.
         while True:
             try:
                 data = self.sock.recv(65536)
             except Exception:
-                break
+                self.alive = False; break
             if not data:
-                break
+                self.alive = False; break
             self._buf += data
             while b"\n" in self._buf:
                 raw, self._buf = self._buf.split(b"\n", 1)
@@ -71,8 +75,13 @@ class NativeBridge:
         while time.time() - t0 < timeout:
             if self._last_recv() >= n:
                 return n
+            if not self.alive:
+                raise ConnectionError("pont MORT pendant l attente de l ordre %d" % n)
             time.sleep(0.02)
-        return n                                                     # best-effort (l'actuateur rattrape)
+        # REVUE 17/08 : on rendait `n` avec le commentaire « l actuateur rattrape ». Il ne
+        # rattrape PAS : apres un rechargement de mission l actuateur repart de 1 pendant
+        # que Python continue a 350, et l interblocage etait muet et documente comme normal.
+        raise TimeoutError("ordre %d NON acquitte apres %.1f s (desync du compteur ?)" % (n, timeout))
 
     def query(self, sqf, pattern, want=1, timeout=14, settle=0.03):
         """Lecture FIABLE corrélée à la cmd n (comme ArmaBridge.query). Renvoie la liste des re.Match."""
@@ -90,6 +99,10 @@ class NativeBridge:
                 last = res
                 if (want is None and res) or (want is not None and len(res) >= want):
                     return res[-want:] if want is not None else res
+        # REVUE 17/08 : `[]` signifiait A LA FOIS « Arma a repondu, rien ne correspond »
+        # et « personne n a repondu ». Les appelants ecrivaient la panne dans la mesure.
+        if not self.alive:
+            raise ConnectionError("pont MORT pendant la requete (motif %r)" % pattern)
         return (last[-want:] if want is not None else last) if last else []
 
     def close(self):

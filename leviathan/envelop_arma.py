@@ -48,7 +48,12 @@ def parse_sense(payload):
 def east_count(b):   # compte FIABLE des défenseurs (pour les métriques, indépendant de l'émission de positions)
     r = b.query('(format ["HARMATTAN_ECNT %1 %2", count (allUnits select {side _x==east}), count (allUnits select {side _x==east && alive _x})]) call HMT_EMIT;',
                 r"HARMATTAN_ECNT (\d+) (\d+)", want=1, timeout=10)
-    return (int(r[-1].group(1)), int(r[-1].group(2))) if r else (0, 0)
+    # REVUE 17/08 : `(0, 0)` = « zero defenseur, zero vivant » = pour un banc
+    # d enveloppement, l OBJECTIF ATTEINT. Une panne du pont s ecrivait dans la
+    # metrique comme une victoire. On refuse de rendre un chiffre non mesure.
+    if not r:
+        raise RuntimeError("east_count : aucune reponse d Arma — mesure REFUSEE")
+    return (int(r[-1].group(1)), int(r[-1].group(2)))
 
 
 def east_positions(b, fx, fy):   # positions des défenseurs pour la caméra

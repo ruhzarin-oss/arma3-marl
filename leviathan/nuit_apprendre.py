@@ -83,10 +83,16 @@ def evalue(net, nouveau, seed, doctrine=None):
         fini = fini | done.bool()
         if bool(fini.all()):
             break
-    gagne = (d0 - dmin).clamp(min=1.0)
+    # REVUE 17/08 : `gagne.clamp(min=1.0)` rendait le cout par metre OPTIMAL pour une
+    # escouade aneantie au pas 3 : `expo` cesse de s accumuler a la mort, et le
+    # denominateur etait ramene a 1 m. Le meilleur score du banc etait donc mourir vite.
+    # Les episodes qui n ont pas gagne de terrain SORTENT de la moyenne, et sont COMPTES.
+    gagne = d0 - dmin
+    _prog = gagne > 1.0
     return {'prise': float(pris.float().mean()),
             'pertes_par_prise': float(pertes[pris].mean()) if bool(pris.any()) else float('nan'),
-            'expo_par_metre': float(expo / gagne).__float__() if False else float((expo / gagne).mean())}
+            'expo_par_metre': float((expo[_prog] / gagne[_prog]).mean()) if bool(_prog.any()) else float('nan'),
+            'n_sans_progression': int((~_prog).sum())}
 
 
 def apprend(nouveau, seed, etiquette):

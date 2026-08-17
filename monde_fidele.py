@@ -130,10 +130,22 @@ def monde(replique=None, **kw):
     base = dict(MONDE_ARMA_REPLIQUE if replique else MONDE_ARMA)
     if replique:
         base["replica_path"] = replique
+    # REVUE 17/08 : l avertissement ne couvrait que les cles DEJA declarees dans
+    # MONDE_ARMA (une vingtaine), alors qu AssaultTerrain en accepte une soixantaine.
+    # `monde(hit=0.3)`, `monde(feu_de_zone=0.9)`, `monde(dmg_dead=0.4)` passaient donc
+    # SANS UN MOT — deux tiers des boutons du monde. Le docstring promet « kw ecrase,
+    # et le DIT » : il ne le disait que pour un tiers des cas.
     ecrases = {k: (base.get(k), v) for k, v in kw.items() if k in base and base[k] != v}
+    # `num_envs`, `device`, `seed`... sont de l infrastructure, pas des boutons de monde :
+    # les annoncer noierait l avertissement qui compte.
+    _INFRA = {"num_envs", "device", "seed", "replica_path", "max_steps"}
+    ajoutes = {k: v for k, v in kw.items() if k not in base and k not in _INFRA}
     if ecrases:
         print("  ⚠ le monde fidele est ECRASE sur : "
               + ", ".join(f"{k} {a} -> {b}" for k, (a, b) in ecrases.items()))
+    if ajoutes:
+        print("  ⚠ boutons POSES hors du monde fidele (absents de MONDE_ARMA) : "
+              + ", ".join(f"{k}={v}" for k, v in ajoutes.items()))
     base.update(kw)
     return AssaultTerrain(**base)
 

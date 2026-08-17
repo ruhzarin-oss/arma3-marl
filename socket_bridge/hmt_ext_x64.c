@@ -10,9 +10,11 @@
  *   - fichier présent  -> renvoie le SQF (que l'actuateur fait `call compile`)
  *   - fichier absent   -> renvoie "" (l'actuateur ré-essaie au tick suivant)
  *
- * Chemin lu : <HMT_BRIDGE_WIN>\cmd_<N>.sqf  (défaut Z:\tmp\hmt_bridge, surchargeable par var d'env).
- * Sous Wine/Proton, Z: = / par défaut -> Z:\tmp\hmt_bridge = /tmp/hmt_bridge côté Linux,
- * exactement là où le Python écrit. (OUT/obs inchangé : diag_log -> RPT.)
+ * Chemin lu : <HMT_BRIDGE_WIN>\cmd_<N>.sqf  (défaut C:\hmt_bridge, surchargeable par var d'env).
+ * REVUE 17/08 : ce commentaire annonçait Z:\tmp\hmt_bridge alors que DEFAULT_BRIDGE vaut
+ * C:\hmt_bridge depuis un changement plus récent (C: = drive_c du préfixe Proton, partagé
+ * HOST<->conteneur). build_ext.sh préparait le mauvais dossier. Le fichier absent et le
+ * mauvais chemin rendent tous deux "" : la panne est indiscernable de l'attente.
  *
  * Limite : callExtension plafonne la sortie à ~10240 octets. Les cmd_N.sqf du projet sont petits
  * (obs/actions) -> OK. Garde-fou : si le fichier dépasse, on tronque ET on signale "__TOOBIG__".

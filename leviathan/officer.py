@@ -32,9 +32,13 @@ def format_retrieved(passe):
     for e in passe:
         o = e.get("outcome") or {}
         act = (e["decision"].get("ordres") or [{}])[0].get("action", "?")
-        L.append("- sim %.2f : on a %s -> score %.2f (cibles %.0f%%, pertes %d)" %
+        # REVUE 17/08 : l en-tete annonce « résultat réel » alors que `run_real` SEME une
+        # lecon a l outcome invente. Le modele ne pouvait pas distinguer une lecon vecue
+        # d une lecon fabriquee par le demonstrateur. On le dit.
+        _sem = " ⚠ SEMÉE (démonstrateur, non vécue)" if (e["decision"] or {}).get("_semee") else ""
+        L.append("- sim %.2f : on a %s -> score %.2f (cibles %.0f%%, pertes %d)%s" %
                  (e.get("sim", 0), act, e.get("score") or 0,
-                  100 * o.get("cibles_intactes_frac", 0), o.get("pertes_amies", 0)))
+                  100 * o.get("cibles_intactes_frac", 0), o.get("pertes_amies", 0), _sem))
     return "\n".join(L)
 
 
@@ -69,7 +73,12 @@ def qwen_ollama(prompt, sit, model="qwen2.5:14b", url="http://localhost:11434/v1
         return json.loads(txt)
     except Exception:                                              # filet : extraire le 1er objet JSON
         m = _re.search(r"\{.*\}", txt, _re.DOTALL)
-        return json.loads(m.group(0)) if m else {"appreciation": txt[:200], "ordres": []}
+        if m:
+            return json.loads(m.group(0))
+        # REVUE 17/08 : on rendait {"ordres": []} — exactement ce que `stub_qwen` rend sur
+        # un theatre CALME. Une panne du modele se gravait dans la memoire comme une
+        # decision de ne rien faire, puis etait reinjectee comme lecon.
+        raise ValueError("Qwen n a pas rendu de JSON exploitable : %r" % txt[:200])
 
 
 def make_apply(driver):
@@ -77,11 +86,16 @@ def make_apply(driver):
     _pos = {f[0]: [f[1], f[2]] for f in FOBS}
     def apply(orders):
         if driver is None: return
+        # REVUE 17/08 : on prenait le PREMIER ordre de la liste et on jetait le reste ; le
+        # champ `priorite` que le prompt systeme EXIGE de Qwen n etait lu nulle part. Un
+        # ordre de priorite 5 place en tete l emportait sur une priorite 1 placee ensuite.
+        cand = [o for o in orders.get("ordres", [])
+                if o.get("action") in ("RENFORCER", "MASSER", "QRF")]
+        cand.sort(key=lambda o: o.get("priorite", 99))
         foc = None
-        for o in orders.get("ordres", []):
-            if o.get("action") in ("RENFORCER", "MASSER", "QRF"):
-                foc = o.get("cible") or _pos.get(o.get("fob"))
-                if foc: break
+        for o in cand:
+            foc = o.get("cible") or _pos.get(o.get("fob"))
+            if foc: break
         driver.focus = foc
     return apply
 
@@ -157,7 +171,7 @@ def run_real():
     # on sème UNE leçon passée (menace EST gérée par RENFORCER -> cibles tenues) pour la voir réinjectée
     s0 = _make_sit(0)
     e = mem.record("theatre", 0, 0.0, embed_theatre(s0), s0,
-                   decision={"ordres": [{"fob": "M3", "action": "RENFORCER"}]})
+                   decision={"_semee": True, "ordres": [{"fob": "M3", "action": "RENFORCER"}]})
     mem.set_outcome(e, {"cibles_intactes_frac": 1.0, "fobs_tenus_frac": 1.0,
                         "pertes_amies": 3, "pertes_ennemies": 9, "exposition": 0})
     loop = OfficerLoop(mem, qwen=qwen_ollama)
@@ -171,6 +185,16 @@ def run_real():
     valid = {f[0] for f in FOBS}
     bad = [o.get("fob") for o in orders.get("ordres", []) if o.get("fob") not in valid]
     print("NOMS INVENTÉS :", bad if bad else "AUCUN ✓ (grounding OK)")
+    # REVUE 17/08 : `bad` etait calcule, imprime, et JAMAIS juge — la ligne « VRAI QWEN
+    # OK » etait inconditionnelle. Qwen pouvait inventer les 25 noms de FOB et le
+    # terminal finissait quand meme sur un succes. Un test qui ne peut pas echouer ne
+    # teste rien.
+    if bad:
+        print("=== ÉCHEC : %d nom(s) de FOB inventé(s) — le grounding ne tient pas ===" % len(bad))
+        sys.exit(1)
+    if not orders.get("ordres"):
+        print("=== ÉCHEC : aucun ordre rendu sur un théâtre à 8 contacts sur M3 ===")
+        sys.exit(1)
     print("=== VRAI QWEN OK : SITREP+leçons -> ordres JSON exécutables ===")
 
 

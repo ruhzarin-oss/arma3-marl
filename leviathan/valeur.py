@@ -61,18 +61,28 @@ def transitions(path):
             it = f.get("intent", [0] * n)[i]
             s = etat(px, py, vu, terr.cover_at(px, py), na, w[3] if len(w) > 3 else 0.0, it)
             # récompense du pas : terrain gagné vers l'objectif, moins ce que l'exposition a coûté
+            _mort = 0.0
             if g["west"][i][2]:
                 qx, qy = g["west"][i][0] - fx, g["west"][i][1] - fy
                 gagne = math.hypot(px, py) - math.hypot(qx, qy)
             else:
+                # REVUE 17/08 : la mort ne coûtait que -8/14 - 0,35 ~ -0,92 UNE SEULE FOIS,
+                # quand tenir vingt pas à découvert coûte 20 x 0,35 = -7,0. Le retour d'un
+                # homme exposé qui meurt vite était donc PLUS ÉLEVÉ que celui d'un homme qui
+                # tient : la valeur apprenait que mourir est bon. La mort paie désormais AU
+                # MOINS ce que le pire survivant paierait sur les pas qui lui restaient.
                 gagne = -8.0                       # tombé : c'est cher
-            r = (gagne / 14.0) - 0.35 * vu         # le coût par mètre, converti en récompense de pas
+                _mort = 0.35 * ((len(F) - 1) - k)  # les pas qu'il ne paiera pas
+            r = (gagne / 14.0) - 0.35 * vu - _mort # le coût par mètre, converti en récompense de pas
             out.append((s, r, i, k))
     # bonus terminal : avoir pris l'objectif, et l'avoir pris avec du monde debout
     if m.get("took"):
         survie = (m.get("nag", 12) - m.get("west_losses", 0)) / max(m.get("nag", 12), 1)
         for j in range(len(out)):
-            if out[j][3] >= len(F) - 3:
+            # REVUE 17/08 : `k` va de 0 a len(F)-2, donc `>= len(F)-3` attrapait DEUX
+            # images par soldat : le bonus terminal etait verse deux fois (+6 au lieu
+            # de +3) et ecrasait le cout d exposition accumule.
+            if out[j][3] == len(F) - 2:
                 out[j] = (out[j][0], out[j][1] + 3.0 * survie, out[j][2], out[j][3])
     return out, bool(m.get("took"))
 

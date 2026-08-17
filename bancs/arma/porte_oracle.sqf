@@ -143,11 +143,21 @@ HMT_PO_JOUER = {
     private _cout = if (_gagnes > 1) then { _expo / _gagnes } else { -1 };
     private _vivants_fin = count (_att select { alive _x });
 
-    (format ["HMT|PO|rep|%1|bras|%2|beta|%3|cote|%4|pristenu|%5|prise|%6|tenue|%7|gagnes|%8|expo|%9|cout|%10|vivants|%11|defmorts|%12",
+    // REVUE 17/08 : la ligne ne portait ni la CAUSE DE FIN ni la duree, et `_tPrise` etait
+    // mesure (ligne 127) puis jete. `prise=0` confondait trois mondes : plafond atteint en
+    // marchant, bloque sur place, et tous morts. Le plafond frappe ASYMETRIQUEMENT les
+    // bras — le crochet depense ses pas en tangente — donc l ecart OR-AV etait gonfle par
+    // la cloche. On journalise la cause, l instant de prise et la duree.
+    private _cause = if (_prise == 1) then { "prise" } else {
+        if (_vivants_fin == 0) then { "aneanti" } else { "plafond" } };
+    (format ["HMT|PO|rep|%1|bras|%2|beta|%3|cote|%4|pristenu|%5|prise|%6|tenue|%7|gagnes|%8|expo|%9|cout|%10|vivants|%11|defmorts|%12|cause|%13|t_prise|%14|duree|%15",
              _rep, _bras, round _beta, _cote, _aPrisLeTenu, _prise, _tenue,
              round _gagnes, _expo,
              (if (_cout < 0) then { -1 } else { round (100 * _cout) / 100 }),
-             _vivants_fin, count (_defs select { !alive _x })]) call HMT_LOG;
+             _vivants_fin, count (_defs select { !alive _x }),
+             _cause,
+             (if (_tPrise < 0) then { -1 } else { round (_tPrise - _t0) }),
+             round (time - _t0)]) call HMT_LOG;
 
     { deleteVehicle _x } forEach _att; { deleteVehicle _x } forEach _defs;
     deleteGroup _ga; deleteGroup _gd;
