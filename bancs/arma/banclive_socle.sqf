@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "2.5.0-17082026";
+HMT_SOCLE_VERSION = "2.6.0-17082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -68,6 +68,84 @@ HMT_ARMER = {
     _u setUnitPos "UP";
     _u setVariable ["hmt_arme_declaree", true, true];
     ((currentWeapon _u) != "")                    // RELECTURE : l arme est-elle EN MAIN ?
+};
+
+// ─────────────────────────────────── BRIQUE 7 : LES POSITIONS DE LA SCENE, CERTIFIEES AVANT
+// ⚠️ LA SCENE NE TESTAIT RIEN — zero test compte dans `SCENE` (`banc_live.py`). Les huit
+// hommes de chaque episode naissaient au PUR HASARD autour de l objectif (`random 360`,
+// rayon `10 + random 25`), sans eau, sans hauteur, sans vue, sans praticabilite. Ce n est pas
+// mal choisir, c est NE PAS CHOISIR ⟨lecture du 17/08⟩.
+//
+// ⚠️ ET LE PREVOL NE LES TESTAIT PAS NON PLUS : T5 et T7 eprouvent un TEMOIN pose a 250-370 m
+// de la scene. Le placeur v2 garantit un bon lieu POUR LE TEMOIN, et rien pour ceux qui jouent.
+//
+// ⚠️ POURQUOI *AVANT* LA SCENE, ET EN PARALLELE ⟨plan de Fable⟩ :
+//   · le placeur v2 en serie sur 12 positions x 2 actes serait long ;
+//   · un test « leger » sur l ETAT est exclu — `path:true` a menti toute la semaine ;
+//   · et certifier DANS la scene vivante la CORROMPT : un homme qui tire renseigne le camp
+//     adverse, et `knowsAbout` est de CAMP et non de soldat.
+//   Avant la scene, personne n existe : rien a corrompre, personne a alerter. Une seule
+//   fenetre de traverse pour tous, une seule de tir. Cout ~15 s par episode.
+HMT_CERTIFIER_POSITIONS = {
+    params ["_positions", ["_duree", 4], ["_seuil", 23]];
+    private _gW = createGroup west; private _gE = createGroup east;
+    private _hs = []; private _ms = [];
+    {
+        private _u = _gW createUnit ["B_Soldier_F", [_x select 0, _x select 1, 0], [], 0, "NONE"];
+        // tout homme jetable est invulnerable ET neutre, uniformement
+        _u allowDamage false; _u setCaptive true;
+        _u disableAI "AUTOCOMBAT"; _u disableAI "FSM"; _u setBehaviour "CARELESS";
+        _u enableAI "PATH"; [_u] call HMT_ARMER;
+        private _m = _gE createUnit ["O_Soldier_F", [_x select 0, (_x select 1) + 40, 0], [], 0, "NONE"];
+        _m allowDamage false; _m setCaptive true;
+        _m disableAI "AUTOCOMBAT"; _m disableAI "FSM"; _m setBehaviour "CARELESS";
+        [_m] call HMT_ARMER;
+        _hs pushBack _u; _ms pushBack _m;
+    } forEach _positions;
+    sleep 2;
+    // ── ACTE 1 · TRAVERSE, TOUS EN MEME TEMPS, UNE SEULE FENETRE
+    private _p0 = _hs apply { getPosATL _x };
+    private _t0 = time;
+    while { time - _t0 < _duree } do { { _x setVelocity [0, 6, 0] } forEach _hs; sleep 0.1 };
+    private _met = [];
+    { _met pushBack (round ((_p0 select _forEachIndex) distance2D (getPosATL _x))) } forEach _hs;
+    // ── ACTE 2 · TIR, TOUS EN MEME TEMPS. On remet chacun a sa position d origine d abord.
+    { _x setPosATL (_p0 select _forEachIndex) } forEach _hs;
+    sleep 1;
+    HMT_CP_COUPS = []; { HMT_CP_COUPS pushBack 0 } forEach _hs;
+    private _ehs = [];
+    {
+        private _i = _forEachIndex;
+        _ehs pushBack (_x addEventHandler ["Fired", {
+            HMT_CP_COUPS set [(HMT_CP_I), (HMT_CP_COUPS select HMT_CP_I) + 1];
+        }]);
+    } forEach _hs;
+    private _t1 = time;
+    while { time - _t1 < _duree } do {
+        {
+            HMT_CP_I = _forEachIndex;
+            _x setDir (_x getDir (_ms select _forEachIndex));
+            _x doWatch (_ms select _forEachIndex);
+            _x forceWeaponFire [currentWeapon _x, currentMuzzle _x];
+        } forEach _hs;
+        sleep 0.33;
+    };
+    { _x removeEventHandler ["Fired", _ehs select _forEachIndex] } forEach _hs;
+    private _coups = +HMT_CP_COUPS;
+    { deleteVehicle _x } forEach _hs; { deleteVehicle _x } forEach _ms;
+    deleteGroup _gW; deleteGroup _gE;
+    // ── verdicts, un par position
+    private _v = [];
+    {
+        private _i = _forEachIndex;
+        _v pushBack [(if ((_met select _i) >= _seuil && (_coups select _i) >= 1) then {"recu"}
+                      else { if ((_met select _i) < _seuil) then {"encombre"} else {"muet"} }),
+                     _met select _i, _coups select _i];
+        (format ["HMT|SOCLE|SCENE_POS|i|%1|x|%2|y|%3|verdict|%4|metres|%5|coups|%6",
+                 _i, round (_x select 0), round (_x select 1),
+                 (_v select _i) select 0, _met select _i, _coups select _i]) call HMT_LOG;
+    } forEach _positions;
+    _v
 };
 
 // ─────────────────────────────────────────────── BRIQUE 6 : LES DEUX GESTES, UNE SEULE FOIS

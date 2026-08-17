@@ -69,17 +69,50 @@ def sh(c):
 
 SCENE = '''
 HMT_OBJ = [%f, %f, 0];
+
+// ═══ LES POSITIONS SONT CERTIFIEES AVANT QUE QUICONQUE NAISSE ⟨bloc C, plan de Fable⟩ ═══
+// La scene ne testait RIEN : les hommes naissaient au pur hasard, et le prevol ne les
+// eprouvait pas non plus — T5 et T7 testent un TEMOIN a 250-370 m de la. On certifie donc
+// ICI, AVANT la creation : personne n existe encore, donc rien a corrompre et personne a
+// alerter (un homme qui tire renseigne le camp adverse, et `knowsAbout` est de CAMP).
+//
+// ⚠️ LES ATTAQUANTS SE RE-TIRENT PAR L AZIMUT GLOBAL, JAMAIS POSITION PAR POSITION : leur
+// formation recopie celle du gymnase (`assault_terrain.py:316`) et la casser rendrait le
+// banc infidele. Les defenseurs, eux, sont deja aleatoires : re-tirage individuel.
+HMT_SCENE_REJETS = 0;
+private _az = random 360; private _posA = []; private _essaiAz = 0;
+while { _essaiAz < 6 } do {
+    _essaiAz = _essaiAz + 1; _posA = [];
+    for "_i" from 1 to %d do {
+        _posA pushBack [(HMT_OBJ select 0) + %f * sin _az + (((_i - 1) mod 2) * 6 - 3),
+                        (HMT_OBJ select 1) + %f * cos _az + ((_i - 2) * 6), 0];
+    };
+    private _v = [_posA] call HMT_CERTIFIER_POSITIONS;
+    private _ok = { (_x select 0) == "recu" } count _v;
+    (format ["HMT|SOCLE|SCENE_AZ|essai|%%1|az|%%2|recus|%%3|sur|%%4",
+             _essaiAz, round _az, _ok, count _posA]) call HMT_LOG;
+    if (_ok == count _posA) exitWith {};
+    HMT_SCENE_REJETS = HMT_SCENE_REJETS + 1;
+    _az = random 360;
+};
+
 private _gd = createGroup east; HMT_ENNEMI = [];
 for "_i" from 1 to %d do {
-    private _a = random 360; private _r = 10 + random 25;
-    private _p = [(HMT_OBJ select 0) + _r * sin _a, (HMT_OBJ select 1) + _r * cos _a, 0];
+    private _p = []; private _essai = 0;
+    while { _essai < 8 } do {
+        _essai = _essai + 1;
+        private _a = random 360; private _r = 10 + random 25;
+        _p = [(HMT_OBJ select 0) + _r * sin _a, (HMT_OBJ select 1) + _r * cos _a, 0];
+        private _v = [[_p]] call HMT_CERTIFIER_POSITIONS;
+        if (((_v select 0) select 0) == "recu") exitWith {};
+        HMT_SCENE_REJETS = HMT_SCENE_REJETS + 1;
+    };
     private _u = _gd createUnit ["O_Soldier_F", _p, [], 0, "NONE"];
     _u setPosATL _p; _u setSkill 0.5; _u disableAI "PATH";
     _u setBehaviour "COMBAT"; _u setCombatMode "RED"; _u allowFleeing 0;
     HMT_ENNEMI pushBack _u;
 };
 private _ga = createGroup west; HMT_FR = [];
-private _az = random 360;
 for "_i" from 1 to %d do {
     // ⚠️ LA FORMULE DU GYMNASE, RECOPIEE — assault_terrain.py:316. Ce n est pas un reglage.
     // Le banc formait UNE SEULE FILE le long de x : `apy` etait IDENTIQUE pour les huit
@@ -88,8 +121,9 @@ for "_i" from 1 to %d do {
     // 0,160 au gymnase, et 100 pourcent d action 2 sur Arma.
     // Le gymnase fait : apx = sx + (ar %% 2)*6 - 3  ·  apy = sy + (ar - 1)*6, avec ar = 0..7.
     // L indice SQF va de 1 a 8, donc ar = _i - 1.
-    private _p = [(HMT_OBJ select 0) + %f * sin _az + (((_i - 1) mod 2) * 6 - 3),
-                  (HMT_OBJ select 1) + %f * cos _az + ((_i - 2) * 6), 0];
+    // la position vient du jeu DEJA CERTIFIE ci-dessus — on ne la recalcule pas, sans quoi
+    // deux formules divergeraient sur la meme grandeur.
+    private _p = _posA select (_i - 1);
     private _u = _ga createUnit ["B_Soldier_F", _p, [], 0, "NONE"];
     _u setPosATL _p; _u setSkill 0.5;
     // PATH coupe : c est la politique qui pilote, par setVelocity — comme au gymnase.
@@ -130,7 +164,11 @@ if (HMT_BRAS == "natif") then {
 };
 diag_log format ["HARMATTAN_SCENE def=%%1 att=%%2 enmain=%%3", count HMT_ENNEMI, count HMT_FR,
   ({(currentWeapon _x) != ""} count HMT_FR)];
-'''.replace("HMT_BRAS", '"' + BRAS + '"') % (OBJ[0], OBJ[1], NDEF, NATT, DIST, DIST)
+'''.replace("HMT_BRAS", '"' + BRAS + '"') % (OBJ[0], OBJ[1], NATT, DIST, DIST, NDEF, NATT)
+# ⚠️ SEPT substituants depuis le bloc C, et dans un ORDRE NOUVEAU : la certification des
+# positions attaquantes vient AVANT la creation des defenseurs, donc `NATT` passe en 3e.
+# Un format positionnel qui change d ordre sans que le tuple suive donne un monde faux et
+# SILENCIEUX — un `%d` qui recoit une distance et un `%f` qui recoit un compte.
 
 ETAT = '''
 private _v = 0; private _dmin = 1e9;
