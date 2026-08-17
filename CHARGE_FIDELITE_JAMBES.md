@@ -1,6 +1,6 @@
 > ⛔ **CE DEPOT EST REFUTE.** Banc des jambes II du 17/08 (plan 2x2 lieu x comportement) :
 > sur un lieu certifie praticable, le corps rend **20,5 m sur 19,7**, soit **104 %**.
-> Le 62 % mesurait le TERRAIN, pas le corps. Voir .
+> Le 62 % mesurait le TERRAIN, pas le corps. Voir `VERDICT_CORPS_NON_LIMITE.md`.
 
 # CHARGE DE FIDÉLITÉ — le corps rend 62 % des jambes que le gymnase suppose
 
