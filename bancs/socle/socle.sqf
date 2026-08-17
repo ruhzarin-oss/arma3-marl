@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "2.6.0-17082026";
+HMT_SOCLE_VERSION = "2.6.1-17082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -269,6 +269,16 @@ HMT_G_PRATICABLE = {
     [_u2, "pilote"] call HMT_PILOTER;          // le mode SERVI, pas celui du temoin de T4
     _u2 allowDamage false;
     sleep 1.5;
+    // ⚠️ LE `reveal` AVAIT DISPARU DANS LE REFACTORING B1 — il vivait dans le bloc que
+    // `HMT_TIRER_C9` a remplace. Consequence immediate et mesuree : le placeur rendait
+    // « muet » sur des lieux a traverse 25 m et vue 1, DONC 0 lieu recu sur 60, et le banc
+    // des jambes II n a rien pu mesurer.
+    // ⚠️ CE QUE L ACCIDENT REVELE, et qui vaut plus que la panne : SANS `reveal`, L HOMME NE
+    // TIRE PAS. Or `arma_couture.py:ACT_TPL` (action 9) ne fait JAMAIS de `reveal` — c est la
+    // divergence certificateur/servi relevee par Fable le 17/08. Le certificateur tire parce
+    // qu on lui DONNE la cible ; l homme servi ne l a pas. Non mesure proprement : un accident
+    // n est pas une mesure, et B2 reste a faire.
+    _u2 reveal [_mm, 4];
     private _coups = [_u2, _mm, 4] call HMT_TIRER_C9;
     deleteVehicle _mm; deleteVehicle _u2; deleteGroup _gm; deleteGroup _g2;
     [(if (_coups >= 1) then {"recu"} else {"muet"}), round _m, _vue, _coups]
