@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "2.6.1-17082026";
+HMT_SOCLE_VERSION = "2.6.2-17082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -97,7 +97,8 @@ HMT_CERTIFIER_POSITIONS = {
         _u disableAI "AUTOCOMBAT"; _u disableAI "FSM"; _u setBehaviour "CARELESS";
         _u enableAI "PATH"; [_u] call HMT_ARMER;
         private _m = _gE createUnit ["O_Soldier_F", [_x select 0, (_x select 1) + 40, 0], [], 0, "NONE"];
-        _m allowDamage false; _m setCaptive true;
+        // meme faute evitee ici : la cible n est PAS `setCaptive`, sinon nul ne lui tire dessus
+        _m allowDamage false;
         _m disableAI "AUTOCOMBAT"; _m disableAI "FSM"; _m setBehaviour "CARELESS";
         [_m] call HMT_ARMER;
         _hs pushBack _u; _ms pushBack _m;
@@ -261,7 +262,12 @@ HMT_G_PRATICABLE = {
     // DUEL REEL. Un mannequin qui tue le testeur fabrique un « muet », donc rejette un bon
     // lieu — et il le fait preferentiellement dans les lieux OUVERTS, ou il voit et tire vite.
     // Le placeur biaisait donc CONTRE le degagement, exactement l inverse de ce qu on veut.
-    _mm allowDamage false; _mm setCaptive true;
+    // ⚠️ PAS DE `setCaptive` SUR LA CIBLE. Faute du bloc A1 : on m avait dit de COPIER le
+    // blindage de T7, j ai copie ET AJOUTE. Un homme « captive » est NEUTRE — il cesse d etre
+    // une cible, et le tireur ne tire plus. Mesure : le placeur rendait « muet » avec traverse
+    // 25 m, vue 1 et 0 coup, y compris apres avoir remis le `reveal`. Le blindage de T7
+    // (l.617-620) ne pose PAS `setCaptive`, et T7 tire.
+    _mm allowDamage false;
     _mm disableAI "AUTOCOMBAT"; _mm disableAI "FSM"; _mm setBehaviour "CARELESS";
     private _g2 = createGroup west;
     private _u2 = _g2 createUnit ["B_Soldier_F", [_x, _y, 0], [], 0, "NONE"];
