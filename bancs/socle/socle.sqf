@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "2.4.0-17082026";
+HMT_SOCLE_VERSION = "2.5.0-17082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -68,6 +68,41 @@ HMT_ARMER = {
     _u setUnitPos "UP";
     _u setVariable ["hmt_arme_declaree", true, true];
     ((currentWeapon _u) != "")                    // RELECTURE : l arme est-elle EN MAIN ?
+};
+
+// ─────────────────────────────────────────────── BRIQUE 6 : LES DEUX GESTES, UNE SEULE FOIS
+// ⚠️ « LES BANCS COMPOSENT AU LIEU DE REECRIRE » — et ce fichier portait TROIS copies de la
+// boucle de marche (acte 2, T5, et `arma_couture.py:ACT_TPL`) et DEUX du tir force (acte 3,
+// T7, plus la couture) ⟨lecture de Fable, 17/08⟩. Elles avaient DEJA diverge : 4 s contre
+// 3,28 s, arret au premier coup ici et duree pleine la, jeton present ou absent, telemetrie
+// ou pas. Chaque divergence est un ecart que personne ne mesure entre le certificateur et le
+// certifie.
+//
+// ⚠️ CHOIX DE FIDELITE : `HMT_TIRER_C9` tire PENDANT TOUTE LA DUREE et ne s arrete pas au
+// premier coup. L acte 3 s arretait au premier — c est une economie qui change le test, et
+// l action 9 de la couture, elle, tire sans s arreter. On paie les 4 s ⟨regle 6⟩.
+
+HMT_MARCHER = {
+    params ["_u", "_duree", ["_vy", 6]];
+    private _p0 = getPosATL _u; private _t0 = time; private _nt = 0;
+    while { alive _u && time - _t0 < _duree } do {
+        _u setVelocity [0, _vy, 0]; _nt = _nt + 1; sleep 0.1;
+    };
+    [_p0 distance2D (getPosATL _u), _nt]      // [metres, iterations]
+};
+
+HMT_TIRER_C9 = {
+    params ["_u", "_cible", "_duree"];
+    HMT_C9_COUPS = 0;
+    private _eh = _u addEventHandler ["Fired", { HMT_C9_COUPS = HMT_C9_COUPS + 1 }];
+    private _t0 = time;
+    while { alive _u && time - _t0 < _duree } do {
+        _u setDir (_u getDir _cible); _u doWatch _cible;
+        _u forceWeaponFire [currentWeapon _u, currentMuzzle _u];
+        sleep 0.33;
+    };
+    _u removeEventHandler ["Fired", _eh];
+    HMT_C9_COUPS
 };
 
 // ─────────────────────────────────────────────── BRIQUE 5 : LE LIEU SE JUGE A L ACTE
@@ -125,9 +160,7 @@ HMT_G_PRATICABLE = {
     // le test doit rendre « encombre ».
     private _vy = 6;
     if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "traverse") then { _vy = 0 };
-    private _p0 = getPosATL _u; private _t0 = time;
-    while { alive _u && time - _t0 < 4 } do { _u setVelocity [0, _vy, 0]; sleep 0.1 };
-    private _m = _p0 distance2D (getPosATL _u);
+    private _m = ([_u, 4, _vy] call HMT_MARCHER) select 0;
     deleteVehicle _u; deleteGroup _g;
     // ⚠️ SEUIL A 23 m, ET LA RAISON NE REGARDE PAS LES RESULTATS ⟨regle 13⟩ :
     // UN PLACEUR NE DOIT JAMAIS ETRE PLUS INDULGENT QUE LE TEST QU IL PREPARE.
@@ -158,19 +191,7 @@ HMT_G_PRATICABLE = {
     [_u2, "pilote"] call HMT_PILOTER;          // le mode SERVI, pas celui du temoin de T4
     _u2 allowDamage false;
     sleep 1.5;
-    HMT_PL_COUPS = 0;
-    private _eh = _u2 addEventHandler ["Fired", { HMT_PL_COUPS = HMT_PL_COUPS + 1 }];
-    // ⚠️ LEVIER : `HMT_SABOTER = "tir"` vide l arme du testeur — aucun lieu ne doit passer.
-    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "tir") then { _u2 setVehicleAmmo 0 };
-    _u2 reveal [_mm, 4];
-    private _t1 = time;
-    while { alive _u2 && time - _t1 < 4 && HMT_PL_COUPS < 1 } do {
-        _u2 setDir (_u2 getDir _mm); _u2 doWatch _mm;
-        _u2 forceWeaponFire [currentWeapon _u2, currentMuzzle _u2];
-        sleep 0.33;
-    };
-    _u2 removeEventHandler ["Fired", _eh];
-    private _coups = HMT_PL_COUPS;
+    private _coups = [_u2, _mm, 4] call HMT_TIRER_C9;
     deleteVehicle _mm; deleteVehicle _u2; deleteGroup _gm; deleteGroup _g2;
     [(if (_coups >= 1) then {"recu"} else {"muet"}), round _m, _vue, _coups]
 };
@@ -377,6 +398,14 @@ HMT_PREVOL = {
     HMT_PV_COUPS = 0;
     private _eh = _t addEventHandler ["Fired", { HMT_PV_COUPS = HMT_PV_COUPS + 1 }];
     private _t0 = time;
+    // ⚠️ TROISIEME COPIE DU TIR, DECLAREE ET NON FACTORISEE ⟨lecture de Fable, 17/08⟩.
+    // T4 n appelle PAS `HMT_TIRER_C9` parce qu il n emploie pas le meme canal : son temoin
+    // GARDE `AUTOCOMBAT` (sans quoi rien ne part — mesure du 16/08) et sa boucle fait
+    // `doTarget`, que ni l action 9 ni `HMT_TIRER_C9` ne font. Les aligner SANS MESURE serait
+    // regler une divergence « par defaut », ce qui est precisement interdit : elle se regle
+    // par UNE mesure — T4 passe-t-il avec `HMT_TIRER_C9` et sans `doTarget` ? — puis
+    // alignement. Non mesuree a ce jour. T4 rend 0 echec sur 72 dans la sonde d unite ;
+    // on ne touche pas a un test qui tient sans savoir ce qu on casse.
     // fenetre de 12 s, alignee sur la latence MESUREE de l IA (coups a 4-19 en 8 s,
     // balayages du 15/08). Le seuil reste 1 balle : c est la fenetre qui etait trop courte.
     while { time - _t0 < 12 } do { _t doWatch _mann; _t doTarget _mann;
@@ -437,24 +466,9 @@ HMT_PREVOL = {
     // 10 Hz et ne comptait rien. Or un serveur charge emet moins d impulsions dans la meme
     // fenetre : le reveil met huit hommes en IA complete, et T5 rougit 17 fois sur 20 avec
     // reveil contre 2 sur 12 sans. `nt` et `fps` disent si c est la cadence qui tombe.
-    private _nt = 0;
-    private _p0 = getPosATL _t; private _t1 = time;
-    // ⚠️ LE JOURNAL DU GESTE ⟨une passe, quatre causes⟩. 1 m en 4 s n est pas 9 m : ce n est
-    // pas un homme sans jambes, c est un homme qui ne bouge PAS. Quatre causes possibles,
-    // et chacune ecrit une signature differente ici :
-    //   (a) POSTURE  — couche/genou apres avoir tire en T4 : anim contient Ppne/Pknl
-    //   (b) IA       — re-engagement : conduite = COMBAT et la vitesse relue retombe a 0
-    //   (c) OBSTACLE — vitesse relue = 6 mais deplacement nul
-    //   (d) FIGE     — vitesse relue = 0 des la 1re relecture (impulsion jamais appliquee)
-    private _vrelue = []; private _anims = [];
-    while { time - _t1 < 4 } do {
-      _t setVelocity [0, 6, 0];
-      _nt = _nt + 1;
-      _vrelue pushBack (round (10 * ((velocity _t) select 1)) / 10);
-      _anims pushBack (animationState _t);
-      sleep 0.1;
-    };
-    private _m = _p0 distance2D (getPosATL _t);
+    private _mnt = [_t, 4] call HMT_MARCHER;
+    private _m = _mnt select 0; private _nt = _mnt select 1;
+
     (format ["HMT|SOCLE|GESTE|m|%1|v_apres|%2|v_mediane|%3|v_fin|%4|conduite|%5|anim0|%6|anim9|%7|animfin|%8|posture|%9|sol|%10",
              round _m,
              _vrelue select 0,
@@ -517,16 +531,8 @@ HMT_PREVOL = {
     _m7 allowDamage false; _m7 disableAI "PATH"; _m7 disableAI "AUTOCOMBAT";
     _m7 setBehaviour "CARELESS";
     sleep 1.5;
-    HMT_PV_C7 = 0;
-    private _eh7 = _u7 addEventHandler ["Fired", { HMT_PV_C7 = HMT_PV_C7 + 1 }];
     _u7 reveal [_m7, 4];
-    private _tt7 = time;
-    while { time - _tt7 < 4 } do {
-        _u7 setDir (_u7 getDir _m7); _u7 doWatch _m7;
-        _u7 forceWeaponFire [currentWeapon _u7, currentMuzzle _u7];
-        sleep 0.33;
-    };
-    _u7 removeEventHandler ["Fired", _eh7];
+    HMT_PV_C7 = [_u7, _m7, 4] call HMT_TIRER_C9;
     private _a7 = _u7 checkAIFeature "AUTOCOMBAT";
     (format ["HMT|SOCLE|T7|coups|%1|autocombat_reel|%2|fsm|%3|arme|%4|vue|%5",
              HMT_PV_C7, _a7, _u7 checkAIFeature "FSM", currentWeapon _u7,
