@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "2.3.0-17082026";
+HMT_SOCLE_VERSION = "2.4.0-17082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -232,6 +232,17 @@ HMT_POSER_HOMME = {
 // pose a chaque phase ; python lit l etape et sait ou ca s est arrete.
 HMT_PV_ETAPE = "neant";
 HMT_PREVOL = {
+    // ⚠️ LE JETON DE GENERATION ⟨lecture de Fable, 17/08⟩. `prevol.py` attendait sous un
+    // plafond GLOBAL (40 x 1,9 s) un prevol de duree VARIABLE (~30 s fixes + ~5,5 s par
+    // candidat atteignant l acte 2, plus les duels). Au depassement, python enchainait
+    // PENDANT QUE LE SPAWN TOURNAIT ENCORE : deux `HMT_PREVOL` simultanes ecrivaient alors
+    // dans les memes globales (`HMT_PV`, `HMT_PL_COUPS`, `HMT_PV_COUPS`). La revue avait
+    // corrige la LECTURE (marqueur numerote) et pas la SUPERPOSITION.
+    // La couture a resolu cette classe exacte avec `HMT_NORDRE` (`arma_couture.py:175`) ;
+    // le prevol ne l avait jamais adopte. Un prevol dont la generation a ete depassee
+    // s ARRETE au lieu d ecrire par-dessus son successeur.
+    HMT_PV_GEN = (missionNamespace getVariable ["HMT_PV_GEN", 0]) + 1;
+    private _gen = HMT_PV_GEN;
     HMT_PV_ETAPE = "depart"; HMT_PV_T0 = time;
     params ["_hommes"];
     private _ec = [];
@@ -287,6 +298,7 @@ HMT_PREVOL = {
         (format ["HMT|SOCLE|LIEU_FORCE|x|%1|y|%2|pente|%3", round (_pt select 0),
                  round (_pt select 1), round (100 * _meilleure) / 100]) call HMT_LOG;
     };
+    if (HMT_PV_GEN != _gen) exitWith { ("HMT|SOCLE|PREVOL|ABANDONNE|gen|" + str _gen) call HMT_LOG; false };
     HMT_PV_ETAPE = "placeur";
     if (isNil "HMT_LIEU_FORCE") then {
         // 24 candidats, MELANGES : angles k*15, rayons 250 a 370. On ne cherche plus le
@@ -358,6 +370,7 @@ HMT_PREVOL = {
         _k = _k + 1;
     };
     if (_vu < 0.3) then { _ec pushBack format ["T4 PLACE SANS VUE : 12 essais, meilleure vue %1", round (100*_vu)/100] };
+    if (HMT_PV_GEN != _gen) exitWith { ("HMT|SOCLE|PREVOL|ABANDONNE|gen|" + str _gen) call HMT_LOG; false };
     HMT_PV_ETAPE = "T4";
     _t reveal [_mann, 4];
     sleep 2;
@@ -414,6 +427,7 @@ HMT_PREVOL = {
     };
     sleep 0.5;
 
+    if (HMT_PV_GEN != _gen) exitWith { ("HMT|SOCLE|PREVOL|ABANDONNE|gen|" + str _gen) call HMT_LOG; false };
     HMT_PV_ETAPE = "T5";
     // T5 · un homme PARCOURT du terrain (setVelocity est une IMPULSION, pas une consigne)
     _t doTarget objNull; _t doWatch objNull;
@@ -478,6 +492,7 @@ HMT_PREVOL = {
     // ⚠️ Et il RELEVE `AUTOCOMBAT` reellement actif : `ANOMALIE_AUTOCOMBAT.md` dit que
     // l ordre ne prend pas sur les attaquants. Si l homme servi tire, c est ou bien par ce
     // canal, ou bien par une faculte qu on croit coupee. T7 dit lequel.
+    if (HMT_PV_GEN != _gen) exitWith { ("HMT|SOCLE|PREVOL|ABANDONNE|gen|" + str _gen) call HMT_LOG; false };
     HMT_PV_ETAPE = "T7";
     private _g7 = createGroup west;
     // ⚠️ T7 TESTE LE LIEU QUE LE PLACEUR A VALIDE, PAS SIX METRES A COTE.
@@ -534,6 +549,7 @@ HMT_PREVOL = {
     HMT_PV_LIEU = [_pt select 0, _pt select 1,
                    surfaceIsWater [_pt select 0, _pt select 1], _meilleure];
 
+    HMT_PV_ETAPE = "fini";
     private _vert = (count _ec == 0);
     // ⚠️ REVUE 17/08 : `HMT_SABOTER` est une globale de missionNamespace que RIEN ne
     // remet a zero. Un banc qui la pose puis plante la laisse en place, et TOUTES les

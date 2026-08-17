@@ -41,7 +41,13 @@ def sh(c): subprocess.run(c, shell=True, executable="/bin/bash")
 if __name__ == "__main__":
     C.CX, C.CY = OBJ; C.SCALE = 200.0; C.FIRE_RANGE = 110.0; C.MOVE_SPD = 6.0
     open(LOG, "w").close()
-    sh("for p in $(pgrep -f arma3server_x64); do kill $p; done"); time.sleep(4)
+    # ⚠️ ON NE TUE QUE CE QU ON A LANCE ⟨cliquet du 17/08, machine PARTAGEE⟩. `pgrep -f
+    # arma3server_x64` tue tout serveur x64 de la machine, y compris ceux d une autre session.
+    MES_PIDS = []
+    def tuer_les_miens():
+        for pid in MES_PIDS: subprocess.run("kill %d 2>/dev/null" % pid, shell=True)
+        MES_PIDS.clear()
+    tuer_les_miens(); time.sleep(4)
     print("  serveur...", flush=True)
     sh("cd '%s/arma3server' && HMT_EXT_PORT=%d LD_LIBRARY_PATH=.:./linux64 setsid "
        "./arma3server_x64 -config='%s/staging/serverLV.cfg' -profiles='%s/profilesLV' "
@@ -49,7 +55,11 @@ if __name__ == "__main__":
        "-mod='@CBA_A3;@rhsusaf;@rhsafrf;@LAMBS_Danger;@PinnedDown_BattleLines;@PinnedDown_CoverConcealment' "
        ">> '%s' 2>&1 < /dev/null & disown" % (SB, EXT, SB, SB, PORT, LOG))
     print('  echauffement : %d s' % CHAUD, flush=True)
-    time.sleep(CHAUD)
+    time.sleep(2)
+    MES_PIDS.extend(int(x) for x in subprocess.run(
+        "pgrep -f arma3server_x64", shell=True, capture_output=True, text=True).stdout.split())
+    print("  mes serveurs : %s" % MES_PIDS, flush=True)
+    time.sleep(max(CHAUD - 2, 0))
     b = SocketBridge(EXT); time.sleep(3)
     b.send(sans_commentaires(SCENE), wait=False)
     time.sleep(6)
@@ -98,7 +108,12 @@ if __name__ == "__main__":
         if MODE == "compare":
             b.send(sans_commentaires(WAKE_NATIF if i % 2 else C.WAKE), wait=False); time.sleep(2)
         b.send('HMT_PV = nil; [] spawn { HMT_PV = [HMT_FR] call HMT_PREVOL; };', wait=False)
-        r = None
+        # ⚠️ TIMEOUT PAR ETAPE ⟨lecture de Fable⟩. Le plafond etait GLOBAL contre un prevol
+        # de duree VARIABLE : au depassement on enchainait sur un prevol encore vivant. On
+        # suit desormais `HMT_PV_ETAPE` — tant qu elle AVANCE on attend, si elle STAGNE c est
+        # un plante, si elle ne repond pas du tout c est le pont. Trois causes, trois causes
+        # nommees, au lieu d un « muet » indistinct qui mangeait 17 % de la mesure.
+        r = None; etape = None; fige = 0
         # REVUE 17/08 : on lisait la DERNIERE ligne `HMT|PV|` du tampon, sans borne de
         # fraicheur. Sur serveur charge, une ligne du tirage PRECEDENT (true/false, jamais
         # « attente ») validait le tirage courant en 2 s pendant que son propre prevol
@@ -111,6 +126,12 @@ if __name__ == "__main__":
                 break
             b.send('diag_log format ["HMT|PV|%d|%%1|%%2", (if (isNil "HMT_PV") then {"attente"} else {HMT_PV}), HMT_SOCLE_VERSION];' % i, wait=False)
             time.sleep(0.4)
+            b.send('diag_log format ["HMT|ET|%1", HMT_PV_ETAPE];', wait=False)
+            time.sleep(0.3)
+            _e = [L for L in b._log_lines(120) if "HMT|ET|" in L]
+            _cur = _e[-1].split("HMT|ET|")[1][:20].strip().strip('"') if _e else None
+            if _cur == etape: fige += 1
+            else: etape, fige = _cur, 0
             ls = [L for L in b._log_lines(200) if _tag in L]
             if ls and "attente" not in ls[-1]:
                 r = "true" in ls[-1].split(_tag)[1][:6]; break
@@ -118,7 +139,10 @@ if __name__ == "__main__":
             # REVUE 17/08 : « SANS REPONSE » entrait dans le MEME compteur que les vrais
             # rouges, puis « PORTE TOMBEE » (exit 4) : une panne du pont etait rendue
             # comme un verdict sur la tactique. Elle est comptee a part.
-            sansrep += 1; det.append((i, "SANS REPONSE"))
+            cause = ("SANS REPONSE / PONT MUET (aucune etape lue)" if etape is None else
+                     ("SANS REPONSE / PREVOL PLANTE a l etape %s" % etape if fige >= 12
+                      else "SANS REPONSE / PREVOL LENT, etape %s" % etape))
+            sansrep += 1; det.append((i, cause))
         elif r:
             verts += 1
         else:
@@ -135,7 +159,7 @@ if __name__ == "__main__":
         if MODE == "normal" and ech > MAX_ECHECS:
             print("\n  ⛔ COUPURE AU %dE ECHEC — la porte tombe, la nuit reste vide." % ech, flush=True); break
     pont("fin")
-    sh("for p in $(pgrep -f arma3server_x64); do kill $p; done")
+    tuer_les_miens()
 
     print("\n  ── %d tirages : %d verts, %d echecs, %d sans reponse ──"
           % (verts + ech + sansrep, verts, ech, sansrep), flush=True)
