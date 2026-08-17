@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "2.2.0-17082026";
+HMT_SOCLE_VERSION = "2.3.0-17082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -107,6 +107,11 @@ HMT_G_PRATICABLE = {
     [_u] call HMT_ARMER;
     [_u, "statue"] call HMT_PILOTER;      // ni IA de combat ni decision : on teste le TERRAIN
     _u enableAI "PATH";                   // ...mais les JAMBES restent, sinon on mesure une statue
+    // ⚠️ TOUT HOMME JETABLE EST INVULNERABLE, UNIFORMEMENT ⟨lecture de Fable, 17/08⟩.
+    // La scene cree ses defenseurs en COMBAT/RED avec `AUTOCOMBAT` actif des la naissance, et
+    // les lieux candidats sont a 80-540 m de l objectif — DANS LA PORTEE. Un testeur abattu en
+    // pleine traverse rend « encombre », et le placeur rejette alors un lieu qui allait bien.
+    _u allowDamage false;
     _u setDir 0;
     sleep 1.5;
     // ⚠️ LE LEVIER DE SABOTAGE ⟨regle 18⟩ : sans lui, « le placeur accepte » ne prouve pas
@@ -140,10 +145,18 @@ HMT_G_PRATICABLE = {
     private _gm = createGroup east;
     private _mm = _gm createUnit ["O_Soldier_F", [_x, _y + 40, 0], [], 0, "NONE"];
     [_mm] call HMT_ARMER;
+    // ⚠️ RECIDIVE : la revue avait blinde T7 le meme jour, et personne n a transpose ici.
+    // Le mannequin etait ARME et en IA LIBRE, le testeur sans protection : quatre secondes de
+    // DUEL REEL. Un mannequin qui tue le testeur fabrique un « muet », donc rejette un bon
+    // lieu — et il le fait preferentiellement dans les lieux OUVERTS, ou il voit et tire vite.
+    // Le placeur biaisait donc CONTRE le degagement, exactement l inverse de ce qu on veut.
+    _mm allowDamage false; _mm setCaptive true;
+    _mm disableAI "AUTOCOMBAT"; _mm disableAI "FSM"; _mm setBehaviour "CARELESS";
     private _g2 = createGroup west;
     private _u2 = _g2 createUnit ["B_Soldier_F", [_x, _y, 0], [], 0, "NONE"];
     private _enmain = [_u2] call HMT_ARMER;
     [_u2, "pilote"] call HMT_PILOTER;          // le mode SERVI, pas celui du temoin de T4
+    _u2 allowDamage false;
     sleep 1.5;
     HMT_PL_COUPS = 0;
     private _eh = _u2 addEventHandler ["Fired", { HMT_PL_COUPS = HMT_PL_COUPS + 1 }];
@@ -213,7 +226,13 @@ HMT_POSER_HOMME = {
 //  LE PREVOL — il RELIT le monde. Pas de prevol vert, pas d episode.
 //  Chaque test porte le nom de la faute qui l a fait naitre.
 // ═══════════════════════════════════════════════════════════════════════════
+// ⚠️ LE BATTEMENT DE COEUR ⟨lecture de Fable⟩. Un prevol qui ne repond pas est aujourd hui
+// indistinctement : le pont mort, le prevol LENT, ou le prevol PLANTE. Un instrument qui perd
+// 17 % de sa mesure sans savoir lequel des trois n est pas certifiable. `HMT_PV_ETAPE` est
+// pose a chaque phase ; python lit l etape et sait ou ca s est arrete.
+HMT_PV_ETAPE = "neant";
 HMT_PREVOL = {
+    HMT_PV_ETAPE = "depart"; HMT_PV_T0 = time;
     params ["_hommes"];
     private _ec = [];
 
@@ -268,6 +287,7 @@ HMT_PREVOL = {
         (format ["HMT|SOCLE|LIEU_FORCE|x|%1|y|%2|pente|%3", round (_pt select 0),
                  round (_pt select 1), round (100 * _meilleure) / 100]) call HMT_LOG;
     };
+    HMT_PV_ETAPE = "placeur";
     if (isNil "HMT_LIEU_FORCE") then {
         // 24 candidats, MELANGES : angles k*15, rayons 250 a 370. On ne cherche plus le
         // meilleur, on prend LE PREMIER RECU.
@@ -338,6 +358,7 @@ HMT_PREVOL = {
         _k = _k + 1;
     };
     if (_vu < 0.3) then { _ec pushBack format ["T4 PLACE SANS VUE : 12 essais, meilleure vue %1", round (100*_vu)/100] };
+    HMT_PV_ETAPE = "T4";
     _t reveal [_mann, 4];
     sleep 2;
     HMT_PV_COUPS = 0;
@@ -393,6 +414,7 @@ HMT_PREVOL = {
     };
     sleep 0.5;
 
+    HMT_PV_ETAPE = "T5";
     // T5 · un homme PARCOURT du terrain (setVelocity est une IMPULSION, pas une consigne)
     _t doTarget objNull; _t doWatch objNull;
     // ⚠️ LE CLIQUET DU BANC DES JAMBES, QUE JE N AVAIS PAS TRANSPOSE ICI. Ce banc a etabli
@@ -456,6 +478,7 @@ HMT_PREVOL = {
     // ⚠️ Et il RELEVE `AUTOCOMBAT` reellement actif : `ANOMALIE_AUTOCOMBAT.md` dit que
     // l ordre ne prend pas sur les attaquants. Si l homme servi tire, c est ou bien par ce
     // canal, ou bien par une faculte qu on croit coupee. T7 dit lequel.
+    HMT_PV_ETAPE = "T7";
     private _g7 = createGroup west;
     // ⚠️ T7 TESTE LE LIEU QUE LE PLACEUR A VALIDE, PAS SIX METRES A COTE.
     // Porte du 17/08 : 23 echecs T7 sur 40, et le releve du socle SEPARE PARFAITEMENT —
