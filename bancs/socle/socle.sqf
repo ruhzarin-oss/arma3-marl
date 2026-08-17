@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "2.0.0-17082026";
+HMT_SOCLE_VERSION = "2.1.0-17082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -124,7 +124,42 @@ HMT_G_PRATICABLE = {
     while { alive _u && time - _t0 < 4 } do { _u setVelocity [0, _vy, 0]; sleep 0.1 };
     private _m = _p0 distance2D (getPosATL _u);
     deleteVehicle _u; deleteGroup _g;
-    [(if (_m >= 18) then {"recu"} else {"encombre"}), round _m, _vue]
+    // ⚠️ SEUIL A 23 m, ET LA RAISON NE REGARDE PAS LES RESULTATS ⟨regle 13⟩ :
+    // UN PLACEUR NE DOIT JAMAIS ETRE PLUS INDULGENT QUE LE TEST QU IL PREPARE.
+    // T5 attend 24 m (6 m/s x 4 s). Le v2 exigeait 18 — une remise de 25 % que rien ne
+    // justifiait, et qui n etait qu un chiffre rond. Le seuil est le NOMINAL moins la seule
+    // tolerance de mesure. Ca RESSERRE, donc c est licite.
+    if (_m < 23) exitWith { deleteVehicle _u; deleteGroup _g; ["encombre", round _m, _vue, 0] };
+
+    // ── ACTE 3 · UN HOMME DANS LE MODE *SERVI* TIRE-T-IL DEPUIS CE LIEU ?
+    // ⚠️ LE PLACEUR VERIFIAIT QU ON VOIT, JAMAIS QU ON TIRE. Porte du 17/08 : une fois le
+    // deplacement borne, T7 est devenu le canal dominant — 17 echecs sur 50 — et rien dans
+    // le placeur ne le couvrait. Voir/tirer ne sont pas la meme chose : l homme SERVI a
+    // `AUTOCOMBAT` coupe (`arma_couture.py:27`) et emprunte le canal de l action 9.
+    // On rejoue donc ce canal EXACT, sur un homme dans le mode SERVI ⟨regle 6⟩.
+    private _gm = createGroup east;
+    private _mm = _gm createUnit ["O_Soldier_F", [_x, _y + 40, 0], [], 0, "NONE"];
+    [_mm] call HMT_ARMER;
+    private _g2 = createGroup west;
+    private _u2 = _g2 createUnit ["B_Soldier_F", [_x, _y, 0], [], 0, "NONE"];
+    private _enmain = [_u2] call HMT_ARMER;
+    [_u2, "pilote"] call HMT_PILOTER;          // le mode SERVI, pas celui du temoin de T4
+    sleep 1.5;
+    HMT_PL_COUPS = 0;
+    private _eh = _u2 addEventHandler ["Fired", { HMT_PL_COUPS = HMT_PL_COUPS + 1 }];
+    // ⚠️ LEVIER : `HMT_SABOTER = "tir"` vide l arme du testeur — aucun lieu ne doit passer.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "tir") then { _u2 setVehicleAmmo 0 };
+    _u2 reveal [_mm, 4];
+    private _t1 = time;
+    while { alive _u2 && time - _t1 < 4 && HMT_PL_COUPS < 1 } do {
+        _u2 setDir (_u2 getDir _mm); _u2 doWatch _mm;
+        _u2 forceWeaponFire [currentWeapon _u2, currentMuzzle _u2];
+        sleep 0.33;
+    };
+    _u2 removeEventHandler ["Fired", _eh];
+    private _coups = HMT_PL_COUPS;
+    deleteVehicle _mm; deleteVehicle _u2; deleteGroup _gm; deleteGroup _g2;
+    [(if (_coups >= 1) then {"recu"} else {"muet"}), round _m, _vue, _coups]
 };
 
 // ─────────────────────────────────────────────── BRIQUE 3 : LE PILOTAGE
