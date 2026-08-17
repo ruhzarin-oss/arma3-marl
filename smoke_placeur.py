@@ -66,8 +66,13 @@ if __name__ == "__main__":
 
     print("\n  ══ A · SAIT-IL REFUSER ? (sabotage des jambes du testeur) ══", flush=True)
     b.send('HMT_SABOTER = "traverse";', wait=False); time.sleep(1)
+    # ⚠️ FAUTE CORRIGEE — LE SABOTAGE SE POSE SUR LES LIEUX VIVANTS, PAS SUR LES MORTS.
+    # Premiere version : j ai sabote les trois lieux DEJA REJETES, et le script a imprime
+    # « le placeur sait refuser » alors que le sabotage n avait RIEN a refuser. Un controle
+    # positif se pose sur un cas ou le phenomene est CONNU MASSIF ⟨regle 16⟩ : ici les deux
+    # lieux RECUS a 25 m et 22 m. Ils doivent basculer en « encombre ».
     sab = {}
-    for nom, x, y in LIEUX[:3]:
+    for nom, x, y in LIEUX[3:]:
         b.send('HMT_R2 = nil; [] spawn { HMT_R2 = [[%d,%d]] call HMT_G_PRATICABLE; };' % (x, y), wait=False)
         r = None
         for _ in range(14):
@@ -83,9 +88,13 @@ if __name__ == "__main__":
 
     print("\n  ══ VERDICT ══", flush=True)
     recu = lambda s: "recu" in (s or "")
-    if any(recu(x) for x in sab.values()):
-        print("  ⛔ LE SABOTAGE N'A RIEN FAIT REFUSER — le placeur ne juge pas. ARRÊT TOTAL."); sys.exit(2)
-    print("  ✓ A · sabotage : aucun lieu reçu — le placeur SAIT refuser")
+    encore = [k for k, v in sab.items() if recu(v)]
+    if encore:
+        print("  ⛔ LES LIEUX VIVANTS SONT ENCORE RECUS MALGRE LE SABOTAGE : %s" % encore)
+        print("     Le placeur ne juge pas l'acte — il rend un verdict que le sabotage n'atteint pas.")
+        sys.exit(2)
+    print("  ✓ A · les %d lieux RECUS basculent tous en refus sous sabotage" % len(sab))
+    print("       → le placeur juge bien l'ACTE, et il SAIT refuser")
     mor = [k for k in res if k.startswith("mort")]; vif = [k for k in res if k.startswith("vif")]
     nm = sum(1 for k in mor if not recu(res[k])); nv = sum(1 for k in vif if recu(res[k]))
     print("  %s B · lieux morts rejetés : %d/3   lieux vivants reçus : %d/2"
