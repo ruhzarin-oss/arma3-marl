@@ -61,12 +61,15 @@ if __name__ == "__main__":
     print("  mes serveurs : %s" % MES_PIDS, flush=True)
     time.sleep(max(CHAUD - 2, 0))
     b = SocketBridge(EXT); time.sleep(3)
+    # ⚠️ LE SOCLE AVANT LA SCENE. La scene appelle `HMT_CERTIFIER_POSITIONS`, definie
+    # dans le socle : envoyee avant, elle plantait a chaque appel — 38 erreurs par lot,
+    # certification a vide, hommes nes NON certifies. Le bloc C n avait jamais tourne.
+    b.send('call compile preprocessFileLineNumbers "socle.sqf";', wait=False); time.sleep(3)
     b.send(sans_commentaires(SCENE), wait=False)
     time.sleep(6)
     lg = [L for L in b._log_lines(400) if "HARMATTAN_SCENE" in L]
     print("  scene : %s" % (lg[-1][-40:] if lg else "AUCUNE — on n ira pas plus loin"), flush=True)
     if not lg: sys.exit(1)
-    b.send('call compile preprocessFileLineNumbers "socle.sqf";', wait=False); time.sleep(3)
     # ⚠️ LES QUATRE SABOTAGES doivent etre rejoues sur le hash que la porte certifie
     # ⟨ligne 4 du critere⟩. « sabotage » vide les munitions du temoin de T4 ; « jambes »
     # retire `PATH` au temoin de T5. Les deux du placeur (traverse, tir) passent par le smoke.

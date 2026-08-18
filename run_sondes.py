@@ -19,8 +19,11 @@ if __name__ == "__main__":
        ">> '%s' 2>&1 < /dev/null & disown" % (SB, EXT, SB, SB, PORT, LOG))
     time.sleep(45)
     b = SocketBridge(EXT); time.sleep(3)
-    b.send(sans_commentaires(SCENE), wait=False); time.sleep(6)
+    # ⚠️ LE SOCLE AVANT LA SCENE. La scene appelle `HMT_CERTIFIER_POSITIONS`, definie
+    # dans le socle : envoyee avant, elle plantait a chaque appel — 38 erreurs par lot,
+    # certification a vide, hommes nes NON certifies. Le bloc C n avait jamais tourne.
     b.send('call compile preprocessFileLineNumbers "socle.sqf";', wait=False); time.sleep(3)
+    b.send(sans_commentaires(SCENE), wait=False); time.sleep(6)
     b.send('call compile preprocessFileLineNumbers "sondes.sqf";', wait=False); time.sleep(3)
     b.send('diag_log format ["HMT|VER|%1", HMT_SOCLE_VERSION];', wait=False); time.sleep(1.2)
     _v = [L for L in b._log_lines(120) if "HMT|VER|" in L]
