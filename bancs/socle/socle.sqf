@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "2.11.0-18082026";
+HMT_SOCLE_VERSION = "2.12.0-18082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -441,7 +441,9 @@ HMT_PREVOL = {
     // donc posee APRES ; et sa taille doit laisser `silence de l etape + pause` sous le seuil.
     // Le pire cas est T4 (~17 s) : 17 + 10 = 27 s < 30. Cinq pauses de 10 s → +50 s, total
     // ~110 s : au-dessus de l ancien plafond de 90 s, sous la borne de 180, jamais figee.
-    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 10 };
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then {
+        ("HMT|SOCLE|LENTEUR|pause 10 s a " + HMT_PV_ETAPE) call HMT_LOG; sleep 10;
+    };
     if (isNil "HMT_LIEU_FORCE") then {
         // 24 candidats, MELANGES : angles k*15, rayons 250 a 370. On ne cherche plus le
         // meilleur, on prend LE PREMIER RECU.
@@ -537,7 +539,9 @@ HMT_PREVOL = {
     // donc posee APRES ; et sa taille doit laisser `silence de l etape + pause` sous le seuil.
     // Le pire cas est T4 (~17 s) : 17 + 10 = 27 s < 30. Cinq pauses de 10 s → +50 s, total
     // ~110 s : au-dessus de l ancien plafond de 90 s, sous la borne de 180, jamais figee.
-    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 10 };
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then {
+        ("HMT|SOCLE|LENTEUR|pause 10 s a " + HMT_PV_ETAPE) call HMT_LOG; sleep 10;
+    };
     // ⚠️ LE GEL DORT *APRES* L ASSIGNATION D ETAPE ⟨Fable, 18/08⟩. Pose avant, l etape lisait
     // encore « placeur » pendant le gel : l instrument aurait menti dans le test cense
     // certifier sa parole — le log annoncait T4 quand l etiquette aurait dit placeur.
@@ -630,7 +634,9 @@ HMT_PREVOL = {
     // donc posee APRES ; et sa taille doit laisser `silence de l etape + pause` sous le seuil.
     // Le pire cas est T4 (~17 s) : 17 + 10 = 27 s < 30. Cinq pauses de 10 s → +50 s, total
     // ~110 s : au-dessus de l ancien plafond de 90 s, sous la borne de 180, jamais figee.
-    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 10 };
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then {
+        ("HMT|SOCLE|LENTEUR|pause 10 s a " + HMT_PV_ETAPE) call HMT_LOG; sleep 10;
+    };
     // T5 · un homme PARCOURT du terrain (setVelocity est une IMPULSION, pas une consigne)
     _t doTarget objNull; _t doWatch objNull;
     // ⚠️ LE CLIQUET DU BANC DES JAMBES, QUE JE N AVAIS PAS TRANSPOSE ICI. Ce banc a etabli
@@ -691,7 +697,9 @@ HMT_PREVOL = {
     // donc posee APRES ; et sa taille doit laisser `silence de l etape + pause` sous le seuil.
     // Le pire cas est T4 (~17 s) : 17 + 10 = 27 s < 30. Cinq pauses de 10 s → +50 s, total
     // ~110 s : au-dessus de l ancien plafond de 90 s, sous la borne de 180, jamais figee.
-    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 10 };
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then {
+        ("HMT|SOCLE|LENTEUR|pause 10 s a " + HMT_PV_ETAPE) call HMT_LOG; sleep 10;
+    };
     private _g7 = createGroup west;
     // ⚠️ T7 TESTE LE LIEU QUE LE PLACEUR A VALIDE, PAS SIX METRES A COTE.
     // Porte du 17/08 : 23 echecs T7 sur 40, et le releve du socle SEPARE PARFAITEMENT —
@@ -750,7 +758,9 @@ HMT_PREVOL = {
     // donc posee APRES ; et sa taille doit laisser `silence de l etape + pause` sous le seuil.
     // Le pire cas est T4 (~17 s) : 17 + 10 = 27 s < 30. Cinq pauses de 10 s → +50 s, total
     // ~110 s : au-dessus de l ancien plafond de 90 s, sous la borne de 180, jamais figee.
-    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 10 };
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then {
+        ("HMT|SOCLE|LENTEUR|pause 10 s a " + HMT_PV_ETAPE) call HMT_LOG; sleep 10;
+    };
     private _vert = (count _ec == 0);
     // ⚠️ REVUE 17/08 : `HMT_SABOTER` est une globale de missionNamespace que RIEN ne
     // remet a zero. Un banc qui la pose puis plante la laisse en place, et TOUTES les

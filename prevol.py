@@ -239,6 +239,14 @@ if __name__ == "__main__":
                 continue
             e = [L for L in b._log_lines(200) if "HMT|PVE|" in L]
             det.append((i, e[-1].split("HMT|PVE|")[1][:110] if e else "?"))
+        # ⚠️ LA DUREE SE JOURNALISE TOUJOURS ⟨18/08⟩. `_chrono` n etait imprime que dans le
+        # message d ECHEC : un run sans echec ne laissait AUCUNE trace de temps, et le critere
+        # « duree > 90 s » du controle de lenteur devenait illisible. Deux verts sans temoin
+        # ne prouvent rien — c est l ecrit qui temoigne d un acte que rien n observe, la faute
+        # de la journee, cette fois sur ma propre instrumentation.
+        _duree = round(time.time() - _t_deb, 1)
+        _etapes = " ".join("%s@%ss" % (k, v) for k, v in _chrono.items() if k)
+        print("    %2d/%d  %5.1fs  [%s]" % (i, N, _duree, _etapes), flush=True)
         print("    %2d/%d  vert=%d  echec=%d%s" % (i, N, verts, ech,
               ("   ← " + det[-1][1][:70]) if det and det[-1][0] == i else ""), flush=True)
         if sansrep >= 3:
@@ -268,8 +276,16 @@ if __name__ == "__main__":
         # la lenteur ne doit RIEN faire rougir : elle allonge sans figer.
         _d = [float(x) for x in re.findall(r"@([\d.]+)s", " ".join(d for _, d in det))] or [0.0]
         print("\n  verts %d / rouges %d / sans reponse %d" % (verts, ech, sansrep))
-        if ech > 0 or sansrep > 0:
-            print("  ⛔ LA LENTEUR FAIT ROUGIR — la patience ne suit pas le progres."); sys.exit(10)
+        # ⚠️ CE CONTROLE JUGE LA PATIENCE, PAS LE MONDE ⟨regle 6⟩. Mon critere comptait TOUT
+        # rouge comme un echec, or un refus du monde (T2 chargeur vide, T4 sans balle) n a
+        # aucun rapport avec la propriete testee : la patience-au-progres. Le critere se
+        # RESSERRE sur ce qu il teste — zero SANS REPONSE — et le verdict du monde est note
+        # a part. Enonce sans reference a aucun resultat.
+        if sansrep > 0:
+            print("  ⛔ LA LENTEUR FAIT PLANTER — la patience ne suit pas le progres."); sys.exit(10)
+        if ech > 0:
+            print("  ⚠️ %d refus DU MONDE (hors sujet pour ce controle) : %s"
+                  % (ech, "; ".join(d[:70] for _, d in det)), flush=True)
         print("  ✓ lenteur : VERT %d/%d sous patience-au-progres" % (verts, verts))
         sys.exit(0)
     if MODE in ("sabotage", "jambes"):
