@@ -24,6 +24,15 @@ if __name__ == "__main__":
     # certification a vide, hommes nes NON certifies. Le bloc C n avait jamais tourne.
     b.send('call compile preprocessFileLineNumbers "socle.sqf";', wait=False); time.sleep(3)
     b.send(sans_commentaires(SCENE), wait=False); time.sleep(6)
+    # ⚠️ ET LE REVEIL NATIF : le lot 5, ou le point maudit a echoue cinq fois, tournait sous
+    # `prevol.py natif`. Une sonde qui ne reveille pas l IA ne reproduit pas ce regime — la
+    # porte certifie dans son monde, la sonde doit mesurer dans le meme.
+    WAKE_NATIF = ('{ _x enableAI "ALL"; _x setBehaviour "COMBAT"; _x setCombatMode "RED" } forEach HMT_ENNEMI;\n'
+                  '{ _x enableAI "ALL"; _x setBehaviour "COMBAT"; _x setCombatMode "RED" } forEach HMT_FR;\n')
+    b.send(sans_commentaires(WAKE_NATIF), wait=False); time.sleep(2)
+    _sc = [L for L in b._log_lines(400) if "HARMATTAN_SCENE" in L]
+    print("  scene : %s" % (_sc[-1][-42:] if _sc else "AUCUNE — la sonde ne mesurerait rien"), flush=True)
+    if not _sc: sh("for p in $(pgrep -f arma3server_x64); do kill $p; done"); sys.exit(3)
     b.send('call compile preprocessFileLineNumbers "sondes.sqf";', wait=False); time.sleep(3)
     b.send('diag_log format ["HMT|VER|%1", HMT_SOCLE_VERSION];', wait=False); time.sleep(1.2)
     _v = [L for L in b._log_lines(120) if "HMT|VER|" in L]
