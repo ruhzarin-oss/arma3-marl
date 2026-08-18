@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "2.8.0-17082026";
+HMT_SOCLE_VERSION = "2.9.0-18082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -448,8 +448,16 @@ HMT_PREVOL = {
             _cands set [_k, _cands select _q]; _cands set [_q, _tmp];
         };
         private _essais = 0;
+        HMT_PV_NCAND = 0;
         {
             _essais = _essais + 1;
+            // ⚠️ LE PROGRES S EXPOSE, SINON LA PATIENCE NE PEUT PAS LE SUIVRE ⟨Fable, 18/08⟩.
+            // Le plafond d attente etait GLOBAL contre un prevol dont la duree depend du
+            // nombre de candidats brules — et l anneau de 24 points est FIXE PAR SESSION,
+            // donc un plafond global convertit la pauvrete d un anneau en echecs REGROUPES
+            // par session : le destin de session, gueri dans le canal du verdict, renaissait
+            // dans le canal du TEMPS. Python suit desormais `HMT_PV_NCAND` autant que l etape.
+            HMT_PV_NCAND = _essais;
             private _r = [_x] call HMT_G_PRATICABLE;
             (format ["HMT|SOCLE|CANDIDAT|n|%1|x|%2|y|%3|verdict|%4|metres|%5|vue|%6",
                      _essais, round (_x select 0), round (_x select 1),
@@ -502,6 +510,19 @@ HMT_PREVOL = {
     };
     if (_vu < 0.3) then { _ec pushBack format ["T4 PLACE SANS VUE : 12 essais, meilleure vue %1", round (100*_vu)/100] };
     if (HMT_PV_GEN != _gen) exitWith { ("HMT|SOCLE|PREVOL|ABANDONNE|gen|" + str _gen) call HMT_LOG; false };
+    // ⚠️ LES SABOTAGES DE L INSTRUMENT ⟨regle 18 pointee sur ma propre porte, Fable 18/08⟩.
+    // Les quatre sabotages existants jugent le MONDE (T4, T5, traverse, tir). Les lignes
+    // d INSTRUMENT — « zero prevol plante », « pas de regroupement » — jugeaient sans avoir
+    // ete jugees. « gel » fige le prevol 60 s : la porte DOIT rendre PLANTE. « lenteur »
+    // allonge le travail sans le figer : la porte doit rester VERTE sous patience-au-progres.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "gel") then {
+        "HMT|SOCLE|SABOTAGE|gel|60s a l etape T4" call HMT_LOG;
+        sleep 60;
+    };
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then {
+        "HMT|SOCLE|SABOTAGE|lenteur|+2s par etape, sans gel" call HMT_LOG;
+        sleep 2;
+    };
     HMT_PV_ETAPE = "T4";
     _t reveal [_mann, 4];
     sleep 2;

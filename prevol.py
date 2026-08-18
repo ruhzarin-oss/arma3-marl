@@ -15,7 +15,7 @@ CRITERES ⟨poses avant, et separement de tout resultat⟩
     rien et TOUT S ARRETE : on ne lit aucun tirage normal.
   · LA PORTE — 50 tirages, 2 echecs tolerables (5 %), coupure au 3e.
 """
-import sys, os, time, subprocess
+import sys, os, time, subprocess, re
 sys.path.insert(0, "/home/younes/arma3-marl")
 from arma_socket_bridge import SocketBridge
 import arma_couture as C
@@ -82,6 +82,21 @@ if __name__ == "__main__":
     if MODE == "natif":
         b.send(sans_commentaires(WAKE_NATIF), wait=False); time.sleep(2)
         print("  reveil NATIF envoye — regime de la nuit", flush=True)
+    # ⚠️ LE GARDIEN DE VERSION ⟨Fable, 18/08⟩. La version circulait dans chaque reponse et
+    # python n en lisait que le vrai/faux : « une porte certifie UN hash » n avait AUCUN
+    # mecanisme d execution, seulement une discipline de recopie — qui avait deja lache, le
+    # `mpmissions/*/socle.sqf` du DEPOT etant reste a 1.13.0 quand le canonique etait a 2.8.0.
+    VERSION_ATTENDUE = subprocess.run(
+        "grep -o 'HMT_SOCLE_VERSION = .[^\"]*.' /home/younes/arma3-marl/bancs/socle/socle.sqf",
+        shell=True, capture_output=True, text=True).stdout.strip().split('"')[1]
+    b.send('diag_log format ["HMT|VER|%1", HMT_SOCLE_VERSION];', wait=False); time.sleep(1.2)
+    _v = [L for L in b._log_lines(120) if "HMT|VER|" in L]
+    VERSION_MONDE = (_v[-1].split("HMT|VER|")[1].strip().strip('"')[:22] if _v else "AUCUNE")
+    print("  socle attendu  : %s" % VERSION_ATTENDUE, flush=True)
+    print("  socle DU MONDE : %s" % VERSION_MONDE, flush=True)
+    if VERSION_MONDE != VERSION_ATTENDUE:
+        print("  ⛔ VERSION DU MONDE != ATTENDUE — PANNE NOMMEE, pas un tirage rouge.", flush=True)
+        tuer_les_miens(); sys.exit(7)
     print("  socle charge — mode %s, %d tirages" % (MODE, N), flush=True)
 
     # `callExtension "version"` rend « hmt_native 1.2 | <etat> | jetes ring=N send=N ligne=N ».
@@ -130,14 +145,32 @@ if __name__ == "__main__":
         # suit desormais `HMT_PV_ETAPE` — tant qu elle AVANCE on attend, si elle STAGNE c est
         # un plante, si elle ne repond pas du tout c est le pont. Trois causes, trois causes
         # nommees, au lieu d un « muet » indistinct qui mangeait 17 % de la mesure.
-        r = None; etape = None; fige = 0
+        # ⚠️ PATIENCE-AU-PROGRES ⟨Fable, 18/08⟩. Le commentaire ci-dessous promettait deja un
+        # timeout PAR ETAPE ; la boucle etait restee un plafond GLOBAL de 40 sondages, seule
+        # l ETIQUETTE etant devenue par-etape. Troisieme fois du jour qu un ecrit temoigne
+        # d un acte qui n a pas eu lieu.
+        # ⚠️ ET LA FORME COMPTE : l anneau de 24 candidats est FIXE PAR SESSION, donc un
+        # plafond global convertit la pauvrete d un anneau en echecs REGROUPES par session —
+        # le destin de session, gueri dans le canal du VERDICT, renaitrait dans celui du
+        # TEMPS. Mesure de la nuit : les 4 echecs sont les 4 tirages les plus chers (15, 12,
+        # 9, 9 candidats) et 8 candidats passent quand 9 tombent.
+        # On attend tant que l ETAPE **ou** le NUMERO DE CANDIDAT avance ; 12 sondages sans
+        # progres (~26 s, au-dessus du plus long acte legitimement silencieux — la fenetre
+        # T4 de 2+12 s) → PLANTE. BORNE EXTERIEURE derivee du mecanisme : le socle declare
+        # ~30 s fixes + ~5,5 s par candidat, 24 candidats au plus, soit ~160 s → 180 s avec
+        # marge. Au-dela, le prevol depasse ce qu il PEUT couter : c est un bug.
+        # ⚠️ ANGLE MORT DECLARE ⟨regle 20⟩ : un vrai gel coute jusqu a 26 s a detecter, et le
+        # garde-fou des trois sans-reponse tombe plus tard dans la vie du pont (mort en 20-40 min).
+        BORNE_EXT = 180.0
+        r = None; etape = None; ncand = -1; fige = 0
+        _t_deb = time.time(); _chrono = {}
         # REVUE 17/08 : on lisait la DERNIERE ligne `HMT|PV|` du tampon, sans borne de
         # fraicheur. Sur serveur charge, une ligne du tirage PRECEDENT (true/false, jamais
         # « attente ») validait le tirage courant en 2 s pendant que son propre prevol
         # tournait encore — les deux se superposaient sur les globales HMT_PV_COUPS.
         # La reponse porte desormais le NUMERO du tirage.
         _tag = "HMT|PV|%d|" % i
-        for _ in range(40):
+        while time.time() - _t_deb < BORNE_EXT:
             time.sleep(1.5)
             if not getattr(b, "alive", True):
                 break
@@ -147,8 +180,14 @@ if __name__ == "__main__":
             time.sleep(0.3)
             _e = [L for L in b._log_lines(120) if "HMT|ET|" in L]
             _cur = _e[-1].split("HMT|ET|")[1][:20].strip().strip('"') if _e else None
-            if _cur == etape: fige += 1
-            else: etape, fige = _cur, 0
+            b.send('diag_log format ["HMT|NC|%1", (missionNamespace getVariable ["HMT_PV_NCAND", -1])];', wait=False)
+            time.sleep(0.25)
+            _nc = [L for L in b._log_lines(120) if "HMT|NC|" in L]
+            try: _cn = int(re.sub(r"\D", "", _nc[-1].split("HMT|NC|")[1][:6]) or "-1") if _nc else -1
+            except Exception: _cn = -1
+            if _cur != etape and _cur is not None: _chrono[etape] = round(time.time() - _t_deb, 1)
+            if _cur == etape and _cn == ncand: fige += 1
+            else: etape, ncand, fige = _cur, _cn, 0
             ls = [L for L in b._log_lines(200) if _tag in L]
             if ls and "attente" not in ls[-1]:
                 r = "true" in ls[-1].split(_tag)[1][:6]; break
@@ -156,9 +195,12 @@ if __name__ == "__main__":
             # REVUE 17/08 : « SANS REPONSE » entrait dans le MEME compteur que les vrais
             # rouges, puis « PORTE TOMBEE » (exit 4) : une panne du pont etait rendue
             # comme un verdict sur la tactique. Elle est comptee a part.
+            # l etiquette nommait l etape ou l HORLOGE expire, pas celle ou le TEMPS
+            # s est depense ⟨Fable⟩ : on joint les horodatages par etape.
+            _hist = " ".join("%s@%ss" % (k, v) for k, v in _chrono.items() if k)
             cause = ("SANS REPONSE / PONT MUET (aucune etape lue)" if etape is None else
-                     ("SANS REPONSE / PREVOL PLANTE a l etape %s" % etape if fige >= 12
-                      else "SANS REPONSE / PREVOL LENT, etape %s" % etape))
+                     ("SANS REPONSE / PREVOL PLANTE a l etape %s cand %s [%s]" % (etape, ncand, _hist) if fige >= 12
+                      else "SANS REPONSE / PREVOL LENT, etape %s cand %s [%s]" % (etape, ncand, _hist)))
             sansrep += 1; det.append((i, cause))
         elif r:
             verts += 1

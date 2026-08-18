@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "1.13.0-16082026";
+HMT_SOCLE_VERSION = "2.9.0-18082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -70,6 +70,242 @@ HMT_ARMER = {
     ((currentWeapon _u) != "")                    // RELECTURE : l arme est-elle EN MAIN ?
 };
 
+// ─────────────────────────────────── BRIQUE 7 : LES POSITIONS DE LA SCENE, CERTIFIEES AVANT
+// ⚠️ LA SCENE NE TESTAIT RIEN — zero test compte dans `SCENE` (`banc_live.py`). Les huit
+// hommes de chaque episode naissaient au PUR HASARD autour de l objectif (`random 360`,
+// rayon `10 + random 25`), sans eau, sans hauteur, sans vue, sans praticabilite. Ce n est pas
+// mal choisir, c est NE PAS CHOISIR ⟨lecture du 17/08⟩.
+//
+// ⚠️ ET LE PREVOL NE LES TESTAIT PAS NON PLUS : T5 et T7 eprouvent un TEMOIN pose a 250-370 m
+// de la scene. Le placeur v2 garantit un bon lieu POUR LE TEMOIN, et rien pour ceux qui jouent.
+//
+// ⚠️ POURQUOI *AVANT* LA SCENE, ET EN PARALLELE ⟨plan de Fable⟩ :
+//   · le placeur v2 en serie sur 12 positions x 2 actes serait long ;
+//   · un test « leger » sur l ETAT est exclu — `path:true` a menti toute la semaine ;
+//   · et certifier DANS la scene vivante la CORROMPT : un homme qui tire renseigne le camp
+//     adverse, et `knowsAbout` est de CAMP et non de soldat.
+//   Avant la scene, personne n existe : rien a corrompre, personne a alerter. Une seule
+//   fenetre de traverse pour tous, une seule de tir. Cout ~15 s par episode.
+HMT_CERTIFIER_POSITIONS = {
+    params ["_positions", ["_duree", 4], ["_seuil", 23]];
+    private _gW = createGroup west; private _gE = createGroup east;
+    private _hs = []; private _ms = [];
+    {
+        private _u = _gW createUnit ["B_Soldier_F", [_x select 0, _x select 1, 0], [], 0, "NONE"];
+        // tout homme jetable est invulnerable ET neutre, uniformement
+        _u allowDamage false; _u setCaptive true;
+        _u disableAI "AUTOCOMBAT"; _u disableAI "FSM"; _u setBehaviour "CARELESS";
+        _u enableAI "PATH"; [_u] call HMT_ARMER;
+        private _m = _gE createUnit ["O_Soldier_F", [_x select 0, (_x select 1) + 40, 0], [], 0, "NONE"];
+        // meme faute evitee ici : la cible n est PAS `setCaptive`, sinon nul ne lui tire dessus
+        _m allowDamage false;
+        _m disableAI "AUTOCOMBAT"; _m disableAI "FSM"; _m setBehaviour "CARELESS";
+        [_m] call HMT_ARMER;
+        _hs pushBack _u; _ms pushBack _m;
+    } forEach _positions;
+    sleep 2;
+    // ── ACTE 1 · TRAVERSE, TOUS EN MEME TEMPS, UNE SEULE FENETRE
+    private _p0 = _hs apply { getPosATL _x };
+    private _t0 = time;
+    while { time - _t0 < _duree } do { { _x setVelocity [0, 6, 0] } forEach _hs; sleep 0.1 };
+    private _met = [];
+    { _met pushBack (round ((_p0 select _forEachIndex) distance2D (getPosATL _x))) } forEach _hs;
+    // ── ACTE 2 · TIR, TOUS EN MEME TEMPS. On remet chacun a sa position d origine d abord.
+    { _x setPosATL (_p0 select _forEachIndex) } forEach _hs;
+    sleep 1;
+    HMT_CP_COUPS = []; { HMT_CP_COUPS pushBack 0 } forEach _hs;
+    private _ehs = [];
+    {
+        private _i = _forEachIndex;
+        _ehs pushBack (_x addEventHandler ["Fired", {
+            HMT_CP_COUPS set [(HMT_CP_I), (HMT_CP_COUPS select HMT_CP_I) + 1];
+        }]);
+    } forEach _hs;
+    private _t1 = time;
+    while { time - _t1 < _duree } do {
+        {
+            HMT_CP_I = _forEachIndex;
+            _x setDir (_x getDir (_ms select _forEachIndex));
+            _x doWatch (_ms select _forEachIndex);
+            _x forceWeaponFire [currentWeapon _x, currentMuzzle _x];
+        } forEach _hs;
+        sleep 0.33;
+    };
+    { _x removeEventHandler ["Fired", _ehs select _forEachIndex] } forEach _hs;
+    private _coups = +HMT_CP_COUPS;
+    { deleteVehicle _x } forEach _hs; { deleteVehicle _x } forEach _ms;
+    deleteGroup _gW; deleteGroup _gE;
+    // ── verdicts, un par position
+    private _v = [];
+    {
+        private _i = _forEachIndex;
+        _v pushBack [(if ((_met select _i) >= _seuil && (_coups select _i) >= 1) then {"recu"}
+                      else { if ((_met select _i) < _seuil) then {"encombre"} else {"muet"} }),
+                     _met select _i, _coups select _i];
+        (format ["HMT|SOCLE|SCENE_POS|i|%1|x|%2|y|%3|verdict|%4|metres|%5|coups|%6",
+                 _i, round (_x select 0), round (_x select 1),
+                 (_v select _i) select 0, _met select _i, _coups select _i]) call HMT_LOG;
+    } forEach _positions;
+    _v
+};
+
+// ─────────────────────────────────────────────── BRIQUE 6 : LES DEUX GESTES, UNE SEULE FOIS
+// ⚠️ « LES BANCS COMPOSENT AU LIEU DE REECRIRE » — et ce fichier portait TROIS copies de la
+// boucle de marche (acte 2, T5, et `arma_couture.py:ACT_TPL`) et DEUX du tir force (acte 3,
+// T7, plus la couture) ⟨lecture de Fable, 17/08⟩. Elles avaient DEJA diverge : 4 s contre
+// 3,28 s, arret au premier coup ici et duree pleine la, jeton present ou absent, telemetrie
+// ou pas. Chaque divergence est un ecart que personne ne mesure entre le certificateur et le
+// certifie.
+//
+// ⚠️ CHOIX DE FIDELITE : `HMT_TIRER_C9` tire PENDANT TOUTE LA DUREE et ne s arrete pas au
+// premier coup. L acte 3 s arretait au premier — c est une economie qui change le test, et
+// l action 9 de la couture, elle, tire sans s arreter. On paie les 4 s ⟨regle 6⟩.
+
+HMT_MARCHER = {
+    // ⚠️ LA TELEMETRIE DU GESTE VIT ICI, PAS CHEZ UN SEUL APPELANT. Le refactoring B1 l avait
+    // AVALEE avec le reste de la boucle de T5 : la vitesse relue et l animation, celles-la
+    // meme qui ont refute trois hypotheses le 16/08 (l impulsion est appliquee, l IA ne la
+    // fait pas retomber, la posture reste debout). En la remontant dans la brique, elle
+    // profite desormais a l acte 2 du placeur autant qu a T5 — c est ce que « composer »
+    // devait donner des le depart.
+    params ["_u", "_duree", ["_vy", 6]];
+    private _p0 = getPosATL _u; private _t0 = time; private _nt = 0;
+    private _vrelue = []; private _anims = [];
+    while { alive _u && time - _t0 < _duree } do {
+        _u setVelocity [0, _vy, 0]; _nt = _nt + 1;
+        _vrelue pushBack (round (10 * ((velocity _u) select 1)) / 10);
+        _anims pushBack (animationState _u);
+        sleep 0.1;
+    };
+    private _vmed = if (count _vrelue > 0) then { _vrelue select (round ((count _vrelue) / 2)) } else { -1 };
+    [_p0 distance2D (getPosATL _u), _nt, _vmed,
+     (if (count _anims > 0) then { _anims select ((count _anims) - 1) } else { "" })]
+};
+
+HMT_TIRER_C9 = {
+    params ["_u", "_cible", "_duree"];
+    HMT_C9_COUPS = 0;
+    private _eh = _u addEventHandler ["Fired", { HMT_C9_COUPS = HMT_C9_COUPS + 1 }];
+    private _t0 = time;
+    while { alive _u && time - _t0 < _duree } do {
+        _u setDir (_u getDir _cible); _u doWatch _cible;
+        _u forceWeaponFire [currentWeapon _u, currentMuzzle _u];
+        sleep 0.33;
+    };
+    _u removeEventHandler ["Fired", _eh];
+    HMT_C9_COUPS
+};
+
+// ─────────────────────────────────────────────── BRIQUE 5 : LE LIEU SE JUGE A L ACTE
+// ⚠️ NEE DU VERDICT DU 17/08 (`VERDICT_LIEU_EST_LA_CAUSE.md`). L ancien placeur retenait le
+// point de PENTE MOYENNE MINIMALE sur un carre de 60 m. Mesure : 18 echecs sur 18 aux trois
+// lieux qu il avait retenus, contre 3 sur 12 a deux autres — et la pente NE SEPARE PAS
+// (session 8 a 0,01, parfaitement plate, morte 5 fois sur 6). Ce qui bloque un homme est
+// l ENCOMBREMENT, invisible pour une pente moyennee.
+//
+// ⚠️ ET IL OPTIMISAIT. Un placeur qui choisit « le meilleur » fabrique un monde biaise vers
+// le facile ⟨Fable⟩. Le v2 tire les candidats en ordre ALEATOIRE et RECOIT LE PREMIER qui
+// passe. Le pre-filtre bon marche (eau, hauteur, vue) sert a ORDONNER et a rejeter vite —
+// il ne RECOIT jamais : `path:true` figurait dans toutes les signatures d echec du 16-17/08
+// pendant que l homme restait cloue. L etat du moteur a menti toute la semaine ; seul l ACTE
+// recoit.
+HMT_G_PRATICABLE = {
+    params ["_c"];
+    private _x = _c select 0; private _y = _c select 1;
+    // ── rejets bon marche, qui n autorisent RIEN et ne font qu economiser l acte
+    if (surfaceIsWater [_x, _y]) exitWith { ["eau", 0, 0] };
+    if ((getTerrainHeightASL [_x, _y]) <= 3) exitWith { ["bord de mer", 0, 0] };
+    // ── ACTE 1 · VOIT-ON A 40 m ? (la distance ou T4 pose son mannequin)
+    private _z = (getTerrainHeightASL [_x, _y]) + 1.5;
+    private _vue = 0;
+    for "_i" from 0 to 5 do {
+        private _a = _i * 60;
+        private _dx = _x + 40 * sin _a; private _dy = _y + 40 * cos _a;
+        private _v = [objNull, "VIEW"] checkVisibility
+            [[_x, _y, _z], [_dx, _dy, (getTerrainHeightASL [_dx, _dy]) + 1.5]];
+        if (_v > _vue) then { _vue = _v };
+    };
+    if (_vue < 0.5) exitWith { ["sans vue", 0, _vue] };
+    // ── ACTE 2 · UN HOMME PARCOURT-IL SES 24 m ? C est le geste exact de T5.
+    private _g = createGroup west;
+    private _u = _g createUnit ["B_Soldier_F", [_x, _y, 0], [], 0, "NONE"];
+    if (isNull _u) exitWith { deleteGroup _g; ["naissance refusee", 0, _vue] };
+    [_u] call HMT_ARMER;
+    [_u, "statue"] call HMT_PILOTER;      // ni IA de combat ni decision : on teste le TERRAIN
+    _u enableAI "PATH";                   // ...mais les JAMBES restent, sinon on mesure une statue
+    // ⚠️ TOUT HOMME JETABLE EST INVULNERABLE, UNIFORMEMENT ⟨lecture de Fable, 17/08⟩.
+    // La scene cree ses defenseurs en COMBAT/RED avec `AUTOCOMBAT` actif des la naissance, et
+    // les lieux candidats sont a 80-540 m de l objectif — DANS LA PORTEE. Un testeur abattu en
+    // pleine traverse rend « encombre », et le placeur rejette alors un lieu qui allait bien.
+    _u allowDamage false;
+    _u setDir 0;
+    sleep 1.5;
+    // ⚠️ LE LEVIER DE SABOTAGE ⟨regle 18⟩ : sans lui, « le placeur accepte » ne prouve pas
+    // qu il sait REFUSER. `HMT_SABOTER = "traverse"` retire les jambes du testeur : AUCUN
+    // lieu ne doit plus etre recu, et le prevol doit rougir en T0.
+    // ⚠️ LE SABOTAGE DOIT ATTAQUER CE QUE LE TEST EMPLOIE ⟨regle 6, appliquee au sabotage⟩.
+    // Premiere version : `disableAI "PATH"`. INOPERANT PAR NATURE — `setVelocity` est une
+    // IMPULSION PHYSIQUE et ne passe pas par le pathfinding ; les deux lieux recus rendaient
+    // toujours 25 m et 22 m sous sabotage. Fait etabli du projet, et oublie en concevant le
+    // levier. On sabote donc l IMPULSION elle-meme : vitesse nulle, immobilite certaine, et
+    // le test doit rendre « encombre ».
+    private _vy = 6;
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "traverse") then { _vy = 0 };
+    private _m = ([_u, 4, _vy] call HMT_MARCHER) select 0;
+    deleteVehicle _u; deleteGroup _g;
+    // ⚠️ SEUIL A 23 m, ET LA RAISON NE REGARDE PAS LES RESULTATS ⟨regle 13⟩ :
+    // UN PLACEUR NE DOIT JAMAIS ETRE PLUS INDULGENT QUE LE TEST QU IL PREPARE.
+    // T5 attend 24 m (6 m/s x 4 s). Le v2 exigeait 18 — une remise de 25 % que rien ne
+    // justifiait, et qui n etait qu un chiffre rond. Le seuil est le NOMINAL moins la seule
+    // tolerance de mesure. Ca RESSERRE, donc c est licite.
+    if (_m < 23) exitWith { deleteVehicle _u; deleteGroup _g; ["encombre", round _m, _vue, 0] };
+
+    // ── ACTE 3 · UN HOMME DANS LE MODE *SERVI* TIRE-T-IL DEPUIS CE LIEU ?
+    // ⚠️ LE PLACEUR VERIFIAIT QU ON VOIT, JAMAIS QU ON TIRE. Porte du 17/08 : une fois le
+    // deplacement borne, T7 est devenu le canal dominant — 17 echecs sur 50 — et rien dans
+    // le placeur ne le couvrait. Voir/tirer ne sont pas la meme chose : l homme SERVI a
+    // `AUTOCOMBAT` coupe (`arma_couture.py:27`) et emprunte le canal de l action 9.
+    // On rejoue donc ce canal EXACT, sur un homme dans le mode SERVI ⟨regle 6⟩.
+    private _gm = createGroup east;
+    private _mm = _gm createUnit ["O_Soldier_F", [_x, _y + 40, 0], [], 0, "NONE"];
+    [_mm] call HMT_ARMER;
+    // ⚠️ RECIDIVE : la revue avait blinde T7 le meme jour, et personne n a transpose ici.
+    // Le mannequin etait ARME et en IA LIBRE, le testeur sans protection : quatre secondes de
+    // DUEL REEL. Un mannequin qui tue le testeur fabrique un « muet », donc rejette un bon
+    // lieu — et il le fait preferentiellement dans les lieux OUVERTS, ou il voit et tire vite.
+    // Le placeur biaisait donc CONTRE le degagement, exactement l inverse de ce qu on veut.
+    // ⚠️ PAS DE `setCaptive` SUR LA CIBLE. Faute du bloc A1 : on m avait dit de COPIER le
+    // blindage de T7, j ai copie ET AJOUTE. Un homme « captive » est NEUTRE — il cesse d etre
+    // une cible, et le tireur ne tire plus. Mesure : le placeur rendait « muet » avec traverse
+    // 25 m, vue 1 et 0 coup, y compris apres avoir remis le `reveal`. Le blindage de T7
+    // (l.617-620) ne pose PAS `setCaptive`, et T7 tire.
+    _mm allowDamage false;
+    _mm disableAI "AUTOCOMBAT"; _mm disableAI "FSM"; _mm setBehaviour "CARELESS";
+    private _g2 = createGroup west;
+    private _u2 = _g2 createUnit ["B_Soldier_F", [_x, _y, 0], [], 0, "NONE"];
+    private _enmain = [_u2] call HMT_ARMER;
+    [_u2, "pilote"] call HMT_PILOTER;          // le mode SERVI, pas celui du temoin de T4
+    _u2 allowDamage false;
+    sleep 1.5;
+    // ⚠️ LE `reveal` AVAIT DISPARU DANS LE REFACTORING B1 — il vivait dans le bloc que
+    // `HMT_TIRER_C9` a remplace. Consequence immediate et mesuree : le placeur rendait
+    // « muet » sur des lieux a traverse 25 m et vue 1, DONC 0 lieu recu sur 60, et le banc
+    // des jambes II n a rien pu mesurer.
+    // ⚠️ CE QUE L ACCIDENT REVELE, et qui vaut plus que la panne : SANS `reveal`, L HOMME NE
+    // TIRE PAS. Or `arma_couture.py:ACT_TPL` (action 9) ne fait JAMAIS de `reveal` — c est la
+    // divergence certificateur/servi relevee par Fable le 17/08. Le certificateur tire parce
+    // qu on lui DONNE la cible ; l homme servi ne l a pas. Non mesure proprement : un accident
+    // n est pas une mesure, et B2 reste a faire.
+    // ⚠️ LE SABOTAGE DU TIR AVAIT DISPARU LUI AUSSI — troisieme chose que B1 a avalee, apres
+    // le `reveal` et la telemetrie. Sans lui, « l acte de tir recoit » ne prouve pas qu il
+    // sait REFUSER, et le smoke l a dit : arme videe, lieu encore recu avec 9 coups.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "tir") then { _u2 setVehicleAmmo 0 };
+    _u2 reveal [_mm, 4];
+    private _coups = [_u2, _mm, 4] call HMT_TIRER_C9;
+    deleteVehicle _mm; deleteVehicle _u2; deleteGroup _gm; deleteGroup _g2;
+    [(if (_coups >= 1) then {"recu"} else {"muet"}), round _m, _vue, _coups]
+};
+
 // ─────────────────────────────────────────────── BRIQUE 3 : LE PILOTAGE
 // Le socle POSSEDE l etat `disableAI`. Un banc ne le pose JAMAIS a la main.
 // Trois modes, et un seul est autorise par homme.
@@ -121,7 +357,24 @@ HMT_POSER_HOMME = {
 //  LE PREVOL — il RELIT le monde. Pas de prevol vert, pas d episode.
 //  Chaque test porte le nom de la faute qui l a fait naitre.
 // ═══════════════════════════════════════════════════════════════════════════
+// ⚠️ LE BATTEMENT DE COEUR ⟨lecture de Fable⟩. Un prevol qui ne repond pas est aujourd hui
+// indistinctement : le pont mort, le prevol LENT, ou le prevol PLANTE. Un instrument qui perd
+// 17 % de sa mesure sans savoir lequel des trois n est pas certifiable. `HMT_PV_ETAPE` est
+// pose a chaque phase ; python lit l etape et sait ou ca s est arrete.
+HMT_PV_ETAPE = "neant";
 HMT_PREVOL = {
+    // ⚠️ LE JETON DE GENERATION ⟨lecture de Fable, 17/08⟩. `prevol.py` attendait sous un
+    // plafond GLOBAL (40 x 1,9 s) un prevol de duree VARIABLE (~30 s fixes + ~5,5 s par
+    // candidat atteignant l acte 2, plus les duels). Au depassement, python enchainait
+    // PENDANT QUE LE SPAWN TOURNAIT ENCORE : deux `HMT_PREVOL` simultanes ecrivaient alors
+    // dans les memes globales (`HMT_PV`, `HMT_PL_COUPS`, `HMT_PV_COUPS`). La revue avait
+    // corrige la LECTURE (marqueur numerote) et pas la SUPERPOSITION.
+    // La couture a resolu cette classe exacte avec `HMT_NORDRE` (`arma_couture.py:175`) ;
+    // le prevol ne l avait jamais adopte. Un prevol dont la generation a ete depassee
+    // s ARRETE au lieu d ecrire par-dessus son successeur.
+    HMT_PV_GEN = (missionNamespace getVariable ["HMT_PV_GEN", 0]) + 1;
+    private _gen = HMT_PV_GEN;
+    HMT_PV_ETAPE = "depart"; HMT_PV_T0 = time;
     params ["_hommes"];
     private _ec = [];
 
@@ -163,20 +416,62 @@ HMT_PREVOL = {
     private _gt = createGroup west;
     private _ref = _hommes select 0;
     private _pt = []; private _meilleure = 99;
-    for "_k" from 0 to 23 do {
-        private _a = _k * 15; private _r = 250 + (_k mod 4) * 40;
-        private _c = [(getPosATL _ref select 0) + _r * sin _a, (getPosATL _ref select 1) + _r * cos _a];
-        // pente moyenne sur le carre de 60 m ou le temoin va vivre et tirer
-        private _s = 0;
-        for "_i" from -4 to 4 step 4 do { for "_j" from -4 to 4 step 4 do {
-            _s = _s + ([(_c select 0) + _i*6.25, (_c select 1) + _j*6.25] call HMT_G_SLOPE);
-        }};
-        _s = _s / 9;
-        if ((getTerrainHeightASL _c) > 3 && _s < _meilleure) then { _meilleure = _s; _pt = [_c select 0, _c select 1, 0] };
-        if (_meilleure < 0.10) exitWith {};
+
+    // ⚠️ DISPOSITIF DE TEST — LE LIEU FORCE. Le placeur ci-dessous balaye 24 points FIXES
+    // autour du premier attaquant (angles k*15, rayons 250 a 370) : AUCUN alea, donc le lieu
+    // est fixe par SESSION, et c est la structure exacte du destin de session mesure le
+    // 17/08 (X2 = 56,6). Voir DESTIN_EST_LE_LIEU.md.
+    // Ce levier permet de REJOUER un lieu connu et de voir si le destin le suit. Il ne change
+    // rien quand la variable n est pas posee.
+    if (!isNil "HMT_LIEU_FORCE") then {
+        _pt = [(HMT_LIEU_FORCE select 0), (HMT_LIEU_FORCE select 1), 0];
+        _meilleure = [(_pt select 0), (_pt select 1)] call HMT_G_SLOPE;
+        (format ["HMT|SOCLE|LIEU_FORCE|x|%1|y|%2|pente|%3", round (_pt select 0),
+                 round (_pt select 1), round (100 * _meilleure) / 100]) call HMT_LOG;
+    };
+    if (HMT_PV_GEN != _gen) exitWith { ("HMT|SOCLE|PREVOL|ABANDONNE|gen|" + str _gen) call HMT_LOG; false };
+    HMT_PV_ETAPE = "placeur";
+    if (isNil "HMT_LIEU_FORCE") then {
+        // 24 candidats, MELANGES : angles k*15, rayons 250 a 370. On ne cherche plus le
+        // meilleur, on prend LE PREMIER RECU.
+        private _cands = [];
+        for "_k" from 0 to 23 do {
+            private _a = _k * 15; private _r = 250 + (_k mod 4) * 40;
+            _cands pushBack [(getPosATL _ref select 0) + _r * sin _a,
+                             (getPosATL _ref select 1) + _r * cos _a];
+        };
+        // melange de Fisher-Yates : `BIS_fnc_arrayShuffle` n est pas garanti sur un serveur
+        // sans le module fonctions, et une dependance silencieuse est une economie non declaree.
+        for "_k" from (count _cands) - 1 to 1 step -1 do {
+            private _q = floor (random (_k + 1));
+            private _tmp = _cands select _k;
+            _cands set [_k, _cands select _q]; _cands set [_q, _tmp];
+        };
+        private _essais = 0;
+        HMT_PV_NCAND = 0;
+        {
+            _essais = _essais + 1;
+            // ⚠️ LE PROGRES S EXPOSE, SINON LA PATIENCE NE PEUT PAS LE SUIVRE ⟨Fable, 18/08⟩.
+            // Le plafond d attente etait GLOBAL contre un prevol dont la duree depend du
+            // nombre de candidats brules — et l anneau de 24 points est FIXE PAR SESSION,
+            // donc un plafond global convertit la pauvrete d un anneau en echecs REGROUPES
+            // par session : le destin de session, gueri dans le canal du verdict, renaissait
+            // dans le canal du TEMPS. Python suit desormais `HMT_PV_NCAND` autant que l etape.
+            HMT_PV_NCAND = _essais;
+            private _r = [_x] call HMT_G_PRATICABLE;
+            (format ["HMT|SOCLE|CANDIDAT|n|%1|x|%2|y|%3|verdict|%4|metres|%5|vue|%6",
+                     _essais, round (_x select 0), round (_x select 1),
+                     _r select 0, _r select 1, round (100 * (_r select 2)) / 100]) call HMT_LOG;
+            if ((_r select 0) == "recu") exitWith {
+                _pt = [_x select 0, _x select 1, 0];
+                _meilleure = [(_x select 0), (_x select 1)] call HMT_G_SLOPE;
+            };
+        } forEach _cands;
+        (format ["HMT|SOCLE|PLACEUR|candidats_essayes|%1|recu|%2", _essais,
+                 (count _pt > 0)]) call HMT_LOG;
     };
     if (count _pt == 0) exitWith {
-        HMT_PV_ECARTS = ["T0 AUCUN TERRAIN PLAT trouve pour le temoin en 24 essais"];
+        HMT_PV_ECARTS = ["T0 AUCUN LIEU PRATICABLE recu sur 24 candidats (traverse 18 m ET vue 40 m)"];
         "HMT|SOCLE|PREVOL|ROUGE|aucun terrain plat" call HMT_LOG;
         false
     };
@@ -214,11 +509,34 @@ HMT_PREVOL = {
         _k = _k + 1;
     };
     if (_vu < 0.3) then { _ec pushBack format ["T4 PLACE SANS VUE : 12 essais, meilleure vue %1", round (100*_vu)/100] };
+    if (HMT_PV_GEN != _gen) exitWith { ("HMT|SOCLE|PREVOL|ABANDONNE|gen|" + str _gen) call HMT_LOG; false };
+    // ⚠️ LES SABOTAGES DE L INSTRUMENT ⟨regle 18 pointee sur ma propre porte, Fable 18/08⟩.
+    // Les quatre sabotages existants jugent le MONDE (T4, T5, traverse, tir). Les lignes
+    // d INSTRUMENT — « zero prevol plante », « pas de regroupement » — jugeaient sans avoir
+    // ete jugees. « gel » fige le prevol 60 s : la porte DOIT rendre PLANTE. « lenteur »
+    // allonge le travail sans le figer : la porte doit rester VERTE sous patience-au-progres.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "gel") then {
+        "HMT|SOCLE|SABOTAGE|gel|60s a l etape T4" call HMT_LOG;
+        sleep 60;
+    };
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then {
+        "HMT|SOCLE|SABOTAGE|lenteur|+2s par etape, sans gel" call HMT_LOG;
+        sleep 2;
+    };
+    HMT_PV_ETAPE = "T4";
     _t reveal [_mann, 4];
     sleep 2;
     HMT_PV_COUPS = 0;
     private _eh = _t addEventHandler ["Fired", { HMT_PV_COUPS = HMT_PV_COUPS + 1 }];
     private _t0 = time;
+    // ⚠️ TROISIEME COPIE DU TIR, DECLAREE ET NON FACTORISEE ⟨lecture de Fable, 17/08⟩.
+    // T4 n appelle PAS `HMT_TIRER_C9` parce qu il n emploie pas le meme canal : son temoin
+    // GARDE `AUTOCOMBAT` (sans quoi rien ne part — mesure du 16/08) et sa boucle fait
+    // `doTarget`, que ni l action 9 ni `HMT_TIRER_C9` ne font. Les aligner SANS MESURE serait
+    // regler une divergence « par defaut », ce qui est precisement interdit : elle se regle
+    // par UNE mesure — T4 passe-t-il avec `HMT_TIRER_C9` et sans `doTarget` ? — puis
+    // alignement. Non mesuree a ce jour. T4 rend 0 echec sur 72 dans la sonde d unite ;
+    // on ne touche pas a un test qui tient sans savoir ce qu on casse.
     // fenetre de 12 s, alignee sur la latence MESUREE de l IA (coups a 4-19 en 8 s,
     // balayages du 15/08). Le seuil reste 1 balle : c est la fenetre qui etait trop courte.
     while { time - _t0 < 12 } do { _t doWatch _mann; _t doTarget _mann;
@@ -263,12 +581,24 @@ HMT_PREVOL = {
     // cinquante est soit repare, soit devenu INCAPABLE d echouer, et tu ne sais pas lequel »⟩.
     // T4 avait son sabotage (les munitions) et pas T5. Retirer `PATH`, ce sont les JAMBES —
     // mesure du 15/08, 9 m au lieu de 48. T5 DOIT rougir.
+    // ⚠️ LE LEVIER « jambes » ETAIT INOPERANT PAR NATURE, ET N AVAIT JAMAIS ETE EXECUTE.
+    // Il retire `PATH`, donc le pathfinding — mais T5 se deplace par `setVelocity`, une
+    // IMPULSION PHYSIQUE qui ne passe pas par le pathfinding. Mesure du 17/08 : 1 rouge sur
+    // 3 seulement, les deux autres tirages restant verts jambes retirees.
+    // C est la MEME faute que sur le placeur cet apres-midi (`disableAI "PATH"` la aussi),
+    // et ce levier vivait depuis le socle 1.11.0 sans avoir jamais ete joue — exactement ce
+    // que la regle 18 interdit : un critere qui n a pas ete juge.
+    // On sabote donc L IMPULSION, comme pour l acte 2 du placeur.
+    private _vyT5 = 6;
     if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "jambes") then {
+        _vyT5 = 0;
         _t disableAI "PATH";
         (format ["HMT|SOCLE|SABOTAGE|jambes|path|%1", _t checkAIFeature "PATH"]) call HMT_LOG;
     };
     sleep 0.5;
 
+    if (HMT_PV_GEN != _gen) exitWith { ("HMT|SOCLE|PREVOL|ABANDONNE|gen|" + str _gen) call HMT_LOG; false };
+    HMT_PV_ETAPE = "T5";
     // T5 · un homme PARCOURT du terrain (setVelocity est une IMPULSION, pas une consigne)
     _t doTarget objNull; _t doWatch objNull;
     // ⚠️ LE CLIQUET DU BANC DES JAMBES, QUE JE N AVAIS PAS TRANSPOSE ICI. Ce banc a etabli
@@ -277,24 +607,9 @@ HMT_PREVOL = {
     // 10 Hz et ne comptait rien. Or un serveur charge emet moins d impulsions dans la meme
     // fenetre : le reveil met huit hommes en IA complete, et T5 rougit 17 fois sur 20 avec
     // reveil contre 2 sur 12 sans. `nt` et `fps` disent si c est la cadence qui tombe.
-    private _nt = 0;
-    private _p0 = getPosATL _t; private _t1 = time;
-    // ⚠️ LE JOURNAL DU GESTE ⟨une passe, quatre causes⟩. 1 m en 4 s n est pas 9 m : ce n est
-    // pas un homme sans jambes, c est un homme qui ne bouge PAS. Quatre causes possibles,
-    // et chacune ecrit une signature differente ici :
-    //   (a) POSTURE  — couche/genou apres avoir tire en T4 : anim contient Ppne/Pknl
-    //   (b) IA       — re-engagement : conduite = COMBAT et la vitesse relue retombe a 0
-    //   (c) OBSTACLE — vitesse relue = 6 mais deplacement nul
-    //   (d) FIGE     — vitesse relue = 0 des la 1re relecture (impulsion jamais appliquee)
-    private _vrelue = []; private _anims = [];
-    while { time - _t1 < 4 } do {
-      _t setVelocity [0, 6, 0];
-      _nt = _nt + 1;
-      _vrelue pushBack (round (10 * ((velocity _t) select 1)) / 10);
-      _anims pushBack (animationState _t);
-      sleep 0.1;
-    };
-    private _m = _p0 distance2D (getPosATL _t);
+    private _mnt = [_t, 4, _vyT5] call HMT_MARCHER;
+    private _m = _mnt select 0; private _nt = _mnt select 1;
+
     (format ["HMT|SOCLE|GESTE|m|%1|v_apres|%2|v_mediane|%3|v_fin|%4|conduite|%5|anim0|%6|anim9|%7|animfin|%8|posture|%9|sol|%10",
              round _m,
              _vrelue select 0,
@@ -332,22 +647,33 @@ HMT_PREVOL = {
     // ⚠️ Et il RELEVE `AUTOCOMBAT` reellement actif : `ANOMALIE_AUTOCOMBAT.md` dit que
     // l ordre ne prend pas sur les attaquants. Si l homme servi tire, c est ou bien par ce
     // canal, ou bien par une faculte qu on croit coupee. T7 dit lequel.
+    if (HMT_PV_GEN != _gen) exitWith { ("HMT|SOCLE|PREVOL|ABANDONNE|gen|" + str _gen) call HMT_LOG; false };
+    HMT_PV_ETAPE = "T7";
     private _g7 = createGroup west;
-    private _u7 = [_g7, "B_Soldier_F", [(_pt select 0) + 6, (_pt select 1), 0], "pilote"] call HMT_POSER_HOMME;
+    // ⚠️ T7 TESTE LE LIEU QUE LE PLACEUR A VALIDE, PAS SIX METRES A COTE.
+    // Porte du 17/08 : 23 echecs T7 sur 40, et le releve du socle SEPARE PARFAITEMENT —
+    // `vue|0` rend 0 coup, `vue|1` rend 12. T7 n echouait pas sur le canal de feu, il
+    // echouait parce que SON mannequin n etait pas visible. L acte 3 du placeur valide le
+    // point EXACT avec un mannequin a 40 m plein nord ; T7 posait le sien a `_pt + 6` et
+    // 35 m. Six metres suffisent a passer derriere un arbre. Le `+6` evitait un chevauchement
+    // avec le temoin de T5 — mais celui-ci est deja supprime a ce stade.
+    // DEUX TESTS DU MEME SOCLE DOIVENT S ACCORDER SUR LA GEOMETRIE QU ILS EXIGENT.
+    private _u7 = [_g7, "B_Soldier_F", [(_pt select 0), (_pt select 1), 0], "pilote"] call HMT_POSER_HOMME;
+    // ⚠️ REVUE 17/08 : NI `_u7` NI `_m7` n avaient `allowDamage false`, contrairement au
+    // binome de T4 (lignes 196 et 207). Et `_m7` etait ARME (HMT_ARMER) et en IA LIBRE —
+    // il ne passait jamais par HMT_PILOTER — a 35 m d un homme en mode `pilote`, donc
+    // AUTOCOMBAT coupe et incapable de riposter. `_m7` pouvait donc ABATTRE le temoin
+    // pendant les 4 s du test : HMT_PV_C7 restait a 0, T7 rougissait, et le prevol
+    // refusait tout l episode pour un MORT et non pour un canal de feu muet.
+    _u7 allowDamage false;
     private _gm7 = createGroup east;
-    private _m7 = _gm7 createUnit ["O_Soldier_F", [(_pt select 0) + 6, (_pt select 1) + 35, 0], [], 0, "NONE"];
+    private _m7 = _gm7 createUnit ["O_Soldier_F", [(_pt select 0), (_pt select 1) + 40, 0], [], 0, "NONE"];
     [_m7] call HMT_ARMER;
+    _m7 allowDamage false; _m7 disableAI "PATH"; _m7 disableAI "AUTOCOMBAT";
+    _m7 setBehaviour "CARELESS";
     sleep 1.5;
-    HMT_PV_C7 = 0;
-    private _eh7 = _u7 addEventHandler ["Fired", { HMT_PV_C7 = HMT_PV_C7 + 1 }];
     _u7 reveal [_m7, 4];
-    private _tt7 = time;
-    while { time - _tt7 < 4 } do {
-        _u7 setDir (_u7 getDir _m7); _u7 doWatch _m7;
-        _u7 forceWeaponFire [currentWeapon _u7, currentMuzzle _u7];
-        sleep 0.33;
-    };
-    _u7 removeEventHandler ["Fired", _eh7];
+    HMT_PV_C7 = [_u7, _m7, 4] call HMT_TIRER_C9;
     private _a7 = _u7 checkAIFeature "AUTOCOMBAT";
     (format ["HMT|SOCLE|T7|coups|%1|autocombat_reel|%2|fsm|%3|arme|%4|vue|%5",
              HMT_PV_C7, _a7, _u7 checkAIFeature "FSM", currentWeapon _u7,
@@ -370,10 +696,18 @@ HMT_PREVOL = {
     HMT_PV_LIEU = [_pt select 0, _pt select 1,
                    surfaceIsWater [_pt select 0, _pt select 1], _meilleure];
 
+    HMT_PV_ETAPE = "fini";
     private _vert = (count _ec == 0);
-    (format ["HMT|SOCLE|PREVOL|%1|version|%2|hommes|%3|ecarts|%4",
+    // ⚠️ REVUE 17/08 : `HMT_SABOTER` est une globale de missionNamespace que RIEN ne
+    // remet a zero. Un banc qui la pose puis plante la laisse en place, et TOUTES les
+    // sessions suivantes rougissent en T4 avec une ligne de verdict IDENTIQUE a celle
+    // d un vrai rouge. Un sabotage oublie devenait un verdict. Le champ est AJOUTE en
+    // fin de ligne pour ne pas deplacer les champs que les lecteurs existants comptent.
+    private _sab = missionNamespace getVariable ["HMT_SABOTER", ""];
+    (format ["HMT|SOCLE|PREVOL|%1|version|%2|hommes|%3|ecarts|%4|sabotage|%5",
              (if (_vert) then {"VERT"} else {"ROUGE"}), HMT_SOCLE_VERSION, count _hommes,
-             (if (_vert) then {"aucun"} else {str _ec})]) call HMT_LOG;
+             (if (_vert) then {"aucun"} else {str _ec}),
+             (if (_sab == "") then {"aucun"} else {_sab})]) call HMT_LOG;
     _vert
 };
 
