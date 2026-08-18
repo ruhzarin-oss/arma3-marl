@@ -70,7 +70,12 @@ if __name__ == "__main__":
     # ⚠️ LES QUATRE SABOTAGES doivent etre rejoues sur le hash que la porte certifie
     # ⟨ligne 4 du critere⟩. « sabotage » vide les munitions du temoin de T4 ; « jambes »
     # retire `PATH` au temoin de T5. Les deux du placeur (traverse, tir) passent par le smoke.
-    _sab = {"sabotage": "munitions", "jambes": "jambes"}.get(MODE, "")
+    # ⚠️ QUATRIEME LEVIER NE SANS CHEMIN D EXECUTION ⟨Fable, 18/08⟩. « gel » et « lenteur »
+    # etaient ecrits dans le socle et absents de cette table : le mode envoyait `""`, et les
+    # deux branches neuves ne s executaient JAMAIS. L arbre syntaxique ne voit pas la couture
+    # Python -> SQF ; cote SQF, le seul arbre est l EXECUTION.
+    _sab = {"sabotage": "munitions", "jambes": "jambes",
+            "gel": "gel", "lenteur": "lenteur"}.get(MODE, "")
     b.send('HMT_SABOTER = "%s";' % _sab, wait=False)
     time.sleep(1)
     # Le reveil fait partie du monde. `banc_live.py natif` l envoie ENTRE la scene et le
@@ -162,7 +167,7 @@ if __name__ == "__main__":
         # ⚠️ ANGLE MORT DECLARE ⟨regle 20⟩ : un vrai gel coute jusqu a 26 s a detecter, et le
         # garde-fou des trois sans-reponse tombe plus tard dans la vie du pont (mort en 20-40 min).
         BORNE_EXT = 180.0
-        r = None; etape = None; ncand = -1; fige = 0
+        r = None; etape = None; ncand = -1; fige = 0; _fige_break = False
         _t_deb = time.time(); _chrono = {}
         # REVUE 17/08 : on lisait la DERNIERE ligne `HMT|PV|` du tampon, sans borne de
         # fraicheur. Sur serveur charge, une ligne du tirage PRECEDENT (true/false, jamais
@@ -188,6 +193,19 @@ if __name__ == "__main__":
             if _cur != etape and _cur is not None: _chrono[etape] = round(time.time() - _t_deb, 1)
             if _cur == etape and _cn == ncand: fige += 1
             else: etape, ncand, fige = _cur, _cn, 0
+            # ⚠️ SANS CE `break`, PLANTE N EXISTAIT PAS ⟨Fable⟩. La stagnation ne faisait
+            # qu ETIQUETER a l expiration de la borne : un gel de 60 s se reveillait, finissait
+            # vers 120-140 s, et rendait VERT. Mon message annoncait « 12 sondages sans progres
+            # -> PLANTE » — cinquieme ecrit du jour decrivant un acte que le code ne fait pas,
+            # dans l annonce meme du correctif de cette famille.
+            # ⚠️ MARGE DECLAREE ⟨regle 20⟩ : le plus long silence LEGITIME est l etape T4
+            # entiere — reveal 2 s + fenetre de tir 12 s + suppression + sleep 1 + sleep 0,5
+            # ≈ 17 s. Un sondage coute ~2,5-3 s reels (1,5+0,4+0,3+0,25 et les lectures), donc
+            # 12 sondages ≈ 30-36 s : marge ~2x. Si la charge serveur etire T4 au-dela de 2x,
+            # c est un FAUX PLANTE, et le `fps` que T5 journalise deja en est le temoin.
+            if fige >= 12:
+                _fige_break = True
+                break
             ls = [L for L in b._log_lines(200) if _tag in L]
             if ls and "attente" not in ls[-1]:
                 r = "true" in ls[-1].split(_tag)[1][:6]; break
@@ -198,8 +216,11 @@ if __name__ == "__main__":
             # l etiquette nommait l etape ou l HORLOGE expire, pas celle ou le TEMPS
             # s est depense ⟨Fable⟩ : on joint les horodatages par etape.
             _hist = " ".join("%s@%ss" % (k, v) for k, v in _chrono.items() if k)
+            # PLANTE se decide sur la STAGNATION ; LENT devient exclusivement le
+            # depassement de la borne exterieure — « le prevol avance au-dela de son propre
+            # maximum », qui est un bug et le dit.
             cause = ("SANS REPONSE / PONT MUET (aucune etape lue)" if etape is None else
-                     ("SANS REPONSE / PREVOL PLANTE a l etape %s cand %s [%s]" % (etape, ncand, _hist) if fige >= 12
+                     ("SANS REPONSE / PREVOL PLANTE a l etape %s cand %s [%s]" % (etape, ncand, _hist) if _fige_break
                       else "SANS REPONSE / PREVOL LENT, etape %s cand %s [%s]" % (etape, ncand, _hist)))
             sansrep += 1; det.append((i, cause))
         elif r:
@@ -221,7 +242,7 @@ if __name__ == "__main__":
         print("    %2d/%d  vert=%d  echec=%d%s" % (i, N, verts, ech,
               ("   ← " + det[-1][1][:70]) if det and det[-1][0] == i else ""), flush=True)
         if sansrep >= 3:
-            print("\n  ⛔ TROIS TIRAGES SANS REPONSE : c'est le PONT qui est muet, pas la\n     porte. AUCUN verdict n'est rendu sur la tactique.", flush=True)
+            print("\n  ⛔ TROIS TIRAGES SANS REPONSE — causes MELEES (pont, lent, plante).\n     Le compteur ne les distingue pas : il nomme ce qu'il compte, pas une cause.\n     AUCUN verdict n'est rendu sur la tactique.", flush=True)
             sys.exit(5)
         if MODE == "normal" and ech > MAX_ECHECS:
             print("\n  ⛔ COUPURE AU %dE ECHEC — la porte tombe, la nuit reste vide." % ech, flush=True); break
@@ -230,6 +251,27 @@ if __name__ == "__main__":
 
     print("\n  ── %d tirages : %d verts, %d echecs, %d sans reponse ──"
           % (verts + ech + sansrep, verts, ech, sansrep), flush=True)
+    if MODE == "gel":
+        # ⚠️ SANS CETTE BRANCHE, UN RUN GEL SERAIT TOMBE DANS `else` ET AURAIT IMPRIME
+        # « PORTE TENUE » : le cas echouant rendu comme un SUCCES, structure exacte du
+        # `clamp(min=1)` de la revue. Le gel DOIT rendre PLANTE 3 fois sur 3.
+        _pl = [d for _, d in det if "PLANTE" in d]
+        print("\n  PLANTE : %d sur %d tirages" % (len(_pl), verts + ech + sansrep))
+        for _, d in det: print("     %s" % d[:150])
+        if len(_pl) < 3:
+            print("  ⛔ LE GEL NE FAIT PAS PLANTER — le detecteur de la ligne 2 est infirme."); sys.exit(8)
+        if not all("T4" in d for d in _pl):
+            print("  ⛔ PLANTE detecte, mais PAS a l etape T4 — l instrument nomme mal l etage."); sys.exit(9)
+        print("  ✓ gel : PLANTE 3/3 a l etape T4 — le detecteur de la ligne 2 fonctionne")
+        sys.exit(0)
+    if MODE == "lenteur":
+        # la lenteur ne doit RIEN faire rougir : elle allonge sans figer.
+        _d = [float(x) for x in re.findall(r"@([\d.]+)s", " ".join(d for _, d in det))] or [0.0]
+        print("\n  verts %d / rouges %d / sans reponse %d" % (verts, ech, sansrep))
+        if ech > 0 or sansrep > 0:
+            print("  ⛔ LA LENTEUR FAIT ROUGIR — la patience ne suit pas le progres."); sys.exit(10)
+        print("  ✓ lenteur : VERT %d/%d sous patience-au-progres" % (verts, verts))
+        sys.exit(0)
     if MODE in ("sabotage", "jambes"):
         if ech == 0:
             print("  ⛔ LE SABOTAGE N A RIEN FAIT ROUGIR. La porte ne mesure rien. ARRET TOTAL."); sys.exit(2)

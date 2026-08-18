@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "2.9.0-18082026";
+HMT_SOCLE_VERSION = "2.10.0-18082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -515,15 +515,22 @@ HMT_PREVOL = {
     // d INSTRUMENT — « zero prevol plante », « pas de regroupement » — jugeaient sans avoir
     // ete jugees. « gel » fige le prevol 60 s : la porte DOIT rendre PLANTE. « lenteur »
     // allonge le travail sans le figer : la porte doit rester VERTE sous patience-au-progres.
+    // ⚠️ LA LENTEUR DOIT AVOIR DES DENTS ⟨Fable⟩ : +2 s passait deja sous l ANCIEN plafond,
+    // donc le controle ne pouvait echouer sous aucun des deux instruments — il n exercait pas
+    // la propriete changee (regle 6). Dimensionnement DERIVE, sans regarder de resultat :
+    // duree totale dans l intervalle ]ancien plafond ~90 s ; borne 180 s[, chaque silence
+    // individuel SOUS le seuil de stagnation (~30-36 s), et chaque pause posee JUSTE AVANT
+    // une assignation d etape pour que le reset de `fige` la suive. Quatre pauses de 16 s
+    // → +64 s, total ~100-130 s : au-dessus de l ancien plafond, sous la borne, jamais figee.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 16 };
+    HMT_PV_ETAPE = "T4";
+    // ⚠️ LE GEL DORT *APRES* L ASSIGNATION D ETAPE ⟨Fable, 18/08⟩. Pose avant, l etape lisait
+    // encore « placeur » pendant le gel : l instrument aurait menti dans le test cense
+    // certifier sa parole — le log annoncait T4 quand l etiquette aurait dit placeur.
     if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "gel") then {
-        "HMT|SOCLE|SABOTAGE|gel|60s a l etape T4" call HMT_LOG;
+        "HMT|SOCLE|SABOTAGE|gel|60 s SANS progres, a l etape T4" call HMT_LOG;
         sleep 60;
     };
-    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then {
-        "HMT|SOCLE|SABOTAGE|lenteur|+2s par etape, sans gel" call HMT_LOG;
-        sleep 2;
-    };
-    HMT_PV_ETAPE = "T4";
     _t reveal [_mann, 4];
     sleep 2;
     HMT_PV_COUPS = 0;
@@ -598,6 +605,14 @@ HMT_PREVOL = {
     sleep 0.5;
 
     if (HMT_PV_GEN != _gen) exitWith { ("HMT|SOCLE|PREVOL|ABANDONNE|gen|" + str _gen) call HMT_LOG; false };
+    // ⚠️ LA LENTEUR DOIT AVOIR DES DENTS ⟨Fable⟩ : +2 s passait deja sous l ANCIEN plafond,
+    // donc le controle ne pouvait echouer sous aucun des deux instruments — il n exercait pas
+    // la propriete changee (regle 6). Dimensionnement DERIVE, sans regarder de resultat :
+    // duree totale dans l intervalle ]ancien plafond ~90 s ; borne 180 s[, chaque silence
+    // individuel SOUS le seuil de stagnation (~30-36 s), et chaque pause posee JUSTE AVANT
+    // une assignation d etape pour que le reset de `fige` la suive. Quatre pauses de 16 s
+    // → +64 s, total ~100-130 s : au-dessus de l ancien plafond, sous la borne, jamais figee.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 16 };
     HMT_PV_ETAPE = "T5";
     // T5 · un homme PARCOURT du terrain (setVelocity est une IMPULSION, pas une consigne)
     _t doTarget objNull; _t doWatch objNull;
@@ -648,6 +663,14 @@ HMT_PREVOL = {
     // l ordre ne prend pas sur les attaquants. Si l homme servi tire, c est ou bien par ce
     // canal, ou bien par une faculte qu on croit coupee. T7 dit lequel.
     if (HMT_PV_GEN != _gen) exitWith { ("HMT|SOCLE|PREVOL|ABANDONNE|gen|" + str _gen) call HMT_LOG; false };
+    // ⚠️ LA LENTEUR DOIT AVOIR DES DENTS ⟨Fable⟩ : +2 s passait deja sous l ANCIEN plafond,
+    // donc le controle ne pouvait echouer sous aucun des deux instruments — il n exercait pas
+    // la propriete changee (regle 6). Dimensionnement DERIVE, sans regarder de resultat :
+    // duree totale dans l intervalle ]ancien plafond ~90 s ; borne 180 s[, chaque silence
+    // individuel SOUS le seuil de stagnation (~30-36 s), et chaque pause posee JUSTE AVANT
+    // une assignation d etape pour que le reset de `fige` la suive. Quatre pauses de 16 s
+    // → +64 s, total ~100-130 s : au-dessus de l ancien plafond, sous la borne, jamais figee.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 16 };
     HMT_PV_ETAPE = "T7";
     private _g7 = createGroup west;
     // ⚠️ T7 TESTE LE LIEU QUE LE PLACEUR A VALIDE, PAS SIX METRES A COTE.
@@ -696,6 +719,14 @@ HMT_PREVOL = {
     HMT_PV_LIEU = [_pt select 0, _pt select 1,
                    surfaceIsWater [_pt select 0, _pt select 1], _meilleure];
 
+    // ⚠️ LA LENTEUR DOIT AVOIR DES DENTS ⟨Fable⟩ : +2 s passait deja sous l ANCIEN plafond,
+    // donc le controle ne pouvait echouer sous aucun des deux instruments — il n exercait pas
+    // la propriete changee (regle 6). Dimensionnement DERIVE, sans regarder de resultat :
+    // duree totale dans l intervalle ]ancien plafond ~90 s ; borne 180 s[, chaque silence
+    // individuel SOUS le seuil de stagnation (~30-36 s), et chaque pause posee JUSTE AVANT
+    // une assignation d etape pour que le reset de `fige` la suive. Quatre pauses de 16 s
+    // → +64 s, total ~100-130 s : au-dessus de l ancien plafond, sous la borne, jamais figee.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 16 };
     HMT_PV_ETAPE = "fini";
     private _vert = (count _ec == 0);
     // ⚠️ REVUE 17/08 : `HMT_SABOTER` est une globale de missionNamespace que RIEN ne
