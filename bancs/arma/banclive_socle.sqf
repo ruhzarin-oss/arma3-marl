@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "2.10.0-18082026";
+HMT_SOCLE_VERSION = "2.11.0-18082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -431,6 +431,17 @@ HMT_PREVOL = {
     };
     if (HMT_PV_GEN != _gen) exitWith { ("HMT|SOCLE|PREVOL|ABANDONNE|gen|" + str _gen) call HMT_LOG; false };
     HMT_PV_ETAPE = "placeur";
+    // ⚠️ LA PAUSE VIENT *APRES* L ASSIGNATION, ET ELLE FAIT 10 s. Premiere version : 16 s
+    // posees AVANT l assignation suivante — mesure du 18/08, PLANTE 3/3 au lieu de VERT 3/3.
+    // Une pause posee avant l assignation s AJOUTE au silence de l etape COURANTE : T4 dure
+    // deja ~17 s de silence legitime, plus 16 s de pause = 33 s de stagnation continue sous
+    // la meme etiquette, au-dessus du seuil de 12 sondages (~30-36 s). Le detecteur a fait
+    // exactement son travail ; c est le dimensionnement qui etait faux.
+    // DERIVE, sans regarder de resultat : la pause doit etre ENCADREE par un reset de `fige`,
+    // donc posee APRES ; et sa taille doit laisser `silence de l etape + pause` sous le seuil.
+    // Le pire cas est T4 (~17 s) : 17 + 10 = 27 s < 30. Cinq pauses de 10 s → +50 s, total
+    // ~110 s : au-dessus de l ancien plafond de 90 s, sous la borne de 180, jamais figee.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 10 };
     if (isNil "HMT_LIEU_FORCE") then {
         // 24 candidats, MELANGES : angles k*15, rayons 250 a 370. On ne cherche plus le
         // meilleur, on prend LE PREMIER RECU.
@@ -515,15 +526,18 @@ HMT_PREVOL = {
     // d INSTRUMENT — « zero prevol plante », « pas de regroupement » — jugeaient sans avoir
     // ete jugees. « gel » fige le prevol 60 s : la porte DOIT rendre PLANTE. « lenteur »
     // allonge le travail sans le figer : la porte doit rester VERTE sous patience-au-progres.
-    // ⚠️ LA LENTEUR DOIT AVOIR DES DENTS ⟨Fable⟩ : +2 s passait deja sous l ANCIEN plafond,
-    // donc le controle ne pouvait echouer sous aucun des deux instruments — il n exercait pas
-    // la propriete changee (regle 6). Dimensionnement DERIVE, sans regarder de resultat :
-    // duree totale dans l intervalle ]ancien plafond ~90 s ; borne 180 s[, chaque silence
-    // individuel SOUS le seuil de stagnation (~30-36 s), et chaque pause posee JUSTE AVANT
-    // une assignation d etape pour que le reset de `fige` la suive. Quatre pauses de 16 s
-    // → +64 s, total ~100-130 s : au-dessus de l ancien plafond, sous la borne, jamais figee.
-    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 16 };
     HMT_PV_ETAPE = "T4";
+    // ⚠️ LA PAUSE VIENT *APRES* L ASSIGNATION, ET ELLE FAIT 10 s. Premiere version : 16 s
+    // posees AVANT l assignation suivante — mesure du 18/08, PLANTE 3/3 au lieu de VERT 3/3.
+    // Une pause posee avant l assignation s AJOUTE au silence de l etape COURANTE : T4 dure
+    // deja ~17 s de silence legitime, plus 16 s de pause = 33 s de stagnation continue sous
+    // la meme etiquette, au-dessus du seuil de 12 sondages (~30-36 s). Le detecteur a fait
+    // exactement son travail ; c est le dimensionnement qui etait faux.
+    // DERIVE, sans regarder de resultat : la pause doit etre ENCADREE par un reset de `fige`,
+    // donc posee APRES ; et sa taille doit laisser `silence de l etape + pause` sous le seuil.
+    // Le pire cas est T4 (~17 s) : 17 + 10 = 27 s < 30. Cinq pauses de 10 s → +50 s, total
+    // ~110 s : au-dessus de l ancien plafond de 90 s, sous la borne de 180, jamais figee.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 10 };
     // ⚠️ LE GEL DORT *APRES* L ASSIGNATION D ETAPE ⟨Fable, 18/08⟩. Pose avant, l etape lisait
     // encore « placeur » pendant le gel : l instrument aurait menti dans le test cense
     // certifier sa parole — le log annoncait T4 quand l etiquette aurait dit placeur.
@@ -605,15 +619,18 @@ HMT_PREVOL = {
     sleep 0.5;
 
     if (HMT_PV_GEN != _gen) exitWith { ("HMT|SOCLE|PREVOL|ABANDONNE|gen|" + str _gen) call HMT_LOG; false };
-    // ⚠️ LA LENTEUR DOIT AVOIR DES DENTS ⟨Fable⟩ : +2 s passait deja sous l ANCIEN plafond,
-    // donc le controle ne pouvait echouer sous aucun des deux instruments — il n exercait pas
-    // la propriete changee (regle 6). Dimensionnement DERIVE, sans regarder de resultat :
-    // duree totale dans l intervalle ]ancien plafond ~90 s ; borne 180 s[, chaque silence
-    // individuel SOUS le seuil de stagnation (~30-36 s), et chaque pause posee JUSTE AVANT
-    // une assignation d etape pour que le reset de `fige` la suive. Quatre pauses de 16 s
-    // → +64 s, total ~100-130 s : au-dessus de l ancien plafond, sous la borne, jamais figee.
-    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 16 };
     HMT_PV_ETAPE = "T5";
+    // ⚠️ LA PAUSE VIENT *APRES* L ASSIGNATION, ET ELLE FAIT 10 s. Premiere version : 16 s
+    // posees AVANT l assignation suivante — mesure du 18/08, PLANTE 3/3 au lieu de VERT 3/3.
+    // Une pause posee avant l assignation s AJOUTE au silence de l etape COURANTE : T4 dure
+    // deja ~17 s de silence legitime, plus 16 s de pause = 33 s de stagnation continue sous
+    // la meme etiquette, au-dessus du seuil de 12 sondages (~30-36 s). Le detecteur a fait
+    // exactement son travail ; c est le dimensionnement qui etait faux.
+    // DERIVE, sans regarder de resultat : la pause doit etre ENCADREE par un reset de `fige`,
+    // donc posee APRES ; et sa taille doit laisser `silence de l etape + pause` sous le seuil.
+    // Le pire cas est T4 (~17 s) : 17 + 10 = 27 s < 30. Cinq pauses de 10 s → +50 s, total
+    // ~110 s : au-dessus de l ancien plafond de 90 s, sous la borne de 180, jamais figee.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 10 };
     // T5 · un homme PARCOURT du terrain (setVelocity est une IMPULSION, pas une consigne)
     _t doTarget objNull; _t doWatch objNull;
     // ⚠️ LE CLIQUET DU BANC DES JAMBES, QUE JE N AVAIS PAS TRANSPOSE ICI. Ce banc a etabli
@@ -663,15 +680,18 @@ HMT_PREVOL = {
     // l ordre ne prend pas sur les attaquants. Si l homme servi tire, c est ou bien par ce
     // canal, ou bien par une faculte qu on croit coupee. T7 dit lequel.
     if (HMT_PV_GEN != _gen) exitWith { ("HMT|SOCLE|PREVOL|ABANDONNE|gen|" + str _gen) call HMT_LOG; false };
-    // ⚠️ LA LENTEUR DOIT AVOIR DES DENTS ⟨Fable⟩ : +2 s passait deja sous l ANCIEN plafond,
-    // donc le controle ne pouvait echouer sous aucun des deux instruments — il n exercait pas
-    // la propriete changee (regle 6). Dimensionnement DERIVE, sans regarder de resultat :
-    // duree totale dans l intervalle ]ancien plafond ~90 s ; borne 180 s[, chaque silence
-    // individuel SOUS le seuil de stagnation (~30-36 s), et chaque pause posee JUSTE AVANT
-    // une assignation d etape pour que le reset de `fige` la suive. Quatre pauses de 16 s
-    // → +64 s, total ~100-130 s : au-dessus de l ancien plafond, sous la borne, jamais figee.
-    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 16 };
     HMT_PV_ETAPE = "T7";
+    // ⚠️ LA PAUSE VIENT *APRES* L ASSIGNATION, ET ELLE FAIT 10 s. Premiere version : 16 s
+    // posees AVANT l assignation suivante — mesure du 18/08, PLANTE 3/3 au lieu de VERT 3/3.
+    // Une pause posee avant l assignation s AJOUTE au silence de l etape COURANTE : T4 dure
+    // deja ~17 s de silence legitime, plus 16 s de pause = 33 s de stagnation continue sous
+    // la meme etiquette, au-dessus du seuil de 12 sondages (~30-36 s). Le detecteur a fait
+    // exactement son travail ; c est le dimensionnement qui etait faux.
+    // DERIVE, sans regarder de resultat : la pause doit etre ENCADREE par un reset de `fige`,
+    // donc posee APRES ; et sa taille doit laisser `silence de l etape + pause` sous le seuil.
+    // Le pire cas est T4 (~17 s) : 17 + 10 = 27 s < 30. Cinq pauses de 10 s → +50 s, total
+    // ~110 s : au-dessus de l ancien plafond de 90 s, sous la borne de 180, jamais figee.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 10 };
     private _g7 = createGroup west;
     // ⚠️ T7 TESTE LE LIEU QUE LE PLACEUR A VALIDE, PAS SIX METRES A COTE.
     // Porte du 17/08 : 23 echecs T7 sur 40, et le releve du socle SEPARE PARFAITEMENT —
@@ -719,15 +739,18 @@ HMT_PREVOL = {
     HMT_PV_LIEU = [_pt select 0, _pt select 1,
                    surfaceIsWater [_pt select 0, _pt select 1], _meilleure];
 
-    // ⚠️ LA LENTEUR DOIT AVOIR DES DENTS ⟨Fable⟩ : +2 s passait deja sous l ANCIEN plafond,
-    // donc le controle ne pouvait echouer sous aucun des deux instruments — il n exercait pas
-    // la propriete changee (regle 6). Dimensionnement DERIVE, sans regarder de resultat :
-    // duree totale dans l intervalle ]ancien plafond ~90 s ; borne 180 s[, chaque silence
-    // individuel SOUS le seuil de stagnation (~30-36 s), et chaque pause posee JUSTE AVANT
-    // une assignation d etape pour que le reset de `fige` la suive. Quatre pauses de 16 s
-    // → +64 s, total ~100-130 s : au-dessus de l ancien plafond, sous la borne, jamais figee.
-    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 16 };
     HMT_PV_ETAPE = "fini";
+    // ⚠️ LA PAUSE VIENT *APRES* L ASSIGNATION, ET ELLE FAIT 10 s. Premiere version : 16 s
+    // posees AVANT l assignation suivante — mesure du 18/08, PLANTE 3/3 au lieu de VERT 3/3.
+    // Une pause posee avant l assignation s AJOUTE au silence de l etape COURANTE : T4 dure
+    // deja ~17 s de silence legitime, plus 16 s de pause = 33 s de stagnation continue sous
+    // la meme etiquette, au-dessus du seuil de 12 sondages (~30-36 s). Le detecteur a fait
+    // exactement son travail ; c est le dimensionnement qui etait faux.
+    // DERIVE, sans regarder de resultat : la pause doit etre ENCADREE par un reset de `fige`,
+    // donc posee APRES ; et sa taille doit laisser `silence de l etape + pause` sous le seuil.
+    // Le pire cas est T4 (~17 s) : 17 + 10 = 27 s < 30. Cinq pauses de 10 s → +50 s, total
+    // ~110 s : au-dessus de l ancien plafond de 90 s, sous la borne de 180, jamais figee.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then { sleep 10 };
     private _vert = (count _ec == 0);
     // ⚠️ REVUE 17/08 : `HMT_SABOTER` est une globale de missionNamespace que RIEN ne
     // remet a zero. Un banc qui la pose puis plante la laisse en place, et TOUTES les
