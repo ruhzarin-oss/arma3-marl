@@ -12,23 +12,23 @@
 // a la divergence de vivre.
 HMT_SONDE1 = {
     params [["_n", 10]];
-    private _x = 4629; private _y = 5856;
+    private _cx = 4629; private _cy = 5856;
     {
         private _bras = _x;
         for "_k" from 1 to _n do {
             private _gE = createGroup east; private _gW = createGroup west;
             private _m = objNull; private _u = objNull;
             // ── le mannequin, selon le bras
-            _m = _gE createUnit ["O_Soldier_F", [_x, _y + 40, 0], [], 0, "NONE"];
+            _m = _gE createUnit ["O_Soldier_F", [_cx, _cy + 40, 0], [], 0, "NONE"];
             [_m] call HMT_ARMER;
             _m allowDamage false; _m disableAI "AUTOCOMBAT"; _m disableAI "FSM";
             _m setBehaviour "CARELESS";
             if (_bras != "A") then { _m disableAI "PATH" };      // B et C coupent PATH
             // ── le tireur, selon le bras
             if (_bras == "B") then {
-                _u = [_gW, "B_Soldier_F", [_x, _y, 0], "pilote"] call HMT_POSER_HOMME;
+                _u = [_gW, "B_Soldier_F", [_cx, _cy, 0], "pilote"] call HMT_POSER_HOMME;
             } else {
-                _u = _gW createUnit ["B_Soldier_F", [_x, _y, 0], [], 0, "NONE"];
+                _u = _gW createUnit ["B_Soldier_F", [_cx, _cy, 0], [], 0, "NONE"];
                 [_u] call HMT_ARMER; [_u, "pilote"] call HMT_PILOTER;
             };
             _u allowDamage false;

@@ -25,7 +25,7 @@ if __name__ == "__main__":
     b.send('diag_log format ["HMT|VER|%1", HMT_SOCLE_VERSION];', wait=False); time.sleep(1.2)
     _v = [L for L in b._log_lines(120) if "HMT|VER|" in L]
     print("  socle du monde : %s" % (_v[-1].split("HMT|VER|")[1].strip().strip('"')[:22] if _v else "?"), flush=True)
-    b.send('HMT_S = nil; [] spawn { [10] call HMT_SONDE1; HMT_S = [4776, 5196, 10] call HMT_SONDE2; };', wait=False)
+    b.send('HMT_S = nil; [] spawn { [10] call HMT_SONDE1; HMT_S = [4779, 5922, 10] call HMT_SONDE2; };', wait=False)
     print("  sondes lancees — 3 bras x 10, puis 10 poses", flush=True)
     t0 = time.time(); vu = 0
     while time.time() - t0 < 1800:
