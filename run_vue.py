@@ -77,7 +77,28 @@ if __name__ == "__main__":
     # et la pente nord separe les deux familles a 100 % (+15..+51 % contre -6..-34 %).
     # Marcher vers le SUD sur un lieu « sol » doit donc le faire « voler » — et sur un lieu
     # « vol » le clouer. C est le controle qui juge la THESE, pas seulement l instrument.
-    if len(sys.argv) > 1 and sys.argv[1] == "grav":
+    if len(sys.argv) > 1 and sys.argv[1] == "az":
+        # ⚠️ DERIVATION DU CRITERE NEUF. Specification ecrite et committee AVANT (a489262,
+        # CRITERE_NEUF_DU_PLACEUR.md) : grandeur = distance en 4 s ; echantillon = les 8
+        # azimuts de la couture ; statistique = le MINIMUM ; seuil derive du creux entre
+        # les deux modes ; n >= 50 lieux (regle 19).
+        import random
+        random.seed(19)                      # graine FIXE : le tirage se rejoue a l identique
+        CX, CY, RAYON, N = 4644.0, 5652.0, 250.0, 60
+        tirage = [(round(CX + random.uniform(-RAYON, RAYON)),
+                   round(CY + random.uniform(-RAYON, RAYON))) for _ in range(N)]
+        # ⚠️ AUCUN FILTRE. L eau, les rochers, les murs restent dans le tirage : c est au
+        # critere de les refuser, pas au tirage de les cacher. Un placeur qu on protege de
+        # ses cas difficiles n a jamais ete juge.
+        L60 = "[" + ",".join("[%d,%d]" % t for t in tirage) + "]"
+        L12 = "[" + ",".join("[%d,%d]" % (x, y) for (x, y, _) in SOL + VOL) + "]"
+        prog = ('HMT_VUE_FINI = false; [] spawn { '
+                'diag_log "HMT|AZ|BLOC|derivation"; [%s] call HMT_SONDER_AZIMUTS; '
+                'diag_log "HMT|AZ|BLOC|controle_jambes"; [%s, 4, 6, "jambes"] call HMT_SONDER_AZIMUTS; '
+                'diag_log "HMT|AZ|BLOC|controle_connus"; [%s] call HMT_SONDER_AZIMUTS; '
+                'HMT_VUE_FINI = true; diag_log "HMT|VUE|FINI"; };' % (L60, L60, L12))
+        print("  AZIMUTS — %d lieux x 8, puis jambes coupees, puis les 12 connus" % N, flush=True)
+    elif len(sys.argv) > 1 and sys.argv[1] == "grav":
         # ⚠️ BRAS APPARIE : chaque lieu recoit les DEUX canaux dans le meme passage.
         # Les predictions sont ecrites et committees (PREDICTIONS_CANAL_GRAVITE.md, c88259a).
         b_ = []
@@ -125,7 +146,7 @@ if __name__ == "__main__":
         time.sleep(10)
         try: txt = open(LOG, errors="ignore").read()
         except Exception: txt = ""
-        n = txt.count("HMT|VUE|GESTE")
+        n = txt.count("HMT|AZ|LIEU") if (len(sys.argv) > 1 and sys.argv[1] == "az") else txt.count("HMT|VUE|GESTE")
         if n != vu: print("    %d gestes releves" % n, flush=True); vu = n
         if "HMT|VUE|FINI" in txt: break
     tuer_le_mien(); time.sleep(2)
