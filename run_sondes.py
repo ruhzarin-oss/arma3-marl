@@ -24,6 +24,20 @@ if __name__ == "__main__":
     # certification a vide, hommes nes NON certifies. Le bloc C n avait jamais tourne.
     b.send('call compile preprocessFileLineNumbers "socle.sqf";', wait=False); time.sleep(3)
     b.send(sans_commentaires(SCENE), wait=False); time.sleep(6)
+    # ⚠️ ATTENTE DE LA SCENE, DERIVEE DE SON COUT REEL. Le bloc C certifie chaque
+    # position par des ACTES (pose 2 s + traverse 4 s + tir 4 s) : jusqu a 6 essais
+    # d azimut pour les 8 attaquants, puis jusqu a 8 essais par defenseur. Pire cas
+    # ~460 s. Un `sleep(6)` laissait la scene inachevee et faisait croire a son absence.
+    # ⚠️ ANGLE MORT DECLARE : ce plafond ne distingue pas une scene LENTE d une scene
+    # MORTE ; les rejets de position sont journalises (`SCENE_POS`, `SCENE_AZ`) et c est
+    # la qu on lira laquelle des deux.
+    _t_sc = time.time(); _sc = []
+    while time.time() - _t_sc < 480:
+        _sc = [L for L in b._log_lines(600) if 'HARMATTAN_SCENE' in L]
+        if _sc: break
+        time.sleep(5)
+    print('  scene : %s  (%.0f s)' % (_sc[-1][-42:] if _sc else 'AUCUNE en 480 s',
+          time.time() - _t_sc), flush=True)
     # ⚠️ ET LE REVEIL NATIF : le lot 5, ou le point maudit a echoue cinq fois, tournait sous
     # `prevol.py natif`. Une sonde qui ne reveille pas l IA ne reproduit pas ce regime — la
     # porte certifie dans son monde, la sonde doit mesurer dans le meme.
