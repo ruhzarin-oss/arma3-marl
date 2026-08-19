@@ -119,7 +119,7 @@ HMT_VUE_TRACE = {
 };
 
 HMT_VUE_PRETE = true;
-diag_log "HMT|VUE|CHARGEE|sonde_vue 1.4.0";
+diag_log "HMT|VUE|CHARGEE|sonde_vue 1.5.0";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LA SONDE DES HUIT AZIMUTS — dérivation du critère neuf du placeur ⟨19/08⟩
@@ -179,4 +179,38 @@ HMT_SONDER_AZIMUTS = {
     { deleteVehicle _x } forEach _hs;
     deleteGroup _g;
     ("HMT|AZ|FINI|sab|" + _sab + "|n|" + str (count _positions)) call HMT_LOG;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LE CORPUS PLAT ET DÉGAGÉ — un contrôle positif CONSTRUIT ⟨19/08, 21 h⟩
+//
+// Le contrôle positif du premier essai etait HERITE : les 12 lieux « connus » l etaient
+// au titre d une marche vers le NORD seulement. Un controle herite d un critere retire
+// n est pas un controle — c est la premisse fausse qui revient par la porte de service.
+// Celui-ci se selectionne sur le TERRAIN SEUL : eau, platitude, degagement. Aucune de
+// ces trois conditions ne regarde une distance parcourue.
+HMT_LIEUX_PLATS = {
+    params ["_cx", "_cy", "_rayon", "_combien"];
+    private _out = []; private _essais = 0;
+    while { count _out < _combien && _essais < 6000 } do {
+        _essais = _essais + 1;
+        private _x = _cx - _rayon + random (2 * _rayon);
+        private _y = _cy - _rayon + random (2 * _rayon);
+        if (!surfaceIsWater [_x, _y]) then {
+            private _hs = [];
+            for "_i" from -1 to 1 do {
+                for "_j" from -1 to 1 do {
+                    _hs pushBack (getTerrainHeightASL [_x + 15 * _i, _y + 15 * _j]);
+                };
+            };
+            private _t = +_hs; _t sort true;
+            if (((_t select 8) - (_t select 0)) <= 3) then {
+                if ((count (nearestObjects [[_x, _y, 0], [], 10])) == 0) then {
+                    _out pushBack [round _x, round _y];
+                };
+            };
+        };
+    };
+    (format ["HMT|PLAT|trouves|%1|essais|%2|cible|%3", count _out, _essais, _combien]) call HMT_LOG;
+    _out
 };
