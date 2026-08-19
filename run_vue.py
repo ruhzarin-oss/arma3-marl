@@ -77,7 +77,27 @@ if __name__ == "__main__":
     # et la pente nord separe les deux familles a 100 % (+15..+51 % contre -6..-34 %).
     # Marcher vers le SUD sur un lieu « sol » doit donc le faire « voler » — et sur un lieu
     # « vol » le clouer. C est le controle qui juge la THESE, pas seulement l instrument.
-    if len(sys.argv) > 1 and sys.argv[1] == "az":
+    if len(sys.argv) > 1 and sys.argv[1] == "terrain":
+        # ⚠️ LECTURE DE TERRAIN SEULE, aucune unite creee. On mesure ce que Stratis
+        # CONTIENT avant de dire « plat et degage » — la premiere spec (3 m et 0 objet)
+        # a rendu 1 lieu sur 6000. Un seuil absolu pose sans connaitre la distribution.
+        prog = ('HMT_VUE_FINI = false; [] spawn { '
+                '[4644, 5652, 250, 3000] call HMT_PROFIL_TERRAIN; '
+                'HMT_VUE_FINI = true; diag_log "HMT|VUE|FINI"; };')
+        print("  PROFIL DU TERRAIN — 3000 points, aucune unite", flush=True)
+    elif len(sys.argv) > 1 and sys.argv[1] == "plat":
+        # ⚠️ CONTROLE POSITIF CONSTRUIT. Spec ecrite et committee AVANT (ed0501e,
+        # PREDICTIONS_CORPUS_PLAT.md) : selection sur le TERRAIN SEUL (eau, platitude a
+        # 3 m sur +/- 15 m, aucun objet a 10 m), puis les 8 azimuts, puis le sabotage.
+        # Le seuil = 5e centile des minima du corpus. P2 (interquartile < 4 m) est le
+        # falsificateur de l approche.
+        prog = ('HMT_VUE_FINI = false; [] spawn { '
+                'HMT_PLATS = [4644, 5652, 250, 50] call HMT_LIEUX_PLATS; '
+                '[HMT_PLATS] call HMT_SONDER_AZIMUTS; '
+                '[HMT_PLATS, 4, 6, "jambes"] call HMT_SONDER_AZIMUTS; '
+                'HMT_VUE_FINI = true; diag_log "HMT|VUE|FINI"; };')
+        print("  CORPUS PLAT — selection sur le terrain, puis 8 azimuts, puis jambes", flush=True)
+    elif len(sys.argv) > 1 and sys.argv[1] == "az":
         # ⚠️ DERIVATION DU CRITERE NEUF. Specification ecrite et committee AVANT (a489262,
         # CRITERE_NEUF_DU_PLACEUR.md) : grandeur = distance en 4 s ; echantillon = les 8
         # azimuts de la couture ; statistique = le MINIMUM ; seuil derive du creux entre
@@ -146,7 +166,7 @@ if __name__ == "__main__":
         time.sleep(10)
         try: txt = open(LOG, errors="ignore").read()
         except Exception: txt = ""
-        n = txt.count("HMT|AZ|LIEU") if (len(sys.argv) > 1 and sys.argv[1] == "az") else txt.count("HMT|VUE|GESTE")
+        n = txt.count("HMT|AZ|LIEU") if (len(sys.argv) > 1 and sys.argv[1] in ("az", "plat")) else txt.count("HMT|VUE|GESTE")
         if n != vu: print("    %d gestes releves" % n, flush=True); vu = n
         if "HMT|VUE|FINI" in txt: break
     tuer_le_mien(); time.sleep(2)

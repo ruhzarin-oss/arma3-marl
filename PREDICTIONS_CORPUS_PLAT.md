@@ -51,3 +51,31 @@ Concrètement : **P2 est le falsificateur**. Si l'écart interquartile dépasse 
 Choisir la statistique ou le seuil en regardant lequel fait passer les lieux qu'on
 aimerait voir passer. La statistique (**minimum sur 8 azimuts**) et la règle de seuil
 (**5ᵉ centile du corpus plat**) sont fixées ici, avant la mesure.
+
+---
+
+## AMENDEMENT DE SÉLECTION — 19/08, 21 h 40. Il ne regarde aucun résultat de marche.
+
+**Ce qui a échoué** : « dénivelé ≤ 3 m sur ±15 m » a rendu **1 lieu sur 6 000**. Deux
+chiffres absolus posés sans connaître le terrain.
+
+**Ce que le terrain contient** (3 000 points de Stratis, `HMT|TERRAIN`, aucune unité créée) :
+
+| dénivelé sur ±15 m | 5ᵉ c. | 10ᵉ c. | 25ᵉ c. | médiane | 75ᵉ c. | 90ᵉ c. |
+|---|---|---|---|---|---|---|
+| | 6,7 m | **8,1 m** | 10,4 m | 12,8 m | 15,4 m | 18,6 m |
+
+| objets à 10 m | 5ᵉ c. | 10ᵉ c. | 25ᵉ c. | médiane |
+|---|---|---|---|---|
+| | 0 | 0 | **0** | 1 |
+
+Mon seuil de 3 m était **sous le 5ᵉ centile**. Le dégagement, lui, n'était pas le problème.
+
+**Ce qui change** : « plat » devient **le décile le plus plat du terrain mesuré**, soit
+**≤ 8,1 m**. C'est un **rang dans une distribution mesurée**, pas un nombre inventé.
+
+**Ce qui ne change pas** : la statistique (minimum sur 8 azimuts), la règle du seuil
+(5ᵉ centile des minima du corpus), les trois prédictions, et le falsificateur P2.
+
+⚠️ Cet amendement répare un **échantillonnage vide**, pas un résultat gênant : il est écrit
+avant qu'aucune distance de marche du corpus n'ait été mesurée.

@@ -119,7 +119,7 @@ HMT_VUE_TRACE = {
 };
 
 HMT_VUE_PRETE = true;
-diag_log "HMT|VUE|CHARGEE|sonde_vue 1.5.0";
+diag_log "HMT|VUE|CHARGEE|sonde_vue 1.7.0";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LA SONDE DES HUIT AZIMUTS — dérivation du critère neuf du placeur ⟨19/08⟩
@@ -204,7 +204,10 @@ HMT_LIEUX_PLATS = {
                 };
             };
             private _t = +_hs; _t sort true;
-            if (((_t select 8) - (_t select 0)) <= 3) then {
+            // ⚠️ 8.1 m = 10e centile du denivele de Stratis, MESURE sur 3000 points
+            // le 19/08 (HMT|TERRAIN). Le seuil de 3 m de la premiere spec rendait
+            // 1 lieu sur 6000 : il etait sous le 5e centile. Un rang, pas un nombre.
+            if (((_t select 8) - (_t select 0)) <= 8.1) then {
                 if ((count (nearestObjects [[_x, _y, 0], [], 10])) == 0) then {
                     _out pushBack [round _x, round _y];
                 };
@@ -213,4 +216,44 @@ HMT_LIEUX_PLATS = {
     };
     (format ["HMT|PLAT|trouves|%1|essais|%2|cible|%3", count _out, _essais, _combien]) call HMT_LOG;
     _out
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LA DISTRIBUTION DU TERRAIN — avant de dire « plat et dégagé » ⟨19/08, 21 h 30⟩
+//
+// ⚠️ PREMIERE TENTATIVE : « denivele <= 3 m sur +/- 15 m ET aucun objet a 10 m » a rendu
+// UN lieu sur SIX MILLE tirages. Deux chiffres absolus poses sans connaitre le terrain.
+// On mesure donc d abord CE QUE STRATIS CONTIENT, puis on definit « plat et degage »
+// comme un RANG dans cette distribution — pas contre un nombre invente.
+// Aucune unite n est creee : c est de la lecture de terrain, ça coute des secondes.
+HMT_PROFIL_TERRAIN = {
+    params ["_cx", "_cy", "_rayon", "_n"];
+    private _d = []; private _o = [];
+    for "_k" from 1 to _n do {
+        private _x = _cx - _rayon + random (2 * _rayon);
+        private _y = _cy - _rayon + random (2 * _rayon);
+        if (!surfaceIsWater [_x, _y]) then {
+            private _hs = [];
+            for "_i" from -1 to 1 do {
+                for "_j" from -1 to 1 do {
+                    _hs pushBack (getTerrainHeightASL [_x + 15 * _i, _y + 15 * _j]);
+                };
+            };
+            private _t = +_hs; _t sort true;
+            _d pushBack (round (10 * ((_t select 8) - (_t select 0))) / 10);
+            _o pushBack (count (nearestObjects [[_x, _y, 0], [], 10]));
+        };
+    };
+    _d sort true; _o sort true;
+    private _c = count _d;
+    // on ne journalise que les CENTILES : la ligne serait coupee a 1031 caracteres
+    (format ["HMT|TERRAIN|n|%1|denivele|c5|%2|c10|%3|c25|%4|med|%5|c75|%6|c90|%7",
+             _c, _d select (floor (0.05*_c)), _d select (floor (0.10*_c)),
+             _d select (floor (0.25*_c)), _d select (floor (0.50*_c)),
+             _d select (floor (0.75*_c)), _d select (floor (0.90*_c))]) call HMT_LOG;
+    (format ["HMT|TERRAIN|n|%1|objets|c5|%2|c10|%3|c25|%4|med|%5|c75|%6|c90|%7",
+             _c, _o select (floor (0.05*_c)), _o select (floor (0.10*_c)),
+             _o select (floor (0.25*_c)), _o select (floor (0.50*_c)),
+             _o select (floor (0.75*_c)), _o select (floor (0.90*_c))]) call HMT_LOG;
+    [_d, _o]
 };
