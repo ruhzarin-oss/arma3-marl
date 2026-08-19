@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "3.2.0-19082026";
+HMT_SOCLE_VERSION = "4.0.0-19082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -160,6 +160,8 @@ HMT_ACTE_TIR_SERVI = {
 // l arbitrage de Younes sur le tempo du gymnase (le canal rend 2,8-3,7 m/s en montee
 // contre 6 m/s supposes). AUCUNE PORTE NE SE LANCE AVANT : le placeur partage ce
 // critere, donc une porte lancee aujourd hui re-selectionnerait des descentes en silence.
+// ⚠️ LE BANC DECLARE SON CANAL, comme la couture. La porte comparera les deux.
+HMT_CANAL = "sv_vz_preserve_10hz";
 HMT_CERTIFIER = false;
 HMT_CERTIFIER_POSITIONS = {
     params ["_positions", ["_duree", 4], ["_seuil", 23]];
@@ -187,7 +189,7 @@ HMT_CERTIFIER_POSITIONS = {
     // ── ACTE 1 · TRAVERSE, TOUS EN MEME TEMPS, UNE SEULE FENETRE
     private _p0 = _hs apply { getPosATL _x };
     private _t0 = time;
-    while { time - _t0 < _duree } do { { _x setVelocity [0, 6, 0] } forEach _hs; sleep 0.1 };
+    while { time - _t0 < _duree } do { { _x setVelocity [0, 6, (velocity _x) select 2] } forEach _hs; sleep 0.1 };
     private _met = [];
     { _met pushBack (round ((_p0 select _forEachIndex) distance2D (getPosATL _x))) } forEach _hs;
     // ── ACTE 2 · TIR, TOUS EN MEME TEMPS. On remet chacun a sa position d origine d abord.
@@ -252,7 +254,14 @@ HMT_MARCHER = {
     private _p0 = getPosATL _u; private _t0 = time; private _nt = 0;
     private _vrelue = []; private _anims = [];
     while { alive _u && time - _t0 < _duree } do {
-        _u setVelocity [0, _vy, 0]; _nt = _nt + 1;
+                // ⚠️ CANAL AVEC GRAVITE — ADOPTE LE 19/08/2026 SUR DECISION DE YOUNES (branche 1),
+        // APRES mesure appariee (12 lieux x 2 canaux, meme passage, n=28) : le vol est aboli,
+        // la hauteur en descente passe de 6,8 m a 0,4 m, et la montee ne bouge pas (P3), ce
+        // qui confirme que le controleur d animation y mangeait deja la verticale.
+        // Voir PREDICTIONS_CANAL_GRAVITE.md (ecrites AVANT) et RESULTAT_CANAL_GRAVITE.md.
+        // ⚠️ LE ZERO EN Z ETAIT LA CAUSE DU VOL : reemis a 10 Hz, il annulait la gravite
+        // accumulee, donc un homme lance par une descente ne redescendait plus.
+        _u setVelocity [0, _vy, (velocity _u) select 2]; _nt = _nt + 1;
         _vrelue pushBack (round (10 * ((velocity _u) select 1)) / 10);
         _anims pushBack (animationState _u);
         sleep 0.1;

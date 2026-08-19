@@ -164,6 +164,9 @@ HMT_CX=__CX__; HMT_CY=__CY__; HMT_S=__S__; HMT_FRNG=__FRNG__;
 # --- 3) ACTION : 13 actions -> SQF (caps 0-7, HOLD 8, SUPPRESS 9, postures 10/11/12) ---
 ACT_TPL = r'''
 HMT_ACT=[__ACTS__]; HMT_SPD=__SPD__;
+// ⚠️ GARDIEN DE CANAL : le monde DECLARE quel canal il joue. La porte compare
+// cette valeur a la sienne — sinon une divergence banc/campagne renait en silence.
+HMT_CANAL = "sv_vz_preserve_10hz";
 // ⚠️ `setVelocity` EST UNE IMPULSION, PAS UNE CONSIGNE. Mesure du 15/08, sonde a trois bras,
 // controles positifs passes : emise UNE FOIS par periode de 3,28 s elle rend 2,58 m ;
 // reemise a 10 Hz elle rend 20,22 m, soit exactement les 6 m/s x 3,28 s attendus. Facteur 7,8.
@@ -182,7 +185,14 @@ HMT_NORDRE = (missionNamespace getVariable ["HMT_NORDRE", 0]) + 1;
           private _t0 = time; private _p0 = getPosATL _u; private _nsol = 0; private _n = 0;
           while { alive _u && time - _t0 < 3.28
                   && {(missionNamespace getVariable ["HMT_NORDRE",0]) == _mien} } do {
-              _u setVelocity [_vx,_vy,0];
+                            // ⚠️ CANAL AVEC GRAVITE — ADOPTE LE 19/08/2026 SUR DECISION DE YOUNES (branche 1),
+              // APRES mesure appariee (12 lieux x 2 canaux, meme passage, n=28) : le vol est aboli,
+              // la hauteur en descente passe de 6,8 m a 0,4 m, et la montee ne bouge pas (P3), ce
+              // qui confirme que le controleur d animation y mangeait deja la verticale.
+              // Voir PREDICTIONS_CANAL_GRAVITE.md (ecrites AVANT) et RESULTAT_CANAL_GRAVITE.md.
+              // ⚠️ LE ZERO EN Z ETAIT LA CAUSE DU VOL : reemis a 10 Hz, il annulait la gravite
+              // accumulee, donc un homme lance par une descente ne redescendait plus.
+              _u setVelocity [_vx,_vy,(velocity _u) select 2];
               _n = _n + 1; if (isTouchingGround _u) then { _nsol = _nsol + 1 };
               sleep 0.1;
           };
@@ -219,7 +229,7 @@ HMT_NORDRE = (missionNamespace getVariable ["HMT_NORDRE", 0]) + 1;
       // 3 coups/s, avec le meme jeton HMT_NORDRE que le mouvement pour qu un ordre neuf
       // coupe le precedent.
       private _ne=objNull; private _nd=1e9; { if (alive _x) then { private _d=_u distance _x; if(_d<_nd) then {_nd=_d;_ne=_x} } } forEach HMT_ENNEMI;
-      _u setVelocity [0,0,0];
+      _u setVelocity [0,0,(velocity _u) select 2];
       if (!isNull _ne) then {
           private _mien = HMT_NORDRE; private _p = getPosATL _ne;
           [_u,_p,_mien] spawn {
@@ -234,7 +244,7 @@ HMT_NORDRE = (missionNamespace getVariable ["HMT_NORDRE", 0]) + 1;
               _u doWatch objNull;
           };
       };
-    } else { _u setVelocity [0,0,0]; }; };
+    } else { _u setVelocity [0,0,(velocity _u) select 2]; }; };
   if (_a>=10) then { private _pv=_a-10; HMT_POST set [_i,_pv];
      _u setUnitPos (["UP","MIDDLE","DOWN"] select _pv); };
 } forEach HMT_FR;
