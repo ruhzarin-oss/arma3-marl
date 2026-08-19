@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "5.0.0-20082026";
+HMT_SOCLE_VERSION = "5.3.0-20082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -244,7 +244,16 @@ HMT_CERTIFIER_POSITIONS = {
 // ⚠️ Chaque homme est REMIS a sa position d origine entre deux azimuts, sinon le second
 // azimut mesurerait depuis la ou le premier l a laisse.
 HMT_SONDER_AZIMUTS = {
-    params ["_positions", ["_duree", 4], ["_spd", 6], ["_sab", ""]];
+    // ⚠️ `_stop` : le verdict du CANAL est « max >= plancher », donc il est ACQUIS des
+    // qu un azimut y arrive — inutile de jouer les sept autres. Un canal sain coute
+    // alors 1 a 2 fenetres au lieu de 8 (mediane par azimut ~17 m, plancher 15,2),
+    // et seul un canal MORT paie les 8. Sans cet arret, T5 passait de 4 s a 44 s et
+    // la porte de 60 tirages gagnait 40 minutes de silence.
+    // ⚠️ LE VERDICT EST INCHANGE : on ne change que le moment ou l on cesse de mesurer.
+    // Le CHAMP des 8 distances est donc partiel quand on s arrete — le journal dit
+    // combien d azimuts ont ete joues, et le releve complet reste disponible en
+    // passant `_stop` a false (c est ce que font les sondes de derivation).
+    params ["_positions", ["_duree", 4], ["_spd", 6], ["_sab", ""], ["_stop", false]];
     private _g = createGroup west;
     private _hs = [];
     {
@@ -256,7 +265,14 @@ HMT_SONDER_AZIMUTS = {
     } forEach _positions;
     sleep 2;
     private _res = []; { _res pushBack [] } forEach _positions;
-    for "_a" from 0 to 7 do {
+    // ⚠️ `while` ET NON `for ... exitWith` : mesure du 20/08 — `exitWith` dans une
+    // boucle `for` sort de LA FONCTION, pas de la boucle. La brique ne retournait
+    // alors plus rien (`_r select 0` rendait `bool`, `max` rendait `<null>`), et
+    // l arret anticipe fonctionnait tout en cassant la valeur de retour. Le drapeau
+    // dans la condition de boucle ne laisse aucune ambiguite.
+    private _a = -1; private _fini = false;
+    while { _a < 7 && !_fini } do {
+        _a = _a + 1;
         private _h = _a * 45;
         private _vx = _spd * sin _h; private _vy = _spd * cos _h;
         if (_sab == "jambes") then { _vx = 0; _vy = 0 };   // ⚠️ CONTROLE : doit tout refuser
@@ -276,14 +292,27 @@ HMT_SONDER_AZIMUTS = {
             (_res select _forEachIndex) pushBack
                 (round (10 * ((_p0 select _forEachIndex) distance2D (getPosATL _x))) / 10);
         } forEach _hs;
+        // ⚠️ `exitWith` SORT DU BLOC OU IL EST ECRIT. Place dans un `then {}` il aurait
+        // quitte le `then`, pas la boucle — la sortie anticipee n aurait rien coupe et
+        // le cout serait reste de 8 fenetres, en silence. Le drapeau se calcule dans le
+        // `then`, la sortie se fait AU NIVEAU DE LA BOUCLE.
+        if (_stop) then {
+            private _tous = true;
+            { if (((_res select _forEachIndex) select { _x >= HMT_CANAL_PLANCHER }) isEqualTo []) then { _tous = false } } forEach _hs;
+            _fini = _tous;
+        };
         (format ["HMT|AZ|FENETRE|az|%1|fps|%2", _h, round diag_fps]) call HMT_LOG;
     };
     {
         private _r = _res select _forEachIndex;
         private _t = +_r; _t sort true;
+        // ⚠️ INDICES DYNAMIQUES. Avec l arret anticipe, la liste fait 1 a 8 elements :
+        // `select 7` sortait des bornes et faisait AVORTER la fonction en silence
+        // (le retour devenait nil, `vivant` s imprimait `bool` et `max` `<null>`).
+        // Une longueur qui change oblige a re-deriver TOUT ce qui en depend.
         (format ["HMT|AZ|LIEU|i|%1|x|%2|y|%3|min|%4|med|%5|max|%6|eau|%7|d|%8",
                  _forEachIndex, round (_x select 0), round (_x select 1),
-                 _t select 0, _t select 4, _t select 7,
+                 _t select 0, _t select ((count _t) / 2), _t select ((count _t) - 1),
                  surfaceIsWater [_x select 0, _x select 1], _r]) call HMT_LOG;
     } forEach _positions;
     { deleteVehicle _x } forEach _hs;
@@ -315,14 +344,25 @@ HMT_SONDER_AZIMUTS = {
 HMT_CANAL_PLANCHER = 15.2;
 HMT_CANAL_VIVANT = {
     params ["_pos", ["_sab", ""]];
-    private _r = [[[_pos select 0, _pos select 1]], 4, 6, _sab] call HMT_SONDER_AZIMUTS;
+    private _r = [[[_pos select 0, _pos select 1]], 4, 6, _sab, true] call HMT_SONDER_AZIMUTS;
     private _d = _r select 0;
     private _t = +_d; _t sort true;
-    private _max = _t select 7;
-    (format ["HMT|SOCLE|CANAL|x|%1|y|%2|max|%3|med|%4|min|%5|plancher|%6|vivant|%7|d|%8",
+    // ⚠️ INDICES DYNAMIQUES. Avec l arret anticipe, la liste fait 1 a 8 elements :
+    // `select 7` sortait des bornes et faisait AVORTER la fonction en silence
+    // (le retour devenait nil, `vivant` s imprimait `bool` et `max` `<null>`).
+    // Une longueur qui change oblige a re-deriver TOUT ce qui en depend.
+    private _max = _t select ((count _t) - 1);
+        // ⚠️ LE CHAMP S APPELLE `max_joues` ET NON `max` : avec l arret anticipe la liste
+    // ne contient QUE les azimuts joues, donc ce nombre est le maximum SUR CE QUI A
+    // ETE MESURE, pas sur les huit. Le VERDICT est identique (des qu un azimut passe
+    // le plancher, le max des huit le passe aussi), mais un journal qui appelle « max »
+    // un maximum partiel finira par etre lu de travers. Une ligne de journal est un
+    // instrument : elle nomme ce qu elle contient.
+    (format ["HMT|SOCLE|CANAL|x|%1|y|%2|max_joues|%3|med_joues|%4|min_joues|%5|plancher|%6|vivant|%7|azimuts|%8|d|%9",
              round (_pos select 0), round (_pos select 1),
-             _max, _t select 4, _t select 0, HMT_CANAL_PLANCHER,
-             _max >= HMT_CANAL_PLANCHER, _d]) call HMT_LOG;
+             _max, _t select ((count _t) / 2), _t select 0, HMT_CANAL_PLANCHER,
+             _max >= HMT_CANAL_PLANCHER, count _d, _d]) call HMT_LOG;
+    (format ["HMT|SOCLE|CANAL_COUT|azimuts_joues|%1|sur|8", count _d]) call HMT_LOG;
     [_max >= HMT_CANAL_PLANCHER, _max, _d]
 };
 
@@ -789,7 +829,7 @@ HMT_PREVOL = {
 
     private _su = 0;
     { private _k = _x knowsAbout _t; if (_k > _su) then { _su = _k } } forEach (allUnits select { side _x == east });
-    (format ["HMT|SOCLE|T5|max|%1|plancher|%2|vivant|%3|d|%4|fps|%5|connu_des_ennemis|%6|autocombat_reel|%7|fsm|%8|path|%9|degats|%10",
+    (format ["HMT|SOCLE|T5|max_joues|%1|plancher|%2|vivant|%3|d|%4|fps|%5|connu_des_ennemis|%6|autocombat_reel|%7|fsm|%8|path|%9|degats|%10",
              _m, HMT_CANAL_PLANCHER, _vivant, _d8, round (diag_fps),
              round (100 * _su) / 100, _t checkAIFeature "AUTOCOMBAT",
              _t checkAIFeature "FSM", _t checkAIFeature "PATH",
