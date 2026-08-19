@@ -19,8 +19,12 @@ for m in smoke sabotage jambes gel lenteur; do
   if [ "$m" = "smoke" ]; then
     timeout 900 ./.venv/bin/python -u smoke_placeur.py > $D/$m.txt 2>&1; rc=$?
     VM=$(grep -ao 'socle : [0-9.]*-[0-9]*' $D/$m.txt | head -1 | sed 's/socle : //')
-    OK=$(grep -c "✓ A2\|✓ A ·" $D/$m.txt)
-    [ "$OK" -ge 2 ] && V=PASSE || V=ECHEC
+    # ⚠️ SEUL LE BRAS A2 COMPTE DEPUIS LE 20/08. Le bras A du smoke sabotait la TRAVERSE
+    # du placeur — un acte retire pour premisse fausse : il ne juge plus rien, et exiger
+    # son vert ferait echouer un tampon qui doit certifier LE TIR. Un critere qui compte
+    # un bras mort dans son quorum certifie du vide.
+    OK=$(grep -c "✓ A2" $D/$m.txt)
+    [ "$OK" -ge 1 ] && V=PASSE || V=ECHEC
     # ⛔ le tampon `traverse` est retire le 20/08 : son acte n existe plus (selecteur).
     echo "tir|$VM|$COMMIT|$V|$(date +%Y-%m-%dT%H:%M)" >> $D/TAMPONS.txt
   else
