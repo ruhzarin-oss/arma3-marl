@@ -77,7 +77,19 @@ if __name__ == "__main__":
     # et la pente nord separe les deux familles a 100 % (+15..+51 % contre -6..-34 %).
     # Marcher vers le SUD sur un lieu « sol » doit donc le faire « voler » — et sur un lieu
     # « vol » le clouer. C est le controle qui juge la THESE, pas seulement l instrument.
-    if len(sys.argv) > 1 and sys.argv[1] == "obst":
+    if len(sys.argv) > 1 and sys.argv[1] == "repro":
+        # ⚠️ AVANT DE CHERCHER LA CAUSE D UN EFFET, VERIFIER QU IL SE REPRODUIT.
+        # Les memes 60 lieux x 8 azimuts, DEUX FOIS de suite dans le meme monde.
+        # Si les blocages ne reviennent pas aux memes couples, ils sont un artefact
+        # de la sonde (repositionnement de 60 hommes, 1,5 s pour se poser) et toute
+        # la soiree cherchait a expliquer du bruit.
+        LIEUX = "[[4733,5794],[4654,5658],[4591,5900],[4539,5476],[4525,5532],[4558,5536],[4448,5565],[4550,5687],[4495,5437],[4495,5673],[4588,5769],[4796,5609],[4444,5766],[4772,5600],[4723,5552],[4851,5819],[4790,5879],[4510,5675],[4760,5803],[4589,5471],[4707,5454],[4747,5405],[4621,5642],[4454,5642],[4644,5587],[4842,5835],[4839,5524],[4407,5590],[4451,5755],[4525,5466],[4536,5604],[4762,5633],[4545,5741],[4417,5507],[4738,5778],[4445,5435],[4647,5730],[4402,5620],[4531,5445],[4480,5545],[4628,5458],[4704,5841],[4736,5436],[4718,5719],[4398,5594],[4720,5877],[4858,5687],[4688,5881],[4499,5657],[4425,5789],[4721,5507],[4493,5664],[4770,5470],[4556,5658],[4525,5844],[4757,5880],[4714,5743],[4537,5654],[4609,5641],[4425,5827]]"
+        prog = ("HMT_VUE_FINI = false; [] spawn { "
+                "[" + LIEUX + "] call HMT_SONDER_AZIMUTS; "
+                "[" + LIEUX + "] call HMT_SONDER_AZIMUTS; "
+                "HMT_VUE_FINI = true; diag_log \"HMT|VUE|FINI\"; };")
+        print("  REPRODUCTIBILITE — les memes 60 lieux, deux passages", flush=True)
+    elif len(sys.argv) > 1 and sys.argv[1] == "obst":
         # ⚠️ LE REPLI. Pre-inscription PREINSCRIPTION_REPLI_OBSTACLES.md, ecrite avant.
         # P3 exige que le detecteur BATTE le temoin sans modele (11/27 a 2 %).
         LIEUX = "[[4733,5794],[4654,5658],[4591,5900],[4539,5476],[4525,5532],[4558,5536],[4448,5565],[4550,5687],[4495,5437],[4495,5673],[4588,5769],[4796,5609],[4444,5766],[4772,5600],[4723,5552],[4851,5819],[4790,5879],[4510,5675],[4760,5803],[4589,5471],[4707,5454],[4747,5405],[4621,5642],[4454,5642],[4644,5587],[4842,5835],[4839,5524],[4407,5590],[4451,5755],[4525,5466],[4536,5604],[4762,5633],[4545,5741],[4417,5507],[4738,5778],[4445,5435],[4647,5730],[4402,5620],[4531,5445],[4480,5545],[4628,5458],[4704,5841],[4736,5436],[4718,5719],[4398,5594],[4720,5877],[4858,5687],[4688,5881],[4499,5657],[4425,5789],[4721,5507],[4493,5664],[4770,5470],[4556,5658],[4525,5844],[4757,5880],[4714,5743],[4537,5654],[4609,5641],[4425,5827]]"
