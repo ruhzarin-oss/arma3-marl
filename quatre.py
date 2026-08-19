@@ -12,7 +12,11 @@ for f in sorted(glob.glob("/mnt/data/porte/lot*.txt"), key=lambda x: int(re.sear
         elif "PONT MUET" in d: k = "PONT"
         elif "PREVOL PLANTE" in d: k = "PLANTE"
         elif "PREVOL LENT" in d: k = "LENT"
-        elif e > prev: k = "T5" if "T5 IMMOBILE" in d else ("T7" if "T7 " in d else "AUTRE")
+        # ⚠️ « T0 AUCUN LIEU PRATICABLE » N EST PAS UNE RECEPTION ⟨Fable, 18/08⟩ : le placeur
+        # n a RIEN recu, donc ce tirage ne doit pas gonfler le denominateur de la ligne 1.
+        # Latent tant que 60/60 recevaient — mais l acte unifie va refuser davantage.
+        elif e > prev: k = ("T0" if "AUCUN LIEU PRATICABLE" in d else
+                            ("T5" if "T5 IMMOBILE" in d else ("T7" if "T7 " in d else "AUTRE")))
         else: k = "."
         prev = e
         seq.append(k)
@@ -26,7 +30,9 @@ for n, s in lots:
 N = sum(len(s) for _, s in lots)
 print(f"\n  {N} tirages : " + "  ".join(f"{k}={v}" for k, v in sorted(tot.items())))
 
+# les receptions excluent T0 : le placeur n y a rien recu
 recep = tot.get(".", 0) + tot.get("T5", 0) + tot.get("T7", 0) + tot.get("AUTRE", 0)
+if tot.get("T0", 0): print(f"  (T0 · aucun lieu praticable : {tot['T0']} tirages, HORS receptions)")
 print(f"\n  ══ LIGNE 1 · FAUX-RECUS INEXPLIQUES ══")
 print(f"  receptions (le placeur a recu un lieu) : {recep}   exige : >= 50")
 print(f"  faux-recus T5 : {tot.get('T5', 0)}   autres echecs : {tot.get('T7',0)} T7, {tot.get('AUTRE',0)} non identifies")
@@ -70,10 +76,43 @@ print(f"  X2 = {X2:.2f}   ddl = {len(lots)-1}   seuil 5 % = {seuil}")
 l3 = X2 <= seuil
 print(f"  → {'✓ VERTE' if l3 else '⛔ ROUGE'}  (pas de surdispersion entre serveurs)")
 
-print(f"\n  ══ LIGNE 4 · LES QUATRE SABOTAGES ══")
-print(f"  traverse et tir : rejoues au smoke — les deux font REFUSER")
-print(f"  munitions 3/3 · jambes 3/3 · gel · lenteur — rejoues sur CE hash")
-l4 = True
+print(f"\n  ══ LIGNE 4 · LES SIX SABOTAGES, LUS DANS LEURS TAMPONS ══")
+# ⚠️ CETTE LIGNE ETAIT UNE CONSTANTE QUE JE BASCULAIS A LA MAIN ⟨Fable, 18/08⟩ — et je l avais
+# mise a VRAI alors que mes sabotages dataient de TROIS socles differents : munitions et
+# jambes sur 2.8.0, gel sur 2.10.0, lenteur sur 2.12.0. La faute d hier reconstruite : la
+# porte sur un hash, les sabotages sur d autres. Elle LIT desormais les tampons que chaque
+# run ecrit — mode, version LUE DANS LE MONDE, commit, verdict, date — et exige que les six
+# portent LA MEME VERSION que la porte. Le gardien de version, applique aux ACTES.
+import os
+_TAMP = "/mnt/data/sabotages6/TAMPONS.txt"
+_ATTENDUS = {"traverse", "tir", "munitions", "jambes", "gel", "lenteur"}
+_vus, _mauvais, _vers = {}, [], set()
+if os.path.exists(_TAMP):
+    for _l in open(_TAMP, errors="ignore"):
+        _c = _l.strip().split("|")
+        if len(_c) >= 5:
+            _vus[_c[0]] = (_c[1], _c[2], _c[3], _c[4])
+            _vers.add(_c[1])
+            if _c[3] != "PASSE": _mauvais.append(_c[0])
+for _k in sorted(_ATTENDUS):
+    if _k in _vus:
+        _v = _vus[_k]
+        print(f"  {'ok ' if _v[2]=='PASSE' else 'NON'} {_k:10s} socle {_v[0]:18s} commit {_v[1]:9s} {_v[3]}")
+    else:
+        print(f"  NON {_k:10s} AUCUN TAMPON")
+_manquants = _ATTENDUS - set(_vus)
+# la version du socle sous laquelle la PORTE a tourne
+_vp = None
+for _l in open("/mnt/data/porte/JOURNAL.txt", errors="ignore") if os.path.exists("/mnt/data/porte/JOURNAL.txt") else []:
+    _m = re.search(r'HMT_SOCLE_VERSION = "([^"]*)"', _l)
+    if _m: _vp = _m.group(1); break
+print(f"  version de la PORTE : {_vp}   versions des tampons : {sorted(_vers)}")
+l4 = (not _manquants) and (not _mauvais) and len(_vers) == 1 and (_vp in _vers if _vp else False)
+if _manquants: print(f"  ⛔ tampons manquants : {sorted(_manquants)}")
+if _mauvais:   print(f"  ⛔ sabotages en ECHEC : {sorted(_mauvais)}")
+if len(_vers) > 1: print(f"  ⛔ les tampons ne portent PAS la meme version")
+if _vp and _vp not in _vers: print(f"  ⛔ la porte a tourne sur {_vp}, les sabotages sur {sorted(_vers)}")
+print(f"  → {'✓ VERTE' if l4 else '⛔ ROUGE'}")
 print(f"  → ⛔ ROUGE  (deux sabotages sur quatre non rejoues sur ce hash)")
 
 _ecl = [k for _, s in lots for k in s if k in ("LENT", "ECARTE", "PONT")]
