@@ -161,7 +161,25 @@ if __name__ == "__main__":
             _et = _f[-1].split("HMT|FIN|")[1][:20].strip().strip('"') if _f else ""
             if _et in ("fini", "neant", ""): break
             time.sleep(1.4)
-        b.send('HMT_PV = nil; [] spawn { HMT_PV = [HMT_FR] call HMT_PREVOL; };', wait=False)
+        # ⚠️ LE VERDICT PORTE DESORMAIS L IDENTITE DE CELUI QUI L A PRODUIT ⟨20/08⟩.
+        # Cause mesuree : le sabotage `gel` ne plantait plus que 1 fois sur 3. Le premier
+        # tirage gele correctement, python rompt sur figement et lance le suivant — mais le
+        # prevol GELE finit par se reveiller et ecrit son `false` dans `HMT_PV`, la meme
+        # case que le tirage courant vient de remettre a nil. Le tirage 2 lisait donc le
+        # verdict du tirage 1 : 27 s, ecarts vides. Le tirage 3 pareil, en 5 s.
+        # Le jeton de generation existait deja, mais il ne gardait que les POINTS DE
+        # CONTROLE — et un prevol gele n en atteint aucun, puisque c est ce que le gel lui
+        # fait. La garde manquait la ou elle comptait : au moment de DEPOSER le verdict.
+        # ⚠️ `_att` est capture DANS le spawn, pas dans une globale : une globale serait
+        # ecrasee par le lancement suivant et la garde laisserait tout passer.
+        b.send('HMT_PV = nil; '
+               'private _att = (missionNamespace getVariable ["HMT_PV_GEN", 0]) + 1; '
+               '[_att] spawn { params ["_att"]; '
+               '  private _r = [HMT_FR] call HMT_PREVOL; '
+               '  if ((missionNamespace getVariable ["HMT_PV_GEN", 0]) == _att) then { HMT_PV = _r } '
+               '  else { (format ["HMT|SOCLE|PREVOL|VERDICT_TU|gen|%1|courante|%2|valeur|%3", '
+               '                  _att, missionNamespace getVariable ["HMT_PV_GEN", 0], _r]) call HMT_LOG }; '
+               '};', wait=False)
         # ⚠️ TIMEOUT PAR ETAPE ⟨lecture de Fable⟩. Le plafond etait GLOBAL contre un prevol
         # de duree VARIABLE : au depassement on enchainait sur un prevol encore vivant. On
         # suit desormais `HMT_PV_ETAPE` — tant qu elle AVANCE on attend, si elle STAGNE c est
