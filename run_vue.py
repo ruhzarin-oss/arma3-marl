@@ -77,7 +77,16 @@ if __name__ == "__main__":
     # et la pente nord separe les deux familles a 100 % (+15..+51 % contre -6..-34 %).
     # Marcher vers le SUD sur un lieu « sol » doit donc le faire « voler » — et sur un lieu
     # « vol » le clouer. C est le controle qui juge la THESE, pas seulement l instrument.
-    if len(sys.argv) > 1 and sys.argv[1] == "terrain":
+    if len(sys.argv) > 1 and sys.argv[1] == "pente":
+        # ⚠️ EXPLORATOIRE, ET DECLARE TEL. On regarde des donnees DEJA VUES (les 50 lieux
+        # plats et leurs 8 distances) : rien de ce qui en sort ne peut etre pre-enregistre.
+        # Ca dit seulement si le cadre « la pente comme covariable » vaut d etre specifie,
+        # et toute regle qui en naitrait devra etre confirmee sur un echantillon FRAIS.
+        LIEUX_PLATS = "[[4633,5537],[4806,5897],[4696,5692],[4482,5568],[4681,5895],[4748,5757],[4623,5552],[4843,5453],[4669,5877],[4582,5531],[4737,5735],[4513,5569],[4833,5456],[4752,5727],[4505,5567],[4855,5496],[4829,5487],[4574,5529],[4762,5719],[4741,5767],[4721,5709],[4867,5488],[4855,5609],[4737,5766],[4770,5593],[4840,5466],[4661,5854],[4638,5713],[4462,5776],[4630,5543],[4833,5487],[4787,5902],[4725,5709],[4841,5450],[4750,5749],[4621,5512],[4834,5462],[4507,5572],[4836,5466],[4658,5855],[4845,5611],[4852,5478],[4750,5735],[4634,5551],[4698,5703],[4835,5586],[4869,5486],[4747,5730],[4661,5855],[4830,5599]]"
+        prog = ("HMT_VUE_FINI = false; [] spawn { [" + LIEUX_PLATS + "] call HMT_PENTE_AZIMUTS; "
+                "HMT_VUE_FINI = true; diag_log \"HMT|VUE|FINI\"; };")
+        print("  PENTE PAR AZIMUT — lecture de terrain, aucune unite", flush=True)
+    elif len(sys.argv) > 1 and sys.argv[1] == "terrain":
         # ⚠️ LECTURE DE TERRAIN SEULE, aucune unite creee. On mesure ce que Stratis
         # CONTIENT avant de dire « plat et degage » — la premiere spec (3 m et 0 objet)
         # a rendu 1 lieu sur 6000. Un seuil absolu pose sans connaitre la distribution.

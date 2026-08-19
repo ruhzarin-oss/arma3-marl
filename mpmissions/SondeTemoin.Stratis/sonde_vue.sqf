@@ -119,7 +119,7 @@ HMT_VUE_TRACE = {
 };
 
 HMT_VUE_PRETE = true;
-diag_log "HMT|VUE|CHARGEE|sonde_vue 1.7.0";
+diag_log "HMT|VUE|CHARGEE|sonde_vue 1.9.0";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LA SONDE DES HUIT AZIMUTS — dérivation du critère neuf du placeur ⟨19/08⟩
@@ -256,4 +256,37 @@ HMT_PROFIL_TERRAIN = {
              _o select (floor (0.25*_c)), _o select (floor (0.50*_c)),
              _o select (floor (0.75*_c)), _o select (floor (0.90*_c))]) call HMT_LOG;
     [_d, _o]
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LA PENTE LE LONG DE CHAQUE AZIMUT — lecture de terrain, aucune unité ⟨19/08, 22 h⟩
+// Pour chaque lieu et chacun des 8 azimuts de la couture, on releve le denivele sur les
+// 25 m que l homme parcourrait — la course REELLE, et non un disque de 10 m autour du
+// depart. C est la fenetre que ma spec du soir n avait pas dimensionnee.
+HMT_PENTE_AZIMUTS = {
+    params ["_positions"];
+    {
+        // ⚠️ `_x` EST LA VARIABLE MAGIQUE DE `forEach` — la reecrire detruit le couple.
+        // Ce piege a invalide la sonde n°1 trois fois le 18/08. On prend un autre nom.
+        private _pos = _x;
+        private _px = _pos select 0; private _py = _pos select 1;
+        private _p = []; private _mx = [];
+        for "_a" from 0 to 7 do {
+            private _h = _a * 45;
+            private _dx = sin _h; private _dy = cos _h;
+            private _h0 = getTerrainHeightASL [_px, _py];
+            private _h25 = getTerrainHeightASL [_px + 25 * _dx, _py + 25 * _dy];
+            // la montee la plus RAIDE rencontree sur un pas de 5 m, le long du chemin
+            private _pire = 0;
+            for "_k" from 1 to 5 do {
+                private _a1 = getTerrainHeightASL [_px + 5 * (_k - 1) * _dx, _py + 5 * (_k - 1) * _dy];
+                private _a2 = getTerrainHeightASL [_px + 5 * _k * _dx, _py + 5 * _k * _dy];
+                if ((_a2 - _a1) > _pire) then { _pire = _a2 - _a1 };
+            };
+            _p pushBack (round (10 * (_h25 - _h0)) / 10);
+            _mx pushBack (round (10 * _pire) / 10);
+        };
+        (format ["HMT|PENTE|x|%1|y|%2|d25|%3|pire5|%4", _px, _py, _p, _mx]) call HMT_LOG;
+    } forEach _positions;
+    ("HMT|PENTE|FINI|n|" + str (count _positions)) call HMT_LOG;
 };
