@@ -119,7 +119,7 @@ HMT_VUE_TRACE = {
 };
 
 HMT_VUE_PRETE = true;
-diag_log "HMT|VUE|CHARGEE|sonde_vue 1.9.0";
+diag_log "HMT|VUE|CHARGEE|sonde_vue 2.0.0";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LA SONDE DES HUIT AZIMUTS — dérivation du critère neuf du placeur ⟨19/08⟩
@@ -289,4 +289,33 @@ HMT_PENTE_AZIMUTS = {
         (format ["HMT|PENTE|x|%1|y|%2|d25|%3|pire5|%4", _px, _py, _p, _mx]) call HMT_LOG;
     } forEach _positions;
     ("HMT|PENTE|FINI|n|" + str (count _positions)) call HMT_LOG;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LE PROFIL D'OBSTACLES LE LONG DU COULOIR — le repli ⟨19/08, 23 h⟩
+// Pre-inscription : PREINSCRIPTION_REPLI_OBSTACLES.md. Lecture de terrain seule.
+// On echantillonne tous les metres sur les 25 m parcourus, dans un tube de rayon 2 m.
+// ⚠️ `_x` est la variable magique de `forEach` : on ne la reecrit PAS (piege paye 4 fois).
+HMT_OBSTACLES_AZIMUTS = {
+    params ["_positions"];
+    {
+        private _pos = _x;
+        private _px = _pos select 0; private _py = _pos select 1;
+        private _d1 = []; private _nb = [];
+        for "_a" from 0 to 7 do {
+            private _h = _a * 45;
+            private _dx = sin _h; private _dy = cos _h;
+            private _prem = 99; private _n = 0;
+            for "_k" from 1 to 25 do {
+                private _cx = _px + _k * _dx; private _cy = _py + _k * _dy;
+                if ((count (nearestObjects [[_cx, _cy, 0], [], 2])) > 0) then {
+                    _n = _n + 1;
+                    if (_prem == 99) then { _prem = _k };
+                };
+            };
+            _d1 pushBack _prem; _nb pushBack _n;
+        };
+        (format ["HMT|OBST|x|%1|y|%2|d1|%3|nobs|%4", _px, _py, _d1, _nb]) call HMT_LOG;
+    } forEach _positions;
+    ("HMT|OBST|FINI|n|" + str (count _positions)) call HMT_LOG;
 };
