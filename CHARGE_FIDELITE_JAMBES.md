@@ -1,3 +1,30 @@
+> ## ⚠️ EN SURSIS — 19/08/2026, 20 h
+> **→ Le dossier est tranché ailleurs : [`VERDICT_LA_PENTE_DANS_LE_SENS_DE_LA_MARCHE.md`](VERDICT_LA_PENTE_DANS_LE_SENS_DE_LA_MARCHE.md).** Ce document-ci reste MORT : il n'est ni réfuté ni restauré, il est **expliqué**. Son chiffre mesurait un régime de pente sans le savoir.
+>
+>
+> **Le corps n'est pas jugé par ce document.** Sa mesure passait par des **lieux reçus**
+> d'un placeur dont le critère à 23 m est franchi par **0 acte sur 150 finissant au sol**
+> et par **101 sur 111 finissant en l'air** (n = 261, cinq lots de la porte 3.1.0 du 19/08,
+> journaux archivés avec empreintes dans `/mnt/data/preuves/2026-08-19_porte_31_tronquee`).
+> La population de lieux sur laquelle ce document a mesuré est donc **sélectionnée sur le vol**,
+> et **le régime du corps pendant la mesure n'est témoigné nulle part** : la télémétrie du geste
+> (`HMT|SOCLE|GESTE`) écrivait `any` sur tous ses champs d'animation et de vitesse depuis le
+> **17/08 23:02** (socle 2.8.0), et ses champs `sol`/`posture` interrogeaient un homme qui
+> n'avait jamais marché.
+>
+> **Le vol est entretenu par notre propre code** : `setVelocity [vx, vy, 0]` remet la
+> composante verticale à zéro dix fois par seconde, donc un homme lancé par le terrain
+> ne peut plus redescendre tant que les impulsions durent. Le canal de la couture
+> (`arma_couture.py:185`), celui que la politique emploie en production, fait de même.
+>
+> **Ce document ne se lit plus comme un verdict jusqu'à la mesure dédiée**, qui doit porter
+> un témoin de régime **par tick** (fraction au sol, hauteur au-dessus du terrain).
+> Voir `SURSIS_19-08_LE_VOL.md`.
+>
+> ⚠️ Le retrait de ce document **ne restaure pas** ce qu'il avait réfuté : une rétractation
+> à rétracter rouvre la question, elle ne rétablit pas l'original. Les deux chiffres sont
+> aujourd'hui **non soutenus**.
+
 > ⛔ **CE DEPOT EST REFUTE.** Banc des jambes II du 17/08 (plan 2x2 lieu x comportement) :
 > sur un lieu certifie praticable, le corps rend **20,5 m sur 19,7**, soit **104 %**.
 > Le 62 % mesurait le TERRAIN, pas le corps. Voir `VERDICT_CORPS_NON_LIMITE.md`.

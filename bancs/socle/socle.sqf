@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "3.1.0-19082026";
+HMT_SOCLE_VERSION = "3.2.0-19082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -147,8 +147,27 @@ HMT_ACTE_TIR_SERVI = {
 //     adverse, et `knowsAbout` est de CAMP et non de soldat.
 //   Avant la scene, personne n existe : rien a corrompre, personne a alerter. Une seule
 //   fenetre de traverse pour tous, une seule de tir. Cout ~15 s par episode.
+// ─────────────────────────────────────────────────────────────────────────────
+// ⛔ DESACTIVE PAR DRAPEAU LE 19/08/2026 — ET LE MOTIF EST UNE MESURE, PAS UNE GENE.
+// Son critere (23 m parcourus en 4 s) vient d etre mesure INFRANCHISSABLE EN MONTEE :
+// sur 188 actes, ZERO acte finissant au sol n atteint 23 m ; en descente, 101 sur 111
+// le franchissent. Le critere ne mesure donc pas la praticabilite mais « ca descend
+// vers le nord » — la direction de marche etant CABLEE (`[0, 6, 0]`).
+// Actif, il rejette LE MONDE : 37 positions jugees le 19/08 a 19h25 -> 32 « encombre »,
+// 5 « muet », ZERO recue, sur SIX essais d azimut a 0/4.
+// Voir VERDICT_LA_PENTE_DANS_LE_SENS_DE_LA_MARCHE.md.
+// ⚠️ IL SE RALLUME AVEC LE CRITERE NEUF, PAS AVANT — et le critere neuf attend
+// l arbitrage de Younes sur le tempo du gymnase (le canal rend 2,8-3,7 m/s en montee
+// contre 6 m/s supposes). AUCUNE PORTE NE SE LANCE AVANT : le placeur partage ce
+// critere, donc une porte lancee aujourd hui re-selectionnerait des descentes en silence.
+HMT_CERTIFIER = false;
 HMT_CERTIFIER_POSITIONS = {
     params ["_positions", ["_duree", 4], ["_seuil", 23]];
+    if (!HMT_CERTIFIER) exitWith {
+        ("HMT|SOCLE|BLOC_C|DESACTIVE|drapeau HMT_CERTIFIER=false|positions|"
+         + str (count _positions)) call HMT_LOG;
+        _positions apply { ["non certifie", -1, -1, -1] }
+    };
     private _gW = createGroup west; private _gE = createGroup east;
     private _hs = []; private _ms = [];
     {

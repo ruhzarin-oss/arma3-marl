@@ -194,9 +194,21 @@ HMT_NORDRE = (missionNamespace getVariable ["HMT_NORDRE", 0]) + 1;
           // ⚠️ `HMT_LOG` ET NON `diag_log` : le pont REECRIT `diag_log` en `callExtension "o|"`
           // dans tout texte qu il envoie — et ACT_TPL est du texte qu il envoie. Un `diag_log`
           // ici part donc dans le SOCKET et jamais dans le journal. Piege deja paye le 15/08.
-          if (!isNil "HMT_LOG") then { (format ["HMT|CORPS|SOL|part_au_sol|%1|m_par_ordre|%2|n|%3",
-                           round (100 * _nsol / (_n max 1)),
-                           round (10 * (_p0 distance2D (getPosATL _u))) / 10, _n]) call HMT_LOG };
+          // ⚠️ GARDE QUI AVOUE, PAS GARDE QUI AVALE. La forme d origine etait
+          // `if (!isNil "HMT_LOG") then { ... }` : en campagne le socle n est pas charge,
+          // donc `HMT_LOG` n existe pas, donc CETTE MESURE SAUTAIT EN SILENCE. Verifie le
+          // 19/08 : ZERO ligne `HMT|CORPS|SOL` sur tout le disque depuis son ecriture le
+          // 16/08. L idiome correct existait deja : `bancs/arma/couvert_c3.sqf:27` — on
+          // DEFINIT le repli au lieu de sauter la ligne.
+          // ⚠️ ET LE REPLI S ASSEMBLE A L EXECUTION : le pont reecrit `diag_log` — y compris
+          // dans la forme `HMT_LOG = { diag_log _this }`, cas nomme dans sa revue du 17/08.
+          // Ecrit en clair, le repli partirait dans le SOCKET et jamais dans le journal ;
+          // assemble a l execution, le nom echappe a la reecriture et la mesure atterrit
+          // sur le disque, la ou on la cherchera.
+          if (isNil "HMT_LOG") then { HMT_LOG = compile ("diag" + "_log _this") };
+          (format ["HMT|CORPS|SOL|part_au_sol|%1|m_par_ordre|%2|n|%3",
+                   round (100 * _nsol / (_n max 1)),
+                   round (10 * (_p0 distance2D (getPosATL _u))) / 10, _n]) call HMT_LOG;
       };
   }
   else { if (_a==9) then {
