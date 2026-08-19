@@ -266,7 +266,13 @@ if __name__ == "__main__":
         print("    %2d/%d  %5.1fs  [%s]" % (i, N, _duree, _etapes), flush=True)
         print("    %2d/%d  vert=%d  echec=%d%s" % (i, N, verts, ech,
               ("   ← " + det[-1][1][:70]) if det and det[-1][0] == i else ""), flush=True)
-        if sansrep >= 3:
+        # ⚠️ LE GARDE-FOU NE S APPLIQUE PAS AUX SABOTAGES D INSTRUMENT ⟨19/08⟩. « gel »
+        # FABRIQUE des prevols plantes : c est sa raison d etre. Le garde-fou generique
+        # coupait a `sansrep >= 3` AVANT que le verdict du gel puisse lire ses PLANTE — le
+        # controle positif reussissait (PLANTE 3/3 a l etape T4) et etait PUNI pour avoir
+        # produit exactement ce qu on lui demandait. Un controle qui fabrique une panne doit
+        # pouvoir l OBSERVER. Enonce sans reference a aucun resultat.
+        if sansrep >= 3 and MODE not in ("gel", "lenteur"):
             print("\n  ⛔ TROIS TIRAGES SANS REPONSE — causes MELEES (pont, lent, plante).\n     Le compteur ne les distingue pas : il nomme ce qu'il compte, pas une cause.\n     AUCUN verdict n'est rendu sur la tactique.", flush=True)
             sys.exit(5)
         if MODE == "normal" and ech > MAX_ECHECS:
