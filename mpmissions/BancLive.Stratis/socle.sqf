@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "5.3.0-20082026";
+HMT_SOCLE_VERSION = "5.4.0-20082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -273,6 +273,15 @@ HMT_SONDER_AZIMUTS = {
     private _a = -1; private _fini = false;
     while { _a < 7 && !_fini } do {
         _a = _a + 1;
+        // ⚠️ LE PROGRES S EXPOSE, SINON LA PATIENCE NE PEUT PAS LE SUIVRE ⟨cliquet du 18/08,
+        // ecrit pour le placeur, non transpose ici — et il a mordu le 20/08 a 22 h⟩.
+        // Un canal MORT paie les 8 azimuts, soit ~44 s de silence sous l etiquette T5, au
+        // dessus du seuil de figement du lanceur (12 sondages, ~30-36 s). Le sabotage des
+        // jambes rendait donc PLANTE 3/3 au lieu de ROUGE : un controle positif PUNI pour
+        // avoir reussi. Le jeton de progres remet le compteur a zero a chaque azimut.
+        // ⚠️ 100 + azimut, et non l index nu : le lecteur doit pouvoir distinguer un
+        // AZIMUT d un CANDIDAT du placeur dans le meme champ.
+        HMT_PV_NCAND = 100 + _a;
         private _h = _a * 45;
         private _vx = _spd * sin _h; private _vy = _spd * cos _h;
         if (_sab == "jambes") then { _vx = 0; _vy = 0 };   // ⚠️ CONTROLE : doit tout refuser
