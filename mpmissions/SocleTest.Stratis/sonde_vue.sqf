@@ -121,65 +121,12 @@ HMT_VUE_TRACE = {
 HMT_VUE_PRETE = true;
 diag_log "HMT|VUE|CHARGEE|sonde_vue 2.0.0";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// LA SONDE DES HUIT AZIMUTS — dérivation du critère neuf du placeur ⟨19/08⟩
-//
-// L ancien critere marchait TOUJOURS VERS LE NORD : il mesurait donc la pente dans un
-// azimut cable, et non la praticabilite. Le critere neuf echantillonne LES HUIT AZIMUTS
-// DE LA COUTURE (`_a*45` dans ACT_TPL) — l espace d action exact de la politique — et
-// retient le MINIMUM, qui est la statistique du mode d echec : l homme coince.
-//
-// ⚠️ TOUS LES LIEUX EN PARALLELE, UN AZIMUT A LA FOIS. Huit fenetres de 4 s au lieu de
-// huit fois N gestes : le cout ne depend pas du nombre de lieux. C est la lecon du bloc C.
-// ⚠️ Chaque homme est REMIS a sa position d origine entre deux azimuts, sinon le second
-// azimut mesurerait depuis la ou le premier l a laisse.
-HMT_SONDER_AZIMUTS = {
-    params ["_positions", ["_duree", 4], ["_spd", 6], ["_sab", ""]];
-    private _g = createGroup west;
-    private _hs = [];
-    {
-        private _u = _g createUnit ["B_Soldier_F", [_x select 0, _x select 1, 0], [], 0, "NONE"];
-        _u allowDamage false; _u setCaptive true;
-        _u disableAI "AUTOCOMBAT"; _u disableAI "FSM"; _u setBehaviour "CARELESS";
-        [_u] call HMT_ARMER;
-        _hs pushBack _u;
-    } forEach _positions;
-    sleep 2;
-    private _res = []; { _res pushBack [] } forEach _positions;
-    for "_a" from 0 to 7 do {
-        private _h = _a * 45;
-        private _vx = _spd * sin _h; private _vy = _spd * cos _h;
-        if (_sab == "jambes") then { _vx = 0; _vy = 0 };   // ⚠️ CONTROLE : doit tout refuser
-        {
-            private _p = _positions select _forEachIndex;
-            _x setPosATL [_p select 0, _p select 1, 0];
-        } forEach _hs;
-        sleep 1.5;
-        private _p0 = _hs apply { getPosATL _x };
-        private _t0 = time;
-        while { time - _t0 < _duree } do {
-            // ⚠️ LE CANAL ADOPTE : la verticale est PRESERVEE (socle 4.0.0)
-            { _x setVelocity [_vx, _vy, (velocity _x) select 2] } forEach _hs;
-            sleep 0.1;
-        };
-        {
-            (_res select _forEachIndex) pushBack
-                (round (10 * ((_p0 select _forEachIndex) distance2D (getPosATL _x))) / 10);
-        } forEach _hs;
-        (format ["HMT|AZ|FENETRE|az|%1|fps|%2", _h, round diag_fps]) call HMT_LOG;
-    };
-    {
-        private _r = _res select _forEachIndex;
-        private _t = +_r; _t sort true;
-        (format ["HMT|AZ|LIEU|i|%1|x|%2|y|%3|min|%4|med|%5|max|%6|eau|%7|d|%8",
-                 _forEachIndex, round (_x select 0), round (_x select 1),
-                 _t select 0, _t select 4, _t select 7,
-                 surfaceIsWater [_x select 0, _x select 1], _r]) call HMT_LOG;
-    } forEach _positions;
-    { deleteVehicle _x } forEach _hs;
-    deleteGroup _g;
-    ("HMT|AZ|FINI|sab|" + _sab + "|n|" + str (count _positions)) call HMT_LOG;
-};
+// ⚠️ `HMT_SONDER_AZIMUTS` A DEMENAGE DANS LE SOCLE le 20/08 : elle est devenue un
+// instrument de PRODUCTION (le critere du canal vivant s appuie dessus), et deux
+// copies d un meme acte finissent toujours par diverger — le tir et la marche
+// l ont chacun coute plusieurs jours cette semaine.
+
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LE CORPUS PLAT ET DÉGAGÉ — un contrôle positif CONSTRUIT ⟨19/08, 21 h⟩

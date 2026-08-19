@@ -1,5 +1,5 @@
 #!/bin/bash
-# ═══ LES SIX SABOTAGES SUR UN SEUL HASH ⟨ligne 4 du critere⟩ ═══════════════════════════════
+# ═══ LES CINQ SABOTAGES SUR UN SEUL HASH ⟨ligne 4 du critere⟩ ═══════════════════════════════
 # Ils dataient de TROIS socles differents : munitions et jambes sur 2.8.0, gel sur 2.10.0,
 # lenteur sur 2.12.0 — « tous rejoues » etait la faute d hier reconstruite. Ici, un seul hash.
 # ⚠️ CHAQUE RUN ECRIT UN TAMPON LISIBLE PAR MACHINE : mode, version LUE DANS LE MONDE, commit,
@@ -9,7 +9,9 @@ D=/mnt/data/sabotages6; mkdir -p $D; : > $D/JOURNAL.txt; : > $D/TAMPONS.txt
 COMMIT=$(git rev-parse --short HEAD)
 VER=$(grep -o 'HMT_SOCLE_VERSION = "[^"]*"' bancs/socle/socle.sqf | sed 's/.*= "//;s/"//')
 echo "socle $VER  commit $COMMIT  $(date +%H:%M)" | tee -a $D/JOURNAL.txt
-# traverse et tir passent par le smoke du placeur, deja joue sur ce hash — on le rejoue ici
+# tir passe par le smoke du placeur (bras A2, arme videe). Le bras A du smoke visait
+# la traverse : il ne juge plus rien depuis le 20/08 et son tampon n est plus ecrit.
+# ancien commentaire : traverse et tir passent par le smoke du placeur, deja joue sur ce hash — on le rejoue ici
 # pour que son tampon porte la meme version que les autres.
 for m in smoke sabotage jambes gel lenteur; do
   for p in $(pgrep -f arma3server_x64); do kill $p 2>/dev/null; done; sleep 3
@@ -19,7 +21,7 @@ for m in smoke sabotage jambes gel lenteur; do
     VM=$(grep -ao 'socle : [0-9.]*-[0-9]*' $D/$m.txt | head -1 | sed 's/socle : //')
     OK=$(grep -c "✓ A2\|✓ A ·" $D/$m.txt)
     [ "$OK" -ge 2 ] && V=PASSE || V=ECHEC
-    echo "traverse|$VM|$COMMIT|$V|$(date +%Y-%m-%dT%H:%M)" >> $D/TAMPONS.txt
+    # ⛔ le tampon `traverse` est retire le 20/08 : son acte n existe plus (selecteur).
     echo "tir|$VM|$COMMIT|$V|$(date +%Y-%m-%dT%H:%M)" >> $D/TAMPONS.txt
   else
     HMT_SESSION="_6$m" timeout 900 ./.venv/bin/python -u prevol.py 3 $m 45 > $D/$m.txt 2>&1; rc=$?

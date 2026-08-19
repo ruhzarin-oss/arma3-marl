@@ -77,7 +77,23 @@ if __name__ == "__main__":
     # et la pente nord separe les deux familles a 100 % (+15..+51 % contre -6..-34 %).
     # Marcher vers le SUD sur un lieu « sol » doit donc le faire « voler » — et sur un lieu
     # « vol » le clouer. C est le controle qui juge la THESE, pas seulement l instrument.
-    if len(sys.argv) > 1 and sys.argv[1] == "rejeu":
+    if len(sys.argv) > 1 and sys.argv[1] == "smoke5":
+        # ⚠️ LE CONTROLE DE L INSTRUMENT FUSIONNE, DANS SA FORME DE PRODUCTION
+        # (regle 18 : aucun critere ne juge sans avoir ete juge). On appelle
+        # `HMT_CANAL_VIVANT` du SOCLE 5.0.0 — pas une replique — sur trois lieux,
+        # sain puis jambes coupees. Sain doit dire vivant, sabote doit dire mort.
+        PTS = [(4644, 5652), (4806, 5897), (4482, 5568)]
+        b_ = []
+        for (x, y) in PTS:
+            b_ += ['["S%d_%d", [[%d, %d], ""] call HMT_CANAL_VIVANT] call HMT_SMOKE5;' % (x, y, x, y)]
+        for (x, y) in PTS:
+            b_ += ['["J%d_%d", [[%d, %d], "jambes"] call HMT_CANAL_VIVANT] call HMT_SMOKE5;' % (x, y, x, y)]
+        prog = ('HMT_SMOKE5 = { params ["_n", "_r"]; '
+                '(format ["HMT|SMOKE5|%1|vivant|%2|max|%3", _n, _r select 0, _r select 1]) call HMT_LOG; }; '
+                'HMT_VUE_FINI = false; [] spawn { ' + " ".join(b_) +
+                ' HMT_VUE_FINI = true; diag_log "HMT|VUE|FINI"; };')
+        print("  SMOKE 5.0.0 — 3 lieux sains + 3 sabotes, via le socle", flush=True)
+    elif len(sys.argv) > 1 and sys.argv[1] == "rejeu":
         # ⚠️ REJEU SUR TIRAGE FRAIS (graine 23). Pre-inscription ecrite et committee
         # avant : PREINSCRIPTION_REJEU_PLANCHER.md. Le plancher 15,2 m est FIXE.
         LX = "[[4856,5876],[4840,5444],[4690,5614],[4659,5467],[4490,5624],[4505,5630],[4406,5445],[4749,5613],[4650,5769],[4573,5431],[4786,5697],[4723,5712],[4879,5583],[4774,5586],[4680,5732],[4551,5445],[4631,5761],[4689,5626],[4715,5493],[4483,5564],[4802,5500],[4451,5451],[4413,5540],[4680,5812],[4559,5587],[4538,5554],[4783,5676],[4523,5456],[4786,5756],[4808,5521],[4667,5861],[4690,5875],[4478,5890],[4422,5610],[4406,5807],[4738,5889],[4796,5876],[4663,5896],[4769,5575],[4881,5590],[4491,5440],[4627,5500],[4861,5877],[4502,5454],[4658,5487],[4666,5808],[4521,5613],[4844,5624],[4565,5848],[4801,5850],[4738,5608],[4741,5817],[4714,5521],[4542,5607],[4780,5681],[4669,5815],[4448,5718],[4560,5682],[4812,5526],[4870,5441]]"

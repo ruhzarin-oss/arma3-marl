@@ -1,5 +1,7 @@
 import re, glob, sys
-"""LES QUATRE LIGNES de DEPOT_PORTE_PLEIN_CHEMIN.md, ecrites AVANT. Vertes ENSEMBLE ou panne."""
+"""LES QUATRE LIGNES de DEPOT_PORTE_PLEIN_CHEMIN.md, ecrites AVANT. Vertes ENSEMBLE ou panne.
+⚠️ REECRITES LE 20/08 : le selecteur est mort, donc le concept de « faux-recu » aussi.
+La ligne 1 juge desormais LA VIE DU CANAL, pas la qualite d un tri."""
 lots = []
 for f in sorted(glob.glob("/mnt/data/porte/lot*.txt"), key=lambda x: int(re.search(r"lot(\d+)", x).group(1))):
     n = int(re.search(r"lot(\d+)", f).group(1)); t = open(f, errors="ignore").read()
@@ -15,8 +17,8 @@ for f in sorted(glob.glob("/mnt/data/porte/lot*.txt"), key=lambda x: int(re.sear
         # ⚠️ « T0 AUCUN LIEU PRATICABLE » N EST PAS UNE RECEPTION ⟨Fable, 18/08⟩ : le placeur
         # n a RIEN recu, donc ce tirage ne doit pas gonfler le denominateur de la ligne 1.
         # Latent tant que 60/60 recevaient — mais l acte unifie va refuser davantage.
-        elif e > prev: k = ("T0" if "AUCUN LIEU PRATICABLE" in d else
-                            ("T5" if "T5 IMMOBILE" in d else ("T7" if "T7 " in d else "AUTRE")))
+        elif e > prev: k = ("T0" if "AUCUN LIEU TENABLE" in d else
+                            ("T5" if "T5 CANAL MORT" in d else ("T7" if "T7 " in d else "AUTRE")))
         else: k = "."
         prev = e
         seq.append(k)
@@ -30,14 +32,20 @@ for n, s in lots:
 N = sum(len(s) for _, s in lots)
 print(f"\n  {N} tirages : " + "  ".join(f"{k}={v}" for k, v in sorted(tot.items())))
 
-# les receptions excluent T0 : le placeur n y a rien recu
+# les tirages mesures excluent T0 : le prevol n y a pas atteint T5
 recep = tot.get(".", 0) + tot.get("T5", 0) + tot.get("T7", 0) + tot.get("AUTRE", 0)
-if tot.get("T0", 0): print(f"  (T0 · aucun lieu praticable : {tot['T0']} tirages, HORS receptions)")
-print(f"\n  ══ LIGNE 1 · FAUX-RECUS INEXPLIQUES ══")
-print(f"  receptions (le placeur a recu un lieu) : {recep}   exige : >= 50")
-print(f"  faux-recus T5 : {tot.get('T5', 0)}   autres echecs : {tot.get('T7',0)} T7, {tot.get('AUTRE',0)} non identifies")
+if tot.get("T0", 0): print(f"  (T0 · aucun lieu tenable pour la VUE ou le TIR : {tot['T0']} tirages, hors mesure)")
+print(f"\n  ══ LIGNE 1 · LE CANAL DE LOCOMOTION EST-IL VIVANT ? ══")
+# ⚠️ RENOMMEE LE 20/08. « Faux-recu » n a plus d objet : le SELECTEUR est mort avec
+# l acte de traverse, qui mesurait la pente vers le nord et non la praticabilite.
+# Un T5 rouge ne signale plus un lieu mal choisi mais un CANAL MORT — les jambes ne
+# repondent pas dans cette session. C est une panne reelle, pas un artefact de tri.
+# Critere : max des 8 azimuts >= 15,2 m, valide sur tirage frais (0/60 dans les deux
+# sens, 0/60 de desaccord entre passages). Voir CRITERE_CANAL_VIVANT_VALIDE.md.
+print(f"  tirages ou le prevol a pu mesurer le canal : {recep}   exige : >= 50")
+print(f"  canaux morts (T5) : {tot.get('T5', 0)}   autres echecs : {tot.get('T7',0)} T7, {tot.get('AUTRE',0)} non identifies")
 l1 = tot.get("T5", 0) == 0 and recep >= 50
-print(f"  → {'✓ VERTE' if l1 else '⛔ ROUGE'}  (zero faux-recu T5 sur >= 50 receptions)")
+print(f"  → {'✓ VERTE' if l1 else '⛔ ROUGE'}  (zero canal mort sur >= 50 tirages mesures)")
 
 print(f"\n  ══ LIGNE 2 · MUETS DECOMPOSES ══")
 print(f"  pont muet : {tot.get('PONT',0)}   prevol lent : {tot.get('LENT',0)}   prevol PLANTE : {tot.get('PLANTE',0)}   ecartes : {tot.get('ECARTE',0)}")
@@ -76,16 +84,25 @@ print(f"  X2 = {X2:.2f}   ddl = {len(lots)-1}   seuil 5 % = {seuil}")
 l3 = X2 <= seuil
 print(f"  → {'✓ VERTE' if l3 else '⛔ ROUGE'}  (pas de surdispersion entre serveurs)")
 
-print(f"\n  ══ LIGNE 4 · LES SIX SABOTAGES, LUS DANS LEURS TAMPONS ══")
+print(f"\n  ══ LIGNE 4 · LES CINQ SABOTAGES, LUS DANS LEURS TAMPONS ══")
 # ⚠️ CETTE LIGNE ETAIT UNE CONSTANTE QUE JE BASCULAIS A LA MAIN ⟨Fable, 18/08⟩ — et je l avais
 # mise a VRAI alors que mes sabotages dataient de TROIS socles differents : munitions et
 # jambes sur 2.8.0, gel sur 2.10.0, lenteur sur 2.12.0. La faute d hier reconstruite : la
 # porte sur un hash, les sabotages sur d autres. Elle LIT desormais les tampons que chaque
-# run ecrit — mode, version LUE DANS LE MONDE, commit, verdict, date — et exige que les six
+# run ecrit — mode, version LUE DANS LE MONDE, commit, verdict, date — et exige que les cinq
 # portent LA MEME VERSION que la porte. Le gardien de version, applique aux ACTES.
 import os
 _TAMP = "/mnt/data/sabotages6/TAMPONS.txt"
-_ATTENDUS = {"traverse", "tir", "munitions", "jambes", "gel", "lenteur"}
+# ⛔ LE SABOTAGE `traverse` EST RETIRE LE 20/08 — IL VISAIT UN ACTE QUI N EXISTE PLUS.
+# L acte 2 du placeur (traverse >= 23 m) etait le SELECTEUR : mesure du 19/08, son seuil
+# n etait franchissable qu en descente, et inverser la direction de marche inversait le
+# regime (3/3 et 3/3). Il a ete retire pour premisse fausse, et son sabotage meurt avec lui.
+# ⚠️ UN TAMPON QUI CERTIFIE UN ACTE SUPPRIME EST PIRE QU UN TAMPON ABSENT : il rend vert
+# un canal qui n existe plus. La batterie passe donc de SIX a CINQ, et c est ecrit.
+# Ce que la locomotion perd ici, elle le retrouve dans `jambes`, qui eprouve desormais le
+# critere FUSIONNE du canal vivant (max des 8 azimuts >= 15,2 m) — verifie en situation le
+# 20/08 : 3 lieux sains -> vivant, 3 lieux sabotes -> mort.
+_ATTENDUS = {"tir", "munitions", "jambes", "gel", "lenteur"}
 _vus, _mauvais, _vers = {}, [], set()
 if os.path.exists(_TAMP):
     for _l in open(_TAMP, errors="ignore"):

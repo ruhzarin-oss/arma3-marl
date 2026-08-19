@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "4.0.0-19082026";
+HMT_SOCLE_VERSION = "5.0.0-20082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -231,6 +231,101 @@ HMT_CERTIFIER_POSITIONS = {
     _v
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// LA SONDE DES HUIT AZIMUTS — dérivation du critère neuf du placeur ⟨19/08⟩
+//
+// L ancien critere marchait TOUJOURS VERS LE NORD : il mesurait donc la pente dans un
+// azimut cable, et non la praticabilite. Le critere neuf echantillonne LES HUIT AZIMUTS
+// DE LA COUTURE (`_a*45` dans ACT_TPL) — l espace d action exact de la politique — et
+// retient le MINIMUM, qui est la statistique du mode d echec : l homme coince.
+//
+// ⚠️ TOUS LES LIEUX EN PARALLELE, UN AZIMUT A LA FOIS. Huit fenetres de 4 s au lieu de
+// huit fois N gestes : le cout ne depend pas du nombre de lieux. C est la lecon du bloc C.
+// ⚠️ Chaque homme est REMIS a sa position d origine entre deux azimuts, sinon le second
+// azimut mesurerait depuis la ou le premier l a laisse.
+HMT_SONDER_AZIMUTS = {
+    params ["_positions", ["_duree", 4], ["_spd", 6], ["_sab", ""]];
+    private _g = createGroup west;
+    private _hs = [];
+    {
+        private _u = _g createUnit ["B_Soldier_F", [_x select 0, _x select 1, 0], [], 0, "NONE"];
+        _u allowDamage false; _u setCaptive true;
+        _u disableAI "AUTOCOMBAT"; _u disableAI "FSM"; _u setBehaviour "CARELESS";
+        [_u] call HMT_ARMER;
+        _hs pushBack _u;
+    } forEach _positions;
+    sleep 2;
+    private _res = []; { _res pushBack [] } forEach _positions;
+    for "_a" from 0 to 7 do {
+        private _h = _a * 45;
+        private _vx = _spd * sin _h; private _vy = _spd * cos _h;
+        if (_sab == "jambes") then { _vx = 0; _vy = 0 };   // ⚠️ CONTROLE : doit tout refuser
+        {
+            private _p = _positions select _forEachIndex;
+            _x setPosATL [_p select 0, _p select 1, 0];
+        } forEach _hs;
+        sleep 1.5;
+        private _p0 = _hs apply { getPosATL _x };
+        private _t0 = time;
+        while { time - _t0 < _duree } do {
+            // ⚠️ LE CANAL ADOPTE : la verticale est PRESERVEE (socle 4.0.0)
+            { _x setVelocity [_vx, _vy, (velocity _x) select 2] } forEach _hs;
+            sleep 0.1;
+        };
+        {
+            (_res select _forEachIndex) pushBack
+                (round (10 * ((_p0 select _forEachIndex) distance2D (getPosATL _x))) / 10);
+        } forEach _hs;
+        (format ["HMT|AZ|FENETRE|az|%1|fps|%2", _h, round diag_fps]) call HMT_LOG;
+    };
+    {
+        private _r = _res select _forEachIndex;
+        private _t = +_r; _t sort true;
+        (format ["HMT|AZ|LIEU|i|%1|x|%2|y|%3|min|%4|med|%5|max|%6|eau|%7|d|%8",
+                 _forEachIndex, round (_x select 0), round (_x select 1),
+                 _t select 0, _t select 4, _t select 7,
+                 surfaceIsWater [_x select 0, _x select 1], _r]) call HMT_LOG;
+    } forEach _positions;
+    { deleteVehicle _x } forEach _hs;
+    deleteGroup _g;
+    ("HMT|AZ|FINI|sab|" + _sab + "|n|" + str (count _positions)) call HMT_LOG;
+    _res                                  // une liste de 8 distances par position
+};
+
+
+// ─────────────────────────── BRIQUE 10 : LE CANAL EST-IL VIVANT DANS CETTE SESSION ?
+// ⚠️ CE CRITERE REMPLACE T5 ET L ACTE DE TRAVERSE DU PLACEUR. Il ne certifie PAS un lieu :
+// la grandeur « ce lieu est praticable » N EXISTE PAS de facon stable — mesure le 19/08,
+// r = 0,771 entre deux passages identiques, plafond r2 ~ 0,59. Cinq derivations s y sont
+// cassees. Le prevol ne demandait pas ca : il demande si LES JAMBES REPONDENT.
+//
+// ⚠️ LA STATISTIQUE EST LE MAXIMUM, PAS LE MINIMUM — et c est le retournement du dossier.
+// Le minimum certifiait un LIEU, donc il heritait du scintillement (un blocage sur trois
+// change d avis entre deux passages). La panne du CANAL est GLOBALE : jambes coupees =
+// 0 m dans TOUS les azimuts. Le maximum absorbe donc le scintillement.
+//
+// DERIVE puis VALIDE SUR TIRAGE FRAIS (graine 23, pre-inscription ce5e3a0) :
+//   sain    n=60  min 17,4  med 22,4     sabote  n=60  max 8,7
+//   0/60 faux-rouge, 0/60 faux-vert, 0/60 desaccord entre deux passages.
+//   Regle de trois : chaque taux d erreur borne a <= 5 %.
+//
+// ⚠️ RESERVE ECRITE : « max >= plancher » prouve que LES IMPULSIONS ARRIVENT, pas que
+// l homme marche AU SOL. Un azimut parcouru en vol compte comme preuve de vie du canal.
+// C est correct pour cette question ; ne pas le lire autrement.
+HMT_CANAL_PLANCHER = 15.2;
+HMT_CANAL_VIVANT = {
+    params ["_pos", ["_sab", ""]];
+    private _r = [[[_pos select 0, _pos select 1]], 4, 6, _sab] call HMT_SONDER_AZIMUTS;
+    private _d = _r select 0;
+    private _t = +_d; _t sort true;
+    private _max = _t select 7;
+    (format ["HMT|SOCLE|CANAL|x|%1|y|%2|max|%3|med|%4|min|%5|plancher|%6|vivant|%7|d|%8",
+             round (_pos select 0), round (_pos select 1),
+             _max, _t select 4, _t select 0, HMT_CANAL_PLANCHER,
+             _max >= HMT_CANAL_PLANCHER, _d]) call HMT_LOG;
+    [_max >= HMT_CANAL_PLANCHER, _max, _d]
+};
+
 // ─────────────────────────────────────────────── BRIQUE 6 : LES DEUX GESTES, UNE SEULE FOIS
 // ⚠️ « LES BANCS COMPOSENT AU LIEU DE REECRIRE » — et ce fichier portait TROIS copies de la
 // boucle de marche (acte 2, T5, et `arma_couture.py:ACT_TPL`) et DEUX du tir force (acte 3,
@@ -315,23 +410,19 @@ HMT_G_PRATICABLE = {
         if (_v > _vue) then { _vue = _v };
     };
     if (_vue < 0.5) exitWith { ["sans vue", 0, _vue] };
-    // ── ACTE 2 · UN HOMME PARCOURT-IL SES METRES ? C est le geste EXACT de T5, et depuis le
-    // 19/08 c est le MEME CODE : `HMT_ACTE_MARCHE_SERVI`. Les deux copies avaient diverge par
-    // la pose (createUnit + « statue » ici, POSER_HOMME + « temoin » la) — meme configuration
-    // que celle qui a produit la divergence du tir.
-    private _vy = 6;
-    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "traverse") then { _vy = 0 };
-    private _r2 = [[_x, _y], 4, _vy] call HMT_ACTE_MARCHE_SERVI;
-    private _m = _r2 select 0;
-    (format ["HMT|SOCLE|ACTE2|x|%1|y|%2|m|%3|nt|%4|vmed|%5|anim|%6",
-             round _x, round _y, round _m, _r2 select 1, _r2 select 2, _r2 select 3]) call HMT_LOG;
-    deleteVehicle _u; deleteGroup _g;
-    // ⚠️ SEUIL A 23 m, ET LA RAISON NE REGARDE PAS LES RESULTATS ⟨regle 13⟩ :
-    // UN PLACEUR NE DOIT JAMAIS ETRE PLUS INDULGENT QUE LE TEST QU IL PREPARE.
-    // T5 attend 24 m (6 m/s x 4 s). Le v2 exigeait 18 — une remise de 25 % que rien ne
-    // justifiait, et qui n etait qu un chiffre rond. Le seuil est le NOMINAL moins la seule
-    // tolerance de mesure. Ca RESSERRE, donc c est licite.
-    if (_m < 23) exitWith { deleteVehicle _u; deleteGroup _g; ["encombre", round _m, _vue, 0] };
+    // ⛔ L ACTE 2 (TRAVERSE >= 23 m) EST RETIRE LE 20/08 — ET C EST LUI, LE SELECTEUR.
+    // Mesure du 19/08 : son seuil n etait franchissable QU EN DESCENTE (0 acte sur 188
+    // finissant au sol l atteint, 101 sur 111 finissant en l air le franchissent), et
+    // INVERSER LA DIRECTION DE MARCHE INVERSE LE REGIME (3/3 et 3/3, bras sud). La marche
+    // etant cablee vers le nord, ce critere disait « ca descend vers le nord » — une
+    // boussole deguisee en test de terrain. C est ce selecteur qui a fabrique le « 104 % ».
+    // ⚠️ ET IL NE SE REMPLACE PAS PAR UN AUTRE SEUIL : la grandeur « ce lieu est praticable »
+    // n existe pas de facon stable (r = 0,771 entre deux passages). Cinq derivations
+    // pre-enregistrees s y sont cassees, chacune arretee sur son propre falsificateur.
+    // Le placeur cesse donc de TRIER sur la marche. Il garde ses rejets d ORDRE (eau,
+    // hauteur) et son ACTE DE TIR, qui sont des actes BINAIRES — la porte y reste juste.
+    // La vie du canal se juge desormais par HMT_CANAL_VIVANT, sur les 8 azimuts, au MAX.
+    // Voir CRITERE_CANAL_VIVANT_VALIDE.md.
 
     // ── ACTE 3 · UN HOMME DANS LE MODE *SERVI* TIRE-T-IL DEPUIS CE LIEU ?
     // ⚠️ MEME CODE QUE T7 depuis le 19/08 : `HMT_ACTE_TIR_SERVI`. Les deux copies manuelles
@@ -683,28 +774,27 @@ HMT_PREVOL = {
     // fenetre : le reveil met huit hommes en IA complete, et T5 rougit 17 fois sur 20 avec
     // reveil contre 2 sur 12 sans. `nt` et `fps` disent si c est la cadence qui tombe.
     // ⚠️ T5 APPELLE LE MEME CODE QUE L ACTE 2 DU PLACEUR : un acte, un code.
-    private _mnt = [[_pt select 0, _pt select 1], 4, _vyT5] call HMT_ACTE_MARCHE_SERVI;
-    private _m = _mnt select 0; private _nt = _mnt select 1;
+    // ═══ T5 FUSIONNE — LE CANAL EST-IL VIVANT ? ══════════════════════════════════════
+    // ⚠️ LE PLACEUR ET T5 NE FONT PLUS QU UN GESTE. L acte de traverse du placeur est
+    // retire (c etait le selecteur, il mesurait la pente vers le nord) et T5 ne mesure
+    // plus UNE marche mais LES HUIT AZIMUTS de la couture, au MAXIMUM.
+    // ⚠️ LA LIGNE `GESTE` EST SUPPRIMEE : ses champs `_vrelue` et `_anims` etaient hors
+    // de leur portee depuis le 17/08 23:02 et ecrivaient `any` — 71 lignes mortes sur
+    // tout le disque — et ses champs `sol`/`posture` interrogeaient `_t`, un homme qui
+    // n avait jamais marche. Une ligne de journal est un instrument : elle se relit sur
+    // une ligne REELLE le jour de sa naissance, ou elle ment en silence.
+    private _sabT5 = if (_vyT5 == 0) then { "jambes" } else { "" };
+    private _cv = [[_pt select 0, _pt select 1], _sabT5] call HMT_CANAL_VIVANT;
+    private _vivant = _cv select 0; private _m = _cv select 1; private _d8 = _cv select 2;
 
-    (format ["HMT|SOCLE|GESTE|m|%1|v_apres|%2|v_mediane|%3|v_fin|%4|conduite|%5|anim0|%6|anim9|%7|animfin|%8|posture|%9|sol|%10",
-             round _m,
-             _vrelue select 0,
-             _vrelue select (round ((count _vrelue) / 2)),
-             _vrelue select ((count _vrelue) - 1),
-             behaviour _t, _anims select 0, _anims select (9 min ((count _anims) - 1)),
-             _anims select ((count _anims) - 1),
-             stance _t, isTouchingGround _t]) call HMT_LOG;
-    // ⚠️ T5 DIT L ETAT DU TEMOIN QUAND IL ECHOUE — comme T4 le fait depuis ce matin. Un refus
-    // muet a deja coute quatre diagnostics faux dans la seule journee du 16/08. Deux choses
-    // separent les causes : le temoin est-il CONNU des ennemis (donc sous le feu d un monde
-    // reveille), et son `AUTOCOMBAT` a-t-il vraiment ete retire ?
     private _su = 0;
     { private _k = _x knowsAbout _t; if (_k > _su) then { _su = _k } } forEach (allUnits select { side _x == east });
-    (format ["HMT|SOCLE|T5|nt|%7|fps|%8|m|%1|connu_des_ennemis|%2|autocombat_reel|%3|fsm|%4|path|%5|degats|%6",
-             round _m, round (100 * _su) / 100, _t checkAIFeature "AUTOCOMBAT",
+    (format ["HMT|SOCLE|T5|max|%1|plancher|%2|vivant|%3|d|%4|fps|%5|connu_des_ennemis|%6|autocombat_reel|%7|fsm|%8|path|%9|degats|%10",
+             _m, HMT_CANAL_PLANCHER, _vivant, _d8, round (diag_fps),
+             round (100 * _su) / 100, _t checkAIFeature "AUTOCOMBAT",
              _t checkAIFeature "FSM", _t checkAIFeature "PATH",
-             round (100 * (damage _t)) / 100, _nt, round (diag_fps)]) call HMT_LOG;
-    if (_m < 10) then { _ec pushBack format ["T5 IMMOBILE : %1 m en 4 s (attendu ~24) — connu:%2 autoc:%3 path:%4 degats:%5", round _m, round (100*_su)/100, _t checkAIFeature "AUTOCOMBAT", _t checkAIFeature "PATH", round (100*(damage _t))/100] };
+             round (100 * (damage _t)) / 100]) call HMT_LOG;
+    if (!_vivant) then { _ec pushBack format ["T5 CANAL MORT : max %1 m sur 8 azimuts (plancher %2) — connu:%3 autoc:%4 path:%5 degats:%6", _m, HMT_CANAL_PLANCHER, round (100*_su)/100, _t checkAIFeature "AUTOCOMBAT", _t checkAIFeature "PATH", round (100*(damage _t))/100] };
 
     deleteVehicle _t; deleteGroup _gt;
 
