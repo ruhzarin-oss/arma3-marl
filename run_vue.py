@@ -22,7 +22,7 @@ from banc_live import SCENE, sans_commentaires
 import arma_couture as C
 
 SB = "/mnt/data/harmattan-sandbox"; EXT, PORT = 5832, 6064
-LOG = SB + ("/logs/serverVUECTRL.out" if (len(sys.argv) > 1 and sys.argv[1] == "ctrl") else "/logs/serverVUE.out")
+LOG = SB + (("/logs/serverVUE" + sys.argv[1].upper() + ".out") if (len(sys.argv) > 1) else "/logs/serverVUE.out")
 SORTIE = "/mnt/data/preuves/2026-08-19_controle_visuel"
 
 # graine 19, tires par /tmp/pts.py sur l archive
@@ -77,7 +77,25 @@ if __name__ == "__main__":
     # et la pente nord separe les deux familles a 100 % (+15..+51 % contre -6..-34 %).
     # Marcher vers le SUD sur un lieu « sol » doit donc le faire « voler » — et sur un lieu
     # « vol » le clouer. C est le controle qui juge la THESE, pas seulement l instrument.
-    if len(sys.argv) > 1 and sys.argv[1] == "ctrl":
+    if len(sys.argv) > 1 and sys.argv[1] == "grav":
+        # ⚠️ BRAS APPARIE : chaque lieu recoit les DEUX canaux dans le meme passage.
+        # Les predictions sont ecrites et committees (PREDICTIONS_CANAL_GRAVITE.md, c88259a).
+        b_ = []
+        for (x, y, d) in SOL:
+            b_ += ['[%d, %d, "Msol_%d", "normal"] call HMT_VUE_TRACE;' % (x, y, d),
+                   '[%d, %d, "Gsol_%d", "gravite"] call HMT_VUE_TRACE;' % (x, y, d)]
+        for (x, y, d) in VOL:
+            b_ += ['[%d, %d, "Mvol_%d", "normal"] call HMT_VUE_TRACE;' % (x, y, d),
+                   '[%d, %d, "Gvol_%d", "gravite"] call HMT_VUE_TRACE;' % (x, y, d)]
+        # et le sud sur les deux canaux, pour verifier que la these tient encore
+        S, V = SOL[0], VOL[1]
+        for k in range(2):
+            b_ += ['[%d, %d, "GSUDsol%d", "gravite_sud"] call HMT_VUE_TRACE;' % (S[0], S[1], k),
+                   '[%d, %d, "GSUDvol%d", "gravite_sud"] call HMT_VUE_TRACE;' % (V[0], V[1], k)]
+        prog = ('HMT_VUE_FINI = false; [] spawn { ' + " ".join(b_) +
+                ' HMT_VUE_FINI = true; diag_log "HMT|VUE|FINI"; };')
+        print("  programme APPARIE — 12 lieux x 2 canaux + 4 sud", flush=True)
+    elif len(sys.argv) > 1 and sys.argv[1] == "ctrl":
         S, V = SOL[0], VOL[1]
         b_ = []
         for k in range(3):

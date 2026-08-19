@@ -61,7 +61,7 @@ HMT_VUE_TRACE = {
     // ⚠️ LE BRAS SUD : la marche du socle est CABLEE vers le nord (`[0,_vy,0]`).
     // Si le regime tient a la pente DANS LA DIRECTION DE MARCHE, inverser la
     // direction doit inverser le regime. C est le controle de la THESE.
-    if (_mode == "sud") then { _vy = -6 };
+    if (_mode == "sud" || _mode == "gravite_sud") then { _vy = -6 };
     private _p0 = getPosATL _u;
     // hauteur de POSE, avant toute impulsion : dit si `setPosATL` surleve deja l homme
     (format ["HMT|VUE|POSE|etq|%1|mode|%2|z|%3|sol|%4|anim|%5", _etq, _mode,
@@ -71,7 +71,17 @@ HMT_VUE_TRACE = {
     private _t0 = time; private _tr = []; private _nsol = 0; private _n = 0;
     private _serie = 0; private _seriemax = 0; private _zmax = 0;
     while { alive _u && time - _t0 < _duree } do {
-        if (_mode != "volforce" || _n > 0) then { _u setVelocity [0, _vy, 0] };
+        // ⚠️ DEUX CANAUX, UN SEUL CODE. `gravite` PRESERVE la composante verticale —
+        // la forme qu emploient squad_deploy*.py et les theatres LEVIATHAN. Les deux
+        // bras se jouent sur les MEMES lieux dans le MEME passage : apparie, sinon la
+        // variance du monde se melange a l effet du canal.
+        if (_mode != "volforce" || _n > 0) then {
+            if (_mode == "gravite" || _mode == "gravite_sud") then {
+                _u setVelocity [0, _vy, (velocity _u) select 2];
+            } else {
+                _u setVelocity [0, _vy, 0];
+            };
+        };
         sleep 0.1;                                   // ⚠️ ON DORT AVANT DE LIRE
         private _p = getPosATL _u; private _v = velocity _u;
         private _z = round (100 * (_p select 2)) / 100;
@@ -109,4 +119,4 @@ HMT_VUE_TRACE = {
 };
 
 HMT_VUE_PRETE = true;
-diag_log "HMT|VUE|CHARGEE|sonde_vue 1.2.0";
+diag_log "HMT|VUE|CHARGEE|sonde_vue 1.3.0";
