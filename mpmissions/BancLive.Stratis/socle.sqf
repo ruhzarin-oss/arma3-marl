@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "3.0.0-19082026";
+HMT_SOCLE_VERSION = "3.1.0-19082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -68,6 +68,29 @@ HMT_ARMER = {
     _u setUnitPos "UP";
     _u setVariable ["hmt_arme_declaree", true, true];
     ((currentWeapon _u) != "")                    // RELECTURE : l arme est-elle EN MAIN ?
+};
+
+// ─────────────────────────── BRIQUE 9 : L ACTE DE MARCHE DU SERVI, UN SEUL CODE
+// ⚠️ MEME FAUTE QUE LE TIR, SUR L AUTRE CANAL. Le 19/08, la porte a rendu ZERO echec T7 sur
+// 58 tirages une fois l acte de tir unifie — et QUATRE faux-recus T5. L acte 2 du placeur et
+// T5 sont restes DEUX CODES : l un pose son homme par `createUnit` en mode « statue » avec
+// `PATH` rendu, l autre par `HMT_POSER_HOMME` en mode « temoin ». Exactement la configuration
+// qui avait produit la divergence du tir, et qu on a mis trois jours a nommer.
+// Un acte, un code : meme pose, meme mode, meme telemetrie des deux cotes ⟨Fable⟩.
+HMT_ACTE_MARCHE_SERVI = {
+    params ["_pos", ["_duree", 4], ["_vy", 6]];
+    private _g = createGroup west;
+    private _u = [_g, "B_Soldier_F", [_pos select 0, _pos select 1, 0], "pilote"] call HMT_POSER_HOMME;
+    if (isNull _u) exitWith { deleteGroup _g; [-1, 0, -1, "naissance refusee"] };
+    _u allowDamage false;
+    _u setDir 0;
+    sleep 1.5;
+    private _p0 = getPosATL _u;
+    private _mnt = [_u, _duree, _vy] call HMT_MARCHER;
+    private _derive = round (10 * (_p0 distance2D (getPosATL _u))) / 10;
+    private _r = [_mnt select 0, _mnt select 1, _mnt select 2, _mnt select 3];
+    deleteVehicle _u; deleteGroup _g;
+    _r                                    // [metres, iterations, vitesse relue, animation]
 };
 
 // ─────────────────────────────── BRIQUE 8 : L ACTE DE TIR DU SERVI, UN SEUL CODE
@@ -264,32 +287,16 @@ HMT_G_PRATICABLE = {
         if (_v > _vue) then { _vue = _v };
     };
     if (_vue < 0.5) exitWith { ["sans vue", 0, _vue] };
-    // ── ACTE 2 · UN HOMME PARCOURT-IL SES 24 m ? C est le geste exact de T5.
-    private _g = createGroup west;
-    private _u = _g createUnit ["B_Soldier_F", [_x, _y, 0], [], 0, "NONE"];
-    if (isNull _u) exitWith { deleteGroup _g; ["naissance refusee", 0, _vue] };
-    [_u] call HMT_ARMER;
-    [_u, "statue"] call HMT_PILOTER;      // ni IA de combat ni decision : on teste le TERRAIN
-    _u enableAI "PATH";                   // ...mais les JAMBES restent, sinon on mesure une statue
-    // ⚠️ TOUT HOMME JETABLE EST INVULNERABLE, UNIFORMEMENT ⟨lecture de Fable, 17/08⟩.
-    // La scene cree ses defenseurs en COMBAT/RED avec `AUTOCOMBAT` actif des la naissance, et
-    // les lieux candidats sont a 80-540 m de l objectif — DANS LA PORTEE. Un testeur abattu en
-    // pleine traverse rend « encombre », et le placeur rejette alors un lieu qui allait bien.
-    _u allowDamage false;
-    _u setDir 0;
-    sleep 1.5;
-    // ⚠️ LE LEVIER DE SABOTAGE ⟨regle 18⟩ : sans lui, « le placeur accepte » ne prouve pas
-    // qu il sait REFUSER. `HMT_SABOTER = "traverse"` retire les jambes du testeur : AUCUN
-    // lieu ne doit plus etre recu, et le prevol doit rougir en T0.
-    // ⚠️ LE SABOTAGE DOIT ATTAQUER CE QUE LE TEST EMPLOIE ⟨regle 6, appliquee au sabotage⟩.
-    // Premiere version : `disableAI "PATH"`. INOPERANT PAR NATURE — `setVelocity` est une
-    // IMPULSION PHYSIQUE et ne passe pas par le pathfinding ; les deux lieux recus rendaient
-    // toujours 25 m et 22 m sous sabotage. Fait etabli du projet, et oublie en concevant le
-    // levier. On sabote donc l IMPULSION elle-meme : vitesse nulle, immobilite certaine, et
-    // le test doit rendre « encombre ».
+    // ── ACTE 2 · UN HOMME PARCOURT-IL SES METRES ? C est le geste EXACT de T5, et depuis le
+    // 19/08 c est le MEME CODE : `HMT_ACTE_MARCHE_SERVI`. Les deux copies avaient diverge par
+    // la pose (createUnit + « statue » ici, POSER_HOMME + « temoin » la) — meme configuration
+    // que celle qui a produit la divergence du tir.
     private _vy = 6;
     if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "traverse") then { _vy = 0 };
-    private _m = ([_u, 4, _vy] call HMT_MARCHER) select 0;
+    private _r2 = [[_x, _y], 4, _vy] call HMT_ACTE_MARCHE_SERVI;
+    private _m = _r2 select 0;
+    (format ["HMT|SOCLE|ACTE2|x|%1|y|%2|m|%3|nt|%4|vmed|%5|anim|%6",
+             round _x, round _y, round _m, _r2 select 1, _r2 select 2, _r2 select 3]) call HMT_LOG;
     deleteVehicle _u; deleteGroup _g;
     // ⚠️ SEUIL A 23 m, ET LA RAISON NE REGARDE PAS LES RESULTATS ⟨regle 13⟩ :
     // UN PLACEUR NE DOIT JAMAIS ETRE PLUS INDULGENT QUE LE TEST QU IL PREPARE.
@@ -647,7 +654,8 @@ HMT_PREVOL = {
     // 10 Hz et ne comptait rien. Or un serveur charge emet moins d impulsions dans la meme
     // fenetre : le reveil met huit hommes en IA complete, et T5 rougit 17 fois sur 20 avec
     // reveil contre 2 sur 12 sans. `nt` et `fps` disent si c est la cadence qui tombe.
-    private _mnt = [_t, 4, _vyT5] call HMT_MARCHER;
+    // ⚠️ T5 APPELLE LE MEME CODE QUE L ACTE 2 DU PLACEUR : un acte, un code.
+    private _mnt = [[_pt select 0, _pt select 1], 4, _vyT5] call HMT_ACTE_MARCHE_SERVI;
     private _m = _mnt select 0; private _nt = _mnt select 1;
 
     (format ["HMT|SOCLE|GESTE|m|%1|v_apres|%2|v_mediane|%3|v_fin|%4|conduite|%5|anim0|%6|anim9|%7|animfin|%8|posture|%9|sol|%10",
