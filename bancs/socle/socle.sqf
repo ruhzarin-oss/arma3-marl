@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "2.12.0-18082026";
+HMT_SOCLE_VERSION = "3.0.0-19082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -68,6 +68,44 @@ HMT_ARMER = {
     _u setUnitPos "UP";
     _u setVariable ["hmt_arme_declaree", true, true];
     ((currentWeapon _u) != "")                    // RELECTURE : l arme est-elle EN MAIN ?
+};
+
+// ─────────────────────────────── BRIQUE 8 : L ACTE DE TIR DU SERVI, UN SEUL CODE
+// ⚠️ DEUX COPIES MANUELLES DU MEME ACTE ONT DIVERGE, ET LA SONDE N A PAS PU LES DEPARTAGER.
+// Point (4629, 5856), lot 5 du 18/08 : l acte 3 du placeur RECOIT 5 fois sur 5 quand T7 rend
+// 0 coup 5 fois sur 5. Trente tirages de sonde — repliques de l acte 3, de T7, et de l acte 3
+// sans `PATH` — rendent TOUS zero, vue nulle : `PATH` du mannequin ecarte, naissance du
+// tireur ecartee. Ma replique n est donc pas le vrai acte 3, et aucune sonde ne le dira :
+// tant que ce sont DEUX CODES, la difference peut se loger n importe ou.
+// La sortie n est pas une sonde de plus, c est UN ACTE, UN CODE ⟨Fable, 18/08⟩ — appele par
+// l acte 3 du placeur ET par T7, avec la MEME pose du mannequin, la MEME pose du tireur, et
+// LA MEME TELEMETRIE DE VUE DES DEUX COTES. L acte 3 n en avait aucune : c est ce qui a laisse
+// la divergence vivre.
+HMT_ACTE_TIR_SERVI = {
+    params ["_pos", ["_duree", 4]];
+    private _px = _pos select 0; private _py = _pos select 1;
+    private _gE = createGroup east;
+    private _mm = _gE createUnit ["O_Soldier_F", [_px, _py + 40, 0], [], 0, "NONE"];
+    [_mm] call HMT_ARMER;
+    _mm allowDamage false; _mm disableAI "AUTOCOMBAT"; _mm disableAI "FSM";
+    _mm disableAI "PATH"; _mm setBehaviour "CARELESS";
+    private _gW = createGroup west;
+    private _u = [_gW, "B_Soldier_F", [_px, _py, 0], "pilote"] call HMT_POSER_HOMME;
+    _u allowDamage false;
+    sleep 1.5;
+    // ⚠️ LE SABOTAGE DU TIR VIT DESORMAIS DANS LA BRIQUE — DEUXIEME FOIS QU UN REFACTORING
+    // L AVALAIT. Le bloc B1 l avait deja emporte avec le `reveal` et la telemetrie ; il
+    // vivait dans le bloc que la fonction remplacait. Ici il profite AUX DEUX appelants
+    // (acte 3 du placeur ET T7) au lieu d un seul — c est ce que « composer » doit donner.
+    // ⚠️ Et c est le DIFF qui l a attrape, pas le smoke : un sabotage absent ne fait rien
+    // ECHOUER, il rend seulement un controle positif silencieusement vide.
+    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "tir") then { _u setVehicleAmmo 0 };
+    _u reveal [_mm, 4];
+    private _vue = round (100 * ([objNull, "VIEW"] checkVisibility [eyePos _u, eyePos _mm])) / 100;
+    private _c = [_u, _mm, _duree] call HMT_TIRER_C9;
+    private _dm = round (_u distance _mm);
+    deleteVehicle _mm; deleteVehicle _u; deleteGroup _gE; deleteGroup _gW;
+    [_c, _vue, _dm]                              // [coups, vue, distance]
 };
 
 // ─────────────────────────────────── BRIQUE 7 : LES POSITIONS DE LA SCENE, CERTIFIEES AVANT
@@ -261,48 +299,12 @@ HMT_G_PRATICABLE = {
     if (_m < 23) exitWith { deleteVehicle _u; deleteGroup _g; ["encombre", round _m, _vue, 0] };
 
     // ── ACTE 3 · UN HOMME DANS LE MODE *SERVI* TIRE-T-IL DEPUIS CE LIEU ?
-    // ⚠️ LE PLACEUR VERIFIAIT QU ON VOIT, JAMAIS QU ON TIRE. Porte du 17/08 : une fois le
-    // deplacement borne, T7 est devenu le canal dominant — 17 echecs sur 50 — et rien dans
-    // le placeur ne le couvrait. Voir/tirer ne sont pas la meme chose : l homme SERVI a
-    // `AUTOCOMBAT` coupe (`arma_couture.py:27`) et emprunte le canal de l action 9.
-    // On rejoue donc ce canal EXACT, sur un homme dans le mode SERVI ⟨regle 6⟩.
-    private _gm = createGroup east;
-    private _mm = _gm createUnit ["O_Soldier_F", [_x, _y + 40, 0], [], 0, "NONE"];
-    [_mm] call HMT_ARMER;
-    // ⚠️ RECIDIVE : la revue avait blinde T7 le meme jour, et personne n a transpose ici.
-    // Le mannequin etait ARME et en IA LIBRE, le testeur sans protection : quatre secondes de
-    // DUEL REEL. Un mannequin qui tue le testeur fabrique un « muet », donc rejette un bon
-    // lieu — et il le fait preferentiellement dans les lieux OUVERTS, ou il voit et tire vite.
-    // Le placeur biaisait donc CONTRE le degagement, exactement l inverse de ce qu on veut.
-    // ⚠️ PAS DE `setCaptive` SUR LA CIBLE. Faute du bloc A1 : on m avait dit de COPIER le
-    // blindage de T7, j ai copie ET AJOUTE. Un homme « captive » est NEUTRE — il cesse d etre
-    // une cible, et le tireur ne tire plus. Mesure : le placeur rendait « muet » avec traverse
-    // 25 m, vue 1 et 0 coup, y compris apres avoir remis le `reveal`. Le blindage de T7
-    // (l.617-620) ne pose PAS `setCaptive`, et T7 tire.
-    _mm allowDamage false;
-    _mm disableAI "AUTOCOMBAT"; _mm disableAI "FSM"; _mm setBehaviour "CARELESS";
-    private _g2 = createGroup west;
-    private _u2 = _g2 createUnit ["B_Soldier_F", [_x, _y, 0], [], 0, "NONE"];
-    private _enmain = [_u2] call HMT_ARMER;
-    [_u2, "pilote"] call HMT_PILOTER;          // le mode SERVI, pas celui du temoin de T4
-    _u2 allowDamage false;
-    sleep 1.5;
-    // ⚠️ LE `reveal` AVAIT DISPARU DANS LE REFACTORING B1 — il vivait dans le bloc que
-    // `HMT_TIRER_C9` a remplace. Consequence immediate et mesuree : le placeur rendait
-    // « muet » sur des lieux a traverse 25 m et vue 1, DONC 0 lieu recu sur 60, et le banc
-    // des jambes II n a rien pu mesurer.
-    // ⚠️ CE QUE L ACCIDENT REVELE, et qui vaut plus que la panne : SANS `reveal`, L HOMME NE
-    // TIRE PAS. Or `arma_couture.py:ACT_TPL` (action 9) ne fait JAMAIS de `reveal` — c est la
-    // divergence certificateur/servi relevee par Fable le 17/08. Le certificateur tire parce
-    // qu on lui DONNE la cible ; l homme servi ne l a pas. Non mesure proprement : un accident
-    // n est pas une mesure, et B2 reste a faire.
-    // ⚠️ LE SABOTAGE DU TIR AVAIT DISPARU LUI AUSSI — troisieme chose que B1 a avalee, apres
-    // le `reveal` et la telemetrie. Sans lui, « l acte de tir recoit » ne prouve pas qu il
-    // sait REFUSER, et le smoke l a dit : arme videe, lieu encore recu avec 9 coups.
-    if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "tir") then { _u2 setVehicleAmmo 0 };
-    _u2 reveal [_mm, 4];
-    private _coups = [_u2, _mm, 4] call HMT_TIRER_C9;
-    deleteVehicle _mm; deleteVehicle _u2; deleteGroup _gm; deleteGroup _g2;
+    // ⚠️ MEME CODE QUE T7 depuis le 19/08 : `HMT_ACTE_TIR_SERVI`. Les deux copies manuelles
+    // avaient diverge sans que rien ne le dise, faute de telemetrie de vue de ce cote.
+    private _r3 = [[_x, _y], 4] call HMT_ACTE_TIR_SERVI;
+    private _coups = _r3 select 0;
+    (format ["HMT|SOCLE|ACTE3|x|%1|y|%2|coups|%3|vue|%4|dist|%5",
+             round _x, round _y, _coups, _r3 select 1, _r3 select 2]) call HMT_LOG;
     [(if (_coups >= 1) then {"recu"} else {"muet"}), round _m, _vue, _coups]
 };
 
@@ -700,40 +702,16 @@ HMT_PREVOL = {
     if ((missionNamespace getVariable ["HMT_SABOTER", ""]) == "lenteur") then {
         ("HMT|SOCLE|LENTEUR|pause 10 s a " + HMT_PV_ETAPE) call HMT_LOG; sleep 10;
     };
-    private _g7 = createGroup west;
-    // ⚠️ T7 TESTE LE LIEU QUE LE PLACEUR A VALIDE, PAS SIX METRES A COTE.
-    // Porte du 17/08 : 23 echecs T7 sur 40, et le releve du socle SEPARE PARFAITEMENT —
-    // `vue|0` rend 0 coup, `vue|1` rend 12. T7 n echouait pas sur le canal de feu, il
-    // echouait parce que SON mannequin n etait pas visible. L acte 3 du placeur valide le
-    // point EXACT avec un mannequin a 40 m plein nord ; T7 posait le sien a `_pt + 6` et
-    // 35 m. Six metres suffisent a passer derriere un arbre. Le `+6` evitait un chevauchement
-    // avec le temoin de T5 — mais celui-ci est deja supprime a ce stade.
-    // DEUX TESTS DU MEME SOCLE DOIVENT S ACCORDER SUR LA GEOMETRIE QU ILS EXIGENT.
-    private _u7 = [_g7, "B_Soldier_F", [(_pt select 0), (_pt select 1), 0], "pilote"] call HMT_POSER_HOMME;
-    // ⚠️ REVUE 17/08 : NI `_u7` NI `_m7` n avaient `allowDamage false`, contrairement au
-    // binome de T4 (lignes 196 et 207). Et `_m7` etait ARME (HMT_ARMER) et en IA LIBRE —
-    // il ne passait jamais par HMT_PILOTER — a 35 m d un homme en mode `pilote`, donc
-    // AUTOCOMBAT coupe et incapable de riposter. `_m7` pouvait donc ABATTRE le temoin
-    // pendant les 4 s du test : HMT_PV_C7 restait a 0, T7 rougissait, et le prevol
-    // refusait tout l episode pour un MORT et non pour un canal de feu muet.
-    _u7 allowDamage false;
-    private _gm7 = createGroup east;
-    private _m7 = _gm7 createUnit ["O_Soldier_F", [(_pt select 0), (_pt select 1) + 40, 0], [], 0, "NONE"];
-    [_m7] call HMT_ARMER;
-    _m7 allowDamage false; _m7 disableAI "PATH"; _m7 disableAI "AUTOCOMBAT";
-    _m7 setBehaviour "CARELESS";
-    sleep 1.5;
-    _u7 reveal [_m7, 4];
-    HMT_PV_C7 = [_u7, _m7, 4] call HMT_TIRER_C9;
-    private _a7 = _u7 checkAIFeature "AUTOCOMBAT";
-    (format ["HMT|SOCLE|T7|coups|%1|autocombat_reel|%2|fsm|%3|arme|%4|vue|%5",
-             HMT_PV_C7, _a7, _u7 checkAIFeature "FSM", currentWeapon _u7,
-             round (100 * ([objNull,"VIEW"] checkVisibility [eyePos _u7, eyePos _m7])) / 100]) call HMT_LOG;
+    // ⚠️ T7 APPELLE LE MEME CODE QUE L ACTE 3 DU PLACEUR ⟨Fable⟩ : un acte, un code.
+    private _r7 = [[_pt select 0, _pt select 1], 4] call HMT_ACTE_TIR_SERVI;
+    HMT_PV_C7 = _r7 select 0;
+    private _a7 = false;
+    (format ["HMT|SOCLE|T7|coups|%1|vue|%2|dist|%3|autocombat_reel|%4",
+             HMT_PV_C7, _r7 select 1, _r7 select 2, _a7]) call HMT_LOG;
     if (HMT_PV_C7 < 1) then {
-        _ec pushBack format ["T7 LE CANAL DE FEU DE L HOMME SERVI EST MUET (0 coup en 4 s) — autoc:%1 fsm:%2 arme:%3", _a7, _u7 checkAIFeature "FSM", currentWeapon _u7];
+        _ec pushBack format ["T7 LE CANAL DE FEU DE L HOMME SERVI EST MUET (0 coup en 4 s) — vue:%1 dist:%2", _r7 select 1, _r7 select 2];
     };
-    HMT_PV_CANAL = [HMT_PV_C7, _a7];
-    deleteVehicle _m7; deleteVehicle _u7; deleteGroup _gm7; deleteGroup _g7;
+    HMT_PV_CANAL = [HMT_PV_C7, _r7 select 1];
 
     // ⚠️ LE JOURNAL DES POSITIONS, DANS LE MEME COMMIT QUE LE CORRECTIF. L hypothese de
     // l eau n est PAS verifiee : si l echantillonneur pose des temoins dans l eau, il
