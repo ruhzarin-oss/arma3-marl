@@ -130,7 +130,12 @@ if _mauvais:   print(f"  ⛔ sabotages en ECHEC : {sorted(_mauvais)}")
 if len(_vers) > 1: print(f"  ⛔ les tampons ne portent PAS la meme version")
 if _vp and _vp not in _vers: print(f"  ⛔ la porte a tourne sur {_vp}, les sabotages sur {sorted(_vers)}")
 print(f"  → {'✓ VERTE' if l4 else '⛔ ROUGE'}")
-print(f"  → ⛔ ROUGE  (deux sabotages sur quatre non rejoues sur ce hash)")
+# ⛔ LIGNE MORTE SUPPRIMEE LE 20/08 : elle imprimait « ROUGE (deux sabotages sur quatre
+# non rejoues) » EN DUR, sans rien calculer, et contredisait le verdict juste au-dessus.
+# Vestige d un etat ancien ou la ligne 4 etait une constante basculee a la main.
+# ⚠️ SI ELLE AVAIT DIT « VERTE » AU LIEU DE « ROUGE », ELLE AURAIT MASQUE UN VRAI ROUGE.
+# Un juge qui imprime un verdict qu il ne calcule pas ment aussi bien dans un sens
+# que dans l autre — meme famille que la ligne GESTE qui ecrivait `any`.
 
 _ecl = [k for _, s in lots for k in s if k in ("LENT", "ECARTE", "PONT")]
 from collections import Counter as _C
