@@ -25,8 +25,38 @@ NA = 10                                            # 8 caps + tenir + feu
 # bouge pour qui ne la touche pas. Un entrainement sur le monde OPERE fait `B.CFG = MONDE_OPERE`.
 CFG = MONDE_ARMA
 
+# ⚠️ LE GARDIEN DE PARAMETRES ⟨20/08, apres la faute du « 6 m/s »⟩.
+# J AI CITE PENDANT DEUX JOURS UN CHIFFRE DE GYMNASE QUE JE N AVAIS JAMAIS LU : le « 6 m/s »
+# etait la CONSIGNE du pont (`arma_couture.py:21`), pas le parametre du gymnase, qui joue
+# move=14 m / SEC_PAR_PAS=3,28 s = 4,27 m/s. Un dossier doctrine et une decision de Younes
+# ont ete batis dessus.
+# ⚠️ LA CLASSE ENTIERE MEURT ICI : le monde DECLARE ses parametres EFFECTIFS a la
+# construction — lus sur l objet, pas dans un fichier — et les depots citent CETTE LIGNE
+# D EXECUTION, jamais le fichier. Une surcharge par variable (`move=cfg.x`) echappe a toute
+# relecture humaine ; elle n echappe pas a une lecture de l objet construit.
+# Voir PROVENANCE_PARAMETRES.md, qui nommait deja la classe le 06/08 :
+# « le parametre herite d un instrument mort ».
+HMT_PARAMS_DECLARES = False
+
+def _declarer_parametres(e):
+    global HMT_PARAMS_DECLARES
+    if HMT_PARAMS_DECLARES: return
+    HMT_PARAMS_DECLARES = True
+    _spp = getattr(e, "sec_par_pas", None)
+    _mv  = getattr(e, "move", None)
+    _v   = (float(_mv) / float(_spp)) if (_mv and _spp) else float("nan")
+    print("  ── PARAMETRES EFFECTIFS DU MONDE (lus sur l objet, pas dans un fichier) ──", flush=True)
+    print("     move=%s m   sec_par_pas=%s s   ->  VITESSE = %.2f m/s" % (_mv, _spp, _v), flush=True)
+    for _k in ("fire_range", "hit", "secure_r", "max_steps", "terr_R", "frein_feu",
+               "tir_par_pas", "degat_par_impact", "supp_residuel", "cible_unique",
+               "obs_sans_slope", "relief_stratis"):
+        if hasattr(e, _k): print("     %-18s %s" % (_k, getattr(e, _k)), flush=True)
+    print("  ⚠️ TOUT CHIFFRE DE GYMNASE CITE DANS UN DEPOT DOIT VENIR DE CETTE LIGNE.", flush=True)
+
 def monde(n, seed):
-    return AssaultTerrain(num_envs=n, seed=seed, device=DEV, max_steps=PAS, **CFG)
+    _e = AssaultTerrain(num_envs=n, seed=seed, device=DEV, max_steps=PAS, **CFG)
+    _declarer_parametres(_e)
+    return _e
 
 
 def cap(dx, dy):
