@@ -3,6 +3,9 @@ import re, glob, sys, os
 # juge (regle 18). `HMT_PORTE_DIR` permet de lui presenter des donnees FABRIQUEES
 # sans toucher aux vraies. Par defaut, la porte reelle.
 _PORTE = os.environ.get("HMT_PORTE_DIR", "/mnt/data/porte")
+# ⚠️ LES JOURNAUX SERVEUR : c est la SEULE trace des erreurs de script. Surchargeable
+# pour que la ligne 5 puisse etre sabotee comme les autres (regle 18).
+_OUT = os.environ.get("HMT_OUT_DIR", "/mnt/data/harmattan-sandbox/logs")
 """LES QUATRE LIGNES de DEPOT_PORTE_PLEIN_CHEMIN.md, ecrites AVANT. Vertes ENSEMBLE ou panne.
 ⚠️ REECRITES LE 20/08 : le selecteur est mort, donc le concept de « faux-recu » aussi.
 La ligne 1 juge desormais LA VIE DU CANAL, pas la qualite d un tri."""
@@ -140,6 +143,58 @@ print(f"  X2 = {X2:.2f}   ddl = {len(lots)-1}   seuil 5 % = {seuil}")
 l3 = X2 <= seuil
 print(f"  → {'✓ VERTE' if l3 else '⛔ ROUGE'}  (pas de surdispersion entre serveurs)")
 
+# ═══ LIGNE 5 · LE MONDE A-T-IL PLANTE EN SILENCE ? ⟨21/08⟩ ═════════════════════════════
+# ⚠️ CETTE LIGNE MANQUAIT, ET SON ABSENCE A COUTE UNE PORTE. Le 20/08 j ai declare quatre
+# lignes vertes sur une porte dont le placeur PLANTAIT sur sa ligne de retour — variable
+# `_m` orpheline par mon propre refactoring, 16 erreurs dans le seul lot 1. Aucune ligne
+# ne regardait les erreurs de script ; le juge ne pouvait donc pas les voir.
+# J avais propose cette ligne le 19/08 et je ne l ai JAMAIS branchee.
+#   grandeur    : erreurs de script imputables a NOTRE code, dans les journaux serveur
+#   statistique : le COMPTE
+#   seuil       : ZERO — une erreur de script est une panne, pas un bruit de fond
+#   n           : les journaux des lots de la porte
+# ⚠️ Les erreurs des ADDONS tiers sont comptees a part et declarees : elles ne sont pas
+# les notres, et les confondre rendrait la ligne inutilisable ou complaisante.
+print(f"\n  ══ LIGNE 5 · LE MONDE A-T-IL PLANTE EN SILENCE ? ══")
+import glob as _g
+# ⚠️ UNE ERREUR SQF S ECRIT SUR TROIS LIGNES — « Error in expression », « Error position »,
+# « Error Undefined variable ». Mon premier compteur comptait des LIGNES : il annoncait
+# 102 erreurs a nous ET 102 tierces, les secondes n etant que les autres lignes des memes
+# erreurs. Un juge qui compte mal est exactement ce qu on repare ici.
+# On compte donc les EVENEMENTS — une occurrence de « Error in expression » — et on les
+# impute en regardant les lignes qui la suivent immediatement.
+# ⚠️ PAS DE FENETRE — J AI ESSAYE TROIS FOIS ET LES TROIS ETAIENT FAUSSES. Le bloc d une
+# erreur SQF n a pas de longueur fixe : l expression fautive s etale sur autant de lignes
+# qu elle en occupe dans le source, et le nom de la variable arrive APRES. Une fenetre de
+# 3 puis de 15 rangeait nos erreurs chez les tiers, et la porte du 20/08 repassait au VERT.
+# ⚠️ MESURE QUI TRANCHE : `serverPV_L1.out` porte 16 « Error in expression » ET 16
+# « Undefined variable » — elles sont APPARIEES une pour une. On compte donc les lignes
+# QUI PORTENT LE NOM, et l imputation devient directe. Le desaccord entre les deux comptes
+# est journalise : s il apparait, c est qu il existe des erreurs d un autre genre.
+_nous, _tiers, _fic, _brut = 0, 0, 0, 0
+_det = {}
+for _f in sorted(_g.glob(_OUT + "/serverPV_L*.out")):
+    _fic += 1
+    for _l in open(_f, errors="ignore"):
+        if "Error in expression" in _l: _brut += 1
+        _m2 = re.search(r"Undefined variable in expression: ([a-zA-Z_0-9]+)", _l)
+        if not _m2: continue
+        _nom = _m2.group(1)
+        if _nom.startswith("_") or _nom.lower().startswith("hmt"):
+            _nous += 1; _det[_nom] = _det.get(_nom, 0) + 1
+        else:
+            _tiers += 1
+if _brut != _nous + _tiers:
+    print(f"  ⚠️ {_brut} erreurs brutes contre {_nous + _tiers} nommees — "
+          f"{_brut - _nous - _tiers} d un autre genre, NON imputees")
+print(f"  journaux lus : {_fic}   erreurs A NOUS : {_nous}   erreurs tierces (declarees) : {_tiers}")
+if _det:
+    for _k, _v2 in sorted(_det.items(), key=lambda kv: -kv[1])[:5]:
+        print(f"    {_k:28s} {_v2}")
+l5 = (_fic > 0) and (_nous == 0)
+if _fic == 0: print("  ⛔ AUCUN JOURNAL SERVEUR LU — la ligne ne peut pas juger.")
+print(f"  → {'✓ VERTE' if l5 else '⛔ ROUGE'}  (zero erreur de script imputable a notre code)")
+
 print(f"\n  ══ LIGNE 4 · LES CINQ SABOTAGES, LUS DANS LEURS TAMPONS ══")
 # ⚠️ CETTE LIGNE ETAIT UNE CONSTANTE QUE JE BASCULAIS A LA MAIN ⟨Fable, 18/08⟩ — et je l avais
 # mise a VRAI alors que mes sabotages dataient de TROIS socles differents : munitions et
@@ -202,11 +257,11 @@ print(f"\n  ══════ VERDICT ══════")
 if not _competent:
     print("  ⛔ AUCUN VERDICT : le juge est INCOMPETENT sur des labels rencontres.")
     print("     Un juge qui ne sait pas classer un echec ne peut pas prononcer sur le monde.")
-elif l1 and l2 and l2b and l3 and l4: print("  ➤ LES QUATRE LIGNES SONT VERTES — LE BANC SORT DE PANNE DIAGNOSTIQUE.")
+elif l1 and l2 and l2b and l3 and l4 and l5: print("  ➤ LES CINQ LIGNES SONT VERTES — LE BANC SORT DE PANNE DIAGNOSTIQUE.")
 else:
-    rouges = [n for n, x in zip(["1","2","2bis","3","4"], [l1,l2,l2b,l3,l4]) if not x]
+    rouges = [n for n, x in zip(["1","2","2bis","3","4","5"], [l1,l2,l2b,l3,l4,l5]) if not x]
     print(f"  ➤ LIGNE(S) ROUGE(S) : {rouges} — LE BANC RESTE EN PANNE.")
-    if rouges == [4]:
-        print("     Mais la seule rouge est une PROCEDURE non rejouee, pas une mesure du monde :")
-        print("     les trois lignes qui jugent le monde sont vertes. Rejouer les deux sabotages")
-        print("     manquants sur ce hash suffit — c est dix minutes, et rien d autre a mesurer.")
+    # ⛔ UN PLAIDOYER CODE EN DUR A ETE RETIRE ICI le 21/08 : il excusait d avance une
+    # ligne 4 rouge (« ce n est qu une procedure, les lignes du monde sont vertes »).
+    # Un juge qui plaide pour l accuse avant d avoir lu le dossier n est pas un juge —
+    # meme famille que le ROUGE code en dur retire hier.

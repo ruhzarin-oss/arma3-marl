@@ -176,7 +176,14 @@ HMT_CANAL = "sv_vz_preserve_10hz";
 // Le jeton HMT_NORDRE coupe la boucle des que l ordre SUIVANT arrive : sans lui, deux boucles
 // se disputeraient le meme homme et la derniere emise gagnerait au hasard.
 HMT_NORDRE = (missionNamespace getVariable ["HMT_NORDRE", 0]) + 1;
-{ private _i=_forEachIndex; private _a=HMT_ACT select _i; private _u=_x;
+// ⚠️ `HMT_ACT` PEUT ETRE PLUS COURT QUE `HMT_FR` : `select` rend alors nil, `_a` reste
+// INDEFINI, et `_a<8` PLANTE — 14 fois dans la nuit du 20/08. Un homme recevait un
+// ordre inexistant, en silence. On DECLARE le desaccord au lieu de le subir.
+if ((count HMT_ACT) != (count HMT_FR)) then {
+  if (!isNil "HMT_LOG") then { (format ["HMT|CORPS|ACT_DESACCORD|actions|%1|hommes|%2",
+                                        count HMT_ACT, count HMT_FR]) call HMT_LOG };
+};
+{ private _i=_forEachIndex; private _a=(if (_forEachIndex < count HMT_ACT) then {HMT_ACT select _forEachIndex} else {8}); private _u=_x;
   if (_a<8) then {
       private _h=_a*45; private _vx=HMT_SPD*sin _h; private _vy=HMT_SPD*cos _h;
       private _mien = HMT_NORDRE;

@@ -215,6 +215,18 @@ if __name__ == "__main__":
     print("  pont TCP ouvert", flush=True)
     print("  scene : %d defenseurs, %d attaquants a %d m" % (NDEF, NATT, DIST), flush=True)
     time.sleep(3)
+    b.send(sans_commentaires('call compile preprocessFileLineNumbers "socle.sqf";'), wait=False)
+    time.sleep(2)
+    # ⚠️ LE SOCLE AVANT LA SCENE ⟨21/08⟩. La scene appelait `HMT_CERTIFIER_POSITIONS`,
+    # definie dans le socle, alors que le socle se chargeait 44 lignes PLUS BAS :
+    # 6 764 erreurs dans la seule nuit du 20/08, et l orpheline `_v` avec (13 fois).
+    # Meme mal que le bloc C, repare dans `prevol.py` le 19/08 et JAMAIS transpose ici —
+    # troisieme non-transposition qui coute, apres l idiome du marqueur numerote et le
+    # compteur d erreurs de script.
+    # ⚠️ LE DRAPEAU ATTERRIT AVEC L ORDRE, OU PAS DU TOUT : corriger l ordre SEUL
+    # activerait le bloc C sur le chemin de campagne, avec son critere a 23 m dont on a
+    # mesure qu il refuse le monde entier (0 position recue sur 37, six azimuts a 0/4).
+    b.send('HMT_CERTIFIER = false;', wait=False); time.sleep(0.5)
     b.send(sans_commentaires(SCENE))
     # ATTENTION : le journal d Arma ne porte RIEN de tout ceci. `to_socket_out` reecrit les
     # diag_log en emissions socket : la scene, les obs et les accuses arrivent par le PONT,
@@ -259,7 +271,6 @@ if __name__ == "__main__":
     # ecrit dans le RPT, pas dans la socket. Diagnostic du 16/08 : le socle se charge bien
     # (`HMT_PREVOL` defini = true), c est mon controle qui cherchait un marqueur qui n arrive
     # jamais. On ne lit donc plus SON journal : on lui DEMANDE son resultat par la socket.
-    b.send(sans_commentaires('call compile preprocessFileLineNumbers "socle.sqf";'), wait=False)
     time.sleep(2.5)
     b.send(sans_commentaires('HMT_PV = nil; [] spawn { HMT_PV = [HMT_FR] call HMT_PREVOL; };'), wait=False)
     _vert, _rap = None, ""
