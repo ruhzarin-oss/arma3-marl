@@ -1,9 +1,13 @@
-import re, glob, sys
+import re, glob, sys, os
+# ⚠️ REPERTOIRE SURCHARGEABLE : un juge qu on ne peut pas saboter ne peut pas etre
+# juge (regle 18). `HMT_PORTE_DIR` permet de lui presenter des donnees FABRIQUEES
+# sans toucher aux vraies. Par defaut, la porte reelle.
+_PORTE = os.environ.get("HMT_PORTE_DIR", "/mnt/data/porte")
 """LES QUATRE LIGNES de DEPOT_PORTE_PLEIN_CHEMIN.md, ecrites AVANT. Vertes ENSEMBLE ou panne.
 ⚠️ REECRITES LE 20/08 : le selecteur est mort, donc le concept de « faux-recu » aussi.
 La ligne 1 juge desormais LA VIE DU CANAL, pas la qualite d un tri."""
 lots = []
-for f in sorted(glob.glob("/mnt/data/porte/lot*.txt"), key=lambda x: int(re.search(r"lot(\d+)", x).group(1))):
+for f in sorted(glob.glob(_PORTE + "/lot*.txt"), key=lambda x: int(re.search(r"lot(\d+)", x).group(1))):
     n = int(re.search(r"lot(\d+)", f).group(1)); t = open(f, errors="ignore").read()
     seq, prev = [], 0
     for l in t.splitlines():
@@ -17,8 +21,13 @@ for f in sorted(glob.glob("/mnt/data/porte/lot*.txt"), key=lambda x: int(re.sear
         # ⚠️ « T0 AUCUN LIEU PRATICABLE » N EST PAS UNE RECEPTION ⟨Fable, 18/08⟩ : le placeur
         # n a RIEN recu, donc ce tirage ne doit pas gonfler le denominateur de la ligne 1.
         # Latent tant que 60/60 recevaient — mais l acte unifie va refuser davantage.
+        # ⚠️ `T2` ETAIT AVALE PAR `AUTRE` : le 20/08 un homme est ne chargeur vide, et
+        # l echec est tombe dans le fourre-tout que rien ne borne. Un label qui n existe
+        # pas ne peut pas etre juge. On le NOMME.
         elif e > prev: k = ("T0" if "AUCUN LIEU TENABLE" in d else
-                            ("T5" if "T5 CANAL MORT" in d else ("T7" if "T7 " in d else "AUTRE")))
+                            ("T5" if "T5 CANAL MORT" in d else
+                             ("T7" if "T7 " in d else
+                              ("T2" if "T2 " in d else "AUTRE"))))
         else: k = "."
         prev = e
         seq.append(k)
@@ -33,9 +42,46 @@ N = sum(len(s) for _, s in lots)
 print(f"\n  {N} tirages : " + "  ".join(f"{k}={v}" for k, v in sorted(tot.items())))
 
 # les tirages mesures excluent T0 : le prevol n y a pas atteint T5
-recep = tot.get(".", 0) + tot.get("T5", 0) + tot.get("T7", 0) + tot.get("AUTRE", 0)
+# ⚠️ `T2` COMPTE COMME TIRAGE MESURE. En lui donnant son propre label j avais oublie
+# de le remettre ici : le denominateur du lot 5 tombait de 12 a 11 et la ligne 3
+# changeait de nombres (X2 4,07 -> 0,00) alors que l amendement ne devait TOUCHER
+# QUE le T2. Le temoin C2 l a attrape. Un prevol qui atteint T2 a bien MESURE :
+# il a echoue SUR un acte, il n a pas ete empeche de mesurer.
+recep = tot.get(".", 0) + tot.get("T5", 0) + tot.get("T7", 0) + tot.get("T2", 0) + tot.get("AUTRE", 0)
 if tot.get("T0", 0): print(f"  (T0 · aucun lieu tenable pour la VUE ou le TIR : {tot['T0']} tirages, hors mesure)")
-print(f"\n  ══ LIGNE 1 · LE CANAL DE LOCOMOTION EST-IL VIVANT ? ══")
+# ═══ LA CARTE DES JURIDICTIONS ⟨pre-inscription du 20/08⟩ ══════════════════════════════
+# Le vrai defaut n etait pas qu `AUTRE` soit non borne — c est qu un LABEL D ECHEC PUISSE
+# EXISTER SANS JURIDICTION. Deux l etaient : `T2` (avale par AUTRE) et `T7` (imprime par la
+# ligne 1 mais absent de son verdict). Une grandeur que rien ne borne derive sans rougir.
+# ⚠️ UN LABEL NON CARTOGRAPHIE REND ROUGE LE JUGE, PAS LE MONDE. Un juge qui rencontre un
+# echec qu il ne sait pas classer doit le DIRE, pas l absorber.
+_JURIDICTION = {
+    ".":       "vert (aucun echec)",
+    "T5":      "ligne 1",
+    "T7":      "ligne 1",
+    "T2":      "ligne 1",
+    "PLANTE":  "ligne 2",
+    "PONT":    "ligne 2bis",
+    "LENT":    "ligne 2bis",
+    "ECARTE":  "ligne 2bis",
+    "T0":      "hors mesure (declare, non juge)",
+}
+_sans = sorted(set(tot) - set(_JURIDICTION))
+_n_sans = sum(tot[k] for k in _sans)
+print(f"\n  ══ CARTE DES JURIDICTIONS ══")
+for _k in sorted(tot):
+    print(f"  {_k:8s} {tot[_k]:3d}  →  {_JURIDICTION.get(_k, '⛔ AUCUNE JURIDICTION')}")
+_competent = (not _sans)
+if not _competent:
+    print(f"  ⛔ LE JUGE SE DECLARE INCOMPETENT : labels sans juridiction {_sans} ({_n_sans} tirages)")
+    print(f"     Ce n est PAS un verdict sur le monde — c est le juge qui ne sait pas classer.")
+else:
+    print(f"  ✓ carte totale : tout label rencontre a exactement une juridiction")
+# filet de la regle 19 pour l imprevu : <= 3 sur 60
+_filet = _n_sans <= 3
+print(f"  filet (regle 19) : {_n_sans} echecs sans juridiction sur {N}   seuil : <= 3")
+
+print(f"\n  ══ LIGNE 1 · LES ACTES DU PREVOL REPONDENT-ILS ? ══")
 # ⚠️ RENOMMEE LE 20/08. « Faux-recu » n a plus d objet : le SELECTEUR est mort avec
 # l acte de traverse, qui mesurait la pente vers le nord et non la praticabilite.
 # Un T5 rouge ne signale plus un lieu mal choisi mais un CANAL MORT — les jambes ne
@@ -43,9 +89,13 @@ print(f"\n  ══ LIGNE 1 · LE CANAL DE LOCOMOTION EST-IL VIVANT ? ══")
 # Critere : max des 8 azimuts >= 15,2 m, valide sur tirage frais (0/60 dans les deux
 # sens, 0/60 de desaccord entre passages). Voir CRITERE_CANAL_VIVANT_VALIDE.md.
 print(f"  tirages ou le prevol a pu mesurer le canal : {recep}   exige : >= 50")
-print(f"  canaux morts (T5) : {tot.get('T5', 0)}   autres echecs : {tot.get('T7',0)} T7, {tot.get('AUTRE',0)} non identifies")
-l1 = tot.get("T5", 0) == 0 and recep >= 50
-print(f"  → {'✓ VERTE' if l1 else '⛔ ROUGE'}  (zero canal mort sur >= 50 tirages mesures)")
+print(f"  actes du prevol en echec : T5={tot.get('T5',0)} (canal)  T7={tot.get('T7',0)} (feu)  T2={tot.get('T2',0)} (etat a la naissance)")
+# ⚠️ RESSERREMENT ⟨regle 13⟩ : la ligne exigeait zero T5. Elle exige desormais zero sur
+# LES TROIS actes du prevol — T5 (le canal), T7 (le feu), T2 (l etat a la naissance).
+# Ca ne compte que des echecs DE PLUS : ca resserre, donc c est licite. Et ca ferme
+# deux juridictions vides d un coup.
+l1 = tot.get("T5", 0) == 0 and tot.get("T7", 0) == 0 and tot.get("T2", 0) == 0 and recep >= 50
+print(f"  → {'✓ VERTE' if l1 else '⛔ ROUGE'}  (zero echec sur les TROIS actes, >= 50 tirages mesures)")
 
 print(f"\n  ══ LIGNE 2 · MUETS DECOMPOSES ══")
 print(f"  pont muet : {tot.get('PONT',0)}   prevol lent : {tot.get('LENT',0)}   prevol PLANTE : {tot.get('PLANTE',0)}   ecartes : {tot.get('ECARTE',0)}")
@@ -72,9 +122,15 @@ print(f"\n  ══ LIGNE 3 · REGROUPEMENT PAR SERVEUR — SUR LES RECEPTIONS SE
 # etaient tous des echecs de patience dont le lot 2 portait 7,31 des 9,97. La ligne juge
 # desormais LES RECEPTIONS SEULES ; le regroupement des echecs d instrument est NOTE en clair
 # mais NON JUGE — un X2 sur 2-3 evenements ne declare pas de n honnete.
-# receptions par lot = tirages ou le placeur a recu (verts + T5 + T7 + AUTRE), sans les
+# tirages mesures par lot = verts + T5 + T7 + T2 + AUTRE, sans les
 # echecs d instrument qui ne jugent pas le monde
-ok_l = [(n, s.count("."), sum(1 for k in s if k in (".", "T5", "T7", "AUTRE"))) for n, s in lots]
+# ⚠️ `T2` MANQUAIT ICI AUSSI — deuxieme endroit ou le nouveau label devait entrer.
+# Sans lui, le denominateur du lot 5 tombait de 12 a 11 et X2 passait de 4,07 a 0,00 :
+# l amendement deplacait la ligne 3 alors qu il ne devait toucher QUE le T2.
+# ⚠️ LECON : ajouter un label oblige a re-deriver TOUS les endroits qui enumerent les
+# labels. Meme famille que « une longueur qui change oblige a re-deriver ce qui en depend ».
+# Le temoin C2 a attrape les deux occurrences ; sans lui je n aurais vu ni l une ni l autre.
+ok_l = [(n, s.count("."), sum(1 for k in s if k in (".", "T5", "T7", "T2", "AUTRE"))) for n, s in lots]
 ok_l = [(n, v, t) for n, v, t in ok_l if t > 0]
 p = sum(v for _, v, _ in ok_l) / sum(t for _, _, t in ok_l)
 X2 = sum(t * ((v/t) - p)**2 for _, v, t in ok_l) / (p*(1-p)) if 0 < p < 1 else 0
@@ -120,7 +176,7 @@ for _k in sorted(_ATTENDUS):
 _manquants = _ATTENDUS - set(_vus)
 # la version du socle sous laquelle la PORTE a tourne
 _vp = None
-for _l in open("/mnt/data/porte/JOURNAL.txt", errors="ignore") if os.path.exists("/mnt/data/porte/JOURNAL.txt") else []:
+for _l in open(_PORTE + "/JOURNAL.txt", errors="ignore") if os.path.exists(_PORTE + "/JOURNAL.txt") else []:
     _m = re.search(r'HMT_SOCLE_VERSION = "([^"]*)"', _l)
     if _m: _vp = _m.group(1); break
 print(f"  version de la PORTE : {_vp}   versions des tampons : {sorted(_vers)}")
@@ -143,7 +199,10 @@ print(f"  regroupement des echecs d INSTRUMENT (note, NON juge) : " +
       ", ".join(f"lot {n}={sum(1 for k in s if k in ('LENT','ECARTE','PONT'))}" for n, s in lots))
 
 print(f"\n  ══════ VERDICT ══════")
-if l1 and l2 and l2b and l3 and l4: print("  ➤ LES QUATRE LIGNES SONT VERTES — LE BANC SORT DE PANNE DIAGNOSTIQUE.")
+if not _competent:
+    print("  ⛔ AUCUN VERDICT : le juge est INCOMPETENT sur des labels rencontres.")
+    print("     Un juge qui ne sait pas classer un echec ne peut pas prononcer sur le monde.")
+elif l1 and l2 and l2b and l3 and l4: print("  ➤ LES QUATRE LIGNES SONT VERTES — LE BANC SORT DE PANNE DIAGNOSTIQUE.")
 else:
     rouges = [n for n, x in zip(["1","2","2bis","3","4"], [l1,l2,l2b,l3,l4]) if not x]
     print(f"  ➤ LIGNE(S) ROUGE(S) : {rouges} — LE BANC RESTE EN PANNE.")
