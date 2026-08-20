@@ -42,6 +42,17 @@ calibré**, et il l'était bien.
 > ### ⛔ IL N'Y A PAS DE RECALAGE À FAIRE. L'ARBITRAGE À TROIS BRANCHES EST SANS OBJET.
 > Aucun réentraînement n'est justifié par le tempo.
 
+⚠️ **NUANCE, ET ELLE COMPTE** ⟨Fable, 20/08⟩ : le gymnase est calibré **sur la marche au
+HASARD** — `SEC_PAR_PAS` vient d'une mesure sur lieux aléatoires, donc sur le mélange 57/43.
+Or **la politique CHOISIT ses chemins** : la distribution de pentes qu'elle traverse est
+**endogène**. Le 5 % vaut pour un marcheur aléatoire ; il n'est pas établi pour un agent qui
+préfère systématiquement les descentes ou qui est contraint aux montées par sa mission.
+**Non mesuré. Déclaré ici plutôt que supposé.**
+
+⚠️ **GOUVERNANCE** : Younes a tranché la **branche 1** sur la prémisse fausse. Retirer le
+dossier ne suffit pas — **une décision prise sur une prémisse retirée a besoin de sa propre
+ligne d'annulation, et elle appartient à celui qui l'a prise.**
+
 ## LE VRAI SUJET, QUI SUBSISTE ET QUI EST AUTRE
 
 **Dans le gymnase, la pente n'agit pas sur le déplacement.**

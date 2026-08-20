@@ -14,7 +14,13 @@ for PASSE in 1 2; do
     for p in $(pgrep -f arma3server_x64); do kill $p 2>/dev/null; done
     sleep 3
     rm -f /tmp/releve_live.npz
-    timeout 330 ./.venv/bin/python banc_live.py politique > /mnt/data/politique/p${PASSE}_e${i}.txt 2>&1
+    # ⚠️ MINUTEUR DERIVE, MEME DERIVATION QUE `nuit_natif.sh` ⟨20/08⟩ : echauffement 45
+    # + amorcage 25 + borne exterieure du prevol 180 + episode (PAS_MAX 60 x PERIODE
+    # 3,28) 197 + cloture 10 = 457 s, plus une marge d UN prevol complet = 637 -> 640.
+    # `timeout 330` ne laissait meme pas la place au prevol certifie. Il gouverne la
+    # nuit POLITIQUE, qui vient apres le natif : derive AVANT elle, pas pendant.
+    timeout 640 ./.venv/bin/python banc_live.py politique > /mnt/data/politique/p${PASSE}_e${i}.txt 2>&1
+    rc=$?; [ "$rc" = "124" ] && echo "  ⛔ LE MINUTEUR A MORDU — episode $i tronque, il ne compte pas"
     if [ -f /tmp/releve_live.npz ]; then cp /tmp/releve_live.npz /mnt/data/politique/p${PASSE}_e${i}.npz; fi
     echo "  p${PASSE} e${i}/67  $(date +%H:%M)  npz=$([ -f /mnt/data/politique/p${PASSE}_e${i}.npz ] && echo oui || echo NON)"
   done
