@@ -1,71 +1,79 @@
-# DOSSIER DOCTRINE — LE TEMPO DU CORPS. Arbitrage de Younes.
+# DOSSIER DOCTRINE — LE TEMPO DU CORPS
 
-**19/08/2026.** Fondé sur `VERDICT_LA_PENTE_DANS_LE_SENS_DE_LA_MARCHE.md`.
-Ce document ne tranche pas : il pose les trois branches avec leurs chiffres.
+> # ⛔ VERSION DU 19/08 : RETIRÉE POUR PRÉMISSE FAUSSE
+>
+> **Elle affirmait que « le gymnase enseigne 6 m/s ». C'est faux, et je ne l'avais jamais lu.**
+> Le 6 m/s est la **consigne envoyée à Arma** par la couture (`arma_couture.py:21`), dont le
+> commentaire dit lui-même pourquoi : *« le sandbox move=14/pas ; on tempère pour le FPS »*.
+> **J'ai pris la consigne du pont pour le paramètre du gymnase**, et bâti un arbitrage à trois
+> branches dessus. L'écart annoncé — 60 % — était surestimé d'un facteur dix.
+>
+> ⚠️ **Cliquet : avant de chiffrer un écart entre deux mondes, LIRE le paramètre de chacun.**
+> J'ai mesuré Arma pendant deux jours sans jamais ouvrir le fichier du gymnase.
 
-## LE FAIT
+---
 
-Le canal de locomotion de la campagne (`arma_couture.py:185`, `setVelocity [vx, vy, 0]`
-réémis à 10 Hz) **annule la composante verticale**. Conséquence mesurée :
+**Corrigé le 20/08/2026, après lecture du code.**
 
-| | ce que le canal rend | part du terrain concernée |
+## CE QUE LE GYMNASE JOUE VRAIMENT
+
+| | source | valeur |
 |---|---|---|
-| **en montée** | **2,8 – 3,7 m/s** | ~57 % des lieux échantillonnés (150/261) |
-| **en descente** | **5,5 – 6,4 m/s** | ~43 % (111/261) |
+| distance d'un pas | `assault_terrain.py:13` — `move=14.0`, **non surchargé** par `monde_fidele` | **14 m** |
+| durée d'un pas | `monde_fidele.py:27` — `SEC_PAR_PAS`, dérivé par `leviathan/mesurer_vitesse.py` | **3,28 s** |
+| **vitesse effective** | 14 / 3,28 | **4,27 m/s** |
 
-**Le gymnase entraîne à 6 m/s uniformes.** Il est donc juste sur les descentes et
-**optimiste d'un facteur ~1,8 sur les montées** — c'est-à-dire sur la majorité du terrain.
+## CE QUE LE CORPS REND, SUR LE CANAL ADOPTÉ
 
-⚠️ Ce n'est pas une erreur de simulation : c'est une **incohérence entre ce que la politique
-apprend et ce que son corps peut faire**. Une politique qui planifie « j'y serai en 4 s »
-arrive en 7 s une fois sur deux, et son plan est faux au moment où il compte.
+| régime | distance en 4 s | vitesse | part du terrain |
+|---|---|---|---|
+| **montée** | 15,0 m | **3,75 m/s** | ~57 % (150/261) |
+| **descente** | 22,1 m | **5,5 m/s** | ~43 % (111/261) |
+| **mélange pondéré** | — | **≈ 4,5 m/s** | — |
 
-## BRANCHE 1 — RENDRE LA GRAVITÉ AU CANAL, RECALER LE GYMNASE SUR LE SOL
+## L'ÉCART RÉEL
 
-`setVelocity [vx, vy, (velocity _u)#2]` — la forme qu'emploient déjà `squad_deploy*.py` et
-les théâtres LEVIATHAN. Puis recaler le tempo du gymnase sur la capacité mesurée au sol.
+> **Gymnase 4,27 m/s contre 4,5 m/s mesurés : environ 5 %.**
 
-- **Pour** : le corps devient physique et cohérent ; les soldats cessent de traverser
-  les ravins en ligne droite ; le gymnase enseigne un tempo atteignable.
-- **Contre** : **tout ce qui a été appris jusqu'ici l'a été sur l'autre corps.** Les
-  politiques déployées, le commandant appris, SHAMAL, ALIZÉ — leur tempo est calibré sur
-  6 m/s. Il faut réentraîner.
-- **Prédiction à pré-enregistrer** : rendre le vz **n'empêchera pas** les décollages (le
-  terrain déclenche toujours), il les transformera en **sautillements courts** — fraction
-  de vol faible, distances en descente qui se rapprochent des distances en montée.
-- **Coût** : un réentraînement complet. Le plus cher, le plus propre.
+Et ce n'est pas un hasard : `SEC_PAR_PAS` a été **dérivé d'une vitesse mesurée sur Arma**, sur
+des lieux tirés au hasard — donc sur le même mélange des deux régimes. **Le gymnase était déjà
+calibré**, et il l'était bien.
 
-## BRANCHE 2 — GARDER Z=0 ET L'ASSUMER
+> ### ⛔ IL N'Y A PAS DE RECALAGE À FAIRE. L'ARBITRAGE À TROIS BRANCHES EST SANS OBJET.
+> Aucun réentraînement n'est justifié par le tempo.
 
-Ne rien changer, et **écrire noir sur blanc** que les soldats du projet planent dans les
-descentes.
+## LE VRAI SUJET, QUI SUBSISTE ET QUI EST AUTRE
 
-- **Pour** : coût nul, rien à réentraîner, tous les acquis restent lisibles.
-- **Contre** : c'est un **écart de fidélité de plus** — famille du couvert ×11 et de la
-  létalité ×4. Et il est **directionnel**, donc il biaise la tactique elle-même : descendre
-  devient gratuit, monter devient cher. Les manœuvres apprises exploiteront ce biais.
-- **Conséquence pour le doctorat et la vente** : un dossier VV&A qui déclare un corps
-  non physique se défend mal devant un client de simulation.
+**Dans le gymnase, la pente n'agit pas sur le déplacement.**
+Elle est dans l'**observation** — l'agent la voit (`slope`, mesurée sur Stratis : p01 0,000,
+médiane 0,408, p99 1,057) — mais le pas fait **14 m qu'on monte ou qu'on descende**. La seule
+modulation du déplacement est le **frein sous le feu** (`frein_feu=0.35`).
 
-## BRANCHE 3 — RALENTIR LE GYMNASE À LA CAPACITÉ RÉELLE, SANS TOUCHER AU CANAL
+Or Arma sépare nettement les deux régimes — **3,75 contre 5,5 m/s, soit 1,47×** — et
+l'**intervention** l'établit causalement : marcher vers le sud inverse le régime, 3 fois sur 3
+dans les deux sens.
 
-Garder `Z=0` mais commander ~3,5 m/s au lieu de 6.
+**La question n'est donc pas « à quelle vitesse », mais :**
 
-- **Pour** : le tempo appris devient atteignable **partout** (3,5 m/s est sous le plafond
-  des deux régimes) ; un seul paramètre change ; pas de refonte du canal.
-- **Contre** : on **plafonne volontairement** le corps en descente là où il pourrait aller
-  deux fois plus vite ; et l'incohérence physique reste (le vz est toujours annulé).
-- **C'est le compromis** : le moins cher qui supprime le mensonge de tempo.
+> **Faut-il que le gymnase fasse SUBIR la pente qu'il MONTRE déjà ?**
 
-## CE QUI NE DÉPEND PAS DE L'ARBITRAGE
+| | pour | contre |
+|---|---|---|
+| **laisser tel quel** | le tempo moyen est juste à 5 % ; rien à réentraîner ; l'agent voit la pente et peut l'exploiter par apprentissage | il apprend qu'un versant se traverse au même prix dans les deux sens — **la descente est gratuite, la montée aussi** |
+| **faire subir la pente** | le coût du terrain devient réel : contourner, choisir son axe, préférer la descente deviennent des décisions **payantes** | **c'est un terme NEUF** dans le modèle de déplacement, pas un réglage — donc à mesurer, pré-inscrire, et il invalide les politiques existantes |
 
-Le **critère neuf du placeur** doit se dériver de la capacité **mesurée du canal retenu** —
-jamais des 6 m/s du gymnase. Il ne peut donc pas s'écrire avant la décision. D'ici là :
-**bloc C désactivé, aucune porte lancée.**
+⚠️ Ce n'est **pas** un problème de fidélité de vitesse. C'est un problème de **fidélité de
+décision** : un agent qui ne paie pas la pente n'a aucune raison d'apprendre à la lire, même
+s'il la voit.
 
-## CE QUE JE RECOMMANDE
+## CE QUI SERAIT NÉCESSAIRE AVANT DE TRANCHER
 
-**Branche 1**, pour une raison qui n'est pas de fidélité mais de but : l'objectif est un
-agent qui **comprend et joue** Arma. Un agent dont le corps traverse les ravins n'apprend
-pas le terrain — il apprend une carte plate avec des raccourcis. Le coût du réentraînement
-se paiera de toute façon, et il est plus petit aujourd'hui qu'après la prochaine campagne.
+1. **Mesurer proprement les deux régimes** sur le canal adopté : n ≥ 50 par régime,
+   pré-inscription, témoin — mes chiffres actuels tiennent sur **6 lieux par régime**.
+2. **Établir la forme du terme** : la pente le long du pas, pas la pente au point (c'est la
+   faute de fenêtre qui a tué trois dérivations le 19/08).
+3. **Un témoin sans terme** : la politique entraînée avec la pente qui coûte doit **battre**
+   celle entraînée sans, sur le même banc — sinon le terme n'a rien apporté.
+
+**Rien de cela n'est urgent.** Le tempo moyen est juste ; c'est une question de qualité de
+décision, pas de panne.
