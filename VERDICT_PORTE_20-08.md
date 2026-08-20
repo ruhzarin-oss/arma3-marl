@@ -55,3 +55,30 @@ son propre critère, NATIF ×2, puis la politique et la comparaison.
 
 **Reste entier, et c'est à Younes** : le tempo du gymnase — 6 m/s enseignés contre
 ~3,75 rendus en montée. Voir `DOSSIER_DOCTRINE_TEMPO.md`.
+
+---
+
+## ANGLE MORT DÉCLARÉ — l'arrêt anticipé tronque le champ enregistré ⟨règle 20⟩
+
+J'ai écrit que « la pente survit en donnée, pas en juge ». **Ce n'est vrai qu'à 1 à 3
+azimuts par tirage** : l'arrêt anticipé cesse de mesurer dès que le verdict est acquis.
+Le champ des 8 distances n'est donc **pas** enregistré en entier par la porte.
+
+`max_joues` est honnête sur son nom, mais la promesse de télémétrie n'est que partiellement
+tenue. **Le choix est ici, écrit** : la porte privilégie son coût (1-3 azimuts au lieu de 8,
+soit ~40 minutes économisées sur 60 tirages) contre la complétude du champ. Quand
+l'analytique aura besoin du champ complet, il se relèvera par une passe dédiée
+(`_stop` à false), qui existe déjà et que les sondes de dérivation emploient.
+
+⚠️ *Un compromis accidentel est une économie non déclarée.* Celui-ci est déclaré.
+
+## LES MINUTEURS DE NUIT — un dérivé, les autres encore ronds
+
+`nuit_natif.sh` : **330 s → 640 s**, dérivé terme à terme (échauffement 45 + amorçage 25 +
+borne extérieure du prévol 180 + épisode 60 × 3,28 = 197 + clôture 10 = 457, plus une marge
+d'un prévol complet = 637 → 640). Il **annonce** désormais quand il mord.
+
+⚠️ **Restent ronds, et gouvernent des chemins non lancés aujourd'hui** :
+`rejeu.sh` 330 (politique — à dériver avant le rejeu de la politique),
+`complement.sh` 330, `night_run.sh` 280 (`avatar_fight.py`, programme différent).
+Ils sont **nommés ici pour ne pas être oubliés**, pas corrigés à l'aveugle.
