@@ -14,7 +14,7 @@
 //    3. Chaque faute attrapee devient un test permanent du prevol — le CLIQUET.
 // ═══════════════════════════════════════════════════════════════════════════
 
-HMT_SOCLE_VERSION = "5.4.0-20082026";
+HMT_SOCLE_VERSION = "5.5.0-21082026";
 HMT_LOG = { diag_log _this };
 
 // ─────────────────────────────────────────────── BRIQUE 1 : LES GRANDEURS
@@ -480,7 +480,16 @@ HMT_G_PRATICABLE = {
     private _coups = _r3 select 0;
     (format ["HMT|SOCLE|ACTE3|x|%1|y|%2|coups|%3|vue|%4|dist|%5",
              round _x, round _y, _coups, _r3 select 1, _r3 select 2]) call HMT_LOG;
-    [(if (_coups >= 1) then {"recu"} else {"muet"}), round _m, _vue, _coups]
+    // ⚠️ `_m` ETAIT DEFINI PAR L ACTE 2, QUE J AI SUPPRIME LE 20/08 — ET JE L AI LAISSE
+    // DANS CETTE LIGNE DE RETOUR. Variable orpheline par mon propre refactoring, la
+    // quatrieme de la semaine apres le `reveal`, le sabotage du tir et la telemetrie
+    // du geste. Cout mesure : 16 erreurs dans le seul lot 1 de la porte du 20/08 et
+    // 289 dans la nuit — le placeur PLANTAIT sur son retour, donc rendait nil, donc
+    // son appelant lisait nil. La porte declaree VALIDE tournait dessus.
+    // ⚠️ LE CHAMP N A PLUS DE SOURCE : l acte de traverse est mort, aucune distance
+    // n est mesuree ici. On rend -1, qui DIT son absence, plutot qu un chiffre invente.
+    // La vie du canal se mesure ailleurs — HMT_CANAL_VIVANT, sur les 8 azimuts.
+    [(if (_coups >= 1) then {"recu"} else {"muet"}), -1, _vue, _coups]
 };
 
 // ─────────────────────────────────────────────── BRIQUE 3 : LE PILOTAGE
