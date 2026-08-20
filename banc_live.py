@@ -158,12 +158,26 @@ for "_i" from 1 to %d do {
     // decide, pas l IA d Arma — mais PATH reste actif.
 };
 HMT_POST = []; { HMT_POST pushBack 0 } forEach HMT_FR;
+// ⚠️ LE COMPTEUR DE COUPS ⟨20/08⟩. La condition 3 du predicat depose le 16/08 — « le natif
+// TIRE, au moins 1 coup par episode en mediane » — n a PAS PU ETRE LEVEE sur les 107
+// episodes de la nuit : ce fichier n enregistrait AUCUN coup. On ne pouvait affirmer que
+// les episodes la satisfaisaient, seulement qu aucun ne l avait dementie.
+// L idiome existait deja dans le socle (l EH `Fired` de T4 et de HMT_TIRER_C9) : il n avait
+// jamais ete transpose ici. Une condition eliminatoire qu on ne peut pas mesurer n elimine rien.
+HMT_COUPS_ATT = 0; HMT_COUPS_DEF = 0;
+{ _x addEventHandler ["Fired", { HMT_COUPS_ATT = HMT_COUPS_ATT + 1 }] } forEach HMT_FR;
+{ _x addEventHandler ["Fired", { HMT_COUPS_DEF = HMT_COUPS_DEF + 1 }] } forEach HMT_ENNEMI;
 if (HMT_BRAS == "natif") then {
     private _w = _ga addWaypoint [HMT_OBJ, 0];
     _w setWaypointType "SAD"; _w setWaypointBehaviour "COMBAT"; _w setWaypointSpeed "NORMAL";
 };
 diag_log format ["HARMATTAN_SCENE def=%%1 att=%%2 enmain=%%3", count HMT_ENNEMI, count HMT_FR,
   ({(currentWeapon _x) != ""} count HMT_FR)];
+// ⚠️ L ARTEFACT PORTE SON CANAL ⟨Fable, 20/08⟩. Le monde declarait `HMT_CANAL`, mais AUCUN
+// artefact ne le portait — ni les lots de la porte ni les episodes de la nuit. L identite de
+// canal entre la porte et la campagne reposait sur la seule continuite du hash. Un artefact
+// qui ne dit pas dans quel monde il est ne peut pas etre compare a un autre.
+diag_log format ["HARMATTAN_CANAL %%1", (if (isNil "HMT_CANAL") then {"INCONNU"} else {HMT_CANAL})];
 '''.replace("HMT_BRAS", '"' + BRAS + '"') % (OBJ[0], OBJ[1], NATT, DIST, DIST, NDEF, NATT)
 # ⚠️ SEPT substituants depuis le bloc C, et dans un ORDRE NOUVEAU : la certification des
 # positions attaquantes vient AVANT la creation des defenseurs, donc `NATT` passe en 3e.
@@ -347,6 +361,18 @@ if __name__ == "__main__":
             print(f"\n  fin au pas {t} : vivants={m.group(1)} dmin={m.group(3)}")
             break
         time.sleep(max(0.0, PERIODE - 0.7))
+    # ⚠️ LES COMPTEURS PARLENT DANS L ARTEFACT, SINON ILS NE SERVENT A RIEN ⟨20/08⟩.
+    # Ecrire un compteur qui n est jamais lu, c est la faute de la ligne GESTE qui a ecrit
+    # `any` pendant trois jours. La condition 3 du predicat se leve ICI ou nulle part.
+    b.send('diag_log format ["HARMATTAN_COUPS att=%1 def=%2", '
+           '(if (isNil "HMT_COUPS_ATT") then {-1} else {HMT_COUPS_ATT}), '
+           '(if (isNil "HMT_COUPS_DEF") then {-1} else {HMT_COUPS_DEF})];', wait=False)
+    time.sleep(0.8)
+    _cp = [L for L in b._log_lines(300) if "HARMATTAN_COUPS" in L]
+    _cn = [L for L in b._log_lines(600) if "HARMATTAN_CANAL" in L]
+    print("  COUPS  : %s" % (_cp[-1].split("HARMATTAN_COUPS")[1].strip()[:40] if _cp else "NON RELEVES"), flush=True)
+    print("  CANAL  : %s" % (_cn[-1].split("HARMATTAN_CANAL")[1].strip()[:40] if _cn else "NON DECLARE"), flush=True)
+
     # ⚠️ REGLE 17 : le fichier porte son STATUT dans sa donnee, pas dans sa prose.
     # `montage` = aucune ligne d ici n est citable dans une lecture.
     import numpy as _np
