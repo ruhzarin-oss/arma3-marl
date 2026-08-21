@@ -29,7 +29,14 @@ BRAS = sys.argv[1] if len(sys.argv) > 1 else "politique"
 SB = "/mnt/data/harmattan-sandbox"
 EXT, PORT = 5830, 6062
 MIS = "BancLive.Stratis"
-LOG = SB + "/logs/serverLV.out"
+# ⚠️ LE JOURNAL PORTE SON RUN ⟨21/08, apres revue⟩. Il s appelait `serverLV.out`, en dur,
+# ouvert en AJOUT et jamais tronque : 27,8 Mo accumules sur 279 demarrages d hote, tous
+# jours confondus. La ligne 5 du juge — les erreurs de script — ne pouvait donc PAS
+# juger une nuit : elle aurait lu les erreurs de la semaine.
+# ⚠️ `prevol.py:35` fait exactement ca depuis toujours, et la discipline n a JAMAIS
+# traverse. Quatrieme non-transposition de la semaine, apres l ordre scene/socle,
+# l idiome du marqueur numerote et le compteur d erreurs.
+LOG = SB + "/logs/serverLV%s.out" % (os.environ.get("HMT_SESSION", ""))
 OBJ = (4644.0, 5652.0)   # ⚠️ SITE CHANGE LE 14/08 — VERDICT_SITE_LIVE.md.
 # L ancien (1734,5391) etait une PLAINE : mediane slope 0,000 contre 0,368 au gymnase,
 # 58,3 pourcent de pentes rigoureusement nulles, et dcover coince sur son garde-fou
@@ -199,6 +206,9 @@ if __name__ == "__main__":
     C.MOVE_SPD = 6.0
 
     print("  lancement du serveur live...", flush=True)
+    # ⚠️ TRONQUER AVANT DE LANCER — sinon le journal du run precedent reste dessous
+    # et la ligne 5 imputerait a ce run des erreurs qui ne sont pas les siennes.
+    open(LOG, "w").close()
     sh("cd '%s/arma3server' && HMT_EXT_PORT=%d LD_LIBRARY_PATH=.:./linux64 setsid "
        "./arma3server_x64 -config='%s/staging/serverLV.cfg' -profiles='%s/profilesLV' "
        "-port=%d -world=Stratis -autoInit "

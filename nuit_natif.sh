@@ -28,7 +28,10 @@ for PASSE in 1 2; do
     # ⚠️ CE MINUTEUR NE DOIT JAMAIS MORDRE : ce sont les gardes nommees qui coupent et
     # qui DISENT pourquoi. Un minuteur qui coupe est une panne muette — c est lui qui a
     # tronque les cinq lots du 19/08 a 5-7 tirages sur 12, sans que rien ne le signale.
-    timeout 640 ./.venv/bin/python banc_live.py natif > /mnt/data/natif/p${PASSE}_e${i}.txt 2>&1
+    # ⚠️ CHAQUE EPISODE A SON JOURNAL ⟨21/08⟩ : sans `HMT_SESSION`, tous ecrivaient dans
+    # `serverLV.out`, un accumulateur multi-jours de 27,8 Mo qu aucune ligne de juge ne
+    # pouvait lire. Meme idiome que `porte_lots.sh` depuis toujours.
+    HMT_SESSION="_p${PASSE}e${i}" timeout 640 ./.venv/bin/python banc_live.py natif > /mnt/data/natif/p${PASSE}_e${i}.txt 2>&1
     rc=$?; [ "$rc" = "124" ] && echo "  ⛔ LE MINUTEUR A MORDU — episode $i tronque, il ne compte pas" | tee -a /mnt/data/natif/JOURNAL.txt
     if [ -f /tmp/releve_live.npz ]; then cp /tmp/releve_live.npz /mnt/data/natif/p${PASSE}_e${i}.npz; fi
     V=$(grep -ac "prevol VERT" /mnt/data/natif/p${PASSE}_e${i}.txt 2>/dev/null)

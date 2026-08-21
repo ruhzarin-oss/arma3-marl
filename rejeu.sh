@@ -19,7 +19,10 @@ for PASSE in 1 2; do
     # 3,28) 197 + cloture 10 = 457 s, plus une marge d UN prevol complet = 637 -> 640.
     # `timeout 330` ne laissait meme pas la place au prevol certifie. Il gouverne la
     # nuit POLITIQUE, qui vient apres le natif : derive AVANT elle, pas pendant.
-    timeout 640 ./.venv/bin/python banc_live.py politique > /mnt/data/politique/p${PASSE}_e${i}.txt 2>&1
+    # ⚠️ CHAQUE EPISODE A SON JOURNAL ⟨21/08⟩ : sans `HMT_SESSION`, tous ecrivaient dans
+    # `serverLV.out`, un accumulateur multi-jours de 27,8 Mo qu aucune ligne de juge ne
+    # pouvait lire. Meme idiome que `porte_lots.sh` depuis toujours.
+    HMT_SESSION="_p${PASSE}e${i}" timeout 640 ./.venv/bin/python banc_live.py politique > /mnt/data/politique/p${PASSE}_e${i}.txt 2>&1
     rc=$?; [ "$rc" = "124" ] && echo "  ⛔ LE MINUTEUR A MORDU — episode $i tronque, il ne compte pas"
     if [ -f /tmp/releve_live.npz ]; then cp /tmp/releve_live.npz /mnt/data/politique/p${PASSE}_e${i}.npz; fi
     echo "  p${PASSE} e${i}/67  $(date +%H:%M)  npz=$([ -f /mnt/data/politique/p${PASSE}_e${i}.npz ] && echo oui || echo NON)"
