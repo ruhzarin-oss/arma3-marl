@@ -196,7 +196,15 @@ private _v = 0; private _dmin = 1e9;
 { if (alive _x) then { _v = _v + 1; private _d = _x distance2D HMT_OBJ;
     if (_d < _dmin) then { _dmin = _d } } } forEach HMT_FR;
 private _ve = 0; { if (alive _x) then { _ve = _ve + 1 } } forEach HMT_ENNEMI;
-diag_log format ["HARMATTAN_ETAT vivants=%1 def=%2 dmin=%3", _v, _ve, round _dmin];
+// ⚠️ LA SENTINELLE DISAIT UNE PRISE ⟨mesure du 21/08⟩. Sans attaquant vivant, `_dmin`
+// restait a 1e9 — et le JEU l imprime « 1e+09 » (demande au jeu, pas suppose). La
+// regex du lecteur, qui exigeait des CHIFFRES, n en capturait que le « 1 » : l episode s arretait sur
+// une condition « objectif a un metre » qui n existait pas. Dans le journal brut,
+// « TOUS MORTS » etait indiscernable d « ARRIVE AU BUT ».
+// ⚠️ ON REND -1, QUI NE PEUT PAS ETRE UNE DISTANCE. Une mesure doit savoir dire
+// qu elle n a pas eu lieu.
+diag_log format ["HARMATTAN_ETAT vivants=%1 def=%2 dmin=%3", _v, _ve,
+                 (if (_v == 0) then {-1} else {round _dmin})];
 '''
 
 if __name__ == "__main__":
@@ -373,12 +381,25 @@ if __name__ == "__main__":
         time.sleep(0.3)
         m = None
         for L in reversed(b._log_lines(200)):
-            m = re.search(r"HARMATTAN_ETAT vivants=(\d+) def=(\d+) dmin=(\d+)", L)
+            m = re.search(r"HARMATTAN_ETAT vivants=(\d+) def=(\d+) dmin=(-?\d+)", L)
             if m: break
         if t % 5 == 0 or t == PAS_MAX - 1:
             e = (m.group(1), m.group(2), m.group(3)) if m else ("?", "?", "?")
             print(f"  {t:>4}{len(obs):>12}{e[0]:>9}{e[1]:>6}{e[2]:>7}  {acts}", flush=True)
-        if m and (int(m.group(1)) == 0 or int(m.group(3)) < 25):
+        # ⚠️ UN EPISODE QUI COMMENCE SANS ESCOUADE N A PAS EU LIEU ⟨mesure du 21/08⟩.
+        # Sur 147 episodes archives, NEUF demarrent a zero attaquant vivant — et dans les
+        # neuf, la scene avait bien cree « def=4 att=4 enmain=4 ». Ils sont donc morts
+        # ENTRE la scene et le premier etat, et entre les deux il n y a que le PREVOL :
+        # 60 a 80 s dans un monde EVEILLE, defenseurs a 170 m. Le prevol qui certifie le
+        # canal laisse le temps de tuer l escouade qu on allait mesurer.
+        # ⚠️ CES EPISODES NE SONT PAS DES ECHECS : les compter comme des non-prises deprime
+        # le taux — du natif comme de la politique. Ils se NOMMENT.
+        if m and t == 0 and int(m.group(1)) == 0:
+            print(f"\n  ⛔ ESCOUADE MORTE AVANT LE DEPART — 0 attaquant vivant au premier etat")
+            print(f"     (scene creee, prevol vert : ils sont tombes pendant le prevol)")
+            print(f"     CET EPISODE N A PAS EU LIEU — il ne compte ni en prise ni en echec.")
+            break
+        if m and (int(m.group(1)) == 0 or int(m.group(3)) >= 0 and int(m.group(3)) < 25):
             print(f"\n  fin au pas {t} : vivants={m.group(1)} dmin={m.group(3)}")
             break
         time.sleep(max(0.0, PERIODE - 0.7))

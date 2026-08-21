@@ -35,7 +35,11 @@ for PASSE in 1 2; do
     rc=$?; [ "$rc" = "124" ] && echo "  ⛔ LE MINUTEUR A MORDU — episode $i tronque, il ne compte pas" | tee -a /mnt/data/natif/JOURNAL.txt
     if [ -f /tmp/releve_live.npz ]; then cp /tmp/releve_live.npz /mnt/data/natif/p${PASSE}_e${i}.npz; fi
     V=$(grep -ac "prevol VERT" /mnt/data/natif/p${PASSE}_e${i}.txt 2>/dev/null)
-    echo "  p${PASSE} e${i}/67  $(date +%H:%M)  prevol_vert=${V}  npz=$([ -f /mnt/data/natif/p${PASSE}_e${i}.npz ] && echo oui || echo NON)"
+    # ⚠️ COMPTE A PART LES EPISODES QUI N ONT PAS EU LIEU ⟨21/08⟩ : l escouade morte
+    # pendant le prevol. Les melanger aux echecs deprime le taux — c est ce qui s est
+    # passe sur les 147 episodes archives, 9 d entre eux.
+    M=$(grep -ac "ESCOUADE MORTE AVANT LE DEPART" /mnt/data/natif/p${PASSE}_e${i}.txt 2>/dev/null)
+    echo "  p${PASSE} e${i}/67  $(date +%H:%M)  prevol_vert=${V}  sans_escouade=${M}  npz=$([ -f /mnt/data/natif/p${PASSE}_e${i}.npz ] && echo oui || echo NON)"
   done
 done
 for p in $(pgrep -f arma3server_x64); do kill $p 2>/dev/null; done
