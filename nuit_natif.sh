@@ -9,6 +9,16 @@ mkdir -p /mnt/data/natif
 for PASSE in 1 2; do
   echo "═══ PASSE $PASSE — $(date +%H:%M) ═══"
   for i in $(seq 1 67); do
+    # ⚠️ LA NUIT EST REPRENABLE ⟨21/08⟩. WSL a redemarre en pleine nuit et a tue 31
+    # episodes deja joues sur socle sain — les rejouer aurait coute deux heures pour
+    # rien. Un episode DEJA TERMINE est saute : il porte sa marque de fin.
+    # ⚠️ « Termine » se lit sur la MARQUE, pas sur l existence du fichier : un episode
+    # coupe en plein vol laisse un .txt partiel qui doit etre REJOUE.
+    F=/mnt/data/natif/p${PASSE}_e${i}.txt
+    if [ -f "$F" ] && grep -aq "BANC DE MONTAGE TERMINE" "$F"; then
+      echo "  p${PASSE} e${i}/67  DEJA JOUE — saute"
+      continue
+    fi
     for p in $(pgrep -f arma3server_x64); do kill $p 2>/dev/null; done
     sleep 3
     rm -f /tmp/releve_live.npz
