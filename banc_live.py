@@ -119,7 +119,7 @@ for "_i" from 1 to %d do {
     _u setBehaviour "COMBAT"; _u setCombatMode "RED"; _u allowFleeing 0;
     HMT_ENNEMI pushBack _u;
 };
-private _ga = createGroup west; HMT_FR = [];
+private _ga = createGroup west; HMT_GA = _ga; HMT_FR = [];
 for "_i" from 1 to %d do {
     // ⚠️ LA FORMULE DU GYMNASE, RECOPIEE — assault_terrain.py:316. Ce n est pas un reglage.
     // Le banc formait UNE SEULE FILE le long de x : `apy` etait IDENTIQUE pour les huit
@@ -135,7 +135,15 @@ for "_i" from 1 to %d do {
     _u setPosATL _p; _u setSkill 0.5;
     // PATH coupe : c est la politique qui pilote, par setVelocity — comme au gymnase.
     if (HMT_BRAS == "natif") then {
-        // AUCUN disableAI : l IA d Arma joue entiere, elle choisit son chemin.
+        // ⚠️ REPARATION DU 22/08 AU SOIR. L IA d Arma joue entiere PENDANT L EPISODE — mais
+        // elle recevait son ordre d assaut DANS CE BLOC, donc AVANT le prevol, et elle
+        // marchait pendant les 60 a 180 s du prevol. Mesure : depart median 135 m contre
+        // 164 m pour la politique, 78 % des episodes deja sous 150 m contre 12 %, sur un
+        // budget de 60 pas dont 90 % des arrivees consomment 52 a 56. Environ SIX PAS
+        // offerts a un seul bras. La comparaison du 22/08 a ete retiree pour ca.
+        // On coupe donc les MEMES facultes que dans l autre bras jusqu au pas 0, et on les
+        // REND au pas 0, a l instant ou la politique envoie son premier ordre.
+        _u disableAI "AUTOCOMBAT"; _u disableAI "FSM";
         _u setBehaviour "COMBAT"; _u setCombatMode "RED"; _u allowFleeing 0;
     } else {
         // ⚠️ `RED`, PAS `BLUE`. `combatMode "BLUE"` signifie « NE JAMAIS TIRER » dans le
@@ -188,10 +196,8 @@ HMT_TOUCHES = 0; HMT_D1 = -1;
         if (_m < 1e8) then { HMT_D1 = round _m };
     };
 }] } forEach HMT_ENNEMI;
-if (HMT_BRAS == "natif") then {
-    private _w = _ga addWaypoint [HMT_OBJ, 0];
-    _w setWaypointType "SAD"; _w setWaypointBehaviour "COMBAT"; _w setWaypointSpeed "NORMAL";
-};
+// ⚠️ L ORDRE D ASSAUT DU NATIF N EST PLUS DONNE ICI — il l etait avant le prevol.
+// Il part au PAS 0, depuis la boucle, au meme instant que le premier ordre de la politique.
 diag_log format ["HARMATTAN_SCENE def=%%1 att=%%2 enmain=%%3", count HMT_ENNEMI, count HMT_FR,
   ({(currentWeapon _x) != ""} count HMT_FR)];
 // ⚠️ L ARTEFACT PORTE SON CANAL ⟨Fable, 20/08⟩. Le monde declarait `HMT_CANAL`, mais AUCUN
@@ -324,6 +330,22 @@ if __name__ == "__main__":
                 break
         if _vert is not None: break
     print(f"  PREVOL : {_rap[-90:] if _rap else 'AUCUNE REPONSE'}", flush=True)
+    # ⚠️ QUI EST ENCORE DEBOUT QUAND L EPISODE COMMENCE ? ⟨22/08⟩ 26 episodes natif et 31
+    # politique se sont joues SANS AUCUN DEFENSEUR (61e8800), et personne ne savait a quel
+    # moment ils tombaient. On le demande au jeu, avant et apres, au lieu de le supposer.
+    # ⚠️ SQF NU, AUCUNE FONCTION BIS. `BIS_fnc_conditionalSelect` et `BIS_fnc_arithmeticMean`
+    # peuvent manquer ou changer ; une sonde qui depend d une bibliotheque tierce peut
+    # echouer en SILENCE et rendre un diagnostic vide qu on lirait comme un monde vide.
+    b.send(sans_commentaires(
+        'private _n = 0; private _s = 0;'
+        '{ if (alive _x) then { _n = _n + 1; _s = _s + (_x distance2D HMT_OBJ) } } forEach HMT_FR;'
+        'diag_log format ["HARMATTAN_APRES_PREVOL att=%1 def=%2 dmoy=%3", _n,'
+        ' ({alive _x} count HMT_ENNEMI), (if (_n == 0) then {-1} else {round (_s / _n)})];'),
+        wait=False)
+    time.sleep(1.0)
+    _ap = [L for L in b._log_lines(300) if "HARMATTAN_APRES_PREVOL" in L]
+    print("  APRES PREVOL : %s" % (_ap[-1].split("HARMATTAN_APRES_PREVOL")[1].strip()[:60]
+                                   if _ap else "NON RELEVE"), flush=True)
     if _vert is not True:
         b.send(sans_commentaires(
             'diag_log format ["HMT|PVE|%1", (if (isNil "HMT_PV_ECARTS") then {"(pas d ecarts : le prevol n a pas fini)"} else {HMT_PV_ECARTS})];'),
@@ -360,6 +382,15 @@ if __name__ == "__main__":
         acts = lo.argmax(-1).tolist()
         if BRAS == "natif":
             acts = []                       # l IA d Arma pilote : AUCUN ordre envoye
+            if t == 0:
+                # ⚠️ ICI, ET PAS DANS LA SCENE. C est l instant exact ou la politique envoie
+                # son premier ordre : les deux bras partent de la meme ligne.
+                b.send(sans_commentaires(
+                    '{ _x enableAI "AUTOCOMBAT"; _x enableAI "FSM" } forEach HMT_FR;'
+                    'private _w = HMT_GA addWaypoint [HMT_OBJ, 0];'
+                    '_w setWaypointType "SAD"; _w setWaypointBehaviour "COMBAT";'
+                    '_w setWaypointSpeed "NORMAL";'
+                    'diag_log "HARMATTAN_ORDRE_NATIF donne au pas 0";'), wait=False)
         elif BRAS == "script":
             # ═══ FEU-ET-MOUVEMENT SCRIPTE ⟨Fable, 15/08⟩ ═══
             # « Une politique fixe idiote — l un appuie pendant que l autre bondit, on
