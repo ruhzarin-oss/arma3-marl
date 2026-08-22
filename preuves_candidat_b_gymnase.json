@@ -1,0 +1,32 @@
+{
+ "res": {
+  "frontale": {
+   "touche": 29.703558051905436,
+   "pertes": 3.9075520833333335,
+   "d_premier_tir": 130.357621734341,
+   "coups_par_pas": 1.15
+  },
+  "flanc": {
+   "touche": 11.19936525058553,
+   "pertes": 2.4661458333333335,
+   "d_premier_tir": 148.17946759934108,
+   "coups_par_pas": 1.15
+  },
+  "arret": {
+   "touche": 6.340762316756809,
+   "pertes": 1.4609375,
+   "d_premier_tir": 136.56712029492974,
+   "coups_par_pas": 1.15
+  }
+ },
+ "ordre_touche": [
+  "arret",
+  "flanc",
+  "frontale"
+ ],
+ "ordre_pertes": [
+  "arret",
+  "flanc",
+  "frontale"
+ ]
+}
