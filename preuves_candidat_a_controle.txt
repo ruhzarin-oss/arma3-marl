@@ -1,0 +1,36 @@
+  ── PARAMETRES EFFECTIFS DU MONDE (lus sur l objet, pas dans un fichier) ──
+     move=14.0 m   sec_par_pas=3.28 s   ->  VITESSE = 4.27 m/s
+     fire_range         110.0
+     hit                0.06
+     secure_r           25.0
+     max_steps          60
+     terr_R             200.0
+     frein_feu          0.35
+     tir_par_pas        1.15
+     degat_par_impact   0.233
+     supp_residuel      0.08
+     cible_unique       True
+     obs_sans_slope     False
+     relief_stratis     True
+  ⚠️ TOUT CHIFFRE DE GYMNASE CITE DANS UN DEPOT DOIT VENIR DE CETTE LIGNE.
+
+  temoin, observation INTACTE : 50.7 %
+
+  colonne permutee                      prise      chute
+  apx  (ma position x)                 30.6 %      20.1
+  apy  (ma position y)                 36.5 %      14.2
+  dgx  (cap vers le but x)             31.0 %      19.7
+  dgy  (cap vers le but y)             39.5 %      11.2
+  alive (je suis vivant)               52.3 %      -1.7
+  SLOPE (la pente)                     51.2 %      -0.5  ⬅ la pente
+  dcover (distance au bati)            50.8 %      -0.1
+  los  (je suis vu)                    51.6 %      -0.9
+  nd   (defenseur le plus proche)      51.8 %      -1.2
+
+  chute sur la PENTE          :  -0.5 point
+  chute MAXIMALE ailleurs     :  20.1 points  (colonne 0)
+
+  Le brouilleur MORD (>= 5 pts sur au moins une colonne) : OUI
+  ➤ CONTROLE POSITIF PASSE. Le meme code effondre d autres colonnes et laisse
+    la pente intacte : la politique est REELLEMENT aveugle a la pente.
+FINI
