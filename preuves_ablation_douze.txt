@@ -1,0 +1,38 @@
+  ── PARAMETRES EFFECTIFS DU MONDE (lus sur l objet, pas dans un fichier) ──
+     move=14.0 m   sec_par_pas=3.28 s   ->  VITESSE = 4.27 m/s
+     fire_range         110.0
+     hit                0.06
+     secure_r           25.0
+     max_steps          60
+     terr_R             200.0
+     frein_feu          0.35
+     tir_par_pas        1.15
+     degat_par_impact   0.233
+     supp_residuel      0.08
+     cible_unique       True
+     obs_sans_slope     False
+     relief_stratis     True
+  ⚠️ TOUT CHIFFRE DE GYMNASE CITE DANS UN DEPOT DOIT VENIR DE CETTE LIGNE.
+
+  temoin, observation INTACTE : 50.7 %
+
+  colonne brouillee      prise      chute
+  apx                30.6 %      20.1
+  apy                34.6 %      16.0
+  dgx                31.9 %      18.7
+  dgy                36.8 %      13.8
+  alive              51.7 %      -1.0
+  SLOPE              50.7 %       0.0
+  dcover             51.2 %      -0.5
+  los                53.6 %      -3.0
+  nd                 51.6 %      -0.9
+  posture 1          50.7 %       0.0  ⬅ jamais testee le 22/08
+  posture 2          50.7 %       0.0  ⬅ jamais testee le 22/08
+  posture 3          50.7 %       0.0  ⬅ jamais testee le 22/08
+
+  ══ LES DEUX MOITIES, BROUILLEES EN BLOC ══
+  les 4 colonnes de GEOMETRIE (apx apy dgx dgy) : 0.1 %   chute 50.5
+  les 8 AUTRES, toutes ensemble                 : 53.9 %   chute -3.3
+
+  ➤ LA GEOMETRIE SEULE DECIDE — les huit autres, ensemble, ne valent rien.
+FINI
