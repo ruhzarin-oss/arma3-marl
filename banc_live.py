@@ -138,8 +138,11 @@ for "_i" from 1 to %d do {
         // ⚠️ REPARATION DU 22/08 AU SOIR. L IA d Arma joue entiere PENDANT L EPISODE — mais
         // elle recevait son ordre d assaut DANS CE BLOC, donc AVANT le prevol, et elle
         // marchait pendant les 60 a 180 s du prevol. Mesure : depart median 135 m contre
-        // 164 m pour la politique, 78 % des episodes deja sous 150 m contre 12 %, sur un
-        // budget de 60 pas dont 90 % des arrivees consomment 52 a 56. Environ SIX PAS
+        // 164 m pour la politique ; 88 episodes sur 113 deja sous 150 m, contre 13 sur 112 ;
+        // budget de 60 pas dont 9 arrivees sur 10 consomment 52 a 56. Environ SIX PAS
+        // ⚠️ AUCUN SIGNE POUR CENT DANS CE BLOC : SCENE est une chaine de FORMAT (7
+        // substituants). Un seul pour-cent litteral ici et le fichier ne se charge plus.
+        // C est la sonde de verification qui l a attrape, avant 14 heures de run.
         // offerts a un seul bras. La comparaison du 22/08 a ete retiree pour ca.
         // On coupe donc les MEMES facultes que dans l autre bras jusqu au pas 0, et on les
         // REND au pas 0, a l instant ou la politique envoie son premier ordre.
@@ -279,6 +282,13 @@ if __name__ == "__main__":
         if any("HARMATTAN_SCENE" in L for L in b._log_lines(400)):
             ok = True; break
         time.sleep(0.5)
+    # ⚠️ ON DEMANDE AU JEU COMBIEN DE DEFENSEURS SONT VIVANTS, A TROIS MOMENTS.
+    # `HARMATTAN_SCENE def=%d` compte `count HMT_ENNEMI` — la TAILLE DU TABLEAU, pas les
+    # vivants. Il disait 4 dans les 26 episodes joues sans aucun defenseur.
+    b.send(sans_commentaires(
+        'private _n=0; { if (alive _x) then { _n=_n+1 } } forEach HMT_ENNEMI;'
+        'diag_log format ["HARMATTAN_DEFVIV apres_scene def=%1", _n];'), wait=False)
+    time.sleep(1.0)      # 0,5 s ne suffisait pas : la sonde n arrivait pas avant la lecture
     ligne = [L for L in b._log_lines(400) if "HARMATTAN_SCENE" in L]
     print("  scene confirmee par le jeu : %s" % (ligne[-1][:70] if ligne else "AUCUNE"), flush=True)
     if not ok:
@@ -290,16 +300,55 @@ if __name__ == "__main__":
     # Mesure du 15/08 : deplacement median 0,07 m/pas, 18 episodes sur 20 au bout des 60 pas,
     # 2 morts. Le controle positif depose (« le natif doit BOUGER, > 1 m/pas ») l a attrape.
     # Huitieme fois du jour qu une etape ULTERIEURE annule silencieusement une etape anterieure.
-    if BRAS == "natif":
-        b.send(sans_commentaires(
-            '{ _x enableAI "ALL"; _x setBehaviour "COMBAT"; _x setCombatMode "RED" } forEach HMT_ENNEMI;\n'
-            '{ _x enableAI "ALL"; _x setBehaviour "COMBAT"; _x setCombatMode "RED" } forEach HMT_FR;\n'
-            'HMT_POST = []; { HMT_POST pushBack 0 } forEach HMT_FR;\n'
-            'diag_log "HARMATTAN_WAKE natif ok";\n'))
-    else:
-        b.send(sans_commentaires(C.WAKE))
+    # ⚠️ 22/08 AU SOIR, NEUVIEME FOIS. Le commentaire ci-dessus prevenait qu une etape
+    # ULTERIEURE annule silencieusement une etape anterieure — et c est ce que ce bloc
+    # faisait a la reparation du depart, deux lignes apres elle : je coupais AUTOCOMBAT et
+    # FSM du natif dans la SCENE, et ce reveil les rendait, AVANT le prevol. Mesure de la
+    # sonde de verification : `APRES PREVOL att=4 def=0` — l IA du natif avait deja tue les
+    # quatre defenseurs pendant le prevol, sans point de passage, par le seul AUTOCOMBAT.
+    # LES DEUX BRAS RECOIVENT DONC LE MEME REVEIL. Le natif retrouve ses facultes au PAS 0,
+    # avec son point de passage, dans le meme geste (voir la boucle plus bas).
+    b.send(sans_commentaires(C.WAKE))
+    # ⚠️ RIEN NE VIT AVANT LE PAS 0 ⟨22/08 au soir⟩. `C.WAKE` reveille les defenseurs en
+    # COMBAT/RED, a 10-35 m de l objectif, AVANT le prevol — et le prevol promene les
+    # attaquants pendant 60 a 180 s pour certifier le canal. Le resultat n est pas un
+    # controle : c est une FUSILLADE, dont l issue varie d un episode a l autre. Deux
+    # episodes de verification suffisent a le voir : l un perd DEUX attaquants, l autre
+    # TROIS defenseurs, avant que la mesure ait commence.
+    # C est la source commune des deux biais deja mesures : les 26 et 31 episodes joues sans
+    # aucun defenseur (61e8800), et les episodes ecartes pour escouade morte avant le depart.
+    # `combatMode BLUE` signifie NE JAMAIS TIRER dans le moteur (mesure du 15/08, deja
+    # deposee dans ce fichier). On s en sert pour taire les defenseurs, et on les rend a
+    # RED au pas 0 — dans le meme geste que le premier ordre des deux bras.
+    b.send(sans_commentaires(
+        '{ _x disableAI "AUTOCOMBAT"; _x disableAI "FSM"; _x setCombatMode "BLUE";'
+        '  _x setBehaviour "CARELESS" } forEach HMT_ENNEMI;'
+        'diag_log "HARMATTAN_DEFENSEURS_ENDORMIS";'))
+    # ⚠️ ET PERSONNE N EST BLESSABLE AVANT LE PAS 0. Les endormir ne suffit pas : les
+    # sondes le montrent — `apres_scene def=4`, `apres_wake def=4`, puis `def=0` APRES le
+    # prevol, alors que defenseurs ET attaquants sont inertes. Ce n est donc pas un duel.
+    # C est le prevol lui-meme : son binome jetable « vide un chargeur » (T4) sur un axe
+    # balaye a 250-370 m du premier attaquant, SANS ALEA — donc FIXE PAR SESSION. Quand cet
+    # axe passe par l objectif, la rafale traverse les defenseurs postes a 10-35 m de lui.
+    # Un lieu fixe par session explique aussi pourquoi la panne revenait par paquets.
+    # On ne touche pas au prevol — il certifie le canal et il a ses raisons. On rend les
+    # hommes de l EPISODE insensibles jusqu a l instant ou l episode commence.
+    b.send(sans_commentaires(
+        '{ _x allowDamage false } forEach (HMT_FR + HMT_ENNEMI);'
+        'diag_log "HARMATTAN_INVULNERABLES avant prevol";'))
     time.sleep(2)
+    b.send(sans_commentaires(
+        'private _n=0; { if (alive _x) then { _n=_n+1 } } forEach HMT_ENNEMI;'
+        'diag_log format ["HARMATTAN_DEFVIV apres_wake def=%1", _n];'), wait=False)
+    time.sleep(1.0)
+    _dv = sorted(set(L.split("HARMATTAN_DEFVIV")[1].strip()[:34]
+                     for L in b._log_lines(400) if "HARMATTAN_DEFVIV" in L))
+    # ⚠️ UNE SONDE MUETTE DOIT LE DIRE. La version d avant imprimait une ligne VIDE quand
+    # elle ne trouvait rien : indiscernable d une sonde qui n a pas ete posee.
+    print("  DEFVIV : %s" % (" | ".join(_dv) if _dv else "AUCUNE LIGNE RECUE"), flush=True)
 
+    # ⚠️ ET UNE TROISIEME, JUSTE AVANT QUE LE PREVOL NE PARTE. Entre le reveil et le prevol
+    # il y a deux secondes de monde vivant : il faut savoir si elles coutent des defenseurs.
     # ═══ LE PREVOL ⟨Fable : « pas de prevol vert, pas d episode »⟩ ═══
     # Le socle RELIT le monde avant de jouer. Six tests, tous nes d une faute payee :
     #   T1 arme en main · T2 chargeur · T3 mode declare = mode reel (WAKE recoupait FSM)
@@ -376,6 +425,16 @@ if __name__ == "__main__":
         if len(obs) < 1:
             print(f"  {t:>4}   AUCUNE OBS apres 3 s d attente.", flush=True)
             break
+        if t == 0:
+            # ⚠️ LE MEME INSTANT POUR TOUT LE MONDE. Les defenseurs retrouvent leurs
+            # facultes au pas 0, dans les DEUX bras, en meme temps que l attaquant recoit
+            # son premier ordre. Avant ce pas, le monde ne compte pas de morts.
+            b.send(sans_commentaires(
+                '{ _x allowDamage true } forEach (HMT_FR + HMT_ENNEMI);'
+                '{ _x enableAI "AUTOCOMBAT"; _x enableAI "FSM"; _x setCombatMode "RED";'
+                '  _x setBehaviour "COMBAT" } forEach HMT_ENNEMI;'
+                'diag_log "HARMATTAN_DEFENSEURS_REVEILLES et tout le monde blessable";'),
+                wait=False)
         o = torch.tensor([obs[i] for i in sorted(obs)], dtype=torch.float32)
         with torch.no_grad():
             lo, _ = pol(o[:, COLS])
