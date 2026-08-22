@@ -22,6 +22,15 @@ for PASSE in 1 2; do
     # ⚠️ CHAQUE EPISODE A SON JOURNAL ⟨21/08⟩ : sans `HMT_SESSION`, tous ecrivaient dans
     # `serverLV.out`, un accumulateur multi-jours de 27,8 Mo qu aucune ligne de juge ne
     # pouvait lire. Meme idiome que `porte_lots.sh` depuis toujours.
+    # ⚠️ REPRENABLE, comme la nuit natif : WSL et ssh ont tue quatre lancements le
+    # 21/08. Un episode DEJA TERMINE est saute ; un episode coupe laisse un fichier
+    # PARTIEL qui doit etre REJOUE — la marque de fin, pas l existence du fichier.
+    F=/mnt/data/politique/p${PASSE}_e${i}.txt
+    if [ -f "$F" ] && grep -aq "BANC DE MONTAGE TERMINE" "$F"; then
+      echo "  p${PASSE} e${i}/67  DEJA JOUE — saute"
+      continue
+    fi
+    M=$(grep -ac "ESCOUADE MORTE AVANT LE DEPART" "$F" 2>/dev/null)
     HMT_SESSION="_p${PASSE}e${i}" timeout 640 ./.venv/bin/python banc_live.py politique > /mnt/data/politique/p${PASSE}_e${i}.txt 2>&1
     rc=$?; [ "$rc" = "124" ] && echo "  ⛔ LE MINUTEUR A MORDU — episode $i tronque, il ne compte pas"
     if [ -f /tmp/releve_live.npz ]; then cp /tmp/releve_live.npz /mnt/data/politique/p${PASSE}_e${i}.npz; fi
