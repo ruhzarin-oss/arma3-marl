@@ -174,6 +174,20 @@ HMT_POST = []; { HMT_POST pushBack 0 } forEach HMT_FR;
 HMT_COUPS_ATT = 0; HMT_COUPS_DEF = 0;
 { _x addEventHandler ["Fired", { HMT_COUPS_ATT = HMT_COUPS_ATT + 1 }] } forEach HMT_FR;
 { _x addEventHandler ["Fired", { HMT_COUPS_DEF = HMT_COUPS_DEF + 1 }] } forEach HMT_ENNEMI;
+// ⚠️ CANDIDAT B ⟨22/08⟩. Deux observables de plus, ajoutes en FIN de ligne d etat pour ne
+// casser aucun lecteur existant (les regex de banc_live et de lire_natif ne s ancrent pas
+// sur la fin). `HitPart` et non `HandleDamage` — c est l EH qui a servi a mesurer la
+// courbe de toucher le 26/07, et changer d EH changerait l unite sans le dire.
+HMT_TOUCHES = 0; HMT_D1 = -1;
+{ _x addEventHandler ["HitPart", { HMT_TOUCHES = HMT_TOUCHES + 1 }] } forEach HMT_FR;
+// distance du PREMIER coup tire par un defenseur : a l attaquant vivant le plus proche.
+{ _x addEventHandler ["Fired", {
+    if (HMT_D1 < 0) then {
+        private _t = _this select 0; private _m = 1e9;
+        { if (alive _x) then { private _d = _x distance2D _t; if (_d < _m) then { _m = _d } } } forEach HMT_FR;
+        if (_m < 1e8) then { HMT_D1 = round _m };
+    };
+}] } forEach HMT_ENNEMI;
 if (HMT_BRAS == "natif") then {
     private _w = _ga addWaypoint [HMT_OBJ, 0];
     _w setWaypointType "SAD"; _w setWaypointBehaviour "COMBAT"; _w setWaypointSpeed "NORMAL";
@@ -203,8 +217,12 @@ private _ve = 0; { if (alive _x) then { _ve = _ve + 1 } } forEach HMT_ENNEMI;
 // « TOUS MORTS » etait indiscernable d « ARRIVE AU BUT ».
 // ⚠️ ON REND -1, QUI NE PEUT PAS ETRE UNE DISTANCE. Une mesure doit savoir dire
 // qu elle n a pas eu lieu.
-diag_log format ["HARMATTAN_ETAT vivants=%1 def=%2 dmin=%3", _v, _ve,
-                 (if (_v == 0) then {-1} else {round _dmin})];
+diag_log format ["HARMATTAN_ETAT vivants=%1 def=%2 dmin=%3 tou=%4 cda=%5 cdd=%6 d1=%7", _v, _ve,
+                 (if (_v == 0) then {-1} else {round _dmin}),
+                 (if (isNil "HMT_TOUCHES") then {-1} else {HMT_TOUCHES}),
+                 (if (isNil "HMT_COUPS_ATT") then {-1} else {HMT_COUPS_ATT}),
+                 (if (isNil "HMT_COUPS_DEF") then {-1} else {HMT_COUPS_DEF}),
+                 (if (isNil "HMT_D1") then {-1} else {HMT_D1})];
 '''
 
 if __name__ == "__main__":
@@ -320,6 +338,7 @@ if __name__ == "__main__":
     pol = charger()
     RELEVE = []
     perc = C.perc_sqf()
+    _D0 = {}        # distance de depart du candidat B, PAR IDENTIFIANT d attaquant
     print(f"\n  {'pas':>4}{'obs recues':>12}{'vivants':>9}{'def':>6}{'dmin':>7}  actions", flush=True)
     for t in range(PAS_MAX):
         b.send(sans_commentaires(perc), wait=False)
@@ -358,6 +377,33 @@ if __name__ == "__main__":
             # on n appuie que si l ennemi est a portee utile (0,9 x portee du gymnase)
             _d = torch.sqrt(_apx**2 + _apy**2)
             _a = torch.where(_appui & (_d < 110.0*0.9), torch.full_like(_a, 9), _a)
+            acts = _a.tolist()
+        elif BRAS in ("b_frontale", "b_flanc", "b_arret"):
+            # ═══ CANDIDAT B — TROIS MANOEUVRES FIXES ⟨pre-inscription 82101f9⟩ ═══
+            # ⚠️ CE BLOC EST LE JUMEAU LITTERAL de `candidat_b_gymnase.py:manoeuvre`.
+            # Meme vocabulaire (0-7 caps, 8 TENIR, 9 APPUYER), meme portee, meme demi-distance.
+            # Si les deux se separent, le differentiel mesure MA divergence, pas les deux mondes.
+            _apx = o[:, 0] * 200.0; _apy = o[:, 1] * 200.0
+            _cap = lambda dx, dy: (torch.round(torch.atan2(dx, dy) / (math.pi/4.0)).long() % 8)
+            _d = torch.sqrt(_apx**2 + _apy**2)
+            # ⚠️ CLE PAR IDENTIFIANT, PAS PAR RANG. Quand un attaquant meurt, `o` retrecit :
+            # `_D0[:len(_d)]` rendrait la distance de depart de l homme n°2 a l homme n°3.
+            # Un realignement silencieux est exactement la faute que ce projet paie le plus cher.
+            _ids = sorted(obs)
+            for _k, _i in enumerate(_ids):
+                if _i not in _D0:
+                    _D0[_i] = float(_d[_k])           # figee au premier pas OU on le voit
+            _d0v = torch.tensor([_D0[_i] for _i in _ids], dtype=torch.float32)
+            _a = _cap(-_apx, -_apy)                   # tout le monde cap vers l objectif
+            if BRAS == "b_flanc":
+                _f = torch.zeros(len(o), dtype=torch.bool); _f[:2] = True
+                _a = torch.where(_f & (_d < 110.0*0.9), torch.full_like(_a, 9), _a)
+                if t < 14:
+                    _a = torch.where(~_f, _cap(-_apy, _apx), _a)
+            elif BRAS == "b_arret":
+                _mi = _d <= (_d0v * 0.5)
+                _a = torch.where(_mi, torch.full_like(_a, 8), _a)
+                _a = torch.where(_mi & (_d < 110.0*0.9), torch.full_like(_a, 9), _a)
             acts = _a.tolist()
         elif BRAS == "flanc":
             # doctrine portee TELLE QUELLE de boucle.py : cap vers l objectif ; les deux
