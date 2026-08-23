@@ -262,10 +262,19 @@ if __name__ == "__main__":
         # episodes jouaient un autre reseau. Faille reelle, evitee de justesse le 23/08.
         # Un fichier unique partage entre l entrainement et la mesure est un accident qui
         # attend son heure. On ecrit sous le nom demande, et le defaut est DATE.
-        _pt = os.environ.get("HMT_PT", "/home/younes/arma3-marl/boucle_pol_neuf.pt")
-        torch.save(pol.state_dict(), _pt)
-        print("    politique gardee : %s" % _pt)
     else:
         print("    LA PORTE NE PASSE PAS. On le dit, on ne rejoue pas les graines.")
+    # ⚠️ 23/08 — ON GARDE AUSSI LES ECHECS. Le `torch.save` etait A L INTERIEUR du `if` :
+    # la recette ne conservait que les politiques qui PASSENT, donc elle effacait exactement
+    # celles qu il faut ouvrir pour comprendre pourquoi elles echouent. Mesure du 23/08 au
+    # soir : deux graines, 49,6 % et 3,3 %, et la graine perdante avait pourtant appris
+    # (44,1 % en entrainement). Le test qui trancherait — argmax contre echantillonnage sur
+    # le meme artefact — etait impossible : l objet avait ete jete par une accolade.
+    # Le nom PORTE LE VERDICT : rien n est rendu vert, rien n est efface.
+    # ⭐ Un banc qui ne garde que ses reussites ne peut pas expliquer ses echecs.
+    _base = os.environ.get("HMT_PT", "/home/younes/arma3-marl/boucle_pol_neuf.pt")
+    _pt = _base[:-3] + ("_PASSE.pt" if (ok1 and ok2 and ok3) else "_TOMBE.pt")
+    torch.save(pol.state_dict(), _pt)
+    print("    politique gardee : %s" % _pt)
     print("\n    ⚠️ AUCUN VERDICT DE MISSION N EN SORT. Le monde est le notre.")
     print("       ⟨juillet : 96 % en sandbox, 0/38 dans Arma⟩ Arma tranchera.")
