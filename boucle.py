@@ -211,7 +211,10 @@ def evaluer(pol, graines, n=256):
 
 
 if __name__ == "__main__":
-    torch.manual_seed(0)
+    # ⚠️ 23/08 — LA GRAINE DEVIENT UN PARAMETRE, DEFAUT 0 (inchange). Un verdict sur un
+    # seul entrainement n en est pas un : il faut pouvoir rejouer la MEME recette sur une
+    # autre graine sans toucher au fichier.
+    torch.manual_seed(int(os.environ.get("HMT_SEED", "0")))
     pol = entrainer(iters=int(sys.argv[1]) if len(sys.argv) > 1 else 140)
 
     print("\n  LA PORTE — graines JAMAIS vues a l entrainement")
