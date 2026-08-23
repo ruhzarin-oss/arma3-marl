@@ -25,7 +25,8 @@ GRAINES_TEST = [101, 102, 103, 104, 105, 106]     # JAMAIS vues a l entrainement
 # posture etaient strictement constantes — trois entrees sur douze mortes par construction
 # (mesure 2dd0f8c). Pre-inscription : PREINSCRIPTION_POSTURES.md, commit b3626e1.
 # Par defaut 10 : l artefact du 13/08 continue de se charger tel quel.
-NA = int(os.environ.get("HMT_NA", "10"))           # 8 caps + tenir + feu (+ 3 postures si 13)
+NA = int(os.environ.get("HMT_NA", "10"))
+GAMMA_PHI = float(os.environ.get("HMT_GAMMA_PHI", "0.99"))  # 1.0 = la recompense d avant le 17/08           # 8 caps + tenir + feu (+ 3 postures si 13)
 
 
 # ⚠️ LE MONDE EST UNE VARIABLE DE MODULE. Par defaut le monde de reference — rien ne
@@ -120,7 +121,12 @@ def jouer(e, choisir, garder=False):
         # F = γ·Φ(s') − Φ(s). Le code payait Φ(s') − Φ(s), SANS le γ, alors que les retours
         # sont actualises a 0,99 (ligne 119) : le telescopage ne tenait plus, et un
         # aller-retour rapportait ~+0,026 net en retour actualise au lieu de zero.
-        gagne = dprec - 0.99 * d                     # SIGNE : reculer coute ce qu avancer rapporte
+        # ⚠️ 23/08 — LE γ DU FAÇONNAGE DEVIENT UN PARAMETRE DECLARE, DEFAUT 0,99 (inchange).
+        # Il est passe de 1,0 a 0,99 le 17/08 (e856a86), APRES que l artefact boucle_pol.pt
+        # a ete appris (13/08). Pour savoir s il explique que la porte ne passe plus, il faut
+        # pouvoir rejouer l ancien SANS toucher au fichier : un script qui edite le depot
+        # puis le restaure laisse le depot modifie s il tombe au milieu.
+        gagne = dprec - GAMMA_PHI * d                # SIGNE : reculer coute ce qu avancer rapporte
         dprec = d; dmin = torch.minimum(dmin, torch.where(fini, dmin, d))
         neuf = info["took"] & ~fini
         # 0,001 et non 0,01 : a 114 metres le guide valait 1,14, PLUS que le but a 1,0.
