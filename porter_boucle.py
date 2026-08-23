@@ -43,9 +43,23 @@ PT = "/home/younes/arma3-marl/boucle_pol.pt"
 COLS = [0, 1, 2, 3, 4, 5, 6, 7, 8] + [15, 16, 17]     # base 9 (slope incluse) + posture 3
 
 
-def charger(dev="cpu"):
-    pol = Politique(len(COLS)).to(dev)
-    pol.load_state_dict(torch.load(PT, map_location=dev))
+def charger(dev="cpu", pt=None):
+    """⚠️ LE NOMBRE D ACTIONS SE LIT DANS L ARTEFACT, IL NE SE SUPPOSE PAS. Depuis le 23/08
+    il existe des politiques a 10 actions (sans posture) et a 13. Construire le reseau sur
+    la valeur courante de `boucle.NA` chargerait un jour l une avec la taille de l autre —
+    et `load_state_dict` le dirait, mais seulement si les tailles different. On lit donc la
+    forme de la couche de sortie dans le fichier lui-meme."""
+    import boucle as _b
+    chemin = pt or PT
+    sd = torch.load(chemin, map_location=dev)
+    na = sd["pi.weight"].shape[0]
+    garde = _b.NA
+    try:
+        _b.NA = na
+        pol = Politique(len(COLS)).to(dev)
+    finally:
+        _b.NA = garde
+    pol.load_state_dict(sd)
     pol.eval()
     return pol
 

@@ -9,6 +9,7 @@ Criteres deposes AVANT le premier pas : CRITERES_BOUCLE.md
                G2 controle nul — une politique aleatoire ne doit PAS passer G1
                G3 le gain ne vient pas de se terrer : metres gagnes >= la meilleure doctrine
 """
+import os
 import math, sys, torch, torch.nn as nn
 sys.path.insert(0, "/home/younes/arma3-marl")
 from assault_terrain import AssaultTerrain
@@ -18,7 +19,13 @@ DEV = "cuda:0"
 PAS = 60
 GRAINES_TRAIN = [11, 12, 13, 14, 15, 16, 17, 18]
 GRAINES_TEST = [101, 102, 103, 104, 105, 106]     # JAMAIS vues a l entrainement
-NA = 10                                            # 8 caps + tenir + feu
+# ⚠️ 23/08 — LE VOCABULAIRE EST DESORMAIS UN PARAMETRE, ET IL VAUT 10 PAR DEFAUT.
+# Le monde offre 13 actions (assault_terrain.py:230, postures activees) ; la politique n en
+# avait que 10, donc elle ne pouvait PAS changer de posture, donc ses trois colonnes de
+# posture etaient strictement constantes — trois entrees sur douze mortes par construction
+# (mesure 2dd0f8c). Pre-inscription : PREINSCRIPTION_POSTURES.md, commit b3626e1.
+# Par defaut 10 : l artefact du 13/08 continue de se charger tel quel.
+NA = int(os.environ.get("HMT_NA", "10"))           # 8 caps + tenir + feu (+ 3 postures si 13)
 
 
 # ⚠️ LE MONDE EST UNE VARIABLE DE MODULE. Par defaut le monde de reference — rien ne
@@ -240,8 +247,15 @@ if __name__ == "__main__":
     if ok1 and ok2 and ok3:
         print("    LA BOUCLE EST FERMEE. Quelque chose apprend, dans le monde calibre, sur")
         print("    une recompense mesuree, et bat les deux doctrines ecrites a la main.")
-        torch.save(pol.state_dict(), "/home/younes/arma3-marl/boucle_pol.pt")
-        print("    politique gardee : boucle_pol.pt")
+        # ⚠️ L ENTRAINEMENT N ECRIT PLUS SUR L ARTEFACT COURANT. `banc_live.py` RECHARGE
+        # `boucle_pol.pt` a CHAQUE episode : un entrainement lance pendant une nuit
+        # remplacait la politique en cours de mesure, silencieusement, et la moitie des
+        # episodes jouaient un autre reseau. Faille reelle, evitee de justesse le 23/08.
+        # Un fichier unique partage entre l entrainement et la mesure est un accident qui
+        # attend son heure. On ecrit sous le nom demande, et le defaut est DATE.
+        _pt = os.environ.get("HMT_PT", "/home/younes/arma3-marl/boucle_pol_neuf.pt")
+        torch.save(pol.state_dict(), _pt)
+        print("    politique gardee : %s" % _pt)
     else:
         print("    LA PORTE NE PASSE PAS. On le dit, on ne rejoue pas les graines.")
     print("\n    ⚠️ AUCUN VERDICT DE MISSION N EN SORT. Le monde est le notre.")
