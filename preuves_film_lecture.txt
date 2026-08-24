@@ -1,0 +1,79 @@
+
+  ══ GRAINE 0 — 24 points, graines SELECT ══
+
+      iter     G argmax    S echantillonne
+  ── PARAMETRES EFFECTIFS DU MONDE (lus sur l objet, pas dans un fichier) ──
+     move=14.0 m   sec_par_pas=3.28 s   ->  VITESSE = 4.27 m/s
+     fire_range         110.0
+     hit                0.06
+     secure_r           25.0
+     max_steps          60
+     terr_R             200.0
+     frein_feu          0.35
+     tir_par_pas        1.15
+     degat_par_impact   0.233
+     supp_residuel      0.08
+     cible_unique       True
+     obs_sans_slope     False
+     relief_stratis     True
+  ⚠️ TOUT CHIFFRE DE GYMNASE CITE DANS UN DEPOT DOIT VENIR DE CETTE LIGNE.
+         0        0.8 %              0.0 %   (IC +-0.6)
+        50        1.6 %              0.1 %   (IC +-0.9)
+       100        4.0 %              0.1 %   (IC +-1.4)
+       150        5.3 %              0.3 %   (IC +-1.6)
+       200        6.6 %              0.3 %   (IC +-1.8)
+       250        8.1 %              1.6 %   (IC +-1.9)
+       300        9.0 %              2.3 %   (IC +-2.0)
+       350       15.9 %              9.0 %   (IC +-2.6)
+       400       19.9 %             10.4 %   (IC +-2.8)
+       450       30.9 %             14.6 %   (IC +-3.3)
+       500       33.5 %             19.0 %   (IC +-3.3)
+       550       37.9 %             20.4 %   (IC +-3.4)
+       600       44.0 %             25.0 %   (IC +-3.5)
+       650       43.0 %             24.0 %   (IC +-3.5)
+       700       44.8 %             28.8 %   (IC +-3.5)
+       750       44.4 %             28.5 %   (IC +-3.5)
+       800       45.7 %             29.6 %   (IC +-3.5)
+       850       49.7 %             31.9 %   (IC +-3.5)
+       900       49.2 %             33.2 %   (IC +-3.5)
+       950       50.7 %             33.7 %   (IC +-3.5)
+      1000       52.3 %             34.8 %   (IC +-3.5)
+      1050       50.1 %             39.6 %   (IC +-3.5)
+      1100       49.2 %             37.4 %   (IC +-3.5)
+      1150       52.5 %             38.5 %   (IC +-3.5)
+
+  ══ GRAINE 1 — 24 points, graines SELECT ══
+
+      iter     G argmax    S echantillonne
+         0        0.5 %              0.0 %   (IC +-0.5)
+        50        2.5 %              0.1 %   (IC +-1.1)
+       100        6.4 %              0.1 %   (IC +-1.7)
+       150        7.9 %              1.0 %   (IC +-1.9)
+       200        6.8 %              0.8 %   (IC +-1.8)
+       250        6.2 %              0.9 %   (IC +-1.7)
+       300        0.0 %              1.4 %   (IC +-0.0)
+       350        0.0 %              5.7 %   (IC +-0.0)
+       400        0.0 %              7.6 %   (IC +-0.0)
+       450        0.0 %             12.5 %   (IC +-0.0)
+       500        1.4 %             17.1 %   (IC +-0.8)
+       550        1.4 %             16.5 %   (IC +-0.8)
+       600        1.7 %             21.9 %   (IC +-0.9)
+       650        2.0 %             21.6 %   (IC +-1.0)
+       700        1.8 %             24.5 %   (IC +-0.9)
+       750        2.1 %             27.9 %   (IC +-1.0)
+       800        1.8 %             28.8 %   (IC +-0.9)
+       850        2.5 %             32.2 %   (IC +-1.1)
+       900        7.0 %             32.6 %   (IC +-1.8)
+       950        7.9 %             32.4 %   (IC +-1.9)
+      1000        2.6 %             35.8 %   (IC +-1.1)
+      1050        3.1 %             37.4 %   (IC +-1.2)
+      1100        1.8 %             38.3 %   (IC +-0.9)
+      1150        1.7 %             39.6 %   (IC +-0.9)
+
+  ══ LES REGLES, APPLIQUEES ══
+
+  graine 1 : max 7.9 %   points au-dessus de 30 % : 0   deux consecutifs : non
+  graine 0 : max 52.5 %   min apres decollage 43.0 %   ecart-type des 8 derniers 2.0
+
+  ➤ R2 — BIFURCATION PRECOCE. Le sort se scelle tot : selection sur GRAINES.
+FINI
