@@ -19,6 +19,11 @@ DEV = "cuda:0"
 PAS = 60
 GRAINES_TRAIN = [11, 12, 13, 14, 15, 16, 17, 18]
 GRAINES_TEST = [101, 102, 103, 104, 105, 106]     # JAMAIS vues a l entrainement
+# ⚠️ 24/08 — UN TROISIEME JEU, POUR CHOISIR. Si l on se met a selectionner quoi que ce soit
+# (un point de sauvegarde, une graine), choisir sur GRAINES_TEST ferait cesser la porte
+# d etre une porte : elle jugerait sur ce qui a servi a choisir. Trois jeux disjoints :
+# on APPREND sur TRAIN, on CHOISIT sur SELECT, on JUGE sur TEST. ⟨garde-fou de Fable⟩
+GRAINES_SELECT = [201, 202, 203, 204, 205, 206]   # ni apprises, ni jugees : elles CHOISISSENT
 # ⚠️ 23/08 — LE VOCABULAIRE EST DESORMAIS UN PARAMETRE, ET IL VAUT 10 PAR DEFAUT.
 # Le monde offre 13 actions (assault_terrain.py:230, postures activees) ; la politique n en
 # avait que 10, donc elle ne pouvait PAS changer de posture, donc ses trois colonnes de
@@ -27,7 +32,9 @@ GRAINES_TEST = [101, 102, 103, 104, 105, 106]     # JAMAIS vues a l entrainement
 # Par defaut 10 : l artefact du 13/08 continue de se charger tel quel.
 NA = int(os.environ.get("HMT_NA", "10"))
 GAMMA_PHI = float(os.environ.get("HMT_GAMMA_PHI", "0.99"))
-INSTRUMENT = os.environ.get("HMT_INSTRUMENT", "") == "1"   # journalise, ne change RIEN  # 1.0 = la recompense d avant le 17/08           # 8 caps + tenir + feu (+ 3 postures si 13)
+INSTRUMENT = os.environ.get("HMT_INSTRUMENT", "") == "1"   # journalise, ne change RIEN
+CKPT_DIR = os.environ.get("HMT_CKPT", "")                  # dossier des points, vide = aucun
+CKPT_EVERY = int(os.environ.get("HMT_CKPT_EVERY", "50"))  # 1.0 = la recompense d avant le 17/08           # 8 caps + tenir + feu (+ 3 postures si 13)
 
 
 # ⚠️ LE MONDE EST UNE VARIABLE DE MODULE. Par defaut le monde de reference — rien ne
@@ -166,6 +173,13 @@ def entrainer(iters=140, n=256, lr=3e-4):
             return a, di.log_prob(a), v
 
         st, lps, vals, rs, masques = jouer(e, choisir, garder=True)
+        # ⚠️ LE FILM, PAS LA DERNIERE IMAGE ⟨prescription de Fable, 24/08⟩. Sous HMT_CKPT,
+        # on garde un point toutes les HMT_CKPT_EVERY iterations. Sans ca on ne peut pas
+        # savoir si l argmax d une graine perdante n a JAMAIS ete bon (bifurcation precoce)
+        # ou s il a ete bon PUIS s est defait (evenement fluctuant) — et les deux appellent
+        # des gestes opposes. Ne change rien quand la variable est absente.
+        if CKPT_DIR and it % CKPT_EVERY == 0:
+            torch.save(pol.state_dict(), "%s/it%04d.pt" % (CKPT_DIR, it))
         # retours a rebours, avantage = retour - valeur (baseline apprise)
         R = torch.zeros_like(rs[0]); rets = []
         for r in reversed(rs):
