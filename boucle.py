@@ -26,7 +26,8 @@ GRAINES_TEST = [101, 102, 103, 104, 105, 106]     # JAMAIS vues a l entrainement
 # (mesure 2dd0f8c). Pre-inscription : PREINSCRIPTION_POSTURES.md, commit b3626e1.
 # Par defaut 10 : l artefact du 13/08 continue de se charger tel quel.
 NA = int(os.environ.get("HMT_NA", "10"))
-GAMMA_PHI = float(os.environ.get("HMT_GAMMA_PHI", "0.99"))  # 1.0 = la recompense d avant le 17/08           # 8 caps + tenir + feu (+ 3 postures si 13)
+GAMMA_PHI = float(os.environ.get("HMT_GAMMA_PHI", "0.99"))
+INSTRUMENT = os.environ.get("HMT_INSTRUMENT", "") == "1"   # journalise, ne change RIEN  # 1.0 = la recompense d avant le 17/08           # 8 caps + tenir + feu (+ 3 postures si 13)
 
 
 # ⚠️ LE MONDE EST UNE VARIABLE DE MODULE. Par defaut le monde de reference — rien ne
@@ -171,12 +172,35 @@ def entrainer(iters=140, n=256, lr=3e-4):
             R = r + 0.99 * R; rets.append(R)
         rets.reverse()
         pl = vl = 0.0
-        for lp, v, ret, m in zip(lps, vals, rets, masques):
+        # ⚠️ INSTRUMENTATION PASSIVE ⟨24/08, prescription de Fable⟩. Sous HMT_INSTRUMENT=1
+        # on JOURNALISE l avantage brut et l avantage normalise sur les MEMES trajectoires,
+        # et on ne change RIEN au comportement : aucune de ces grandeurs n entre dans la
+        # perte. Question : quelle part de la norme du gradient revient aux pas OU UNE PRISE
+        # A LIEU, sous chaque lecture ? Si elle est ~0 sous la normalisation actuelle et
+        # substantielle sous une normalisation globale, le defaut est etabli sur donnees
+        # reelles, sans un seul entrainement neuf.
+        _ib = {"rt": 0.0, "ra": 0.0, "nt": 0.0, "na": 0.0, "cent": 0.0, "npris": 0.0}
+        for _i, (lp, v, ret, m) in enumerate(zip(lps, vals, rets, masques)):
             ret_a = ret.unsqueeze(1).expand_as(lp)
             adv = (ret_a - v).detach()
+            if INSTRUMENT:
+                _brut = adv.clone()
+                _pris = (rs[_i] > 0.5).unsqueeze(1).expand_as(_brut)   # ce pas porte une prise
+                _norm = (_brut - _brut.mean()) / (_brut.std() + 1e-6)
+                _ib["rt"] += float(_brut.abs()[_pris].sum()); _ib["ra"] += float(_brut.abs().sum())
+                _ib["nt"] += float(_norm.abs()[_pris].sum()); _ib["na"] += float(_norm.abs().sum())
+                # la composante COMMUNE que le centrage retire (c est la ou part la rente)
+                _ib["cent"] += float(_brut.mean().abs()) * _brut.numel()
+                _ib["npris"] += float(_pris.sum())
             adv = (adv - adv.mean()) / (adv.std() + 1e-6)
             pl = pl - (lp * adv * m.unsqueeze(1)).mean()
             vl = vl + ((v - ret_a) ** 2 * m.unsqueeze(1)).mean()
+        if INSTRUMENT and it % 50 == 0 and _ib["ra"] > 0:
+            print("    INSTR it %4d  part des pas de PRISE dans |avantage| :"
+                  "  brut %6.3f %%   normalise %6.3f %%   (entrees de prise %.0f)"
+                  "   composante commune retiree par le centrage : %5.1f %% du brut"
+                  % (it, 100 * _ib["rt"] / _ib["ra"], 100 * _ib["nt"] / max(_ib["na"], 1e-9),
+                     _ib["npris"], 100 * _ib["cent"] / _ib["ra"]), flush=True)
         perte = pl + 0.5 * vl
         opt.zero_grad(); perte.backward()
         nn.utils.clip_grad_norm_(pol.parameters(), 1.0)
