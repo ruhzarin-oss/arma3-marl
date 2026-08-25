@@ -19,6 +19,7 @@ import torch, torch.nn as nn
 sys.path.insert(0, "/home/younes/arma3-marl")
 import boucle as B
 from raster import raster, brouilleur, CANAUX_DEFAUT, K_DEFAUT, SPAN_DEFAUT
+from entites import entites, brouilleur_entites, NF_TOK, CANAUX_TERRAIN
 
 DEV = "cuda:0"
 K, SPAN, C = K_DEFAUT, SPAN_DEFAUT, len(CANAUX_DEFAUT)
@@ -67,13 +68,112 @@ class PolAplati(nn.Module):
         return self.pi(h), self.v(h).squeeze(-1)
 
 
+class PolEntites(nn.Module):
+    """BRAS E et E2 — LE TERRAIN RESTE UNE IMAGE, LES UNITÉS DEVIENNENT UNE LISTE.
+
+    C'est l'architecture d'AlphaStar, et c'est l'encodeur que la mesure des +4,5 pts
+    désignait. La seule différence avec le bras B est la représentation des UNITÉS :
+    B les écrase dans une cellule de 12,5 m, E garde leurs coordonnées exactes et les lit
+    par attention, invariante à l'ordre et à effectif variable.
+    """
+    def __init__(self, nobs, nlat=64, dmod=64, ntetes=4, nblocs=2):
+        super().__init__()
+        CT = len(CANAUX_TERRAIN)
+        self.enc_terr = nn.Sequential(                       # le TERRAIN, inchangé vs B
+            nn.Conv2d(CT, 32, 3, stride=2, padding=1), nn.ReLU(),
+            nn.Conv2d(32, 64, 3, stride=2, padding=1), nn.ReLU(),
+            nn.Conv2d(64, 64, 3, stride=2, padding=1), nn.ReLU(),
+            nn.Flatten(), nn.Linear(64 * 3 * 3, nlat), nn.ReLU())
+        self.tok = nn.Linear(NF_TOK, dmod)                   # les UNITÉS, exactes
+        self.blocs = nn.ModuleList([nn.MultiheadAttention(dmod, ntetes, batch_first=True)
+                                    for _ in range(nblocs)])
+        self.normes = nn.ModuleList([nn.LayerNorm(dmod) for _ in range(nblocs)])
+        self.f = nn.Sequential(nn.Linear(nobs + nlat + 2 * dmod, NH), nn.Tanh(),
+                               nn.Linear(NH, NH), nn.Tanh())
+        self.pi = nn.Linear(NH, B.NA); self.v = nn.Linear(NH, 1)
+
+    def forward(self, o, paquet):
+        r, jetons, masque = paquet
+        N, A = o.shape[0], o.shape[1]
+        zt = self.enc_terr(r.reshape(N * A, len(CANAUX_TERRAIN), K, K)).reshape(N, A, -1)
+        U = jetons.shape[2]
+        x = self.tok(jetons.reshape(N * A, U, NF_TOK))
+        m = ~masque.reshape(N * A, U)                        # True = À IGNORER
+        # ⚠️ une ligne entièrement masquée rend NaN dans l attention. Un homme mort n a plus
+        # aucune unité vivante autour : on lui laisse son premier jeton, sa sortie est de
+        # toute façon multipliée par zéro dans la perte (masque `viv` de `jouer`).
+        vide = m.all(dim=1); m = m.clone(); m[vide, 0] = False
+        for bl, nz in zip(self.blocs, self.normes):
+            a, _ = bl(x, x, x, key_padding_mask=m)
+            x = nz(x + a)
+        garde = (~m).unsqueeze(-1).float()
+        # max ‖ moyenne ⟨Fable⟩ : le max seul écrase les cardinalités, or le NOMBRE de
+        # défenseurs structure le régime (détection en cascade, zone utile 5-8).
+        zmax = x.masked_fill(m.unsqueeze(-1), float("-inf")).max(dim=1).values
+        zmax = torch.nan_to_num(zmax, neginf=0.0)
+        zmoy = (x * garde).sum(1) / garde.sum(1).clamp(min=1)
+        ze = torch.cat([zmax, zmoy], dim=-1).reshape(N, A, -1)
+        h = self.f(torch.cat([o, zt, ze], dim=-1))
+        return self.pi(h), self.v(h).squeeze(-1)
+
+
+class PolPrix(nn.Module):
+    """BRAS P — LE CONTRÔLE POSITIF. Il ne teste PAS une représentation : il teste LE MONDE.
+
+    ⚠️ SANS LUI, TOUT CE BANC EST ILLISIBLE ⟨Fable, 25/08⟩. Le candidat A est certifié
+    NAVIGATEUR : pente, couvert, être vu et ennemi pèsent ensemble MOINS QUE LE BRUIT, et
+    cette politique-là fait 49,6 %. Si la politique gagnante de ce gymnase n'utilise pas la
+    perception, alors AUCUNE représentation perceptive ne peut battre A ici — et le banc ne
+    mesure pas des représentations, il mesure le gymnase.
+
+    On donne donc à l'agent LE PRIX EXACT DE CHACUNE DE SES HUIT ACTIONS : le danger qu'il
+    subirait à `move` mètres dans chacun des 8 caps, calculé par le MÊME `_champ_danger` que
+    le monde utilise pour facturer. Ce n'est pas une consigne — le moins cher reste toujours
+    de fuir, l'arbitrage entier lui appartient. Mais c'est l'information la plus directement
+    actionnable qu'on sache produire.
+
+    LECTURE, DÉPOSÉE D'AVANCE :
+      · P > A nettement  -> le gymnase SAIT récompenser un agent qui regarde. Le banc est
+                            valide, et l'échec du raster porte sur le RASTER.
+      · P ≈ A            -> le gymnase ne price PAS l'information. Le banc est CLOS, et
+                            ni B≈C≈D ni E ne veulent dire quoi que ce soit ici.
+    """
+    def __init__(self, nobs):
+        super().__init__()
+        self.f = nn.Sequential(nn.Linear(nobs + 8, NH), nn.Tanh(), nn.Linear(NH, NH), nn.Tanh())
+        self.pi = nn.Linear(NH, B.NA); self.v = nn.Linear(NH, 1)
+    def forward(self, o, prix):
+        h = self.f(torch.cat([o, prix], dim=-1))
+        return self.pi(h), self.v(h).squeeze(-1)
+
+
+def prix_des_actions(e):
+    """Le danger a `move` metres dans chacun des 8 caps. -> (N, A, 8)
+
+    Les 8 directions de `_champ_danger` sont EXACTEMENT les 8 caps de `boucle.cap` : toutes
+    deux prennent l angle depuis +y vers +x, avec un decalage de pi/4. Verifie par la sonde.
+    """
+    e.champ_R = float(e.move)
+    return e._champ_danger(K=8)
+
+
 BRAS = {"A": (PolVecteur, False, False), "B": (PolCNN, True, False),
-        "C": (PolCNN, True, True),       "D": (PolAplati, True, False)}
+        "C": (PolCNN, True, True),       "D": (PolAplati, True, False),
+        "E": (PolEntites, "ent", False), "E2": (PolEntites, "ent", True),
+        "P": (PolPrix, "prix", False)}
 
 
 def faire_raster(e, brouille, br):
     r = raster(e, K=K, span=SPAN)
     return br(r) if brouille else r
+
+
+def faire_entites(e, brouille, bre):
+    """Le TERRAIN comme image (4 canaux, identiques à ceux du bras B) + les UNITÉS en liste."""
+    r = raster(e, K=K, span=SPAN, canaux=CANAUX_TERRAIN)
+    j, m = entites(e)
+    if brouille: j, m = bre(j, m)
+    return (r, j, m)
 
 
 def entrainer(bras, graine, iters=140, n=256, lr=3e-4, eval_tous=0, film=None):
@@ -84,15 +184,21 @@ def entrainer(bras, graine, iters=140, n=256, lr=3e-4, eval_tous=0, film=None):
     e0 = B.monde(8, B.GRAINES_TRAIN[0]); e0.reset()
     nobs = e0._obs().shape[-1]
     pol = Cls(nobs).to(DEV)
-    br = brouilleur(K, C, DEV) if brouille else None
+    br = (brouilleur_entites() if avec_r == "ent" else brouilleur(K, C, DEV)) if brouille else None
     opt = torch.optim.Adam(pol.parameters(), lr=lr)
     npar = sum(p.numel() for p in pol.parameters())
     print("    bras %s graine %d — %d entrees vectorielles, %s, %d parametres"
-          % (bras, graine, nobs, ("raster %dx%dx%d" % (C, K, K)) if avec_r else "sans raster", npar), flush=True)
+          % (bras, graine, nobs,
+             ("PRIX des 8 actions (controle positif)") if avec_r == "prix" else
+             ("terrain %dx%dx%d + %d jetons d unites" % (len(CANAUX_TERRAIN), K, K, e0.D + e0.A - 1))
+             if avec_r == "ent" else ("raster %dx%dx%d" % (C, K, K)) if avec_r else "sans raster",
+             npar), flush=True)
     for it in range(iters):
         e = B.monde(n, B.GRAINES_TRAIN[it % len(B.GRAINES_TRAIN)])
         def choisir(o, t, _e=e):
-            r = faire_raster(_e, brouille, br) if avec_r else None
+            r = (prix_des_actions(_e) if avec_r == "prix"
+                 else faire_entites(_e, brouille, br) if avec_r == "ent"
+                 else faire_raster(_e, brouille, br) if avec_r else None)
             lo, v = pol(o, r)
             di = torch.distributions.Categorical(logits=lo)
             a = di.sample()
@@ -129,12 +235,14 @@ def entrainer(bras, graine, iters=140, n=256, lr=3e-4, eval_tous=0, film=None):
 def evaluer(pol, bras, graines, n=256):
     """Lecture sur graines JAMAIS vues. Décodeur = ÉCHANTILLONNAGE (décision du 24/08)."""
     _, avec_r, brouille = BRAS[bras]
-    br = brouilleur(K, C, DEV) if brouille else None
+    br = (brouilleur_entites() if avec_r == "ent" else brouilleur(K, C, DEV)) if brouille else None
     prises, tenus = [], []
     for g in graines:
         e = B.monde(n, g)
         def gele(o, t, _e=e):
-            r = faire_raster(_e, brouille, br) if avec_r else None
+            r = (prix_des_actions(_e) if avec_r == "prix"
+                 else faire_entites(_e, brouille, br) if avec_r == "ent"
+                 else faire_raster(_e, brouille, br) if avec_r else None)
             with torch.no_grad():
                 lo, v = pol(o, r)
             return torch.distributions.Categorical(logits=lo).sample(), None, None
