@@ -27,6 +27,13 @@ from boucle import NA
 # que le MEILLEUR CORPS CONNU fait sur ce banc. » Trois bras, meme banc, meme site.
 BRAS = sys.argv[1] if len(sys.argv) > 1 else "politique"
 DECODEUR = os.environ.get("HMT_DECODEUR", "echantillon")   # "echantillon" ou "argmax"
+# ⚠️ UN DECODEUR QUI TIRE AU SORT DOIT DIRE SA GRAINE ⟨Fable, 25/08⟩. Sans elle, deux
+# episodes "identiques" ne le sont plus, et la regle des deux passes perd son sens : on ne
+# saurait pas si un ecart vient du monde ou du de. La graine est DECLAREE, pas implicite.
+GRAINE_ACT = int(os.environ.get("HMT_GRAINE_ACT", "0"))
+TAU = float(os.environ.get("HMT_TAU", "1.0"))               # tau = 1 : la distribution telle
+torch.manual_seed(GRAINE_ACT)
+print("  decodeur : %s   graine d action : %d   tau : %.2f" % (DECODEUR, GRAINE_ACT, TAU), flush=True)
 SB = "/mnt/data/harmattan-sandbox"
 EXT, PORT = 5830, 6062
 MIS = "BancLive.Stratis"
@@ -450,7 +457,7 @@ if __name__ == "__main__":
         if DECODEUR == "argmax":
             acts = lo.argmax(-1).tolist()
         else:
-            acts = torch.distributions.Categorical(logits=lo).sample().tolist()
+            acts = torch.distributions.Categorical(logits=lo / TAU).sample().tolist()
         if BRAS == "natif":
             acts = []                       # l IA d Arma pilote : AUCUN ordre envoye
             if t == 0:
