@@ -26,6 +26,7 @@ from boucle import NA
 # ⚠️ BRAS DE BASELINE ⟨Fable, 15/08⟩ : « 11,9 % n a pas de sens tant qu on ne sait pas ce
 # que le MEILLEUR CORPS CONNU fait sur ce banc. » Trois bras, meme banc, meme site.
 BRAS = sys.argv[1] if len(sys.argv) > 1 else "politique"
+DECODEUR = os.environ.get("HMT_DECODEUR", "echantillon")   # "echantillon" ou "argmax"
 SB = "/mnt/data/harmattan-sandbox"
 EXT, PORT = 5830, 6062
 MIS = "BancLive.Stratis"
@@ -438,7 +439,18 @@ if __name__ == "__main__":
         o = torch.tensor([obs[i] for i in sorted(obs)], dtype=torch.float32)
         with torch.no_grad():
             lo, _ = pol(o[:, COLS])
-        acts = lo.argmax(-1).tolist()
+        # ⚠️ ARMA LAISSE L AGENT HESITER ⟨decision de Younes, 24/08 au soir⟩. Ce banc
+        # deployait en argmax PAR HERITAGE, jamais par choix. Or l entrainement optimise le
+        # rendement d une politique STOCHASTIQUE : la figer est une hypothese en plus, et
+        # elle tombe une fois sur deux (mesure du gymnase : une graine rend 3,3 % figee et
+        # 42,3 % en hesitant). On deploie desormais l objet qu on a appris.
+        # ⚠️ CONSEQUENCE A DECLARER : le verdict Arma du 23/08 (natif 30,7 % contre politique
+        # 33,6 %) a ete mesure sur l objet FIGE. Il decrit cet objet-la. Toute mesure faite
+        # sous ce decodeur porte sur un objet DIFFERENT et exige sa propre nuit.
+        if DECODEUR == "argmax":
+            acts = lo.argmax(-1).tolist()
+        else:
+            acts = torch.distributions.Categorical(logits=lo).sample().tolist()
         if BRAS == "natif":
             acts = []                       # l IA d Arma pilote : AUCUN ordre envoye
             if t == 0:

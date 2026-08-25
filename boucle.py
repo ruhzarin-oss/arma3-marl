@@ -33,6 +33,7 @@ GRAINES_SELECT = [201, 202, 203, 204, 205, 206]   # ni apprises, ni jugees : ell
 NA = int(os.environ.get("HMT_NA", "10"))
 GAMMA_PHI = float(os.environ.get("HMT_GAMMA_PHI", "0.99"))
 INSTRUMENT = os.environ.get("HMT_INSTRUMENT", "") == "1"   # journalise, ne change RIEN
+DECODEUR = os.environ.get("HMT_DECODEUR", "echantillon")   # "echantillon" ou "argmax"
 CKPT_DIR = os.environ.get("HMT_CKPT", "")                  # dossier des points, vide = aucun
 CKPT_EVERY = int(os.environ.get("HMT_CKPT_EVERY", "50"))  # 1.0 = la recompense d avant le 17/08           # 8 caps + tenir + feu (+ 3 postures si 13)
 
@@ -227,9 +228,19 @@ def entrainer(iters=140, n=256, lr=3e-4):
 def evaluer(pol, graines, n=256):
     """Lecture sur graines HELD-OUT, par graine — l appariement vit la ⟨regle 12⟩."""
     def gele(o, t):
+        # ⚠️ LE DECODEUR EST UN CHOIX, PAS UN HERITAGE ⟨decision de Younes, 24/08⟩.
+        # L algorithme optimise le rendement d une politique STOCHASTIQUE ; la lire en
+        # argmax est une hypothese SUPPLEMENTAIRE, qui tient deux fois sur trois (mesure :
+        # graine 0 argmax 49,6 % / echantillonne 37,9 % ; graine 1 argmax 3,3 % /
+        # echantillonne 42,3 %). On lit desormais l objet qu on a REELLEMENT optimise.
+        # ⚠️ CE CHOIX BAISSE LES CHIFFRES DES GAGNANTES (49,6 -> 37,9). Ce n est pas un
+        # critere deplace pour dire ce qui arrange : il resserre les bons et rattrape les
+        # mauvais, et il rend la recette reproductible (37,9 et 42,3 au lieu de 3,3 et 49,6).
         with torch.no_grad():
             lo, v = pol(o)
-        return lo.argmax(-1), None, None
+        if DECODEUR == "argmax":
+            return lo.argmax(-1), None, None
+        return torch.distributions.Categorical(logits=lo).sample(), None, None
     res = {"appris": [], "frontal": [], "flanc": []}
     met = {"appris": [], "frontal": [], "flanc": []}
     for g in graines:
