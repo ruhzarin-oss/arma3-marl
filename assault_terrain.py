@@ -22,7 +22,7 @@ class AssaultTerrain:
                  emergent_expo=False, death_pen=0.4, suffer_pen=1.1, win_bonus=1.0, kill_w=1.5, arma_obs=False, obs_dcover_arma=None, obs_sans_slope=None,
                  secure_task=False, approach_w=0.2, secure_only=False, supp_kill=1.0,
                  def_arc=math.pi, def_line=False, def_spread=1.0, def_rline=35.0, def_rand=False, nav_around=False, flank_kill=0.0,
-                 frein_feu=0.0, alerte=False, courbe=None, tir_par_pas=None, sec_par_pas=None, degat_par_impact=None, arc_obs=False, champ_risque=False, champ_R=35.0, stress=False, mission="assaut", arc_latence_s=None, supp_residuel=None, supp_persist=0.0, cible_unique=True, feu_sur_connu=0.0, feu_de_zone=0.0, relief_stratis=False):
+                 los_tous=False, frein_feu=0.0, alerte=False, courbe=None, tir_par_pas=None, sec_par_pas=None, degat_par_impact=None, arc_obs=False, champ_risque=False, champ_R=35.0, stress=False, mission="assaut", arc_latence_s=None, supp_residuel=None, supp_persist=0.0, cible_unique=True, feu_sur_connu=0.0, feu_de_zone=0.0, relief_stratis=False):
         # ---- COURBE N2 : LA SUPPRESSION MESUREE SUR ARMA (28/07) ----
         # `supp_residuel` = ce qu'il RESTE de capacite de nuire sous suppression pleine.
         # Mesure : 0.08 (cadence x0,57 x precision x0,14). None = ancien tout-ou-rien.
@@ -188,6 +188,7 @@ class AssaultTerrain:
         self.R_VUE_PLEINE = 30.0       # 4,00 mesure
         self.R_VUE_NULLE = 100.0       # 0,00 mesure
         self.COUCHE_INVISIBLE_M = 120.0   # banc de l angle mort : couche invisible au-dela
+        self.los_tous = los_tous       # exposition a TOUS les defenseurs vivants
         self.frein_feu = float(frein_feu)
         self._frein_pret = False   # last_exposed n existe qu apres le premier pas
         self.move = move; self.fire_range = fire_range; self.hit = hit; self.secure_r = secure_r
@@ -523,7 +524,34 @@ class AssaultTerrain:
         BIG = torch.tensor(1e18, device=self.dev)
         ed2 = torch.where(self._dalive().unsqueeze(1), ex * ex + ey * ey, BIG); km = ed2.argmin(2)
         bx = torch.gather(self.dpx, 1, km); by = torch.gather(self.dpy, 1, km)
-        los = self._losc(self.hm, self.apx, self.apy, bx, by, S, eye_a=self._eye(), eye_b=1.7)
+        # ⚠️ 25/08 — `los` DECRIVAIT L EXPOSITION A UN SEUL HOMME, ET QUATRE TIRAIENT.
+        # Calcule contre le defenseur LE PLUS PROCHE (km = ed2.argmin) pendant que les degats
+        # sommaient sur TOUS les defenseurs vivants (boucle par `di`, plus bas).
+        # Mesure du 25/08, A DISTANCE EGALE : etre cache du plus proche fait prendre SIX FOIS
+        # PLUS de degats a 0-40 m, et TROIS FOIS MOINS au-dela de 130 m. Le signe de la
+        # colonne S INVERSE avec la distance — moyennee elle ne porte aucun signal, et c est
+        # pourquoi la brouiller ne coutait que 0,9 point : IGNORER `los` ETAIT RATIONNEL.
+        # Reparation minimale : le MAXIMUM sur les defenseurs VIVANTS — « suis-je offert a
+        # quelqu un ? ». Defaut False : aucun monde existant ne change.
+        if getattr(self, "los_tous", False):
+            _lv = []
+            for _di in range(self.D):
+                _bx = self.dpx[:, _di:_di + 1].expand_as(self.apx)
+                _by = self.dpy[:, _di:_di + 1].expand_as(self.apy)
+                # ⚠️ LE SENS DU RAYON EST LE DEFAUT ⟨mesure du 25/08⟩. `_losc` rend LA
+                # FRACTION DU CORPS DE LA CIBLE visible depuis l oeil de la source. Calcule
+                # attaquant -> defenseur, il repond « quelle part de L ENNEMI je vois ».
+                # Ce qui TUE est « quelle part de MOI il voit » — l autre question.
+                # Mesure : a 0-40 m, 58,9 % des etats ou l agent se croit cache le montrent
+                # EN PLEIN a un defenseur ; 53,9 % a 40-60 m, puis 38, 25, 15, 12 %.
+                # C est le profil exact de l inversion de signe des degats.
+                # On calcule donc DEFENSEUR -> ATTAQUANT, comme la ligne des degats.
+                _v = self._losc(self.hm, _bx, _by, self.apx, self.apy, S,
+                                eye_a=1.7, eye_b=self._eye())
+                _lv.append(_v * self._dalive()[:, _di:_di + 1].float())
+            los = torch.stack(_lv, -1).max(-1).values
+        else:
+            los = self._losc(self.hm, self.apx, self.apy, bx, by, S, eye_a=self._eye(), eye_b=1.7)
         nd = ed2.min(2).values.clamp(max=1e17).sqrt() / S
         if self.obs_sans_slope:      # obs Arma-cheap : sans la pente (slope), on garde dcover (~bâti proche) + LOS (checkVisibility)
             base = torch.stack([self.apx / S, self.apy / S, dgx, dgy, al.float(), dc, los, nd], dim=2)
