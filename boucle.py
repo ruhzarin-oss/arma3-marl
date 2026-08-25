@@ -268,7 +268,13 @@ if __name__ == "__main__":
 
     print("\n  LA PORTE — graines JAMAIS vues a l entrainement")
     print("  " + "=" * 66)
-    res, met = evaluer(pol, GRAINES_TEST)
+    # ⚠️ ON NE BRULE PAS TEST ⟨Fable, 24/08⟩. TEST juge un artefact LIVRE, une fois.
+    # Tout l exploratoire se lit sur SELECT. Six entrainements qui evaluent chacun sur TEST,
+    # c est six decisions prises sur le jeu qui doit rester vierge — et la porte cesserait
+    # d etre une porte sans que personne ne s en apercoive.
+    _GP = GRAINES_SELECT if os.environ.get("HMT_PORTE", "test") == "select" else GRAINES_TEST
+    print("    (la porte juge sur %s)" % ("SELECT" if _GP is GRAINES_SELECT else "TEST"))
+    res, met = evaluer(pol, _GP)
     moy = lambda v: sum(v) / len(v)
     for k in ("appris", "frontal", "flanc"):
         print(f"    {k:<10} prise {moy(res[k]):>5.1f} %   metres gagnes {moy(met[k]):>6.1f}")
@@ -286,7 +292,7 @@ if __name__ == "__main__":
     # G2 : controle nul — politique aleatoire
     e0 = monde(8, 1); e0.reset()
     alea = Politique(e0._obs().shape[-1]).to(DEV)
-    res_a, _ = evaluer(alea, GRAINES_TEST)
+    res_a, _ = evaluer(alea, _GP)
     ok2 = True
     for adv in ("frontal", "flanc"):
         d = [a - b for a, b in zip(res_a["appris"], res_a[adv])]
