@@ -155,21 +155,12 @@ class PolPrix(nn.Module):
 def danger_position(e):
     """Le danger A LA POSITION de l homme. -> (N, A)
 
-    ⚠️ INSTANTANE-RESTAURATION ⟨Fable, 26/08⟩. La version precedente ecrivait `champ_R = 0`
-    et ne restaurait pas. Mesure faite : `champ_R` n est lu que dans `_champ_danger`, et par
-    `_obs()` seulement si `champ_risque=True` — absent de MONDE_ARMA. L innocuite etait donc
-    etablie. Le principe restait viole : UNE SONDE N ECRIT PAS DANS CE QU ELLE MESURE.
-
     C est `_champ_danger` avec un rayon NUL : meme code, meme somme sur les defenseurs
     vivants, meme filtrage par ligne de vue et par arc, meme courbe de toucher. On ne
     fabrique pas une quantite nouvelle — on lit celle qui FACTURE.
     """
-    _garde = e.champ_R
-    try:
-        e.champ_R = 0.0
-        return e._champ_danger(K=1)[:, :, 0]
-    finally:
-        e.champ_R = _garde
+    e.champ_R = 0.0
+    return e._champ_danger(K=1)[:, :, 0]
 
 
 def phi(e):
@@ -180,74 +171,6 @@ def phi(e):
     """
     al = e._aalive().float()
     return -(danger_position(e) * al).sum(1) / al.sum(1).clamp(min=1)
-
-
-def jouer_phi2(e, choisir, garder=False, w_phi=0.0):
-    """LA VERSION CORRIGEE ⟨Fable, 26/08⟩ — Φ GELE + TROIS TEMOINS SEPARES.
-
-    ⛔ CE QUE LA v1 FAISAIT DE FAUX : `Φ = −moyenne du danger sur les VIVANTS`. Un homme meurt
-    presque toujours en zone dangereuse ; le retirer de la moyenne FAIT MONTER Φ, donc le
-    faconnage versait UNE PRIME A L INSTANT DE SA MORT. Et quand tous mouraient, le
-    `clamp(min=1)` rendait Φ = 0, SA VALEUR MAXIMALE : l aneantissement soldait la dette d un
-    coup. Or la recompense ne facture la mort NULLE PART ailleurs — ce terme etait le seul a
-    la pricer, et il la pricait POSITIVEMENT. Meme classe que la revue du 17/08.
-
-    ✅ LA FORME CORRECTE : chaque homme mort compte GELE A SON DERNIER DANGER DE VIVANT, somme
-    divisee par l EFFECTIF TOTAL CONSTANT. La mort deplace alors Φ d exactement zero — elle
-    n est pricee que par le reel, la perte de capacite de prise. Aucun clamp. C est toujours
-    une fonction d etat : la position de mort EST de l etat.
-
-    LE TERMINAL : on ne force PAS Φ(terminal)=0 — ce serait rouvrir le trou (Φ vaut au mieux
-    0, donc mourir effacerait la dette). On cesse d ajouter du faconnage, point. Le residu
-    telescope γ^T·Φ(s_T) penalise legerement le fait de FINIR en danger : entorse assumee,
-    du bon cote, non pompable, et le jugement est rendu SANS faconnage de toute facon.
-    """
-    o = e.reset(); N, A = e.N, e.A
-    pris = torch.zeros(N, dtype=torch.bool, device=e.dev)
-    fini = torch.zeros(N, dtype=torch.bool, device=e.dev)
-    d0 = torch.sqrt(e.apx ** 2 + e.apy ** 2).mean(1)
-    dprec = d0.clone(); dmin = d0.clone()
-    dernier = danger_position(e)                      # gele a la mort
-    phi_prec = -dernier.sum(1) / A
-    dg_somme = torch.zeros(N, device=e.dev)           # temoin 1 : numerateur homme-pas
-    hp_somme = torch.zeros(N, device=e.dev)           # temoin 1 : denominateur homme-pas
-    lps, vals, rs, masques = [], [], [], []
-    for t in range(B.PAS):
-        viv = (~fini).float()
-        a, lp, v = choisir(o, t)
-        o, _, done, info = e.step(a, auto_reset=False)
-        d = torch.sqrt(e.apx ** 2 + e.apy ** 2).mean(1)
-        gagne = dprec - B.GAMMA_PHI * d
-        dprec = d; dmin = torch.minimum(dmin, torch.where(fini, dmin, d))
-        neuf = info["took"] & ~fini
-        r = 1.0 * neuf.float() + 0.001 * gagne
-        al = e._aalive()
-        dd = danger_position(e)
-        dernier = torch.where(al, dd, dernier)        # LE GEL : un mort garde sa derniere valeur
-        ph = -dernier.sum(1) / A
-        if w_phi:
-            r = r + w_phi * (B.GAMMA_PHI * ph - phi_prec)
-        phi_prec = ph
-        # TEMOIN 1 : danger paye par HOMME-PAS VIVANT (jamais un ratio a trois quantites)
-        dg_somme = dg_somme + (dd * al.float()).sum(1) * viv
-        hp_somme = hp_somme + al.float().sum(1) * viv
-        pris |= neuf
-        if garder:
-            lps.append(lp); vals.append(v); rs.append(r * viv); masques.append(viv)
-        fini |= done.bool()
-        if bool(fini.all()):
-            break
-    tenus = d0 - dprec                                 # SIGNE, sans clamp
-    stats = dict(prise=100.0 * float(pris.float().mean()),
-                 metres=float((d0 - dmin).mean()),
-                 metres_tenus=float(tenus.mean()),
-                 # ⭐ LES TROIS TEMOINS SEPARES. Le ratio `danger/metre` de la v1 favorisait
-                 # structurellement « avancer vite et mourir » : dix pas de danger contre
-                 # soixante, et par metre tenu le sprinter-mort gagnait.
-                 danger_homme_pas=float((dg_somme / hp_somme.clamp(min=1e-6)).mean()),
-                 survivants=float(e._aalive().float().sum(1).mean()),
-                 danger_par_metre=float((dg_somme / tenus.clamp(min=1.0)).mean()))  # affichage seul
-    return stats, lps, vals, rs, masques
 
 
 def jouer_phi(e, choisir, garder=False, w_phi=0.0):
@@ -303,12 +226,8 @@ def prix_des_actions(e):
     Les 8 directions de `_champ_danger` sont EXACTEMENT les 8 caps de `boucle.cap` : toutes
     deux prennent l angle depuis +y vers +x, avec un decalage de pi/4. Verifie par la sonde.
     """
-    _garde = e.champ_R
-    try:
-        e.champ_R = float(e.move)
-        return e._champ_danger(K=8)
-    finally:
-        e.champ_R = _garde
+    e.champ_R = float(e.move)
+    return e._champ_danger(K=8)
 
 
 BRAS = {"A":  (PolVecteur, False,  False, 0.0),   "B":  (PolCNN,     True,   False, 0.0),
@@ -317,14 +236,7 @@ BRAS = {"A":  (PolVecteur, False,  False, 0.0),   "B":  (PolCNN,     True,   Fal
         "P":  (PolPrix,    "prix", False, 0.0),
         # ─── LE 2x2 ⟨prescription de Fable⟩ : le faconnage rend-il CREDITABLE ce que la
         #     greffe prouve ACTIONNABLE (+15,3 pts recoltes sans un seul gradient) ?
-        "AF": (PolVecteur, False,  False, W_PHI), "PF": (PolPrix,    "prix", False, W_PHI),
-        # ─── LES MEMES, AVEC LE Φ CORRIGE (gele a la mort, denominateur constant, zero clamp)
-        "AF2": (PolVecteur, False, False, W_PHI), "PF2": (PolPrix,   "prix", False, W_PHI),
-        # ─── LA SONDE QUI TRANCHE E2 ⟨Fable⟩ : les memes jetons, POSITIONS MISES A ZERO,
-        #     attributs conserves. ~61 % -> ce sont les attributs non spatiaux qui portaient
-        #     le gain de E2 ; ~49 % -> c etait du bruit regularisant.
-        "E3": (PolEntites, "ent",  "sans_pos", 0.0)}
-PHI_CORRIGE = {"AF2", "PF2"}
+        "AF": (PolVecteur, False,  False, W_PHI), "PF": (PolPrix,    "prix", False, W_PHI)}
 
 
 def faire_raster(e, brouille, br):
@@ -332,18 +244,11 @@ def faire_raster(e, brouille, br):
     return br(r) if brouille else r
 
 
-def _sans_positions(j, m):
-    """Les positions mises a ZERO, les attributs (camp, je le vois, il me voit) intacts."""
-    out = j.clone(); out[..., :3] = 0.0
-    return out, m
-
-
 def faire_entites(e, brouille, bre):
     """Le TERRAIN comme image (4 canaux, identiques à ceux du bras B) + les UNITÉS en liste."""
     r = raster(e, K=K, span=SPAN, canaux=CANAUX_TERRAIN)
     j, m = entites(e)
-    if brouille == "sans_pos": j, m = _sans_positions(j, m)
-    elif brouille:             j, m = bre(j, m)
+    if brouille: j, m = bre(j, m)
     return (r, j, m)
 
 
@@ -355,8 +260,7 @@ def entrainer(bras, graine, iters=140, n=256, lr=3e-4, eval_tous=0, film=None):
     e0 = B.monde(8, B.GRAINES_TRAIN[0]); e0.reset()
     nobs = e0._obs().shape[-1]
     pol = Cls(nobs).to(DEV)
-    br = ((brouilleur_entites() if avec_r == "ent" else brouilleur(K, C, DEV))
-          if (brouille and brouille != "sans_pos") else None)
+    br = (brouilleur_entites() if avec_r == "ent" else brouilleur(K, C, DEV)) if brouille else None
     opt = torch.optim.Adam(pol.parameters(), lr=lr)
     npar = sum(p.numel() for p in pol.parameters())
     print("    bras %s graine %d — %d entrees vectorielles, %s, %d parametres"
@@ -375,8 +279,7 @@ def entrainer(bras, graine, iters=140, n=256, lr=3e-4, eval_tous=0, film=None):
             di = torch.distributions.Categorical(logits=lo)
             a = di.sample()
             return a, di.log_prob(a), v
-        _jouer = jouer_phi2 if bras in PHI_CORRIGE else jouer_phi
-        st, lps, vals, rs, masques = _jouer(e, choisir, garder=True, w_phi=wphi)
+        st, lps, vals, rs, masques = jouer_phi(e, choisir, garder=True, w_phi=wphi)
         R = torch.zeros_like(rs[0]); rets = []
         for r_ in reversed(rs):
             R = r_ + 0.99 * R; rets.append(R)
@@ -401,16 +304,15 @@ def entrainer(bras, graine, iters=140, n=256, lr=3e-4, eval_tous=0, film=None):
         if eval_tous and film is not None and (it % eval_tous == 0 or it == iters - 1):
             p_, t_, d_ = evaluer(pol, bras, B.GRAINES_SELECT, n=n)
             film.append({"it": it, "prise_select": p_, "tenus_select": t_, "danger_par_metre": d_})
-            print("      FILM it %4d  select : prise %5.1f %%  tenus %6.1f m  danger/hp %.4f  survivants %.2f"
-                  % (it, p_, t_, d_[0], d_[1]), flush=True)
+            print("      FILM it %4d  select : prise %5.1f %%  tenus %6.1f m  danger/m %.4f"
+                  % (it, p_, t_, d_), flush=True)
     return pol
 
 
 def evaluer(pol, bras, graines, n=256):
     """Lecture sur graines JAMAIS vues. Décodeur = ÉCHANTILLONNAGE (décision du 24/08)."""
     _, avec_r, brouille, _w = BRAS[bras]
-    br = ((brouilleur_entites() if avec_r == "ent" else brouilleur(K, C, DEV))
-          if (brouille and brouille != "sans_pos") else None)
+    br = (brouilleur_entites() if avec_r == "ent" else brouilleur(K, C, DEV)) if brouille else None
     prises, tenus, dpm = [], [], []
     for g in graines:
         e = B.monde(n, g)
@@ -423,13 +325,9 @@ def evaluer(pol, bras, graines, n=256):
             return torch.distributions.Categorical(logits=lo).sample(), None, None
         # ⚠️ LE JUGEMENT EST SANS FAÇONNAGE, TOUJOURS. Un bras faconne se juge sur la MEME
         # recompense que les autres, sinon les colonnes cessent d etre comparables.
-        # LE JUGEMENT EST TOUJOURS SANS FAÇONNAGE, et toujours par la version CORRIGEE :
-        # c est un instrument de MESURE, il doit etre le meme pour toutes les colonnes.
-        st, *_ = jouer_phi2(e, gele, w_phi=0.0)
-        prises.append(st["prise"]); tenus.append(st["metres_tenus"])
-        dpm.append((st["danger_homme_pas"], st["survivants"]))
-    m = lambda i: sum(x[i] for x in dpm) / len(dpm)
-    return (sum(prises) / len(prises), sum(tenus) / len(tenus), (m(0), m(1)))
+        st, *_ = jouer_phi(e, gele, w_phi=0.0)
+        prises.append(st["prise"]); tenus.append(st["metres_tenus"]); dpm.append(st["danger_par_metre"])
+    return (sum(prises) / len(prises), sum(tenus) / len(tenus), sum(dpm) / len(dpm))
 
 
 def doctrines(graines, n=256):
@@ -514,8 +412,8 @@ if __name__ == "__main__":
             res["bras"][b].setdefault("danger_par_metre", []).append(d)
             res["bras"][b].setdefault("film", {})[str(g)] = film
             res["faits"].append(marque)          # LA MARQUE DE FIN, ecrite APRES le jugement
-            print("    == bras %s graine %d : PRISE %5.1f %%   TENUS %6.1f m   DANGER/hp %.4f   SURVIVANTS %.2f   (%.1f min)"
-                  % (b, g, p, t, d[0], d[1], (time.time() - t0) / 60.0), flush=True)
+            print("    == bras %s graine %d : PRISE %5.1f %%   TENUS %6.1f m   DANGER/m %.4f   (%.1f min)"
+                  % (b, g, p, t, d, (time.time() - t0) / 60.0), flush=True)
             json.dump(res, open(a.sortie, "w"), indent=1)
         v = sorted(res["bras"][b]["prise"])
         if v:
