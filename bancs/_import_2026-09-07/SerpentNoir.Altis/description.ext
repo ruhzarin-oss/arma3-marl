@@ -1,0 +1,48 @@
+author = "Harmattan";
+onLoadName = "SERPENT NOIR";
+onLoadMission = "Altis, 01h20. Un homme quitte l'ile a l'aube. Il ne doit pas.";
+overviewText = "Infiltration solitaire. Un homme, un objectif, aucune sortie de secours.";
+loadScreen = "";
+
+respawn = 0;
+respawnDelay = 0;
+disabledAI = 1;
+enableDebugConsole = 1;
+briefing = 1;
+showGPS = 0;
+showCompass = 1;
+showWatch = 1;
+
+class Header { gameType = "Coop"; minPlayers = 1; maxPlayers = 1; };
+
+class CfgDebriefing
+{
+	class End1
+	{
+		title = "SERPENT NOIR";
+		subtitle = "Il n'a jamais su que vous etiez la";
+		description = "La cible est neutralisee et le camp cherche encore d'ou est venu le coup. Vous etes ressorti par ou vous etes entre. C'est la seule fin qui compte.";
+		picture = "b_inf"; pictureColor[] = {0.0,0.3,0.6,1};
+	};
+	class End2
+	{
+		title = "CIBLE NEUTRALISEE";
+		subtitle = "Mais toute l'ile vous a entendu";
+		description = "La cible est morte. Le secteur entier est en alerte, la reserve a ete engagee, et votre visage est desormais un renseignement. Le contrat est rempli. Le metier, non.";
+		picture = "b_inf"; pictureColor[] = {0.6,0.4,0.0,1};
+	};
+	class End3
+	{
+		title = "IL EST PARTI";
+		subtitle = "Vous l'avez laisse filer";
+		description = "Le convoi a franchi la ligne de cretes avant que vous ayez tire. A cette heure il est en mer.";
+		picture = "b_inf"; pictureColor[] = {0.5,0.0,0.0,1};
+	};
+	class End4
+	{
+		title = "ECHEC";
+		subtitle = "Vous n'etes pas ressorti";
+		description = "Un homme seul, sans appui, sans evacuation. C'etait le contrat.";
+		picture = "b_inf"; pictureColor[] = {0.4,0.0,0.0,1};
+	};
+};

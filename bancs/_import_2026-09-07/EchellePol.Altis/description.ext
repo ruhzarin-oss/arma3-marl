@@ -1,0 +1,5 @@
+author = "Harmattan";
+onLoadName = "ECHELLE - HARNAIS";
+respawn = 0;
+disabledAI = 1;
+class Header { gameType = "Coop"; minPlayers = 1; maxPlayers = 1; };

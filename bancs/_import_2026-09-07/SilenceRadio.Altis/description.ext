@@ -1,0 +1,53 @@
+author = "Harmattan";
+onLoadName = "SILENCE RADIO";
+onLoadMission = "Altis, 02h45. Un relais CSAT ecoute tout le sud de l'ile. Faites-le taire.";
+overviewText = "Infiltration nocturne. Quatre hommes, un relais, aucune trace.";
+overviewPicture = "";
+loadScreen = "";
+
+respawn = 0;
+respawnDelay = 0;
+disabledAI = 1;
+enableDebugConsole = 1;
+briefing = 1;
+showGPS = 1;
+showCompass = 1;
+showWatch = 1;
+
+class Header
+{
+	gameType = "Coop";
+	minPlayers = 1;
+	maxPlayers = 1;
+};
+
+class CfgDebriefing
+{
+	class End1
+	{
+		title = "SILENCE RADIO";
+		subtitle = "Aucune trace";
+		description = "Le relais est mort et personne ne sait pourquoi. Les donnees sont en route vers le porte-avions. C'est exactement ce qu'on vous demandait.";
+		pictureBackground = "";
+		picture = "b_inf";
+		pictureColor[] = {0.0,0.3,0.6,1};
+	};
+	class End2
+	{
+		title = "OBJECTIF ATTEINT";
+		subtitle = "Mais ils vous ont vus";
+		description = "Le relais est detruit et les donnees sont sorties. Reste que le CSAT sait maintenant qu'une equipe de reconnaissance opere dans le secteur. La prochaine sera attendue.";
+		pictureBackground = "";
+		picture = "b_inf";
+		pictureColor[] = {0.6,0.4,0.0,1};
+	};
+	class End3
+	{
+		title = "ECHEC";
+		subtitle = "Le relais parle toujours";
+		description = "L'equipe n'est pas ressortie. Le relais continue d'ecouter.";
+		pictureBackground = "";
+		picture = "b_inf";
+		pictureColor[] = {0.5,0.0,0.0,1};
+	};
+};
