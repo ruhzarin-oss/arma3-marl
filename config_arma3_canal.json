@@ -1,0 +1,151 @@
+{
+ "sizeOf_B_Soldier_F": 0.0,
+ "TEMOIN+ hit munition": {
+  "existe": true,
+  "valeur": 10.0
+ },
+ "TEMOIN- chemin bidon": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "sensitivity": {
+  "existe": true,
+  "valeur": 6.0
+ },
+ "sensitivityEar": {
+  "existe": true,
+  "valeur": 0.125
+ },
+ "camouflage": {
+  "existe": true,
+  "valeur": 1.4
+ },
+ "audible": {
+  "existe": true,
+  "valeur": 0.05
+ },
+ "radius (CfgVehicles)": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "armor": {
+  "existe": true,
+  "valeur": 2.0
+ },
+ "armorStructural": {
+  "existe": true,
+  "valeur": 4.0
+ },
+ "threat/accuracy": {
+  "existe": true,
+  "valeur": 2.3
+ },
+ "arifle_MX_F audibleFire (arme)": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "arifle_MX_F audibleFire (Single)": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "arifle_MX_F visibleFire (arme)": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "arifle_MXC_F audibleFire (arme)": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "arifle_MXC_F audibleFire (Single)": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "arifle_MXC_F visibleFire (arme)": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "arifle_SPAR_01_blk_F audibleFire (arme)": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "arifle_SPAR_01_blk_F audibleFire (Single)": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "arifle_SPAR_01_blk_F visibleFire (arme)": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "CfgAmmo minRange": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "CfgAmmo minRangeProbab": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "CfgAmmo midRange": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "CfgAmmo midRangeProbab": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "CfgAmmo maxRange": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "CfgAmmo maxRangeProbab": {
+  "existe": false,
+  "valeur": 0.0
+ },
+ "MX Single minRange": {
+  "existe": true,
+  "valeur": 120.0
+ },
+ "MX Single minRangeProbab": {
+  "existe": true,
+  "valeur": 0.7
+ },
+ "MX Single midRange": {
+  "existe": true,
+  "valeur": 300.0
+ },
+ "MX Single midRangeProbab": {
+  "existe": true,
+  "valeur": 0.5
+ },
+ "MX Single maxRange": {
+  "existe": true,
+  "valeur": 400.0
+ },
+ "MX Single maxRangeProbab": {
+  "existe": true,
+  "valeur": 0.3
+ },
+ "MX FullAuto minRange": {
+  "existe": true,
+  "valeur": 0.0
+ },
+ "MX FullAuto minRangeProbab": {
+  "existe": true,
+  "valeur": 0.9
+ },
+ "MX FullAuto midRange": {
+  "existe": true,
+  "valeur": 15.0
+ },
+ "MX FullAuto midRangeProbab": {
+  "existe": true,
+  "valeur": 0.7
+ },
+ "MX FullAuto maxRange": {
+  "existe": true,
+  "valeur": 30.0
+ },
+ "MX FullAuto maxRangeProbab": {
+  "existe": true,
+  "valeur": 0.1
+ }
+}

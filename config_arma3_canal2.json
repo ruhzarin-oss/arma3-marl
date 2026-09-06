@@ -1,0 +1,85 @@
+{
+ "boundingBoxReal": [
+  1.6,
+  2.2,
+  2.0
+ ],
+ "sizeOf": 7.17143,
+ "rayon_sphere_m": 1.6881943016134133,
+ "modes": [
+  "Single",
+  "FullAuto",
+  "fullauto_medium",
+  "single_medium_optics1",
+  "single_far_optics2",
+  "ACE_Burst_far"
+ ],
+ "Single": {
+  "minRange": 120.0,
+  "minRangeProbab": 0.7,
+  "midRange": 300.0,
+  "midRangeProbab": 0.5,
+  "maxRange": 400.0,
+  "maxRangeProbab": 0.3
+ },
+ "FullAuto": {
+  "minRange": 0.0,
+  "minRangeProbab": 0.9,
+  "midRange": 15.0,
+  "midRangeProbab": 0.7,
+  "maxRange": 30.0,
+  "maxRangeProbab": 0.1
+ },
+ "fullauto_medium": {
+  "minRange": 20.0,
+  "minRangeProbab": 0.5,
+  "midRange": 75.0,
+  "midRangeProbab": 0.7,
+  "maxRange": 150.0,
+  "maxRangeProbab": 0.05
+ },
+ "single_medium_optics1": {
+  "minRange": 120.0,
+  "minRangeProbab": 0.2,
+  "midRange": 450.0,
+  "midRangeProbab": 0.7,
+  "maxRange": 700.0,
+  "maxRangeProbab": 0.2
+ },
+ "single_far_optics2": {
+  "minRange": 200.0,
+  "minRangeProbab": 0.1,
+  "midRange": 500.0,
+  "midRangeProbab": 0.6,
+  "maxRange": 900.0,
+  "maxRangeProbab": 0.05
+ },
+ "ACE_Burst_far": {
+  "minRange": 400.0,
+  "minRangeProbab": 0.1,
+  "midRange": 500.0,
+  "midRangeProbab": 0.2,
+  "maxRange": 600.0,
+  "maxRangeProbab": 0.2
+ },
+ "CfgAmmo_audibleFire": {
+  "existe": true,
+  "valeur": 40.0
+ },
+ "CfgAmmo_visibleFire": {
+  "existe": true,
+  "valeur": 3.0
+ },
+ "CfgAmmo_hit": {
+  "existe": true,
+  "valeur": 10.0
+ },
+ "CfgAmmo_typicalSpeed": {
+  "existe": true,
+  "valeur": 820.0
+ },
+ "CfgAmmo_indirectHitRange": {
+  "existe": true,
+  "valeur": 0.0
+ }
+}

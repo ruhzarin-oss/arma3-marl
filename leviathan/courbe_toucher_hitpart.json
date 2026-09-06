@@ -1,0 +1,231 @@
+{
+ "skill": 0.5,
+ "duree": 55,
+ "reps": "B1+B2 (12+12 blocs) + session dediee 200 m",
+ "zone": "positions tirees, terrain > 5 m d altitude",
+ "distances": [
+  25,
+  50,
+  75,
+  100,
+  150,
+  200
+ ],
+ "postures": [
+  "UP",
+  "MIDDLE",
+  "DOWN"
+ ],
+ "pct_au_but": {
+  "25": [
+   56.196,
+   55.5892,
+   67.0437
+  ],
+  "50": [
+   63.1239,
+   59.9916,
+   56.5346
+  ],
+  "75": [
+   48.4615,
+   53.4754,
+   42.8135
+  ],
+  "100": [
+   39.685,
+   46.6418,
+   26.9498
+  ],
+  "150": [
+   45.7944,
+   44.5902,
+   31.9475
+  ],
+  "200": [
+   31.9265,
+   31.9265,
+   22.5948
+  ]
+ },
+ "balles": {
+  "25": [
+   3591,
+   2639,
+   3271
+  ],
+  "50": [
+   1703,
+   2377,
+   2701
+  ],
+  "75": [
+   1430,
+   2158,
+   1635
+  ],
+  "100": [
+   1270,
+   804,
+   1295
+  ],
+  "150": [
+   535,
+   610,
+   457
+  ],
+  "200": [
+   1237,
+   1156,
+   686
+  ]
+ },
+ "alertes": [],
+ "brut_pct_au_but": {
+  "25": [
+   56.196,
+   55.5892,
+   67.0437
+  ],
+  "50": [
+   63.1239,
+   59.9916,
+   56.5346
+  ],
+  "75": [
+   48.4615,
+   53.4754,
+   42.8135
+  ],
+  "100": [
+   39.685,
+   46.6418,
+   26.9498
+  ],
+  "150": [
+   45.7944,
+   44.5902,
+   31.9475
+  ],
+  "200": [
+   31.8513,
+   32.0069,
+   22.5948
+  ]
+ },
+ "ic95_pct": {
+  "25": [
+   [
+    54.57,
+    57.81
+   ],
+   [
+    53.69,
+    57.48
+   ],
+   [
+    65.41,
+    68.63
+   ]
+  ],
+  "50": [
+   [
+    60.81,
+    65.38
+   ],
+   [
+    58.01,
+    61.94
+   ],
+   [
+    54.66,
+    58.39
+   ]
+  ],
+  "75": [
+   [
+    45.88,
+    51.05
+   ],
+   [
+    51.37,
+    55.57
+   ],
+   [
+    40.43,
+    45.23
+   ]
+  ],
+  "100": [
+   [
+    37.03,
+    42.4
+   ],
+   [
+    43.22,
+    50.1
+   ],
+   [
+    24.6,
+    29.43
+   ]
+  ],
+  "150": [
+   [
+    41.62,
+    50.03
+   ],
+   [
+    40.69,
+    48.56
+   ],
+   [
+    27.84,
+    36.36
+   ]
+  ],
+  "200": [
+   [
+    29.31,
+    34.5
+   ],
+   [
+    29.38,
+    34.75
+   ],
+   [
+    19.62,
+    25.87
+   ]
+  ]
+ },
+ "instrument": "HitPart sur cible invulnerable, UN impact par PROJECTILE, source appariee",
+ "reproductibilite_100m_UP": "0,402 [0,371 ; 0,435] n=902 et 0,383 [0,335 ; 0,434] n=368",
+ "reparation": {
+  "quoi": "monotonie imposee EN POSTURE par PAVA pondere par les balles",
+  "pourquoi": "une silhouette plus petite ne peut pas etre plus facile a toucher",
+  "precedent": "meme reparation que la courbe du 26/07, deja deposee et acceptee",
+  "regle": "lisser SEULEMENT la ou les IC se recouvrent ; garder le brut la ou la mesure tranche. Une hypothese ne survit pas a une mesure.",
+  "distances_touchees": [
+   200
+  ],
+  "NON_repare_posture": [
+   "25 m : MIDDLE 55.6% < DOWN 67.0% (IC disjoints, mesure gardee)",
+   "75 m : UP 48.5% < MIDDLE 53.5% (IC disjoints, mesure gardee)",
+   "100 m : UP 39.7% < MIDDLE 46.6% (IC disjoints, mesure gardee)"
+  ],
+  "NON_repare_distance": [
+   "UP : 25 m 56.2% < 50 m 63.1%",
+   "UP : 100 m 39.7% < 150 m 45.8%",
+   "MIDDLE : 25 m 55.6% < 50 m 60.0%",
+   "DOWN : 100 m 26.9% < 150 m 31.9%"
+  ],
+  "pourquoi_non_repare": "le taux MONTE entre 25 et 50 m ; lisser effacerait un fait. Explication mecanique lue dans la config d Arma 3 : a 25 m l IA est dans le domaine du mode FullAuto, dont le maxRangeProbab tombe a 0,10 des 30 m."
+ },
+ "reserve": "degat_par_impact = 0,233 n a PAS ete re-derive : cette courbe change la FORME du risque, pas son echelle absolue.",
+ "sources": [
+  "courbe_toucher_hitpart_B1.json",
+  "courbe_toucher_hitpart_B2.json",
+  "courbe_toucher_hitpart_200.json"
+ ]
+}

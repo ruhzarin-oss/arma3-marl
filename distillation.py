@@ -21,6 +21,22 @@ from banc_raster import prix_des_actions, jouer_phi2
 DEV = "cuda:0"
 MAITRE = "/home/younes/arma3-marl/pol_1200_g0.pt"
 K_TOP = 3
+# ─── LE NOUVEAU MAITRE ⟨depot cee4a563999d5112, 26/08⟩ ────────────────────────────────
+# La greffe faisait 61,6 % et exigeait le PRIX a l execution. La doctrine SHAMAL sans
+# bounding fait **84,6 %** (etendue [79,3 ; 89,1], six graines) et n exige RIEN.
+# Elle gagne en COMBATTANT : 2,68 survivants sur 4 contre 1,34 pour SHAMAL complet.
+# Et son desaccord avec la reference sera MASSIF, ce qui est la condition qui manquait a D1
+# (signal redondant a 88 % avec le navigateur — mesure du 26/08).
+from shamal_teacher import shamal_action
+MAITRE_SHAMAL = dict(drop_to=1, retreat=True, mode="assault", bounding=False, flank=True)
+# ⭐ LE MAITRE v2 — 91,0 % [89,1 ; 94,1], survivants 3,17 sur 4.
+# Mesure du 26/08 : rabattre les POSTURES sur TIRER gagne 6,4 points de plus (84,6 -> 91,0).
+# Le controle qui rend ce chiffre lisible : les rabattre sur TENIR donne 0,7 % — ce n est
+# donc pas « n importe quel remplacement marche », c est TIRER qui paie et S IMMOBILISER
+# qui tue. Motif des trois gestes tombes : TOUT CE QUI FIGE UN HOMME COUTE
+# (bond -37,0 · accroupissement -6,4 · tenir -83,9).
+# Et il n emet plus QUE les 10 actions de la reference : le biais de vocabulaire disparait.
+BRIDER_A_10 = True
 
 
 class Eleve(nn.Module):
@@ -43,6 +59,21 @@ def charger_maitre():
     return m
 
 
+def cible_shamal(e, hasard=False):
+    """L action du NOUVEAU maitre : la doctrine scriptee a 84,6 %.
+    `hasard` = LE CONTROLE : on garde la meme forme d ordre mais on tire le cap au hasard
+    parmi les huit, en conservant les actions non directionnelles (tenir, tirer, postures).
+    Il mesure ce que rapporte le seul fait d IMITER QUELQUE CHOSE DE COHERENT, sans le
+    contenu tactique."""
+    a = shamal_action(e, **MAITRE_SHAMAL)
+    if BRIDER_A_10:
+        a = torch.where(a >= 10, torch.full_like(a, 9), a)      # postures -> TIRER
+    if not hasard:
+        return a
+    r = torch.randint(0, 8, a.shape, device=a.device)
+    return torch.where(a < 8, r, a)          # les caps deviennent aleatoires, TIRER tient
+
+
 def cible_du_maitre(maitre, o, e, hasard=False):
     """L action que le PROFESSEUR prendrait. `hasard` = le CONTROLE : on garde le rabattage
     sur le top-3 mais on tire dedans AU HASARD au lieu de prendre la moins chere."""
@@ -62,8 +93,9 @@ def distiller(eleve_type, graine, iters=600, n=256, lr=3e-4):
     """DAgger simplifie : l ELEVE conduit (donc la distribution d etats est la SIENNE), le
     MAITRE etiquette. Sans ca on n apprendrait que sur les etats du maitre, et l eleve
     derailerait des le premier ecart — c est la faute classique du clonage naif."""
-    avec_prix = (eleve_type == "D2")
-    hasard = (eleve_type == "D3")
+    avec_prix = (eleve_type in ("D2",))
+    hasard = (eleve_type in ("D3", "S3"))
+    shamal = eleve_type.startswith("S")          # S = le maitre a 84,6 %, D = l ancienne greffe
     torch.manual_seed(graine)
     maitre = charger_maitre()
     e0 = B.monde(8, B.GRAINES_TRAIN[0]); e0.reset(); nobs = e0._obs().shape[-1]
@@ -72,7 +104,8 @@ def distiller(eleve_type, graine, iters=600, n=256, lr=3e-4):
     perte_fn = nn.CrossEntropyLoss()
     print("    eleve %s graine %d — %d entrees%s, cible %s, %d parametres"
           % (eleve_type, graine, nobs, " + 8 prix" if avec_prix else "",
-             "AU HASARD dans le top-3 (CONTROLE)" if hasard else "la moins chere",
+             ("SHAMAL 91,0 %% avec CAP AU HASARD (CONTROLE)" if hasard else "SHAMAL 91,0 %%") if shamal
+             else ("AU HASARD dans le top-3 (CONTROLE)" if hasard else "la moins chere"),
              sum(p.numel() for p in el.parameters())), flush=True)
     for it in range(iters):
         e = B.monde(n, B.GRAINES_TRAIN[it % len(B.GRAINES_TRAIN)])
@@ -80,8 +113,11 @@ def distiller(eleve_type, graine, iters=600, n=256, lr=3e-4):
         opt.zero_grad()
         fini = torch.zeros(e.N, dtype=torch.bool, device=e.dev)
         for t in range(B.PAS):
-            y, prix = cible_du_maitre(maitre, o, e, hasard=hasard)
-            if prix is None: prix = prix_des_actions(e)
+            if shamal:
+                y = cible_shamal(e, hasard=hasard); prix = None
+            else:
+                y, prix = cible_du_maitre(maitre, o, e, hasard=hasard)
+            if prix is None and avec_prix: prix = prix_des_actions(e)
             lo, _ = el(o, prix if avec_prix else None)
             # ⚠️ NORMALISATION PAR HOMME-PAS VIVANT, pas par environnement. La version
             # precedente divisait par N au lieu de N x A : la perte affichait 9,3 la ou le

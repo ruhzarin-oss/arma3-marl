@@ -1,34 +1,55 @@
 #!/bin/bash
-# ═══ L ENCHAINEMENT DE LA NUIT ⟨20/08⟩ ═══════════════════════════════════════════════════
-# Les trois demandent le SERVEUR : ils ne peuvent pas tourner ensemble, ils se tueraient.
-#   1. la douzaine de verification  (deja lancee — on attend qu elle finisse)
-#   2. la sonde du gel              (la collision fabriquee : voir la garde AGIR)
-#   3. la nuit politique 2 x 67     (n ~ 107 comme le natif, pour que la resolution
-#                                    de 12 points de l ecart soit atteignable)
-# ⚠️ Chaque etape ARCHIVE avant que la suivante ne reutilise les noms de session.
-cd /home/younes/arma3-marl || exit 1
-J=/mnt/data/chaine_nuit.txt; : > $J
-dire() { echo "$(date +%H:%M) $*" | tee -a $J; }
+# CHAINE DE NUIT — l'ordre est contraignant (PRE_SITE_DEGELE.md) :
+#   1. on attend la fin des deux courses (regle d'arret ou 4000 episodes)
+#   2. TEMOINS, un par instance — un temoin ne garde que SON instance, lecon du 02/09
+#   3. la porte, seulement si les deux temoins tiennent leur bande
+cd /home/younes/arma3-marl
+exec > chaine_nuit.log 2>&1
+echo "veille armee a $(date +%H:%M:%S)"
+while pgrep -f "harnais.py .* --sites apprentissage" > /dev/null; do sleep 60; done
+echo "les deux courses ont fini a $(date +%H:%M:%S)"
+grep -E "ARRET A ISSUE|^FIN :" site_g0.log site_g1.log
+sleep 30
 
-dire "attente de la douzaine..."
-while pgrep -f douzaine_coups.sh > /dev/null; do sleep 20; done
-dire "douzaine finie"
-mkdir -p /mnt/data/preuves/2026-08-20_douzaine
-cp -p /mnt/data/douzaine/* /mnt/data/preuves/2026-08-20_douzaine/ 2>/dev/null
-dire "douzaine archivee"
+echo ""
+echo "############ 1. TEMOINS, UN PAR INSTANCE ############"
+echo "bandes exigees : DOCTRINE >= 97,6 %   ALEATOIRE dans [5,5 ; 23,4]"
+./.venv/bin/python -u temoins_traversants.py --instance 1 --D 30 --n 51 \
+    --temoins DOCTRINE  --sites jugement --dimensionner > t_i1.log 2>&1 &
+X=$!
+./.venv/bin/python -u temoins_traversants.py --instance 2 --D 30 --n 51 \
+    --temoins DOCTRINE  --sites jugement --dimensionner > t_i2.log 2>&1 &
+Y=$!
+wait $X; wait $Y
+D1=$(grep -o "DOCTRINE : [0-9]*/[0-9]* = [0-9.]*" t_i1.log | grep -o "[0-9.]*$")
+D2=$(grep -o "DOCTRINE : [0-9]*/[0-9]* = [0-9.]*" t_i2.log | grep -o "[0-9.]*$")
+echo "instance 1 : $(grep 'DOCTRINE :' t_i1.log)"
+echo "instance 2 : $(grep 'DOCTRINE :' t_i2.log)"
+OK=$(echo "$D1 $D2" | awk '{print ($1 >= 97.6 && $2 >= 97.6) ? 1 : 0}')
+if [ "$OK" != "1" ]; then
+  echo ""
+  echo "############ ARRET : UN TEMOIN EST HORS DE SA BANDE ############"
+  echo "La porte NE SE JOUE PAS. Le monde a bouge pendant la nuit ; juger l'agent"
+  echo "contre une cible mesuree hier serait la faute que le registre du 16/08 a coutee."
+  echo "fini $(date +%H:%M:%S)"
+  exit 1
+fi
 
-for p in $(pgrep -f arma3server_x64); do kill $p 2>/dev/null; done; sleep 3
-dire "SONDE DU GEL — collision fabriquee"
-timeout 1800 ./.venv/bin/python -u sonde_gel.py > /mnt/data/sonde_gel.txt 2>&1
-dire "sonde gel finie (code $?)"
-mkdir -p /mnt/data/preuves/2026-08-20_sonde_gel
-cp -p /mnt/data/sonde_gel.txt /mnt/data/harmattan-sandbox/logs/serverSGEL.out /mnt/data/preuves/2026-08-20_sonde_gel/ 2>/dev/null
-
-for p in $(pgrep -f arma3server_x64); do kill $p 2>/dev/null; done; sleep 3
-# ⚠️ ARCHIVER L ANCIEN AVANT QUE LA NUIT NE REUTILISE LES NOMS — lecon du 19/08.
-mkdir -p /mnt/data/preuves/2026-08-20_politique_ancienne
-cp -p /mnt/data/politique/* /mnt/data/preuves/2026-08-20_politique_ancienne/ 2>/dev/null
-rm -f /mnt/data/politique/p*_e*.txt /mnt/data/politique/p*_e*.npz 2>/dev/null
-dire "NUIT POLITIQUE — 2 x 67, canal inchange, minuteur derive 640 s"
-bash rejeu.sh >> $J 2>&1
-dire "═══ CHAINE TERMINEE ═══"
+echo ""
+echo "############ 2. LA PORTE, sur les 126 sites de JUGEMENT ############"
+P0=$(ls -t ckpt_site_g0/*.pt | head -1)
+P1=$(ls -t ckpt_site_g1/*.pt | head -1)
+echo "points juges : $P0  et  $P1"
+echo "rappel du niveau AVANT entrainement sur sites tires, meme lot de jugement :"
+echo "   graine 0 : 90,9 %  (1/5 series)      graine 1 : 82,0 %  (1/5 series)"
+echo ""
+./.venv/bin/python -u porte_b0.py --point "$P0" --D 30 --instance 1 \
+    --sites jugement --transfert > p_site_g0.log 2>&1 &
+A=$!
+./.venv/bin/python -u porte_b0.py --point "$P1" --D 30 --instance 2 \
+    --sites jugement --transfert > p_site_g1.log 2>&1 &
+B=$!
+wait $A; wait $B
+echo "############ GRAINE 0 ############"; cat p_site_g0.log
+echo "############ GRAINE 1 ############"; cat p_site_g1.log
+echo "fini $(date +%H:%M:%S)"

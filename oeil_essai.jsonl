@@ -1,0 +1,6 @@
+{"nom": "i00000", "camp": "EST", "d": 90, "lat": 1.48, "posture": 0, "present": 1}
+{"nom": "i00001", "camp": "OUEST", "d": 180, "lat": 6.66, "posture": 1, "present": 1}
+{"nom": "i00002", "camp": "AUCUN", "d": 40, "lat": 1.69, "posture": 1, "present": 0}
+{"nom": "i00003", "camp": "EST", "d": 130, "lat": 0.81, "posture": 0, "present": 1}
+{"nom": "i00004", "camp": "OUEST", "d": 320, "lat": 0.66, "posture": 2, "present": 1}
+{"nom": "i00005", "camp": "AUCUN", "d": 320, "lat": -1.65, "posture": 0, "present": 0}

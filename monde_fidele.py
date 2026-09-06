@@ -21,12 +21,16 @@ import math, json, sys, os
 sys.path.insert(0, "/home/younes/arma3-marl")
 
 LEV = "/home/younes/arma3-marl/leviathan"
-COURBE = LEV + "/courbe_toucher_monotone.json"   # la mesure du 26/07, monotonie reparee, alerte RESOLUE et non effacee
+COURBE = LEV + "/courbe_toucher_rang1_10.json"   # ⭐ 04/09 : remesuree a `HitPart` (un impact
+# par PROJECTILE, source appariee), instrument REPRODUCTIBLE d une passe a l autre. La courbe
+# du 26/07 etait fausse de FORME — trop raide : x0,75 a 25 m et x1,91 a 150 m contre celle-ci.
+# Le gymnase punissait donc trop le rapprochement et payait trop la distance, sur LE parametre
+# qui a refuse de transferer trois fois. Ancienne : courbe_toucher_monotone.json.
 
 # ─── LES CONVERSIONS. Arma compte en SECONDES et en BALLES, la sandbox en PAS.
 SEC_PAR_PAS      = 3.28    # duree reelle d un pas (move / vitesse mesuree)
 TIR_PAR_PAS      = 1.15    # balles tirees par defenseur et par pas
-DEGAT_PAR_IMPACT = 0.233   # part de la sante retiree par impact
+DEGAT_PAR_IMPACT = 0.1750   # part de la sante retiree par impact
 
 MONDE_ARMA = dict(
     # ---- LE TOUCHER. Sans elle, hit=0.06 partout et une falaise a fire_range : un monde ou

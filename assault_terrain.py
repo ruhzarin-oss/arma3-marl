@@ -22,7 +22,7 @@ class AssaultTerrain:
                  emergent_expo=False, death_pen=0.4, suffer_pen=1.1, win_bonus=1.0, kill_w=1.5, arma_obs=False, obs_dcover_arma=None, obs_sans_slope=None,
                  secure_task=False, approach_w=0.2, secure_only=False, supp_kill=1.0,
                  def_arc=math.pi, def_line=False, def_spread=1.0, def_rline=35.0, def_rand=False, nav_around=False, flank_kill=0.0,
-                 los_tous=False, frein_feu=0.0, alerte=False, courbe=None, tir_par_pas=None, sec_par_pas=None, degat_par_impact=None, arc_obs=False, champ_risque=False, champ_R=35.0, stress=False, mission="assaut", arc_latence_s=None, supp_residuel=None, supp_persist=0.0, cible_unique=True, feu_sur_connu=0.0, feu_de_zone=0.0, relief_stratis=False):
+                 arrivee_segment=False, los_tous=False, frein_feu=0.0, alerte=False, courbe=None, tir_par_pas=None, sec_par_pas=None, degat_par_impact=None, arc_obs=False, champ_risque=False, champ_R=35.0, stress=False, mission="assaut", arc_latence_s=None, supp_residuel=None, supp_persist=0.0, cible_unique=True, feu_sur_connu=0.0, feu_de_zone=0.0, relief_stratis=False, canal_cwr=None):
         # ---- COURBE N2 : LA SUPPRESSION MESUREE SUR ARMA (28/07) ----
         # `supp_residuel` = ce qu'il RESTE de capacite de nuire sous suppression pleine.
         # Mesure : 0.08 (cadence x0,57 x precision x0,14). None = ancien tout-ou-rien.
@@ -32,6 +32,15 @@ class AssaultTerrain:
         # trois defenseurs dans le meme pas de 3,28 s : pire pas 0,471 pour un seuil de
         # mort a 0,70. Mesure du 28/07. Defaut False = ancien monde.
         self.cible_unique = bool(cible_unique)
+        # --- R1 : L ARRIVEE SE TESTE SUR LE SEGMENT, PAS SUR LE POINT ---------------
+        # Mesure du 30/08 : au palier 30 m la doctrine du gymnase rend 81,3 % la ou Arma
+        # rend 100 %. Bras d attribution : meme monde, rayon porte de 6 a 15 m -> 100,0 %.
+        # La cause n est pas la physique, c est que l arrivee n etait constatee qu aux DEUX
+        # BOUTS d un pas de 14 m : un objectif de 6 m situe AU MILIEU du pas etait traverse
+        # sans etre vu. C est le tunneling classique des moteurs de collision.
+        # Ici on teste l intersection du SEGMENT parcouru avec le disque d objectif.
+        # ETEINT PAR DEFAUT : aucune mesure passee n est reecrite.
+        self.arrivee_segment = bool(arrivee_segment)
         # --- LE FEU SUIT LA POSITION CONNUE -------------------------------------------
         # C EST LE DERNIER GRAND ECART AVEC ARMA. Ici, rompre la ligne de vue coupait le feu
         # AU PAS MEME : se glisser derriere une crete rendait invulnerable instantanement.
@@ -234,6 +243,52 @@ class AssaultTerrain:
         self.shell_obs = shell_obs; self.shellK = shellK; self.shell_R = shell_R
         self.suffer = suffer; self.D_min = D_min
         self.obs_dim = (8 if arma_obs else 9) + (2 * gridK * gridK if grid_obs else 0) + (4 if team_obs else 0) + (2 if role_obs else 0) + ((shellK + 1) if shell_obs else 0) + (2 if suffer else 0) + (3 if postures else 0)   # +grille +coequipiers +ROLE +COQUE +SUFFER +POSTURE
+        # ─── EQUATION 1 : LE CANAL DE DETECTION DE `Target.cpp` (CWR/Poseidon, RV1) ───
+        # Ce que ca change, et RIEN D AUTRE : la designation de cible passe de
+        # `los > 0.5` (interrupteur binaire) a `sideAccuracy >= 1.5` (canal continu).
+        # Pourquoi : dans la source, le couvert MULTIPLIE la vue, l ouie le traverse a
+        # 90 %, et l ouie seule plafonne a 1,4 contre un seuil de camp a 1,5 — elle dit
+        # « quelque chose est la », jamais « c est un ennemi ». Le gymnase, lui, rendait
+        # la mortalite des jamais-vus EXACTEMENT NULLE ; Arma 3 mesure +75 %, pas l infini.
+        # ⚠️ RV1 N EST PAS RV3 : c est une HYPOTHESE, une nuit Arma 3 la confirme ou la tue.
+        # ETEINT PAR DEFAUT. `MONDE_ARMA` ne bouge pas : la batterie gelee n est pas touchee.
+        self.canal = None
+        if canal_cwr is not None:
+            import canal_cwr as _CANAL
+            self._CANAL = _CANAL
+            # `provisoire()` porte deja la cle `mesure` : on ne le revalide pas, il a crie.
+            self.canal = dict(canal_cwr) if "mesure" in canal_cwr else _CANAL.constantes(**canal_cwr)
+            # Le canal a besoin d une FRACTION de corps visible — l analogue de
+            # `Visibility(brain, ai)`. Sans replique, le gymnase ne sait produire qu un
+            # `los` BINAIRE (terrain_gpu.los_clear rend 0 ou 1) et l equation perd son
+            # objet : c est le mur 2,5D, pas un reglage. Donc on refuse.
+            if not (self.replica and self.emergent_expo):
+                raise ValueError(
+                    "canal_cwr exige replica=True ET emergent_expo=True : l equation 1 porte sur "
+                    "une FRACTION de corps visible, et sans replique le gymnase n a qu un los BINAIRE")
+            if not self.cible_unique:
+                raise ValueError("canal_cwr remplace la porte de designation de `cible_unique` : "
+                                 "l activer sans cible_unique ne changerait rien (module inerte)")
+            # ─── L AUTRE MOITIE : LES DEUX HORLOGES DE LA LOI DE TIR ───
+            # Arma compte en SECONDES, le gymnase en PAS : aucune duree ne se recopie.
+            self.canal_mem_pas = _CANAL.en_pas(_CANAL.MEM_TIR_S, sec_par_pas)       # 10 s
+            self.canal_verrou_pas = _CANAL.en_pas(_CANAL.FIRE_VALID_S, sec_par_pas)  # 15 s
+            # `feu_sur_connu` etait une FRACTION libre a calibrer. La source dit que ce
+            # n en est pas une : c est une FENETRE de 10 s. Deux mecanismes pour une seule
+            # grandeur, c est le mode d echec de la calibration marginale.
+            if self.feu_sur_connu > 0.0:
+                raise ValueError(
+                    "canal_cwr REMPLACE `feu_sur_connu` : la source en fait une fenetre de "
+                    "%.0f s (%d pas), pas une fraction. Mettre feu_sur_connu=0.0."
+                    % (_CANAL.MEM_TIR_S, self.canal_mem_pas))
+            if self.feu_de_zone > 0.0:
+                # `posError > 2*indirectHitRange` ecarte l arme : pour un FUSIL (rayon ~0)
+                # une position connue a l oreille est INTIRABLE. Le feu de zone n existe
+                # donc que pour une arme a rayon d effet — que le gymnase ne modelise pas.
+                raise ValueError(
+                    "canal_cwr : `feu_de_zone` n est licite que pour une arme A RAYON D EFFET "
+                    "(la source ecarte l arme si posError > 2*indirectHitRange). Le gymnase "
+                    "n en modelise aucune : mettre feu_de_zone=0.0")
         self._reset(torch.arange(num_envs, device=device))
 
     def _reset(self, idx):
@@ -254,6 +309,13 @@ class AssaultTerrain:
             self.posture = torch.zeros(N, A, dtype=torch.long, device=d)
             # cliquet PAR ATTAQUANT : a-t-il deja ete vu ? monotone, comme l alerte de camp.
             self.a_connu = torch.zeros(N, A, device=d)
+            # ─── LOI DE TIR : `lastSeen` (par ATTAQUANT, partage par le groupe defenseur,
+            # comme le `Target` de RV1 qui est porte par l AIGroup) et le verrou de cible
+            # (par DEFENSEUR). -1e9 = jamais vu, et ce n est pas 0 : au pas 0 un homme
+            # jamais vu serait « vu a l instant ».
+            self.a_dernier_vu = torch.full((N, A), -1e9, device=d)
+            self.d_cible = torch.full((N, D), -1, dtype=torch.long, device=d)
+            self.d_verrou = torch.zeros(N, D, dtype=torch.long, device=d)
             self.prev_d = torch.zeros(N, device=d)
             # REVUE 17/08 : distance GELEE a la mort. Sans elle, `cur` etait une moyenne
             # sur les SURVIVANTS : perdre l homme de queue faisait baisser la moyenne et
@@ -330,6 +392,10 @@ class AssaultTerrain:
             self.alerte_niv[idx] = 0.0
         if hasattr(self, 'a_connu'):
             self.a_connu[idx] = 0.0
+        if hasattr(self, 'a_dernier_vu'):
+            self.a_dernier_vu[idx] = -1e9
+            self.d_cible[idx] = -1
+            self.d_verrou[idx] = 0
         if self.replica:
             for _ in range(10):
                 _w = self._sample_solid(self.apx[idx], self.apy[idx]) > 0.5
@@ -642,6 +708,7 @@ class AssaultTerrain:
 
     def step(self, acts, auto_reset=True):
         d = self.dev; N, A, D = self.N, self.A, self.D; al = self._aalive().float()
+        self._seg0x = self.apx.clone(); self._seg0y = self.apy.clone()   # R1 : debut du segment
         th = acts.float() * (math.pi / 4.0)                    # STEERING : actions 0-7 = caps (45 deg)
         moving = (acts < 8).float() * al                       # 8 = HOLD, 9 = SUPPRESS, 10-12 postures -> pas de mouvement
         if self.replica and self.nav_around:
@@ -711,6 +778,7 @@ class AssaultTerrain:
         dmg_a = torch.zeros(N, A, device=d); exposed = torch.zeros(N, A, device=d)
         self._vu_geo = torch.zeros(N, A, device=d)   # vu GEOMETRIQUEMENT a ce pas, avant tout bouton
         for di in range(D):
+            _dans_f = None      # porte de tir du defenseur, relevee pour le canal CWR
             bx = self.dpx[:, di:di + 1].expand(N, A); by = self.dpy[:, di:di + 1].expand(N, A)
             los = self._losc(self.hm, self.apx, self.apy, bx, by, self.scale, eye_a=self._eye(), eye_b=1.7)
             dist = torch.sqrt((self.apx - self.dpx[:, di:di + 1]) ** 2 + (self.apy - self.dpy[:, di:di + 1]) ** 2)
@@ -744,7 +812,8 @@ class AssaultTerrain:
                     # Mesure Arma : riposte a 100 %% a tous les angles apres ~4 s,
                     # et sans attenuation d ampleur (impacts 180/0 = 1,17).
                     _dans = _dans | self.d_ouvert[:, di:di + 1]
-                active = active * _dans.float()     # hors cône ET sursis non ecoule = ne peut pas tirer
+                _dans_f = _dans.float()
+                active = active * _dans_f     # hors cône ET sursis non ecoule = ne peut pas tirer
             # --- LE CLIQUET PAR ATTAQUANT. `los` devient « ce que le defenseur peut
             # battre » : ce qu il VOIT, ou ce qu il A VU et bat encore a taux reduit.
             # le cliquet se tient a jour MEME a bouton nul : sans ca on ne saurait pas
@@ -756,6 +825,12 @@ class AssaultTerrain:
             # bouton (856 % puis 4086 % au premier balayage). Une mesure dont l etiquette
             # depend du traitement ne mesure rien.
             self._vu_geo = torch.maximum(self._vu_geo, (los > 0.5).float() * _viv)
+            if self.canal is not None:
+                # `lastSeen` de RV1 : porte par le groupe, donc par ATTAQUANT et non par
+                # couple (defenseur, attaquant). Mis a jour sur la vue geometrique du pas.
+                _vu_ici = ((los > 0.5) & (_viv > 0))
+                self.a_dernier_vu = torch.where(_vu_ici, self.t.unsqueeze(1).float(),
+                                                self.a_dernier_vu)
             if self.feu_sur_connu > 0.0:
                 los = torch.maximum(los, self.feu_sur_connu * self.a_connu)
             inr = (dist < self.fire_range).float()
@@ -763,22 +838,75 @@ class AssaultTerrain:
             # « etre vu » n'est pas « etre pris pour cible », et `exposed` doit rester la
             # premiere notion (c'est elle qui porte le cout de la manoeuvre).
             tir = active
+            _efrac = None
+            if self.canal is not None:
+                # LA DESIGNATION PASSE PAR LE CANAL. `_dans_f` est la porte de tir DEJA en
+                # service (arc + detection) : on ne superpose pas les cosinus 15/45 de RV1,
+                # ca compterait deux fois le meme effet.
+                _efrac = self._body_exposure(self.apx, self.apy, self._eye(), bx, by)
+                self._canal_out = self._CANAL.canal(_efrac, dist, self.canal, porte_cone=_dans_f)
             if self.cible_unique:
-                _elig = (active > 0) & (los > 0.5) & self._aalive()
+                _porte = (self._canal_out["designe"] if self.canal is not None else (los > 0.5))
+                _elig = (active > 0) & _porte & self._aalive()
+                if self.canal is not None:
+                    # ─── LA FENETRE DE 10 s. `lastSeen` se met a jour sur la VUE
+                    # GEOMETRIQUE du pas ; ensuite l homme reste tirable 10 s, puis plus.
+                    # Ce n est pas le cliquet eternel de `a_connu` : la source coupe.
+                    # ⛔ CORRECTION. J avais lu la fenetre de 10 s comme une PERMISSION
+                    # (« le defenseur bat la derniere position connue »). LA SOURCE EN FAIT
+                    # UNE RESTRICTION : `WhatFireResult` recalcule la visibilite COURANTE et
+                    # refuse sous `MinVisibleFire` (TargetFire.cpp:1203), et la fenetre de
+                    # 10 s S AJOUTE a ce refus (l.1241). Les trois conditions sont ET, pas OU.
+                    # Consequence dure : il n existe AUCUN tir VISE sur un homme actuellement
+                    # cache — ce que la porte `posError > 2*indirectHitRange` disait deja
+                    # pour un fusil. Donc le +75 % d Arma 3 ne peut PAS venir de la, et
+                    # c est une question de MESURE, pas de modele. Falsificateur au depot.
+                    _frais = (((self.t.unsqueeze(1).float() - self.a_dernier_vu)
+                               <= float(self.canal_mem_pas)) & (self.a_dernier_vu > -1e8))
+                    _voit_assez = (_efrac >= self._CANAL.MIN_VISIBLE_FIRE)
+                    _elig = ((active > 0) & self._canal_out["designe"]
+                             & _voit_assez & _frais & self._aalive())
                 if self.courbe is None:                    # sans courbe, la portee est un mur
                     _elig = _elig & (dist < self.fire_range)
                 _INF = torch.full_like(dist, float("inf"))
                 _k = torch.where(_elig, dist, _INF).argmin(1, keepdim=True)
+                if self.canal is not None:
+                    # ─── LE VERROU DE 15 s (`FireValidTime`). Le defenseur RESTE sur sa
+                    # cible tant qu elle vit et reste eligible ; il ne re-choisit pas le
+                    # plus proche a chaque pas. C est ce verrou qui fait qu un flanqueur
+                    # isole encaisse tout, au lieu d etre relache au pas suivant.
+                    _anc = self.d_cible[:, di:di + 1]                      # (N,1)
+                    _a_valide = (_anc >= 0)
+                    _ok_anc = torch.zeros_like(_a_valide)
+                    if bool(_a_valide.any()):
+                        _idx = _anc.clamp(min=0)
+                        _ok_anc = _a_valide & (self.d_verrou[:, di:di + 1] > 0) \
+                                  & torch.gather(_elig, 1, _idx)
+                    _k = torch.where(_ok_anc, _anc, _k)
+                    _neuf = _elig.any(1, keepdim=True) & ~_ok_anc
+                    self.d_cible[:, di:di + 1] = torch.where(
+                        _neuf, _k, torch.where(_ok_anc, _anc, torch.full_like(_anc, -1)))
+                    self.d_verrou[:, di:di + 1] = torch.where(
+                        _neuf, torch.full_like(_anc, self.canal_verrou_pas),
+                        (self.d_verrou[:, di:di + 1] - 1).clamp(min=0))
                 _sel = torch.zeros_like(active).scatter_(1, _k, 1.0) * _elig.float()
                 tir = active * _sel
             if self.emergent_expo and self.replica:                # EXPOSITION EMERGENTE : fraction du corps touchable = geometrie (couvert deja capture par les rayons)
-                efrac = self._body_exposure(self.apx, self.apy, self._eye(), bx, by)
+                efrac = _efrac if _efrac is not None else self._body_exposure(self.apx, self.apy, self._eye(), bx, by)
                 if self.courbe is not None:
                     # posture=None VOLONTAIREMENT : efrac porte deja le profil du corps
                     # (calcule par rayons). Appliquer en plus la colonne posture de la
                     # courbe compterait le meme effet deux fois.
-                    _p = self._p_balle(dist) * self.tir_par_pas * self.degat_par_impact
-                    dmg_a += _p * efrac * tir
+                    if self.canal is not None:
+                        # ⭐ LA LOI DE TIR. Avant : `_p * efrac` — le couvert LINEAIRE, et
+                        # aucun plancher. La source : `hitProbab *= Square(visible)`, puis
+                        # rien si `visible < 0.63`, puis rien si `hitProbab < 0.05`.
+                        _pb = self._CANAL.tir(self._p_balle(dist), efrac)
+                        _p = _pb * self.tir_par_pas * self.degat_par_impact
+                        dmg_a += _p * tir
+                    else:
+                        _p = self._p_balle(dist) * self.tir_par_pas * self.degat_par_impact
+                        dmg_a += _p * efrac * tir
                     if self.feu_de_zone > 0.0:      # le defenseur bat une ZONE : pas de designation, pas de vue
                         dmg_a += _p * self.feu_de_zone * inr * active
                 else:
@@ -839,7 +967,18 @@ class AssaultTerrain:
         al2 = self._aalive()
         ndist = torch.sqrt(self.apx ** 2 + self.apy ** 2)
         neutralized = ~self._dalive().any(1)                       # défenseurs neutralisés PAR LE FEU
-        took = ((ndist < self.secure_r) & al2).any(1)              # un attaquant VIVANT a atteint/sécurisé l'objectif (comme Arma)
+        if self.arrivee_segment:
+            # distance MINIMALE de l objectif (l origine) au segment parcouru pendant le pas
+            _vx = self.apx - self._seg0x; _vy = self.apy - self._seg0y
+            _vv = _vx * _vx + _vy * _vy
+            _t = torch.where(_vv > 1e-9,
+                             (-(self._seg0x * _vx + self._seg0y * _vy) / _vv.clamp(min=1e-9)).clamp(0.0, 1.0),
+                             torch.zeros_like(_vv))
+            _cx = self._seg0x + _t * _vx; _cy = self._seg0y + _t * _vy
+            _dtest = torch.sqrt(_cx * _cx + _cy * _cy)
+        else:
+            _dtest = ndist
+        took = ((_dtest < self.secure_r) & al2).any(1)              # un attaquant VIVANT a atteint/sécurisé l'objectif (comme Arma)
         win = took if self.secure_only else ((neutralized | took) if self.secure_task else neutralized)   # secure_only (calib Arma) : SEUL atteindre le FOB gagne
         wiped = ~al2.any(1)
         timeout = self.t >= self.max_steps
