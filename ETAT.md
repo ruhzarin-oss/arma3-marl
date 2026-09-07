@@ -1,4 +1,4 @@
-# ETAT — 2026-09-07 13:46
+# ETAT — 2026-09-07 15:53
 
 Un agent peut-il apprendre, dans Arma et sans doctrine scriptee, a ne pas se faire tuer
 tout en atteignant son but ? Etage 1 : le trieur (CHACAL, corpus d'imitation). Toute
@@ -7,7 +7,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-07T11:23:14+02:00 ok=True  pile harmattan non relevee ;
-- GPU : 581 MiB, 24576 MiB, 0 %
+- GPU : 587 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.6T libres sur 3.6T
 - serveurs Arma : 0 · residus : aucun
 
@@ -18,11 +18,12 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 1 / 1
+- runs aboutis : 2 / 2
 
 ## Portes ouvertes
 
 - **Comparaison appariee natif contre politique, banc repare** — aucune-revendication.md
+- **CHACAL palier 0, premiers episodes acceptes par les 15 portes** — chacal-palier0-premiers-episodes.md
 - **Le flanc paie-t-il, sous quelle courbe de letalite** — flanc-degele.md
 
 ## Verdicts vivants
@@ -44,6 +45,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Fidelite du monde assemble, contraste vu contre non vu | 2026-08-11 | n/a | etre vu multiplie la mortalite de +856 % dans la sandbox contre +75 % certifies sur Arma | ECHEC | etre-vu-tue-2x, sandbox-letalite-4x | fidelite-arma-couvert-11x.md |
 | Greffe du prix sur une politique figee, marge attribuable | 2026-08-25 | 6 graines de jugement jamais vues | temoin 39,3 %, greffe 61,6 % ; +8,8 pts dus au decodeur, marge attribuable au prix +15,3 pts | PASSE | politique-est-navigateur | greffe-credit.md |
 | Controle positif de la connaissance dans Arma | 2026-08-02 | 1 | knowsAbout 4,00 avec un camarade qui voit, 0,00 seul ; 0,00 a 50 m de flanc contre 2,00 a 300 m de face | PASSE |  | knowsabout-de-camp.md |
+| Lanceur HMT : un job dans queue/ produit un FIN.json sans session ssh | 2026-09-07 | 3, 4 | 2 runs COMPLET (4733 s puis 2793 s), 4 episodes CHACAL, 4 serveurs lances et arretes par PID, 0 session ssh ouverte | PASSE | chacal-portes | lanceur-hmt-temoin.md |
 | Loi couvert-tir lue dans la source CWR, confrontee a Arma 3 | 2026-09-03 | n/a | porte 0,63 refutee (237 impacts sur victime vivante, 29,5 % sous le seuil) ; exposant du couvert 0,72 au lieu de 2 ; ouie plafonnee a 1,35 en 1/d2 | PASSE | arc-tir-sursis, etre-vu-tue-2x | loi-cwr.md |
 | Mecanisme de la memorisation, cap absolu | 2026-09-03 | 0, 1 | cap 315 dans 50,0 % des echecs contre 13,2 % des reussites ; 96,9 % a moins de 90 deg contre 84,9 % au-dela | PASSE | site-memorise | memorisation-cap-absolu.md |
 | Critere du placeur, praticabilite ou direction | 2026-08-19 | n/a | 11-15 m en montee contre 22-26 m en descente ; 0 acte sur 188 finissant au sol n'atteint le seuil de 23 m | PASSE |  | pente-sens-marche.md |
@@ -66,4 +68,5 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
+| 2026-09-07_1355_chacal | chacal | COMPLET | g3:ACCEPTE g4:ACCEPTE | 2793 |
 | 2026-09-07_1125_chacal | chacal | COMPLET | g3:REFUSE g4:REFUSE | 4733 |
