@@ -11,5 +11,10 @@ mv "$J" $H/queue/en_cours/
 E=$H/queue/en_cours/$(basename "$J")
 echo "$(date -Is) PRISE $(basename "$J")"
 bash $H/depot/outils/run.sh "$E"; RC=$?
-mv "$E" $H/queue/faits/
-echo "$(date -Is) FINI $(basename "$J") code=$RC"
+if [ $RC = 2 ]; then
+  mkdir -p $H/queue/refuses; mv "$E" $H/queue/refuses/
+  echo "$(date -Is) REFUSE $(basename "$J") : le controle d'avant-run a dit non, job range dans queue/refuses"
+else
+  mv "$E" $H/queue/faits/
+  echo "$(date -Is) FINI $(basename "$J") code=$RC"
+fi

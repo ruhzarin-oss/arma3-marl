@@ -2,7 +2,7 @@
 # Un run = un job, N graines, un FIN.json. Usage : run.sh <job.json>
 set -uo pipefail
 H=/mnt/data/hmt; JOB=$1
-bash $H/depot/outils/controle_avant_run.sh "$JOB" || exit 2
+bash $H/depot/outils/controle_avant_run.sh "$JOB" || { echo "controle refuse pour $(basename "$JOB")"; exit 2; }
 B=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['banc'])" "$JOB")
 R=$H/runs/$(date +%Y-%m-%d_%H%M)_$B
 mkdir -p "$R"; cp "$JOB" "$R/job.json"
