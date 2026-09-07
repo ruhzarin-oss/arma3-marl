@@ -1,0 +1,31 @@
+- agent-hesite.md — Choix du decodeur, fige contre echantillonne — PASSE
+- angle-mort.md — Angle mort et cout de se montrer, quatre bancs Arma — PASSE
+- arc-tir-sursis.md — Arc de tir d'Arma, latence de riposte par angle — PASSE
+- arma-pieges.md — Reproductibilite du banc CHACAL, six pieges Arma — ECHEC
+- aucune-revendication.md — Comparaison appariee natif contre politique, banc repare — OUVERT
+- b0-30.md — Barreau B0@30, non-inferiorite a la doctrine — PASSE — remplacé par site-memorise.md
+- b0-60-vide.md — Barreau B0@60, transfert zero-shot — VIDE
+- banc-quart-sans-adversaire.md — Coupe du banc live selon la presence d'un defenseur vivant — ECHEC
+- boucle-fermee.md — Etape 4, un agent apprend et bat les doctrines ecrites a la main — PASSE — remplacé par transfert-non-etabli.md
+- canal-ennemi.md — Controle d'instrument du canal ennemi, avant le barreau adverse — PASSE
+- chacal-portes.md — CHACAL, 9 portes du lecteur d'episode — PASSE
+- champ-spatial.md — Controle positif spatial du modele du monde — ECHEC
+- courbe-2607.md — Courbe de toucher, niveau et forme, nuit N1 — ECHEC
+- drone-arma-rien.md — Un UAV d'Arma renseigne-t-il l'IA — ECHEC
+- etre-vu-tue-2x.md — Sonde 3 du corpus Battle Lines, mortalite selon le champ de vision ennemi — PASSE
+- fidelite-arma-couvert-11x.md — Fidelite du monde assemble, contraste vu contre non vu — ECHEC
+- flanc-degele.md — Le flanc paie-t-il, sous quelle courbe de letalite — OUVERT
+- greffe-credit.md — Greffe du prix sur une politique figee, marge attribuable — PASSE
+- knowsabout-de-camp.md — Controle positif de la connaissance dans Arma — PASSE
+- loi-cwr.md — Loi couvert-tir lue dans la source CWR, confrontee a Arma 3 — PASSE
+- memorisation-cap-absolu.md — Mecanisme de la memorisation, cap absolu — PASSE
+- natif-59-6.md — Niveau de reference de l'IA native d'Arma — ECHEC — remplacé par aucune-revendication.md
+- pente-sens-marche.md — Critere du placeur, praticabilite ou direction — PASSE
+- politique-est-navigateur.md — Candidat A, la politique lit-elle la pente — PASSE
+- recette-gymnase-loterie.md — Reproductibilite de la recette du gymnase sur deux graines torch — ECHEC — remplacé par agent-hesite.md
+- reveal-certifie.md — Controle positif de la liaison drone par reveal — PASSE
+- sandbox-letalite-4x.md — Letalite de la sandbox, cible unique par defenseur — ECHEC
+- site-degele.md — Barreau site degele, apres entrainement sur sites disjoints — PASSE
+- site-memorise.md — Sonde de vacance du barreau site degele — ECHEC
+- tout-ce-qui-fige-coute.md — Dose-reponse d'immobilite au gymnase — PASSE
+- transfert-non-etabli.md — Banc live 20 episodes, transfert gymnase vers Arma — ECHEC
