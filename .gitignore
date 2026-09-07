@@ -12,3 +12,4 @@ leviathan/journaux/
 leviathan/obsoletes/
 *.avant*
 *.bak-*
+*.npz
