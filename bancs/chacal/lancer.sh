@@ -18,6 +18,17 @@ if grep -q CHACAL_PALIER "$PROFIL/server.cfg"; then
 else
   sed -i "s/CHACAL_GRAINE = \([0-9]*\);/CHACAL_GRAINE = \1;\n            CHACAL_PALIER = ${PAL};/" "$PROFIL/server.cfg"
 fi
+# ! TOUT PARAMETRE NON ECRIT PAR LE JOB EST UN RESTE DE LA SESSION PRECEDENTE.
+# Mesure du 07/09 (run 1355) : CHACAL_DEPART = 3 traine dans server.cfg depuis une
+# session de mise au point ; les deux episodes ont saute l'approche (hors_corpus) et
+# le detachement a ete detruit par la HMG en 86 s. Le lanceur ecrit donc DEPART,
+# IMMORTEL et JOUR a chaque lancement, avec les valeurs du corpus par defaut.
+DEPART=$(lit depart 1); IMMORTEL=$(lit immortel 0); JOUR=$(lit jour 0)
+for kv in "DEPART=$DEPART" "IMMORTEL=$IMMORTEL" "JOUR=$JOUR"; do
+  k=${kv%%=*}; v=${kv#*=}
+  grep -q "CHACAL_$k = " "$PROFIL/server.cfg" && sed -i "s/CHACAL_$k = [0-9]*;/CHACAL_$k = ${v};/" "$PROFIL/server.cfg"
+done
+echo "server.cfg : $(grep -o 'CHACAL_[A-Z_]* = [0-9]*' "$PROFIL/server.cfg" | tr '\n' ' ')"
 mkdir -p "$OUT"; mkdir -p "/mnt/c/hmt_bridge/i$INST"
 rm -f "$PROFIL"/*.rpt
 PID=$("$PWSH" -NoProfile -Command "\$env:HMT_BRIDGE_WIN='C:\hmt_bridge\i$INST'; \$p=Start-Process -FilePath '$ARMA' -WorkingDirectory 'C:\Program Files (x86)\Steam\steamapps\common\Arma 3' -ArgumentList '-config=C:\Users\Younes\hmtech$INST\server.cfg','-profiles=C:\Users\Younes\hmtech$INST','-name=hmtech$INST','-port=$PORT','-world=Altis','-noSound','-autoInit',\"-mod=$MODS\" -PassThru; \$p.Id" | tr -d '\r ')
