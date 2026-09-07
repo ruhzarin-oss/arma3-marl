@@ -1,4 +1,4 @@
-# ETAT — 2026-09-07 15:53
+# ETAT — 2026-09-07 15:54
 
 Un agent peut-il apprendre, dans Arma et sans doctrine scriptee, a ne pas se faire tuer
 tout en atteignant son but ? Etage 1 : le trieur (CHACAL, corpus d'imitation). Toute
