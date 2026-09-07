@@ -6,6 +6,8 @@ R=$1; G=$2; JOB=$3; OUT=$R/g$G
 PWSH=/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
 lit() { python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get(sys.argv[2],sys.argv[3]))" "$JOB" "$1" "${2:-}"; }
 INST=$(lit instance 3); PAL=$(lit palier 0); PLAFOND=$(lit plafond_s 16000)
+# LAMBS est indispensable : sans lui la porte lambs_actif refuse l'episode (mesure du 07/09, run 1125).
+MODS=$(lit mods '!Workshop\@CBA_A3;C:\hmt_mods\@LAMBS_Danger')
 PROFIL=/mnt/c/Users/Younes/hmtech$INST; PORT=$((2402 + 10*INST))
 ARMA='C:\Program Files (x86)\Steam\steamapps\common\Arma 3\arma3server_x64.exe'
 [ -f "$PROFIL/server.cfg" ] || { echo "profil hmtech$INST sans server.cfg"; exit 1; }
@@ -18,7 +20,7 @@ else
 fi
 mkdir -p "$OUT"; mkdir -p "/mnt/c/hmt_bridge/i$INST"
 rm -f "$PROFIL"/*.rpt
-PID=$("$PWSH" -NoProfile -Command "\$env:HMT_BRIDGE_WIN='C:\hmt_bridge\i$INST'; \$p=Start-Process -FilePath '$ARMA' -WorkingDirectory 'C:\Program Files (x86)\Steam\steamapps\common\Arma 3' -ArgumentList '-config=C:\Users\Younes\hmtech$INST\server.cfg','-profiles=C:\Users\Younes\hmtech$INST','-name=hmtech$INST','-port=$PORT','-world=Altis','-noSound','-autoInit' -PassThru; \$p.Id" | tr -d '\r ')
+PID=$("$PWSH" -NoProfile -Command "\$env:HMT_BRIDGE_WIN='C:\hmt_bridge\i$INST'; \$p=Start-Process -FilePath '$ARMA' -WorkingDirectory 'C:\Program Files (x86)\Steam\steamapps\common\Arma 3' -ArgumentList '-config=C:\Users\Younes\hmtech$INST\server.cfg','-profiles=C:\Users\Younes\hmtech$INST','-name=hmtech$INST','-port=$PORT','-world=Altis','-noSound','-autoInit',\"-mod=$MODS\" -PassThru; \$p.Id" | tr -d '\r ')
 [[ "$PID" =~ ^[0-9]+$ ]] || { echo "lancement rate : $PID"; exit 1; }
 echo "$PID" > "$OUT/pid"; echo "serveur hmtech$INST PID $PID graine $G palier $PAL port $PORT"
 t0=$(date +%s); f=""

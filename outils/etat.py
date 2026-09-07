@@ -24,7 +24,8 @@ for r in sorted(glob.glob(f"{H}/runs/*/"), reverse=True):
     age_s = time.time() - os.path.getmtime(r)
     plafond = j.get("plafond_s", 16000) * max(1, len(j.get("graines", [1]))) + 600
     etat = f["verdict"] if f else ("EN COURS" if age_s < plafond else "SANS FIN.json")
-    runs.append({"nom": os.path.basename(r[:-1]), "banc": j.get("banc", "?"), "etat": etat, "duree": f["duree_s"] if f else None})
+    bancv = " ".join(f"{g}:{x.get('verdict','?')}" for g, x in (f or {}).get("resultats", {}).items())
+    runs.append({"nom": os.path.basename(r[:-1]), "banc": j.get("banc", "?"), "etat": etat, "duree": f["duree_s"] if f else None, "bancv": bancv})
 mois = time.strftime("%Y-%m")
 aboutis = sum(1 for r in runs if r["nom"].startswith(mois) and r["etat"] == "COMPLET")
 total = sum(1 for r in runs if r["nom"].startswith(mois))
@@ -50,12 +51,12 @@ L += [f"- **{v.get('porte','?')}** — {v['_fichier']}.md" for v in ouverts] or 
 L += ["", "## Verdicts vivants", "", "| porte | date | graines | chiffre | verdict | depend de | fichier |", "|---|---|---|---|---|---|---|"]
 L += [f"| {v.get('porte','?')} | {v.get('date','?')} | {v.get('graines','?')} | {v.get('chiffre','?')} | {v.get('verdict','?')} | {v.get('depend_de','')} | {v['_fichier']}.md |" for v in vivants]
 L += ["", "## Remplaces", ""] + ([f"- {v.get('porte','?')} ({v['_fichier']}.md) → remplace par {v['remplace_par']}" for v in remplaces] or ["- aucun"])
-L += ["", "## Derniers runs", "", "| run | banc | etat | duree s |", "|---|---|---|---|"] + ([f"| {r['nom']} | {r['banc']} | {r['etat']} | {r['duree'] if r['duree'] is not None else ''} |" for r in runs[:15]] or ["| aucun | | | |"])
+L += ["", "## Derniers runs", "", "| run | banc | etat du run | verdicts du banc | duree s |", "|---|---|---|---|---|"] + ([f"| {r['nom']} | {r['banc']} | {r['etat']} | {r['bancv']} | {r['duree'] if r['duree'] is not None else ''} |" for r in runs[:15]] or ["| aucun | | | | |"])
 open(f"{H}/depot/ETAT.md", "w", encoding="utf-8").write("\n".join(L) + "\n")
 
 def esc(s): return html.escape(str(s))
 couleur = {"COMPLET": "#2C7A4B", "ECHEC": "#B3261E", "SANS FIN.json": "#B3261E", "EN COURS": "#9A6A12"}
-rows = "".join(f"<tr><td>{esc(r['nom'])}</td><td>{esc(r['banc'])}</td><td style='color:{couleur.get(r['etat'],'#333')};font-weight:600'>{esc(r['etat'])}</td><td>{r['duree'] if r['duree'] is not None else ''}</td></tr>" for r in runs[:30])
+rows = "".join(f"<tr><td>{esc(r['nom'])}</td><td>{esc(r['banc'])}</td><td style='color:{couleur.get(r['etat'],'#333')};font-weight:600'>{esc(r['etat'])}</td><td>{esc(r['bancv'])}</td><td>{r['duree'] if r['duree'] is not None else ''}</td></tr>" for r in runs[:30])
 vrows = "".join(f"<tr><td>{esc(v.get('porte','?'))}</td><td>{esc(v.get('date','?'))}</td><td>{esc(v.get('graines','?'))}</td><td>{esc(v.get('chiffre','?'))}</td><td>{esc(v.get('verdict','?'))}</td><td>{esc(v.get('depend_de',''))}</td></tr>" for v in vivants)
 orows = "".join(f"<li><b>{esc(v.get('porte','?'))}</b> — {esc(v['_fichier'])}.md</li>" for v in ouverts)
 rrows = "".join(f"<li>{esc(v.get('porte','?'))} → {esc(v['remplace_par'])}</li>" for v in remplaces)
@@ -64,7 +65,7 @@ page = f"""<!doctype html><meta charset=utf-8><meta http-equiv=refresh content=3
 <h1>ETAT — {now}</h1><p>{esc(question)}</p>
 <div class=k><div><b>boot</b>{esc(boot.get('date','?'))} ok={esc(boot.get('ok','?'))} {esc(boot.get('message',''))}</div><div><b>GPU</b>{esc(gpu)}</div><div><b>/mnt/data</b>{esc(disque)}</div>
 <div><b>serveurs Arma / residus</b>{esc(serveurs)} / {esc(residus) or 'aucun'}</div><div><b>file</b>en cours : {esc(', '.join(encours) or 'rien')}<br>en attente : {esc(', '.join(queue) or 'rien')}</div><div><b>debit {mois}</b>{aboutis} aboutis / {total}</div></div>
-<h2>Derniers runs</h2><table><tr><th>run</th><th>banc</th><th>etat</th><th>duree s</th></tr>{rows}</table>
+<h2>Derniers runs</h2><table><tr><th>run</th><th>banc</th><th>etat du run</th><th>verdicts du banc</th><th>duree s</th></tr>{rows}</table>
 <h2>Portes ouvertes</h2><ul>{orows or '<li>aucune</li>'}</ul>
 <h2>Verdicts vivants</h2><table><tr><th>porte</th><th>date</th><th>graines</th><th>chiffre</th><th>verdict</th><th>depend de</th></tr>{vrows}</table>
 <h2>Remplaces</h2><ul>{rrows or '<li>aucun</li>'}</ul>"""

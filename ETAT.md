@@ -1,4 +1,4 @@
-# ETAT — 2026-09-07 11:23
+# ETAT — 2026-09-07 13:46
 
 Un agent peut-il apprendre, dans Arma et sans doctrine scriptee, a ne pas se faire tuer
 tout en atteignant son but ? Etage 1 : le trieur (CHACAL, corpus d'imitation). Toute
@@ -7,7 +7,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-07T11:23:14+02:00 ok=True  pile harmattan non relevee ;
-- GPU : 940 MiB, 24576 MiB, 30 %
+- GPU : 581 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.6T libres sur 3.6T
 - serveurs Arma : 0 · residus : aucun
 
@@ -18,7 +18,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 0 / 0
+- runs aboutis : 1 / 1
 
 ## Portes ouvertes
 
@@ -64,6 +64,6 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 ## Derniers runs
 
-| run | banc | etat | duree s |
-|---|---|---|---|
-| aucun | | | |
+| run | banc | etat du run | verdicts du banc | duree s |
+|---|---|---|---|---|
+| 2026-09-07_1125_chacal | chacal | COMPLET | g3:REFUSE g4:REFUSE | 4733 |
