@@ -28,13 +28,23 @@ VERROUS=$H/queue/verrous
 
 inst_de() { python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('instance','?'))" "$1" 2>/dev/null; }
 
+# ⚠️ Les verrous changent de nom (`j<N>` au lieu de `i<N>`) : un processus BLOQUE par l ancienne
+# version tourne encore avec l ancien code en memoire, et son `trap` effacerait le verrou d un
+# job NEUF portant le meme nom. On lit les DEUX noms pour l occupation, on n en cree qu un.
 MIEN=""
-libere() { [ -n "$MIEN" ] && rm -rf "$VERROUS/$MIEN"; }
+libere() {
+  # On ne rend que le verrou qu on a soi-meme pose : le pid inscrit doit etre le notre.
+  [ -n "$MIEN" ] && [ "$(cat "$VERROUS/$MIEN/pid" 2>/dev/null)" = "$$" ] && rm -rf "$VERROUS/$MIEN"
+}
 trap libere EXIT
+
+pris_par_un_verrou() {   # $1 = instance
+  [ -d "$VERROUS/j$1" ] || [ -d "$VERROUS/i$1" ]
+}
 
 # Un verrou dont le processus est mort ne protege plus rien, il bloque. On le retire — mais on
 # le DIT, parce qu un verrou mort veut dire qu un run est parti sans rendre la main.
-for V in "$VERROUS"/i*; do
+for V in "$VERROUS"/i* "$VERROUS"/j*; do
   [ -d "$V" ] || continue
   P=$(cat "$V/pid" 2>/dev/null || true)
   if [ -z "$P" ] || ! kill -0 "$P" 2>/dev/null; then
@@ -49,7 +59,7 @@ done
 MAX=3   # 3 depuis le 08/09 : gymnase (i0) + les deux bancs CHACAL (i1, i3).
         # ! Non mesure au-dela de 2 instances : la charge concurrente est archivee
         # dans chaque run (charge_au_lancement), donc un effet de contention serait visible.
-VIVANTS=$(ls -1d "$VERROUS"/i* 2>/dev/null | wc -l)
+VIVANTS=$(ls -1d "$VERROUS"/i* "$VERROUS"/j* 2>/dev/null | wc -l)
 if [ "$VIVANTS" -ge "$MAX" ]; then
   echo "$(date -Is) PLAFOND $VIVANTS/$MAX jobs en vol — rien pris"; exit 0
 fi
@@ -64,10 +74,12 @@ for J in $(ls -tr $H/queue/*.json 2>/dev/null); do
   done
   if [ "$OCC" = "1" ]; then
     echo "$(date -Is) ATTEND $(basename "$J") : l instance $I est occupee"
-  elif mkdir "$VERROUS/i$I" 2>/dev/null; then
-    echo $$ > "$VERROUS/i$I/pid"; MIEN="i$I"; CHOISI="$J"; break
+  elif pris_par_un_verrou "$I"; then
+    echo "$(date -Is) ATTEND $(basename "$J") : verrou de l instance $I deja tenu"
+  elif mkdir "$VERROUS/j$I" 2>/dev/null; then
+    echo $$ > "$VERROUS/j$I/pid"; MIEN="j$I"; CHOISI="$J"; break
   else
-    echo "$(date -Is) ATTEND $(basename "$J") : verrou i$I tenu par un autre appel"
+    echo "$(date -Is) ATTEND $(basename "$J") : verrou j$I pris par un appel simultane"
   fi
 done
 [ -z "$CHOISI" ] && exit 0
@@ -76,11 +88,18 @@ mv "$CHOISI" $H/queue/en_cours/
 E=$H/queue/en_cours/$(basename "$CHOISI")
 echo "$(date -Is) PRISE $(basename "$CHOISI") sur l instance $(inst_de "$E") (verrou $MIEN, pid $$)"
 # ⛔ 08/09 : un job REFUSE ne creait aucun run, donc aucun FIN.json, donc le pont ne rendait
-# jamais rien : la tache restait « En cours » dans Plane pour toujours, sans que personne ne le
-# sache. On garde donc la RAISON du refus a cote du job. Sortie captee par `tee` et non relue
-# dans file.log : avec deux jobs en vol, on attraperait la raison du voisin.
+# jamais rien : la tache restait « En cours » dans Plane pour toujours. On garde donc la RAISON
+# du refus a cote du job.
+#
+# ⛔⛔ ET LA PREMIERE VERSION DE CETTE CAPTURE A BLOQUE UNE INSTANCE TROIS HEURES.
+# Elle passait par `| tee` : un TUYAU ne se ferme que quand TOUS ses ecrivains ont ferme, or
+# le serveur Arma lance par le petit-fils herite du descripteur. run.sh avait fini depuis 3 h,
+# `tee` attendait encore, le verrou i0 tenait, et le gymnase etait a l arret.
+# ⭐ On ne met JAMAIS un tuyau en travers d un lanceur qui detache des processus.
+# Redirection vers un FICHIER : rien a attendre, et le code de sortie est direct.
 TRACE=$(mktemp /tmp/run_sortie.XXXX)
-bash $H/depot/outils/run.sh "$E" 2>&1 | tee -a "$TRACE"; RC=${PIPESTATUS[0]}
+bash $H/depot/outils/run.sh "$E" > "$TRACE" 2>&1; RC=$?
+cat "$TRACE"
 if [ $RC = 2 ]; then
   mv "$E" $H/queue/refuses/
   grep -m1 "^REFUS:" "$TRACE" > $H/queue/refuses/$(basename "$CHOISI").raison 2>/dev/null \
