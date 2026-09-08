@@ -44,6 +44,9 @@ CHACAL_PAL_GAR   = [4, 6, 7, 8]  select CHACAL_PALIER;   // garnison des batimen
 CHACAL_PAL_RONDES= [1, 1, 2, 2]  select CHACAL_PALIER;   // rondes interieures
 CHACAL_PAL_EXT   = [0, 1, 1, 2]  select CHACAL_PALIER;   // patrouilles exterieures
 CHACAL_PAL_HMG   = [1, 1, 2, 2]  select CHACAL_PALIER;   // mitrailleuses servies
+// Le job peut forcer ce nombre pour isoler la cause : sur la graine 7 du 08/09, une seule
+// piece servie a signe 6 des 9 morts. `select [0, 0]` rend un tableau vide : aucune piece.
+if (CHACAL_HMG_FORCE >= 0) then { CHACAL_PAL_HMG = CHACAL_HMG_FORCE };
 CHACAL_PAL_QRF   = [1, 1, 2, 2]  select CHACAL_PALIER;   // vehicules de reserve
 CHACAL_PAL_DELAI = [180, 120, 75, 45] select CHACAL_PALIER; // secondes avant depart de la reserve
 CHACAL_PAL_NVG   = [false, false, true, true] select CHACAL_PALIER; // jumelles a la patrouille de route

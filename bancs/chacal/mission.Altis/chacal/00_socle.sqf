@@ -22,6 +22,10 @@ CHACAL_JOUR   = ["CHACAL_JOUR", 0] call BIS_fnc_getParamValue;
 CHACAL_DEPART = ["CHACAL_DEPART", 1] call BIS_fnc_getParamValue;
 CHACAL_PALIER = ["CHACAL_PALIER", 3] call BIS_fnc_getParamValue;
 CHACAL_IMMORTEL = ["CHACAL_IMMORTEL", 0] call BIS_fnc_getParamValue;
+// ! DEUX LEVIERS AJOUTES LE 08/09, un par cause mesuree sur les graines 7 et 8.
+// -1 laisse le palier decider : par defaut, rien ne change.
+CHACAL_HMG_FORCE = ["CHACAL_HMG", -1] call BIS_fnc_getParamValue;
+CHACAL_ASSAUT_X  = (["CHACAL_ASSAUT_X", 100] call BIS_fnc_getParamValue) / 100;
 
 // --- LE TIRAGE EST A NOUS, PAS AU MOTEUR -----------------------------
 // `setRandomSeed` n existe pas dans ce build ( mesure du 03/09 : Missing ; a
