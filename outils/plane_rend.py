@@ -16,6 +16,24 @@ import plane_orm as PL
 H = "/mnt/data/hmt"
 
 
+def dernier_succes(seq, proj):
+    """Date du dernier run COMPLET de cette tache, ou None. Sert a ne pas ROUVRIR une tache
+    finie avec un refus plus ancien : le 08/09, un refus de 12:46 rendu apres coup a fait
+    repasser HMT-25 en « A faire » alors qu elle avait REUSSI a 14:05.
+    ⭐ Un canal qui rend les evenements dans le desordre reecrit le passe."""
+    t = None
+    for d in os.listdir(H + "/runs"):
+        r = "%s/runs/%s" % (H, d)
+        try:
+            J = json.load(open(r + "/job.json")); F = json.load(open(r + "/FIN.json"))
+        except Exception:
+            continue
+        if (J.get("plane") == seq and J.get("plane_projet", "HMT") == proj
+                and F.get("verdict") == "COMPLET"):
+            t = max(t or 0, os.path.getmtime(r + "/FIN.json"))
+    return t
+
+
 def refuses():
     """⛔ 08/09 — LE TROU QUI RENDAIT LE PONT MENTEUR. Un job refuse par le controle
     d avant-run ne cree aucun run, donc aucun FIN.json : la tache restait « En cours » dans
@@ -39,12 +57,22 @@ def refuses():
             raison = open("%s/%s.raison" % (d, f)).read().strip()
         except Exception:
             raison = "raison non enregistree (job refuse avant le 08/09)"
-        PL.commenter(seq, "<p><b>REFUSE avant lancement</b> — job <code>%s</code> non joue.<br>"
-                          "%s</p><p>La tache repart en « A faire » : rien n a ete mesure.</p>"
-                          % (html.escape(f), html.escape(raison)), proj)
-        PL.etat(seq, "A faire", proj)
+        succes = dernier_succes(seq, proj)
+        perime = succes is not None and succes > os.path.getmtime("%s/%s" % (d, f))
+        if perime:
+            PL.commenter(seq, "<p><b>Refus antérieur, pour mémoire</b> — job <code>%s</code> non "
+                              "joué : %s</p><p>Un run COMPLET a suivi : <b>l état de la tâche "
+                              "n est pas touché.</b></p>" % (html.escape(f), html.escape(raison)),
+                         proj)
+            print("  refus %s -> %s-%d PERIME (un run COMPLET a suivi), etat laisse tel quel"
+                  % (f, proj, seq))
+        else:
+            PL.commenter(seq, "<p><b>REFUSE avant lancement</b> — job <code>%s</code> non joue.<br>"
+                              "%s</p><p>La tache repart en « A faire » : rien n a ete mesure.</p>"
+                              % (html.escape(f), html.escape(raison)), proj)
+            PL.etat(seq, "A faire", proj)
+            print("  refus %s -> %s-%d remise en « A faire » : %s" % (f, proj, seq, raison[:70]))
         open("%s/%s.rendu" % (d, f), "w").write(raison[:200])
-        print("  refus %s -> %s-%d remise en « A faire » : %s" % (f, proj, seq, raison[:70]))
         n += 1
     return n
 
