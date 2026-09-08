@@ -1,0 +1,41 @@
+author = "Harmattan";
+onLoadName = "NUIT 1";
+onLoadMission = "L ancre B, et B contre C. Assaut sur retranches, entierement scripte.";
+overviewText = "Aucun joueur. Une ligne par episode dans le RPT.";
+
+respawn = 0;
+respawnDelay = 0;
+disabledAI = 1;
+enableDebugConsole = 1;
+briefing = 0;
+debriefing = 0;
+
+class Header { gameType = "Coop"; minPlayers = 1; maxPlayers = 1; };
+
+class Params
+{
+    class N1_GRAINE
+    {
+        title = "Graine";
+        values[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+        texts[]  = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16"};
+        default = 1;
+    };
+    // ! LE NOMBRE D EPISODES EST UN MULTIPLE DE 4 : l ABBA se fait par blocs de
+    // quatre ( B C C B ). Un compte qui n est pas multiple de 4 desequilibre les
+    // deux conditions et transforme une derive en effet du flanc.
+    class N1_EPISODES
+    {
+        title = "Episodes par graine (multiple de 4 : ABBA)";
+        values[] = {4,8,12,16,20,24,32,40,48,60};
+        texts[]  = {"4","8","12","16","20","24","32","40","48","60"};
+        default = 24;
+    };
+    class N1_DUREE
+    {
+        title = "Duree d un episode en secondes";
+        values[] = {150,200,250,300,360};
+        texts[]  = {"150","200","250","300","360"};
+        default = 300;
+    };
+};
