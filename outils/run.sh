@@ -1,4 +1,12 @@
 #!/bin/bash
+# ! GARDE ANTI-MODIFICATION EN COURS D EXECUTION (mesure du 08/09).
+# bash lit un script PAR MORCEAUX : editer run.sh pendant qu'un run tourne decale les offsets et
+# corrompt la suite. Le 08/09, une ligne ajoutee a la fin a fait perdre le FIN.json d'un run de 4 h.
+# Remede : on s'execute depuis une COPIE figee, prise au lancement.
+if [ "${HMT_FIGE:-0}" != "1" ]; then
+  C=$(mktemp /tmp/run_fige.XXXX.sh); cp "$0" "$C"
+  HMT_FIGE=1 exec bash "$C" "$@"
+fi
 # Un run = un job, N graines, un FIN.json. Usage : run.sh <job.json>
 set -uo pipefail
 H=/mnt/data/hmt; JOB=$1

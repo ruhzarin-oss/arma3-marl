@@ -1,4 +1,4 @@
-# ETAT — 2026-09-08 11:53
+# ETAT — 2026-09-08 14:00
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,22 +9,23 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-07T11:23:14+02:00 ok=True  pile harmattan non relevee ;
-- GPU : 1926 MiB, 24576 MiB, 19 %
+- GPU : 1919 MiB, 24576 MiB, 20 %
 - /mnt/data : 2.6T libres sur 3.6T
-- serveurs Arma : 1 · residus : aucun
+- serveurs Arma : 0 · residus : aucun
 
 ## File
 
-- en cours : 2026-09-08_chacal_pal0_depart1.json
+- en cours : rien
 - en attente : rien
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 2 / 3
+- runs aboutis : 3 / 3
 
 ## Portes ouvertes
 
 - **Comparaison appariee natif contre politique, banc repare** — aucune-revendication.md
+- **CHACAL palier 0 joue en entier : le detachement ABANDONNE sur les deux graines** — chacal-corpus-palier0-abandonne.md
 - **Le flanc paie-t-il, sous quelle courbe de letalite** — flanc-degele.md
 
 ## Verdicts vivants
@@ -75,6 +76,6 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
-| 2026-09-08_0956_chacal | chacal | EN COURS |  |  |
+| 2026-09-08_0956_chacal | chacal | COMPLET | g5:ACCEPTE g6:ACCEPTE | 5824 |
 | 2026-09-07_1355_chacal | chacal | COMPLET | g3:ACCEPTE g4:ACCEPTE | 2793 |
 | 2026-09-07_1125_chacal | chacal | COMPLET | g3:REFUSE g4:REFUSE | 4733 |
