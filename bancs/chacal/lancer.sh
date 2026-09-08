@@ -62,6 +62,21 @@ if ! diff -rq "$DEP" "$MPM" >/dev/null 2>&1; then
 else
   echo "mission deja a jour"
 fi
+# ! LE DEPLOIEMENT DOIT SE PROUVER, PAS S ANNONCER (mesure du 08/09, 21h50).
+# `mv` du dossier de mission ECHOUE quand un serveur Arma le tient ouvert :
+#   mv: cannot move '...CHACAL.Altis' to '...CHACAL.Altis.vieux': Permission denied
+# Le lanceur imprimait quand meme « mission deployee depuis le depot » et
+# inscrivait l EMPREINTE DU DEPOT dans le run - alors que la mission JOUEE etait
+# l ancienne. Trois runs ont porte une empreinte qui mentait, et le sas `.neuf`
+# s est retrouve IMBRIQUE dans la mission. Une empreinte qui ment est pire que
+# pas d empreinte : elle certifie le mauvais objet.
+# On compare donc, et on REFUSE de jouer plutot que de mesurer autre chose.
+if ! diff -rq "$DEP" "$MPM" >/dev/null 2>&1; then
+  echo "DEPLOIEMENT NON PROUVE : la mission jouee differe du depot"
+  diff -rq "$DEP" "$MPM" 2>&1 | head -n 5
+  echo "cause probable : un serveur Arma tient encore $MPM ouvert"
+  exit 1
+fi
 EMPREINTE=$(cd "$DEP" && find . \( -name '*.sqf' -o -name '*.ext' -o -name '*.sqm' \) | sort | xargs cat | md5sum | cut -c1-12)
 echo "empreinte de la mission : $EMPREINTE"
 echo "$EMPREINTE" > "$R/empreinte_mission.txt"
