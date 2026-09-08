@@ -3,15 +3,18 @@
 
 Une tache est PRETE si : etat « A faire » · etiquette `run` · sa description contient un bloc
     ```json { "banc": ..., "graines": [...], "instance": N, "plafond_s": S }
-Le job ecrit porte `plane` = le numero de la tache : c est ce numero qui permettra au retour
-de savoir a qui rendre le verdict.
+Le job ecrit porte `plane` = le numero de la tache et `plane_projet` = son projet (HMT ou GYM) :
+c est ce couple qui permettra au retour de savoir a qui rendre le verdict.
 
-⚠️ NE TOUCHE PAS `file.sh`. Le pont est DECOUPLE : Plane remplit la file, `file.sh` la vide,
-et rien ne change dans le chemin d execution deja eprouve. Un job depose a la main continue
-de marcher exactement comme avant, sans Plane.
+⚠️ NE TOUCHE PAS `file.sh` / `file2.sh`. Le pont est DECOUPLE : Plane remplit la file, la file
+la vide, et rien ne change dans le chemin d execution deja eprouve. Un job depose a la main
+continue de marcher exactement comme avant, sans Plane.
 
-⚠️ NE DEPOSE RIEN si la file n est pas vide ou si un job tourne : `file.sh` n en avale qu un
-a la fois, et empiler ici ne ferait qu ordonner a l aveugle.
+⚠️ 08/09 — LE VERROU EST PAR INSTANCE, PLUS GLOBAL. L ancien code refusait de deposer des
+qu un job tournait, n importe lequel : une mesure du gymnase attendait des heures derriere une
+mesure HARMATTAN qui ne la concernait pas. Une instance Arma est occupee si un job la vise
+DEJA — en cours ou en attente ; les autres restent libres. Ce verrou doit dire la meme chose
+que celui de `file2.sh`, sinon le pont empile ce que la file refusera d avaler.
 """
 import json, os, re, sys, datetime, html
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -33,11 +36,28 @@ def specs(html_desc):
     return None
 
 
+def instances_occupees():
+    """Les instances Arma deja visees par un job — en cours d execution ou en attente.
+    Un job illisible compte comme occupant TOUTES les instances : on ne devine pas."""
+    occ = set()
+    for d in (H + "/queue/en_cours", H + "/queue"):
+        if not os.path.isdir(d):
+            continue
+        for f in os.listdir(d):
+            if not f.endswith(".json"):
+                continue
+            try:
+                occ.add(json.load(open(os.path.join(d, f))).get("instance"))
+            except Exception:
+                print("  ⚠️ %s/%s illisible — toutes les instances tenues pour occupees" % (d, f))
+                return None
+    return occ
+
+
 def main():
-    if os.listdir(H + "/queue/en_cours"):
-        print("  un job tourne deja — rien depose"); return 0
-    if [f for f in os.listdir(H + "/queue") if f.endswith(".json")]:
-        print("  la file n est pas vide — rien depose"); return 0
+    occ = instances_occupees()
+    if occ is None:
+        return 0
 
     pretes = []
     for t in PL.taches(etat="A faire", etiquette="run"):
@@ -46,25 +66,36 @@ def main():
             continue
         manque = [c for c in CHAMPS if c not in s]
         if manque:
-            print("  HMT-%d ignoree : champs manquants %s" % (t["seq"], manque)); continue
+            print("  %s-%d ignoree : champs manquants %s" % (t["projet"], t["seq"], manque)); continue
         if len(set(s["graines"])) < 2:
-            print("  HMT-%d ignoree : il faut au moins deux graines distinctes" % t["seq"]); continue
+            print("  %s-%d ignoree : il faut au moins deux graines distinctes"
+                  % (t["projet"], t["seq"])); continue
         pretes.append((t, s))
 
     if not pretes:
         print("  aucune tache prete (etat « A faire », etiquette `run`, bloc json valide)"); return 0
 
-    t, s = pretes[0]                      # la plus ancienne : le numero fait l ordre
+    choisi = None
+    for t, s in pretes:                   # la plus ancienne d abord : le numero fait l ordre
+        if s["instance"] in occ:
+            print("  %s-%d attend : l instance %s est occupee" % (t["projet"], t["seq"], s["instance"]))
+            continue
+        choisi = (t, s); break
+    if not choisi:
+        print("  toutes les taches pretes visent une instance occupee — rien depose"); return 0
+
+    t, s = choisi
     s["plane"] = t["seq"]
-    s.setdefault("note", "depuis Plane HMT-%d : %s" % (t["seq"], t["nom"][:80]))
-    nom = "%s_HMT-%d_%s.json" % (datetime.date.today().isoformat(), t["seq"], s["banc"])
+    s["plane_projet"] = t["projet"]
+    s.setdefault("note", "depuis Plane %s-%d : %s" % (t["projet"], t["seq"], t["nom"][:70]))
+    nom = "%s_%s-%d_%s.json" % (datetime.date.today().isoformat(), t["projet"], t["seq"], s["banc"])
     chem = "%s/queue/%s" % (H, nom)
     json.dump(s, open(chem, "w"), ensure_ascii=False)
     os.chmod(chem, 0o644)
-    PL.etat(t["seq"], "En cours")
-    PL.commenter(t["seq"], "<p>Job depose dans la file : <code>%s</code><br>%s</p>"
-                 % (nom, html.escape(json.dumps(s, ensure_ascii=False))))
-    print("  depose %s  ->  HMT-%d passe En cours" % (nom, t["seq"]))
+    PL.etat(t["seq"], "En cours", t["projet"])
+    PL.commenter(t["seq"], "<p>Job depose dans la file : <code>%s</code> (instance %s)<br>%s</p>"
+                 % (nom, s["instance"], html.escape(json.dumps(s, ensure_ascii=False))), t["projet"])
+    print("  depose %s  ->  %s-%d passe En cours" % (nom, t["projet"], t["seq"]))
     return 0
 
 
