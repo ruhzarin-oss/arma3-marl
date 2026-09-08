@@ -1,4 +1,4 @@
-# ETAT — 2026-09-08 14:00
+# ETAT — 2026-09-08 14:08
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,23 +9,22 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-07T11:23:14+02:00 ok=True  pile harmattan non relevee ;
-- GPU : 1919 MiB, 24576 MiB, 20 %
+- GPU : 1919 MiB, 24576 MiB, 21 %
 - /mnt/data : 2.6T libres sur 3.6T
 - serveurs Arma : 0 · residus : aucun
 
 ## File
 
 - en cours : rien
-- en attente : rien
+- en attente : 2026-09-08_chacal_pal0_PLAN.json
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 3 / 3
+- runs aboutis : 4 / 4
 
 ## Portes ouvertes
 
 - **Comparaison appariee natif contre politique, banc repare** — aucune-revendication.md
-- **CHACAL palier 0 joue en entier : le detachement ABANDONNE sur les deux graines** — chacal-corpus-palier0-abandonne.md
 - **Le flanc paie-t-il, sous quelle courbe de letalite** — flanc-degele.md
 
 ## Verdicts vivants
@@ -39,6 +38,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Barreau B0@60, transfert zero-shot | 2026-09-02 | 0, 1 | 251/255 = 98,4 % et 251/254 = 98,8 %, sans un episode d'entrainement a 60 m | VIDE | b0-30 | b0-60-vide.md |
 | Coupe du banc live selon la presence d'un defenseur vivant | 2026-08-22 | n/a | 26 episodes du natif et 31 de la politique sans aucun defenseur ; natif 26/26 en monde vide, politique 18/31 | ECHEC |  | banc-quart-sans-adversaire.md |
 | Controle d'instrument du canal ennemi, avant le barreau adverse | 2026-09-03 | 1 | 4 champs sur 5 allumes ; 118 coups sur 20 episodes en B1 contre 0 en B0 | PASSE | site-degele | canal-ennemi.md |
+| CHACAL palier 0, BRAS TEMOIN : marcher droit sur l'objectif ne le prend pas | 2026-09-08 | 5, 6 | 2 episodes ACCEPTES, 15 portes vertes sur 15 ; g5 ABANDON ARTICULATION_ROMPUE (103 min, 10 vivants, 0 charge) ; g6 ABANDON COMPROMIS_LOIN (52 min, 6 morts en 15 s par un MRAP a mitrailleuse lourde) ; 0 charge posee sur 3 dans les deux cas | PASSE | chacal-portes, lanceur-hmt-temoin | chacal-bras-temoin-palier0.md |
 | CHACAL palier 0, premiers episodes : hors corpus, DEPART=3 trainait | 2026-09-07 | 3, 4 | g3 ECHEC EXFIL_MANQUEE (2333 s) ; g4 ABANDON ARTICULATION_ROMPUE (367 s, detachement detruit par la HMG en 86 s) | VIDE | chacal-portes, lanceur-hmt-temoin | chacal-palier0-premiers-episodes.md |
 | CHACAL, 9 portes du lecteur d'episode | 2026-09-03 | n/a | 6 phases, 203 min par episode, 9 portes d'acceptation, 716 k etats d'unite a 1 Hz | PASSE | arma-pieges | chacal-portes.md |
 | Controle positif spatial du modele du monde | 2026-08-27 | n/a | prix(vers l'ennemi) - prix(a l'oppose) = +0,00000, part positive 50,5 % sur 16 797 cas | ECHEC |  | champ-spatial.md |
@@ -76,6 +76,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
+| 2026-09-08_1405_pontplane | pontplane | COMPLET | g1:OK g2:OK | 0 |
 | 2026-09-08_0956_chacal | chacal | COMPLET | g5:ACCEPTE g6:ACCEPTE | 5824 |
 | 2026-09-07_1355_chacal | chacal | COMPLET | g3:ACCEPTE g4:ACCEPTE | 2793 |
 | 2026-09-07_1125_chacal | chacal | COMPLET | g3:REFUSE g4:REFUSE | 4733 |
