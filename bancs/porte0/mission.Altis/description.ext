@@ -1,0 +1,14 @@
+author = "Harmattan";
+onLoadName = "PORTE ZERO";
+onLoadMission = "Le monde recompense-t-il le jugement ? Deux intentions, deux rapports de force.";
+overviewText = "Aucun joueur. Une ligne par repetition dans le RPT.";
+respawn = 0; respawnDelay = 0; disabledAI = 1; enableDebugConsole = 1; briefing = 0; debriefing = 0;
+class Header { gameType = "Coop"; minPlayers = 1; maxPlayers = 1; };
+class Params
+{
+    class P0_GRAINE { title = "Graine"; values[] = {1,2,3,4,5,6,7,8}; texts[] = {"1","2","3","4","5","6","7","8"}; default = 1; };
+    class P0_INTENTION { title = "Intention : 0 = ASSAILLIR, 1 = ROMPRE"; values[] = {0,1}; texts[] = {"ASSAILLIR","ROMPRE"}; default = 0; };
+    class P0_RATIO { title = "Rapport de force : 0 = 3:1 (12c4), 1 = 1:3 (4c12)"; values[] = {0,1}; texts[] = {"3:1","1:3"}; default = 0; };
+    class P0_DUREE { title = "Duree d une repetition en secondes"; values[] = {300,450,600,900}; texts[] = {"300","450","600","900"}; default = 600; };
+    class P0_REPS { title = "Repetitions par graine"; values[] = {2,4,6,8}; texts[] = {"2","4","6","8"}; default = 4; };
+};
