@@ -1,4 +1,4 @@
-# ETAT — 2026-09-08 14:08
+# ETAT — 2026-09-08 14:28
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,18 +9,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-07T11:23:14+02:00 ok=True  pile harmattan non relevee ;
-- GPU : 1919 MiB, 24576 MiB, 21 %
+- GPU : 677 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.6T libres sur 3.6T
-- serveurs Arma : 0 · residus : aucun
+- serveurs Arma : 1 · residus : aucun
 
 ## File
 
-- en cours : rien
-- en attente : 2026-09-08_chacal_pal0_PLAN.json
+- en cours : 2026-09-08_chacal_pal0_PLAN.json
+- en attente : rien
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 4 / 4
+- runs aboutis : 4 / 5
 
 ## Portes ouvertes
 
@@ -76,6 +76,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
+| 2026-09-08_1415_chacal | chacal | EN COURS |  |  |
 | 2026-09-08_1405_pontplane | pontplane | COMPLET | g1:OK g2:OK | 0 |
 | 2026-09-08_0956_chacal | chacal | COMPLET | g5:ACCEPTE g6:ACCEPTE | 5824 |
 | 2026-09-07_1355_chacal | chacal | COMPLET | g3:ACCEPTE g4:ACCEPTE | 2793 |
