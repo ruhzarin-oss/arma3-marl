@@ -385,7 +385,7 @@ CHACAL_fnc_compromettre = {
     (format ["CHACAL|E|compromis|%1|cause|%2|phase|%3|latence_oracle|%4", round (time * 100) / 100,
         _cause, CHACAL_PHASE,
         (if (CHACAL_T_ALARME < 0) then {-1} else { round ((time - CHACAL_T_ALARME) * 100) / 100 })]) call CHACAL_LOG;
-    if (CHACAL_PHASE < 5) then { CHACAL_SAUT = true };
+    if (CHACAL_PHASE < 5) then { CHACAL_SAUT = (CHACAL_TENIR == 0) };
 
     // ! LE REFLEXE DE RUPTURE NE VAUT QUE TANT QU ON N ASSAILLE PAS.
     // La premiere fois que la mission a atteint la phase 5, la compromission
@@ -724,7 +724,7 @@ if (!CHACAL_SAUT) then {
 // jamais arrive, echec par construction. Le corpus enseignait " detecte, donc
 // charge " - la decision la plus importante de la mission n avait qu une
 // reponse, toujours la meme.
-if (CHACAL_COMPROMIS && { ((CHACAL_FS select { alive _x }) call CHACAL_fnc_centre) distance2D CHACAL_SITE > 1200 }) then {
+if (CHACAL_TENIR == 0 && CHACAL_COMPROMIS && { ((CHACAL_FS select { alive _x }) call CHACAL_fnc_centre) distance2D CHACAL_SITE > 1200 }) then {
     CHACAL_ABANDON = true; CHACAL_SAUT = false;
     CHACAL_CAUSE_ABANDON = "COMPROMIS_LOIN";
     (format ["CHACAL|E|abandon|%1|distance|%2", round (time * 100) / 100,

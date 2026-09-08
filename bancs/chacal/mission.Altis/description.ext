@@ -66,6 +66,17 @@ class Params
     // Si la couture n arrive pas quand rien ne peut la tuer, c est la couture.
     // ! LES DEUX LEVIERS DU 08/09. Chacun isole UNE cause mesuree, et on n en bouge
     // qu un par run : sinon on ne saura pas lequel a paye.
+    // ! TENIR MALGRE LA COMPROMISSION. Mesure du 08/09 : cinq episodes, cinq compromissions
+    // avant l assaut, zero charge posee ; un episode sans ennemi, trois charges sur trois.
+    // La regle prudente ne peut pas faire pire ; reste a savoir si tenir POSE des charges ou
+    // se contente de faire mourir plus vite. Les deux bras se jouent sur les memes graines.
+    class CHACAL_TENIR
+    {
+        title = "Poursuivre le plan malgre la compromission (0 = regle prudente)";
+        values[] = {0,1};
+        texts[]  = {"NON","OUI"};
+        default = 0;
+    };
     class CHACAL_HMG
     {
         title = "Mitrailleuses servies : -1 = valeur du palier, 0 = aucune";
