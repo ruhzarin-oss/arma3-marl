@@ -42,7 +42,10 @@ residus = sh("/mnt/c/Windows/System32/tasklist.exe 2>/dev/null | grep -Ei 'Unrea
 serveurs = sh("/mnt/c/Windows/System32/tasklist.exe 2>/dev/null | grep -c arma3server_x64")
 question = open(f"{V}/_question.md", encoding="utf-8").read().strip() if os.path.exists(f"{V}/_question.md") else "(ecrire verdicts/_question.md)"
 
-L = [f"# ETAT — {now}", "", question, "", "## Machine", "",
+L = [f"# ETAT — {now}", "",
+     "Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 "
+     "(tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.",
+     "", question, "", "## Machine", "",
      f"- dernier boot : {boot.get('date','?')} ok={boot.get('ok','?')} {boot.get('message','')}",
      f"- GPU : {gpu}", f"- /mnt/data : {disque}", f"- serveurs Arma : {serveurs} · residus : {residus or 'aucun'}", "",
      "## File", "", f"- en cours : {', '.join(encours) or 'rien'}", f"- en attente : {', '.join(queue) or 'rien'}", "",
