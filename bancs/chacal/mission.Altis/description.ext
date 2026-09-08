@@ -105,9 +105,23 @@ class Params
     };
     class CHACAL_DEPART
     {
-        title = "Phase de depart : 1 = complet, 3 = au regroupement, 4 = elements en place (DIAGNOSTIC)";
-        values[] = {1,3,4};
-        texts[]  = {"1","3","4"};
+        title = "Phase de depart : 1 = complet, 3 = au regroupement, 4/5/6 = elements en place (DIAGNOSTIC)";
+        values[] = {1,3,4,5,6};
+        texts[]  = {"1","3","4","5","6"};
         default = 1;
+    };
+    // ! LA VIGNETTE. Une mission complete coute trois heures ; une question qui
+    // ne porte que sur l assaut n a pas besoin des deux heures de marche qui le
+    // precedent. CHACAL_ARRET ferme l episode DES QUE la phase demandee se
+    // termine - proprement, par le verdict, pas par le plafond du lanceur.
+    // Avec DEPART on choisit ou l on commence, avec ARRET ou l on s arrete :
+    // DEPART=4, ARRET=5 est la vignette " assaut seul ".
+    // Le defaut 6 laisse la mission complete rigoureusement inchangee.
+    class CHACAL_ARRET
+    {
+        title = "Derniere phase jouee : l episode se termine des qu elle se clot (6 = mission complete)";
+        values[] = {1,2,3,4,5,6};
+        texts[]  = {"1","2","3","4","5","6"};
+        default = 6;
     };
 };

@@ -20,6 +20,7 @@ if (CHACAL_DT <= 0) then { CHACAL_DT = 1 };
 CHACAL_BRAS   = if ((["CHACAL_BRAS", 0] call BIS_fnc_getParamValue) == 1) then {"NUL"} else {"PLAN"};
 CHACAL_JOUR   = ["CHACAL_JOUR", 0] call BIS_fnc_getParamValue;
 CHACAL_DEPART = ["CHACAL_DEPART", 1] call BIS_fnc_getParamValue;
+CHACAL_ARRET  = ["CHACAL_ARRET", 6] call BIS_fnc_getParamValue;   // vignette : derniere phase jouee
 CHACAL_PALIER = ["CHACAL_PALIER", 3] call BIS_fnc_getParamValue;
 CHACAL_IMMORTEL = ["CHACAL_IMMORTEL", 0] call BIS_fnc_getParamValue;
 // ! DEUX LEVIERS AJOUTES LE 08/09, un par cause mesuree sur les graines 7 et 8.

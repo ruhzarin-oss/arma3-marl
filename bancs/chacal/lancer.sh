@@ -2,7 +2,7 @@
 # CHACAL : une graine, un palier, un episode. Ecrit <run>/g<G>/resultat.json
 # Repris de chacal_nuit.sh : chemins absolus, rien de masque, arret par PID.
 set -uo pipefail
-R=$1; G=$2; JOB=$3; OUT=$R/g$G
+R=$1; G=$2; JOB=$3; SOUS=${4:-g$G}; OUT=$R/$SOUS
 PWSH=/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
 lit() { python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get(sys.argv[2],sys.argv[3]))" "$JOB" "$1" "${2:-}"; }
 INST=$(lit instance 3); PLAFOND=$(lit plafond_s 16000)
@@ -20,6 +20,7 @@ ARMA='C:\Program Files (x86)\Steam\steamapps\common\Arma 3\arma3server_x64.exe'
 PAL=$(lit palier 0); DEPART=$(lit depart 1); IMMORTEL=$(lit immortel 0); JOUR=$(lit jour 0)
 ECHELLE=$(lit echelle 100); DTCS=$(lit dtcs 100)
 HMG=$(lit hmg -1); ASSAUT_X=$(lit assaut_x 100)   # -1 = valeur du palier ; 100 = plafond inchange
+ARRET=$(lit arret 6)                            # VIGNETTE : derniere phase jouee ; 6 = mission complete
 BRAS_NOM=$(lit bras PLAN)                       # PLAN (le plan en six phases) ou NUL (le temoin)
 case "$BRAS_NOM" in
   PLAN) BRAS=0 ;; NUL) BRAS=1 ;;
@@ -38,7 +39,7 @@ grep -q CHACAL_GRAINE "$PROFIL/server.cfg" || { echo "server.cfg de hmtech$INST 
 ecrire_param GRAINE "$G"; ecrire_param PALIER "$PAL"; ecrire_param DEPART "$DEPART"
 ecrire_param IMMORTEL "$IMMORTEL"; ecrire_param JOUR "$JOUR"; ecrire_param BRAS "$BRAS"
 ecrire_param ECHELLE "$ECHELLE"; ecrire_param DTCS "$DTCS"
-ecrire_param HMG "$HMG"; ecrire_param ASSAUT_X "$ASSAUT_X"
+ecrire_param HMG "$HMG"; ecrire_param ASSAUT_X "$ASSAUT_X"; ecrire_param ARRET "$ARRET"
 echo "server.cfg : $(grep -o 'CHACAL_[A-Z_]* = [-0-9]*' "$PROFIL/server.cfg" | tr '\n' ' ') (bras=$BRAS_NOM)"
 
 

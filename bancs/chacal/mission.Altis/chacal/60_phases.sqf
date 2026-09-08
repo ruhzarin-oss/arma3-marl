@@ -41,6 +41,9 @@ CHACAL_GEL = false;
 
 CHACAL_fnc_debutPhase = {
     params ["_n", "_nom", ["_plafond", 1e9]];
+    // ! VIGNETTE : une phase posterieure a CHACAL_ARRET n ouvre rien et n ecrit
+    // rien. Sinon le RPT porterait des phases jamais jouees et `phase_max` mentirait.
+    if (CHACAL_FIN) exitWith {};
     CHACAL_PHASE = _n; CHACAL_PHASE_NOM = _nom;
     CHACAL_TPHASE = time; CHACAL_PLAFOND_COURANT = _plafond;
     (format ["CHACAL|PH|%1|%2|debut|%3|vivants|%4|compromis|%5|alarme|%6", _n, _nom, round (time * 100) / 100,
@@ -49,9 +52,17 @@ CHACAL_fnc_debutPhase = {
 };
 CHACAL_fnc_finPhase = {
     params ["_n", "_nom", "_issue"];
+    if (CHACAL_FIN && { _n > CHACAL_ARRET }) exitWith {};
     (format ["CHACAL|PH|%1|%2|fin|%3|%4|vivants|%5|compromis|%6|alarme|%7", _n, _nom, round (time * 100) / 100, _issue,
         count (CHACAL_FS select { alive _x }),
         (if (CHACAL_COMPROMIS) then {1} else {0}), (if (CHACAL_ALARME) then {1} else {0})]) call CHACAL_LOG;
+    // ! LA VIGNETTE SE FERME ICI, et par le VERDICT : 70_verdict attend CHACAL_FIN,
+    // emet sa ligne FINI, et le lanceur arrete le serveur dessus. On ne coupe pas
+    // au plafond - un episode coupe au plafond n a pas d issue lisible.
+    if (_n >= CHACAL_ARRET) then {
+        (format ["CHACAL|OK|vignette|arret|%1|issue|%2", _n, _issue]) call CHACAL_LOG;
+        CHACAL_FIN = true;
+    };
 };
 
 CHACAL_fnc_ordreAller = {
@@ -643,6 +654,7 @@ sleep (60 * CHACAL_ECHELLE);
 // ---------------------------------------------------------------------
 // PHASE 2 - APPROCHE, et le franchissement de la route
 // ---------------------------------------------------------------------
+if (CHACAL_FIN) exitWith {};   // vignette close a la phase 1
 _plafond = 2 call CHACAL_fnc_duree;
 [2, "APPROCHE", _plafond] call CHACAL_fnc_debutPhase;
 
@@ -736,7 +748,7 @@ if (CHACAL_BRAS == "NUL" && !CHACAL_SAUT && !CHACAL_ABANDON) then {
 // ---------------------------------------------------------------------
 // PHASE 3 - POINT D OBSERVATION : deux hommes montent, huit se terrent
 // ---------------------------------------------------------------------
-if (!CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" } && { CHACAL_DEPART < 4 }) then {
+if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" } && { CHACAL_DEPART < 4 }) then {
     _plafond = 3 call CHACAL_fnc_duree;
     [3, "OBSERVATION", _plafond] call CHACAL_fnc_debutPhase;
 
@@ -839,7 +851,7 @@ if (!CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" } && { CHACAL_DEPA
 // ---------------------------------------------------------------------
 // PHASE 4 - MISE EN PLACE : appui, assaut, bouchon
 // ---------------------------------------------------------------------
-if (!CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) then {
+if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) then {
     _plafond = 4 call CHACAL_fnc_duree;
     [4, "MISE_EN_PLACE", _plafond] call CHACAL_fnc_debutPhase;
 
@@ -926,7 +938,7 @@ if (!CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) then {
 // ---------------------------------------------------------------------
 // PHASE 5 - ACTION SUR OBJECTIF
 // ---------------------------------------------------------------------
-if (!CHACAL_ABANDON) then {
+if (!CHACAL_ABANDON && !CHACAL_FIN) then {
 CHACAL_SAUT = false;
 _plafond = 5 call CHACAL_fnc_duree;
 [5, "ASSAUT", _plafond] call CHACAL_fnc_debutPhase;
@@ -1184,6 +1196,7 @@ private _iss5 = if (count CHACAL_CHARGES >= count CHACAL_OBJETS) then {"ATTEINT"
 // attaquer. On se replie par ou l on est venu. Et le plafond se calcule depuis
 // la position REELLE des SURVIVANTS - `CHACAL_gFS` est vide depuis la scission,
 // et la fonction rendait alors son defaut de 120 s pour 4 km a parcourir.
+if (CHACAL_FIN) exitWith {};   // vignette close avant l exfiltration
 CHACAL_EXFIL_POINT = if (CHACAL_ABANDON) then { CHACAL_LZ } else { CHACAL_PZ };
 _plafond = [(CHACAL_FS select { alive _x }), CHACAL_EXFIL_POINT, 1.8] call CHACAL_fnc_budget;
 [6, "EXFILTRATION", _plafond] call CHACAL_fnc_debutPhase;
