@@ -46,7 +46,9 @@ done
 # ⚠️ PLAFOND. La parallelisation Arma a ete MESUREE : x1,86 a DEUX instances, et rien au-dessus
 # de 13 % ensuite. On ne depasse pas ce qui a ete mesure — au-dela, on ajouterait du bruit de
 # charge dans des mesures censees etre comparables.
-MAX=2
+MAX=3   # 3 depuis le 08/09 : gymnase (i0) + les deux bancs CHACAL (i1, i3).
+        # ! Non mesure au-dela de 2 instances : la charge concurrente est archivee
+        # dans chaque run (charge_au_lancement), donc un effet de contention serait visible.
 VIVANTS=$(ls -1d "$VERROUS"/i* 2>/dev/null | wc -l)
 if [ "$VIVANTS" -ge "$MAX" ]; then
   echo "$(date -Is) PLAFOND $VIVANTS/$MAX jobs en vol — rien pris"; exit 0

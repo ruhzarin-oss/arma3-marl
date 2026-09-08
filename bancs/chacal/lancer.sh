@@ -28,7 +28,7 @@ esac
 ecrire_param() {   # ecrit la cle si elle existe, l'ajoute sinon
   local k=$1 v=$2
   if grep -q "CHACAL_$k = " "$PROFIL/server.cfg"; then
-    sed -i "s/CHACAL_$k = [0-9]*;/CHACAL_$k = ${v};/" "$PROFIL/server.cfg"
+    sed -i "s/CHACAL_$k = [-0-9]*;/CHACAL_$k = ${v};/" "$PROFIL/server.cfg"
   else
     sed -i "0,/class Params/s//class Params/" "$PROFIL/server.cfg"
     sed -i "s/CHACAL_GRAINE = \([0-9]*\);/CHACAL_GRAINE = \1;\n            CHACAL_$k = ${v};/" "$PROFIL/server.cfg"
@@ -39,7 +39,7 @@ ecrire_param GRAINE "$G"; ecrire_param PALIER "$PAL"; ecrire_param DEPART "$DEPA
 ecrire_param IMMORTEL "$IMMORTEL"; ecrire_param JOUR "$JOUR"; ecrire_param BRAS "$BRAS"
 ecrire_param ECHELLE "$ECHELLE"; ecrire_param DTCS "$DTCS"
 ecrire_param HMG "$HMG"; ecrire_param ASSAUT_X "$ASSAUT_X"
-echo "server.cfg : $(grep -o 'CHACAL_[A-Z_]* = [0-9]*' "$PROFIL/server.cfg" | tr '\n' ' ') (bras=$BRAS_NOM)"
+echo "server.cfg : $(grep -o 'CHACAL_[A-Z_]* = [-0-9]*' "$PROFIL/server.cfg" | tr '\n' ' ') (bras=$BRAS_NOM)"
 
 
 # ! DEPLOIEMENT : LE DEPOT DOIT ETRE CE QUI TOURNE.
