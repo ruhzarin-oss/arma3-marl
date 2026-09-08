@@ -1,4 +1,4 @@
-# ETAT — 2026-09-08 21:49
+# ETAT — 2026-09-09 01:38
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,18 +9,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-07T11:23:14+02:00 ok=True  pile harmattan non relevee ;
-- GPU : 704 MiB, 24576 MiB, 0 %
+- GPU : 713 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.6T libres sur 3.6T
-- serveurs Arma : 3 · residus : aucun
+- serveurs Arma : 2 · residus : aucun
 
 ## File
 
-- en cours : 2026-09-08_A_sans_mitrailleuse.json, 2026-09-08_C_controle_acte.json, 2026-09-08_GYM-14_porte0.json
-- en attente : 2026-09-08_B_assaut_triple.json
+- en cours : 2026-09-09_D2_tenir.json, 2026-09-09_GYM-16_porte0.json
+- en attente : 2026-09-09_V0_essai_vignette.json
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 9 / 13
+- runs aboutis : 13 / 20
 
 ## Portes ouvertes
 
@@ -42,6 +42,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | CHACAL palier 0, premiers episodes : hors corpus, DEPART=3 trainait | 2026-09-07 | 3, 4 | g3 ECHEC EXFIL_MANQUEE (2333 s) ; g4 ABANDON ARTICULATION_ROMPUE (367 s, detachement detruit par la HMG en 86 s) | VIDE | chacal-portes, lanceur-hmt-temoin | chacal-palier0-premiers-episodes.md |
 | CHACAL, 9 portes du lecteur d'episode | 2026-09-03 | n/a | 6 phases, 203 min par episode, 9 portes d'acceptation, 716 k etats d'unite a 1 Hz | PASSE | arma-pieges | chacal-portes.md |
 | Controle positif spatial du modele du monde | 2026-08-27 | n/a | prix(vers l'ennemi) - prix(a l'oppose) = +0,00000, part positive 50,5 % sur 16 797 cas | ECHEC |  | champ-spatial.md |
+| La compromission est la charniere : huit episodes avec ennemis, zero charge ; quatre sans ennemi, douze charges | 2026-09-09 | 5, 6, 7, 8 | 8 episodes du bras PLAN au palier 0 : 8 compromissions, 0 charge posee sur 24 ; 4 episodes au palier 9 (monde vide) : 0 compromission, 12 charges sur 12 et 4 SUCCES | PASSE | chacal-portes, monde-fixe-episode-libre | compromission-charniere.md |
 | Courbe de toucher, niveau et forme, nuit N1 | 2026-09-04 | n/a | rapport a l'ancienne courbe x0,75 a 25 m et x1,91 a 150 m ; replication 0,402 contre 0,383 a 100 m | ECHEC |  | courbe-2607.md |
 | Courbe de toucher remesuree a HitPart, instrument reproductible | 2026-09-04 | 2 repetitions independantes de la meme condition | 18 conditions, ~17 000 balles ; 100 m debout 0,402 IC95 [0,371 ; 0,435] n=902, puis 0,383 IC95 [0,335 ; 0,434] n=368 | PASSE | courbe-2607 | courbe-toucher-hitpart.md |
 | Degat par impact re-derive sur l'acte de mort | 2026-09-04 | n/a | 0,175 par impact ; mediane 4,0 impacts jusqu'a la neutralisation, n=83 ; l'ancien 0,233 venait d'un capteur qui sur-comptait | PASSE | courbe-toucher-hitpart | degat-par-impact.md |
@@ -56,6 +57,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Forme de la loi auditive de CWR validee sur Arma | 2026-09-03 | 12 episodes valides sur 12, six geometries | audSide(d) = min(2177/d2 ; 1,35), jamais 1,5, nulle au-dela de 100 m ; 1/d2 predit 1,78, mesure 1,79 ; constante a.d2 = 2160 / 2196 / 2176, soit 0,9 % d'ecart | PASSE | loi-cwr, knowsabout-de-camp | loi-auditive-forme.md |
 | Loi couvert-tir lue dans la source CWR, confrontee a Arma 3 | 2026-09-03 | n/a | porte 0,63 refutee (237 impacts sur victime vivante, 29,5 % sous le seuil) ; exposant du couvert 0,72 au lieu de 2 ; ouie plafonnee a 1,35 en 1/d2 | PASSE | arc-tir-sursis, etre-vu-tue-2x | loi-cwr.md |
 | Mecanisme de la memorisation, cap absolu | 2026-09-03 | 0, 1 | cap 315 dans 50,0 % des echecs contre 13,2 % des reussites ; 96,9 % a moins de 90 deg contre 84,9 % au-dela | PASSE | site-memorise | memorisation-cap-absolu.md |
+| Le monde fixe ne fixe pas l'episode : deux runs identiques, deux histoires opposees | 2026-09-09 | 7 et 8, deux fois chacune | meme configuration et memes graines, run 1415 contre run 2255 : ECHEC/CHARGES_INCOMPLETES contre ABANDON/COMPROMIS_LOIN sur les DEUX graines ; compromission a 5155 s contre 1419 s sur la graine 7 ; 6 et 14 ennemis neutralises contre 0 et 0 ; 5 et 7 survivants contre 9 et 8 | PASSE | chacal-portes, lanceur-hmt-temoin | monde-fixe-episode-libre.md |
 | Critere du placeur, praticabilite ou direction | 2026-08-19 | n/a | 11-15 m en montee contre 22-26 m en descente ; 0 acte sur 188 finissant au sol n'atteint le seuil de 23 m | PASSE |  | pente-sens-marche.md |
 | Le PLAN contre son TEMOIN au palier 0 : le plan combat, aucun des deux ne pose de charge | 2026-09-08 | plan 7 et 8 ; temoin 5 et 6 | ennemis neutralises 6 et 14 (plan) contre 0 et 0 (temoin) ; charges posees 0 sur 3 dans les quatre episodes ; survivants BLUFOR 5 et 7 (plan) contre 10 et 4 (temoin) ; 4 episodes ACCEPTES, 15 portes vertes sur 15 | PASSE | chacal-portes, chacal-bras-temoin-palier0, lanceur-hmt-temoin | plan-contre-temoin-palier0.md |
 | Candidat A, la politique lit-elle la pente | 2026-08-22 | 101, 102, 103 | ecart intact contre brouille = 0,7 pt (seuil pre-inscrit 3,0) ; controle positif jusqu'a -20,1 pts | PASSE |  | politique-est-navigateur.md |
@@ -78,16 +80,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
-| 2026-09-08_2149_chacal | chacal | EN COURS |  |  |
-| 2026-09-08_2137_chacal | chacal | EN COURS |  |  |
-| 2026-09-08_2126_porte0 | porte0 | EN COURS |  |  |
+| 2026-09-09_0106_porte0 | porte0 | EN COURS |  |  |
+| 2026-09-09_0016_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 2399 |
+| 2026-09-08_2255_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 6639 |
+| 2026-09-08_2235_chacal | chacal | EN COURS |  |  |
+| 2026-09-08_2225_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 6497 |
+| 2026-09-08_2202_essai_vignette | chacal | SANS FIN.json |  |  |
+| 2026-09-08_2155_essai_vignette | chacal | SANS FIN.json |  |  |
+| 2026-09-08_2149_chacal | chacal | INTERROMPU |  |  |
+| 2026-09-08_2137_chacal | chacal | INTERROMPU | g7:REFUSE |  |
+| 2026-09-08_2126_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 4948 |
 | 2026-09-08_1835_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 11601 |
 | 2026-09-08_1825_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 11499 |
 | 2026-09-08_1740_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 2603 |
 | 2026-09-08_1734_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 339 |
 | 2026-09-08_1733_porte0 | porte0 | ECHEC |  | 1 |
-| 2026-09-08_1415_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 12998 |
-| 2026-09-08_1405_pontplane | pontplane | COMPLET | g1:OK g2:OK | 0 |
-| 2026-09-08_0956_chacal | chacal | COMPLET | g5:ACCEPTE g6:ACCEPTE | 5824 |
-| 2026-09-07_1355_chacal | chacal | COMPLET | g3:ACCEPTE g4:ACCEPTE | 2793 |
-| 2026-09-07_1125_chacal | chacal | COMPLET | g3:REFUSE g4:REFUSE | 4733 |
