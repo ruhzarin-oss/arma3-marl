@@ -21,18 +21,30 @@ exec >> "$R/run.log" 2>&1
 echo "DEBUT $(date -Is) commit=$(git -C $H/depot rev-parse --short HEAD) job=$(basename "$JOB")"
 echo "charge au lancement : $(tr '\n' ' ' < "$R/charge_au_lancement.txt")"
 t0=$(date +%s); RC=0
+# ! UN RUN = N GRAINES x N REPETITIONS. La repetition n est pas un luxe : l alea
+# du moteur n est pas seme, donc rejouer la meme graine donne un AUTRE episode.
+# C est ce qui permet de mesurer l etendue des issues a monde fixe.
+# Le sous-dossier ne change de nom que si la repetition existe : `g7` reste `g7`
+# quand REP vaut 1, et aucun banc deja ecrit ne s en apercoit.
+REP=$(python3 -c "import json,sys;print(int(json.load(open(sys.argv[1])).get('repetitions',1)))" "$R/job.json")
+echo "repetitions par graine : $REP"
 for G in $(python3 -c "import json,sys;print(*json.load(open(sys.argv[1]))['graines'])" "$R/job.json"); do
-  mkdir -p "$R/g$G"
-  echo "--- graine $G $(date -Is)"
-  bash "$H/depot/bancs/$B/lancer.sh" "$R" "$G" "$R/job.json" || { echo "graine $G : code $?"; RC=1; }
+  for I in $(seq 1 "$REP"); do
+    if [ "$REP" = "1" ]; then S="g$G"; else S="g${G}_r${I}"; fi
+    mkdir -p "$R/$S"
+    echo "--- graine $G repetition $I/$REP -> $S $(date -Is)"
+    bash "$H/depot/bancs/$B/lancer.sh" "$R" "$G" "$R/job.json" "$S" || { echo "graine $G rep $I : code $?"; RC=1; }
+  done
 done
 python3 - "$R" "$RC" "$t0" <<'EOF'
 import json,sys,time,glob,os
 r,rc,t0=sys.argv[1],int(sys.argv[2]),int(sys.argv[3])
 res={f.split('/')[-2]:json.load(open(f)) for f in sorted(glob.glob(r+"/g*/resultat.json"))}
-n=len(json.load(open(r+"/job.json"))["graines"])
+j=json.load(open(r+"/job.json"))
+n=len(j["graines"])*int(j.get("repetitions",1))
 ch=open(r+"/charge_au_lancement.txt").read().split() if os.path.exists(r+"/charge_au_lancement.txt") else []
 fin={"fin":time.strftime("%Y-%m-%dT%H:%M:%S"),"duree_s":int(time.time())-t0,"code":rc,
+     "episodes_attendus":n,"episodes_lus":len(res),
      "graines_attendues":n,"graines_lues":len(res),
      "charge_au_lancement":" ".join(ch),
      "verdict":"COMPLET" if rc==0 and len(res)==n else "ECHEC","resultats":res}

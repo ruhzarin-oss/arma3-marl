@@ -17,7 +17,20 @@ import json,sys
 j=json.load(open(sys.argv[1]))
 for k in ("banc","graines","instance","plafond_s"):
     if k not in j: print("REFUS: champ manquant :",k); sys.exit(1)
-if len(set(j["graines"]))<2: print("REFUS: il faut au moins deux graines distinctes"); sys.exit(1)
+# ! LA REGLE DE NON-SINGULARITE A DEUX FORMES, PAS UNE.
+# Deux graines distinctes protegent d un monde particulier. Mais une VIGNETTE
+# veut l inverse : le MEME monde rejoue, parce que l alea du moteur n est pas
+# seme et qu un episode n est pas reproductible. Rejouer 20 fois la graine 7
+# mesure l etendue des issues A MONDE FIXE - et sans ce chiffre, aucune
+# comparaison a un episode unique n est attribuable.
+# Ce qui reste interdit dans les deux cas : UN seul episode.
+g=len(set(j["graines"])); r=int(j.get("repetitions",1))
+if r<1: print("REFUS: repetitions vaut",r,", minimum 1"); sys.exit(1)
+if g<2 and r<5:
+    print("REFUS: episode singulier -", g, "graine(s) distincte(s) et", r, "repetition(s).")
+    print("       il faut AU MOINS DEUX GRAINES DISTINCTES (il en manque", 2-g, ")")
+    print("       OU repetitions >= 5 (il en manque", 5-r, ")")
+    sys.exit(1)
 EOF
 B=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['banc'])" "$JOB")
 [ -x "$H/depot/bancs/$B/lancer.sh" ] || { echo "REFUS: banc $B sans lancer.sh executable dans le depot"; ERR=1; }
