@@ -1,4 +1,4 @@
-# ETAT — 2026-09-08 14:28
+# ETAT — 2026-09-08 17:29
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,14 +9,14 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-07T11:23:14+02:00 ok=True  pile harmattan non relevee ;
-- GPU : 677 MiB, 24576 MiB, 0 %
+- GPU : 672 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.6T libres sur 3.6T
 - serveurs Arma : 1 · residus : aucun
 
 ## File
 
 - en cours : 2026-09-08_chacal_pal0_PLAN.json
-- en attente : rien
+- en attente : 2026-09-08_GYM-13_porte0.json
 
 ## Debit du mois 2026-09
 
