@@ -1,4 +1,4 @@
-# ETAT — 2026-09-08 18:11
+# ETAT — 2026-09-08 18:14
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
