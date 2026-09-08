@@ -32,3 +32,4 @@ json.dump(fin,open(r+"/FIN.json","w"),indent=1,ensure_ascii=False)
 print("FIN",fin["verdict"],fin["duree_s"],"s")
 EOF
 python3 $H/depot/outils/etat.py 2>&1 | tail -n 1
+bash $H/depot/outils/wiki.sh 2>&1 | tail -n 1

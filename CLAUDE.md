@@ -1,3 +1,24 @@
+# OU LIRE L ETAT DU PROJET — a faire AVANT toute autre chose
+
+Trois lieux, une seule verite, dans cet ordre :
+
+1. **Le wiki de Plane** — `http://localhost:8080` (tunnel `ssh -f -N ws`), espace `travaux`, projet HMT, onglet Pages.
+   - **ETAT — lire ceci en premier** : la machine, la file, le debit, les portes ouvertes, les verdicts vivants.
+   - **Verdicts — le detail** : le texte entier de chaque verdict.
+   - **Journal des runs** : une entree datee par run termine, en AJOUT seulement, l'historique ne se reecrit pas.
+   Ces trois pages sont **generees** par `outils/wiki.sh` a la fin de chaque run et toutes les 10 minutes.
+   **Ne jamais les editer a la main** : la generation suivante ecrase.
+
+2. **Le registre**, source de verite machine : `verdicts/*.md` (en-tete `porte/date/graines/chiffre/verdict/depend_de/remplace_par`)
+   et `ETAT.md`, genere par `outils/etat.py`. C'est ici qu'on ECRIT un verdict, jamais dans le wiki.
+
+3. **La file** : `hmt/queue/` dit ce qui va tourner, `hmt/runs/<date>_<banc>/FIN.json` dit ce qui a tourne.
+
+Regles qui ne se discutent pas : deux graines par job, un run finit par `FIN.json`, aucun run lance depuis ssh,
+arret par PID jamais par nom, un verdict cite doit avoir son fichier.
+
+---
+
 # arma3-marl — spécifique projet
 
 Le protocole général (style, économie de jetons, standard scientifique, file du
