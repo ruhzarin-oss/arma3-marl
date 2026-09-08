@@ -19,6 +19,7 @@ ARMA='C:\Program Files (x86)\Steam\steamapps\common\Arma 3\arma3server_x64.exe'
 # mission a chaque lancement, avec les valeurs du corpus par defaut. Rien n'est laisse au hasard.
 PAL=$(lit palier 0); DEPART=$(lit depart 1); IMMORTEL=$(lit immortel 0); JOUR=$(lit jour 0)
 ECHELLE=$(lit echelle 100); DTCS=$(lit dtcs 100)
+HMG=$(lit hmg -1); ASSAUT_X=$(lit assaut_x 100)   # -1 = valeur du palier ; 100 = plafond inchange
 BRAS_NOM=$(lit bras PLAN)                       # PLAN (le plan en six phases) ou NUL (le temoin)
 case "$BRAS_NOM" in
   PLAN) BRAS=0 ;; NUL) BRAS=1 ;;
@@ -37,7 +38,32 @@ grep -q CHACAL_GRAINE "$PROFIL/server.cfg" || { echo "server.cfg de hmtech$INST 
 ecrire_param GRAINE "$G"; ecrire_param PALIER "$PAL"; ecrire_param DEPART "$DEPART"
 ecrire_param IMMORTEL "$IMMORTEL"; ecrire_param JOUR "$JOUR"; ecrire_param BRAS "$BRAS"
 ecrire_param ECHELLE "$ECHELLE"; ecrire_param DTCS "$DTCS"
+ecrire_param HMG "$HMG"; ecrire_param ASSAUT_X "$ASSAUT_X"
 echo "server.cfg : $(grep -o 'CHACAL_[A-Z_]* = [0-9]*' "$PROFIL/server.cfg" | tr '\n' ' ') (bras=$BRAS_NOM)"
+
+
+# ! DEPLOIEMENT : LE DEPOT DOIT ETRE CE QUI TOURNE.
+# Le serveur charge MPMissions, pas le depot. Sans cette etape on mesure une mission qu'on n'a
+# pas versionnee — le piege qui a coute la mission le 04/09 et 7 bancs le 03/08. On copie dans
+# un sas, on compte, on bascule, et on inscrit l'empreinte dans le run.
+DEP=/mnt/data/hmt/depot/bancs/chacal/mission.Altis
+MPM="/mnt/c/Program Files (x86)/Steam/steamapps/common/Arma 3/MPMissions/CHACAL.Altis"
+N=$(find "$DEP" -name '*.sqf' | wc -l)
+[ "$N" -ge 9 ] || { echo "depot incomplet : $N sqf, 9 attendus"; exit 1; }
+if ! diff -rq "$DEP" "$MPM" >/dev/null 2>&1; then
+  rm -rf "$MPM.neuf"; cp -r "$DEP" "$MPM.neuf"
+  find "$MPM.neuf" -name '._*' -delete
+  M=$(find "$MPM.neuf" -name '*.sqf' | wc -l)
+  [ "$M" -ge 9 ] || { echo "copie incomplete : $M sqf"; rm -rf "$MPM.neuf"; exit 1; }
+  rm -rf "$MPM.vieux"; [ -d "$MPM" ] && mv "$MPM" "$MPM.vieux"
+  mv "$MPM.neuf" "$MPM"; rm -rf "$MPM.vieux"
+  echo "mission deployee depuis le depot ($M sqf)"
+else
+  echo "mission deja a jour"
+fi
+EMPREINTE=$(cd "$DEP" && find . \( -name '*.sqf' -o -name '*.ext' -o -name '*.sqm' \) | sort | xargs cat | md5sum | cut -c1-12)
+echo "empreinte de la mission : $EMPREINTE"
+echo "$EMPREINTE" > "$R/empreinte_mission.txt"
 
 mkdir -p "$OUT"; mkdir -p "/mnt/c/hmt_bridge/i$INST"
 rm -f "$PROFIL"/*.rpt

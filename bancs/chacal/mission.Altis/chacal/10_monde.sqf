@@ -151,7 +151,9 @@ CHACAL_DUREES = [
     (_dApp / CHACAL_VIT_INFIL) + 600,       // 2 approche + attente de la fenetre
     (_dObs / CHACAL_VIT_INFIL) + 1200,      // 3 montee + 20 min d observation
     (_dMep / CHACAL_VIT_INFIL) + 420,       // 4 articulation des trois elements
-    900,                                    // 5 action sur objectif
+    900 * CHACAL_ASSAUT_X,                  // 5 action sur objectif (seul plafond CONSTANT,
+                                            //   d ou le multiplicateur : les autres derivent
+                                            //   de la geometrie, celui-ci non)
     (_dExf / CHACAL_VIT_REPLI) + 300        // 6 rupture jusqu au point de secours
 ];
 (format ["CHACAL|OK|plafonds|%1|total_prevu_min|%2", (CHACAL_DUREES apply { round _x }),
