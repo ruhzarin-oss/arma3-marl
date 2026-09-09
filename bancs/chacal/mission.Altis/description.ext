@@ -53,8 +53,8 @@ class Params
     class CHACAL_PALIER
     {
         title = "Palier de force adverse : 3 = complet, 0 = desserre, 9 = MONDE VIDE (controle positif)";
-        values[] = {0,1,2,3,9};
-        texts[]  = {"0","1","2","3","VIDE"};
+        values[] = {0,1,2,3,4,9};
+        texts[]  = {"0","1","2","3","LEGER","VIDE"};
         default = 3;
     };
     // ! LE CONTROLE DE LA COUTURE SOUS LE FEU ( Fable, 07/09 ).

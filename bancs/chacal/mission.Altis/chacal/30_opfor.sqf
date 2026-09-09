@@ -40,17 +40,22 @@ if (CHACAL_PALIER == 9) exitWith {
     (format ["CHACAL|OK|opfor|palier|9|site|0|qrf|0|monde_vide"]) call CHACAL_LOG;
 };
 
-CHACAL_PAL_GAR   = [4, 6, 7, 8]  select CHACAL_PALIER;   // garnison des batiments
-CHACAL_PAL_RONDES= [1, 1, 2, 2]  select CHACAL_PALIER;   // rondes interieures
-CHACAL_PAL_EXT   = [0, 1, 1, 2]  select CHACAL_PALIER;   // patrouilles exterieures
-CHACAL_PAL_HMG   = [1, 1, 2, 2]  select CHACAL_PALIER;   // mitrailleuses servies
+// ! PALIER 4 - LEGER : quatre defenseurs au site, rien d autre. Comble le trou entre le
+// palier 0 (16 hommes) et le monde vide (0). C est la ou doit se trouver la bande ou
+// l issue est incertaine — ni 0 %, ni 100 %.
+// Vrai au seul palier 4 : sert a ecarter les groupes crees sans condition.
+CHACAL_LEGER = (CHACAL_PALIER == 4);
+CHACAL_PAL_GAR   = [4, 6, 7, 8, 4]  select CHACAL_PALIER;   // garnison des batiments
+CHACAL_PAL_RONDES= [1, 1, 2, 2, 0]  select CHACAL_PALIER;   // rondes interieures
+CHACAL_PAL_EXT   = [0, 1, 1, 2, 0]  select CHACAL_PALIER;   // patrouilles exterieures
+CHACAL_PAL_HMG   = [1, 1, 2, 2, 0]  select CHACAL_PALIER;   // mitrailleuses servies
 // Le job peut forcer ce nombre pour isoler la cause : sur la graine 7 du 08/09, une seule
 // piece servie a signe 6 des 9 morts. `select [0, 0]` rend un tableau vide : aucune piece.
 if (CHACAL_HMG_FORCE >= 0) then { CHACAL_PAL_HMG = CHACAL_HMG_FORCE };
-CHACAL_PAL_QRF   = [1, 1, 2, 2]  select CHACAL_PALIER;   // vehicules de reserve
-CHACAL_PAL_DELAI = [180, 120, 75, 45] select CHACAL_PALIER; // secondes avant depart de la reserve
-CHACAL_PAL_NVG   = [false, false, true, true] select CHACAL_PALIER; // jumelles a la patrouille de route
-CHACAL_PAL_SKILL = [0.40, 0.47, 0.55, 0.55] select CHACAL_PALIER;
+CHACAL_PAL_QRF   = [1, 1, 2, 2, 0]  select CHACAL_PALIER;   // vehicules de reserve
+CHACAL_PAL_DELAI = [180, 120, 75, 45, 9999] select CHACAL_PALIER; // secondes avant depart de la reserve
+CHACAL_PAL_NVG   = [false, false, true, true, false] select CHACAL_PALIER; // jumelles a la patrouille de route
+CHACAL_PAL_SKILL = [0.40, 0.47, 0.55, 0.55, 0.40] select CHACAL_PALIER;
 
 CHACAL_fnc_kitEst = {
     params ["_u", ["_skill", 0.55], ["_nvg", false]];
@@ -95,6 +100,8 @@ CHACAL_gGar setBehaviour "SAFE"; CHACAL_gGar setCombatMode "YELLOW"; CHACAL_gGar
 [CHACAL_gGar, _c, 55] call CHACAL_fnc_garnison;
 
 // --- 2. le guetteur de la tour : lui voit loin, et lui a des jumelles ---
+CHACAL_gTour = grpNull;
+if (!CHACAL_LEGER) then {
 CHACAL_gTour = createGroup east;
 CHACAL_GUET = CHACAL_gTour createUnit ["O_Sharpshooter_F", _c getPos [28, 22], [], 0, "NONE"];
 [CHACAL_GUET, 0.8, true] call CHACAL_fnc_kitEst;
@@ -124,6 +131,9 @@ CHACAL_RONDES = [];
 } forEach ([CHACAL_AZ, CHACAL_AZ + 180] select [0, CHACAL_PAL_RONDES]);
 
 // --- 4. les sentinelles de bunker ---
+};
+CHACAL_gBunk = grpNull;
+if (!CHACAL_LEGER) then {
 CHACAL_gBunk = createGroup east;
 {
     private _u = CHACAL_gBunk createUnit ["O_Soldier_F", getPosATL _x, [], 0, "NONE"];
@@ -133,6 +143,7 @@ CHACAL_gBunk = createGroup east;
 CHACAL_gBunk setBehaviour "SAFE"; CHACAL_gBunk setCombatMode "YELLOW"; CHACAL_gBunk allowFleeing 0;
 
 // --- 5. deux mitrailleuses servies, en polaire relative comme le reste ---
+};
 CHACAL_gHmg = createGroup east;
 {
     _x params ["_hd", "_hg", "_hdir"];
@@ -164,6 +175,7 @@ CHACAL_gExt2 setBehaviour "SAFE"; CHACAL_gExt2 setCombatMode "YELLOW"; CHACAL_gE
 // FENETRE, et une fenetre est une decision - donc une chose a apprendre.
 CHACAL_VEH_ROUTE = objNull; CHACAL_gRoute = grpNull;
 if (["O_MRAP_02_hmg_F"] call CHACAL_fnc_has) then {
+    if (CHACAL_LEGER) exitWith {};
     CHACAL_gRoute = createGroup east;
     CHACAL_VEH_ROUTE = createVehicle ["O_MRAP_02_hmg_F", CHACAL_ROUTE_A, [], 0, "NONE"];
     // TRANCHE : l equipage d un vehicule de patrouille a des jumelles, c est

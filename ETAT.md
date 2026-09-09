@@ -1,4 +1,4 @@
-# ETAT — 2026-09-09 10:24
+# ETAT — 2026-09-09 11:11
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -16,11 +16,11 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## File
 
 - en cours : rien
-- en attente : 2026-09-09_P0_vignette_monde_vide.json
+- en attente : rien
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 23 / 30
+- runs aboutis : 24 / 31
 
 ## Portes ouvertes
 
@@ -82,6 +82,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
+| 2026-09-09_1025_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE | 2648 |
 | 2026-09-09_0615_chacal | chacal | COMPLET | g9_r1:ACCEPTE g9_r2:ACCEPTE g9_r3:REFUSE g9_r4:ACCEPTE g9_r5:REFUSE | 1058 |
 | 2026-09-09_0535_chacal | chacal | COMPLET | g9_r1:ACCEPTE g9_r2:ACCEPTE g9_r3:ACCEPTE g9_r4:ACCEPTE g9_r5:ACCEPTE | 2201 |
 | 2026-09-09_0445_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE | 2344 |
@@ -96,4 +97,3 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | 2026-09-09_0016_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 2399 |
 | 2026-09-08_2255_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 6639 |
 | 2026-09-08_2235_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 15294 |
-| 2026-09-08_2225_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 6497 |
