@@ -99,6 +99,12 @@ _lgar resize CHACAL_PAL_GAR;
 CHACAL_gGar setBehaviour "SAFE"; CHACAL_gGar setCombatMode "YELLOW"; CHACAL_gGar allowFleeing 0;
 [CHACAL_gGar, _c, 55] call CHACAL_fnc_garnison;
 
+// ! INITIALISATIONS HORS GARDE. Les gardes du palier 4 enferment `CHACAL_RONDES = []`
+// et l affectation de CHACAL_GUET : au palier leger elles ne seraient JAMAIS exécutées,
+// et la ligne de journal `count CHACAL_RONDES` lirait une variable indefinie.
+// Une variable citee hors d un bloc doit etre initialisee hors de ce bloc.
+CHACAL_RONDES = []; CHACAL_GUET = objNull;
+
 // --- 2. le guetteur de la tour : lui voit loin, et lui a des jumelles ---
 CHACAL_gTour = grpNull;
 if (!CHACAL_LEGER) then {
