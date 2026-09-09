@@ -1,4 +1,4 @@
-# ETAT — 2026-09-09 05:30
+# ETAT — 2026-09-09 09:46
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,7 +9,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-07T11:23:14+02:00 ok=True  pile harmattan non relevee ;
-- GPU : 717 MiB, 24576 MiB, 0 %
+- GPU : 711 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.6T libres sur 3.6T
 - serveurs Arma : 2 · residus : aucun
 
@@ -20,7 +20,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 21 / 28
+- runs aboutis : 23 / 30
 
 ## Portes ouvertes
 
@@ -68,7 +68,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Dose-reponse d'immobilite au gymnase | 2026-08-26 | 301 a 306, jamais vues | doctrine scriptee 91,0 % contre 35,0 % pour la meilleure du depot ; pauses de 1, 2, 4 pas : -17,8 / -26,6 / -38,6 | PASSE | sandbox-letalite-4x | tout-ce-qui-fige-coute.md |
 | Banc live 20 episodes, transfert gymnase vers Arma | 2026-08-15 | n/a | prise 0/20 = 0,0 % sur Arma contre 59,4 % au gymnase ; 9/20 tous morts, 11/20 sans prendre | ECHEC | boucle-fermee | transfert-non-etabli.md |
 | Quatre valeurs de configuration lues directement sur Arma 3 | 2026-09-03 | n/a | rayon 1,688 m ; sensitivity 6,0 ; sensitivityEar 0,125 ; audible 0,05 ; indirectHitRange 0,0 | PASSE | loi-auditive-forme | valeurs-configfile-arma.md |
-| La vignette d'assaut DISCRIMINE, et la mitrailleuse servie est bien ce qui empeche de poser | 2026-09-09 | 7, cinq repetitions par niveau | charges posees sur 3 — une piece : 0,0,0,0,0 (moyenne 0,0) ; aucune piece : 2,3,2,1 (moyenne 2,0) ; deux pieces : 0,1,0,1,0 (moyenne 0,4). Survivants sur 10 — une piece : 5 aux cinq episodes ; aucune : 7,7,7,5 ; deux : 5 aux cinq episodes. Aucun recouvrement entre zero et une piece sur les charges. Duree d'un episode : 165 a 859 s, contre ~55 min pour une mission complete | PASSE | chacal-portes, monde-fixe-episode-libre, compromission-charniere | vignette-discrimine-mitrailleuse.md |
+| La vignette d'assaut DISCRIMINE, replique sur deux mondes : la mitrailleuse servie interdit la pose | 2026-09-09 | 7 et 9, cinq repetitions par niveau | AVEC une piece servie, 0 charge posee sur 8 episodes acceptes (graines 7 et 9 confondues), 5 survivants aux 8. SANS piece, une charge au moins dans 6 episodes sur 9 : graine 7 -> 2,3,2,1 (moyenne 2,0/3, survivants 7,7,7,5) ; graine 9 -> 0,3,2,0,0 (moyenne 1,0/3, survivants 5,6,8,5,5). Duree d'un episode 92 a 859 s, contre ~55 min pour une mission complete | PASSE | chacal-portes, monde-fixe-episode-libre, compromission-charniere | vignette-discrimine-mitrailleuse.md |
 
 ## Remplaces
 
@@ -81,6 +81,8 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
+| 2026-09-09_0615_chacal | chacal | COMPLET | g9_r1:ACCEPTE g9_r2:ACCEPTE g9_r3:REFUSE g9_r4:ACCEPTE g9_r5:REFUSE | 1058 |
+| 2026-09-09_0535_chacal | chacal | COMPLET | g9_r1:ACCEPTE g9_r2:ACCEPTE g9_r3:ACCEPTE g9_r4:ACCEPTE g9_r5:ACCEPTE | 2201 |
 | 2026-09-09_0445_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE | 2344 |
 | 2026-09-09_0345_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:REFUSE g7_r5:ACCEPTE | 3202 |
 | 2026-09-09_0255_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE | 1833 |
@@ -94,5 +96,3 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | 2026-09-08_2255_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 6639 |
 | 2026-09-08_2235_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 15294 |
 | 2026-09-08_2225_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 6497 |
-| 2026-09-08_2202_essai_vignette | chacal | SANS FIN.json |  |  |
-| 2026-09-08_2155_essai_vignette | chacal | SANS FIN.json |  |  |
