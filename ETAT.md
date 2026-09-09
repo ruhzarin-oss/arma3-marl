@@ -1,4 +1,4 @@
-# ETAT — 2026-09-09 16:11
+# ETAT — 2026-09-09 17:09
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,18 +9,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-07T11:23:14+02:00 ok=True  pile harmattan non relevee ;
-- GPU : 701 MiB, 24576 MiB, 0 %
+- GPU : 718 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.6T libres sur 3.6T
-- serveurs Arma : 0 · residus : aucun
+- serveurs Arma : 3 · residus : aucun
 
 ## File
 
-- en cours : rien
-- en attente : 2026-09-09_M0_palier4_acc0.json, 2026-09-09_M1_palier4_acc1.json, 2026-09-09_V20_effectif20_palier4.json
+- en cours : 2026-09-09_M0_palier4_acc0.json, 2026-09-09_M1_palier4_acc1.json, 2026-09-09_V20_effectif20_palier4.json
+- en attente : rien
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 25 / 32
+- runs aboutis : 25 / 35
 
 ## Portes ouvertes
 
@@ -60,6 +60,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Le monde fixe ne fixe pas l'episode : deux runs identiques, deux histoires opposees | 2026-09-09 | 7 et 8, deux fois chacune | meme configuration et memes graines, run 1415 contre run 2255 : ECHEC/CHARGES_INCOMPLETES contre ABANDON/COMPROMIS_LOIN sur les DEUX graines ; compromission a 5155 s contre 1419 s sur la graine 7 ; 6 et 14 ennemis neutralises contre 0 et 0 ; 5 et 7 survivants contre 9 et 8 | PASSE | chacal-portes, lanceur-hmt-temoin | monde-fixe-episode-libre.md |
 | Critere du placeur, praticabilite ou direction | 2026-08-19 | n/a | 11-15 m en montee contre 22-26 m en descente ; 0 acte sur 188 finissant au sol n'atteint le seuil de 23 m | PASSE |  | pente-sens-marche.md |
 | Le PLAN contre son TEMOIN au palier 0 : le plan combat, aucun des deux ne pose de charge | 2026-09-08 | plan 7 et 8 ; temoin 5 et 6 | ennemis neutralises 6 et 14 (plan) contre 0 et 0 (temoin) ; charges posees 0 sur 3 dans les quatre episodes ; survivants BLUFOR 5 et 7 (plan) contre 10 et 4 (temoin) ; 4 episodes ACCEPTES, 15 portes vertes sur 15 | PASSE | chacal-portes, chacal-bras-temoin-palier0, lanceur-hmt-temoin | plan-contre-temoin-palier0.md |
+| Un plan de positions sans plan de feu : UN defenseur tue cinq assaillants, le detachement tire UNE balle | 2026-09-09 | 8, palier 4 | l'unite adverse 3 tire 36 coups entre 4959 et 4997 s et signe LES CINQ morts (CHEF, ADJOINT, DEMO_1, DEMO_2, MEDECIN) ; le detachement de dix hommes tire UN seul coup sur tout l'episode, a 4996,57 s, une demi-seconde avant la mort de son tireur ; l'element d'appui, deux hommes en position, tire ZERO | PASSE | chacal-portes, etre-vu-tue-2x, angle-mort | plan-de-positions-sans-plan-de-feu.md |
 | Plancher de bruit de la mission complete : a monde ET configuration fixes, l'issue va de 0 a 5 survivants | 2026-09-09 | 7, huit repetitions | 8 episodes acceptes, meme configuration et meme graine — survivants 5, 4, 5, 5, 0, 5, 3, 2 (de 0 a 5 sur 10, moyenne 3,6) ; QUATRE causes de fin differentes : ARTICULATION_ROMPUE, CHARGES_INCOMPLETES, COMPROMIS_LOIN, DETACHEMENT_DETRUIT ; durees de 4590 a 8899 s, soit un facteur 1,9 | PASSE | monde-fixe-episode-libre, chacal-portes | plancher-de-bruit-mission-complete.md |
 | Candidat A, la politique lit-elle la pente | 2026-08-22 | 101, 102, 103 | ecart intact contre brouille = 0,7 pt (seuil pre-inscrit 3,0) ; controle positif jusqu'a -20,1 pts | PASSE |  | politique-est-navigateur.md |
 | Controle positif de la liaison drone par reveal | 2026-08-16 | 1 | bras B 20/20 ont tire, mediane 3,2 s ; bras A0 sans reveal 2/20, mediane 17,8 s | PASSE | drone-arma-rien | reveal-certifie.md |
@@ -82,6 +83,9 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
+| 2026-09-09_1635_chacal | chacal | EN COURS |  |  |
+| 2026-09-09_1625_chacal | chacal | EN COURS |  |  |
+| 2026-09-09_1615_chacal | chacal | EN COURS |  |  |
 | 2026-09-09_1115_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 16742 |
 | 2026-09-09_1025_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE | 2648 |
 | 2026-09-09_0615_chacal | chacal | COMPLET | g9_r1:ACCEPTE g9_r2:ACCEPTE g9_r3:REFUSE g9_r4:ACCEPTE g9_r5:REFUSE | 1058 |
@@ -94,6 +98,3 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | 2026-09-09_0209_factice | factice | COMPLET | g7:ACCEPTE g8:ACCEPTE | 40 |
 | 2026-09-09_0155_chacal | chacal | INTERROMPU | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE |  |
 | 2026-09-09_0146_chacal | chacal | INTERROMPU | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE |  |
-| 2026-09-09_0106_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 2623 |
-| 2026-09-09_0016_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 2399 |
-| 2026-09-08_2255_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 6639 |
