@@ -221,6 +221,19 @@ CHACAL_fnc_rejoindre = {
                             round (atan (((getTerrainHeightASL ((getPosATL _l) getPos [10, (getPosATL _l) getDir _p])) - (getTerrainHeightASL (getPosATL _l))) / 10))]) call CHACAL_LOG;
                     };
                 } else { _immobile = 0 };
+                // ! MESURE, PAS COMPORTEMENT ( 09/09 ). Le moteur peut declarer un deplacement
+                // TERMINE loin de la cible : commande vide, unitReady vrai, point de passage
+                // consomme. C est la signature exacte du palier 4, ou l assaut est reste a
+                // 800 m pendant 2000 s. On la journalise pour savoir si CHACAL_ACCESSIBLE la
+                // fait disparaitre — sans elle, on ne pourrait pas dire si le remede a mordu.
+                private _l2 = leader _g;
+                if (unitReady _l2 && { (currentCommand _l2) == "" } && { (currentWaypoint _g) >= (count (waypoints _g)) } && { _d > _ray }) then {
+                    if (_immobile == 5) then {
+                        (format ["CHACAL|E|moteur_dit_fini|%1|%2|reste|%3|rayon|%4|pente_trajet|%5",
+                            round (time * 100) / 100, _nom, round _d, _ray,
+                            round ([getPosATL _l2, _p] call CHACAL_fnc_penteTrajet)]) call CHACAL_LOG;
+                    };
+                };
                 if (_d < _ray) then { _fini = true; _res = "ATTEINT" }
                 else {
                     if (!_lente && { _d < 300 }) then {

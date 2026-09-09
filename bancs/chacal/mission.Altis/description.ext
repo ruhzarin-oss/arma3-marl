@@ -70,6 +70,26 @@ class Params
     // avant l assaut, zero charge posee ; un episode sans ennemi, trois charges sur trois.
     // La regle prudente ne peut pas faire pire ; reste a savoir si tenir POSE des charges ou
     // se contente de faire mourir plus vite. Les deux bras se jouent sur les memes graines.
+    // ! POSITION ATTEIGNABLE, pas seulement plate. Mesure du 09/09 au palier 4 : les trois
+    // elements n arrivent jamais, le moteur declare le deplacement termine a 800 m de la cible,
+    // sur des pentes de 29 et 37 degres. 0 conserve le comportement d origine.
+    // ! TAILLE DU DETACHEMENT. Mesure du 09/09 au palier 4 : cinq assaillants detruits en
+    // 38 secondes par quatre defenseurs retranches, le porteur de charge mort a 42 m du but.
+    // A 20, chaque element double : appui 4, assaut 10, bouchon 6.
+    class CHACAL_EFFECTIF
+    {
+        title = "Taille du detachement (10 = d origine)";
+        values[] = {10,20};
+        texts[]  = {"10","20"};
+        default = 10;
+    };
+    class CHACAL_ACCESSIBLE
+    {
+        title = "Exiger une position atteignable (0 = comportement d origine)";
+        values[] = {0,1};
+        texts[]  = {"NON","OUI"};
+        default = 0;
+    };
     class CHACAL_TENIR
     {
         title = "Poursuivre le plan malgre la compromission (0 = regle prudente)";
