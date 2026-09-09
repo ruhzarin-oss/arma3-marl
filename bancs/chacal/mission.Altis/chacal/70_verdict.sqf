@@ -185,7 +185,7 @@
             CHACAL_CAUSE = if (!isNil "CHACAL_CAUSE_ABANDON" && { CHACAL_CAUSE_ABANDON != "" })
                            then {CHACAL_CAUSE_ABANDON} else {"ABANDON_SANS_CAUSE"};
         } else {
-            if (_actes >= _objTotal && _exf >= 6) then { CHACAL_ISSUE = "SUCCES"; CHACAL_CAUSE = "CHARGES_ET_EXFIL" }
+            if (_actes >= _objTotal && _exf >= (round (0.6 * CHACAL_EFFECTIF))) then { CHACAL_ISSUE = "SUCCES"; CHACAL_CAUSE = "CHARGES_ET_EXFIL" }
             else {
                 CHACAL_ISSUE = "ECHEC";
                 CHACAL_CAUSE = if (_vivants == 0) then {"DETACHEMENT_DETRUIT"}

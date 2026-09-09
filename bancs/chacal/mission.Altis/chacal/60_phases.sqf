@@ -610,7 +610,7 @@ private _ecart = if (count _auSol > 0) then { round ((_auSol call CHACAL_fnc_cen
 (format ["CHACAL|E|debarquement|%1|au_sol|%2|ecart_lz|%3|helico_pose|%4|methode|ANNEAU_SCRIPTE", round (time * 100) / 100,
     count _auSol, _ecart, (if (_pose) then {1} else {0})]) call CHACAL_LOG;
 
-private _morts = 10 - (count (CHACAL_FS select { alive _x }));
+private _morts = CHACAL_EFFECTIF - (count (CHACAL_FS select { alive _x }));
 if (_morts > 0) exitWith {
     // Une insertion qui tue n est pas une insertion. On ne la rattrape pas : on
     // REFUSE l episode. Continuer a huit produirait un corpus ou l echec serait
@@ -619,7 +619,7 @@ if (_morts > 0) exitWith {
     (format ["CHACAL|VOID|insertion|%1|morts|%2|au_sol|%3", round (time * 100) / 100, _morts, count _auSol]) call CHACAL_LOG;
     CHACAL_FIN = true;
 };
-if (count _auSol < 10) exitWith {
+if (count _auSol < CHACAL_EFFECTIF) exitWith {
     CHACAL_ISSUE = "VOID"; CHACAL_CAUSE = "INSERTION_INCOMPLETE";
     (format ["CHACAL|VOID|insertion|%1|au_sol|%2", round (time * 100) / 100, count _auSol]) call CHACAL_LOG;
     CHACAL_FIN = true;
@@ -885,11 +885,15 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
         round (_minScore * 100) / 100, count CHACAL_VUES]) call CHACAL_LOG;
 
     CHACAL_POS_APPUI   = CHACAL_OP;
-    CHACAL_POS_ASSAUT  = [CHACAL_SITE getPos [230, CHACAL_SITE getDir CHACAL_OUV_CHOISIE], 60] call CHACAL_fnc_plat;
+    // ! Le point de depart est passe depuis l element concerne : c est la seule facon de savoir
+    // si le trajet est praticable. Sans CHACAL_ACCESSIBLE, l argument est ignore.
+    private _depAssaut  = ((units CHACAL_gAssaut)  select { alive _x }) call CHACAL_fnc_centre;
+    private _depBouchon = ((units CHACAL_gBouchon) select { alive _x }) call CHACAL_fnc_centre;
+    CHACAL_POS_ASSAUT  = [CHACAL_SITE getPos [230, CHACAL_SITE getDir CHACAL_OUV_CHOISIE], 60, 220, _depAssaut] call CHACAL_fnc_plat;
     // ! 700 m sur l axe de la reserve etait un chiffre ecrit sans justification,
     // et il demandait au bouchon une demi-heure de marche. Son travail est de
     // RETARDER la reserve, pas de tenir un carrefour : 400 m le font aussi bien.
-    CHACAL_POS_BOUCHON = [CHACAL_SITE getPos [400, CHACAL_SITE getDir CHACAL_QRF_BASE], 80] call CHACAL_fnc_plat;
+    CHACAL_POS_BOUCHON = [CHACAL_SITE getPos [400, CHACAL_SITE getDir CHACAL_QRF_BASE], 80, 220, _depBouchon] call CHACAL_fnc_plat;
 
     // Le plafond est la SOMME des deux jambes, calculee sur les vitesses
     // reellement ordonnees - 1,1 m/s puis 0,5 - et non sur une constante

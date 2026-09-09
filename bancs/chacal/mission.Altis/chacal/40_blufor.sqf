@@ -42,12 +42,10 @@ CHACAL_fnc_kitOuest = {
 // rafale : crees l un derriere l autre, ils marchaient cote a cote en tete de
 // file. L ADJOINT est donc cree EN DERNIER - il ferme la file, et le
 // detachement ne perd pas ses deux chefs d un coup.
-{
-    _x params ["_cls", "_role"];
-    private _u = CHACAL_gFS createUnit [_cls, CHACAL_LZ getPos [12 call CHACAL_fnc_al, 360 call CHACAL_fnc_al], [], 0, "NONE"];
-    [_u, _role] call CHACAL_fnc_kitOuest;
-    CHACAL_FS pushBack _u;
-} forEach [
+// La liste est construite AVANT la boucle pour pouvoir etre repetee. L ADJOINT reste cree en
+// dernier a chaque passe : c est lui qui ferme la file, et le detachement ne perd pas ses deux
+// chefs sur la meme rafale.
+private _rolesBase = [
     ["B_recon_TL_F",    "CHEF"],
     ["B_recon_M_F",     "TIREUR_1"],
     ["B_recon_M_F",     "TIREUR_2"],
@@ -60,7 +58,16 @@ CHACAL_fnc_kitOuest = {
     ["B_recon_TL_F",    "ADJOINT"]
 ];
 
-if (count CHACAL_FS < 10) exitWith {
+// Repetee autant de fois que l effectif le demande : 10 -> une passe, 20 -> deux.
+private _rolesTous = [];
+for "_p" from 1 to (round (CHACAL_EFFECTIF / 10)) do { _rolesTous append _rolesBase };
+
+{
+    _x params ["_cls", "_role"];
+    private _u = CHACAL_gFS createUnit [_cls, CHACAL_LZ getPos [12 call CHACAL_fnc_al, 360 call CHACAL_fnc_al], [], 0, "NONE"];
+    [_u, _role] call CHACAL_fnc_kitOuest;
+    CHACAL_FS pushBack _u;
+} forEach _rolesTous;if (count CHACAL_FS < CHACAL_EFFECTIF) exitWith {
     CHACAL_ISSUE = "VOID"; CHACAL_CAUSE = "DETACHEMENT_INCOMPLET";
     (format ["CHACAL|VOID|blufor|%1", count CHACAL_FS]) call CHACAL_LOG;
 };

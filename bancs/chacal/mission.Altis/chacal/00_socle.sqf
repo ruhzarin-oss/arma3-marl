@@ -27,6 +27,13 @@ CHACAL_IMMORTEL = ["CHACAL_IMMORTEL", 0] call BIS_fnc_getParamValue;
 // -1 laisse le palier decider : par defaut, rien ne change.
 // ! CHACAL_TENIR : poursuivre le plan malgre la compromission (0 = regle prudente d origine).
 // La compromission reste JOURNALISEE a l identique ; seule la REACTION change.
+// ! CHACAL_ACCESSIBLE : exiger qu une position soit ATTEIGNABLE, pas seulement plate.
+// 0 = comportement d origine, conserve pour que tout ce qui precede reste comparable.
+// ! CHACAL_EFFECTIF : taille du detachement. 10 = d origine.
+// A 20, la liste des roles est jouee deux fois : chaque element double, et le corpus
+// continue de porter les memes noms de role.
+CHACAL_EFFECTIF = ["CHACAL_EFFECTIF", 10] call BIS_fnc_getParamValue;
+CHACAL_ACCESSIBLE = ["CHACAL_ACCESSIBLE", 0] call BIS_fnc_getParamValue;
 CHACAL_TENIR = ["CHACAL_TENIR", 0] call BIS_fnc_getParamValue;
 CHACAL_HMG_FORCE = ["CHACAL_HMG", -1] call BIS_fnc_getParamValue;
 CHACAL_ASSAUT_X  = (["CHACAL_ASSAUT_X", 100] call BIS_fnc_getParamValue) / 100;
@@ -150,17 +157,51 @@ CHACAL_fnc_voit = {
 };
 
 // --- replat : critere de SERPENT NOIR, il a fait ses preuves ---
+// ! PENALITE DE TRAJET ( 09/09 ). La version d origine gardait le point le plus PLAT
+// LOCALEMENT et ne regardait jamais le chemin pour y aller. Un replat perche au-dessus d un
+// talus de 30 degres lui convient parfaitement, et le calculateur de chemin d Arma s y arrete
+// en declarant le deplacement TERMINE, a 800 m de la cible. C est ce qui a fait echouer le
+// palier 4 sans qu un seul coup soit tire.
+// Le quatrieme argument est le point de DEPART. Il est optionnel : sans lui, ou si
+// CHACAL_ACCESSIBLE vaut 0, la fonction se comporte exactement comme avant.
+CHACAL_fnc_penteTrajet = {
+    params ["_a", "_b"];
+    private _d = _a distance2D _b;
+    if (_d < 30) exitWith { 0 };
+    private _n = (round (_d / 25)) max 1;
+    private _pire = 0; private _hp = getTerrainHeightASL _a;
+    for "_i" from 1 to _n do {
+        private _q = _a getPos [(_d * _i) / _n, _a getDir _b];
+        private _h = getTerrainHeightASL _q;
+        _pire = _pire max (abs (atan ((_h - _hp) / (_d / _n))));
+        _hp = _h;
+    };
+    _pire
+};
 CHACAL_fnc_plat = {
-    params ["_c", "_r", ["_essais", 220]];
+    params ["_c", "_r", ["_essais", 220], ["_depuis", []]];
     private _best = +_c; private _sc = 1e9;
+    private _garde = (CHACAL_ACCESSIBLE == 1) && { count _depuis > 0 };
     for "_i" from 1 to _essais do {
         private _p = _c getPos [sqrt(call CHACAL_fnc_rnd) * _r, 360 call CHACAL_fnc_al];
         if (!surfaceIsWater _p) then {
             private _h = getTerrainHeightASL _p; private _dev = 0;
             for "_k" from 0 to 7 do { _dev = _dev max (abs ((getTerrainHeightASL (_p getPos [20, _k * 45])) - _h)) };
             private _s = _dev + 5 * (count (nearestObjects [_p, ["House"], 70]));
+            // Une pente au-dela de 20 degres sur le trajet coute cher, et tres cher au-dela de 30.
+            // On PENALISE au lieu de REFUSER : un terrain entierement raide doit quand meme
+            // rendre un point, sinon la mission s arrete au lieu de se degrader.
+            if (_garde) then {
+                private _pt = [_depuis, _p] call CHACAL_fnc_penteTrajet;
+                if (_pt > 20) then { _s = _s + 3 * (_pt - 20) };
+                if (_pt > 30) then { _s = _s + 10 * (_pt - 30) };
+            };
             if (_s < _sc) then { _sc = _s; _best = _p };
         };
+    };
+    if (_garde) then {
+        (format ["CHACAL|OK|plat|accessible|1|depuis|%1|choisi|%2|pente_trajet|%3|score|%4",
+            _depuis, _best, round ([_depuis, _best] call CHACAL_fnc_penteTrajet), round _sc]) call CHACAL_LOG;
     };
     _best set [2, 0]; _best
 };
