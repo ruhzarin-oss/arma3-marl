@@ -1,4 +1,4 @@
-# ETAT — 2026-09-09 02:14
+# ETAT — 2026-09-09 04:50
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,18 +9,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-07T11:23:14+02:00 ok=True  pile harmattan non relevee ;
-- GPU : 719 MiB, 24576 MiB, 0 %
+- GPU : 722 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.6T libres sur 3.6T
 - serveurs Arma : 3 · residus : aucun
 
 ## File
 
-- en cours : 2026-09-09_D2_tenir.json, 2026-09-09_N1_plancher_i2.json, 2026-09-09_N2_plancher_i3.json
-- en attente : 2026-09-09_V0_essai_vignette.json
+- en cours : 2026-09-09_N1_plancher_i2.json, 2026-09-09_N2_plancher_i3.json, 2026-09-09_W2_vignette_hmg2.json
+- en attente : rien
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 17 / 25
+- runs aboutis : 20 / 28
 
 ## Portes ouvertes
 
@@ -80,6 +80,9 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
+| 2026-09-09_0445_chacal | chacal | EN COURS |  |  |
+| 2026-09-09_0345_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:REFUSE g7_r5:ACCEPTE | 3202 |
+| 2026-09-09_0255_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE | 1833 |
 | 2026-09-09_0214_factice | factice | COMPLET | g7:ACCEPTE g8:ACCEPTE | 40 |
 | 2026-09-09_0213_factice | factice | COMPLET | g7:ACCEPTE g8:ACCEPTE | 41 |
 | 2026-09-09_0209_factice | factice | COMPLET | g7:ACCEPTE g8:ACCEPTE | 40 |
@@ -88,10 +91,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | 2026-09-09_0106_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 2623 |
 | 2026-09-09_0016_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 2399 |
 | 2026-09-08_2255_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 6639 |
-| 2026-09-08_2235_chacal | chacal | EN COURS |  |  |
+| 2026-09-08_2235_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 15294 |
 | 2026-09-08_2225_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 6497 |
 | 2026-09-08_2202_essai_vignette | chacal | SANS FIN.json |  |  |
 | 2026-09-08_2155_essai_vignette | chacal | SANS FIN.json |  |  |
-| 2026-09-08_2149_chacal | chacal | INTERROMPU |  |  |
-| 2026-09-08_2137_chacal | chacal | INTERROMPU | g7:REFUSE |  |
-| 2026-09-08_2126_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 4948 |
