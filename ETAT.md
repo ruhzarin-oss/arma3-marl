@@ -1,4 +1,4 @@
-# ETAT — 2026-09-09 16:01
+# ETAT — 2026-09-09 16:11
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -16,7 +16,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## File
 
 - en cours : rien
-- en attente : rien
+- en attente : 2026-09-09_M0_palier4_acc0.json, 2026-09-09_M1_palier4_acc1.json, 2026-09-09_V20_effectif20_palier4.json
 
 ## Debit du mois 2026-09
 
