@@ -9,6 +9,17 @@ COLIS = f"{H}/etat/journal_colis.json"
 VUS = f"{H}/etat/journal_vus.txt"
 
 
+
+def _min(v):
+    """Minutes lisibles a partir d'une duree qui peut etre absente ou nulle.
+    ! Un FIN.json RECONSTRUIT ou INTERROMPU porte duree_s = null : le calcul direct
+    levait un TypeError, wiki.sh sortait en erreur, run.sh rendait le code 1, et le
+    wiki n'etait plus regenere depuis le 08/09 22:49 sans que rien ne le dise."""
+    try:
+        return "%d min" % (int(v) // 60)
+    except (TypeError, ValueError):
+        return "duree inconnue"
+
 def e(s):
     return html.escape(str(s))
 
@@ -78,7 +89,7 @@ h.append("</ul><h2>Les derniers runs</h2><table><tbody>"
 for r in runs[:12]:
     f = r["fin"] or {}
     bv = " · ".join(f"{g} : {x.get('verdict','?')}" for g, x in f.get("resultats", {}).items())
-    d = f"{f['duree_s']//60} min" if f.get("duree_s") else ""
+    d = _min(f.get("duree_s")) if f.get("duree_s") is not None else ""
     h.append(f"<tr><td><code>{e(r['nom'])}</code></td><td>{e(r['job'].get('banc','?'))}</td>"
              f"<td><strong>{e(r['etat'])}</strong></td><td>{e(bv)}</td><td>{e(d)}</td></tr>")
 h.append("</tbody></table>")
@@ -119,7 +130,7 @@ for r in sorted(runs, key=lambda x: x["nom"]):
     f = r["fin"]; j = r["job"]
     L = [f"<h2>{e(r['nom'])} — {e(f.get('verdict','?'))}</h2>",
          f"<p>Banc <strong>{e(j.get('banc','?'))}</strong>, graines {e(j.get('graines',''))}, "
-         f"palier {e(j.get('palier',''))}, depart {e(j.get('depart',''))}. Duree {f.get('duree_s',0)//60} min. "
+         f"palier {e(j.get('palier',''))}, depart {e(j.get('depart',''))}. Duree {_min(f.get('duree_s'))}. "
          f"Charge au lancement : {e(f.get('charge_au_lancement','') or 'machine libre')}.</p>"]
     if j.get("note"):
         L.append(f"<p><em>{e(j['note'])}</em></p>")

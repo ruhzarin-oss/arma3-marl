@@ -1,4 +1,4 @@
-# ETAT — 2026-09-09 02:00
+# ETAT — 2026-09-09 02:14
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -20,7 +20,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 14 / 22
+- runs aboutis : 17 / 25
 
 ## Portes ouvertes
 
@@ -80,6 +80,9 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
+| 2026-09-09_0214_factice | factice | COMPLET | g7:ACCEPTE g8:ACCEPTE | 40 |
+| 2026-09-09_0213_factice | factice | COMPLET | g7:ACCEPTE g8:ACCEPTE | 41 |
+| 2026-09-09_0209_factice | factice | COMPLET | g7:ACCEPTE g8:ACCEPTE | 40 |
 | 2026-09-09_0155_chacal | chacal | EN COURS |  |  |
 | 2026-09-09_0146_chacal | chacal | EN COURS |  |  |
 | 2026-09-09_0106_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 2623 |
@@ -92,6 +95,3 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | 2026-09-08_2149_chacal | chacal | INTERROMPU |  |  |
 | 2026-09-08_2137_chacal | chacal | INTERROMPU | g7:REFUSE |  |
 | 2026-09-08_2126_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 4948 |
-| 2026-09-08_1835_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 11601 |
-| 2026-09-08_1825_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 11499 |
-| 2026-09-08_1740_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 2603 |
