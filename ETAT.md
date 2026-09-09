@@ -1,4 +1,4 @@
-# ETAT — 2026-09-09 01:38
+# ETAT — 2026-09-09 02:00
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,18 +9,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-07T11:23:14+02:00 ok=True  pile harmattan non relevee ;
-- GPU : 713 MiB, 24576 MiB, 0 %
+- GPU : 719 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.6T libres sur 3.6T
-- serveurs Arma : 2 · residus : aucun
+- serveurs Arma : 3 · residus : aucun
 
 ## File
 
-- en cours : 2026-09-09_D2_tenir.json, 2026-09-09_GYM-16_porte0.json
+- en cours : 2026-09-09_D2_tenir.json, 2026-09-09_N1_plancher_i2.json, 2026-09-09_N2_plancher_i3.json
 - en attente : 2026-09-09_V0_essai_vignette.json
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 13 / 20
+- runs aboutis : 14 / 22
 
 ## Portes ouvertes
 
@@ -80,7 +80,9 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
-| 2026-09-09_0106_porte0 | porte0 | EN COURS |  |  |
+| 2026-09-09_0155_chacal | chacal | EN COURS |  |  |
+| 2026-09-09_0146_chacal | chacal | EN COURS |  |  |
+| 2026-09-09_0106_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 2623 |
 | 2026-09-09_0016_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 2399 |
 | 2026-09-08_2255_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 6639 |
 | 2026-09-08_2235_chacal | chacal | EN COURS |  |  |
@@ -93,5 +95,3 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | 2026-09-08_1835_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 11601 |
 | 2026-09-08_1825_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 11499 |
 | 2026-09-08_1740_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 2603 |
-| 2026-09-08_1734_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 339 |
-| 2026-09-08_1733_porte0 | porte0 | ECHEC |  | 1 |

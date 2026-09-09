@@ -1,3 +1,13 @@
+# ⚠️ DEPART DOIT SUIVRE, ET C EST LE PLUS URGENT DES TROIS.
+# CHACAL_DEPART est dans la ligne socle mais PAS dans la ligne FINI, et `lire.py` ne remonte
+# dans `entete` que ce qui vient de FINI. Le controle d identite de lancer.sh le saute donc
+# explicitement, avec ("depart", None). Or c est le SEUL des trois qui a deja coute un run :
+# le 07/09, CHACAL_DEPART = 3 trainait dans server.cfg, l approche n a pas ete jouee, et les
+# deux episodes ont ete lus comme un echec du plan avant qu on ne trouve la cause.
+# Le remede est a un |depart|%N| de la ligne FINI, et a une ligne du controle d identite.
+# Non fait ici parce que la machine mesurait le plancher de bruit ; a faire au meme moment
+# que TENIR et ARRET, machine libre, avec un episode de controle derriere.
+
 #!/usr/bin/env python3
 # MARQUEUR-CORRECTIF-TENIR-ARRET
 #
