@@ -1,4 +1,4 @@
-# ETAT — 2026-09-09 09:46
+# ETAT — 2026-09-09 10:24
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,14 +9,14 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-07T11:23:14+02:00 ok=True  pile harmattan non relevee ;
-- GPU : 711 MiB, 24576 MiB, 0 %
+- GPU : 702 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.6T libres sur 3.6T
-- serveurs Arma : 2 · residus : aucun
+- serveurs Arma : 0 · residus : aucun
 
 ## File
 
-- en cours : 2026-09-09_N1_plancher_i2.json, 2026-09-09_N2_plancher_i3.json
-- en attente : rien
+- en cours : rien
+- en attente : 2026-09-09_P0_vignette_monde_vide.json
 
 ## Debit du mois 2026-09
 
@@ -60,6 +60,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Le monde fixe ne fixe pas l'episode : deux runs identiques, deux histoires opposees | 2026-09-09 | 7 et 8, deux fois chacune | meme configuration et memes graines, run 1415 contre run 2255 : ECHEC/CHARGES_INCOMPLETES contre ABANDON/COMPROMIS_LOIN sur les DEUX graines ; compromission a 5155 s contre 1419 s sur la graine 7 ; 6 et 14 ennemis neutralises contre 0 et 0 ; 5 et 7 survivants contre 9 et 8 | PASSE | chacal-portes, lanceur-hmt-temoin | monde-fixe-episode-libre.md |
 | Critere du placeur, praticabilite ou direction | 2026-08-19 | n/a | 11-15 m en montee contre 22-26 m en descente ; 0 acte sur 188 finissant au sol n'atteint le seuil de 23 m | PASSE |  | pente-sens-marche.md |
 | Le PLAN contre son TEMOIN au palier 0 : le plan combat, aucun des deux ne pose de charge | 2026-09-08 | plan 7 et 8 ; temoin 5 et 6 | ennemis neutralises 6 et 14 (plan) contre 0 et 0 (temoin) ; charges posees 0 sur 3 dans les quatre episodes ; survivants BLUFOR 5 et 7 (plan) contre 10 et 4 (temoin) ; 4 episodes ACCEPTES, 15 portes vertes sur 15 | PASSE | chacal-portes, chacal-bras-temoin-palier0, lanceur-hmt-temoin | plan-contre-temoin-palier0.md |
+| Plancher de bruit de la mission complete : a monde ET configuration fixes, l'issue va de 0 a 5 survivants | 2026-09-09 | 7, huit repetitions | 8 episodes acceptes, meme configuration et meme graine — survivants 5, 4, 5, 5, 0, 5, 3, 2 (de 0 a 5 sur 10, moyenne 3,6) ; QUATRE causes de fin differentes : ARTICULATION_ROMPUE, CHARGES_INCOMPLETES, COMPROMIS_LOIN, DETACHEMENT_DETRUIT ; durees de 4590 a 8899 s, soit un facteur 1,9 | PASSE | monde-fixe-episode-libre, chacal-portes | plancher-de-bruit-mission-complete.md |
 | Candidat A, la politique lit-elle la pente | 2026-08-22 | 101, 102, 103 | ecart intact contre brouille = 0,7 pt (seuil pre-inscrit 3,0) ; controle positif jusqu'a -20,1 pts | PASSE |  | politique-est-navigateur.md |
 | Controle positif de la liaison drone par reveal | 2026-08-16 | 1 | bras B 20/20 ont tire, mediane 3,2 s ; bras A0 sans reveal 2/20, mediane 17,8 s | PASSE | drone-arma-rien | reveal-certifie.md |
 | Letalite de la sandbox, cible unique par defenseur | 2026-07-28 | n/a | frontal 22,2 % -> 80,8 % avec selection de cible ; avantage du flanc x1,82 -> x0,82 | ECHEC |  | sandbox-letalite-4x.md |
@@ -89,8 +90,8 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | 2026-09-09_0214_factice | factice | COMPLET | g7:ACCEPTE g8:ACCEPTE | 40 |
 | 2026-09-09_0213_factice | factice | COMPLET | g7:ACCEPTE g8:ACCEPTE | 41 |
 | 2026-09-09_0209_factice | factice | COMPLET | g7:ACCEPTE g8:ACCEPTE | 40 |
-| 2026-09-09_0155_chacal | chacal | EN COURS |  |  |
-| 2026-09-09_0146_chacal | chacal | EN COURS |  |  |
+| 2026-09-09_0155_chacal | chacal | INTERROMPU | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE |  |
+| 2026-09-09_0146_chacal | chacal | INTERROMPU | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE |  |
 | 2026-09-09_0106_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 2623 |
 | 2026-09-09_0016_porte0 | porte0 | COMPLET | g1:REFUSE g2:REFUSE | 2399 |
 | 2026-09-08_2255_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 6639 |
