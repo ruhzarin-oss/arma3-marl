@@ -95,7 +95,11 @@ def jouer_job(chemin_job: str, depuis: float | None = None) -> dict:
         return {"job": nom, "instance": inst, "run": str(r), "verdict": fin.get("verdict"),
                 "code": fin.get("code"), "rejoue": False}
 
-    with concurrency(f"arma-i{inst}"):
+    # ⛔ `strict=True` N EST PAS UN DETAIL. Mesure du 09/09 : sans lui, une limite
+    # ABSENTE (`arma-i9`) est ignoree avec un simple WARNING et le job part quand meme.
+    # Une protection qui se desactive toute seule quand on se trompe de nom ne protege
+    # rien. Avec `strict`, l instance sans limite declaree fait ECHOUER le job.
+    with concurrency(f"arma-i{inst}", strict=True):
         log.info("jeton arma-i%s pris — %s", inst, nom)
         fd, trace = tempfile.mkstemp(prefix="prefect_run_", suffix=".log", dir="/tmp")
         os.close(fd)
