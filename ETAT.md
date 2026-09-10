@@ -1,4 +1,4 @@
-# ETAT — 2026-09-09 17:09
+# ETAT — 2026-09-10 04:53
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,18 +9,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-07T11:23:14+02:00 ok=True  pile harmattan non relevee ;
-- GPU : 718 MiB, 24576 MiB, 0 %
+- GPU : 699 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.6T libres sur 3.6T
-- serveurs Arma : 3 · residus : aucun
+- serveurs Arma : 0 · residus : aucun
 
 ## File
 
-- en cours : 2026-09-09_M0_palier4_acc0.json, 2026-09-09_M1_palier4_acc1.json, 2026-09-09_V20_effectif20_palier4.json
+- en cours : rien
 - en attente : rien
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 25 / 35
+- runs aboutis : 28 / 35
 
 ## Portes ouvertes
 
@@ -83,9 +83,9 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
-| 2026-09-09_1635_chacal | chacal | EN COURS |  |  |
-| 2026-09-09_1625_chacal | chacal | EN COURS |  |  |
-| 2026-09-09_1615_chacal | chacal | EN COURS |  |  |
+| 2026-09-09_1635_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE | 25167 |
+| 2026-09-09_1625_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE | 25372 |
+| 2026-09-09_1615_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 13519 |
 | 2026-09-09_1115_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 16742 |
 | 2026-09-09_1025_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE | 2648 |
 | 2026-09-09_0615_chacal | chacal | COMPLET | g9_r1:ACCEPTE g9_r2:ACCEPTE g9_r3:REFUSE g9_r4:ACCEPTE g9_r5:REFUSE | 1058 |
