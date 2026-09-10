@@ -79,6 +79,15 @@ class Params
     // ! POSITION D APPUI DISTINCTE DE L OBSERVATOIRE. Mesure du 09/09 : un seul defenseur tue
     // cinq assaillants en 38 s, le detachement tire UNE balle, l appui ZERO — il etait a
     // l observatoire, 773 m et 183 m plus haut, sans cible engageable.
+    // ! LE FEU AVANT LE MOUVEMENT ( Fable, 10/09 ) : l appui connait et vise les defenseurs,
+    // l assaut attend son premier coup, marche en AWARE, ordre relance toutes les 10 s.
+    class CHACAL_FEU_AVANT
+    {
+        title = "Feu de l appui avant le mouvement de l assaut (0 = origine)";
+        values[] = {0,1};
+        texts[]  = {"NON","OUI"};
+        default = 0;
+    };
     class CHACAL_APPUI_FEU
     {
         title = "Position d appui choisie pour le tir (0 = a l observatoire)";

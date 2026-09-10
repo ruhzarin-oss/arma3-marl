@@ -19,7 +19,7 @@ ARMA='C:\Program Files (x86)\Steam\steamapps\common\Arma 3\arma3server_x64.exe'
 # mission a chaque lancement, avec les valeurs du corpus par defaut. Rien n'est laisse au hasard.
 PAL=$(lit palier 0); DEPART=$(lit depart 1); IMMORTEL=$(lit immortel 0); JOUR=$(lit jour 0)
 ECHELLE=$(lit echelle 100); DTCS=$(lit dtcs 100)
-APPUI_FEU=$(lit appui_feu 0); EFFECTIF=$(lit effectif 10); ACCESSIBLE=$(lit accessible 0); TENIR=$(lit tenir 0); HMG=$(lit hmg -1); ASSAUT_X=$(lit assaut_x 100)   # -1 = valeur du palier ; 100 = plafond inchange
+FEU_AVANT=$(lit feu_avant 0); APPUI_FEU=$(lit appui_feu 0); EFFECTIF=$(lit effectif 10); ACCESSIBLE=$(lit accessible 0); TENIR=$(lit tenir 0); HMG=$(lit hmg -1); ASSAUT_X=$(lit assaut_x 100)   # -1 = valeur du palier ; 100 = plafond inchange
 ARRET=$(lit arret 6)                            # VIGNETTE : derniere phase jouee ; 6 = mission complete
 BRAS_NOM=$(lit bras PLAN)                       # PLAN (le plan en six phases) ou NUL (le temoin)
 case "$BRAS_NOM" in
@@ -39,7 +39,7 @@ grep -q CHACAL_GRAINE "$PROFIL/server.cfg" || { echo "server.cfg de hmtech$INST 
 ecrire_param GRAINE "$G"; ecrire_param PALIER "$PAL"; ecrire_param DEPART "$DEPART"
 ecrire_param IMMORTEL "$IMMORTEL"; ecrire_param JOUR "$JOUR"; ecrire_param BRAS "$BRAS"
 ecrire_param ECHELLE "$ECHELLE"; ecrire_param DTCS "$DTCS"
-ecrire_param APPUI_FEU "$APPUI_FEU"; ecrire_param EFFECTIF "$EFFECTIF"; ecrire_param ACCESSIBLE "$ACCESSIBLE"; ecrire_param TENIR "$TENIR"; ecrire_param HMG "$HMG"; ecrire_param ASSAUT_X "$ASSAUT_X"; ecrire_param ARRET "$ARRET"
+ecrire_param FEU_AVANT "$FEU_AVANT"; ecrire_param APPUI_FEU "$APPUI_FEU"; ecrire_param EFFECTIF "$EFFECTIF"; ecrire_param ACCESSIBLE "$ACCESSIBLE"; ecrire_param TENIR "$TENIR"; ecrire_param HMG "$HMG"; ecrire_param ASSAUT_X "$ASSAUT_X"; ecrire_param ARRET "$ARRET"
 echo "server.cfg : $(grep -o 'CHACAL_[A-Z_]* = [-0-9]*' "$PROFIL/server.cfg" | tr '\n' ' ') (bras=$BRAS_NOM)"
 
 
@@ -104,19 +104,25 @@ grep -q '"verdict"' "$OUT/resultat.json" || { echo "lecture sans verdict, voir l
 # ! CONTROLE D IDENTITE : l'episode joue est-il celui qu'on a DEMANDE ?
 # C'est ce controle qui manquait le 08/09 : le corpus a ete lu comme « le plan echoue » alors que
 # le bras temoin tournait. Un desaccord entre le job et l'en-tete du RPT rend l'episode REFUSE.
-python3 - "$OUT/resultat.json" "$G" "$PAL" "$BRAS_NOM" "$DEPART" <<'PY'
+python3 - "$OUT/resultat.json" "$G" "$PAL" "$BRAS_NOM" "$DEPART" "$TENIR" "$ARRET" <<'PY'
 import json,sys
-p,g,pal,bras,dep = sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4],sys.argv[5]
+p,g,pal,bras,dep,tenir,arret = sys.argv[1:8]
+def egal(a,b):
+    # SQF rend les entiers sans decimale, mais on compare en nombre quand les
+    # deux cotes sont numeriques : un "6" face a "6.0" n est pas un ecart de
+    # mission, et un faux REFUS coute un episode de trois heures.
+    try: return float(a)==float(b)
+    except (TypeError,ValueError): return str(a)==str(b)
 d=json.load(open(p)); e=d.get("entete",{})
 ecarts=[]
-for cle,attendu in (("graine",g),("palier",pal),("bras",bras),("depart",None)):
+for cle,attendu in (("graine",g),("palier",pal),("bras",bras),("depart",None),("tenir",tenir),("arret",arret)):
     if attendu is None: continue
     obtenu=str(e.get(cle,"?"))
-    if obtenu!=str(attendu): ecarts.append(f"{cle} demande {attendu}, joue {obtenu}")
+    if not egal(obtenu,attendu): ecarts.append(f"{cle} demande {attendu}, joue {obtenu}")
 if ecarts:
     d["verdict"]="REFUSE"; d["cause_refus"]="EPISODE_NON_CONFORME_AU_JOB: "+" ; ".join(ecarts)
     json.dump(d,open(p,"w"),indent=1,ensure_ascii=False)
     print("  !! EPISODE REFUSE :", "; ".join(ecarts)); sys.exit(1)
-print("  identite conforme au job : graine",g,"palier",pal,"bras",bras)
+print("  identite conforme au job : graine",g,"palier",pal,"bras",bras,"tenir",tenir,"arret",arret)
 PY
 echo "graine $G : $(grep -o '"verdict": "[A-Z]*"' "$OUT/resultat.json" | head -n 1)"

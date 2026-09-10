@@ -35,6 +35,9 @@ CHACAL_IMMORTEL = ["CHACAL_IMMORTEL", 0] call BIS_fnc_getParamValue;
 // ! CHACAL_APPUI_FEU : donner a l appui une position choisie pour TIRER, distincte de
 // l observatoire. 0 = comportement d origine, ou l appui reste a l observatoire.
 CHACAL_APPUI_FEU = ["CHACAL_APPUI_FEU", 0] call BIS_fnc_getParamValue;
+// ! CHACAL_FEU_AVANT ( Fable, 10/09 ) : l appui connait et vise les defenseurs, l assaut attend son
+// premier coup, puis marche en AWARE avec un ordre relance toutes les 10 s. 0 = comportement d origine.
+CHACAL_FEU_AVANT = ["CHACAL_FEU_AVANT", 0] call BIS_fnc_getParamValue;
 CHACAL_EFFECTIF = ["CHACAL_EFFECTIF", 10] call BIS_fnc_getParamValue;
 CHACAL_ACCESSIBLE = ["CHACAL_ACCESSIBLE", 0] call BIS_fnc_getParamValue;
 CHACAL_TENIR = ["CHACAL_TENIR", 0] call BIS_fnc_getParamValue;
@@ -280,6 +283,6 @@ CHACAL_fnc_reglage = {
     ("lambs_danger_maxRange" call CHACAL_fnc_reglage), ("lambs_danger_cqbRange" call CHACAL_fnc_reglage),
     ("lambs_danger_disableAIAutonomousManoeuvres" call CHACAL_fnc_reglage)]) call CHACAL_LOG;
 
-(format ["CHACAL|OK|socle|%1|graine|%2|echelle|%3|dt|%4|lambs|%5|bras|%6|depart|%7|jour|%8|palier|%9|immortel|%10",
+(format ["CHACAL|OK|socle|%1|graine|%2|echelle|%3|dt|%4|lambs|%5|bras|%6|depart|%7|jour|%8|palier|%9|immortel|%10|tenir|%11|arret|%12",
     CHACAL_VERSION, CHACAL_GRAINE, CHACAL_ECHELLE, CHACAL_DT,
-    (if (CHACAL_LAMBS) then {1} else {0}), CHACAL_BRAS, CHACAL_DEPART, CHACAL_JOUR, CHACAL_PALIER, CHACAL_IMMORTEL]) call CHACAL_LOG;
+    (if (CHACAL_LAMBS) then {1} else {0}), CHACAL_BRAS, CHACAL_DEPART, CHACAL_JOUR, CHACAL_PALIER, CHACAL_IMMORTEL, CHACAL_TENIR, CHACAL_ARRET]) call CHACAL_LOG;

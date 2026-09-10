@@ -1054,6 +1054,44 @@ if (!isNull CHACAL_gAppui) then {
     private _cibles = (CHACAL_VUES apply { _x select 0 }) select { alive _x };
     { if (alive _x && { count _cibles > 0 }) then { _x doTarget (_cibles select 0); _x doFire (_cibles select 0) } } forEach (units CHACAL_gAppui);
 };
+
+// ! LE FEU AVANT LE MOUVEMENT ( Fable, 10/09 ). Sur les echecs du palier 4, un seul fusilier
+// fait 8 des 9 morts et l appui ne tire pas : il visait une cible qu il ne connaissait pas.
+// Le compteur tourne dans les deux bras ; la designation et l attente seulement a FEU_AVANT = 1.
+CHACAL_TIRS_APPUI = 0; CHACAL_T_PREMIER_TIR = -1; CHACAL_CIBLE_ASSAUT = []; CHACAL_RELANCES = 0;
+if (!isNull CHACAL_gAppui) then {
+    {
+        _x addEventHandler ["Fired", {
+            CHACAL_TIRS_APPUI = CHACAL_TIRS_APPUI + 1;
+            if (CHACAL_T_PREMIER_TIR < 0) then { CHACAL_T_PREMIER_TIR = time };
+        }];
+    } forEach ((units CHACAL_gAppui) select { alive _x });
+};
+if (CHACAL_FEU_AVANT == 1 && { !isNull CHACAL_gAppui }) then {
+    [] spawn {
+        while { !CHACAL_FIN && { CHACAL_PHASE == 5 } } do {
+            private _def = CHACAL_EST_SITE select { alive _x };
+            private _ref = if (count CHACAL_CIBLE_ASSAUT > 0) then { CHACAL_CIBLE_ASSAUT } else { CHACAL_OUV_CHOISIE };
+            if (count _def > 0) then {
+                _def = [_def, [_ref], { _x distance2D _input0 }, "ASCEND"] call BIS_fnc_sortBy;
+                private _c = _def select 0;
+                {
+                    private _u = _x;
+                    if (alive _u) then {
+                        { _u reveal [_x, 4] } forEach _def;
+                        _u doTarget _c; _u doFire _c;
+                    };
+                } forEach (units CHACAL_gAppui);
+            };
+            sleep 5;
+        };
+    };
+    private _tG = time;
+    waitUntil { sleep 1; (CHACAL_TIRS_APPUI > 0) || { (time - _tG) > (120 * CHACAL_ECHELLE) } || { CHACAL_FIN } };
+    (format ["CHACAL|E|feu_avant|%1|premier_tir|%2|attente|%3|defenseurs_vivants|%4", round (time * 100) / 100,
+        (if (CHACAL_T_PREMIER_TIR < 0) then {-1} else {round (CHACAL_T_PREMIER_TIR * 100) / 100}),
+        round (time - _tG), count (CHACAL_EST_SITE select { alive _x })]) call CHACAL_LOG;
+};
 sleep (8 * CHACAL_ECHELLE);
 
 if (!isNull CHACAL_gBouchon) then {
@@ -1068,8 +1106,27 @@ if (!isNull CHACAL_gBouchon) then {
 // changeant leur comportement - on cesse de les separer. L assaut avance d un
 // seul corps, et les charges sont portees par les cinq.
 
-CHACAL_gAssaut setBehaviour "COMBAT"; CHACAL_gAssaut setCombatMode "RED"; CHACAL_gAssaut setSpeedMode "FULL";
-[CHACAL_gAssaut, CHACAL_OUV_CHOISIE, "FULL", "COMBAT", "WEDGE", "OUVERTURE_CHOISIE"] call CHACAL_fnc_ordreAller;
+// LE chiffre de Fable : les coups de l appui AVANT le premier pas de l assaut.
+(format ["CHACAL|E|premier_pas_assaut|%1|tirs_appui_avant|%2|feu_avant|%3", round (time * 100) / 100,
+    CHACAL_TIRS_APPUI, CHACAL_FEU_AVANT]) call CHACAL_LOG;
+// ! Le mode COMBAT fige l assaut ( plus de 120 s immobile a 65 m de la tour ). A FEU_AVANT = 1 il
+// marche en AWARE, et un ordre donne une seule fois est relance toutes les 10 s.
+CHACAL_COMP_ASSAUT = if (CHACAL_FEU_AVANT == 1) then {"AWARE"} else {"COMBAT"};
+CHACAL_gAssaut setBehaviour CHACAL_COMP_ASSAUT; CHACAL_gAssaut setCombatMode "RED"; CHACAL_gAssaut setSpeedMode "FULL";
+CHACAL_CIBLE_ASSAUT = +CHACAL_OUV_CHOISIE;
+[CHACAL_gAssaut, CHACAL_OUV_CHOISIE, "FULL", CHACAL_COMP_ASSAUT, "WEDGE", "OUVERTURE_CHOISIE"] call CHACAL_fnc_ordreAller;
+if (CHACAL_FEU_AVANT == 1) then {
+    [] spawn {
+        while { !CHACAL_FIN && { CHACAL_PHASE == 5 } } do {
+            sleep 10;
+            if (count CHACAL_CIBLE_ASSAUT > 0 && { !isNull CHACAL_gAssaut }) then {
+                CHACAL_gAssaut setBehaviour "AWARE";
+                { if (alive _x) then { _x doMove CHACAL_CIBLE_ASSAUT } } forEach (units CHACAL_gAssaut);
+                CHACAL_RELANCES = CHACAL_RELANCES + 1;
+            };
+        };
+    };
+};
 // Sans cette ligne, un `ELEMENT_N_ARRIVE_PAS` sur la premiere antenne serait
 // indiscernable d un assaut reste a 200 m de l enceinte.
 private _rO = [CHACAL_gAssaut, CHACAL_OUV_CHOISIE, 55, [CHACAL_gAssaut, CHACAL_OUV_CHOISIE, 1.2] call CHACAL_fnc_budget] call CHACAL_fnc_arrive;
@@ -1130,7 +1187,8 @@ private _hExpl = scriptNull;
     private _pt = [_o] call CHACAL_fnc_pointDePose;
     (format ["CHACAL|E|objectif|%1|%2|point_de_pose|%3|emprise|%4|cap|%5", round (time * 100) / 100,
         typeOf _o, _pt, round (_o call CHACAL_fnc_emprise), round _cap]) call CHACAL_LOG;
-    [CHACAL_gAssaut, _pt, "FULL", "COMBAT", "WEDGE", "OBJECTIF_" + (typeOf _o)] call CHACAL_fnc_ordreAller;
+    CHACAL_CIBLE_ASSAUT = +_pt;
+    [CHACAL_gAssaut, _pt, "FULL", CHACAL_COMP_ASSAUT, "WEDGE", "OBJECTIF_" + (typeOf _o)] call CHACAL_fnc_ordreAller;
     private _r = [CHACAL_gAssaut, _pt, 22, _cap, 120] call CHACAL_fnc_arrive;
     private _c0 = ((units CHACAL_gAssaut) select { alive _x }) call CHACAL_fnc_centre;
     private _dG = if (count _c0 > 0) then { round (_c0 distance2D _pt) } else { 9999 };
@@ -1195,7 +1253,8 @@ if (!isNull _hExpl) then {
 
 // --- UN SEUL degagement, puis TOUT saute ensemble ---
 private _abri = CHACAL_OUV_CHOISIE getPos [70, CHACAL_SITE getDir CHACAL_OUV_CHOISIE];
-[CHACAL_gAssaut, _abri, "FULL", "COMBAT", "WEDGE", "DEGAGEMENT_AVANT_MISE_A_FEU"] call CHACAL_fnc_ordreAller;
+CHACAL_CIBLE_ASSAUT = +_abri;
+[CHACAL_gAssaut, _abri, "FULL", CHACAL_COMP_ASSAUT, "WEDGE", "DEGAGEMENT_AVANT_MISE_A_FEU"] call CHACAL_fnc_ordreAller;
 (format ["CHACAL|E|degagement|%1|vers|%2|charges|%3", round (time * 100) / 100, _abri, count CHACAL_CHARGES_OBJ]) call CHACAL_LOG;
 private _rD = [CHACAL_gAssaut, _abri, 30, ((call CHACAL_fnc_reste) - 60) max 45, 60] call CHACAL_fnc_arrive;
 [_rD] call CHACAL_fnc_miseAFeu;
@@ -1205,6 +1264,8 @@ private _rD = [CHACAL_gAssaut, _abri, 30, ((call CHACAL_fnc_reste) - 60) max 45,
 private _iss5 = if (count CHACAL_CHARGES >= count CHACAL_OBJETS) then {"ATTEINT"} else {
     if (count (CHACAL_FS select { alive _x }) == 0) then {"DETRUIT"} else {
     if ((call CHACAL_fnc_reste) <= 0) then {"PLAFOND"} else {"INCOMPLET"} } };
+(format ["CHACAL|E|feu_appui_total|%1|tirs_appui|%2|relances_assaut|%3|feu_avant|%4", round (time * 100) / 100,
+    CHACAL_TIRS_APPUI, CHACAL_RELANCES, CHACAL_FEU_AVANT]) call CHACAL_LOG;
 [5, "ASSAUT", _iss5] call CHACAL_fnc_finPhase;
 };
 };
@@ -1241,10 +1302,10 @@ private _compExf = if (CHACAL_COMPROMIS) then {"COMBAT"} else {"AWARE"};
 
 private _tE = time;
 waitUntil { sleep 3;
-    (count (CHACAL_FS select { alive _x && { (_x distance2D CHACAL_EXFIL_POINT) < 90 } }) >= 6) ||
+    (count (CHACAL_FS select { alive _x && { (_x distance2D CHACAL_EXFIL_POINT) < 90 } }) >= (round (0.6 * CHACAL_EFFECTIF))) ||
     (count (CHACAL_FS select { alive _x }) == 0) || (time - _tE > _plafond) || CHACAL_FIN };
 CHACAL_EXFILTRES = count (CHACAL_FS select { alive _x && { (_x distance2D CHACAL_EXFIL_POINT) < 90 } });
-[6, "EXFILTRATION", (if (CHACAL_EXFILTRES >= 6) then {"ATTEINT"} else {
+[6, "EXFILTRATION", (if (CHACAL_EXFILTRES >= (round (0.6 * CHACAL_EFFECTIF))) then {"ATTEINT"} else {
     if (count (CHACAL_FS select { alive _x }) == 0) then {"DETRUIT"} else {"PLAFOND"} })] call CHACAL_fnc_finPhase;
 
 CHACAL_FIN = true;
