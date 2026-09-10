@@ -32,6 +32,9 @@ CHACAL_IMMORTEL = ["CHACAL_IMMORTEL", 0] call BIS_fnc_getParamValue;
 // ! CHACAL_EFFECTIF : taille du detachement. 10 = d origine.
 // A 20, la liste des roles est jouee deux fois : chaque element double, et le corpus
 // continue de porter les memes noms de role.
+// ! CHACAL_APPUI_FEU : donner a l appui une position choisie pour TIRER, distincte de
+// l observatoire. 0 = comportement d origine, ou l appui reste a l observatoire.
+CHACAL_APPUI_FEU = ["CHACAL_APPUI_FEU", 0] call BIS_fnc_getParamValue;
 CHACAL_EFFECTIF = ["CHACAL_EFFECTIF", 10] call BIS_fnc_getParamValue;
 CHACAL_ACCESSIBLE = ["CHACAL_ACCESSIBLE", 0] call BIS_fnc_getParamValue;
 CHACAL_TENIR = ["CHACAL_TENIR", 0] call BIS_fnc_getParamValue;
@@ -178,6 +181,52 @@ CHACAL_fnc_penteTrajet = {
     };
     _pire
 };
+// ! UNE POSITION D APPUI N EST PAS UN OBSERVATOIRE ( mesure du 09/09 ).
+// L observatoire veut la vue d ensemble et la distance ; l appui veut la vue SUR L OUVERTURE et
+// la portee utile. Les confondre a coute cinq hommes en 38 secondes sans qu une seule balle
+// parte du detachement.
+// On cherche sur un arc autour du site : portee utile, ligne de vue degagee vers l ouverture,
+// azimut decale de l axe d assaut pour ne pas tirer dans le dos de son propre assaut, et un
+// terrain ou un homme peut se coucher.
+// Rend l observatoire en repli si rien ne convient : une mission qui ne trouve pas sa position
+// d appui doit se degrader, pas s arreter.
+CHACAL_fnc_positionAppui = {
+    params ["_site", "_ouverture", "_axeAssaut", "_repli"];
+    private _azOuv = _site getDir _ouverture;
+    private _best = []; private _sc = -1e9;
+    private _cible = +_ouverture; _cible set [2, (getTerrainHeightASL _ouverture) + 1.0];
+    for "_i" from 1 to 160 do {
+        // decalage de 40 a 120 degres de l axe d assaut, d un cote ou de l autre
+        private _cote = if ((call CHACAL_fnc_rnd) < 0.5) then {1} else {-1};
+        private _dec = _cote * (40 + (80 call CHACAL_fnc_al));
+        private _dist = 160 + (190 call CHACAL_fnc_al);
+        private _p = _site getPos [_dist, _azOuv + _dec];
+        if (surfaceIsWater _p) then { continue };
+        // un homme couche a besoin d un metre de terrain sain
+        private _h = getTerrainHeightASL _p; private _dev = 0;
+        for "_k" from 0 to 5 do { _dev = _dev max (abs ((getTerrainHeightASL (_p getPos [12, _k * 60])) - _h)) };
+        if (_dev > 6) then { continue };
+        // LA condition qui manquait : voit-il vraiment l ouverture ?
+        private _oeil = +_p; _oeil set [2, _h + 1.2];
+        if (count (lineIntersectsSurfaces [_oeil, _cible, objNull, objNull, true, 1]) > 0) then { continue };
+        // on prefere etre un peu plus haut que la cible, et pas trop loin
+        private _dOuv = _p distance2D _ouverture;
+        private _gain = _h - (getTerrainHeightASL _ouverture);
+        private _s = (0 max (10 - (abs (_dOuv - 250)) / 25)) + ((_gain max -10) min 20) / 4 - _dev / 3;
+        if (_s > _sc) then { _sc = _s; _best = _p };
+    };
+    if (count _best == 0) exitWith {
+        (format ["CHACAL|AVERT|appui_feu|aucune_position|repli_observatoire"]) call CHACAL_LOG;
+        _repli
+    };
+    _best set [2, 0];
+    (format ["CHACAL|OK|appui_feu|position|%1|dist_ouverture|%2|gain|%3|score|%4|decal_axe|%5",
+        _best, round (_best distance2D _ouverture),
+        round ((getTerrainHeightASL _best) - (getTerrainHeightASL _ouverture)), round _sc,
+        round (abs ((_site getDir _best) - (_site getDir _axeAssaut)))]) call CHACAL_LOG;
+    _best
+};
+
 CHACAL_fnc_plat = {
     params ["_c", "_r", ["_essais", 220], ["_depuis", []]];
     private _best = +_c; private _sc = 1e9;

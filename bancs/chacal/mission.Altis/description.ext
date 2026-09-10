@@ -76,6 +76,16 @@ class Params
     // ! TAILLE DU DETACHEMENT. Mesure du 09/09 au palier 4 : cinq assaillants detruits en
     // 38 secondes par quatre defenseurs retranches, le porteur de charge mort a 42 m du but.
     // A 20, chaque element double : appui 4, assaut 10, bouchon 6.
+    // ! POSITION D APPUI DISTINCTE DE L OBSERVATOIRE. Mesure du 09/09 : un seul defenseur tue
+    // cinq assaillants en 38 s, le detachement tire UNE balle, l appui ZERO — il etait a
+    // l observatoire, 773 m et 183 m plus haut, sans cible engageable.
+    class CHACAL_APPUI_FEU
+    {
+        title = "Position d appui choisie pour le tir (0 = a l observatoire)";
+        values[] = {0,1};
+        texts[]  = {"NON","OUI"};
+        default = 0;
+    };
     class CHACAL_EFFECTIF
     {
         title = "Taille du detachement (10 = d origine)";

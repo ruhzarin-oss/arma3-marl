@@ -897,6 +897,7 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
         round (time * 100) / 100, _meilleure, str _comptes, str _dists,
         round (_minScore * 100) / 100, count CHACAL_VUES]) call CHACAL_LOG;
 
+    // ! L APPUI N EST PLUS L OBSERVATOIRE ( sous parametre ). A 0, on garde la ligne d origine.
     CHACAL_POS_APPUI   = CHACAL_OP;
     // ! Le point de depart est passe depuis l element concerne : c est la seule facon de savoir
     // si le trajet est praticable. Sans CHACAL_ACCESSIBLE, l argument est ignore.
@@ -907,6 +908,9 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
     // et il demandait au bouchon une demi-heure de marche. Son travail est de
     // RETARDER la reserve, pas de tenir un carrefour : 400 m le font aussi bien.
     CHACAL_POS_BOUCHON = [CHACAL_SITE getPos [400, CHACAL_SITE getDir CHACAL_QRF_BASE], 80, 220, _depBouchon] call CHACAL_fnc_plat;
+    if (CHACAL_APPUI_FEU == 1) then {
+        CHACAL_POS_APPUI = [CHACAL_SITE, CHACAL_OUV_CHOISIE, CHACAL_POS_ASSAUT, CHACAL_OP] call CHACAL_fnc_positionAppui;
+    };
 
     // Le plafond est la SOMME des deux jambes, calculee sur les vitesses
     // reellement ordonnees - 1,1 m/s puis 0,5 - et non sur une constante

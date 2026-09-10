@@ -1,4 +1,4 @@
-# ETAT — 2026-09-10 04:53
+# ETAT — 2026-09-10 06:23
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,7 +9,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-07T11:23:14+02:00 ok=True  pile harmattan non relevee ;
-- GPU : 699 MiB, 24576 MiB, 0 %
+- GPU : 702 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.6T libres sur 3.6T
 - serveurs Arma : 0 · residus : aucun
 
