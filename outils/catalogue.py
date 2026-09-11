@@ -191,7 +191,20 @@ def main():
         e["banc"] = job.get("banc", "")
         if contamine and not e["campagne"]:
             e["campagne"] = "G8-FABLE-11-09"
-        e["coherent"] = "0" if contamine else ("1" if job.get("version") else "")
+        # ! Fable 11/09 : coherent MESURE, il ne declare pas. 1 si chaque levier ecrit dans la ligne FINI
+        # vaut celui du job (defauts d origine sinon), 0 sinon, vide sans job.
+        if job:
+            defauts = {"delai_porteur": 45, "effectif": 10, "arret": 6, "depart": 1}
+            ok = True
+            for lv in LEVIERS:
+                if e.get(lv, "") == "": continue
+                att = job.get(lv, defauts.get(lv, 0))
+                try: same = float(e[lv]) == float(att)
+                except (TypeError, ValueError): same = str(e[lv]) == str(att)
+                if not same: ok = False; break
+            e["coherent"] = "1" if ok else "0"
+        else:
+            e["coherent"] = ""
         porte = ""
         if not contamine and not sauve:
             try:

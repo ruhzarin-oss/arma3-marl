@@ -100,7 +100,9 @@ def main():
                     # ne l a que si un frolement l a mis en reflexe avant.
                     # STRICT : en reflexe AU MOMENT du coup (dernier pas <= tc), ou entre au pas
                     # qui suit le coup s il est encore vivant. Un reflexe retombe avant ne compte pas.
-                    avant_coup = [h for h in histo[i] if h[0] <= tc]
+                    # ! Fable 11/09 : un pas qui coincide avec le coup contient deja l impact, et la balle qui
+                    # touche a sa propre ligne tir 0,1-0,4 s avant le Hit : on exige le reflexe AVANT tc - 1 s.
+                    avant_coup = [h for h in histo[i] if h[0] < tc - 1.0]
                     apres_coup = [h for h in histo[i] if tc < h[0] <= tc + spp]
                     if avant_coup and avant_coup[-1][1]:
                         reflexe_ok += 1; avant += 1; avances.append(tc - avant_coup[-1][2])

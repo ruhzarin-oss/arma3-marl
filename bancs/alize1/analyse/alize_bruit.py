@@ -153,8 +153,9 @@ def main():
         for te, typ, i, sx, sy, tot in ev:
             if typ == "C" and i not in premier: premier[i] = te
         for i, tc in premier.items():
-            n10 = sum(1 for t, x, y in tp if tc - 10 <= t < tc - 0.05)
-            n30 = sum(1 for t, x, y in tp if tc - 30 <= t < tc - 0.05)
+            # sans la balle qui touche : coups ennemis anterieurs a tc - 1 s
+            n10 = sum(1 for t, x, y in tp if tc - 10 <= t < tc - 1.0)
+            n30 = sum(1 for t, x, y in tp if tc - 30 <= t < tc - 1.0)
             diag.append((n10, n30))
     jointure = {
         "episodes": len(eps), "coups_ennemis": n_tirs,
@@ -183,7 +184,7 @@ def main():
             for i in fs:
                 if i in premier:
                     touches += 1; tc = premier[i]
-                    av = [h for h in histo[i] if h[0] <= tc]; ap = [h for h in histo[i] if tc < h[0] <= tc + spp]
+                    av = [h for h in histo[i] if h[0] < tc - 1.0]; ap = [h for h in histo[i] if tc < h[0] <= tc + spp]
                     if av and av[-1][1]:
                         ok += 1; deja += 1; avances.append(tc - av[-1][2])
                     elif ap and ap[0][1]:
