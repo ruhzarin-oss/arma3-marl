@@ -140,3 +140,6 @@ else
   mv "$E" $H/queue/faits/
   echo "$(date -Is) FINI $(basename "$CHOISI") code=$RC"
 fi
+# ⭐ 11/09 : la base de connaissance suit chaque run. Jamais bloquant : un catalogue en echec ne
+# retient ni la file ni le job, il le dit dans file.log.
+timeout 600 python3 $H/depot/outils/catalogue.py >> $H/etat/catalogue.log 2>&1 || echo "$(date -Is) catalogue en echec (voir etat/catalogue.log)"
