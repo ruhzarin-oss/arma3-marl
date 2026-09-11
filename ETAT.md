@@ -1,4 +1,4 @@
-# ETAT — 2026-09-10 06:23
+# ETAT — 2026-09-11 04:56
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,7 +9,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-07T11:23:14+02:00 ok=True  pile harmattan non relevee ;
-- GPU : 702 MiB, 24576 MiB, 0 %
+- GPU : 1345 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.6T libres sur 3.6T
 - serveurs Arma : 0 · residus : aucun
 
@@ -20,17 +20,20 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 28 / 35
+- runs aboutis : 34 / 41
 
 ## Portes ouvertes
 
 - **Comparaison appariee natif contre politique, banc repare** — aucune-revendication.md
+- **En vignette d'assaut, le feu de l'appui avant le premier pas fait passer l'assaut de 2 a 5 reussites sur 10 — tendance, pas encore etablie** — feu-avant-vignette.md
 - **Le flanc paie-t-il, sous quelle courbe de letalite** — flanc-degele.md
+- **A 20 hommes contre 5, l'issue n'est pas jugeable : le compteur d'exfiltration s'arrete a 6** — vingt-hommes-compteur-plafonne.md
 
 ## Verdicts vivants
 
 | porte | date | graines | chiffre | verdict | depend de | fichier |
 |---|---|---|---|---|---|---|
+| La correction terrain (positions accessibles depuis le depart) ne change pas l'issue au palier 4 | 2026-09-10 | 7, 8, deux repetitions chacune par bras | accessible 0 : 2 succes sur 4 (graine 7 : 1/2, graine 8 : 1/2) ; accessible 1 : 2 succes sur 4 (graine 7 : 0/2, graine 8 : 2/2) ; la prediction — debloquer la graine 7 — donne 0 sur 2 AVEC la correction et 1 sur 2 SANS | ECHEC | palier4-gagne-une-fois-sur-deux, plancher-de-bruit-mission-complete | accessible-sans-effet-palier4.md |
 | Choix du decodeur, fige contre echantillonne | 2026-08-24 | 0, 1 | fige de 3,3 a 51,1 % selon la graine ; en hesitant de 31,5 a 42,3 % | PASSE | recette-gymnase-loterie | agent-hesite.md |
 | Angle mort et cout de se montrer, quatre bancs Arma | 2026-08-03 | n/a | 18/18 repere dans le cone, 0/26 hors du cone ; tirer plafonne a 1,50 quand se montrer donne 4,00 | PASSE | knowsabout-de-camp | angle-mort.md |
 | Arc de tir d'Arma, latence de riposte par angle | 2026-07-28 | n/a | riposte a 0,0 s a 0 deg contre 3,5 a 4,1 s a 90-180 deg ; taux de riposte 100 % partout | PASSE |  | arc-tir-sursis.md |
@@ -58,6 +61,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Loi couvert-tir lue dans la source CWR, confrontee a Arma 3 | 2026-09-03 | n/a | porte 0,63 refutee (237 impacts sur victime vivante, 29,5 % sous le seuil) ; exposant du couvert 0,72 au lieu de 2 ; ouie plafonnee a 1,35 en 1/d2 | PASSE | arc-tir-sursis, etre-vu-tue-2x | loi-cwr.md |
 | Mecanisme de la memorisation, cap absolu | 2026-09-03 | 0, 1 | cap 315 dans 50,0 % des echecs contre 13,2 % des reussites ; 96,9 % a moins de 90 deg contre 84,9 % au-dela | PASSE | site-memorise | memorisation-cap-absolu.md |
 | Le monde fixe ne fixe pas l'episode : deux runs identiques, deux histoires opposees | 2026-09-09 | 7 et 8, deux fois chacune | meme configuration et memes graines, run 1415 contre run 2255 : ECHEC/CHARGES_INCOMPLETES contre ABANDON/COMPROMIS_LOIN sur les DEUX graines ; compromission a 5155 s contre 1419 s sur la graine 7 ; 6 et 14 ennemis neutralises contre 0 et 0 ; 5 et 7 survivants contre 9 et 8 | PASSE | chacal-portes, lanceur-hmt-temoin | monde-fixe-episode-libre.md |
+| Au palier 4, la mission gagne de bout en bout une fois sur deux, et quand elle perd, ce n'est plus un massacre | 2026-09-10 | 7, 8, deux repetitions chacune, deux bras (accessible 0 et 1) | 4 SUCCES sur 8 episodes acceptes (IC95 Wilson 22 a 78 %) ; survivants des succes 10, 8, 10, 9 ; les 4 echecs sont TOUS CHARGES_INCOMPLETES avec 6 a 10 vivants (0 ou 2 charges sur 3) ; compromission 8 fois sur 8 ; 0 abandon | PASSE | plan-de-positions-sans-plan-de-feu, plancher-de-bruit-mission-complete | palier4-gagne-une-fois-sur-deux.md |
 | Critere du placeur, praticabilite ou direction | 2026-08-19 | n/a | 11-15 m en montee contre 22-26 m en descente ; 0 acte sur 188 finissant au sol n'atteint le seuil de 23 m | PASSE |  | pente-sens-marche.md |
 | Le PLAN contre son TEMOIN au palier 0 : le plan combat, aucun des deux ne pose de charge | 2026-09-08 | plan 7 et 8 ; temoin 5 et 6 | ennemis neutralises 6 et 14 (plan) contre 0 et 0 (temoin) ; charges posees 0 sur 3 dans les quatre episodes ; survivants BLUFOR 5 et 7 (plan) contre 10 et 4 (temoin) ; 4 episodes ACCEPTES, 15 portes vertes sur 15 | PASSE | chacal-portes, chacal-bras-temoin-palier0, lanceur-hmt-temoin | plan-contre-temoin-palier0.md |
 | Un plan de positions sans plan de feu : UN defenseur tue cinq assaillants, le detachement tire UNE balle | 2026-09-09 | 8, palier 4 | l'unite adverse 3 tire 36 coups entre 4959 et 4997 s et signe LES CINQ morts (CHEF, ADJOINT, DEMO_1, DEMO_2, MEDECIN) ; le detachement de dix hommes tire UN seul coup sur tout l'episode, a 4996,57 s, une demi-seconde avant la mort de son tireur ; l'element d'appui, deux hommes en position, tire ZERO | PASSE | chacal-portes, etre-vu-tue-2x, angle-mort | plan-de-positions-sans-plan-de-feu.md |
@@ -83,6 +87,12 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
+| 2026-09-10_1525_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE | 26159 |
+| 2026-09-10_1515_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE | 5507 |
+| 2026-09-10_1505_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE | 6119 |
+| 2026-09-10_1445_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 934 |
+| 2026-09-10_0645_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE | 27892 |
+| 2026-09-10_0635_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE | 25765 |
 | 2026-09-09_1635_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE | 25167 |
 | 2026-09-09_1625_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE | 25372 |
 | 2026-09-09_1615_chacal | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 13519 |
@@ -92,9 +102,3 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | 2026-09-09_0535_chacal | chacal | COMPLET | g9_r1:ACCEPTE g9_r2:ACCEPTE g9_r3:ACCEPTE g9_r4:ACCEPTE g9_r5:ACCEPTE | 2201 |
 | 2026-09-09_0445_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE | 2344 |
 | 2026-09-09_0345_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:REFUSE g7_r5:ACCEPTE | 3202 |
-| 2026-09-09_0255_chacal | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE | 1833 |
-| 2026-09-09_0214_factice | factice | COMPLET | g7:ACCEPTE g8:ACCEPTE | 40 |
-| 2026-09-09_0213_factice | factice | COMPLET | g7:ACCEPTE g8:ACCEPTE | 41 |
-| 2026-09-09_0209_factice | factice | COMPLET | g7:ACCEPTE g8:ACCEPTE | 40 |
-| 2026-09-09_0155_chacal | chacal | INTERROMPU | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE |  |
-| 2026-09-09_0146_chacal | chacal | INTERROMPU | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE |  |
