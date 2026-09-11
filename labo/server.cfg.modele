@@ -1,0 +1,4 @@
+hostname = "HMT-LABO-9";
+maxPlayers = 2;
+persistent = 1;
+class Missions { class M1 { template = "Labo.Altis"; difficulty = "veteran"; }; };

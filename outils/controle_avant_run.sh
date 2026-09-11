@@ -38,6 +38,15 @@ B=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['banc'])" "$J
 
 # --- residus : ce que le job ne tolere pas
 TOL=$(python3 -c "import json,sys;print(' '.join(json.load(open(sys.argv[1])).get('tolere',[])))" "$JOB")
+# --- le LABO (instance 9) : un serveur de plus change la charge du run. Refus, sauf "labo" tolere.
+PL=$H/etat/labo_arma.pid
+INSTJ=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('instance'))" "$JOB")
+if [ -s "$PL" ] && [ "$INSTJ" != "9" ]; then
+  PLABO=$(tr -dc 0-9 < "$PL")
+  if "$TL" /FI "PID eq $PLABO" 2>/dev/null | grep -qi arma3server; then
+    echo " $TOL " | grep -qi " labo " || { echo "REFUS: le serveur du labo tourne (PID $PLABO) et le job ne tolere pas \"labo\""; ERR=1; }
+  fi
+fi
 SNAP=$("$TL" 2>/dev/null | grep -Eio 'UnrealEditor[A-Za-z-]*|vmware-vmx|arma3_x64\.exe' | sort | uniq -c | tr '\n' ' ')
 for p in UnrealEditor vmware-vmx 'arma3_x64\.exe'; do
   nom=$(echo "$p" | sed 's/\\\.exe//')
