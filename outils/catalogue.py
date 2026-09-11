@@ -19,7 +19,7 @@ import csv, glob, json, os, re, sys, time
 H = "/mnt/data/hmt"
 OUT = os.environ.get("CATALOGUE_OUT", f"{H}/depot/catalogue")
 LEVIERS = ["depart", "arret", "tenir", "appui_feu", "feu_avant", "mg_assaut", "delai_porteur", "appui_fixe",
-           "accessible", "effectif"]
+           "accessible", "effectif", "oracle"]
 ROLES_FS = {"CHEF", "ADJOINT", "DEMO_1", "DEMO_2", "MEDECIN", "TIREUR_1", "TIREUR_2", "AT", "FUSILIER_1", "FUSILIER_2"}
 OBJ_COURT = {"Land_Communication_F": "antenne", "Land_TTowerBig_1_F": "tour", "Land_Cargo_HQ_V1_F": "QG"}
 

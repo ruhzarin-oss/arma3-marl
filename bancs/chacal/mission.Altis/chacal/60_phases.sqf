@@ -945,6 +945,15 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
     // testee est la phase 5-6 et que la phase 4 vient d etre certifiee ATTEINT.
     // On pose les trois elements sur leurs positions, hors corpus, et on itere a
     // l heure. La certification finale se fait UNE FOIS a DEPART=3, deux graines.
+    // ! L ORACLE ( Fable, 11/09 ) : que vaut le renseignement PARFAIT ? Les defenseurs du site sont
+    // reveles a TOUS nos hommes et inscrits comme vus, avant la mise en place. 0 = origine.
+    if (CHACAL_ORACLE == 1) then {
+        private _def = CHACAL_EST_SITE select { alive _x };
+        { private _u = _x; { _u reveal [_x, 4] } forEach _def } forEach (CHACAL_FS select { alive _x });
+        CHACAL_VUES = _def apply { [_x, 4] };
+        (format ["CHACAL|E|oracle|%1|reveles|%2|hommes|%3|phase|4", round (time * 100) / 100, count _def,
+            count (CHACAL_FS select { alive _x })]) call CHACAL_LOG;
+    };
     if (CHACAL_DEPART >= 4) then {
         "CHACAL|AVERT|hors_corpus|depart|4|articulation_non_jouee" call CHACAL_LOG;
         {
@@ -1039,6 +1048,12 @@ if (!isNil "CHACAL_POS_ASSAUT") then {
 // scission avait de toute facon detruit la liste de cibles du groupe de reco.
 // Ici on ne restitue QUE ce que la reco a vu, QU AUX hommes qui l ont vu, et au
 // niveau observe. Le compte est journalise : N restituees sur M localisees.
+// ! L ORACLE : la connaissance se rafraichit au debut de l assaut, pour tous nos hommes.
+if (CHACAL_ORACLE == 1) then {
+    private _def = CHACAL_EST_SITE select { alive _x };
+    { private _u = _x; { _u reveal [_x, 4] } forEach _def } forEach (CHACAL_FS select { alive _x });
+    (format ["CHACAL|E|oracle|%1|reveles|%2|phase|5", round (time * 100) / 100, count _def]) call CHACAL_LOG;
+};
 private _recoHommes = CHACAL_RECO call CHACAL_fnc_role;
 private _restitue = 0;
 {

@@ -82,6 +82,14 @@ class Params
     // ! LE FEU AVANT LE MOUVEMENT ( Fable, 10/09 ) : l appui connait et vise les defenseurs,
     // l assaut attend son premier coup, marche en AWARE, ordre relance toutes les 10 s.
     // ! CAMPAGNE GRAINE 8 ( Fable, 11/09 ) : trois leviers, a 0 / 45 le comportement d origine.
+    // ! L ORACLE ( Fable, 11/09 ) : defenseurs reveles a tous nos hommes avant la mise en place.
+    class CHACAL_ORACLE
+    {
+        title = "Oracle : defenseurs reveles a tous (0 = non)";
+        values[] = {0,1};
+        texts[]  = {"NON","OUI"};
+        default = 0;
+    };
     class CHACAL_MG_ASSAUT
     {
         title = "Mitrailleuse Mk200 a l adjoint de l assaut (0 = non)";
