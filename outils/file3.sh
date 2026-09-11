@@ -128,7 +128,11 @@ echo "$(date -Is) PRISE $(basename "$CHOISI") sur l instance $(inst_de "$E") (ve
 # ⭐ On ne met JAMAIS un tuyau en travers d un lanceur qui detache des processus.
 # Redirection vers un FICHIER : rien a attendre, et le code de sortie est direct.
 TRACE=$(mktemp /tmp/run_sortie.XXXX)
-bash $H/depot/outils/run.sh "$E" > "$TRACE" 2>&1; RC=$?
+# ⛔ 11/09 : `HMT_FIGE=1` (pose par le gel de CE script) etait HERITE par run.sh, qui se croyait gele et
+# lisait le fichier du depot en direct. run.sh edite a 09:43 pendant V1 : a 14:52 il a relu le fichier decale
+# (« line 39: RUN: command not found ») et rejoue ses 5 repetitions dans le meme dossier. On retire la
+# variable : chaque script se gele lui-meme.
+env -u HMT_FIGE bash $H/depot/outils/run.sh "$E" > "$TRACE" 2>&1; RC=$?
 cat "$TRACE"
 if [ $RC = 2 ]; then
   mv "$E" $H/queue/refuses/
