@@ -12,8 +12,18 @@ set -uo pipefail
 H=/mnt/data/hmt; JOB=$1
 bash $H/depot/outils/controle_avant_run.sh "$JOB" || { echo "controle refuse pour $(basename "$JOB")"; exit 2; }
 B=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['banc'])" "$JOB")
-R=$H/runs/$(date +%Y-%m-%d_%H%M)_$B
-mkdir -p "$R"; cp "$JOB" "$R/job.json"
+INST=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('instance','x'))" "$JOB")
+# ⛔ 11/09 — DEUX RUNS DANS LE MEME DOSSIER. Le nom etait a la MINUTE pres et sans instance :
+# tant que la file etait serielle, deux runs du meme banc ne partaient jamais dans la meme
+# minute. La file par instance l a rendu possible, et la campagne graine 8 l a fait : V7 et V8
+# ont partage `2026-09-11_0919_chacal`, V9 et V5 `2026-09-11_0920_chacal`. Le second a ECRASE
+# le job.json du premier, et comme chaque repetition relit `$R/job.json`, V7 a joue les
+# parametres de V8 et V9 ceux de V5 des leur deuxieme repetition. Aucune erreur, aucun signal.
+# Remede : seconde + instance dans le nom, et `mkdir` SANS -p — un dossier qui existe deja est
+# un REFUS, jamais un partage silencieux.
+R=$H/runs/$(date +%Y-%m-%d_%H%M%S)_${B}_i${INST}
+mkdir "$R" 2>/dev/null || { echo "REFUS: le dossier de run $R existe deja — deux runs ne partagent jamais un dossier"; exit 2; }
+cp "$JOB" "$R/job.json"
 # La charge concurrente est ARCHIVEE : un run joue pendant que le projet Drone occupe le GPU
 # n'est pas comparable a un run joue sur machine vide. On ne l'interdit pas, on l'ecrit.
 /mnt/c/Windows/System32/tasklist.exe 2>/dev/null | grep -Eio 'UnrealEditor[A-Za-z-]*|vmware-vmx|arma3server_x64\.exe|arma3_x64\.exe' | sort | uniq -c > "$R/charge_au_lancement.txt"
