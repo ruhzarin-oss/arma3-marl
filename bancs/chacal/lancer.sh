@@ -104,9 +104,9 @@ grep -q '"verdict"' "$OUT/resultat.json" || { echo "lecture sans verdict, voir l
 # ! CONTROLE D IDENTITE : l'episode joue est-il celui qu'on a DEMANDE ?
 # C'est ce controle qui manquait le 08/09 : le corpus a ete lu comme « le plan echoue » alors que
 # le bras temoin tournait. Un desaccord entre le job et l'en-tete du RPT rend l'episode REFUSE.
-python3 - "$OUT/resultat.json" "$G" "$PAL" "$BRAS_NOM" "$DEPART" "$TENIR" "$ARRET" <<'PY'
+python3 - "$OUT/resultat.json" "$G" "$PAL" "$BRAS_NOM" "$DEPART" "$TENIR" "$ARRET" "$ORACLE" <<'PY'
 import json,sys
-p,g,pal,bras,dep,tenir,arret = sys.argv[1:8]
+p,g,pal,bras,dep,tenir,arret,oracle = sys.argv[1:9]
 def egal(a,b):
     # SQF rend les entiers sans decimale, mais on compare en nombre quand les
     # deux cotes sont numeriques : un "6" face a "6.0" n est pas un ecart de
@@ -115,8 +115,10 @@ def egal(a,b):
     except (TypeError,ValueError): return str(a)==str(b)
 d=json.load(open(p)); e=d.get("entete",{})
 ecarts=[]
-for cle,attendu in (("graine",g),("palier",pal),("bras",bras),("depart",None),("tenir",tenir),("arret",arret)):
+# ! 11/09 (revue de Fable) : oracle compare aussi, SEULEMENT si la ligne FINI le porte (episodes posterieurs a c93fc26).
+for cle,attendu in (("graine",g),("palier",pal),("bras",bras),("depart",None),("tenir",tenir),("arret",arret),("oracle",oracle)):
     if attendu is None: continue
+    if cle == "oracle" and cle not in e: continue
     obtenu=str(e.get(cle,"?"))
     if not egal(obtenu,attendu): ecarts.append(f"{cle} demande {attendu}, joue {obtenu}")
 if ecarts:
