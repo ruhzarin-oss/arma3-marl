@@ -1,0 +1,199 @@
+author = "Harmattan";
+onLoadName = "CHACAL";
+onLoadMission = "Altis, 01h30. Dix hommes, un site de guerre electronique, aucune sortie de secours.";
+overviewText = "Operation speciale entierement scriptee. Six phases. Aucun joueur.";
+
+respawn = 0;
+respawnDelay = 0;
+disabledAI = 1;
+enableDebugConsole = 1;
+briefing = 0;
+debriefing = 0;
+
+class Header { gameType = "Coop"; minPlayers = 1; maxPlayers = 1; };
+
+class Params
+{
+    // La graine est composee : GRAINE_HAUT * 32 + GRAINE, soit 1 024 mondes.
+    // 32 geometries se memorisent sans effort ; le barreau degele avait eu
+    // besoin de 126 sites pour produire un navigateur.
+    class CHACAL_GRAINE
+    {
+        title = "Graine, poids faible";
+        values[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
+        texts[]  = {"0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31"};
+        default = 0;
+    };
+    class CHACAL_GRAINE_HAUT
+    {
+        title = "Graine, poids fort (x32)";
+        values[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
+        texts[]  = {"0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31"};
+        default = 0;
+    };
+    class CHACAL_ECHELLE
+    {
+        title = "Echelle de temps en pourcents (100 = duree reelle)";
+        values[] = {2,5,10,25,50,100};
+        texts[]  = {"2","5","10","25","50","100"};
+        default = 100;
+    };
+    class CHACAL_DTCS
+    {
+        title = "Pas de capture en centiemes de seconde";
+        values[] = {20,50,100,200};
+        texts[]  = {"20","50","100","200"};
+        default = 100;
+    };
+    // ! LE PALIER DE FORCE. Un episode ou les FS perdent TOUJOURS ne contient
+    // qu une lecon - " on meurt " - et l agent apprendra ca. Un episode ou ils
+    // gagnent toujours n en contient aucune. Ce qu on cherche est la bande ou
+    // l issue est INCERTAINE : ni 0 %, ni 100 %.
+    // 3 = la garnison complete ( 31 + 12 ), 0 = la plus desserree.
+    class CHACAL_PALIER
+    {
+        title = "Palier de force adverse : 3 = complet, 0 = desserre, 9 = MONDE VIDE (controle positif)";
+        values[] = {0,1,2,3,4,9};
+        texts[]  = {"0","1","2","3","LEGER","VIDE"};
+        default = 3;
+    };
+    // ! LE CONTROLE DE LA COUTURE SOUS LE FEU ( Fable, 07/09 ).
+    // Le monde vide certifie la couture, mais rien n y bouge : ni alarme, ni
+    // suppression, ni FSM de danger. Or LAMBS tourne AUSSI sur les dix - le mod
+    // emettra ses propres `doMove` sur les hommes de l assaut, sur le meme cycle
+    // que la file. C est le mecanisme qui a tue la variante `taskCQB`.
+    // On retire donc UNE SEULE variable, la mort, et tout le reste est reel.
+    // Si la couture n arrive pas quand rien ne peut la tuer, c est la couture.
+    // ! LES DEUX LEVIERS DU 08/09. Chacun isole UNE cause mesuree, et on n en bouge
+    // qu un par run : sinon on ne saura pas lequel a paye.
+    // ! TENIR MALGRE LA COMPROMISSION. Mesure du 08/09 : cinq episodes, cinq compromissions
+    // avant l assaut, zero charge posee ; un episode sans ennemi, trois charges sur trois.
+    // La regle prudente ne peut pas faire pire ; reste a savoir si tenir POSE des charges ou
+    // se contente de faire mourir plus vite. Les deux bras se jouent sur les memes graines.
+    // ! POSITION ATTEIGNABLE, pas seulement plate. Mesure du 09/09 au palier 4 : les trois
+    // elements n arrivent jamais, le moteur declare le deplacement termine a 800 m de la cible,
+    // sur des pentes de 29 et 37 degres. 0 conserve le comportement d origine.
+    // ! TAILLE DU DETACHEMENT. Mesure du 09/09 au palier 4 : cinq assaillants detruits en
+    // 38 secondes par quatre defenseurs retranches, le porteur de charge mort a 42 m du but.
+    // A 20, chaque element double : appui 4, assaut 10, bouchon 6.
+    // ! POSITION D APPUI DISTINCTE DE L OBSERVATOIRE. Mesure du 09/09 : un seul defenseur tue
+    // cinq assaillants en 38 s, le detachement tire UNE balle, l appui ZERO — il etait a
+    // l observatoire, 773 m et 183 m plus haut, sans cible engageable.
+    // ! LE FEU AVANT LE MOUVEMENT ( Fable, 10/09 ) : l appui connait et vise les defenseurs,
+    // l assaut attend son premier coup, marche en AWARE, ordre relance toutes les 10 s.
+    // ! CAMPAGNE GRAINE 8 ( Fable, 11/09 ) : trois leviers, a 0 / 45 le comportement d origine.
+    class CHACAL_MG_ASSAUT
+    {
+        title = "Mitrailleuse Mk200 a l adjoint de l assaut (0 = non)";
+        values[] = {0,1};
+        texts[]  = {"NON","OUI"};
+        default = 0;
+    };
+    class CHACAL_DELAI_PORTEUR
+    {
+        title = "Delai du porteur vers le point de pose, en secondes (45 = origine)";
+        values[] = {45,60,90,120,180};
+        texts[]  = {"45","60","90","120","180"};
+        default = 45;
+    };
+    class CHACAL_APPUI_FIXE
+    {
+        title = "Appui fixe en YELLOW une fois en place, LAMBS coupe (0 = non)";
+        values[] = {0,1};
+        texts[]  = {"NON","OUI"};
+        default = 0;
+    };
+    class CHACAL_FEU_AVANT
+    {
+        title = "Feu de l appui avant le mouvement de l assaut (0 = origine)";
+        values[] = {0,1};
+        texts[]  = {"NON","OUI"};
+        default = 0;
+    };
+    class CHACAL_APPUI_FEU
+    {
+        title = "Position d appui choisie pour le tir (0 = a l observatoire)";
+        values[] = {0,1};
+        texts[]  = {"NON","OUI"};
+        default = 0;
+    };
+    class CHACAL_EFFECTIF
+    {
+        title = "Taille du detachement (10 = d origine)";
+        values[] = {10,20};
+        texts[]  = {"10","20"};
+        default = 10;
+    };
+    class CHACAL_ACCESSIBLE
+    {
+        title = "Exiger une position atteignable (0 = comportement d origine)";
+        values[] = {0,1};
+        texts[]  = {"NON","OUI"};
+        default = 0;
+    };
+    class CHACAL_TENIR
+    {
+        title = "Poursuivre le plan malgre la compromission (0 = regle prudente)";
+        values[] = {0,1};
+        texts[]  = {"NON","OUI"};
+        default = 0;
+    };
+    class CHACAL_HMG
+    {
+        title = "Mitrailleuses servies : -1 = valeur du palier, 0 = aucune";
+        values[] = {-1,0,1,2};
+        texts[]  = {"palier","0","1","2"};
+        default = -1;
+    };
+    class CHACAL_ASSAUT_X
+    {
+        title = "Plafond de la phase d assaut, en pourcents (100 = 900 s)";
+        values[] = {100,200,300,500};
+        texts[]  = {"100","200","300","500"};
+        default = 100;
+    };
+    class CHACAL_IMMORTEL
+    {
+        title = "FS immortels (DIAGNOSTIC, hors corpus)";
+        values[] = {0,1};
+        texts[]  = {"NON","OUI"};
+        default = 0;
+    };
+    class CHACAL_BRAS
+    {
+        title = "Bras : 0 = PLAN en six phases, 1 = TEMOIN qui marche droit";
+        values[] = {0,1};
+        texts[]  = {"PLAN","NUL"};
+        default = 0;
+    };
+    // Controle positif de l observation : le meme episode en plein jour.
+    // Diagnostic, marque hors corpus.
+    class CHACAL_JOUR
+    {
+        title = "Heure : 0 = nuit (01h30), 1 = plein jour (12h30, DIAGNOSTIC)";
+        values[] = {0,1};
+        texts[]  = {"NUIT","JOUR"};
+        default = 0;
+    };
+    class CHACAL_DEPART
+    {
+        title = "Phase de depart : 1 = complet, 3 = au regroupement, 4/5/6 = elements en place (DIAGNOSTIC)";
+        values[] = {1,3,4,5,6};
+        texts[]  = {"1","3","4","5","6"};
+        default = 1;
+    };
+    // ! LA VIGNETTE. Une mission complete coute trois heures ; une question qui
+    // ne porte que sur l assaut n a pas besoin des deux heures de marche qui le
+    // precedent. CHACAL_ARRET ferme l episode DES QUE la phase demandee se
+    // termine - proprement, par le verdict, pas par le plafond du lanceur.
+    // Avec DEPART on choisit ou l on commence, avec ARRET ou l on s arrete :
+    // DEPART=4, ARRET=5 est la vignette " assaut seul ".
+    // Le defaut 6 laisse la mission complete rigoureusement inchangee.
+    class CHACAL_ARRET
+    {
+        title = "Derniere phase jouee : l episode se termine des qu elle se clot (6 = mission complete)";
+        values[] = {1,2,3,4,5,6};
+        texts[]  = {"1","2","3","4","5","6"};
+        default = 6;
+    };
+};

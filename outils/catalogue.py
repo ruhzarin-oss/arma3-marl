@@ -24,7 +24,7 @@ ROLES_FS = {"CHEF", "ADJOINT", "DEMO_1", "DEMO_2", "MEDECIN", "TIREUR_1", "TIREU
 OBJ_COURT = {"Land_Communication_F": "antenne", "Land_TTowerBig_1_F": "tour", "Land_Cargo_HQ_V1_F": "QG"}
 
 COLONNES = [
-    "episode", "source", "copies", "run", "ep", "date", "contamine", "version_job", "version_jouee", "coherent",
+    "episode", "source", "copies", "banc", "run", "ep", "date", "contamine", "version_job", "version_jouee", "coherent",
     "campagne", "graine", "palier", "jour", "bras", "hors_corpus",
     *LEVIERS,
     "issue", "cause", "charges", "sur", "detruits", "exfiltres", "vivants", "morts_fs", "roles_morts", "pertes_est",
@@ -185,10 +185,13 @@ def main():
         e.update({"source": path, "run": run, "ep": ep, "date": run[:10], "contamine": "1" if contamine else "0",
                   "campagne": job.get("campagne", ""), "note_job": job.get("note", "")[:120].replace("\n", " ")})
         e["version_job"] = "" if contamine else version_de(job)
-        e["version_jouee"] = chercher_version(e, defs) if (contamine or job.get("version")) else e["version_job"]
+        # la version se deduit des leviers SEULEMENT quand le dossier est contamine ; sinon deux
+        # bancs aux memes leviers (V2 et AL1) se confondraient.
+        e["version_jouee"] = chercher_version(e, [j for j in defs if j.get("campagne") == "G8-FABLE-11-09"]) if contamine else e["version_job"]
+        e["banc"] = job.get("banc", "")
         if contamine and not e["campagne"]:
             e["campagne"] = "G8-FABLE-11-09"
-        e["coherent"] = "" if not e["version_job"] or not job.get("version") else ("1" if e["version_job"] == e["version_jouee"] else "0")
+        e["coherent"] = "0" if contamine else ("1" if job.get("version") else "")
         porte = ""
         if not contamine and not sauve:
             try:
