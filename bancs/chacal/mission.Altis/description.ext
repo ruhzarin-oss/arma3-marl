@@ -85,9 +85,9 @@ class Params
     // ! L ORACLE ( Fable, 11/09 ) : defenseurs reveles a tous nos hommes avant la mise en place.
     class CHACAL_ORACLE
     {
-        title = "Oracle : defenseurs reveles a tous (0 = non)";
-        values[] = {0,1};
-        texts[]  = {"NON","OUI"};
+        title = "Oracle : 0 non, 1 a l assaut, 2 complet (avant le choix de la porte)";
+        values[] = {0,1,2};
+        texts[]  = {"NON","ASSAUT","COMPLET"};
         default = 0;
     };
     class CHACAL_MG_ASSAUT

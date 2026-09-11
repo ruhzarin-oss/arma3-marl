@@ -881,6 +881,15 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
     // et sur une nuit ou l articulation est deja le goulot, ce marche est
     // mauvais. Un garde localise vaut 150 m de marche ; l arbitrage est
     // journalise pour qu il soit discutable.
+    // ! L ORACLE COMPLET ( CHACAL_ORACLE = 2, revue de Fable 11/09 ) : les defenseurs sont reveles et
+    // inscrits comme vus AVANT le choix de la porte, qui se fait alors en les connaissant.
+    if (CHACAL_ORACLE == 2) then {
+        private _defO = CHACAL_EST_SITE select { alive _x };
+        { private _u = _x; { _u reveal [_x, 4] } forEach _defO } forEach (CHACAL_FS select { alive _x });
+        CHACAL_VUES = _defO apply { [_x, 4] };
+        (format ["CHACAL|E|oracle|%1|reveles|%2|hommes|%3|phase|4|avant_choix_porte|1", round (time * 100) / 100,
+            count _defO, count (CHACAL_FS select { alive _x })]) call CHACAL_LOG;
+    };
     private _dep = ((units CHACAL_gAssaut) select { alive _x }) call CHACAL_fnc_centre;
     if (count _dep == 0) then { _dep = CHACAL_RALLY };
     private _meilleure = 0; private _minScore = 1e9; private _comptes = []; private _dists = [];
@@ -947,7 +956,7 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
     // l heure. La certification finale se fait UNE FOIS a DEPART=3, deux graines.
     // ! L ORACLE ( Fable, 11/09 ) : que vaut le renseignement PARFAIT ? Les defenseurs du site sont
     // reveles a TOUS nos hommes et inscrits comme vus, avant la mise en place. 0 = origine.
-    if (CHACAL_ORACLE == 1) then {
+    if (CHACAL_ORACLE >= 1) then {
         private _def = CHACAL_EST_SITE select { alive _x };
         { private _u = _x; { _u reveal [_x, 4] } forEach _def } forEach (CHACAL_FS select { alive _x });
         CHACAL_VUES = _def apply { [_x, 4] };
@@ -1049,7 +1058,7 @@ if (!isNil "CHACAL_POS_ASSAUT") then {
 // Ici on ne restitue QUE ce que la reco a vu, QU AUX hommes qui l ont vu, et au
 // niveau observe. Le compte est journalise : N restituees sur M localisees.
 // ! L ORACLE : la connaissance se rafraichit au debut de l assaut, pour tous nos hommes.
-if (CHACAL_ORACLE == 1) then {
+if (CHACAL_ORACLE >= 1) then {
     private _def = CHACAL_EST_SITE select { alive _x };
     { private _u = _x; { _u reveal [_x, 4] } forEach _def } forEach (CHACAL_FS select { alive _x });
     (format ["CHACAL|E|oracle|%1|reveles|%2|phase|5", round (time * 100) / 100, count _def]) call CHACAL_LOG;
