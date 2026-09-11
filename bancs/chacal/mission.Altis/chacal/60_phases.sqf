@@ -911,6 +911,19 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
     if (CHACAL_APPUI_FEU == 1) then {
         CHACAL_POS_APPUI = [CHACAL_SITE, CHACAL_OUV_CHOISIE, CHACAL_POS_ASSAUT, CHACAL_OP] call CHACAL_fnc_positionAppui;
     };
+    // ! V9 ( Fable, 11/09 ) : une fois en place, l appui tient sa place. YELLOW = tir a volonte,
+    // garde ta place ; RED = engage a volonte, et on l a mesure partir au contact a 11-18 km/h.
+    if (CHACAL_APPUI_FIXE == 1) then {
+        [] spawn {
+            waitUntil { sleep 2; CHACAL_FIN || { !isNull CHACAL_gAppui && { [CHACAL_gAppui, CHACAL_POS_APPUI, 70] call CHACAL_fnc_enPlace } } };
+            if (CHACAL_FIN || { isNull CHACAL_gAppui }) exitWith {};
+            CHACAL_gAppui setCombatMode "YELLOW";
+            CHACAL_gAppui setVariable ["lambs_danger_disableGroupAI", true, true];
+            { if (alive _x) then { _x disableAI "PATH"; _x setVariable ["lambs_danger_disableAI", true, true] } } forEach (units CHACAL_gAppui);
+            (format ["CHACAL|E|appui_fixe|%1|position|%2|compromis|%3", round (time * 100) / 100, CHACAL_POS_APPUI,
+                (if (CHACAL_COMPROMIS) then {1} else {0})]) call CHACAL_LOG;
+        };
+    };
 
     // Le plafond est la SOMME des deux jambes, calculee sur les vitesses
     // reellement ordonnees - 1,1 m/s puis 0,5 - et non sur une constante
@@ -1050,7 +1063,7 @@ if (_renonce) then {
 } else {
 
 if (!isNull CHACAL_gAppui) then {
-    CHACAL_gAppui setBehaviour "COMBAT"; CHACAL_gAppui setCombatMode "RED"; CHACAL_gAppui setSpeedMode "LIMITED";
+    CHACAL_gAppui setBehaviour "COMBAT"; CHACAL_gAppui setCombatMode (if (CHACAL_APPUI_FIXE == 1) then {"YELLOW"} else {"RED"}); CHACAL_gAppui setSpeedMode "LIMITED";
     private _cibles = (CHACAL_VUES apply { _x select 0 }) select { alive _x };
     { if (alive _x && { count _cibles > 0 }) then { _x doTarget (_cibles select 0); _x doFire (_cibles select 0) } } forEach (units CHACAL_gAppui);
 };
@@ -1106,6 +1119,21 @@ if (!isNull CHACAL_gBouchon) then {
 // changeant leur comportement - on cesse de les separer. L assaut avance d un
 // seul corps, et les charges sont portees par les cinq.
 
+// ! V5 ( Fable, 11/09 ) : une mitrailleuse dans l assaut. L ADJOINT echange son fusil contre une Mk200.
+if (CHACAL_MG_ASSAUT == 1) then {
+    private _mg = (units CHACAL_gAssaut) select { alive _x && { (_x getVariable ["chacal_role", ""]) == "ADJOINT" } };
+    if (count _mg == 0) then { _mg = (units CHACAL_gAssaut) select { alive _x && { !((_x getVariable ["chacal_role", ""]) in ["DEMO_1", "DEMO_2"]) } } };
+    if (count _mg > 0) then {
+        private _u = _mg select 0;
+        { _u removeMagazines _x } forEach (getArray (configFile >> "CfgWeapons" >> (primaryWeapon _u) >> "magazines"));
+        _u removeWeapon (primaryWeapon _u);
+        for "_i" from 1 to 3 do { _u addMagazine "200Rnd_65x39_cased_Box" };
+        _u addWeapon "LMG_Mk200_F";
+        (format ["CHACAL|E|mg_assaut|%1|role|%2|arme|%3|munitions_chargees|%4|chargeurs_sac|%5", round (time * 100) / 100,
+            (_u getVariable ["chacal_role", ""]), primaryWeapon _u, _u ammo "LMG_Mk200_F",
+            { _x == "200Rnd_65x39_cased_Box" } count (magazines _u)]) call CHACAL_LOG;
+    } else { "CHACAL|AVERT|mg_assaut|aucun_tireur_disponible" call CHACAL_LOG };
+};
 // LE chiffre de Fable : les coups de l appui AVANT le premier pas de l assaut.
 (format ["CHACAL|E|premier_pas_assaut|%1|tirs_appui_avant|%2|feu_avant|%3", round (time * 100) / 100,
     CHACAL_TIRS_APPUI, CHACAL_FEU_AVANT]) call CHACAL_LOG;
@@ -1225,8 +1253,10 @@ private _hExpl = scriptNull;
     private _h = if (count _demo > 0) then { _demo select 0 } else { _porteurs select 0 };
     _h doMove _pt;
     private _t = time;
-    waitUntil { sleep 1; ((_h distance2D _pt) < 5) || !(alive _h) || (time - _t > 45 * CHACAL_ECHELLE) || CHACAL_FIN };
+    waitUntil { sleep 1; ((_h distance2D _pt) < 5) || !(alive _h) || (time - _t > CHACAL_DELAI_PORTEUR * CHACAL_ECHELLE) || CHACAL_FIN };
     private _dH = round (_h distance2D _pt);
+    (format ["CHACAL|E|porteur|%1|%2|%3|temps|%4|distance|%5|delai|%6", round (time * 100) / 100, typeOf _o,
+        (_h getVariable ["chacal_role", ""]), round (time - _t), _dH, CHACAL_DELAI_PORTEUR]) call CHACAL_LOG;
     if (!alive _h || { _dH > 12 }) then {
         (format ["CHACAL|E|charge_manquee|%1|%2|cause|PORTEUR_N_ARRIVE_PAS|%3|distance|%4", round (time * 100) / 100,
             typeOf _o, (_h getVariable ["chacal_role", ""]), _dH]) call CHACAL_LOG;
@@ -1291,6 +1321,8 @@ private _pourquoi = if (CHACAL_ABANDON) then {"ABANDON_REPLI_PAR_LA_LZ"} else {"
 // ! Un detachement qui n est PAS compromis ne rompt pas le contact, il s en va.
 // En COMBAT sur 1,4 a 2,4 km, 1,8 m/s de moyenne n est pas garanti meme sans
 // ennemi : l issue serait EXFIL_MANQUEE sur un detachement intact.
+// l appui fixe est rendu a ses jambes pour rentrer
+if (CHACAL_APPUI_FIXE == 1 && { !isNull CHACAL_gAppui }) then { { _x enableAI "PATH" } forEach (units CHACAL_gAppui) };
 private _compExf = if (CHACAL_COMPROMIS) then {"COMBAT"} else {"AWARE"};
 {
     if (!isNull _x) then {

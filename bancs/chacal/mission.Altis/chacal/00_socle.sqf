@@ -38,6 +38,10 @@ CHACAL_APPUI_FEU = ["CHACAL_APPUI_FEU", 0] call BIS_fnc_getParamValue;
 // ! CHACAL_FEU_AVANT ( Fable, 10/09 ) : l appui connait et vise les defenseurs, l assaut attend son
 // premier coup, puis marche en AWARE avec un ordre relance toutes les 10 s. 0 = comportement d origine.
 CHACAL_FEU_AVANT = ["CHACAL_FEU_AVANT", 0] call BIS_fnc_getParamValue;
+// ! CAMPAGNE GRAINE 8 ( Fable, 11/09 ) - trois leviers, 0 / 45 = comportement d origine.
+CHACAL_MG_ASSAUT = ["CHACAL_MG_ASSAUT", 0] call BIS_fnc_getParamValue;
+CHACAL_DELAI_PORTEUR = ["CHACAL_DELAI_PORTEUR", 45] call BIS_fnc_getParamValue;
+CHACAL_APPUI_FIXE = ["CHACAL_APPUI_FIXE", 0] call BIS_fnc_getParamValue;
 CHACAL_EFFECTIF = ["CHACAL_EFFECTIF", 10] call BIS_fnc_getParamValue;
 CHACAL_ACCESSIBLE = ["CHACAL_ACCESSIBLE", 0] call BIS_fnc_getParamValue;
 CHACAL_TENIR = ["CHACAL_TENIR", 0] call BIS_fnc_getParamValue;
