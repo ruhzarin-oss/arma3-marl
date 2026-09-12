@@ -44,6 +44,12 @@ CHACAL_DELAI_PORTEUR = ["CHACAL_DELAI_PORTEUR", 45] call BIS_fnc_getParamValue;
 CHACAL_APPUI_FIXE = ["CHACAL_APPUI_FIXE", 0] call BIS_fnc_getParamValue;
 // ! CHACAL_ORACLE ( Fable, 11/09 ) : les defenseurs reveles a tous et inscrits comme vus. 0 = origine.
 CHACAL_ORACLE = ["CHACAL_ORACLE", 0] call BIS_fnc_getParamValue;
+// ! LE SOCLE ET LES TACTIQUES ( 11/09 ). 0 = comportement d origine dans les deux cas.
+CHACAL_SOCLE = ["CHACAL_SOCLE", 0] call BIS_fnc_getParamValue;
+CHACAL_TACTIQUE = ["CHACAL_TACTIQUE", 0] call BIS_fnc_getParamValue;
+CHACAL_CONNUS = [];          // defenseurs qui se sont trahis en tirant
+CHACAL_T_PREMIER_TIR_APPUI = -1;
+CHACAL_RELANCES_SOCLE = 0; CHACAL_FUMIGENES = 0;
 CHACAL_EFFECTIF = ["CHACAL_EFFECTIF", 10] call BIS_fnc_getParamValue;
 CHACAL_ACCESSIBLE = ["CHACAL_ACCESSIBLE", 0] call BIS_fnc_getParamValue;
 CHACAL_TENIR = ["CHACAL_TENIR", 0] call BIS_fnc_getParamValue;
@@ -234,6 +240,143 @@ CHACAL_fnc_positionAppui = {
         round ((getTerrainHeightASL _best) - (getTerrainHeightASL _ouverture)), round _sc,
         round (abs ((_site getDir _best) - (_site getDir _axeAssaut)))]) call CHACAL_LOG;
     _best
+};
+
+// ! LE SOCLE : quatre reparations d execution, sous toutes les tactiques ( document du 11/09 ).
+// La moitie des echecs mesures sont des pannes d execution, pas des erreurs de tactique.
+CHACAL_fnc_socleAssaut = {
+    private _ass = (units CHACAL_gAssaut) select { alive _x };
+    // S1 : chaque homme de l assaut porte une charge. Le porteur mort a un suivant.
+    { if (!("DemoCharge_Remote_Mag" in (magazines _x))) then { _x addMagazine "DemoCharge_Remote_Mag" } } forEach _ass;
+    // S4 : les porteurs ne combattent pas. Ce sont eux qui posent ; un porteur qui riposte est un porteur qui s arrete.
+    {
+        private _r = _x getVariable ["chacal_role", ""];
+        if (_r in ["DEMO_1", "DEMO_2", "MEDECIN"]) then {
+            _x disableAI "AUTOCOMBAT"; _x setBehaviour "AWARE";
+            _x setVariable ["lambs_danger_disableAI", true, true];
+        };
+    } forEach _ass;
+    // S3 : l appui est cloue. Feu libre, mais il ne quitte pas sa place.
+    if (!isNull CHACAL_gAppui) then {
+        CHACAL_gAppui setBehaviour "COMBAT"; CHACAL_gAppui setCombatMode "RED";
+        CHACAL_gAppui setVariable ["lambs_danger_disableGroupAI", true, true];
+        {
+            if (alive _x) then {
+                _x disableAI "PATH"; _x setUnitPos "MIDDLE";
+                _x setVariable ["lambs_danger_disableAI", true, true];
+                _x addEventHandler ["Fired", {
+                    if (CHACAL_T_PREMIER_TIR_APPUI < 0) then { CHACAL_T_PREMIER_TIR_APPUI = time };
+                }];
+            };
+        } forEach (units CHACAL_gAppui);
+    };
+    // S5 : reconnaissance par le feu. Un defenseur qui TIRE se trahit : on le revele a l appui. Ce n est pas un oracle.
+    {
+        if (alive _x) then {
+            _x addEventHandler ["Fired", {
+                params ["_t"];
+                if (!(_t in CHACAL_CONNUS)) then {
+                    CHACAL_CONNUS pushBack _t;
+                    { _x reveal [_t, 4] } forEach ((units CHACAL_gAppui) + (units CHACAL_gAssaut));
+                    (format ["CHACAL|E|trahi_par_son_tir|%1|%2|connus|%3", round (time * 100) / 100,
+                        (_t getVariable ["chacal_id", -1]), count CHACAL_CONNUS]) call CHACAL_LOG;
+                };
+            }];
+        };
+    } forEach CHACAL_EST_SITE;
+    (format ["CHACAL|E|socle|%1|porteurs|%2|appui_cloue|%3", round (time * 100) / 100,
+        count (_ass select { "DemoCharge_Remote_Mag" in (magazines _x) }),
+        (if (isNull CHACAL_gAppui) then {0} else {count (units CHACAL_gAppui)})]) call CHACAL_LOG;
+};
+
+// La cible que l appui doit prendre : le fusilier-mitrailleur d abord, puis le chef, puis le reste.
+CHACAL_fnc_ciblePrio = {
+    private _viv = (CHACAL_EST_SITE select { alive _x });
+    if (count _viv == 0) exitWith { objNull };
+    private _rang = {
+        private _t = typeOf _x;
+        if (_t find "_AR_" > -1) then { 0 } else { if (_t find "_TL_" > -1) then { 1 } else { 2 } };
+    };
+    private _tri = [_viv, [], _rang, "ASCEND"] call BIS_fnc_sortBy;
+    _tri select 0
+};
+
+// ! LA TACTIQUE, cote APPUI. Elle ne bouge personne : elle designe, elle arrose, elle reitere.
+// L IA cesse d engager une cible qui ne tombe pas au bout de ~60 s : tout ordre de feu se reitere.
+CHACAL_fnc_tactiqueAppui = {
+    private _t0 = time; private _derniere = objNull; private _tCible = 0; private _tSupp = -99;
+    while { !CHACAL_FIN && { CHACAL_PHASE == 5 } && { !isNull CHACAL_gAppui } } do {
+        private _app = (units CHACAL_gAppui) select { alive _x };
+        if (count _app == 0) exitWith {};
+        private _viv = CHACAL_EST_SITE select { alive _x };
+        if (CHACAL_TACTIQUE == 2) then {
+            // T2 : une cible a la fois, 60 s au plus, le fusilier-mitrailleur d abord.
+            if (isNull _derniere || { !alive _derniere } || { time - _tCible > 60 }) then {
+                _derniere = call CHACAL_fnc_ciblePrio; _tCible = time;
+                if (!isNull _derniere) then {
+                    (format ["CHACAL|E|cible_designee|%1|%2|restants|%3", round (time * 100) / 100,
+                        (_derniere getVariable ["chacal_id", -1]), count _viv]) call CHACAL_LOG;
+                };
+            };
+            if (!isNull _derniere) then {
+                { _x reveal [_derniere, 4]; _x doTarget _derniere; _x doFire _derniere } forEach _app;
+            };
+        } else {
+            // T1 et T5 apres bascule : arroser la position du defenseur connu le plus proche de l assaut,
+            // sauf si l assaut est a moins de 50 m de cette position ( on deplace alors le tir ).
+            private _cn = CHACAL_CONNUS select { alive _x };
+            if (count _cn > 0) then {
+                private _ca = ((units CHACAL_gAssaut) select { alive _x }) call CHACAL_fnc_centre;
+                private _cible = objNull; private _dmax = -1;
+                {
+                    private _d = if (count _ca > 0) then { _x distance2D _ca } else { 999 };
+                    if (_d > 50 && { _d > _dmax }) then { _dmax = _d; _cible = _x };
+                } forEach _cn;
+                if (!isNull _cible && { time - _tSupp > 30 }) then {
+                    _tSupp = time;
+                    { _x reveal [_cible, 4]; _x doTarget _cible; _x doFire _cible;
+                      _x doSuppressiveFire (getPosATL _cible) } forEach _app;
+                    (format ["CHACAL|E|suppression|%1|%2|distance_assaut|%3", round (time * 100) / 100,
+                        (_cible getVariable ["chacal_id", -1]), round _dmax]) call CHACAL_LOG;
+                };
+            };
+        };
+        sleep 5;
+    };
+};
+
+// ! LE CHIEN DE GARDE ( S4 ). Un assaut qui n avance plus recoit son ordre une seconde fois ; au deuxieme
+// echec, un fumigene tombe entre lui et le defenseur connu le plus proche. « Tout ce qui fige un homme coute ».
+CHACAL_fnc_chienDeGarde = {
+    private _dRef = 1e9; private _tRef = time; private _rates = 0;
+    while { !CHACAL_FIN && { CHACAL_PHASE == 5 } } do {
+        sleep 10;
+        if (count CHACAL_CIBLE_ASSAUT > 0 && { !isNull CHACAL_gAssaut }) then {
+            private _v = (units CHACAL_gAssaut) select { alive _x };
+            if (count _v > 0) then {
+                private _c = _v call CHACAL_fnc_centre;
+                private _d = _c distance2D CHACAL_CIBLE_ASSAUT;
+                if (_d < _dRef - 5) then { _dRef = _d; _tRef = time; _rates = 0 }
+                else {
+                    if (time - _tRef > 30) then {
+                        _tRef = time; _rates = _rates + 1; CHACAL_RELANCES_SOCLE = CHACAL_RELANCES_SOCLE + 1;
+                        CHACAL_gAssaut setBehaviour "AWARE";
+                        { if (alive _x) then { _x doMove CHACAL_CIBLE_ASSAUT } } forEach _v;
+                        (format ["CHACAL|E|chien_de_garde|%1|relance|%2|reste|%3", round (time * 100) / 100,
+                            _rates, round _d]) call CHACAL_LOG;
+                        if (_rates >= 2) then {
+                            private _cn = CHACAL_CONNUS select { alive _x };
+                            private _vers = if (count _cn > 0) then { getPosATL (_cn select 0) } else { CHACAL_CIBLE_ASSAUT };
+                            private _p = _c getPos [25, _c getDir _vers];
+                            createVehicle ["SmokeShell", _p, [], 0, "CAN_COLLIDE"];
+                            CHACAL_FUMIGENES = CHACAL_FUMIGENES + 1; _rates = 0;
+                            (format ["CHACAL|E|fumigene|%1|entre|%2|et|%3", round (time * 100) / 100, str _p, str _vers]) call CHACAL_LOG;
+                        };
+                    };
+                };
+            };
+        };
+    };
 };
 
 CHACAL_fnc_plat = {

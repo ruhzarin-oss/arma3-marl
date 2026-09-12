@@ -83,6 +83,21 @@ class Params
     // l assaut attend son premier coup, marche en AWARE, ordre relance toutes les 10 s.
     // ! CAMPAGNE GRAINE 8 ( Fable, 11/09 ) : trois leviers, a 0 / 45 le comportement d origine.
     // ! L ORACLE ( Fable, 11/09 ) : defenseurs reveles a tous nos hommes avant la mise en place.
+    // ! LE SOCLE ( quatre reparations d execution ) et LA TACTIQUE ( 11/09 ).
+    class CHACAL_SOCLE
+    {
+        title = "Socle : charges redondantes, porteurs non combattants, appui cloue, chien de garde (0 = non)";
+        values[] = {0,1};
+        texts[]  = {"NON","OUI"};
+        default = 0;
+    };
+    class CHACAL_TACTIQUE
+    {
+        title = "Tactique : 0 socle seul, 1 base de feu, 2 neutralisation prealable, 5 infiltration";
+        values[] = {0,1,2,5};
+        texts[]  = {"SOCLE","T1","T2","T5"};
+        default = 0;
+    };
     class CHACAL_ORACLE
     {
         title = "Oracle : 0 non, 1 a l assaut, 2 complet (avant le choix de la porte)";

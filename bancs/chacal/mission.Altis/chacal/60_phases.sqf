@@ -1092,6 +1092,39 @@ if (!isNull CHACAL_gAppui) then {
     { if (alive _x && { count _cibles > 0 }) then { _x doTarget (_cibles select 0); _x doFire (_cibles select 0) } } forEach (units CHACAL_gAppui);
 };
 
+// ! LE SOCLE ET LA TACTIQUE ( document du 11/09 ). Le socle repare l execution, la tactique conduit l appui.
+if (CHACAL_SOCLE == 1) then { call CHACAL_fnc_socleAssaut };
+if (CHACAL_TACTIQUE == 5) then {
+    // T5 : personne ne tire tant que rien ne nous tire dessus. A la premiere balle, on bascule en T1.
+    { if (!isNull _x) then { _x setCombatMode "GREEN" } } forEach [CHACAL_gAppui, CHACAL_gAssaut, CHACAL_gBouchon];
+    CHACAL_gAssaut setBehaviour "STEALTH";
+    [] spawn {
+        waitUntil { sleep 2; CHACAL_FIN || { CHACAL_PHASE != 5 } || { count CHACAL_CONNUS > 0 } || CHACAL_COMPROMIS };
+        if (CHACAL_FIN || { CHACAL_PHASE != 5 }) exitWith {};
+        CHACAL_TACTIQUE = 1;
+        { if (!isNull _x) then { _x setCombatMode "RED" } } forEach [CHACAL_gAppui, CHACAL_gBouchon];
+        CHACAL_gAssaut setBehaviour "AWARE"; CHACAL_gAssaut setCombatMode "YELLOW";
+        (format ["CHACAL|E|bascule_t5_vers_t1|%1|connus|%2|compromis|%3", round (time * 100) / 100,
+            count CHACAL_CONNUS, (if (CHACAL_COMPROMIS) then {1} else {0})]) call CHACAL_LOG;
+    };
+};
+if (CHACAL_TACTIQUE > 0) then { [] spawn CHACAL_fnc_tactiqueAppui };
+if (CHACAL_SOCLE == 1) then { [] spawn CHACAL_fnc_chienDeGarde };
+// L assaut attend : T1 le premier coup de l appui ( 120 s au plus ), T2 qu il ne reste au plus qu un defenseur ( 8 min ).
+if (CHACAL_TACTIQUE == 1) then {
+    private _tA = time;
+    waitUntil { sleep 1; (CHACAL_T_PREMIER_TIR_APPUI > 0) || { time - _tA > 120 } || CHACAL_FIN };
+    sleep 5;
+    (format ["CHACAL|E|t1_depart|%1|premier_tir_appui|%2|attente|%3", round (time * 100) / 100,
+        round CHACAL_T_PREMIER_TIR_APPUI, round (time - _tA)]) call CHACAL_LOG;
+};
+if (CHACAL_TACTIQUE == 2) then {
+    private _tA = time;
+    waitUntil { sleep 2; (count (CHACAL_EST_SITE select { alive _x }) <= 1) || { time - _tA > 480 } || CHACAL_FIN };
+    (format ["CHACAL|E|t2_depart|%1|defenseurs_restants|%2|attente|%3", round (time * 100) / 100,
+        count (CHACAL_EST_SITE select { alive _x }), round (time - _tA)]) call CHACAL_LOG;
+};
+
 // ! LE FEU AVANT LE MOUVEMENT ( Fable, 10/09 ). Sur les echecs du palier 4, un seul fusilier
 // fait 8 des 9 morts et l appui ne tire pas : il visait une cible qu il ne connaissait pas.
 // Le compteur tourne dans les deux bras ; la designation et l attente seulement a FEU_AVANT = 1.
@@ -1163,11 +1196,12 @@ if (CHACAL_MG_ASSAUT == 1) then {
     CHACAL_TIRS_APPUI, CHACAL_FEU_AVANT]) call CHACAL_LOG;
 // ! Le mode COMBAT fige l assaut ( plus de 120 s immobile a 65 m de la tour ). A FEU_AVANT = 1 il
 // marche en AWARE, et un ordre donne une seule fois est relance toutes les 10 s.
-CHACAL_COMP_ASSAUT = if (CHACAL_FEU_AVANT == 1) then {"AWARE"} else {"COMBAT"};
+// Une tactique marche en AWARE : le mode COMBAT fige l assaut ( plus de 120 s mesurees a 65 m de la tour ).
+CHACAL_COMP_ASSAUT = if (CHACAL_FEU_AVANT == 1 || { CHACAL_TACTIQUE > 0 }) then {"AWARE"} else {"COMBAT"};
 CHACAL_gAssaut setBehaviour CHACAL_COMP_ASSAUT; CHACAL_gAssaut setCombatMode "RED"; CHACAL_gAssaut setSpeedMode "FULL";
 CHACAL_CIBLE_ASSAUT = +CHACAL_OUV_CHOISIE;
 [CHACAL_gAssaut, CHACAL_OUV_CHOISIE, "FULL", CHACAL_COMP_ASSAUT, "WEDGE", "OUVERTURE_CHOISIE"] call CHACAL_fnc_ordreAller;
-if (CHACAL_FEU_AVANT == 1) then {
+if (CHACAL_FEU_AVANT == 1 || { CHACAL_TACTIQUE > 0 }) then {
     [] spawn {
         while { !CHACAL_FIN && { CHACAL_PHASE == 5 } } do {
             sleep 10;
@@ -1273,7 +1307,11 @@ private _hExpl = scriptNull;
         (format ["CHACAL|E|charge_manquee|%1|%2|cause|AUCUN_PORTEUR_VIVANT", round (time * 100) / 100, typeOf _o]) call CHACAL_LOG;
         continue
     };
-    private _demo = _porteurs select { (_x getVariable ["chacal_role", ""]) in ["DEMO_1", "DEMO_2"] };
+    // ! S1 ( 11/09 ) : la releve est ecrite d avance - DEMO_1, DEMO_2, ADJOINT, CHEF, MEDECIN - et chaque homme
+    // de l assaut porte une charge, donc un porteur mort a toujours un suivant.
+    private _ordreP = ["DEMO_1", "DEMO_2", "ADJOINT", "CHEF", "MEDECIN"];
+    private _demo = [];
+    { private _r = _x; { if ((_x getVariable ["chacal_role", ""]) == _r) then { _demo pushBack _x } } forEach _porteurs } forEach _ordreP;
     private _h = if (count _demo > 0) then { _demo select 0 } else { _porteurs select 0 };
     _h doMove _pt;
     private _t = time;
