@@ -49,6 +49,9 @@ CHACAL_SOCLE = ["CHACAL_SOCLE", 0] call BIS_fnc_getParamValue;
 CHACAL_TACTIQUE = ["CHACAL_TACTIQUE", 0] call BIS_fnc_getParamValue;
 // ! CONTROLE POSITIF DE L APPUI ( Fable, regle 16 ) : 0 non, 1 appui CLOUE comme dans le socle, 2 appui NON CLOUE.
 // L appui reste a SA position : on ne change qu une chose a la fois.
+// ! LE PLACEUR ( banc du 12/09 ) : 0 = ancien ( vue sur l ouverture ), 1 = nouveau ( bat le plancher du site ).
+CHACAL_PLACEUR = ["CHACAL_PLACEUR", 0] call BIS_fnc_getParamValue;
+CHACAL_COUV = -1;   // part des points interieurs battus depuis la position retenue
 CHACAL_BANC_APPUI = ["CHACAL_BANC_APPUI", 0] call BIS_fnc_getParamValue;
 CHACAL_TIRS_BANC = 0;
 // ! ABLATION PAR RETRAIT ( revue du 12/09 ) : masque de ce qu on ENLEVE au socle.
@@ -214,9 +217,84 @@ CHACAL_fnc_penteTrajet = {
 // terrain ou un homme peut se coucher.
 // Rend l observatoire en repli si rien ne convient : une mission qui ne trouve pas sa position
 // d appui doit se degrader, pas s arreter.
+// ! LE PLANCHER DU SITE : 37 points fixes a l interieur, a 1,1 m du sol, la ou des hommes se tiennent.
+// Aucune connaissance des defenseurs : c est de la geometrie, disponible au moment du choix.
+CHACAL_fnc_plancher = {
+    private _R = 45;
+    if (count CHACAL_OBJETS > 0) then {
+        { _R = _R max ((_x distance2D CHACAL_SITE) + 15) } forEach CHACAL_OBJETS;
+    };
+    _R = (_R max 30) min 80;
+    private _pts = [];
+    private _c = +CHACAL_SITE; _c set [2, (getTerrainHeightASL CHACAL_SITE) + 1.1];
+    _pts pushBack _c;
+    {
+        _x params ["_r", "_n", "_dec"];
+        for "_i" from 0 to (_n - 1) do {
+            private _p = CHACAL_SITE getPos [_R * _r, _dec + (_i * 360 / _n)];
+            _p set [2, (getTerrainHeightASL _p) + 1.1];
+            _pts pushBack _p;
+        };
+    } forEach [[0.30, 8, 0], [0.60, 12, 15], [0.85, 16, 7]];
+    _pts
+};
+
+// La couverture d un candidat : la part du plancher que son oeil atteint. 0 = il ne bat rien, 1 = il bat tout.
+CHACAL_fnc_couverture = {
+    params ["_p", "_plancher"];
+    private _oeil = +_p; _oeil set [2, (getTerrainHeightASL _p) + 1.5];
+    private _n = 0;
+    { if (count (lineIntersectsSurfaces [_oeil, _x, objNull, objNull, true, 1]) == 0) then { _n = _n + 1 } } forEach _plancher;
+    _n / (count _plancher)
+};
+
 CHACAL_fnc_positionAppui = {
     params ["_site", "_ouverture", "_axeAssaut", "_repli"];
     private _azOuv = _site getDir _ouverture;
+    // ! PLACEUR QUI BAT LE PLANCHER ( 12/09 ). L ancien certifiait la vue vers l OUVERTURE : 79 postes sur 80
+    // ne voyaient aucun defenseur, et l appui s est tu dans quatre mesures d affilee.
+    if (CHACAL_PLACEUR == 1) exitWith {
+        private _plancher = call CHACAL_fnc_plancher;
+        private _solSite = getTerrainHeightASL _site;
+        private _cands = [];
+        for "_i" from 1 to 220 do {
+            private _cote = if ((call CHACAL_fnc_rnd) < 0.5) then {1} else {-1};
+            private _dec = _cote * (40 + (80 call CHACAL_fnc_al));
+            private _dist = 150 + (200 call CHACAL_fnc_al);
+            private _p = _site getPos [_dist, _azOuv + _dec];
+            if (surfaceIsWater _p) then { continue };
+            private _h = getTerrainHeightASL _p; private _dev = 0;
+            for "_k" from 0 to 5 do { _dev = _dev max (abs ((getTerrainHeightASL (_p getPos [12, _k * 60])) - _h)) };
+            if (_dev > 6) then { continue };
+            _cands pushBack [_h - _solSite, _p, _dev, _dist];
+        };
+        if (count _cands == 0) exitWith {
+            "CHACAL|AVERT|appui_feu|aucun_candidat|repli_observatoire" call CHACAL_LOG;
+            CHACAL_COUV = -1; _repli
+        };
+        // etage 2 : seuls les 24 plus hauts au-dessus du SOL DU SITE paient les 37 rayons
+        _cands = [_cands, [], { - (_x select 0) }, "ASCEND"] call BIS_fnc_sortBy;
+        private _garde = (count _cands) min 24;
+        private _best = []; private _sc = -1e9; private _couv = 0;
+        for "_i" from 0 to (_garde - 1) do {
+            (_cands select _i) params ["_gain", "_p", "_dev", "_dist"];
+            private _c = [_p, _plancher] call CHACAL_fnc_couverture;
+            private _s = 3 * _c + (((_gain max -10) min 20) / 20) - ((abs (_dist - 250)) / 250) - (_dev / 12);
+            if (_s > _sc) then { _sc = _s; _best = _p; _couv = _c };
+        };
+        CHACAL_COUV = round (_couv * 1000) / 1000;
+        if (_couv < 0.25) exitWith {
+            (format ["CHACAL|AVERT|appui_feu|aucune_position_battante|meilleure_couverture|%1|candidats|%2",
+                CHACAL_COUV, count _cands]) call CHACAL_LOG;
+            (format ["CHACAL|E|appui_feu|%1|placeur|1|couverture|%2|refuse|1", round (time * 100) / 100, CHACAL_COUV]) call CHACAL_LOG;
+            _repli
+        };
+        _best set [2, 0];
+        (format ["CHACAL|E|appui_feu|%1|placeur|1|position|%2|couverture|%3|points|%4|dist_site|%5|gain_sol_site|%6|score|%7",
+            round (time * 100) / 100, _best, CHACAL_COUV, count _plancher, round (_best distance2D _site),
+            round ((getTerrainHeightASL _best) - _solSite), round (_sc * 100) / 100]) call CHACAL_LOG;
+        _best
+    };
     private _best = []; private _sc = -1e9;
     private _cible = +_ouverture; _cible set [2, (getTerrainHeightASL _ouverture) + 1.0];
     for "_i" from 1 to 160 do {
@@ -443,10 +521,17 @@ CHACAL_fnc_bancAppui = {
         { _u reveal [_x, 4] } forEach _def;
         _u addEventHandler ["Fired", { CHACAL_TIRS_BANC = CHACAL_TIRS_BANC + 1; (_this select 0) setVariable ["banc_tirs", ((_this select 0) getVariable ["banc_tirs", 0]) + 1] }];
         private _oeil = eyePos _u;
-        private _vu = { count (lineIntersectsSurfaces [_oeil, aimPos _x, _u, _x, true, 1]) == 0 } count _def;
-        (format ["CHACAL|E|banc_appui_poste|%1|%2|role|%3|distance_cible|%4|defenseurs_vus|%5|sur|%6|connait|%7",
+        private _vu = 0; private _occulteur = "";
+        {
+            private _r = lineIntersectsSurfaces [_oeil, aimPos _x, _u, _x, true, 1];
+            if (count _r == 0) then { _vu = _vu + 1 } else {
+                if (_occulteur == "") then { _occulteur = typeOf ((_r select 0) select 2) };
+            };
+        } forEach _def;
+        (format ["CHACAL|E|banc_appui_poste|%1|%2|role|%3|distance_cible|%4|defenseurs_vus|%5|sur|%6|connait|%7|occulteur|%8|mode|%9|couverture|%10",
             round (time * 100) / 100, (_u getVariable ["chacal_id", -1]), (_u getVariable ["chacal_role", ""]),
-            round (_u distance _cible), _vu, count _def, round ((_u knowsAbout _cible) * 100) / 100]) call CHACAL_LOG;
+            round (_u distance _cible), _vu, count _def, round ((_u knowsAbout _cible) * 100) / 100,
+            (if (_occulteur == "") then {"aucun"} else {_occulteur}), (combatMode (group _u)), CHACAL_COUV]) call CHACAL_LOG;
     } forEach _app;
     CHACAL_gAppui setBehaviour "COMBAT"; CHACAL_gAppui setCombatMode "RED";
     if (CHACAL_BANC_APPUI == 1) then { CHACAL_gAppui setVariable ["lambs_danger_disableGroupAI", true, true] };
@@ -459,6 +544,15 @@ CHACAL_fnc_bancAppui = {
         if (count _viv == 0 || { count _a == 0 }) exitWith {};
         private _c = _viv select 0;
         { _x reveal [_c, 4]; _x doWatch _c; _x doTarget _c; _x doFire _c } forEach _a;
+        // ! la vue est une SERIE, pas un instantane : les defenseurs bougent, et un poste aveugle a la pose peut
+        // s ouvrir ensuite. On ecrit toutes les 10 s ce que chaque tireur atteint reellement.
+        {
+            private _u = _x; private _oe = eyePos _u;
+            private _v = { count (lineIntersectsSurfaces [_oe, aimPos _x, _u, _x, true, 1]) == 0 } count _viv;
+            (format ["CHACAL|E|banc_appui_vue|%1|%2|vus|%3|sur|%4|coups|%5|mode|%6", round (time * 100) / 100,
+                (_u getVariable ["chacal_id", -1]), _v, count _viv, (_u getVariable ["banc_tirs", 0]),
+                (combatMode (group _u))]) call CHACAL_LOG;
+        } forEach _a;
     };
     private _detail = "";
     { _detail = _detail + format ["%1:%2 ", (_x getVariable ["chacal_role", ""]), (_x getVariable ["banc_tirs", 0])] } forEach _app;

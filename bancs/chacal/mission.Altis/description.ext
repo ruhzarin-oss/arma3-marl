@@ -86,6 +86,14 @@ class Params
     // ! LE SOCLE ( quatre reparations d execution ) et LA TACTIQUE ( 11/09 ).
     // ! ABLATION PAR RETRAIT ( revue du 12/09 ) : masque de ce qu on enleve au socle.
     // ! CONTROLE POSITIF DE L APPUI ( regle 16 ) : 1 cloue comme dans le socle, 2 non cloue. L appui reste a sa place.
+    // ! LE PLACEUR ( banc du 12/09 ) : 0 = vue sur l ouverture ( ancien ), 1 = bat le plancher du site.
+    class CHACAL_PLACEUR
+    {
+        title = "Placeur d appui : 0 vue sur l ouverture, 1 bat le plancher du site";
+        values[] = {0,1};
+        texts[]  = {"OUVERTURE","PLANCHER"};
+        default = 0;
+    };
     class CHACAL_BANC_APPUI
     {
         title = "Controle positif de l appui : 0 non, 1 cloue, 2 non cloue";
