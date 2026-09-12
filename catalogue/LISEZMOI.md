@@ -1,9 +1,9 @@
 # Catalogue des episodes CHACAL
 
-Genere par `outils/catalogue.py` le 2026-09-11 11:44. **Ne pas editer a la main** : il est
+Genere par `outils/catalogue.py` le 2026-09-12 05:00. **Ne pas editer a la main** : il est
 regenere apres chaque run (file3.sh) et chaque nuit (sauver.sh).
 
-- **143 episodes**, lus depuis 196 journaux (13 sans ligne FINI ignores).
+- **314 episodes**, lus depuis 491 journaux (17 sans ligne FINI ignores).
 - Un episode = une ligne ; `episodes.csv` pour un tableur, `episodes.jsonl` pour un programme.
 - Le journal complet de chaque episode est dans la colonne `source` ; ses tables (etat de chaque homme
   toutes les ~2 s, perception, evenements, phases) sont a cote, dans `extrait/`.
@@ -25,12 +25,23 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 ## Campagnes (episodes, dont charges completes)
 | campagne | version jouee | episodes | charges completes |
 |---|---|---|---|
-| G8-FABLE-11-09 | V1 | 2 | 1 |
+| ALIZE-1 | AL1 | 19 | 6 |
+| G8-FABLE-11-09 | V1 | 6 | 1 |
 | G8-FABLE-11-09 | V2 | 10 | 4 |
-| G8-FABLE-11-09 | V3 | 1 | 0 |
+| G8-FABLE-11-09 | V3 | 10 | 3 |
 | G8-FABLE-11-09 | V4 | 10 | 3 |
-| G8-FABLE-11-09 | V5 | 4 | 1 |
+| G8-FABLE-11-09 | V5 | 10 | 5 |
 | G8-FABLE-11-09 | V6 | 10 | 5 |
-| G8-FABLE-11-09 | V7 | 1 | 0 |
-| G8-FABLE-11-09 | V8 | 2 | 1 |
-| G8-FABLE-11-09 | V9 | 1 | 0 |
+| G8-FABLE-11-09 | V7 | 7 | 0 |
+| G8-FABLE-11-09 | V8 | 6 | 3 |
+| G8-FABLE-11-09 | V9 | 7 | 0 |
+| ORACLE-11-09 | OR | 17 | 7 |
+| ORACLE-11-09 | REF-A | 12 | 4 |
+| ORACLE-COMPLET-11-09 | ORC | 18 | 9 |
+| ORACLE-COMPLET-11-09 | REF-A | 11 | 6 |
+| S0-CONTROLE-POSITIF | S0 | 19 | 19 |
+| TOURNOI-TACTIQUES-12-09 | B0 | 7 | 7 |
+| TOURNOI-TACTIQUES-12-09 | B1 | 13 | 7 |
+| TOURNOI-TACTIQUES-12-09 | B2 | 7 | 4 |
+| TOURNOI-TACTIQUES-12-09 | B5 | 7 | 1 |
+| TOURNOI-TACTIQUES-12-09 | REF | 6 | 1 |
