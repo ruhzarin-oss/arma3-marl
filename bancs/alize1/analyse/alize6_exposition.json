@@ -1,0 +1,16 @@
+{
+ "episodes": 20,
+ "couples": 47791,
+ "positifs": 429,
+ "horizon_s": 2.0,
+ "auc": {
+  "A  knowsAbout de camp sur l homme": 0.6049786502786798,
+  "B  nombre de defenseurs qui le voient": 0.537724518067409,
+  "C  proximite du plus proche qui le voit": 0.5381317618237512,
+  "D  TEMOIN : le temps ecoule seul": 0.5118059347293754
+ },
+ "temoin": 0.5118059347293754,
+ "ecart": 0.0931727155493044,
+ "porte": 0.1,
+ "verdict": "ECHEC"
+}
