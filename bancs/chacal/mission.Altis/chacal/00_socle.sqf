@@ -49,7 +49,8 @@ CHACAL_SOCLE = ["CHACAL_SOCLE", 0] call BIS_fnc_getParamValue;
 CHACAL_TACTIQUE = ["CHACAL_TACTIQUE", 0] call BIS_fnc_getParamValue;
 CHACAL_CONNUS = [];          // defenseurs qui se sont trahis en tirant
 CHACAL_T_PREMIER_TIR_APPUI = -1;
-CHACAL_RELANCES_SOCLE = 0; CHACAL_FUMIGENES = 0;
+CHACAL_RELANCES_SOCLE = 0; CHACAL_FUMIGENES = 0; CHACAL_ZONES = 0;
+CHACAL_CIBLE_ASSAUT = [];   // ! posee ici : le chien de garde demarrait avant son initialisation
 CHACAL_EFFECTIF = ["CHACAL_EFFECTIF", 10] call BIS_fnc_getParamValue;
 CHACAL_ACCESSIBLE = ["CHACAL_ACCESSIBLE", 0] call BIS_fnc_getParamValue;
 CHACAL_TENIR = ["CHACAL_TENIR", 0] call BIS_fnc_getParamValue;
@@ -325,6 +326,16 @@ CHACAL_fnc_tactiqueAppui = {
             // T1 et T5 apres bascule : arroser la position du defenseur connu le plus proche de l assaut,
             // sauf si l assaut est a moins de 50 m de cette position ( on deplace alors le tir ).
             private _cn = CHACAL_CONNUS select { alive _x };
+            if (count _cn == 0) then {
+                // ! AUCUN DEFENSEUR LOCALISE : suppression DE ZONE sur l objectif, comme le prevoit la doctrine.
+                // Sans elle, T1 attend un ennemi qui n a aucune raison de tirer le premier, et l assaut part sans appui.
+                if (time - _tSupp > 30) then {
+                    _tSupp = time; CHACAL_ZONES = CHACAL_ZONES + 1;
+                    private _z = if (!isNull CHACAL_PC) then { getPosATL CHACAL_PC } else { CHACAL_SITE };
+                    { _x doWatch _z; _x doSuppressiveFire _z } forEach _app;
+                    (format ["CHACAL|E|suppression_de_zone|%1|vers|%2|n|%3", round (time * 100) / 100, str _z, CHACAL_ZONES]) call CHACAL_LOG;
+                };
+            };
             if (count _cn > 0) then {
                 private _ca = ((units CHACAL_gAssaut) select { alive _x }) call CHACAL_fnc_centre;
                 private _cible = objNull; private _dmax = -1;
