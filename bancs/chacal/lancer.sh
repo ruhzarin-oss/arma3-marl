@@ -19,7 +19,7 @@ ARMA='C:\Program Files (x86)\Steam\steamapps\common\Arma 3\arma3server_x64.exe'
 # mission a chaque lancement, avec les valeurs du corpus par defaut. Rien n'est laisse au hasard.
 PAL=$(lit palier 0); DEPART=$(lit depart 1); IMMORTEL=$(lit immortel 0); JOUR=$(lit jour 0)
 ECHELLE=$(lit echelle 100); DTCS=$(lit dtcs 100)
-ABLATION=$(lit ablation 0); SOCLE=$(lit socle 0); TACTIQUE=$(lit tactique 0); ORACLE=$(lit oracle 0); MG_ASSAUT=$(lit mg_assaut 0); DELAI_PORTEUR=$(lit delai_porteur 45); APPUI_FIXE=$(lit appui_fixe 0); FEU_AVANT=$(lit feu_avant 0); APPUI_FEU=$(lit appui_feu 0); EFFECTIF=$(lit effectif 10); ACCESSIBLE=$(lit accessible 0); TENIR=$(lit tenir 0); HMG=$(lit hmg -1); ASSAUT_X=$(lit assaut_x 100)   # -1 = valeur du palier ; 100 = plafond inchange
+BANC_APPUI=$(lit banc_appui 0); ABLATION=$(lit ablation 0); SOCLE=$(lit socle 0); TACTIQUE=$(lit tactique 0); ORACLE=$(lit oracle 0); MG_ASSAUT=$(lit mg_assaut 0); DELAI_PORTEUR=$(lit delai_porteur 45); APPUI_FIXE=$(lit appui_fixe 0); FEU_AVANT=$(lit feu_avant 0); APPUI_FEU=$(lit appui_feu 0); EFFECTIF=$(lit effectif 10); ACCESSIBLE=$(lit accessible 0); TENIR=$(lit tenir 0); HMG=$(lit hmg -1); ASSAUT_X=$(lit assaut_x 100)   # -1 = valeur du palier ; 100 = plafond inchange
 ARRET=$(lit arret 6)                            # VIGNETTE : derniere phase jouee ; 6 = mission complete
 BRAS_NOM=$(lit bras PLAN)                       # PLAN (le plan en six phases) ou NUL (le temoin)
 case "$BRAS_NOM" in
@@ -39,7 +39,7 @@ grep -q CHACAL_GRAINE "$PROFIL/server.cfg" || { echo "server.cfg de hmtech$INST 
 ecrire_param GRAINE "$G"; ecrire_param PALIER "$PAL"; ecrire_param DEPART "$DEPART"
 ecrire_param IMMORTEL "$IMMORTEL"; ecrire_param JOUR "$JOUR"; ecrire_param BRAS "$BRAS"
 ecrire_param ECHELLE "$ECHELLE"; ecrire_param DTCS "$DTCS"
-ecrire_param ABLATION "$ABLATION"; ecrire_param SOCLE "$SOCLE"; ecrire_param TACTIQUE "$TACTIQUE"; ecrire_param ORACLE "$ORACLE"; ecrire_param MG_ASSAUT "$MG_ASSAUT"; ecrire_param DELAI_PORTEUR "$DELAI_PORTEUR"; ecrire_param APPUI_FIXE "$APPUI_FIXE"; ecrire_param FEU_AVANT "$FEU_AVANT"; ecrire_param APPUI_FEU "$APPUI_FEU"; ecrire_param EFFECTIF "$EFFECTIF"; ecrire_param ACCESSIBLE "$ACCESSIBLE"; ecrire_param TENIR "$TENIR"; ecrire_param HMG "$HMG"; ecrire_param ASSAUT_X "$ASSAUT_X"; ecrire_param ARRET "$ARRET"
+ecrire_param BANC_APPUI "$BANC_APPUI"; ecrire_param ABLATION "$ABLATION"; ecrire_param SOCLE "$SOCLE"; ecrire_param TACTIQUE "$TACTIQUE"; ecrire_param ORACLE "$ORACLE"; ecrire_param MG_ASSAUT "$MG_ASSAUT"; ecrire_param DELAI_PORTEUR "$DELAI_PORTEUR"; ecrire_param APPUI_FIXE "$APPUI_FIXE"; ecrire_param FEU_AVANT "$FEU_AVANT"; ecrire_param APPUI_FEU "$APPUI_FEU"; ecrire_param EFFECTIF "$EFFECTIF"; ecrire_param ACCESSIBLE "$ACCESSIBLE"; ecrire_param TENIR "$TENIR"; ecrire_param HMG "$HMG"; ecrire_param ASSAUT_X "$ASSAUT_X"; ecrire_param ARRET "$ARRET"
 echo "server.cfg : $(grep -o 'CHACAL_[A-Z_]* = [-0-9]*' "$PROFIL/server.cfg" | tr '\n' ' ') (bras=$BRAS_NOM)"
 
 

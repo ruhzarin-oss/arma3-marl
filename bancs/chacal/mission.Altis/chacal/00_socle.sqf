@@ -47,6 +47,10 @@ CHACAL_ORACLE = ["CHACAL_ORACLE", 0] call BIS_fnc_getParamValue;
 // ! LE SOCLE ET LES TACTIQUES ( 11/09 ). 0 = comportement d origine dans les deux cas.
 CHACAL_SOCLE = ["CHACAL_SOCLE", 0] call BIS_fnc_getParamValue;
 CHACAL_TACTIQUE = ["CHACAL_TACTIQUE", 0] call BIS_fnc_getParamValue;
+// ! CONTROLE POSITIF DE L APPUI ( Fable, regle 16 ) : 0 non, 1 appui CLOUE comme dans le socle, 2 appui NON CLOUE.
+// L appui reste a SA position : on ne change qu une chose a la fois.
+CHACAL_BANC_APPUI = ["CHACAL_BANC_APPUI", 0] call BIS_fnc_getParamValue;
+CHACAL_TIRS_BANC = 0;
 // ! ABLATION PAR RETRAIT ( revue du 12/09 ) : masque de ce qu on ENLEVE au socle.
 //   1 sans chien de garde . 2 sans porteurs non combattants . 4 sans appui cloue . 8 sans revelation par le tir.
 CHACAL_ABLATION = ["CHACAL_ABLATION", 0] call BIS_fnc_getParamValue;
@@ -325,8 +329,10 @@ CHACAL_fnc_tactiqueAppui = {
             if (isNull _derniere || { !alive _derniere } || { time - _tCible > 60 }) then {
                 _derniere = call CHACAL_fnc_ciblePrio; _tCible = time;
                 if (!isNull _derniere) then {
-                    (format ["CHACAL|E|cible_designee|%1|%2|restants|%3", round (time * 100) / 100,
-                        (_derniere getVariable ["chacal_id", -1]), count _viv]) call CHACAL_LOG;
+                    if (!CHACAL_FIN) then {
+                        (format ["CHACAL|E|cible_designee|%1|%2|restants|%3", round (time * 100) / 100,
+                            (_derniere getVariable ["chacal_id", -1]), count _viv]) call CHACAL_LOG;
+                    };
                 };
             };
             if (!isNull _derniere) then {
@@ -357,8 +363,10 @@ CHACAL_fnc_tactiqueAppui = {
                     _tSupp = time;
                     { _x reveal [_cible, 4]; _x doTarget _cible; _x doFire _cible;
                       _x doSuppressiveFire (getPosATL _cible) } forEach _app;
-                    (format ["CHACAL|E|suppression|%1|%2|distance_assaut|%3", round (time * 100) / 100,
-                        (_cible getVariable ["chacal_id", -1]), round _dmax]) call CHACAL_LOG;
+                    if (!CHACAL_FIN) then {
+                        (format ["CHACAL|E|suppression|%1|%2|distance_assaut|%3", round (time * 100) / 100,
+                            (_cible getVariable ["chacal_id", -1]), round _dmax]) call CHACAL_LOG;
+                    };
                 };
             };
         };
@@ -383,6 +391,7 @@ CHACAL_fnc_chienDeGarde = {
                         _tRef = time; _rates = _rates + 1; CHACAL_RELANCES_SOCLE = CHACAL_RELANCES_SOCLE + 1;
                         CHACAL_gAssaut setBehaviour "AWARE";
                         { if (alive _x) then { _x doMove CHACAL_CIBLE_ASSAUT } } forEach _v;
+                            if (CHACAL_FIN) exitWith {};   // ! rien apres la ligne FINI : la porte de lecture refuse l episode
                         (format ["CHACAL|E|chien_de_garde|%1|relance|%2|reste|%3", round (time * 100) / 100,
                             _rates, round _d]) call CHACAL_LOG;
                         if (_rates >= 2) then {
@@ -398,6 +407,65 @@ CHACAL_fnc_chienDeGarde = {
             };
         };
     };
+};
+
+// ! LE CONTROLE POSITIF DE L APPUI. Quatre mesures depuis le 10/09 ( feu avant, oracle, tournoi, ablation ) ont
+// constate le meme appui inerte sous quatre noms : 0 coup sur 17 episodes du socle complet. Avant d empiler une
+// cinquieme mesure, on certifie le mecanisme lui-meme, comme le veut la regle 16.
+// L appui NE BOUGE PAS : il est mesure la ou la mission l a mis. Deux bras : cloue ( 1 ) et non cloue ( 2 ).
+CHACAL_fnc_bancAppui = {
+    private _app = (units CHACAL_gAppui) select { alive _x };
+    private _def = CHACAL_EST_SITE select { alive _x };
+    if (count _app == 0 || { count _def == 0 }) exitWith {
+        (format ["CHACAL|E|banc_appui_fin|%1|coups|0|tireurs|%2|defenseurs|%3|cause|RIEN_A_MESURER",
+            round (time * 100) / 100, count _app, count _def]) call CHACAL_LOG;
+    };
+    "CHACAL|AVERT|hors_corpus|banc_appui|episode_de_certification" call CHACAL_LOG;
+    // l assaut et le bouchon ne jouent pas : on ne mesure QUE l appui
+    {
+        if (!isNull _x) then {
+            _x setBehaviour "CARELESS"; _x setCombatMode "BLUE";
+            { if (alive _x) then { doStop _x; _x disableAI "PATH"; _x disableAI "AUTOCOMBAT"; _x setUnitPos "DOWN" } } forEach (units _x);
+        };
+    } forEach [CHACAL_gAssaut, CHACAL_gBouchon];
+    // la cible : le defenseur le plus proche de l appui, et on mesure ce que chaque tireur VOIT vraiment
+    private _c0 = _app call CHACAL_fnc_centre;
+    private _tri = [_def, [_c0], { _x distance2D _input0 }, "ASCEND"] call BIS_fnc_sortBy;
+    private _cible = _tri select 0;
+    {
+        private _u = _x;
+        _u setDir (_u getDir _cible);
+        _u setUnitPos "MIDDLE";
+        if (CHACAL_BANC_APPUI == 1) then {
+            _u disableAI "PATH";
+            _u setVariable ["lambs_danger_disableAI", true, true];
+        };
+        { _u reveal [_x, 4] } forEach _def;
+        _u addEventHandler ["Fired", { CHACAL_TIRS_BANC = CHACAL_TIRS_BANC + 1; (_this select 0) setVariable ["banc_tirs", ((_this select 0) getVariable ["banc_tirs", 0]) + 1] }];
+        private _oeil = eyePos _u;
+        private _vu = { count (lineIntersectsSurfaces [_oeil, aimPos _x, _u, _x, true, 1]) == 0 } count _def;
+        (format ["CHACAL|E|banc_appui_poste|%1|%2|role|%3|distance_cible|%4|defenseurs_vus|%5|sur|%6|connait|%7",
+            round (time * 100) / 100, (_u getVariable ["chacal_id", -1]), (_u getVariable ["chacal_role", ""]),
+            round (_u distance _cible), _vu, count _def, round ((_u knowsAbout _cible) * 100) / 100]) call CHACAL_LOG;
+    } forEach _app;
+    CHACAL_gAppui setBehaviour "COMBAT"; CHACAL_gAppui setCombatMode "RED";
+    if (CHACAL_BANC_APPUI == 1) then { CHACAL_gAppui setVariable ["lambs_danger_disableGroupAI", true, true] };
+    { if (alive _x) then { _x doWatch _cible; _x doTarget _cible; _x doFire _cible } } forEach _app;
+    private _t0 = time; private _morts0 = { !alive _x } count CHACAL_EST_SITE;
+    while { (time - _t0) < (300 * CHACAL_ECHELLE) && { !CHACAL_FIN } } do {
+        sleep 10;
+        private _viv = CHACAL_EST_SITE select { alive _x };
+        private _a = (units CHACAL_gAppui) select { alive _x };
+        if (count _viv == 0 || { count _a == 0 }) exitWith {};
+        private _c = _viv select 0;
+        { _x reveal [_c, 4]; _x doWatch _c; _x doTarget _c; _x doFire _c } forEach _a;
+    };
+    private _detail = "";
+    { _detail = _detail + format ["%1:%2 ", (_x getVariable ["chacal_role", ""]), (_x getVariable ["banc_tirs", 0])] } forEach _app;
+    (format ["CHACAL|E|banc_appui_fin|%1|coups|%2|par_tireur|%3|defenseurs_tues|%4|duree|%5|appui_vivant|%6|cloue|%7",
+        round (time * 100) / 100, CHACAL_TIRS_BANC, _detail,
+        ({ !alive _x } count CHACAL_EST_SITE) - _morts0, round (time - _t0),
+        count ((units CHACAL_gAppui) select { alive _x }), CHACAL_BANC_APPUI]) call CHACAL_LOG;
 };
 
 CHACAL_fnc_plat = {

@@ -1092,6 +1092,13 @@ if (!isNull CHACAL_gAppui) then {
     { if (alive _x && { count _cibles > 0 }) then { _x doTarget (_cibles select 0); _x doFire (_cibles select 0) } } forEach (units CHACAL_gAppui);
 };
 
+// ! CONTROLE POSITIF DE L APPUI : l episode ne mesure QUE l appui et se ferme ici. L exitWith est indispensable :
+// sans lui, toute la suite de la phase 5 s ecrirait APRES la ligne FINI et la porte de lecture refuserait l episode.
+if (CHACAL_BANC_APPUI > 0) exitWith {
+    call CHACAL_fnc_bancAppui;
+    [5, "ASSAUT", "BANC_APPUI"] call CHACAL_fnc_finPhase;
+    CHACAL_FIN = true;
+};
 // ! LE SOCLE ET LA TACTIQUE ( document du 11/09 ). Le socle repare l execution, la tactique conduit l appui.
 if (CHACAL_SOCLE == 1) then { call CHACAL_fnc_socleAssaut };
 if (CHACAL_TACTIQUE == 5) then {

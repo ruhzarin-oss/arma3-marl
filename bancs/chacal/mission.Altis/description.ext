@@ -85,6 +85,14 @@ class Params
     // ! L ORACLE ( Fable, 11/09 ) : defenseurs reveles a tous nos hommes avant la mise en place.
     // ! LE SOCLE ( quatre reparations d execution ) et LA TACTIQUE ( 11/09 ).
     // ! ABLATION PAR RETRAIT ( revue du 12/09 ) : masque de ce qu on enleve au socle.
+    // ! CONTROLE POSITIF DE L APPUI ( regle 16 ) : 1 cloue comme dans le socle, 2 non cloue. L appui reste a sa place.
+    class CHACAL_BANC_APPUI
+    {
+        title = "Controle positif de l appui : 0 non, 1 cloue, 2 non cloue";
+        values[] = {0,1,2};
+        texts[]  = {"NON","CLOUE","NON CLOUE"};
+        default = 0;
+    };
     class CHACAL_ABLATION
     {
         title = "Ablation : 0 socle complet, 1 sans chien de garde, 2 sans porteurs non combattants, 4 sans appui cloue, 8 sans revelation";
