@@ -1109,7 +1109,7 @@ if (CHACAL_TACTIQUE == 5) then {
     };
 };
 if (CHACAL_TACTIQUE > 0) then { [] spawn CHACAL_fnc_tactiqueAppui };
-if (CHACAL_SOCLE == 1) then { [] spawn CHACAL_fnc_chienDeGarde };
+if (CHACAL_SOCLE == 1 && { !(1 call CHACAL_fnc_sans) }) then { [] spawn CHACAL_fnc_chienDeGarde };
 // L assaut attend : T1 le premier coup de l appui ( 120 s au plus ), T2 qu il ne reste au plus qu un defenseur ( 8 min ).
 if (CHACAL_TACTIQUE == 1) then {
     private _tA = time;

@@ -47,6 +47,10 @@ CHACAL_ORACLE = ["CHACAL_ORACLE", 0] call BIS_fnc_getParamValue;
 // ! LE SOCLE ET LES TACTIQUES ( 11/09 ). 0 = comportement d origine dans les deux cas.
 CHACAL_SOCLE = ["CHACAL_SOCLE", 0] call BIS_fnc_getParamValue;
 CHACAL_TACTIQUE = ["CHACAL_TACTIQUE", 0] call BIS_fnc_getParamValue;
+// ! ABLATION PAR RETRAIT ( revue du 12/09 ) : masque de ce qu on ENLEVE au socle.
+//   1 sans chien de garde . 2 sans porteurs non combattants . 4 sans appui cloue . 8 sans revelation par le tir.
+CHACAL_ABLATION = ["CHACAL_ABLATION", 0] call BIS_fnc_getParamValue;
+CHACAL_fnc_sans = { (floor (CHACAL_ABLATION / _this)) % 2 == 1 };   // _this = le bit teste
 CHACAL_CONNUS = [];          // defenseurs qui se sont trahis en tirant
 CHACAL_T_PREMIER_TIR_APPUI = -1;
 CHACAL_RELANCES_SOCLE = 0; CHACAL_FUMIGENES = 0; CHACAL_ZONES = 0;
@@ -250,15 +254,17 @@ CHACAL_fnc_socleAssaut = {
     // S1 : chaque homme de l assaut porte une charge. Le porteur mort a un suivant.
     { if (!("DemoCharge_Remote_Mag" in (magazines _x))) then { _x addMagazine "DemoCharge_Remote_Mag" } } forEach _ass;
     // S4 : les porteurs ne combattent pas. Ce sont eux qui posent ; un porteur qui riposte est un porteur qui s arrete.
-    {
-        private _r = _x getVariable ["chacal_role", ""];
-        if (_r in ["DEMO_1", "DEMO_2", "MEDECIN"]) then {
-            _x disableAI "AUTOCOMBAT"; _x setBehaviour "AWARE";
-            _x setVariable ["lambs_danger_disableAI", true, true];
-        };
-    } forEach _ass;
+    if !(2 call CHACAL_fnc_sans) then {
+        {
+            private _r = _x getVariable ["chacal_role", ""];
+            if (_r in ["DEMO_1", "DEMO_2", "MEDECIN"]) then {
+                _x disableAI "AUTOCOMBAT"; _x setBehaviour "AWARE";
+                _x setVariable ["lambs_danger_disableAI", true, true];
+            };
+        } forEach _ass;
+    };
     // S3 : l appui est cloue. Feu libre, mais il ne quitte pas sa place.
-    if (!isNull CHACAL_gAppui) then {
+    if (!isNull CHACAL_gAppui && { !(4 call CHACAL_fnc_sans) }) then {
         CHACAL_gAppui setBehaviour "COMBAT"; CHACAL_gAppui setCombatMode "RED";
         CHACAL_gAppui setVariable ["lambs_danger_disableGroupAI", true, true];
         {
@@ -273,7 +279,7 @@ CHACAL_fnc_socleAssaut = {
     };
     // S5 : reconnaissance par le feu. Un defenseur qui TIRE se trahit : on le revele a l appui. Ce n est pas un oracle.
     {
-        if (alive _x) then {
+        if (alive _x && { !(8 call CHACAL_fnc_sans) }) then {
             _x addEventHandler ["Fired", {
                 params ["_t"];
                 if (!(_t in CHACAL_CONNUS)) then {
@@ -285,9 +291,13 @@ CHACAL_fnc_socleAssaut = {
             }];
         };
     } forEach CHACAL_EST_SITE;
-    (format ["CHACAL|E|socle|%1|porteurs|%2|appui_cloue|%3", round (time * 100) / 100,
+    (format ["CHACAL|E|socle|%1|porteurs|%2|appui_cloue|%3|ablation|%4|sans_chien|%5|sans_porteurs|%6|sans_appui|%7|sans_revelation|%8",
+        round (time * 100) / 100,
         count (_ass select { "DemoCharge_Remote_Mag" in (magazines _x) }),
-        (if (isNull CHACAL_gAppui) then {0} else {count (units CHACAL_gAppui)})]) call CHACAL_LOG;
+        (if (isNull CHACAL_gAppui || { 4 call CHACAL_fnc_sans }) then {0} else {count (units CHACAL_gAppui)}),
+        CHACAL_ABLATION,
+        (if (1 call CHACAL_fnc_sans) then {1} else {0}), (if (2 call CHACAL_fnc_sans) then {1} else {0}),
+        (if (4 call CHACAL_fnc_sans) then {1} else {0}), (if (8 call CHACAL_fnc_sans) then {1} else {0})]) call CHACAL_LOG;
 };
 
 // La cible que l appui doit prendre : le fusilier-mitrailleur d abord, puis le chef, puis le reste.

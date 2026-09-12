@@ -84,6 +84,14 @@ class Params
     // ! CAMPAGNE GRAINE 8 ( Fable, 11/09 ) : trois leviers, a 0 / 45 le comportement d origine.
     // ! L ORACLE ( Fable, 11/09 ) : defenseurs reveles a tous nos hommes avant la mise en place.
     // ! LE SOCLE ( quatre reparations d execution ) et LA TACTIQUE ( 11/09 ).
+    // ! ABLATION PAR RETRAIT ( revue du 12/09 ) : masque de ce qu on enleve au socle.
+    class CHACAL_ABLATION
+    {
+        title = "Ablation : 0 socle complet, 1 sans chien de garde, 2 sans porteurs non combattants, 4 sans appui cloue, 8 sans revelation";
+        values[] = {0,1,2,4,8};
+        texts[]  = {"COMPLET","SANS CHIEN","SANS PORTEURS","SANS APPUI CLOUE","SANS REVELATION"};
+        default = 0;
+    };
     class CHACAL_SOCLE
     {
         title = "Socle : charges redondantes, porteurs non combattants, appui cloue, chien de garde (0 = non)";
