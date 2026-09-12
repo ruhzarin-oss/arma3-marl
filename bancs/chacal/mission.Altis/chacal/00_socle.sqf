@@ -293,6 +293,23 @@ CHACAL_fnc_positionAppui = {
                     if (_c > 0 && { _s > _sc }) then { _sc = _s; _best = _p; _couv = _c };
                 };
             };
+            // ! SONDES : quatre points fixes a 150 m, pour NOMMER ce qui arrete les rayons.
+            {
+                private _az = _x;
+                private _ps = _site getPos [150, _az];
+                private _os = +_ps; _os set [2, (getTerrainHeightASL _ps) + 1.5];
+                private _libre = 0; private _terr = 0; private _types = [];
+                {
+                    private _r = lineIntersectsSurfaces [_os, _x, objNull, objNull, true, 1];
+                    if (count _r == 0) then { _libre = _libre + 1 } else {
+                        private _e = (_r select 0) select 3;
+                        if (isNull _e) then { _terr = _terr + 1 } else { _types pushBackUnique (typeOf _e) };
+                    };
+                } forEach _plancher;
+                (format ["CHACAL|E|appui_sonde|%1|passe|%2|azimut|%3|libres|%4|sur|%5|terrain|%6|objets|%7|gain|%8",
+                    round (time * 100) / 100, _passe, _az, _libre, _np, _terr, _types,
+                    round ((getTerrainHeightASL _ps) - _solSite)]) call CHACAL_LOG;
+            } forEach [0, 90, 180, 270];
             (format ["CHACAL|E|appui_balayage|%1|passe|%2|temoin|%3|balayes|%4|refus_eau|%5|refus_pente|%6|refus_axe|%7|meilleure_couverture|%8|retenue|%9",
                 round (time * 100) / 100, _passe, round (_temoin * 1000) / 1000, _vus, _refus select 0, _refus select 1,
                 _refus select 2, round (_meilleurBrut * 1000) / 1000, count _best]) call CHACAL_LOG;
