@@ -254,54 +254,48 @@ CHACAL_fnc_positionAppui = {
     // ! PLACEUR QUI BAT LE PLANCHER ( 12/09 ). L ancien certifiait la vue vers l OUVERTURE : 79 postes sur 80
     // ne voyaient aucun defenseur, et l appui s est tu dans quatre mesures d affilee.
     if (CHACAL_PLACEUR == 1) exitWith {
+        // ! BALAYAGE SYSTEMATIQUE ( mesure au labo MCP, 12/09 ). Le tirage au hasard ratait le secteur etroit qui
+        // voit le site, et le filtre de hauteur jetait les positions basses qui voient par une porte ou un creux.
+        // On balaye 36 azimuts sur 8 distances, on MESURE la couverture de chacun, et la meilleure gagne.
         private _plancher = call CHACAL_fnc_plancher;
         private _solSite = getTerrainHeightASL _site;
-        private _cands = [];
-        // ! LA HAUTEUR EST LA CONDITION, PAS LA PLATITUDE ( mesure au labo, 12/09 ). Pour voir le sol derriere un
-        // mur de 2,5 m pose a 46 m du centre, il faut environ D/20 au-dessus du sol du site. L ancien filtre rejetait
-        // tout relief local de plus de 6 m : il jetait justement les buttes qui donnent la vue.
-        private _refus = [0, 0, 0];   // eau, trop bas, trop accidente pour se coucher
-        for "_i" from 1 to 320 do {
-            private _cote = if ((call CHACAL_fnc_rnd) < 0.5) then {1} else {-1};
-            private _dec = _cote * (30 + (100 call CHACAL_fnc_al));
-            private _dist = 120 + (330 call CHACAL_fnc_al);
-            private _p = _site getPos [_dist, _azOuv + _dec];
-            if (surfaceIsWater _p) then { _refus set [0, (_refus select 0) + 1]; continue };
-            private _h = getTerrainHeightASL _p;
-            private _hauteur_utile = (_dist / 20) + 2;
-            if ((_h - _solSite) < _hauteur_utile) then { _refus set [1, (_refus select 1) + 1]; continue };
-            private _dev = 0;
-            for "_k" from 0 to 5 do { _dev = _dev max (abs ((getTerrainHeightASL (_p getPos [5, _k * 60])) - _h)) };
-            if (_dev > 3) then { _refus set [2, (_refus select 2) + 1]; continue };
-            _cands pushBack [_h - _solSite, _p, _dev, _dist];
-        };
-        (format ["CHACAL|E|appui_candidats|%1|retenus|%2|refus_eau|%3|refus_trop_bas|%4|refus_pente|%5",
-            round (time * 100) / 100, count _cands, _refus select 0, _refus select 1, _refus select 2]) call CHACAL_LOG;
-        if (count _cands == 0) exitWith {
-            "CHACAL|AVERT|appui_feu|aucun_candidat|repli_observatoire" call CHACAL_LOG;
-            CHACAL_COUV = -1; _repli
-        };
-        // etage 2 : seuls les 24 plus hauts au-dessus du SOL DU SITE paient les 37 rayons
-        _cands = [_cands, [], { - (_x select 0) }, "ASCEND"] call BIS_fnc_sortBy;
-        private _garde = (count _cands) min 24;
-        private _best = []; private _sc = -1e9; private _couv = 0;
-        for "_i" from 0 to (_garde - 1) do {
-            (_cands select _i) params ["_gain", "_p", "_dev", "_dist"];
-            private _c = [_p, _plancher] call CHACAL_fnc_couverture;
-            private _s = 3 * _c + (((_gain max -10) min 20) / 20) - ((abs (_dist - 250)) / 250) - (_dev / 12);
-            if (_s > _sc) then { _sc = _s; _best = _p; _couv = _c };
+        private _best = []; private _sc = -1e9; private _couv = 0; private _meilleurBrut = 0;
+        private _vus = 0; private _refus = [0, 0, 0];   // eau, pente, axe d assaut
+        private _azAss = _site getDir _axeAssaut;
+        for "_a" from 0 to 35 do {
+            for "_k" from 3 to 10 do {
+                private _dist = _k * 50;
+                private _az = _a * 10;
+                private _p = _site getPos [_dist, _az];
+                _vus = _vus + 1;
+                if (surfaceIsWater _p) then { _refus set [0, (_refus select 0) + 1]; continue };
+                // ne pas tirer dans le dos de son propre assaut : au moins 25 degres d ecart a son axe
+                private _ecart = abs (((_az - _azAss) + 540) % 360 - 180);
+                if (_ecart < 25) then { _refus set [2, (_refus select 2) + 1]; continue };
+                private _h = getTerrainHeightASL _p; private _dev = 0;
+                for "_j" from 0 to 5 do { _dev = _dev max (abs ((getTerrainHeightASL (_p getPos [5, _j * 60])) - _h)) };
+                if (_dev > 3) then { _refus set [1, (_refus select 1) + 1]; continue };
+                private _c = [_p, _plancher] call CHACAL_fnc_couverture;
+                if (_c > _meilleurBrut) then { _meilleurBrut = _c };
+                private _gain = _h - _solSite;
+                private _s = 3 * _c + (((_gain max -10) min 20) / 20) - ((abs (_dist - 250)) / 250) - (_dev / 12);
+                if (_s > _sc) then { _sc = _s; _best = _p; _couv = _c };
+            };
         };
         CHACAL_COUV = round (_couv * 1000) / 1000;
-        if (_couv < 0.25) exitWith {
-            (format ["CHACAL|AVERT|appui_feu|aucune_position_battante|meilleure_couverture|%1|candidats|%2",
-                CHACAL_COUV, count _cands]) call CHACAL_LOG;
+        (format ["CHACAL|E|appui_candidats|%1|balayes|%2|refus_eau|%3|refus_pente|%4|refus_axe|%5|meilleure_couverture|%6",
+            round (time * 100) / 100, _vus, _refus select 0, _refus select 1, _refus select 2,
+            round (_meilleurBrut * 1000) / 1000]) call CHACAL_LOG;
+        if (count _best == 0 || { _couv < 0.25 }) exitWith {
+            (format ["CHACAL|AVERT|appui_feu|aucune_position_battante|meilleure_couverture|%1|balayes|%2",
+                CHACAL_COUV, _vus]) call CHACAL_LOG;
             (format ["CHACAL|E|appui_feu|%1|placeur|1|couverture|%2|refuse|1", round (time * 100) / 100, CHACAL_COUV]) call CHACAL_LOG;
             _repli
         };
         _best set [2, 0];
-        (format ["CHACAL|E|appui_feu|%1|placeur|1|position|%2|couverture|%3|points|%4|dist_site|%5|gain_sol_site|%6|score|%7",
+        (format ["CHACAL|E|appui_feu|%1|placeur|1|position|%2|couverture|%3|points|%4|dist_site|%5|gain_sol_site|%6|score|%7|azimut|%8",
             round (time * 100) / 100, _best, CHACAL_COUV, count _plancher, round (_best distance2D _site),
-            round ((getTerrainHeightASL _best) - _solSite), round (_sc * 100) / 100]) call CHACAL_LOG;
+            round ((getTerrainHeightASL _best) - _solSite), round (_sc * 100) / 100, round (_site getDir _best)]) call CHACAL_LOG;
         _best
     };
     private _best = []; private _sc = -1e9;
