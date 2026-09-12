@@ -257,17 +257,26 @@ CHACAL_fnc_positionAppui = {
         private _plancher = call CHACAL_fnc_plancher;
         private _solSite = getTerrainHeightASL _site;
         private _cands = [];
-        for "_i" from 1 to 220 do {
+        // ! LA HAUTEUR EST LA CONDITION, PAS LA PLATITUDE ( mesure au labo, 12/09 ). Pour voir le sol derriere un
+        // mur de 2,5 m pose a 46 m du centre, il faut environ D/20 au-dessus du sol du site. L ancien filtre rejetait
+        // tout relief local de plus de 6 m : il jetait justement les buttes qui donnent la vue.
+        private _refus = [0, 0, 0];   // eau, trop bas, trop accidente pour se coucher
+        for "_i" from 1 to 320 do {
             private _cote = if ((call CHACAL_fnc_rnd) < 0.5) then {1} else {-1};
-            private _dec = _cote * (40 + (80 call CHACAL_fnc_al));
-            private _dist = 150 + (200 call CHACAL_fnc_al);
+            private _dec = _cote * (30 + (100 call CHACAL_fnc_al));
+            private _dist = 120 + (330 call CHACAL_fnc_al);
             private _p = _site getPos [_dist, _azOuv + _dec];
-            if (surfaceIsWater _p) then { continue };
-            private _h = getTerrainHeightASL _p; private _dev = 0;
-            for "_k" from 0 to 5 do { _dev = _dev max (abs ((getTerrainHeightASL (_p getPos [12, _k * 60])) - _h)) };
-            if (_dev > 6) then { continue };
+            if (surfaceIsWater _p) then { _refus set [0, (_refus select 0) + 1]; continue };
+            private _h = getTerrainHeightASL _p;
+            private _hauteur_utile = (_dist / 20) + 2;
+            if ((_h - _solSite) < _hauteur_utile) then { _refus set [1, (_refus select 1) + 1]; continue };
+            private _dev = 0;
+            for "_k" from 0 to 5 do { _dev = _dev max (abs ((getTerrainHeightASL (_p getPos [5, _k * 60])) - _h)) };
+            if (_dev > 3) then { _refus set [2, (_refus select 2) + 1]; continue };
             _cands pushBack [_h - _solSite, _p, _dev, _dist];
         };
+        (format ["CHACAL|E|appui_candidats|%1|retenus|%2|refus_eau|%3|refus_trop_bas|%4|refus_pente|%5",
+            round (time * 100) / 100, count _cands, _refus select 0, _refus select 1, _refus select 2]) call CHACAL_LOG;
         if (count _cands == 0) exitWith {
             "CHACAL|AVERT|appui_feu|aucun_candidat|repli_observatoire" call CHACAL_LOG;
             CHACAL_COUV = -1; _repli
