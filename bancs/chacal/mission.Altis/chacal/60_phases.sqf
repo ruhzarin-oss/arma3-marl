@@ -902,6 +902,31 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
         if (_sc < _minScore) then { _minScore = _sc; _meilleure = _forEachIndex };
     } forEach CHACAL_OUVERTURES;
     CHACAL_OUV_CHOISIE = CHACAL_OUVERTURES select _meilleure;
+    // ! LA COUTURE DE L AZIMUT. Douze candidats publies, un decideur designe par CHACAL_AZIMUT.
+    // Le mode 0 ne touche a rien : CHACAL_OUV_CHOISIE garde la valeur que le score vient de poser.
+    // Les modes 1 et 2 remplacent le POINT VISE par un point de meme rayon a l azimut retenu, ce qui
+    // laisse intact tout ce qui en depend en aval : la position d assaut, la cible, le poste d appui.
+    private _candidats = [];
+    for "_i" from 0 to 11 do { _candidats pushBack (_i * 30) };
+    CHACAL_AZIMUT_CHOISI = round (CHACAL_SITE getDir CHACAL_OUV_CHOISIE);
+    private _qui = "SCRIPT";
+    if (CHACAL_AZIMUT == 1) then {
+        // tirage seme par la graine : deux episodes de meme graine tirent le meme azimut, sinon
+        // le temoin ne serait pas un temoin.
+        private _k = floor ((call CHACAL_fnc_rnd) * (count _candidats));
+        if (_k >= count _candidats) then { _k = (count _candidats) - 1 };
+        CHACAL_AZIMUT_CHOISI = _candidats select _k; _qui = "HASARD";
+    };
+    if (CHACAL_AZIMUT == 2) then {
+        CHACAL_AZIMUT_CHOISI = ((round CHACAL_AZIMUT_VAL) + 360) % 360; _qui = "IMPOSE";
+    };
+    if (CHACAL_AZIMUT > 0) then {
+        CHACAL_OUV_CHOISIE = CHACAL_SITE getPos [CHACAL_RAYON, CHACAL_AZIMUT_CHOISI];
+        CHACAL_OUV_CHOISIE set [2, 0];
+    };
+    (format ["CHACAL|E|couture_azimut|%1|mode|%2|decideur|%3|candidats|%4|choisi|%5|point|%6|az_ouvertures|%7",
+        round (time * 100) / 100, CHACAL_AZIMUT, _qui, count _candidats, CHACAL_AZIMUT_CHOISI,
+        CHACAL_OUV_CHOISIE, (CHACAL_OUVERTURES apply { round (CHACAL_SITE getDir _x) })]) call CHACAL_LOG;
     (format ["CHACAL|E|choix_ouverture|%1|indice|%2|gardes|%3|distances|%4|score|%5|renseignement|%6",
         round (time * 100) / 100, _meilleure, str _comptes, str _dists,
         round (_minScore * 100) / 100, count CHACAL_VUES]) call CHACAL_LOG;

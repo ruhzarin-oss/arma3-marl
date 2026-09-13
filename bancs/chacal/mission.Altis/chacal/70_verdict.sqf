@@ -194,13 +194,13 @@
         };
     };
 
-    (format ["CHACAL|FINI|%1|%2|graine|%3|echelle|%4|dt|%5|bras|%6|palier|%24|phase_max|%7|charges|%8|sur|%9|detruits_scriptes|%10|intel|%11|exfiltres|%12|vivants|%13|pertes_est|%14|renseignement|%15|alarme|%16|compromis|%17|latence_surprise|%18|abandon|%19|insertion_forcee|%20|lambs|%21|ticks|%22|duree|%23|tenir|%25|arret|%26|depart|%27|effectif|%28|appui_feu|%29|accessible|%30|feu_avant|%31|mg_assaut|%32|delai_porteur|%33|appui_fixe|%34|oracle|%35|socle|%36|tactique|%37|relances|%38|fumigenes|%39|zones|%40|ablation|%41|banc_appui|%42|tirs_banc|%43|placeur|%44|couverture|%45|exfil|%46",
+    (format ["CHACAL|FINI|%1|%2|graine|%3|echelle|%4|dt|%5|bras|%6|palier|%24|phase_max|%7|charges|%8|sur|%9|detruits_scriptes|%10|intel|%11|exfiltres|%12|vivants|%13|pertes_est|%14|renseignement|%15|alarme|%16|compromis|%17|latence_surprise|%18|abandon|%19|insertion_forcee|%20|lambs|%21|ticks|%22|duree|%23|tenir|%25|arret|%26|depart|%27|effectif|%28|appui_feu|%29|accessible|%30|feu_avant|%31|mg_assaut|%32|delai_porteur|%33|appui_fixe|%34|oracle|%35|socle|%36|tactique|%37|relances|%38|fumigenes|%39|zones|%40|ablation|%41|banc_appui|%42|tirs_banc|%43|placeur|%44|couverture|%45|exfil|%46|azimut_mode|%47|azimut|%48",
         CHACAL_ISSUE, CHACAL_CAUSE, CHACAL_GRAINE, CHACAL_ECHELLE, CHACAL_DT, CHACAL_BRAS, CHACAL_PHASE,
         _actes, _objTotal, count CHACAL_DETRUITS, (if (CHACAL_INTEL) then {1} else {0}),
         _exf, _vivants, _pertesEst, count CHACAL_VUES,
         (if (CHACAL_ALARME) then {1} else {0}), (if (CHACAL_COMPROMIS) then {1} else {0}), _lat,
         (if (CHACAL_ABANDON) then {1} else {0}), (if (CHACAL_INSERTION_FORCEE) then {1} else {0}),
-        (if (CHACAL_LAMBS) then {1} else {0}), CHACAL_TICK, round time, CHACAL_PALIER, CHACAL_TENIR, CHACAL_ARRET, CHACAL_DEPART, CHACAL_EFFECTIF, CHACAL_APPUI_FEU, CHACAL_ACCESSIBLE, CHACAL_FEU_AVANT, CHACAL_MG_ASSAUT, CHACAL_DELAI_PORTEUR, CHACAL_APPUI_FIXE, CHACAL_ORACLE, CHACAL_SOCLE, CHACAL_TACTIQUE, CHACAL_RELANCES_SOCLE, CHACAL_FUMIGENES, CHACAL_ZONES, CHACAL_ABLATION, CHACAL_BANC_APPUI, CHACAL_TIRS_BANC, CHACAL_PLACEUR, CHACAL_COUV, CHACAL_EXFIL]) call CHACAL_LOG;
+        (if (CHACAL_LAMBS) then {1} else {0}), CHACAL_TICK, round time, CHACAL_PALIER, CHACAL_TENIR, CHACAL_ARRET, CHACAL_DEPART, CHACAL_EFFECTIF, CHACAL_APPUI_FEU, CHACAL_ACCESSIBLE, CHACAL_FEU_AVANT, CHACAL_MG_ASSAUT, CHACAL_DELAI_PORTEUR, CHACAL_APPUI_FIXE, CHACAL_ORACLE, CHACAL_SOCLE, CHACAL_TACTIQUE, CHACAL_RELANCES_SOCLE, CHACAL_FUMIGENES, CHACAL_ZONES, CHACAL_ABLATION, CHACAL_BANC_APPUI, CHACAL_TIRS_BANC, CHACAL_PLACEUR, CHACAL_COUV, CHACAL_EXFIL, CHACAL_AZIMUT, CHACAL_AZIMUT_CHOISI]) call CHACAL_LOG;
 
     // L ECHELLE raccourcit les plafonds mais PAS le monde : ni la vitesse de
     // marche, ni la periode des rondes, ni les 6 km de route. Une nuit a 25 %

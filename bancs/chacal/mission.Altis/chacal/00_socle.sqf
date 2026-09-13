@@ -46,6 +46,16 @@ CHACAL_APPUI_FIXE = ["CHACAL_APPUI_FIXE", 0] call BIS_fnc_getParamValue;
 CHACAL_ORACLE = ["CHACAL_ORACLE", 0] call BIS_fnc_getParamValue;
 // ! LE SOCLE ET LES TACTIQUES ( 11/09 ). 0 = comportement d origine dans les deux cas.
 CHACAL_SOCLE = ["CHACAL_SOCLE", 0] call BIS_fnc_getParamValue;
+// ! LA COUTURE DE L AZIMUT. C est le premier endroit de la mission ou un agent decide.
+// L atelier du 13/09 a mesure que l axe d approche commande l entree : azimut 45, zero entree
+// sur cinq essais ; azimut 0, 3,8 en moyenne ; azimut 126, 2,6. Le script, lui, ne choisit
+// qu entre les deux ouvertures - il s interdit le mur plein a l azimut 0, qui fait mieux.
+//   0 SCRIPT : le score sur les deux ouvertures, inchange.
+//   1 HASARD : tirage uniforme parmi douze azimuts. LE PLANCHER, et il est obligatoire.
+//   2 IMPOSE : l azimut vient du job, en degres. C est par la qu un agent decide.
+CHACAL_AZIMUT = ["CHACAL_AZIMUT", 0] call BIS_fnc_getParamValue;
+CHACAL_AZIMUT_VAL = ["CHACAL_AZIMUT_VAL", 0] call BIS_fnc_getParamValue;
+CHACAL_AZIMUT_CHOISI = -1;   // ce qui a REELLEMENT ete joue, ecrit dans la ligne FINI
 // ! CHACAL_EXFIL : ce qui fait echouer l exfiltration. 12 episodes sur 12 finissent en PLAFOND
 // avec des hommes vivants - jusqu a 9 vivants pour 3 exfiltres. Deux causes possibles, un levier
 // pour les separer. 0 = la reference. 1 = repasser en AWARE une fois le contact rompu, a plus de

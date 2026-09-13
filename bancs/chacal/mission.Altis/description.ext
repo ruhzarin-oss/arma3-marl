@@ -115,6 +115,20 @@ class Params
         texts[]  = {"NON","OUI"};
         default = 0;
     };
+    class CHACAL_AZIMUT
+    {
+        title = "Azimut d assaut : 0 = script, 1 = hasard (plancher), 2 = impose par le job";
+        values[] = {0,1,2};
+        texts[]  = {"SCRIPT","HASARD","IMPOSE"};
+        default  = 0;
+    };
+    class CHACAL_AZIMUT_VAL
+    {
+        title = "Azimut impose, en degres (mode 2)";
+        values[] = {0,30,60,90,120,150,180,210,240,270,300,330};
+        texts[]  = {"0","30","60","90","120","150","180","210","240","270","300","330"};
+        default  = 0;
+    };
     class CHACAL_EXFIL
     {
         title = "Exfiltration : 0 = reference, 1 = AWARE apres rupture de contact, 2 = budget a 1,2 m/s";
