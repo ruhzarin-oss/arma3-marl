@@ -1,9 +1,9 @@
 # Catalogue des episodes CHACAL
 
-Genere par `outils/catalogue.py` le 2026-09-12 05:00. **Ne pas editer a la main** : il est
+Genere par `outils/catalogue.py` le 2026-09-13 05:00. **Ne pas editer a la main** : il est
 regenere apres chaque run (file3.sh) et chaque nuit (sauver.sh).
 
-- **314 episodes**, lus depuis 491 journaux (17 sans ligne FINI ignores).
+- **542 episodes**, lus depuis 783 journaux (21 sans ligne FINI ignores).
 - Un episode = une ligne ; `episodes.csv` pour un tableur, `episodes.jsonl` pour un programme.
 - Le journal complet de chaque episode est dans la colonne `source` ; ses tables (etat de chaque homme
   toutes les ~2 s, perception, evenements, phases) sont a cote, dans `extrait/`.
@@ -25,7 +25,14 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 ## Campagnes (episodes, dont charges completes)
 | campagne | version jouee | episodes | charges completes |
 |---|---|---|---|
+| ABLATION-12-09 | A0 | 19 | 10 |
+| ABLATION-12-09 | A1 | 20 | 13 |
+| ABLATION-12-09 | A2 | 18 | 8 |
+| ABLATION-12-09 | A4 | 18 | 13 |
+| ABLATION-12-09 | A8 | 16 | 11 |
 | ALIZE-1 | AL1 | 19 | 6 |
+| BANC-APPUI-12-09 | BA-CLOUE | 8 | 0 |
+| BANC-APPUI-12-09 | BA-LIBRE | 6 | 0 |
 | G8-FABLE-11-09 | V1 | 6 | 1 |
 | G8-FABLE-11-09 | V2 | 10 | 4 |
 | G8-FABLE-11-09 | V3 | 10 | 3 |
@@ -39,9 +46,21 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 | ORACLE-11-09 | REF-A | 12 | 4 |
 | ORACLE-COMPLET-11-09 | ORC | 18 | 9 |
 | ORACLE-COMPLET-11-09 | REF-A | 11 | 6 |
+| PLACEUR-12-09 | PL-A | 10 | 0 |
+| PLACEUR-12-09 | PL-B | 4 | 0 |
+| PLACEUR-BALAYAGE-12-09 | PL4-A | 1 | 0 |
+| PLACEUR-BALAYAGE-12-09 | PL4-B | 3 | 0 |
+| PLACEUR-HAUTEUR-12-09 | PL3-A | 1 | 0 |
+| PLACEUR-TEMOIN-12-09 | PL5-B | 1 | 0 |
 | S0-CONTROLE-POSITIF | S0 | 19 | 19 |
-| TOURNOI-TACTIQUES-12-09 | B0 | 7 | 7 |
-| TOURNOI-TACTIQUES-12-09 | B1 | 13 | 7 |
-| TOURNOI-TACTIQUES-12-09 | B2 | 7 | 4 |
-| TOURNOI-TACTIQUES-12-09 | B5 | 7 | 1 |
-| TOURNOI-TACTIQUES-12-09 | REF | 6 | 1 |
+| SOCLE-CONFIRMATION-12-09 | B0 | 19 | 14 |
+| SOCLE-CONFIRMATION-12-09 | B1c | 10 | 7 |
+| SOCLE-CONFIRMATION-12-09 | MSOCLE | 6 | 3 |
+| SONDE-12-09 | SONDE | 3 | 0 |
+| TOURNOI-TACTIQUES-12-09 | B0 | 18 | 15 |
+| TOURNOI-TACTIQUES-12-09 | B1 | 20 | 11 |
+| TOURNOI-TACTIQUES-12-09 | B2 | 18 | 11 |
+| TOURNOI-TACTIQUES-12-09 | B5 | 10 | 2 |
+| TOURNOI-TACTIQUES-12-09 | REF | 10 | 1 |
+| VICTOIRE-BOUT-EN-BOUT-12-09 | V6-PLEIN | 27 | 22 |
+| VICTOIRE-BOUT-EN-BOUT-12-09 | V6-SONDE-DUREE | 2 | 1 |
