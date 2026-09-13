@@ -55,6 +55,35 @@ for p in UnrealEditor vmware-vmx 'arma3_x64\.exe'; do
 done
 [ -n "$SNAP" ] && echo "  charge concurrente au lancement : $SNAP"
 
+# --- ATTEIGNABILITE : l issue visee est-elle seulement possible avec ces leviers ?
+# ! LE DEFAUT LE PLUS COUTEUX DU PROJET (10 au 12/09/2026).
+# 245 episodes ont tourne en arret=5. La phase 6 n etait jamais jouee, CHACAL_EXFILTRES restait a
+# zero, et le critere de SUCCES exige six exfiltres sur dix. Le succes etait donc STRUCTUREMENT
+# impossible : les 245 episodes sont sortis en ECHEC par construction, et 204 d entre eux etaient
+# en realite des assauts reussis. Trois jours de travail ont porte sur l assaut en croyant porter
+# sur la victoire.
+# Une vignette reste un instrument legitime. Mais elle doit DIRE SON NOM : le job declare
+# "vignette": 1 et assume que son issue ne sera jamais SUCCES. Sans cette declaration, refus.
+python3 - "$JOB" <<'PY' || ERR=1
+import json,sys
+j=json.load(open(sys.argv[1]))
+if j.get("banc") != "chacal": sys.exit(0)
+arret = j.get("arret", 6); depart = j.get("depart", 1); vignette = j.get("vignette", 0)
+manque = []
+if arret < 6: manque.append(f"arret={arret} : la phase 6 EXFILTRATION n est pas jouee, donc exfiltres reste a 0")
+eff = j.get("effectif", 10)
+if arret >= 6 and eff < 1: manque.append(f"effectif={eff}")
+if manque and not vignette:
+    print("REFUS: ATTEIGNABILITE - l issue SUCCES est impossible avec ces leviers :")
+    for m in manque: print("        .", m)
+    print('        Si c est voulu, declare "vignette": 1 dans le job et assume que l issue ne sera jamais SUCCES.')
+    sys.exit(1)
+if manque and vignette:
+    print("  vignette declaree : issue SUCCES hors d atteinte, c est assume (" + " ; ".join(manque) + ")")
+if depart >= 3 and not vignette:
+    print(f"  note : depart={depart}, les phases anterieures ne sont pas jouees (hors corpus, ecrit dans le journal)")
+PY
+
 LIBRE=$(df --output=avail -BG /mnt/data | tail -n 1 | tr -dc 0-9)
 [ "${LIBRE:-0}" -gt 50 ] || { echo "REFUS: ${LIBRE:-?} Go libres, minimum 50"; ERR=1; }
 [ $ERR = 0 ] && echo "CONTROLE OK"
