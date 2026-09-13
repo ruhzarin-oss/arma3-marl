@@ -104,9 +104,9 @@ grep -q '"verdict"' "$OUT/resultat.json" || { echo "lecture sans verdict, voir l
 # ! CONTROLE D IDENTITE : l'episode joue est-il celui qu'on a DEMANDE ?
 # C'est ce controle qui manquait le 08/09 : le corpus a ete lu comme « le plan echoue » alors que
 # le bras temoin tournait. Un desaccord entre le job et l'en-tete du RPT rend l'episode REFUSE.
-python3 - "$OUT/resultat.json" "$G" "$PAL" "$BRAS_NOM" "$DEPART" "$TENIR" "$ARRET" "$ORACLE" <<'PY'
+python3 - "$OUT/resultat.json" "$JOB" "$G" "$PAL" "$BRAS_NOM" "$TENIR" "$ARRET" <<'PY'
 import json,sys
-p,g,pal,bras,dep,tenir,arret,oracle = sys.argv[1:9]
+p,job,g,pal,bras,tenir,arret = sys.argv[1:8]
 def egal(a,b):
     # SQF rend les entiers sans decimale, mais on compare en nombre quand les
     # deux cotes sont numeriques : un "6" face a "6.0" n est pas un ecart de
@@ -114,17 +114,30 @@ def egal(a,b):
     try: return float(a)==float(b)
     except (TypeError,ValueError): return str(a)==str(b)
 d=json.load(open(p)); e=d.get("entete",{})
+j=json.load(open(job))
 ecarts=[]
-# ! 11/09 (revue de Fable) : oracle compare aussi, SEULEMENT si la ligne FINI le porte (episodes posterieurs a c93fc26).
-for cle,attendu in (("graine",g),("palier",pal),("bras",bras),("depart",None),("tenir",tenir),("arret",arret),("oracle",oracle)):
-    if attendu is None: continue
-    if cle == "oracle" and cle not in e: continue
+# 1. l identite de base, celle qui manquait le 08/09 : le corpus avait ete lu comme « le plan
+#    echoue » alors que le bras temoin tournait.
+for cle,attendu in (("graine",g),("palier",pal),("bras",bras),("tenir",tenir),("arret",arret)):
     obtenu=str(e.get(cle,"?"))
     if not egal(obtenu,attendu): ecarts.append(f"{cle} demande {attendu}, joue {obtenu}")
+# 2. LEVIERS_CONTROLES : tout levier que le job declare ET que la ligne FINI porte doit concorder.
+#    Ajout du 13/09 : la campagne EXFIL a tourne six jobs qui jouaient tous la reference, parce que
+#    la classe du parametre etait mal imbriquee dans description.ext. Le server.cfg disait 1, la
+#    ligne FINI disait 0, et personne ne les comparait. Un levier ecrit n est pas un levier LU.
+LEVIERS_CONTROLES = ("depart","effectif","appui_feu","accessible","feu_avant","mg_assaut",
+                     "delai_porteur","appui_fixe","oracle","socle","tactique","ablation",
+                     "banc_appui","placeur","exfil")
+controles=[]
+for cle in LEVIERS_CONTROLES:
+    if cle not in j or cle not in e: continue   # levier absent du job, ou episode anterieur au champ
+    if not egal(str(e[cle]),str(j[cle])): ecarts.append(f"{cle} demande {j[cle]}, joue {e[cle]}")
+    else: controles.append(cle)
 if ecarts:
     d["verdict"]="REFUSE"; d["cause_refus"]="EPISODE_NON_CONFORME_AU_JOB: "+" ; ".join(ecarts)
     json.dump(d,open(p,"w"),indent=1,ensure_ascii=False)
     print("  !! EPISODE REFUSE :", "; ".join(ecarts)); sys.exit(1)
 print("  identite conforme au job : graine",g,"palier",pal,"bras",bras,"tenir",tenir,"arret",arret)
+print("  leviers relus dans la ligne FINI :", ", ".join(f"{c}={j[c]}" for c in controles) if controles else "aucun")
 PY
 echo "graine $G : $(grep -o '"verdict": "[A-Z]*"' "$OUT/resultat.json" | head -n 1)"

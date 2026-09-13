@@ -112,9 +112,15 @@ class Params
     {
         title = "Socle : charges redondantes, porteurs non combattants, appui cloue, chien de garde (0 = non)";
         values[] = {0,1};
-    class CHACAL_EXFIL { title = "exfil"; values[] = {0,1,2}; texts[] = {"0","1","2"}; default = 0; };
         texts[]  = {"NON","OUI"};
         default = 0;
+    };
+    class CHACAL_EXFIL
+    {
+        title = "Exfiltration : 0 = reference, 1 = AWARE apres rupture de contact, 2 = budget a 1,2 m/s";
+        values[] = {0,1,2};
+        texts[]  = {"REFERENCE","AWARE","BUDGET"};
+        default  = 0;
     };
     class CHACAL_TACTIQUE
     {

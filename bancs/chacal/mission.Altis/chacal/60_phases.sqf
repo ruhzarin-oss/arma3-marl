@@ -1403,8 +1403,8 @@ if (CHACAL_EXFIL == 1) then {
         private _t0 = time;
         waitUntil { sleep 5;
             private _v = CHACAL_FS select { alive _x };
-            (count _v == 0) || CHACAL_FIN || ((time - _t0) > 900) ||
-            ((_v call CHACAL_fnc_centre) distance2D CHACAL_SITE > 300) };
+            (count _v == 0) || CHACAL_FIN || ((time - _t0) > 180) ||
+            ((_v call CHACAL_fnc_centre) distance2D CHACAL_SITE > 200) };
         if (CHACAL_FIN) exitWith {};
         private _v = CHACAL_FS select { alive _x };
         if (count _v == 0) exitWith {};
