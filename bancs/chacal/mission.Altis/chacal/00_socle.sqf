@@ -46,6 +46,13 @@ CHACAL_APPUI_FIXE = ["CHACAL_APPUI_FIXE", 0] call BIS_fnc_getParamValue;
 CHACAL_ORACLE = ["CHACAL_ORACLE", 0] call BIS_fnc_getParamValue;
 // ! LE SOCLE ET LES TACTIQUES ( 11/09 ). 0 = comportement d origine dans les deux cas.
 CHACAL_SOCLE = ["CHACAL_SOCLE", 0] call BIS_fnc_getParamValue;
+// ! CHACAL_EXFIL : ce qui fait echouer l exfiltration. 12 episodes sur 12 finissent en PLAFOND
+// avec des hommes vivants - jusqu a 9 vivants pour 3 exfiltres. Deux causes possibles, un levier
+// pour les separer. 0 = la reference. 1 = repasser en AWARE une fois le contact rompu, a plus de
+// 300 m du site, le plafond inchange : si cela suffit, la cause est le comportement. 2 = garder
+// le comportement et calculer le budget a 1,2 m/s au lieu de 1,8 : si cela suffit, la cause est
+// le chronometre, et c est l estimation qui etait fausse.
+CHACAL_EXFIL = ["CHACAL_EXFIL", 0] call BIS_fnc_getParamValue;
 CHACAL_TACTIQUE = ["CHACAL_TACTIQUE", 0] call BIS_fnc_getParamValue;
 // ! CONTROLE POSITIF DE L APPUI ( Fable, regle 16 ) : 0 non, 1 appui CLOUE comme dans le socle, 2 appui NON CLOUE.
 // L appui reste a SA position : on ne change qu une chose a la fois.

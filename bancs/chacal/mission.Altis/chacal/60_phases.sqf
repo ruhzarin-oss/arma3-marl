@@ -1379,7 +1379,8 @@ private _iss5 = if (count CHACAL_CHARGES >= count CHACAL_OBJETS) then {"ATTEINT"
 // et la fonction rendait alors son defaut de 120 s pour 4 km a parcourir.
 if (CHACAL_FIN) exitWith {};   // vignette close avant l exfiltration
 CHACAL_EXFIL_POINT = if (CHACAL_ABANDON) then { CHACAL_LZ } else { CHACAL_PZ };
-_plafond = [(CHACAL_FS select { alive _x }), CHACAL_EXFIL_POINT, 1.8] call CHACAL_fnc_budget;
+private _vitBudget = if (CHACAL_EXFIL == 2) then {1.2} else {1.8};
+_plafond = [(CHACAL_FS select { alive _x }), CHACAL_EXFIL_POINT, _vitBudget] call CHACAL_fnc_budget;
 [6, "EXFILTRATION", _plafond] call CHACAL_fnc_debutPhase;
 (format ["CHACAL|E|budget|%1|etape|EXFIL|vers|%2|distance|%3|plafond|%4", round (time * 100) / 100,
     (if (CHACAL_ABANDON) then {"LZ"} else {"PZ"}),
@@ -1393,6 +1394,28 @@ private _pourquoi = if (CHACAL_ABANDON) then {"ABANDON_REPLI_PAR_LA_LZ"} else {"
 // l appui fixe est rendu a ses jambes pour rentrer
 if (CHACAL_APPUI_FIXE == 1 && { !isNull CHACAL_gAppui }) then { { _x enableAI "PATH" } forEach (units CHACAL_gAppui) };
 private _compExf = if (CHACAL_COMPROMIS) then {"COMBAT"} else {"AWARE"};
+// ! EXFIL=1 : on rompt le contact en COMBAT, puis on rend les jambes. La recolte du moteur du
+// 13/09 dit que le chemin se calcule en fonction du comportement ; un homme en COMBAT ne prend
+// pas le meme itineraire. Des que le detachement est a plus de 300 m du site, il repasse en
+// AWARE. Le plafond ne bouge pas : c est le comportement qu on mesure, pas le chronometre.
+if (CHACAL_EXFIL == 1) then {
+    [] spawn {
+        private _t0 = time;
+        waitUntil { sleep 5;
+            private _v = CHACAL_FS select { alive _x };
+            (count _v == 0) || CHACAL_FIN || ((time - _t0) > 900) ||
+            ((_v call CHACAL_fnc_centre) distance2D CHACAL_SITE > 300) };
+        if (CHACAL_FIN) exitWith {};
+        private _v = CHACAL_FS select { alive _x };
+        if (count _v == 0) exitWith {};
+        { if (!isNull _x) then { _x setBehaviour "AWARE"; _x setCombatMode "YELLOW"; _x setSpeedMode "FULL";
+            { if (alive _x) then { _x setUnitPos "AUTO" } } forEach (units _x) } }
+          forEach [CHACAL_gAssaut, CHACAL_gAppui, CHACAL_gBouchon, CHACAL_gReco, CHACAL_gFS];
+        (format ["CHACAL|E|exfil_degage|%1|distance_site|%2|vivants|%3|comportement|AWARE",
+            round (time * 100) / 100, round ((_v call CHACAL_fnc_centre) distance2D CHACAL_SITE),
+            count _v]) call CHACAL_LOG;
+    };
+};
 {
     if (!isNull _x) then {
         _x setBehaviour _compExf; _x setCombatMode "YELLOW"; _x setSpeedMode "FULL";
