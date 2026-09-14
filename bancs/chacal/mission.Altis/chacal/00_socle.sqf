@@ -510,6 +510,14 @@ CHACAL_fnc_chienDeGarde = {
     private _dRef = 1e9; private _tRef = time; private _rates = 0;
     while { !CHACAL_FIN && { CHACAL_PHASE == 5 } } do {
         sleep 10;
+        // ! LA PHASE A PU CHANGER PENDANT LE SOMMEIL ( 13/09 ). Sans ce test, le chien ordonnait AWARE
+        // et un doMove VERS LE SITE a des hommes qui decrochaient : 8 episodes sur 15, entre 1 et 7 s
+        // apres le debut de la phase 6. C est le bug corrige le 12/09 pour CHACAL_FIN, dans cette meme
+        // boucle - la garde avait ete posee pour une variable et pas pour l autre.
+        if (CHACAL_FIN || { CHACAL_PHASE != 5 }) exitWith {
+            (format ["CHACAL|E|chien_de_garde|%1|phase_quittee|%2|relances|%3", round (time * 100) / 100,
+                CHACAL_PHASE, CHACAL_RELANCES_SOCLE]) call CHACAL_LOG;
+        };
         if (count CHACAL_CIBLE_ASSAUT > 0 && { !isNull CHACAL_gAssaut }) then {
             private _v = (units CHACAL_gAssaut) select { alive _x };
             if (count _v > 0) then {

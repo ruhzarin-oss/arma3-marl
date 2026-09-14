@@ -1475,12 +1475,23 @@ if (CHACAL_EXFIL == 1) then {
 } forEach [CHACAL_gAssaut, CHACAL_gAppui, CHACAL_gBouchon, CHACAL_gReco, CHACAL_gFS];
 
 private _tE = time;
+private _seuilExf = round (0.6 * CHACAL_EFFECTIF);
+// ! LE CRITERE PORTE SUR L EFFECTIF, PAS SUR LES SURVIVANTS ( 13/09 ). S il reste moins d hommes
+// vivants que le seuil, la condition de sortie ne peut JAMAIS etre vraie : la phase brulait son
+// plafond entier, une vingtaine de minutes, pour conclure PLAFOND. C est un critere hors d atteinte,
+// la meme famille que arret=5 et le seuil 3 de la phase 3. On sort tout de suite, et on le DIT.
 waitUntil { sleep 3;
-    (count (CHACAL_FS select { alive _x && { (_x distance2D CHACAL_EXFIL_POINT) < 90 } }) >= (round (0.6 * CHACAL_EFFECTIF))) ||
-    (count (CHACAL_FS select { alive _x }) == 0) || (time - _tE > _plafond) || CHACAL_FIN };
+    (count (CHACAL_FS select { alive _x && { (_x distance2D CHACAL_EXFIL_POINT) < 90 } }) >= _seuilExf) ||
+    (count (CHACAL_FS select { alive _x }) < _seuilExf) || (time - _tE > _plafond) || CHACAL_FIN };
+private _vivExf = count (CHACAL_FS select { alive _x });
+if (_vivExf < _seuilExf) then {
+    (format ["CHACAL|E|exfil_impossible|%1|vivants|%2|seuil|%3|temps_ecoule|%4", round (time * 100) / 100,
+        _vivExf, _seuilExf, round (time - _tE)]) call CHACAL_LOG;
+};
 CHACAL_EXFILTRES = count (CHACAL_FS select { alive _x && { (_x distance2D CHACAL_EXFIL_POINT) < 90 } });
-[6, "EXFILTRATION", (if (CHACAL_EXFILTRES >= (round (0.6 * CHACAL_EFFECTIF))) then {"ATTEINT"} else {
-    if (count (CHACAL_FS select { alive _x }) == 0) then {"DETRUIT"} else {"PLAFOND"} })] call CHACAL_fnc_finPhase;
+[6, "EXFILTRATION", (if (CHACAL_EXFILTRES >= _seuilExf) then {"ATTEINT"} else {
+    if (count (CHACAL_FS select { alive _x }) == 0) then {"DETRUIT"} else {
+    if (count (CHACAL_FS select { alive _x }) < _seuilExf) then {"PERTES_EXCESSIVES"} else {"PLAFOND"} } })] call CHACAL_fnc_finPhase;
 
 CHACAL_FIN = true;
 };

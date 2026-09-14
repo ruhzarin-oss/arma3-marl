@@ -188,8 +188,13 @@
             if (_actes >= _objTotal && _exf >= (round (0.6 * CHACAL_EFFECTIF))) then { CHACAL_ISSUE = "SUCCES"; CHACAL_CAUSE = "CHARGES_ET_EXFIL" }
             else {
                 CHACAL_ISSUE = "ECHEC";
+                // ! L ETIQUETTE MENTAIT ( 13/09 ). EXFIL_MANQUEE couvrait deux choses differentes :
+                // un detachement qui n a pas rejoint le point de ramassage, et un detachement qui n a
+                // plus assez d hommes pour le franchir. Le second n a pas rate son decrochage, il a
+                // perdu ses hommes. On separe, sinon le goulot se lit a l envers.
                 CHACAL_CAUSE = if (_vivants == 0) then {"DETACHEMENT_DETRUIT"}
-                    else { if (_actes < _objTotal) then {"CHARGES_INCOMPLETES"} else {"EXFIL_MANQUEE"} };
+                    else { if (_actes < _objTotal) then {"CHARGES_INCOMPLETES"} else {
+                    if (_vivants < (round (0.6 * CHACAL_EFFECTIF))) then {"PERTES_EXCESSIVES"} else {"EXFIL_MANQUEE"} } };
             };
         };
     };
