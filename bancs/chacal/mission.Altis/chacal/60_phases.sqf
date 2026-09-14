@@ -555,6 +555,17 @@ if (CHACAL_DEPART >= 3) then {
 // PHASE 1 - INSERTION
 // ---------------------------------------------------------------------
 _plafond = 1 call CHACAL_fnc_duree;
+// ! GEOMETRIE SEULE : le monde est tire, on le publie, et on s arrete. Aucun coup de feu,
+// aucune issue de mission. C est la facon exacte de connaitre un site sans l user.
+if (CHACAL_GEOMETRIE == 1) exitWith {
+    (format ["CHACAL|GEO|%1|graine|%2|site|%3|crete|%4|route|%5|lz|%6|qrf|%7|pz|%8|rally|%9|ouvertures|%10|az_site|%11|gain_crete|%12",
+        round (time * 100) / 100, CHACAL_GRAINE, CHACAL_SITE, CHACAL_OP, CHACAL_ROUTE,
+        CHACAL_LZ, CHACAL_QRF_BASE, CHACAL_PZ, CHACAL_RALLY,
+        (if (isNil "CHACAL_OUVERTURES") then {[]} else {CHACAL_OUVERTURES apply { round (CHACAL_SITE getDir _x) }}),
+        (if (isNil "CHACAL_AZ") then {-1} else {round CHACAL_AZ}), round CHACAL_OP_GAIN]) call CHACAL_LOG;
+    CHACAL_ISSUE = "VOID"; CHACAL_CAUSE = "GEOMETRIE_SEULE"; CHACAL_FIN = true;
+};
+
 [1, "INSERTION", _plafond] call CHACAL_fnc_debutPhase;
 
 CHACAL_HELO = objNull;
@@ -764,6 +775,14 @@ if (CHACAL_BRAS == "NUL" && !CHACAL_SAUT && !CHACAL_ABANDON) then {
 if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" } && { CHACAL_DEPART < 4 }) then {
     _plafond = 3 call CHACAL_fnc_duree;
     [3, "OBSERVATION", _plafond] call CHACAL_fnc_debutPhase;
+    // ! COUPURE ASSUMEE ET ECRITE. Voir verdicts/phase3-porte-hors-datteinte.md.
+    if (CHACAL_OBS == 0) exitWith {
+        (format ["CHACAL|AVERT|hors_corpus|observation_coupee|1|seuil|%1|jamais_atteint|1",
+            CHACAL_SEUIL_RENS]) call CHACAL_LOG;
+        (format ["CHACAL|E|observation_coupee|%1|economie_s|%2", round (time * 100) / 100,
+            round _plafond]) call CHACAL_LOG;
+        [3, "OBSERVATION", "COUPEE"] call CHACAL_fnc_finPhase;
+    };
 
     CHACAL_gReco = [CHACAL_RECO, "RECHERCHE"] call CHACAL_fnc_detacher;
     CHACAL_gFS setVariable ["chacal_element", "GROS", true];
@@ -913,7 +932,8 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
     if (CHACAL_AZIMUT == 1) then {
         // tirage seme par la graine : deux episodes de meme graine tirent le meme azimut, sinon
         // le temoin ne serait pas un temoin.
-        private _k = floor ((call CHACAL_fnc_rnd) * (count _candidats));
+        // ! le TEMOIN, pas le generateur du monde : sinon le bras hasard tire un azimut fixe par graine
+        private _k = floor ((call CHACAL_fnc_rndTemoin) * (count _candidats));
         if (_k >= count _candidats) then { _k = (count _candidats) - 1 };
         CHACAL_AZIMUT_CHOISI = _candidats select _k; _qui = "HASARD";
     };

@@ -122,6 +122,20 @@ class Params
         texts[]  = {"SCRIPT","HASARD","IMPOSE"};
         default  = 0;
     };
+    class CHACAL_GEOMETRIE
+    {
+        title = "Geometrie seule : 1 = tirer le monde, le publier, et s arreter";
+        values[] = {0,1};
+        texts[]  = {"NON","OUI"};
+        default  = 0;
+    };
+    class CHACAL_OBS
+    {
+        title = "Phase 3 OBSERVATION : 1 = jouee, 0 = coupee (verdict : 110 echecs sur 111)";
+        values[] = {0,1};
+        texts[]  = {"COUPEE","JOUEE"};
+        default  = 1;
+    };
     class CHACAL_AZIMUT_VAL
     {
         title = "Azimut impose, en degres (mode 2)";

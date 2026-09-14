@@ -54,6 +54,18 @@ CHACAL_SOCLE = ["CHACAL_SOCLE", 0] call BIS_fnc_getParamValue;
 //   1 HASARD : tirage uniforme parmi douze azimuts. LE PLANCHER, et il est obligatoire.
 //   2 IMPOSE : l azimut vient du job, en degres. C est par la qu un agent decide.
 CHACAL_AZIMUT = ["CHACAL_AZIMUT", 0] call BIS_fnc_getParamValue;
+// ! LA PHASE 3 COUTE LA MOITIE DE CHAQUE MISSION POUR RIEN. Verdict du 13/09 : 110 echecs
+// sur 111, seuil de renseignement a 3 et maximum jamais atteint 2, zero renseignement
+// restitue a l assaut, soit 55 heures de calcul pour zero information. A 0, la phase 3 se
+// ferme immediatement et le DIT. On ne la supprime pas : on doit pouvoir la rejouer le jour
+// ou on la reparera.
+CHACAL_OBS = ["CHACAL_OBS", 1] call BIS_fnc_getParamValue;
+// ! CHACAL_GEOMETRIE : rendre la geometrie du site SANS jouer la mission.
+// Le decideur d azimut doit noter douze azimuts avant l episode ; pour les graines juges,
+// jouer pour connaitre la geometrie les userait au moment ou on les veut vierges.
+// A 1, la mission tire son monde, ecrit une ligne GEO, et s arrete. Une quarantaine de
+// secondes, et c est le VRAI tirage - pas une replique qui deriverait en silence.
+CHACAL_GEOMETRIE = ["CHACAL_GEOMETRIE", 0] call BIS_fnc_getParamValue;
 CHACAL_AZIMUT_VAL = ["CHACAL_AZIMUT_VAL", 0] call BIS_fnc_getParamValue;
 CHACAL_AZIMUT_CHOISI = -1;   // ce qui a REELLEMENT ete joue, ecrit dans la ligne FINI
 // ! CHACAL_EXFIL : ce qui fait echouer l exfiltration. 12 episodes sur 12 finissent en PLAFOND
@@ -97,6 +109,21 @@ CHACAL_ASSAUT_X  = (["CHACAL_ASSAUT_X", 100] call BIS_fnc_getParamValue) / 100;
 // un float32 et un generateur a grand module y perdrait des bits en silence.
 CHACAL_RNG = ((CHACAL_GRAINE * 7919) + 104729) % 65537;
 if (CHACAL_RNG == 0) then { CHACAL_RNG = 1 };
+// ! UN TEMOIN QUI NE TIRE QU UNE VALEUR N EST PAS UN TEMOIN ( 14/09 ).
+// CHACAL_fnc_rnd est seme par la graine, et c est voulu : le MONDE doit etre reproductible.
+// Mais le bras HASARD s en servait aussi, donc il tirait le meme azimut a chaque repetition d une
+// graine - un azimut fixe deguise en hasard. C est ce qui a produit l artefact du 13/09 : hasard a
+// tire 180 sur la graine 7, le meilleur, et 300 sur la graine 8, le pire ; son taux global
+// moyennait les deux et ressemblait a celui du script.
+// Ce second generateur est seme par la graine ET par l heure de demarrage du serveur, donc il varie
+// d une repetition a l autre. Il ne sert QU AU TEMOIN, jamais au monde.
+CHACAL_RNG_T = ((CHACAL_GRAINE * 2654435761) + (round (serverTime * 1000)) + (round (diag_tickTime * 997))) % 65537;
+if (CHACAL_RNG_T == 0) then { CHACAL_RNG_T = 1 };
+CHACAL_fnc_rndTemoin = {
+    CHACAL_RNG_T = ((CHACAL_RNG_T * 75) + 74) % 65537;
+    CHACAL_RNG_T / 65537
+};
+
 CHACAL_fnc_rnd = {
     CHACAL_RNG = ((CHACAL_RNG * 75) + 74) % 65537;
     CHACAL_RNG / 65537
