@@ -931,7 +931,11 @@ class AssaultTerrain:
                     self.d_verrou[:, di:di + 1] = torch.where(
                         _neuf, torch.full_like(_anc, self.canal_verrou_pas),
                         (self.d_verrou[:, di:di + 1] - 1).clamp(min=0))
-                _sel = torch.zeros_like(active).scatter_(1, _k, 1.0) * _elig.float()
+                # ⛔ 14/09 : `active` est le DEFENSEUR (N,1), pas l attaquant. Le one-hot doit
+                # avoir la largeur des ATTAQUANTS, sinon le scatter vise une colonne unique
+                # avec un indice d attaquant et le gymnase MEURT des qu une cible d indice >= 1
+                # est choisie — c est-a-dire presque toujours. `_elig` porte la bonne forme (N,A).
+                _sel = torch.zeros_like(_elig, dtype=torch.float32).scatter_(1, _k, 1.0) * _elig.float()
                 tir = active * _sel
             if self.emergent_expo and self.replica:                # EXPOSITION EMERGENTE : fraction du corps touchable = geometrie (couvert deja capture par les rayons)
                 efrac = _efrac if _efrac is not None else self._body_exposure(self.apx, self.apy, self._eye(), bx, by)
