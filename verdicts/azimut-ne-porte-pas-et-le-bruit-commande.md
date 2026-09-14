@@ -69,3 +69,62 @@ et c'est mesurable avant de la lancer.
 - Le bras hasard n'a tiré que deux azimuts distincts (180° et 300°) sur douze possibles, parce que le
   tirage est semé par la graine et qu'il n'y a que deux graines. **C'est un défaut du témoin** : il
   échantillonne mal l'espace qu'il est censé représenter.
+
+---
+
+# AMENDEMENT DU 14/09/2026 : LE TITRE EST FAUX. L'AZIMUT PORTE, MAIS PAR SITE
+
+**Ce verdict a mesuré la moyenne de deux vérités opposées.** Signalé par Fable, vérifié sur les mêmes
+données, sans une seconde d'Arma en plus.
+
+## Les mêmes 72 épisodes, stratifiés par graine
+
+| Graine 7 | | Graine 8 | |
+|---|---|---|---|
+| azimut 180° | **83,3 %** (10/12) | azimut 273° | 66,7 % (8/12) |
+| azimut 81° | 75,0 % (9/12) | azimut 0° | 66,7 % (8/12) |
+| azimut 0° | **33,3 %** (4/12) | azimut 300° | 41,7 % (5/12) |
+| **étendue 50,0 points**, Fisher **p = 0,036** | | étendue 25,0 points, p = 0,414 | |
+
+## Ce qui s'était passé
+
+**L'azimut 0° donne 33 % sur la graine 7 et 67 % sur la graine 8.** Regroupés, ils se lisent 50 % —
+la moyenne exacte de deux comportements opposés. Le bras « hasard » tirait 180° sur la graine 7 et
+300° sur la graine 8, soit le meilleur azimut d'un site et le pire de l'autre : son taux global
+moyennait les deux et ressemblait à celui du script.
+
+Le p de 0,76 qui a produit le titre de ce verdict ne mesurait pas l'absence d'effet. Il mesurait le
+mélange de deux mondes.
+
+## Ce qui est donc établi
+
+1. **L'azimut d'assaut porte**, avec une étendue de 50 points sur la graine 7 et un Fisher à 0,036.
+2. **Le meilleur azimut dépend du site.** Il n'existe pas de bonne direction en général.
+3. **Le script ne le trouve pas.** Sur la graine 7, le hasard fait mieux que lui — 10/12 contre 9/12 —
+   parce qu'il a tiré 180° par chance. Le score qui choisit l'ouverture n'est pas un prédicteur.
+
+## Pourquoi cela change la suite
+
+C'est le premier signal du projet qui réunit les trois conditions d'un apprentissage utile : l'effet
+est **grand** (50 points, donc mesurable par cette ferme, qui demande 77 épisodes par bras pour
+20 points), il est **dépendant du site** (donc il y a quelque chose à apprendre, et non une constante
+à écrire en dur), et le **script actuel échoue** (donc il y a une marge à prendre).
+
+La couture de l'azimut, posée le 13/09, est donc au bon endroit. C'est la mesure qui était mal conçue.
+
+## La leçon de méthode
+
+**Ne jamais regrouper deux graines avant d'avoir regardé chacune.** Une graine est un monde, pas une
+répétition. Cette règle rejoint celle du 13/09 sur la puissance : à cette échelle de bruit, il faut
+soit de gros effets, soit de la stratification — et ici la stratification a révélé l'effet que le
+regroupement avait détruit.
+
+Corollaire pour le bras témoin : un tirage semé par la graine ne tire qu'un azimut par graine. Ce
+n'est pas un plancher uniforme, c'est un azimut fixe déguisé en hasard. Un vrai témoin doit tirer
+indépendamment des répétitions.
+
+## Ce qui reste à établir
+
+L'étendue n'est significative que sur une graine. Huit jobs sont en file au 14/09 pour compléter la
+courbe — quatre azimuts de plus par graine, 48 épisodes — avec pour prédiction une étendue supérieure
+à 30 points sur chaque graine, et pour falsificateur une étendue sous 15 points sur les deux.
