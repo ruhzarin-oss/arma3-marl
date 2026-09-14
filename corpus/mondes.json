@@ -1,0 +1,1233 @@
+{
+ "genere_le": "2026-09-14 22:55:02",
+ "genere_par": "corpus/choisir_mondes.py",
+ "regle": {
+  "identite": "L'IDENTITE D'UN MONDE EST SON SITE, PAS SON NUMERO DE GRAINE. CHACAL_fnc_rnd est un Lehmer 75x+74 mod 65537 : un cycle unique de 65 536 etats, et un tirage de monde en consomme plus de deux mille. Deux graines dont les marches se rejoignent rendent le meme monde.",
+  "juges": "Les mondes JUGE ne servent JAMAIS a entrainer, a regler un seuil, ni a choisir un modele. Ils ne servent qu a JUGER, une fois, a la fin. Toute campagne qui les utilise hors certification finale invalide la certification.",
+  "corpus": "Les mondes CORPUS servent a entrainer et a regler. Ils sont distincts des juges par construction : au moins 1000 m entre deux sites retenus.",
+  "brules": "Un monde est brule s il a deja ete joue, ou s il est a moins de 1000 m d un site deja joue : jouer un site le rend impropre au jugement.",
+  "usage": "Ne jamais designer un monde par sa graine seule sans verifier son site. Les alias listes ci-dessous sont des graines qui rendent LE MEME monde."
+ },
+ "parametres": {
+  "seuil_meme_monde_m": 5.0,
+  "seuil_distinct_m": 1000.0,
+  "n_juges_vises": 8,
+  "n_corpus_vises": 36,
+  "graines_jouees": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   11,
+   12
+  ]
+ },
+ "lecture": {
+  "racine": "/mnt/data/hmt/runs",
+  "fichiers_rpt_lus": 1102,
+  "lignes_GEO_lues": 146,
+  "lignes_OK_monde_lues": 1088,
+  "graines_avec_ligne_GEO": 128,
+  "graines_avec_site": 137,
+  "graines_a_site_incoherent": []
+ },
+ "bilan": {
+  "mondes_distincts": 103,
+  "mondes_brules": 30,
+  "candidats": 73,
+  "acceptes_par_le_glouton": 33,
+  "juges_retenus": 8,
+  "corpus_retenus": 25,
+  "manque": 11
+ },
+ "sites_joues": {
+  "3": [
+   11293.9,
+   21235.4
+  ],
+  "4": [
+   9526.8,
+   17621.2
+  ],
+  "5": [
+   12682.8,
+   20171.5
+  ],
+  "6": [
+   11538.4,
+   14726.4
+  ],
+  "7": [
+   6804.0,
+   11678.3
+  ],
+  "8": [
+   11816.9,
+   22183.0
+  ],
+  "9": [
+   13926.3,
+   19302.6
+  ],
+  "11": [
+   16823.5,
+   15049.9
+  ],
+  "12": [
+   9905.2,
+   8788.9
+  ]
+ },
+ "sites_joues_introuvables": [
+  1,
+  2
+ ],
+ "juges": [
+  101,
+  102,
+  103,
+  104,
+  105,
+  106,
+  109,
+  110
+ ],
+ "corpus": [
+  114,
+  116,
+  117,
+  118,
+  119,
+  120,
+  121,
+  122,
+  124,
+  200,
+  202,
+  204,
+  206,
+  210,
+  219,
+  221,
+  223,
+  227,
+  230,
+  232,
+  240,
+  242,
+  254,
+  277,
+  3183
+ ],
+ "mondes": [
+  {
+   "graine": 101,
+   "site": [
+    19921.3,
+    12823.9
+   ],
+   "role": "JUGE",
+   "alias": [
+    239
+   ],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1656.2,
+   "monde_le_plus_proche": 122
+  },
+  {
+   "graine": 102,
+   "site": [
+    7237.3,
+    22479.7
+   ],
+   "role": "JUGE",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 3028.2,
+   "monde_le_plus_proche": 106
+  },
+  {
+   "graine": 103,
+   "site": [
+    9407.9,
+    19767.8
+   ],
+   "role": "JUGE",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1433.4,
+   "monde_le_plus_proche": 106
+  },
+  {
+   "graine": 104,
+   "site": [
+    10202.0,
+    13191.3
+   ],
+   "role": "JUGE",
+   "alias": [
+    281
+   ],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1017.3,
+   "monde_le_plus_proche": 204
+  },
+  {
+   "graine": 105,
+   "site": [
+    17713.4,
+    16111.0
+   ],
+   "role": "JUGE",
+   "alias": [
+    209
+   ],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1490.0,
+   "monde_le_plus_proche": 221
+  },
+  {
+   "graine": 106,
+   "site": [
+    7991.6,
+    19546.9
+   ],
+   "role": "JUGE",
+   "alias": [
+    257,
+    5701
+   ],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1433.4,
+   "monde_le_plus_proche": 103
+  },
+  {
+   "graine": 109,
+   "site": [
+    12678.7,
+    15760.4
+   ],
+   "role": "JUGE",
+   "alias": [
+    115,
+    256,
+    260
+   ],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1581.7,
+   "monde_le_plus_proche": 242
+  },
+  {
+   "graine": 110,
+   "site": [
+    15352.2,
+    18687.6
+   ],
+   "role": "JUGE",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1358.1,
+   "monde_le_plus_proche": 254
+  },
+  {
+   "graine": 114,
+   "site": [
+    15627.8,
+    22125.6
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1161.9,
+   "monde_le_plus_proche": 121
+  },
+  {
+   "graine": 116,
+   "site": [
+    9106.8,
+    14228.2
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1132.5,
+   "monde_le_plus_proche": 3183
+  },
+  {
+   "graine": 117,
+   "site": [
+    10098.2,
+    15351.3
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1258.5,
+   "monde_le_plus_proche": 242
+  },
+  {
+   "graine": 118,
+   "site": [
+    21475.7,
+    15662.8
+   ],
+   "role": "CORPUS",
+   "alias": [
+    251,
+    285
+   ],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 2070.0,
+   "monde_le_plus_proche": 122
+  },
+  {
+   "graine": 119,
+   "site": [
+    18227.2,
+    13001.1
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1662.0,
+   "monde_le_plus_proche": 221
+  },
+  {
+   "graine": 120,
+   "site": [
+    21961.9,
+    7841.6
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1354.0,
+   "monde_le_plus_proche": 200
+  },
+  {
+   "graine": 121,
+   "site": [
+    16302.3,
+    21179.5
+   ],
+   "role": "CORPUS",
+   "alias": [
+    266
+   ],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1161.9,
+   "monde_le_plus_proche": 114
+  },
+  {
+   "graine": 122,
+   "site": [
+    21387.2,
+    13594.7
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1656.2,
+   "monde_le_plus_proche": 101
+  },
+  {
+   "graine": 124,
+   "site": [
+    12017.6,
+    17650.7
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1421.6,
+   "monde_le_plus_proche": 277
+  },
+  {
+   "graine": 200,
+   "site": [
+    20770.7,
+    8485.3
+   ],
+   "role": "CORPUS",
+   "alias": [
+    287
+   ],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1354.0,
+   "monde_le_plus_proche": 120
+  },
+  {
+   "graine": 202,
+   "site": [
+    5332.0,
+    17142.5
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1756.6,
+   "monde_le_plus_proche": 227
+  },
+  {
+   "graine": 204,
+   "site": [
+    9728.8,
+    12290.7
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1017.3,
+   "monde_le_plus_proche": 104
+  },
+  {
+   "graine": 206,
+   "site": [
+    19028.1,
+    6027.3
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1493.0,
+   "monde_le_plus_proche": 210
+  },
+  {
+   "graine": 210,
+   "site": [
+    19282.6,
+    7498.4
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1493.0,
+   "monde_le_plus_proche": 206
+  },
+  {
+   "graine": 219,
+   "site": [
+    21056.9,
+    10307.2
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1844.2,
+   "monde_le_plus_proche": 200
+  },
+  {
+   "graine": 221,
+   "site": [
+    17956.4,
+    14640.9
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1490.0,
+   "monde_le_plus_proche": 105
+  },
+  {
+   "graine": 223,
+   "site": [
+    6212.9,
+    14661.2
+   ],
+   "role": "CORPUS",
+   "alias": [
+    5625
+   ],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1953.5,
+   "monde_le_plus_proche": 232
+  },
+  {
+   "graine": 227,
+   "site": [
+    7087.5,
+    17205.8
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1756.6,
+   "monde_le_plus_proche": 202
+  },
+  {
+   "graine": 230,
+   "site": [
+    20285.0,
+    19892.8
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 4089.7,
+   "monde_le_plus_proche": 254
+  },
+  {
+   "graine": 232,
+   "site": [
+    6736.6,
+    12779.2
+   ],
+   "role": "CORPUS",
+   "alias": [
+    263
+   ],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1546.0,
+   "monde_le_plus_proche": 240
+  },
+  {
+   "graine": 240,
+   "site": [
+    8224.7,
+    13198.2
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1356.1,
+   "monde_le_plus_proche": 116
+  },
+  {
+   "graine": 242,
+   "site": [
+    11128.4,
+    16074.2
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1258.5,
+   "monde_le_plus_proche": 117
+  },
+  {
+   "graine": 254,
+   "site": [
+    16592.6,
+    18134.5
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1358.1,
+   "monde_le_plus_proche": 110
+  },
+  {
+   "graine": 277,
+   "site": [
+    10620.0,
+    17390.8
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1411.3,
+   "monde_le_plus_proche": 242
+  },
+  {
+   "graine": 3183,
+   "site": [
+    8495.0,
+    15181.2
+   ],
+   "role": "CORPUS",
+   "alias": [],
+   "source": "GEO",
+   "distance_au_plus_proche_m": 1132.5,
+   "monde_le_plus_proche": 116
+  }
+ ],
+ "brules": [
+  {
+   "graine": 3,
+   "site": [
+    11293.9,
+    21235.4
+   ],
+   "alias": [
+    228
+   ],
+   "pourquoi": "monde deja joue (graines 3)"
+  },
+  {
+   "graine": 4,
+   "site": [
+    9526.8,
+    17621.2
+   ],
+   "alias": [],
+   "pourquoi": "monde deja joue (graines 4)"
+  },
+  {
+   "graine": 5,
+   "site": [
+    12682.8,
+    20171.5
+   ],
+   "alias": [],
+   "pourquoi": "monde deja joue (graines 5)"
+  },
+  {
+   "graine": 6,
+   "site": [
+    11538.4,
+    14726.4
+   ],
+   "alias": [],
+   "pourquoi": "monde deja joue (graines 6)"
+  },
+  {
+   "graine": 7,
+   "site": [
+    6804.0,
+    11678.3
+   ],
+   "alias": [
+    225
+   ],
+   "pourquoi": "monde deja joue (graines 7)"
+  },
+  {
+   "graine": 8,
+   "site": [
+    11816.9,
+    22183.0
+   ],
+   "alias": [],
+   "pourquoi": "monde deja joue (graines 8)"
+  },
+  {
+   "graine": 9,
+   "site": [
+    13926.3,
+    19302.6
+   ],
+   "alias": [],
+   "pourquoi": "monde deja joue (graines 9)"
+  },
+  {
+   "graine": 11,
+   "site": [
+    16823.5,
+    15049.9
+   ],
+   "alias": [
+    222
+   ],
+   "pourquoi": "monde deja joue (graines 11)"
+  },
+  {
+   "graine": 12,
+   "site": [
+    9905.2,
+    8788.9
+   ],
+   "alias": [],
+   "pourquoi": "monde deja joue (graines 12)"
+  },
+  {
+   "graine": 112,
+   "site": [
+    9920.5,
+    9240.2
+   ],
+   "alias": [
+    211,
+    218
+   ],
+   "pourquoi": "a 451.6 m du site de la graine jouee 12"
+  },
+  {
+   "graine": 123,
+   "site": [
+    9908.5,
+    9013.5
+   ],
+   "alias": [],
+   "pourquoi": "a 224.6 m du site de la graine jouee 12"
+  },
+  {
+   "graine": 215,
+   "site": [
+    13241.1,
+    19580.1
+   ],
+   "alias": [],
+   "pourquoi": "a 813.3 m du site de la graine jouee 5"
+  },
+  {
+   "graine": 216,
+   "site": [
+    12689.2,
+    19611.0
+   ],
+   "alias": [],
+   "pourquoi": "a 560.5 m du site de la graine jouee 5"
+  },
+  {
+   "graine": 217,
+   "site": [
+    9374.2,
+    8059.2
+   ],
+   "alias": [
+    255
+   ],
+   "pourquoi": "a 902.5 m du site de la graine jouee 12"
+  },
+  {
+   "graine": 224,
+   "site": [
+    10866.6,
+    14198.8
+   ],
+   "alias": [
+    265
+   ],
+   "pourquoi": "a 854.2 m du site de la graine jouee 6"
+  },
+  {
+   "graine": 234,
+   "site": [
+    12108.2,
+    14816.3
+   ],
+   "alias": [],
+   "pourquoi": "a 576.8 m du site de la graine jouee 6"
+  },
+  {
+   "graine": 244,
+   "site": [
+    11661.8,
+    22452.0
+   ],
+   "alias": [
+    268
+   ],
+   "pourquoi": "a 310.5 m du site de la graine jouee 8"
+  },
+  {
+   "graine": 247,
+   "site": [
+    10938.2,
+    14001.3
+   ],
+   "alias": [],
+   "pourquoi": "a 941.3 m du site de la graine jouee 6"
+  },
+  {
+   "graine": 248,
+   "site": [
+    8935.2,
+    18301.8
+   ],
+   "alias": [],
+   "pourquoi": "a 901.8 m du site de la graine jouee 4"
+  },
+  {
+   "graine": 249,
+   "site": [
+    12710.9,
+    20340.8
+   ],
+   "alias": [],
+   "pourquoi": "a 171.6 m du site de la graine jouee 5"
+  },
+  {
+   "graine": 250,
+   "site": [
+    9230.5,
+    18178.7
+   ],
+   "alias": [],
+   "pourquoi": "a 631.3 m du site de la graine jouee 4"
+  },
+  {
+   "graine": 253,
+   "site": [
+    11206.8,
+    13798.2
+   ],
+   "alias": [],
+   "pourquoi": "a 985.7 m du site de la graine jouee 6"
+  },
+  {
+   "graine": 258,
+   "site": [
+    12968.1,
+    20184.7
+   ],
+   "alias": [],
+   "pourquoi": "a 285.6 m du site de la graine jouee 5"
+  },
+  {
+   "graine": 262,
+   "site": [
+    9417.5,
+    8664.9
+   ],
+   "alias": [],
+   "pourquoi": "a 503.2 m du site de la graine jouee 12"
+  },
+  {
+   "graine": 271,
+   "site": [
+    11623.6,
+    22252.5
+   ],
+   "alias": [],
+   "pourquoi": "a 205.4 m du site de la graine jouee 8"
+  },
+  {
+   "graine": 274,
+   "site": [
+    9792.4,
+    16826.4
+   ],
+   "alias": [],
+   "pourquoi": "a 838.0 m du site de la graine jouee 4"
+  },
+  {
+   "graine": 286,
+   "site": [
+    14471.4,
+    19379.1
+   ],
+   "alias": [],
+   "pourquoi": "a 550.4 m du site de la graine jouee 9"
+  },
+  {
+   "graine": 288,
+   "site": [
+    8847.1,
+    17133.1
+   ],
+   "alias": [],
+   "pourquoi": "a 836.8 m du site de la graine jouee 4"
+  },
+  {
+   "graine": 293,
+   "site": [
+    7552.9,
+    12095.1
+   ],
+   "alias": [],
+   "pourquoi": "a 857.1 m du site de la graine jouee 7"
+  },
+  {
+   "graine": 7579,
+   "site": [
+    9471.7,
+    17526.8
+   ],
+   "alias": [],
+   "pourquoi": "a 109.3 m du site de la graine jouee 4"
+  },
+  {
+   "graine": 107,
+   "site": [
+    10274.1,
+    16465.8
+   ],
+   "alias": [
+    237,
+    252
+   ],
+   "pourquoi": "ecarte par le glouton : a 601.7 m d'un site brule"
+  },
+  {
+   "graine": 108,
+   "site": [
+    12113.6,
+    19333.8
+   ],
+   "alias": [
+    203,
+    205,
+    207,
+    279,
+    3754
+   ],
+   "pourquoi": "ecarte par le glouton : a 638.9 m d'un site brule"
+  },
+  {
+   "graine": 111,
+   "site": [
+    9699.2,
+    19001.3
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 820.0 m du monde retenu 103"
+  },
+  {
+   "graine": 113,
+   "site": [
+    9189.3,
+    19977.6
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 303.0 m du monde retenu 103"
+  },
+  {
+   "graine": 201,
+   "site": [
+    12065.6,
+    18125.8
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 477.5 m du monde retenu 124"
+  },
+  {
+   "graine": 208,
+   "site": [
+    12695.4,
+    15756.3
+   ],
+   "alias": [
+    235
+   ],
+   "pourquoi": "ecarte par le glouton : a 17.2 m du monde retenu 109"
+  },
+  {
+   "graine": 212,
+   "site": [
+    9184.6,
+    19972.5
+   ],
+   "alias": [
+    294
+   ],
+   "pourquoi": "ecarte par le glouton : a 302.9 m du monde retenu 103"
+  },
+  {
+   "graine": 213,
+   "site": [
+    11879.0,
+    18074.0
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 445.4 m du monde retenu 124"
+  },
+  {
+   "graine": 214,
+   "site": [
+    10323.8,
+    14948.5
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 461.7 m du monde retenu 117"
+  },
+  {
+   "graine": 220,
+   "site": [
+    10333.4,
+    19800.7
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 926.1 m du monde retenu 103"
+  },
+  {
+   "graine": 226,
+   "site": [
+    12706.7,
+    17729.6
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 693.6 m du monde retenu 124"
+  },
+  {
+   "graine": 229,
+   "site": [
+    10566.3,
+    13371.4
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 406.4 m du monde retenu 104"
+  },
+  {
+   "graine": 231,
+   "site": [
+    7499.1,
+    18906.5
+   ],
+   "alias": [
+    261
+   ],
+   "pourquoi": "ecarte par le glouton : a 807.9 m du monde retenu 106"
+  },
+  {
+   "graine": 233,
+   "site": [
+    8353.0,
+    20297.2
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 832.8 m du monde retenu 106"
+  },
+  {
+   "graine": 236,
+   "site": [
+    10329.2,
+    14946.0
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 466.5 m du monde retenu 117"
+  },
+  {
+   "graine": 238,
+   "site": [
+    9963.1,
+    16504.2
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 364.6 m d'un site brule"
+  },
+  {
+   "graine": 241,
+   "site": [
+    10383.5,
+    16654.0
+   ],
+   "alias": [
+    278
+   ],
+   "pourquoi": "ecarte par le glouton : a 615.7 m d'un site brule"
+  },
+  {
+   "graine": 243,
+   "site": [
+    10365.9,
+    16598.2
+   ],
+   "alias": [
+    259
+   ],
+   "pourquoi": "ecarte par le glouton : a 925.2 m du monde retenu 242"
+  },
+  {
+   "graine": 245,
+   "site": [
+    8900.9,
+    20007.7
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 560.9 m du monde retenu 103"
+  },
+  {
+   "graine": 246,
+   "site": [
+    10627.5,
+    16740.7
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 833.7 m du monde retenu 242"
+  },
+  {
+   "graine": 264,
+   "site": [
+    16466.9,
+    17964.0
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 211.8 m du monde retenu 254"
+  },
+  {
+   "graine": 267,
+   "site": [
+    10522.0,
+    14926.2
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 600.3 m du monde retenu 117"
+  },
+  {
+   "graine": 269,
+   "site": [
+    10912.2,
+    15662.9
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 871.6 m du monde retenu 117"
+  },
+  {
+   "graine": 270,
+   "site": [
+    12108.1,
+    16422.9
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 874.4 m du monde retenu 109"
+  },
+  {
+   "graine": 272,
+   "site": [
+    10902.3,
+    12486.7
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 993.4 m du monde retenu 104"
+  },
+  {
+   "graine": 273,
+   "site": [
+    20488.9,
+    9633.1
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 881.5 m du monde retenu 219"
+  },
+  {
+   "graine": 275,
+   "site": [
+    15337.4,
+    21057.2
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 972.6 m du monde retenu 121"
+  },
+  {
+   "graine": 276,
+   "site": [
+    10611.1,
+    17155.1
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 882.2 m d'un site brule"
+  },
+  {
+   "graine": 280,
+   "site": [
+    13297.8,
+    16181.9
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 749.0 m du monde retenu 109"
+  },
+  {
+   "graine": 282,
+   "site": [
+    10823.5,
+    15911.5
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 916.5 m du monde retenu 117"
+  },
+  {
+   "graine": 283,
+   "site": [
+    17885.3,
+    14439.8
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 213.3 m du monde retenu 221"
+  },
+  {
+   "graine": 284,
+   "site": [
+    8873.0,
+    13125.0
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 652.4 m du monde retenu 240"
+  },
+  {
+   "graine": 289,
+   "site": [
+    6878.2,
+    22192.8
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 459.6 m du monde retenu 102"
+  },
+  {
+   "graine": 290,
+   "site": [
+    11508.1,
+    17868.3
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 554.0 m du monde retenu 124"
+  },
+  {
+   "graine": 291,
+   "site": [
+    11824.8,
+    16888.9
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 785.8 m du monde retenu 124"
+  },
+  {
+   "graine": 292,
+   "site": [
+    8206.2,
+    16393.5
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 978.7 m d'un site brule"
+  },
+  {
+   "graine": 295,
+   "site": [
+    10651.3,
+    17201.7
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 191.7 m du monde retenu 277"
+  },
+  {
+   "graine": 3664,
+   "site": [
+    8220.9,
+    19200.7
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 415.3 m du monde retenu 106"
+  },
+  {
+   "graine": 3694,
+   "site": [
+    13496.7,
+    15865.4
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 824.7 m du monde retenu 109"
+  },
+  {
+   "graine": 3940,
+   "site": [
+    19971.9,
+    12166.0
+   ],
+   "alias": [],
+   "pourquoi": "ecarte par le glouton : a 659.8 m du monde retenu 101"
+  }
+ ],
+ "controles": [
+  {
+   "controle": "i",
+   "vert": true,
+   "detail": "distance minimale entre mondes retenus = 1017.3 m (104 vs 204), seuil 1000 m"
+  },
+  {
+   "controle": "ii",
+   "vert": true,
+   "detail": "distance minimale juge <-> site joue = 1384.9 m (juge 105 vs graine jouee 11)"
+  },
+  {
+   "controle": "iii",
+   "vert": true,
+   "detail": "3754/108 : ALIAS (representante 108, d = 0.00 m) ; 5701/106 : ALIAS (representante 106, d = 0.00 m) ; 109/115 : ALIAS (representante 109, d = 0.00 m)"
+  }
+ ],
+ "controles_tous_verts": true
+}

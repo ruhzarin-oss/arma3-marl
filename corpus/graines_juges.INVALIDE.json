@@ -1,0 +1,32 @@
+{
+ "invalide_le": "2026-09-14",
+ "pourquoi": "Le projet porte deja une cicatrice sur ce point : une politique avait MEMORISE son site et rendait 90,9 % sur les sites tires contre 93 % a la porte. Sans graines gelees AVANT l entrainement, on ne peut pas distinguer apprendre de memoriser.",
+ "remplace_par": "corpus/mondes.json",
+ "gelees_le": "2026-09-14 14:55:07",
+ "phrase_de_tirage": "CHACAL graines juges gelees le 14 septembre 2026 avant tout entrainement",
+ "empreinte_sha256": "d312131cb0b0aac7adde6f7b04a95b5dafcdff484939a912e941ea72a5ffe7a7",
+ "graines_juges": [
+  3183,
+  3664,
+  3694,
+  3754,
+  3940,
+  5625,
+  5701,
+  7579
+ ],
+ "graines_deja_jouees_au_gel": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  11,
+  12
+ ],
+ "regle": "Ces huit graines ne doivent JAMAIS servir a entrainer, a regler un seuil, ni a choisir un modele. Elles ne servent qu a JUGER, une fois, a la fin. Toute campagne qui les utilise hors certification finale invalide la certification. Le tirage est reproductible : sha256 de la phrase ci-dessus, generateur lineaire, graines au-dessus de 1000 pour exclure toute collision avec le corpus existant."
+}
