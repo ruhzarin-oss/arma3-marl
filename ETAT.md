@@ -1,4 +1,4 @@
-# ETAT — 2026-09-13 03:02
+# ETAT — 2026-09-13 22:36
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,18 +9,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-12T23:34:00+02:00 ok=True  conteneurs=20 ;
-- GPU : 764 MiB, 24576 MiB, 2 %
+- GPU : 729 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.6T libres sur 3.6T
-- serveurs Arma : 7 · residus : aucun
+- serveurs Arma : 1 · residus : aucun
 
 ## File
 
-- en cours : 2026-09-12_V6_PLEIN_i2.json, 2026-09-12_V6_PLEIN_i3.json, 2026-09-12_V6_PLEIN_i4.json, 2026-09-12_V6_PLEIN_i5.json, 2026-09-12_V6_PLEIN_i6.json, 2026-09-12_V6_PLEIN_i7.json, 2026-09-12_V6_SONDE-DUREE_i1.json
+- en cours : 2026-09-13_AZ_C-IMPOSE0_i6.json
 - en attente : rien
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 89 / 122
+- runs aboutis : 107 / 147
 
 ## Portes ouvertes
 
@@ -48,6 +48,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | CHACAL, 9 portes du lecteur d'episode | 2026-09-03 | n/a | 6 phases, 203 min par episode, 9 portes d'acceptation, 716 k etats d'unite a 1 Hz | PASSE | arma-pieges | chacal-portes.md |
 | Controle positif spatial du modele du monde | 2026-08-27 | n/a | prix(vers l'ennemi) - prix(a l'oppose) = +0,00000, part positive 50,5 % sur 16 797 cas | ECHEC |  | champ-spatial.md |
 | La compromission est la charniere : huit episodes avec ennemis, zero charge ; quatre sans ennemi, douze charges | 2026-09-09 | 5, 6, 7, 8 | 8 episodes du bras PLAN au palier 0 : 8 compromissions, 0 charge posee sur 24 ; 4 episodes au palier 9 (monde vide) : 0 compromission, 12 charges sur 12 et 4 SUCCES | PASSE | chacal-portes, monde-fixe-episode-libre | compromission-charniere.md |
+| ? | ? | ? | ? | ? |  | cone-60-degres-refute.md |
 | Courbe de toucher, niveau et forme, nuit N1 | 2026-09-04 | n/a | rapport a l'ancienne courbe x0,75 a 25 m et x1,91 a 150 m ; replication 0,402 contre 0,383 a 100 m | ECHEC |  | courbe-2607.md |
 | Courbe de toucher remesuree a HitPart, instrument reproductible | 2026-09-04 | 2 repetitions independantes de la meme condition | 18 conditions, ~17 000 balles ; 100 m debout 0,402 IC95 [0,371 ; 0,435] n=902, puis 0,383 IC95 [0,335 ; 0,434] n=368 | PASSE | courbe-2607 | courbe-toucher-hitpart.md |
 | Degat par impact re-derive sur l'acte de mort | 2026-09-04 | n/a | 0,175 par impact ; mediane 4,0 impacts jusqu'a la neutralisation, n=83 ; l'ancien 0,233 venait d'un capteur qui sur-comptait | PASSE | courbe-toucher-hitpart | degat-par-impact.md |
@@ -56,6 +57,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Fidelite du monde assemble, contraste vu contre non vu | 2026-08-11 | n/a | etre vu multiplie la mortalite de +856 % dans la sandbox contre +75 % certifies sur Arma | ECHEC | etre-vu-tue-2x, sandbox-letalite-4x | fidelite-arma-couvert-11x.md |
 | ? | ? | ? | ? | ? |  | file-par-instance-08-09.md |
 | Greffe du prix sur une politique figee, marge attribuable | 2026-08-25 | 6 graines de jugement jamais vues | temoin 39,3 %, greffe 61,6 % ; +8,8 pts dus au decodeur, marge attribuable au prix +15,3 pts | PASSE | politique-est-navigateur | greffe-credit.md |
+| ? | ? | ? | ? | ? |  | historique-08-au-13-septembre.md |
 | Infrastructure de mesure : sentinelle de pont, harnais de banc, deploiement SQF depuis git | 2026-09-04 | n/a | trois outils en service ; une panne trouvee et non reparee : la couche bronze du lac est un lien mort | PASSE |  | infra-sentinelle-harnais.md |
 | Controle positif de la connaissance dans Arma | 2026-08-02 | 1 | knowsAbout 4,00 avec un camarade qui voit, 0,00 seul ; 0,00 a 50 m de flanc contre 2,00 a 300 m de face | PASSE |  | knowsabout-de-camp.md |
 | Lanceur HMT : un job dans queue/ produit un FIN.json sans session ssh | 2026-09-07 | 3, 4 | 2 runs COMPLET (4733 s puis 2793 s), 4 episodes CHACAL, 4 serveurs lances et arretes par PID, 0 session ssh ouverte | PASSE | chacal-portes | lanceur-hmt-temoin.md |
@@ -67,6 +69,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | L oracle a l assaut ne fait pas gagner : savoir ou sont les defenseurs pendant l assaut pose les 3 charges 8 fois sur 18, contre 4 sur 12 sans | 2026-09-11 | 7, 8, trois repetitions chacune par job ; 3 jobs oracle (instances 1, 3, 5), 2 jobs reference (2, 4), joues en meme temps | oracle 8/18 (44 %) contre reference 4/12 (33 %), memes graines, meme charge, meme heure ; critere ecrit avant : reussite >= 15/18, echec <= 9/18 -> ECHEC ; ecart non significatif (Fisher unilateral ~0,4) | ECHEC | controle-positif-reveal-certifie, feu-avant-vignette, alize-reflexe-trop-tard | oracle-savoir-a-l-assaut.md |
 | Au palier 4, la mission gagne de bout en bout une fois sur deux, et quand elle perd, ce n'est plus un massacre | 2026-09-10 | 7, 8, deux repetitions chacune, deux bras (accessible 0 et 1) | 4 SUCCES sur 8 episodes acceptes (IC95 Wilson 22 a 78 %) ; survivants des succes 10, 8, 10, 9 ; les 4 echecs sont TOUS CHARGES_INCOMPLETES avec 6 a 10 vivants (0 ou 2 charges sur 3) ; compromission 8 fois sur 8 ; 0 abandon | PASSE | plan-de-positions-sans-plan-de-feu, plancher-de-bruit-mission-complete | palier4-gagne-une-fois-sur-deux.md |
 | Critere du placeur, praticabilite ou direction | 2026-08-19 | n/a | 11-15 m en montee contre 22-26 m en descente ; 0 acte sur 188 finissant au sol n'atteint le seuil de 23 m | PASSE |  | pente-sens-marche.md |
+| ? | ? | ? | ? | ? |  | phase3-porte-hors-datteinte.md |
 | Le PLAN contre son TEMOIN au palier 0 : le plan combat, aucun des deux ne pose de charge | 2026-09-08 | plan 7 et 8 ; temoin 5 et 6 | ennemis neutralises 6 et 14 (plan) contre 0 et 0 (temoin) ; charges posees 0 sur 3 dans les quatre episodes ; survivants BLUFOR 5 et 7 (plan) contre 10 et 4 (temoin) ; 4 episodes ACCEPTES, 15 portes vertes sur 15 | PASSE | chacal-portes, chacal-bras-temoin-palier0, lanceur-hmt-temoin | plan-contre-temoin-palier0.md |
 | Un plan de positions sans plan de feu : UN defenseur tue cinq assaillants, le detachement tire UNE balle | 2026-09-09 | 8, palier 4 | l'unite adverse 3 tire 36 coups entre 4959 et 4997 s et signe LES CINQ morts (CHEF, ADJOINT, DEMO_1, DEMO_2, MEDECIN) ; le detachement de dix hommes tire UN seul coup sur tout l'episode, a 4996,57 s, une demi-seconde avant la mort de son tireur ; l'element d'appui, deux hommes en position, tire ZERO | PASSE | chacal-portes, etre-vu-tue-2x, angle-mort | plan-de-positions-sans-plan-de-feu.md |
 | Plancher de bruit de la mission complete : a monde ET configuration fixes, l'issue va de 0 a 5 survivants | 2026-09-09 | 7, huit repetitions | 8 episodes acceptes, meme configuration et meme graine — survivants 5, 4, 5, 5, 0, 5, 3, 2 (de 0 a 5 sur 10, moyenne 3,6) ; QUATRE causes de fin differentes : ARTICULATION_ROMPUE, CHARGES_INCOMPLETES, COMPROMIS_LOIN, DETACHEMENT_DETRUIT ; durees de 4590 a 8899 s, soit un facteur 1,9 | PASSE | monde-fixe-episode-libre, chacal-portes | plancher-de-bruit-mission-complete.md |
@@ -79,7 +82,9 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Les trois charges sont POSABLES : 20 episodes sur 20 a 3 sur 3 en monde vide, tour comprise | 2026-09-12 | 7, 8, dix vignettes chacune (palier 9, monde vide) | 20/20 episodes a 3 charges sur 3, aucune charge manquee, aucune cause ELEMENT_N_ARRIVE_PAS ni PORTEUR_N_ARRIVE_PAS | PASSE | chacal-portes | socle-posable-monde-vide.md |
 | Dose-reponse d'immobilite au gymnase | 2026-08-26 | 301 a 306, jamais vues | doctrine scriptee 91,0 % contre 35,0 % pour la meilleure du depot ; pauses de 1, 2, 4 pas : -17,8 / -26,6 / -38,6 | PASSE | sandbox-letalite-4x | tout-ce-qui-fige-coute.md |
 | Banc live 20 episodes, transfert gymnase vers Arma | 2026-08-15 | n/a | prise 0/20 = 0,0 % sur Arma contre 59,4 % au gymnase ; 9/20 tous morts, 11/20 sans prendre | ECHEC | boucle-fermee | transfert-non-etabli.md |
+| ? | ? | ? | ? | ? |  | un-levier-ecrit-nest-pas-un-levier-lu.md |
 | Quatre valeurs de configuration lues directement sur Arma 3 | 2026-09-03 | n/a | rayon 1,688 m ; sensitivity 6,0 ; sensitivityEar 0,125 ; audible 0,05 ; indirectHitRange 0,0 | PASSE | loi-auditive-forme | valeurs-configfile-arma.md |
+| ? | ? | ? | ? | ? |  | victoire-bout-en-bout-47-pourcent.md |
 | La vignette d'assaut DISCRIMINE, replique sur deux mondes : la mitrailleuse servie interdit la pose | 2026-09-09 | 7 et 9, cinq repetitions par niveau | AVEC une piece servie, 0 charge posee sur 8 episodes acceptes (graines 7 et 9 confondues), 5 survivants aux 8. SANS piece, une charge au moins dans 6 episodes sur 9 : graine 7 -> 2,3,2,1 (moyenne 2,0/3, survivants 7,7,7,5) ; graine 9 -> 0,3,2,0,0 (moyenne 1,0/3, survivants 5,6,8,5,5). Duree d'un episode 92 a 859 s, contre ~55 min pour une mission complete | PASSE | chacal-portes, monde-fixe-episode-libre, compromission-charniere | vignette-discrimine-mitrailleuse.md |
 
 ## Remplaces
@@ -93,18 +98,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
-| 2026-09-12_233832_chacal_i7 | chacal | EN COURS |  |  |
-| 2026-09-12_233802_chacal_i6 | chacal | EN COURS |  |  |
-| 2026-09-12_233732_chacal_i5 | chacal | EN COURS |  |  |
-| 2026-09-12_233702_chacal_i4 | chacal | EN COURS |  |  |
-| 2026-09-12_233631_chacal_i3 | chacal | EN COURS |  |  |
-| 2026-09-12_233601_chacal_i2 | chacal | EN COURS |  |  |
-| 2026-09-12_233559_chacal_i1 | chacal | COMPLET | g7:ACCEPTE g8:ACCEPTE | 12383 |
-| 2026-09-12_181029_chacal_i2 | chacal | SANS FIN.json |  |  |
-| 2026-09-12_175644_chacal_i4 | chacal | SANS FIN.json |  |  |
-| 2026-09-12_175612_chacal_i3 | chacal | SANS FIN.json |  |  |
-| 2026-09-12_175559_chacal_i2 | chacal | SANS FIN.json |  |  |
-| 2026-09-12_175539_chacal_i1 | chacal | SANS FIN.json |  |  |
-| 2026-09-12_173911_chacal_i4 | chacal | SANS FIN.json |  |  |
-| 2026-09-12_173836_chacal_i3 | chacal | SANS FIN.json |  |  |
-| 2026-09-12_173801_chacal_i2 | chacal | SANS FIN.json |  |  |
+| 2026-09-13_205115_chacal_i6 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE | 6305 |
+| 2026-09-13_205045_chacal_i5 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE | 6162 |
+| 2026-09-13_205015_chacal_i4 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE | 5936 |
+| 2026-09-13_204945_chacal_i3 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE | 6101 |
+| 2026-09-13_204914_chacal_i2 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE | 5548 |
+| 2026-09-13_204844_chacal_i1 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE | 5795 |
+| 2026-09-13_191016_chacal_i1 | chacal | EN COURS |  |  |
+| 2026-09-13_182035_chacal_i6 | chacal | EN COURS |  |  |
+| 2026-09-13_182003_chacal_i5 | chacal | EN COURS |  |  |
+| 2026-09-13_181931_chacal_i4 | chacal | EN COURS |  |  |
+| 2026-09-13_181859_chacal_i3 | chacal | EN COURS |  |  |
+| 2026-09-13_181826_chacal_i2 | chacal | EN COURS |  |  |
+| 2026-09-13_181754_chacal_i1 | chacal | EN COURS |  |  |
+| 2026-09-13_104159_chacal_i6 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE | 25328 |
+| 2026-09-13_104127_chacal_i5 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE | 22401 |

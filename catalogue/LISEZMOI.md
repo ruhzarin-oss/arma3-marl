@@ -1,9 +1,9 @@
 # Catalogue des episodes CHACAL
 
-Genere par `outils/catalogue.py` le 2026-09-13 05:00. **Ne pas editer a la main** : il est
+Genere par `outils/catalogue.py` le 2026-09-14 05:00. **Ne pas editer a la main** : il est
 regenere apres chaque run (file3.sh) et chaque nuit (sauver.sh).
 
-- **542 episodes**, lus depuis 783 journaux (21 sans ligne FINI ignores).
+- **661 episodes**, lus depuis 907 journaux (22 sans ligne FINI ignores).
 - Un episode = une ligne ; `episodes.csv` pour un tableur, `episodes.jsonl` pour un programme.
 - Le journal complet de chaque episode est dans la colonne `source` ; ses tables (etat de chaque homme
   toutes les ~2 s, perception, evenements, phases) sont a cote, dans `extrait/`.
@@ -31,8 +31,18 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 | ABLATION-12-09 | A4 | 18 | 13 |
 | ABLATION-12-09 | A8 | 16 | 11 |
 | ALIZE-1 | AL1 | 19 | 6 |
+| AZIMUT-VIGNETTE-13-09 | AZ-A-SCRIPT | 22 | 15 |
+| AZIMUT-VIGNETTE-13-09 | AZ-B-HASARD | 23 | 14 |
+| AZIMUT-VIGNETTE-13-09 | AZ-C-IMPOSE0 | 23 | 11 |
 | BANC-APPUI-12-09 | BA-CLOUE | 8 | 0 |
 | BANC-APPUI-12-09 | BA-LIBRE | 6 | 0 |
+| CONTROLE-COUTURE-AZIMUT | COUTURE-CTRL | 1 | 0 |
+| EXFIL-13-09 | EXF-A-REFERENCE | 1 | 0 |
+| EXFIL-13-09 | EXF-B-AWARE | 2 | 0 |
+| EXFIL-13-09 | EXF-C-BUDGET | 2 | 1 |
+| EXFIL-13-09-BIS | EXF2-A-REFERENCE | 12 | 6 |
+| EXFIL-13-09-BIS | EXF2-B-AWARE | 12 | 9 |
+| EXFIL-13-09-BIS | EXF2-C-BUDGET | 12 | 9 |
 | G8-FABLE-11-09 | V1 | 6 | 1 |
 | G8-FABLE-11-09 | V2 | 10 | 4 |
 | G8-FABLE-11-09 | V3 | 10 | 3 |
@@ -62,5 +72,5 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 | TOURNOI-TACTIQUES-12-09 | B2 | 18 | 11 |
 | TOURNOI-TACTIQUES-12-09 | B5 | 10 | 2 |
 | TOURNOI-TACTIQUES-12-09 | REF | 10 | 1 |
-| VICTOIRE-BOUT-EN-BOUT-12-09 | V6-PLEIN | 27 | 22 |
+| VICTOIRE-BOUT-EN-BOUT-12-09 | V6-PLEIN | 36 | 29 |
 | VICTOIRE-BOUT-EN-BOUT-12-09 | V6-SONDE-DUREE | 2 | 1 |
