@@ -66,3 +66,23 @@ toujours (au 2ᵉ pas dans le cas témoin). La ligne date du **4 août** (`a405a
 Filtrer les boîtes par proximité, puis remesurer — c'est la seule chose qui décide si le monde
 3D entre dans le gymnase. La létalité sur ce monde-là (courbe de toucher, suppression) n'est
 toujours pas accordée.
+
+## ⛔ CORRECTION DU 14/09 AU SOIR — L'ACCORD AVEC UNREAL N'EST PLUS VÉRIFIABLE
+J'ai écrit plus haut que le contrôle de justesse « répond comme Unreal ». **C'est à retirer.**
+
+`p2/p2_gymnase.json` enregistre l'accord sous l'empreinte **`efecae3b…`**, avec les cinq réponses.
+Or `batiment.json` hache aujourd'hui **`8ff46b06…`** — et **dans les deux arbres**, celui en
+service comme `arma3-marl.ancien`. Le bâtiment qui a produit l'accord **n'existe plus nulle part** :
+`efecae3b` n'est plus qu'une chaîne dans un fichier de relevé, pas un monde reproductible.
+
+Ce que ça change, exactement :
+- Les **temps mesurés restent valables** — un chronomètre ne dépend pas de la justesse des réponses.
+- La phrase « le noyau boîtes répond comme Unreal » **n'est plus adossée à rien**. Le contrôle de
+  `banc_debit.py` compare à cinq réponses codées en dur, obtenues sur un autre bâtiment. Qu'il
+  passe est encourageant, ce n'est pas l'accord certifié.
+
+> ⭐ C'est le cliquet déjà payé une fois : **quand la référence change, le contrôle qui s'appuyait
+> dessus meurt avec elle. Il se REMESURE, il ne se transpose pas.**
+
+À faire avant d'invoquer cet accord : régénérer le bâtiment d'empreinte `efecae3b` (ou rejouer les
+cinq sondes côté Unreal sur `8ff46b06`), puis réenregistrer l'accord avec l'empreinte du jour.
