@@ -107,3 +107,56 @@ dans ce monde.
 
 *Voir aussi : `une-graine-n-est-pas-un-monde`, `un-levier-ecrit-nest-pas-un-levier-lu`,
 `phase3-porte-hors-datteinte`, `azimut-ne-porte-pas-et-le-bruit-commande`.*
+
+
+---
+
+## Amendement du 15 septembre : réparer le seuil ne servirait à rien
+
+Le corps de ce verdict montrait que le terme « gardes » de la règle de choix est inerte par
+construction — seuil de 110 m contre une corde de 92 m entre les deux ouvertures. La réparation
+évidente était de rétrécir ce seuil pour que la règle voie enfin de quel côté sont les défenseurs.
+
+**Cette réparation ne vaut rien, et c'est mesuré.** Sur les 159 épisodes de référence, on a
+reconstitué la position des quatre défenseurs à l'instant exact du choix, depuis les instantanés
+`CHACAL|S|` du journal, puis calculé l'asymétrie : combien sont plus près de la porte A, combien de
+la porte B.
+
+À graine fixée, cette asymétrie ne prédit rien :
+
+| | valeur | intervalle à 95 % | p |
+|---|---|---|---|
+| pente intra-graine | **−0,1 point** par défenseur déplacé | [−4,2 ; +4,4] | 1,00 |
+| Mantel-Haenszel, asym > 0 contre asym ≤ 0 | OR = 0,83 | — | 0,86 |
+| écart de taux pondéré intra-graine | −5,4 points | [−29,3 ; +17,3] | — |
+| asymétrie de **cap** (cône de 60°) | −0,85 point | — | 0,84 |
+
+Le signal apparent — **−1,8 point** par unité en lecture poolée — est un **Simpson d'un facteur 18**.
+La graine 7 est la deuxième meilleure (58,8 %) et ne produit *jamais* d'asymétrie positive ; la
+graine 12, deuxième pire (44,4 %), en produit dans 42 % de ses épisodes. Lu en vrac, le tableau
+donne 61,5 % à asym = −4 contre 33,3 % à asym = +4. C'est une composition de graines, pas un effet.
+
+### Le contrôle qui rend ce zéro lisible
+
+Un zéro ne vaut que si l'instrument sait produire autre chose qu'un zéro. Celui-ci a deux contrôles,
+et le second est le bon :
+
+- les quatre défenseurs sont vivants et recensés dans **159 épisodes sur 159** ; aucun au-delà de
+  55 m du site — et 55 m est bien le rayon de garnison écrit dans `30_opfor.sqf`, pas les 46 m du
+  mur que l'on croyait ;
+- **l'extracteur reproduit les `distances|[da,db]` que le script écrit lui-même, à 0,96 m près pour
+  la porte A et 1,19 m pour la porte B, sur 159 épisodes sur 159** — médianes 0,23 et 0,25 m.
+
+Ce second contrôle valide d'un coup la lecture du format `S`, les positions calculées des deux
+ouvertures et l'identification des cinq hommes d'assaut. Il a d'ailleurs fait son travail en levant
+une erreur : un cinquième « défenseur » apparaissait dans 16 épisodes — le canari, recensé avant que
+son rôle ne soit posé.
+
+### Ce que cela change
+
+La couture du choix d'ouverture n'a pas d'entrée informative connue. Si la porte compte — c'est ce
+que mesure `PORTE-A-CONTRE-PORTE-B-14-09` —, ce qui la commande n'est pas où se tiennent les
+défenseurs, mais quelque chose du terrain : relèvement de l'arrivée, crête, cheminement.
+
+Et surtout : le goulot de l'assaut est ailleurs. Voir
+`le-porteur-narrive-pas-et-personne-ne-le-remplace`.
