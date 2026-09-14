@@ -69,3 +69,59 @@ moteur établit que l'itinéraire se calcule en fonction du comportement.
 ## Suite
 
 Campagne EXFIL-13-09, trois bras : référence, AWARE après rupture de contact, budget à 1,2 m/s.
+
+---
+
+# AMENDEMENT DU 13/09/2026 : CE VERDICT EST FAUX SUR SON POINT CENTRAL
+
+**Le goulot n'est pas l'exfiltration. C'est l'assaut.** Et le taux n'est pas 47 %, il est d'environ 74 %.
+
+## Le défaut
+
+La règle S3 du socle cloue l'appui — `disableAI "PATH"` plus `lambs_danger_disableAI`. La phase 6 ne
+le libérait **que si** `CHACAL_APPUI_FIXE == 1`. Or toutes les campagnes tournaient avec `socle=1` et
+`appui_fixe=0` : l'appui n'était **jamais** libéré.
+
+Deux hommes sur dix ne pouvaient pas rejoindre le point de ramassage, alors que le critère en exige
+six sur dix.
+
+## La preuve, lue dans les traces
+
+Les hommes 6 et 7 parcourent **zéro mètre** pendant la phase 6, dans 11 épisodes sur 12, pendant que
+tous les autres marchent entre 1 000 et 2 400 m.
+
+Et dans les échecs dits « d'exfiltration », **tous les survivants mobiles étaient arrivés** :
+« 4 exfiltrés, 6 vivants » signifie 4 mobiles et 4 arrivés ; « 5 exfiltrés, 7 vivants » signifie
+5 mobiles et 5 arrivés. Ce n'étaient pas des exfiltrations manquées.
+
+## Le recomptage, hors ligne, sur 38 épisodes
+
+| | |
+|---|---|
+| Taux **réel** mesuré | 18/38 — 47,4 % |
+| Taux **projeté**, appui rendu à ses jambes | 28/38 — **73,7 %** |
+| Écart | 10 épisodes, 26,3 points |
+
+Échecs qui subsistent : **8 charges incomplètes contre 2 exfiltrations manquées.**
+
+Le projeté est une **hypothèse**, pas une mesure : il suppose que l'appui serait arrivé comme les
+autres. Ce qui la rend crédible est que, dans les épisodes lus, tous les survivants mobiles sont
+arrivés. Le chiffre réel viendra d'une campagne rejouée avec le correctif.
+
+## Ce que cela invalide
+
+- La conclusion « le goulot est le décrochage » : **fausse**.
+- La campagne d'exfiltration à trois bras du 13/09 : les trois bras ont été mesurés sur des hommes qui
+  ne pouvaient pas marcher. Le 41 % identique de la référence et du budget s'explique ainsi, et le
+  58 % d'AWARE est du bruit.
+
+## Ce que cela apprend, et c'est la troisième fois
+
+C'est la **troisième panne d'instrument lue comme un résultat** : `arret=5` rendait le succès
+impossible, le seuil 3 de la phase 3 était hors d'atteinte, et l'appui n'avait pas de jambes.
+
+Le point commun est écrit noir sur blanc : **aucune porte du lecteur ne vérifiait qu'un homme vivant
+peut marcher.** Le défaut a traversé quinze portes vertes et trois campagnes.
+
+Correctif : la phase 6 rend les jambes à tout le monde sans condition, et une garde compte les hommes
+vivants sans `PATH` et l'écrit dans la ligne FINI sous `sans_jambes`.

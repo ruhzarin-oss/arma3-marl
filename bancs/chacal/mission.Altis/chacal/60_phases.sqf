@@ -1417,7 +1417,32 @@ private _pourquoi = if (CHACAL_ABANDON) then {"ABANDON_REPLI_PAR_LA_LZ"} else {"
 // En COMBAT sur 1,4 a 2,4 km, 1,8 m/s de moyenne n est pas garanti meme sans
 // ennemi : l issue serait EXFIL_MANQUEE sur un detachement intact.
 // l appui fixe est rendu a ses jambes pour rentrer
-if (CHACAL_APPUI_FIXE == 1 && { !isNull CHACAL_gAppui }) then { { _x enableAI "PATH" } forEach (units CHACAL_gAppui) };
+// ! ON REND LES JAMBES A TOUT LE MONDE, SANS CONDITION ( 13/09 ).
+// L ancienne ligne ne liberait l appui QUE si CHACAL_APPUI_FIXE valait 1. Or le socle le cloue par sa
+// regle S3, et toutes les campagnes tournaient avec socle=1 et appui_fixe=0 : l appui n etait JAMAIS
+// libere. Mesure dans les traces : les hommes 6 et 7 parcourent ZERO metre pendant la phase 6 dans 11
+// episodes sur 12, pendant que les autres marchent 1000 a 2400 m. Deux hommes sur dix ne pouvaient pas
+// rejoindre le point de ramassage, alors que le critere en exige six sur dix.
+// On s exfiltre, on ne tient pas : a la phase 6, plus personne n est cloue.
+{
+    if (!isNull _x) then {
+        _x setVariable ["lambs_danger_disableGroupAI", false, true];
+        { if (alive _x) then {
+            _x enableAI "PATH"; _x enableAI "MOVE";
+            _x setVariable ["lambs_danger_disableAI", false, true];
+            _x forceSpeed -1;
+        } } forEach (units _x);
+    };
+} forEach [CHACAL_gAssaut, CHACAL_gAppui, CHACAL_gBouchon, CHACAL_gReco, CHACAL_gFS];
+// ! LA GARDE QUI MANQUAIT. Aucune porte du lecteur ne verifiait qu un homme VIVANT peut marcher, et
+// c est pourquoi ce defaut a traverse quinze portes vertes et trois campagnes. On compte, et on ecrit.
+CHACAL_SANS_JAMBES = 0;
+{ if (alive _x && { !(_x checkAIFeature "PATH") }) then { CHACAL_SANS_JAMBES = CHACAL_SANS_JAMBES + 1 } } forEach CHACAL_FS;
+(format ["CHACAL|E|exfil_jambes|%1|vivants|%2|sans_path|%3|seuil_exige|%4", round (time * 100) / 100,
+    count (CHACAL_FS select { alive _x }), CHACAL_SANS_JAMBES, round (0.6 * CHACAL_EFFECTIF)]) call CHACAL_LOG;
+if (CHACAL_SANS_JAMBES > 0) then {
+    (format ["CHACAL|AVERT|exfil|hommes_vivants_sans_jambes|%1", CHACAL_SANS_JAMBES]) call CHACAL_LOG;
+};
 private _compExf = if (CHACAL_COMPROMIS) then {"COMBAT"} else {"AWARE"};
 // ! EXFIL=1 : on rompt le contact en COMBAT, puis on rend les jambes. La recolte du moteur du
 // 13/09 dit que le chemin se calcule en fonction du comportement ; un homme en COMBAT ne prend

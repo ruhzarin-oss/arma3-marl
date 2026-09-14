@@ -78,6 +78,7 @@ CHACAL_fnc_sans = { (floor (CHACAL_ABLATION / _this)) % 2 == 1 };   // _this = l
 CHACAL_CONNUS = [];          // defenseurs qui se sont trahis en tirant
 CHACAL_T_PREMIER_TIR_APPUI = -1;
 CHACAL_RELANCES_SOCLE = 0; CHACAL_FUMIGENES = 0; CHACAL_ZONES = 0;
+CHACAL_SANS_JAMBES = 0;   // hommes vivants incapables de marcher a l exfiltration - la garde du 13/09
 CHACAL_CIBLE_ASSAUT = [];   // ! posee ici : le chien de garde demarrait avant son initialisation
 CHACAL_EFFECTIF = ["CHACAL_EFFECTIF", 10] call BIS_fnc_getParamValue;
 CHACAL_ACCESSIBLE = ["CHACAL_ACCESSIBLE", 0] call BIS_fnc_getParamValue;
