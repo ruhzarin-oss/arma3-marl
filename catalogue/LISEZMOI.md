@@ -1,9 +1,9 @@
 # Catalogue des episodes CHACAL
 
-Genere par `outils/catalogue.py` le 2026-09-14 05:00. **Ne pas editer a la main** : il est
+Genere par `outils/catalogue.py` le 2026-09-14 21:24. **Ne pas editer a la main** : il est
 regenere apres chaque run (file3.sh) et chaque nuit (sauver.sh).
 
-- **661 episodes**, lus depuis 907 journaux (22 sans ligne FINI ignores).
+- **935 episodes**, lus depuis 1189 journaux (22 sans ligne FINI ignores).
 - Un episode = une ligne ; `episodes.csv` pour un tableur, `episodes.jsonl` pour un programme.
 - Le journal complet de chaque episode est dans la colonne `source` ; ses tables (etat de chaque homme
   toutes les ~2 s, perception, evenements, phases) sont a cote, dans `extrait/`.
@@ -31,6 +31,14 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 | ABLATION-12-09 | A4 | 18 | 13 |
 | ABLATION-12-09 | A8 | 16 | 11 |
 | ALIZE-1 | AL1 | 19 | 6 |
+| AZIMUT-PAR-GRAINE-14-09 | AZG-g7-120 | 5 | 2 |
+| AZIMUT-PAR-GRAINE-14-09 | AZG-g7-240 | 5 | 4 |
+| AZIMUT-PAR-GRAINE-14-09 | AZG-g7-300 | 6 | 4 |
+| AZIMUT-PAR-GRAINE-14-09 | AZG-g7-60 | 5 | 4 |
+| AZIMUT-PAR-GRAINE-14-09 | AZG-g8-120 | 4 | 4 |
+| AZIMUT-PAR-GRAINE-14-09 | AZG-g8-180 | 4 | 2 |
+| AZIMUT-PAR-GRAINE-14-09 | AZG-g8-240 | 5 | 1 |
+| AZIMUT-PAR-GRAINE-14-09 | AZG-g8-60 | 6 | 6 |
 | AZIMUT-VIGNETTE-13-09 | AZ-A-SCRIPT | 22 | 15 |
 | AZIMUT-VIGNETTE-13-09 | AZ-B-HASARD | 23 | 14 |
 | AZIMUT-VIGNETTE-13-09 | AZ-C-IMPOSE0 | 23 | 11 |
@@ -52,6 +60,9 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 | G8-FABLE-11-09 | V7 | 7 | 0 |
 | G8-FABLE-11-09 | V8 | 6 | 3 |
 | G8-FABLE-11-09 | V9 | 7 | 0 |
+| GEOMETRIE-14-09 | GEO-CORPUS | 24 | 0 |
+| GEOMETRIE-14-09 | GEO-JUGES | 8 | 0 |
+| GEOMETRIE-LARGE-14-09 | GEOL | 43 | 0 |
 | ORACLE-11-09 | OR | 17 | 7 |
 | ORACLE-11-09 | REF-A | 12 | 4 |
 | ORACLE-COMPLET-11-09 | ORC | 18 | 9 |
@@ -62,6 +73,8 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 | PLACEUR-BALAYAGE-12-09 | PL4-B | 3 | 0 |
 | PLACEUR-HAUTEUR-12-09 | PL3-A | 1 | 0 |
 | PLACEUR-TEMOIN-12-09 | PL5-B | 1 | 0 |
+| REFERENCE-JAMBES-13-09 | REF-JAMBES | 15 | 11 |
+| REFERENCE-PROPRE-13-09 | REF-PROPRE | 144 | 87 |
 | S0-CONTROLE-POSITIF | S0 | 19 | 19 |
 | SOCLE-CONFIRMATION-12-09 | B0 | 19 | 14 |
 | SOCLE-CONFIRMATION-12-09 | B1c | 10 | 7 |

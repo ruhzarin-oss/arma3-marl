@@ -1,4 +1,4 @@
-# ETAT — 2026-09-13 22:36
+# ETAT — 2026-09-14 21:23
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,18 +9,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-12T23:34:00+02:00 ok=True  conteneurs=20 ;
-- GPU : 729 MiB, 24576 MiB, 0 %
+- GPU : 4397 MiB, 24576 MiB, 95 %
 - /mnt/data : 2.6T libres sur 3.6T
-- serveurs Arma : 1 · residus : aucun
+- serveurs Arma : 3 · residus : aucun
 
 ## File
 
-- en cours : 2026-09-13_AZ_C-IMPOSE0_i6.json
-- en attente : rien
+- en cours : 2026-09-14_GEOL_00.json, 2026-09-14_GEOL_01.json, 2026-09-14_GEOL_03.json
+- en attente : 2026-09-14_GEOL_06.json, 2026-09-14_GEOL_07.json, 2026-09-14_GEOL_08.json, 2026-09-14_GEOL_09.json, 2026-09-14_GEOL_10.json, 2026-09-14_GEOL_11.json
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 107 / 147
+- runs aboutis : 133 / 187
 
 ## Portes ouvertes
 
@@ -40,6 +40,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Angle mort et cout de se montrer, quatre bancs Arma | 2026-08-03 | n/a | 18/18 repere dans le cone, 0/26 hors du cone ; tirer plafonne a 1,50 quand se montrer donne 4,00 | PASSE | knowsabout-de-camp | angle-mort.md |
 | Arc de tir d'Arma, latence de riposte par angle | 2026-07-28 | n/a | riposte a 0,0 s a 0 deg contre 3,5 a 4,1 s a 90-180 deg ; taux de riposte 100 % partout | PASSE |  | arc-tir-sursis.md |
 | Reproductibilite du banc CHACAL, six pieges Arma | 2026-09-03 | 1 | meme graine et meme build rendent deux routes opposees ; 4163 s reels pour une phase budgetee a 1800 s | ECHEC |  | arma-pieges.md |
+| ? | ? | ? | ? | ? |  | azimut-ne-porte-pas-et-le-bruit-commande.md |
 | Barreau B0@60, transfert zero-shot | 2026-09-02 | 0, 1 | 251/255 = 98,4 % et 251/254 = 98,8 %, sans un episode d'entrainement a 60 m | VIDE | b0-30 | b0-60-vide.md |
 | Coupe du banc live selon la presence d'un defenseur vivant | 2026-08-22 | n/a | 26 episodes du natif et 31 de la politique sans aucun defenseur ; natif 26/26 en monde vide, politique 18/31 | ECHEC |  | banc-quart-sans-adversaire.md |
 | Controle d'instrument du canal ennemi, avant le barreau adverse | 2026-09-03 | 1 | 4 champs sur 5 allumes ; 118 coups sur 20 episodes en B1 contre 0 en B0 | PASSE | site-degele | canal-ennemi.md |
@@ -75,6 +76,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Plancher de bruit de la mission complete : a monde ET configuration fixes, l'issue va de 0 a 5 survivants | 2026-09-09 | 7, huit repetitions | 8 episodes acceptes, meme configuration et meme graine — survivants 5, 4, 5, 5, 0, 5, 3, 2 (de 0 a 5 sur 10, moyenne 3,6) ; QUATRE causes de fin differentes : ARTICULATION_ROMPUE, CHARGES_INCOMPLETES, COMPROMIS_LOIN, DETACHEMENT_DETRUIT ; durees de 4590 a 8899 s, soit un facteur 1,9 | PASSE | monde-fixe-episode-libre, chacal-portes | plancher-de-bruit-mission-complete.md |
 | Candidat A, la politique lit-elle la pente | 2026-08-22 | 101, 102, 103 | ecart intact contre brouille = 0,7 pt (seuil pre-inscrit 3,0) ; controle positif jusqu'a -20,1 pts | PASSE |  | politique-est-navigateur.md |
 | Controle positif de la liaison drone par reveal | 2026-08-16 | 1 | bras B 20/20 ont tire, mediane 3,2 s ; bras A0 sans reveal 2/20, mediane 17,8 s | PASSE | drone-arma-rien | reveal-certifie.md |
+| ? | ? | ? | ? | ? |  | roe-le-moteur-ne-percoit-pas-les-civils.md |
 | Letalite de la sandbox, cible unique par defenseur | 2026-07-28 | n/a | frontal 22,2 % -> 80,8 % avec selection de cible ; avantage du flanc x1,82 -> x0,82 | ECHEC |  | sandbox-letalite-4x.md |
 | Barreau site degele, apres entrainement sur sites disjoints | 2026-09-02 | 0, 1 | 90,9 % -> 98,4 % (graine 0) et 82,0 % -> 98,4 % (graine 1), amelioration attribuable +7,5 pts | PASSE | site-memorise, memorisation-cap-absolu | site-degele.md |
 | Sonde de vacance du barreau site degele | 2026-09-02 | 0, 1 | 90,9 % (231/254) et 82,0 % (209/255) sur 126 sites jamais vus, porte a 93,0 %, 1/5 series | ECHEC | b0-30 | site-memorise.md |
@@ -83,6 +85,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Dose-reponse d'immobilite au gymnase | 2026-08-26 | 301 a 306, jamais vues | doctrine scriptee 91,0 % contre 35,0 % pour la meilleure du depot ; pauses de 1, 2, 4 pas : -17,8 / -26,6 / -38,6 | PASSE | sandbox-letalite-4x | tout-ce-qui-fige-coute.md |
 | Banc live 20 episodes, transfert gymnase vers Arma | 2026-08-15 | n/a | prise 0/20 = 0,0 % sur Arma contre 59,4 % au gymnase ; 9/20 tous morts, 11/20 sans prendre | ECHEC | boucle-fermee | transfert-non-etabli.md |
 | ? | ? | ? | ? | ? |  | un-levier-ecrit-nest-pas-un-levier-lu.md |
+| ? | ? | ? | ? | ? |  | une-graine-n-est-pas-un-monde.md |
 | Quatre valeurs de configuration lues directement sur Arma 3 | 2026-09-03 | n/a | rayon 1,688 m ; sensitivity 6,0 ; sensitivityEar 0,125 ; audible 0,05 ; indirectHitRange 0,0 | PASSE | loi-auditive-forme | valeurs-configfile-arma.md |
 | ? | ? | ? | ? | ? |  | victoire-bout-en-bout-47-pourcent.md |
 | La vignette d'assaut DISCRIMINE, replique sur deux mondes : la mitrailleuse servie interdit la pose | 2026-09-09 | 7 et 9, cinq repetitions par niveau | AVEC une piece servie, 0 charge posee sur 8 episodes acceptes (graines 7 et 9 confondues), 5 survivants aux 8. SANS piece, une charge au moins dans 6 episodes sur 9 : graine 7 -> 2,3,2,1 (moyenne 2,0/3, survivants 7,7,7,5) ; graine 9 -> 0,3,2,0,0 (moyenne 1,0/3, survivants 5,6,8,5,5). Duree d'un episode 92 a 859 s, contre ~55 min pour une mission complete | PASSE | chacal-portes, monde-fixe-episode-libre, compromission-charniere | vignette-discrimine-mitrailleuse.md |
@@ -98,18 +101,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
-| 2026-09-13_205115_chacal_i6 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE | 6305 |
-| 2026-09-13_205045_chacal_i5 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE | 6162 |
-| 2026-09-13_205015_chacal_i4 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE | 5936 |
-| 2026-09-13_204945_chacal_i3 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE | 6101 |
-| 2026-09-13_204914_chacal_i2 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE | 5548 |
-| 2026-09-13_204844_chacal_i1 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE | 5795 |
-| 2026-09-13_191016_chacal_i1 | chacal | EN COURS |  |  |
-| 2026-09-13_182035_chacal_i6 | chacal | EN COURS |  |  |
-| 2026-09-13_182003_chacal_i5 | chacal | EN COURS |  |  |
-| 2026-09-13_181931_chacal_i4 | chacal | EN COURS |  |  |
-| 2026-09-13_181859_chacal_i3 | chacal | EN COURS |  |  |
-| 2026-09-13_181826_chacal_i2 | chacal | EN COURS |  |  |
-| 2026-09-13_181754_chacal_i1 | chacal | EN COURS |  |  |
-| 2026-09-13_104159_chacal_i6 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE | 25328 |
-| 2026-09-13_104127_chacal_i5 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE | 22401 |
+| 2026-09-14_211600_chacal_i2 | chacal | EN COURS |  |  |
+| 2026-09-14_210919_chacal_i6 | chacal | COMPLET | g240:REFUSE g241:REFUSE g242:REFUSE g243:REFUSE g244:REFUSE g245:REFUSE g246:REFUSE g247:REFUSE | 751 |
+| 2026-09-14_210857_chacal_i5 | chacal | COMPLET | g232:REFUSE g233:REFUSE g234:REFUSE g235:REFUSE g236:REFUSE g237:REFUSE g238:REFUSE g239:REFUSE | 813 |
+| 2026-09-14_210835_chacal_i4 | chacal | COMPLET | g224:REFUSE g225:REFUSE g226:REFUSE g227:REFUSE g228:REFUSE g229:REFUSE g230:REFUSE g231:REFUSE | 896 |
+| 2026-09-14_210812_chacal_i3 | chacal | COMPLET | g216:REFUSE g217:REFUSE g218:REFUSE g219:REFUSE g220:REFUSE g221:REFUSE g222:REFUSE g223:REFUSE | 671 |
+| 2026-09-14_210750_chacal_i1 | chacal | EN COURS |  |  |
+| 2026-09-14_210559_chacal_i2 | chacal | COMPLET | g121:REFUSE g122:REFUSE g123:REFUSE g124:REFUSE | 468 |
+| 2026-09-14_205600_chacal_i1 | chacal | COMPLET | g117:REFUSE g118:REFUSE g119:REFUSE g120:REFUSE | 365 |
+| 2026-09-14_204906_chacal_i6 | chacal | COMPLET | g113:REFUSE g114:REFUSE g115:REFUSE g116:REFUSE | 386 |
+| 2026-09-14_204841_chacal_i5 | chacal | COMPLET | g109:REFUSE g110:REFUSE g111:REFUSE g112:REFUSE | 469 |
+| 2026-09-14_204815_chacal_i4 | chacal | COMPLET | g105:REFUSE g106:REFUSE g107:REFUSE g108:REFUSE | 508 |
+| 2026-09-14_204750_chacal_i3 | chacal | COMPLET | g101:REFUSE g102:REFUSE g103:REFUSE g104:REFUSE | 326 |
+| 2026-09-14_204725_chacal_i2 | chacal | COMPLET | g3940:REFUSE g5625:REFUSE g5701:REFUSE g7579:REFUSE | 325 |
+| 2026-09-14_204659_chacal_i1 | chacal | COMPLET | g3183:REFUSE g3664:REFUSE g3694:REFUSE g3754:REFUSE | 387 |
+| 2026-09-14_191600_chacal_i7 | chacal | COMPLET | g8_r1:REFUSE g8_r2:REFUSE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:REFUSE g8_r6:ACCEPTE | 2760 |
