@@ -541,7 +541,15 @@ CHACAL_fnc_chienDeGarde = {
         // et un doMove VERS LE SITE a des hommes qui decrochaient : 8 episodes sur 15, entre 1 et 7 s
         // apres le debut de la phase 6. C est le bug corrige le 12/09 pour CHACAL_FIN, dans cette meme
         // boucle - la garde avait ete posee pour une variable et pas pour l autre.
-        if (CHACAL_FIN || { CHACAL_PHASE != 5 }) exitWith {
+        // ! RIEN APRES LA LIGNE FINI ( 14/09 ). Ce test etait UNIQUE et melangeait deux cas qui n ont
+        // pas le meme droit de parole. Quand la phase change, l episode continue : le dire est utile.
+        // Quand CHACAL_FIN est pose, le verdict a DEJA ecrit sa ligne CHACAL|FINI| ; le chien, lui,
+        // dort encore 10 s et se reveille apres. Sa ligne tombait alors hors de l episode, et la porte
+        // rien_apres_fini du lecteur refusait le tout : 26 episodes sur 48 de AZIMUT-PAR-GRAINE-14-09,
+        // donnees pourtant entieres. Meme mecanisme quand la phase 6 coupe court en 3 s.
+        // Quand c est FINI, le chien SE TAIT. Quand c est la phase, il parle.
+        if (CHACAL_FIN) exitWith {};
+        if (CHACAL_PHASE != 5) exitWith {
             (format ["CHACAL|E|chien_de_garde|%1|phase_quittee|%2|relances|%3", round (time * 100) / 100,
                 CHACAL_PHASE, CHACAL_RELANCES_SOCLE]) call CHACAL_LOG;
         };
