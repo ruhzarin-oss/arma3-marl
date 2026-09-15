@@ -192,3 +192,35 @@ elle bougera beaucoup pour des raisons qui ne le concernent pas.
 C'est une question de **validité de mesure**, pas une faute de code. Elle ne se tranche pas en
 lisant du SQF : elle demande une décision sur ce que la mission doit demander. Elle est posée ici,
 chiffrée, et laissée ouverte.
+
+
+---
+
+## Correction : les deux runs jumeaux sont RÉINTÉGRÉS
+
+Plus haut, et dans le message du commit `43b3480`, j'ai écrit que les deux runs partis en double
+sur l'instance 10 étaient **écartés du corpus**. C'était une décision prise sur un **soupçon** —
+deux serveurs sur le profil `hmtech10` et le port 2502, donc un fichier de journal peut-être écrit
+à deux mains. Je l'ai ensuite testée, et le soupçon était faux.
+
+Sur les dix épisodes des deux runs :
+
+- un seul `CHACAL|OK|socle`, une seule ligne `FINI`, une seule `EMPREINTE` par épisode ;
+- ticks strictement monotones, aucun tick en double ;
+- lecteur `ACCEPTE`, aucune porte fausse — profil identique à celui d'un run témoin non dupliqué ;
+- les dix empreintes md5 sont **distinctes**, ainsi que les durées, les ticks et les latences ;
+- les deux épisodes homonymes `g8_r3` ont des issues **opposées** — `EXFIL_MANQUEE` à 3 charges
+  contre `CHARGES_INCOMPLETES` à 2. Ce sont bien deux épisodes différents.
+
+Arma nomme son fichier de journal **par serveur** : les deux processus n'ont jamais écrit dans le
+même fichier, et chaque lanceur a copié le sien. Le `server.cfg` partagé ne pose pas de problème
+non plus, les deux jobs étant identiques en tout point.
+
+**Le doublon a produit deux fois plus d'épisodes valides, pas des épisodes abîmés.** Les données
+sont réintégrées ; un fichier `REINTEGRE.txt` remplace `ECARTE.txt` dans les deux runs et porte le
+détail du test. Le correctif de `file3.sh` reste juste indépendamment : un verrou qui ne protège
+aucune instance est une faute, que ses conséquences aient abîmé des données ou non.
+
+La leçon est pour moi : **écarter des données est une décision de mesure, pas une précaution
+gratuite.** Elle se teste comme le reste. J'ai jeté avant de vérifier, et le résultat apparié est
+passé de +17,6 à +18,9 points quand j'ai rendu au corpus ce que je lui avais pris.
