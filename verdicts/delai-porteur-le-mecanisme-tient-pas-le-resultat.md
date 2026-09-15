@@ -116,3 +116,48 @@ file vide, aucun verrou, dépôt propre) :
 *Voir aussi : `le-porteur-narrive-pas-et-personne-ne-le-remplace`,
 `audit-banc-neuf-fautes-sur-vingt-quatre`, `le-script-ne-choisit-pas-son-ouverture`,
 `parallelisation-arma-mesuree`.*
+
+
+---
+
+## CORRECTION DU TITRE ET DU RESULTAT : « établi » était prématuré
+
+Ce verdict a été écrit alors que la campagne n'était pas finie — 261 épisodes de vignette sur 288.
+Elle en compte maintenant **302**, et le résultat a changé :
+
+| | écart apparié | IC 95 % | signes | p |
+|---|---|---|---|---|
+| ce que j'ai publié (261 ép.) | +15,4 pts | [+4,0 ; +26,4] | 6/6 | **0,031** |
+| **données complètes (302 ép.)** | **+11,1 pts** | **[+0,7 ; +21,6]** | **5/6** | **0,219** |
+
+La graine 7 est passée de +8 à **+0** (19/24 contre 19/24) et la graine 5 de +30 à +17.
+
+**Le titre de ce verdict est donc faux.** L'effet sur l'assaut n'est pas *établi* : le test des
+signes ne franchit plus le seuil, et l'intervalle de confiance n'exclut zéro que d'un cheveu
+(+0,7). Le bon énoncé est : **l'effet est probablement réel et de l'ordre de dix points, mais il
+n'est pas démontré.**
+
+### Ce qui n'a pas bougé, et qui reste le plus solide
+
+```
+porteurs arrivés à moins de 12 m   délai  45 : 355/394 = 90,1 %
+                                   délai 180 : 422/444 = 95,0 %
+porteurs à bout de délai           délai  45 : 34
+                                   délai 180 :  9
+```
+
+Le mécanisme se mesure sur 838 porteurs envoyés, pas sur 302 épisodes : c'est l'énoncé qui a le
+plus de matière derrière lui, et c'est lui qu'il faut retenir. **Le levier fait arriver les
+porteurs. Qu'il fasse gagner la mission n'est pas montré.**
+
+### La faute, et sa règle
+
+J'ai lu un résultat intermédiaire et je l'ai qualifié d'établi. Les intervalles étaient publiés à
+chaque lecture — ils ont toujours contenu +11 — mais le mot « établi » s'appuyait sur un p calculé
+à mi-campagne.
+
+**Un p qu'on regarde pendant que les données arrivent n'est pas un p.** Il faut fixer la taille de
+l'échantillon d'avance et ne lire qu'à la fin. Je l'avais fait pour le falsificateur (« moins de
+8 points »), pas pour le seuil de significativité.
+
+*Le falsificateur pré-enregistré, lui, tient : +11,1 points reste au-dessus de 8.*
