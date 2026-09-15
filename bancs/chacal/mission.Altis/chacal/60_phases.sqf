@@ -34,7 +34,25 @@ CHACAL_CHARGES_OBJ = [];          // [objectif, charge] : ce qui reste a faire s
 CHACAL_RESERVE_FEU = 180;         // s gardees en fin de phase : un degagement, une mise a feu
 CHACAL_SECURITE_FEU = 35;         // m : personne a moins de ca d une charge quand elle part
 CHACAL_EXPLOITANT = objNull;
-CHACAL_SEUIL_RENS = 3;            // sous ce compte, la crete n a rien vu
+// ! MARQUEUR-SEUIL-RENS-DERIVE - SEUIL DERIVE DE LA MESURE, PAS CHOISI ( 15/09 ).
+// Distribution de count CHACAL_VUES en fin de phase 3, sur les 148 episodes des journaux qui
+// ont joue la phase hors oracle : 0 vue dans 82 episodes soit 55,4 %, 1 vue dans 48 soit
+// 32,4 %, 2 vues dans 17 soit 11,5 %, 5 vues dans 1 seul soit 0,7 %.
+// Part des episodes qui ATTEIGNENT le seuil S :
+//   S=0 -> 100,0 %   une porte qui ne sait pas se fermer
+//   S=1 ->  44,6 %   le seul dont l issue soit vraiment incertaine  <<< retenu
+//   S=2 ->  12,2 %   atteignable, mais ATTEINT devient un evenement rare
+//   S=3 ->   0,7 %   l etat d avant : 110 echecs sur 111, 55 heures pour zero information
+// Le maximum jamais atteint au premier poste est 2 : 3 etait hors d atteinte par construction.
+// ! CE SEUIL COMMANDE AUSSI LE RAPPROCHEMENT vers le second poste, plus bas. A 1, les 49
+// episodes sur 146 qui avaient deja une vue a la crete ne se rapprochent plus - ils ont deja
+// atteint le seuil. Mesure du cout : le nombre d episodes finissant avec au moins une vue est
+// INCHANGE, 66 sur 146 ; seuls 4 episodes perdaient une vue de plus ( 3 passaient de 1 a 2,
+// 1 passait de 2 a 5 ). En echange 49 episodes economisent le trajet et les 300 s du second
+// poste. Le couplage est garde parce qu il est juste : on cesse de chercher quand on a assez.
+// ! CE CORRECTIF NE FAIT PAS JOUER LA PHASE 3. Elle ne tourne que si CHACAL_DEPART < 4 et
+// CHACAL_OBS = 1 ; c est un reglage de job, pas de code.
+CHACAL_SEUIL_RENS = 1;            // sous ce compte, la crete n a rien vu
 CHACAL_T_ALARME = -1; CHACAL_T_COMPROMIS = -1;
 CHACAL_EXFIL_POINT = [];
 CHACAL_GEL = false;
@@ -911,10 +929,40 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
     };
     private _dep = ((units CHACAL_gAssaut) select { alive _x }) call CHACAL_fnc_centre;
     if (count _dep == 0) then { _dep = CHACAL_RALLY };
+    // ! MARQUEUR-GARDE-PLUS-PROCHE - LE TERME DE GARDE ETAIT INERTE PAR CONSTRUCTION ( 15/09 ).
+    // Le seuil de 110 m se voulait " pres de cette porte ". L enceinte a 46 m de rayon, les deux
+    // ouvertures sont a 108,0 et 282,857 relatifs - une corde de 92 m - et la garnison se garnit
+    // dans 55 m : tout defenseur est donc a moins de 101 m des DEUX ouvertures. Mesure sur les
+    // journaux : le champ gardes vaut [k,k] dans 1337 episodes sur 1337, et l indice retenu est
+    // l ouverture la plus proche dans 1337 sur 1337. Le terme ne decidait rien.
+    // LA REGLE DEVIENT SANS SEUIL : chaque defenseur connu compte pour l ouverture dont il est le
+    // PLUS PROCHE. Discriminant par construction des que CHACAL_VUES n est pas vide.
+    // Le poids reste " un garde vaut 150 m de marche ", et c est mesure : |d_A - d_B| vaut 18 m en
+    // mediane, 83 m au pire, jamais plus que la corde de 92 m, soit 0,55 point au plus contre 1,00
+    // pour un garde. Des que les comptes different le compte decide ; a comptes egaux la distance
+    // tranche. L intention publiee devient vraie sans qu on touche au 150.
+    // ! L affectation est calculee UNE FOIS, HORS de la boucle de score : une boucle imbriquee
+    // dedans aurait masque _forEachIndex, dont la ligne du minimum a besoin. Aucun continue,
+    // aucun break, aucun waitUntil n est introduit.
+    private _connus = (CHACAL_VUES apply { _x select 0 }) select { !isNull _x };
+    private _aff  = CHACAL_OUVERTURES apply { 0 };      // defenseurs connus attribues a l ouverture
+    private _dgar = CHACAL_OUVERTURES apply { -1 };     // distance du defenseur connu le plus proche
+    {
+        private _pv = _x;                               // l unite, liee AVANT la boucle interne
+        private _jv = -1; private _dv = 1e9;
+        {
+            private _dd = _pv distance2D _x;            // ici _x est une OUVERTURE
+            if (_dd < _dv) then { _dv = _dd; _jv = _forEachIndex };
+            if (((_dgar select _forEachIndex) < 0) || { _dd < (_dgar select _forEachIndex) }) then {
+                _dgar set [_forEachIndex, _dd];
+            };
+        } forEach CHACAL_OUVERTURES;
+        if (_jv >= 0) then { _aff set [_jv, (_aff select _jv) + 1] };
+    } forEach _connus;
     private _meilleure = 0; private _minScore = 1e9; private _comptes = []; private _dists = [];
     {
         private _o = _x;
-        private _n = { ((_x select 0) distance2D _o) < 110 } count CHACAL_VUES;
+        private _n = _aff select _forEachIndex;
         private _d = _dep distance2D _o;
         private _sc = _n + (_d / 150);
         _comptes pushBack _n; _dists pushBack round _d;
@@ -947,9 +995,15 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
     (format ["CHACAL|E|couture_azimut|%1|mode|%2|decideur|%3|candidats|%4|choisi|%5|point|%6|az_ouvertures|%7",
         round (time * 100) / 100, CHACAL_AZIMUT, _qui, count _candidats, CHACAL_AZIMUT_CHOISI,
         CHACAL_OUV_CHOISIE, (CHACAL_OUVERTURES apply { round (CHACAL_SITE getDir _x) })]) call CHACAL_LOG;
-    (format ["CHACAL|E|choix_ouverture|%1|indice|%2|gardes|%3|distances|%4|score|%5|renseignement|%6",
+    // ! Champs AJOUTES EN FIN DE LIGNE. Aucun retire, aucun renomme : les analyses existantes
+    // lisent indice, gardes, distances, score et renseignement par expression reguliere.
+    //   dgarde : distance en metres du defenseur connu le plus proche de chaque ouverture, -1
+    //            si aucun. A gardes egaux, dgarde dit si l egalite est vraie ou fortuite.
+    //   regle  : la regle d attribution en vigueur, pour distinguer un journal d avant du patch.
+    (format ["CHACAL|E|choix_ouverture|%1|indice|%2|gardes|%3|distances|%4|score|%5|renseignement|%6|dgarde|%7|regle|PLUS_PROCHE",
         round (time * 100) / 100, _meilleure, str _comptes, str _dists,
-        round (_minScore * 100) / 100, count CHACAL_VUES]) call CHACAL_LOG;
+        round (_minScore * 100) / 100, count CHACAL_VUES,
+        str (_dgar apply { if (_x < 0) then { -1 } else { round _x } })]) call CHACAL_LOG;
 
     // ! L APPUI N EST PLUS L OBSERVATOIRE ( sous parametre ). A 0, on garde la ligne d origine.
     CHACAL_POS_APPUI   = CHACAL_OP;
