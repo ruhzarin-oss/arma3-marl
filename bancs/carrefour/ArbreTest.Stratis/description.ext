@@ -1,0 +1,155 @@
+// =====================================================================
+// ArbreTest.Stratis - banc d'essai du debrief en arbre (facon Detroit).
+// Pas d'accents dans ce fichier : le parseur de config d'Arma les digere mal.
+// =====================================================================
+author = "Harmattan";
+onLoadName = "ARBRE - banc d'essai";
+onLoadMission = "On leve les drapeaux a la main, on regarde l'arbre reagir.";
+overviewText = "Banc du debrief ramifie. Aucun combat.";
+
+respawn = 0;
+respawnDelay = 0;
+disabledAI = 1;
+enableDebugConsole = 1;
+briefing = 0;
+debriefing = 1;
+saving = 0;
+
+class Header { gameType = "Coop"; minPlayers = 1; maxPlayers = 1; };
+
+// --------------------------------------------------------------------
+// Les fonctions. scripts\fn_<nom>.sqf  ->  HMT_fnc_<nom>
+// --------------------------------------------------------------------
+class CfgFunctions
+{
+	class HMT
+	{
+		class arbre
+		{
+			file = "scripts";
+			class drapeau {};
+			class lire {};
+			class debriefArbre {};
+			class epilogue {};
+		};
+	};
+};
+
+// --------------------------------------------------------------------
+// Les epilogues. C'est eux que route la campagne (end1 = "Mission03"...).
+// --------------------------------------------------------------------
+class CfgDebriefing
+{
+	class End1
+	{
+		title = "SANS UN COUP DE FEU";
+		subtitle = "Le village n'a rien vu passer";
+		description = "Vous etes entre de nuit, le prisonnier est reparti vivant, et la riviere vous a ramenes. Personne, dans ce village, ne saura jamais que vous y etiez.";
+		pictureColor[] = {0.0,0.3,0.6,1};
+	};
+	class End2
+	{
+		title = "OBJECTIF TENU";
+		subtitle = "Mais le village s'en souviendra";
+		description = "La mission est remplie. Elle a coute des morts qui ne portaient pas d'arme, et ca, la mission suivante vous le rendra.";
+		pictureColor[] = {0.4,0.3,0.0,1};
+	};
+	class End3
+	{
+		title = "AUCUN SURVIVANT";
+		subtitle = "L'exfiltration n'a pas eu lieu";
+		description = "Le chapitre continue sans vous. C'est prevu : les personnages morts ne reviennent pas.";
+		pictureColor[] = {0.5,0.1,0.0,1};
+	};
+};
+
+// --------------------------------------------------------------------
+// L'ecran de debrief. Un fond noir, un titre, un arbre qui defile.
+// --------------------------------------------------------------------
+class RscText;
+class RscStructuredText;
+class RscButtonMenu;
+class RscControlsGroup;
+
+class HMT_Debrief
+{
+	idd = 9000;
+	movingEnable = 0;
+	enableSimulation = 1;
+
+	class controlsBackground
+	{
+		class Fond: RscText
+		{
+			idc = -1;
+			x = safezoneX; y = safezoneY; w = safezoneW; h = safezoneH;
+			colorBackground[] = {0, 0, 0, 0.9};
+		};
+		class Filet: RscText
+		{
+			idc = -1;
+			x = 0.25 * safezoneW + safezoneX;
+			y = 0.155 * safezoneH + safezoneY;
+			w = 0.50 * safezoneW;
+			h = 0.002 * safezoneH;
+			colorBackground[] = {1, 0.82, 0.35, 0.6};
+		};
+	};
+
+	class controls
+	{
+		class Titre: RscText
+		{
+			idc = 9001;
+			x = 0.25 * safezoneW + safezoneX;
+			y = 0.085 * safezoneH + safezoneY;
+			w = 0.50 * safezoneW;
+			h = 0.060 * safezoneH;
+			sizeEx = 0.045 * safezoneH;
+			colorText[] = {1, 1, 1, 1};
+		};
+
+		// Le groupe est ce qui rend l'arbre defilable quand il depasse.
+		class Cadre: RscControlsGroup
+		{
+			idc = 9010;
+			x = 0.25 * safezoneW + safezoneX;
+			y = 0.180 * safezoneH + safezoneY;
+			w = 0.50 * safezoneW;
+			h = 0.620 * safezoneH;
+			class controls
+			{
+				class Arbre: RscStructuredText
+				{
+					idc = 9002;
+					x = 0; y = 0;
+					w = 0.47 * safezoneW;
+					h = 0.620 * safezoneH;
+					size = 0.028 * safezoneH;
+				};
+			};
+		};
+
+		class Fermer: RscButtonMenu
+		{
+			idc = 9003;
+			text = "FERMER (banc)";
+			x = 0.25 * safezoneW + safezoneX;
+			y = 0.830 * safezoneH + safezoneY;
+			w = 0.16 * safezoneW;
+			h = 0.050 * safezoneH;
+			action = "closeDialog 0";
+		};
+		class Continuer: RscButtonMenu
+		{
+			idc = 9004;
+			text = "CONTINUER >";
+			x = 0.59 * safezoneW + safezoneX;
+			y = 0.830 * safezoneH + safezoneY;
+			w = 0.16 * safezoneW;
+			h = 0.050 * safezoneH;
+			// En campagne, c'est CETTE ligne qui route vers la mission suivante.
+			action = "closeDialog 0; [call HMT_fnc_epilogue, true] call BIS_fnc_endMission";
+		};
+	};
+};
