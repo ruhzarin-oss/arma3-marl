@@ -94,9 +94,20 @@ La partition des 54 cas est nette, et elle sépare deux remèdes différents :
 tourne en parallèle, **une seule chose change** — `delai_porteur` passe de 45 à 180 s. Plan apparié,
 bras entrelacés dans le temps, 12 épisodes par monde et par bras.
 
-*180 et non 150* : `description.ext` déclare `values[] = {45,60,90,120,180}`, et une valeur hors
-liste retombe **silencieusement** au défaut. C'est la faute du 13/09 — un levier écrit n'est pas un
-levier lu. 180 est le maximum déclaré.
+*180 et non 150* : `description.ext` déclare `values[] = {45,60,90,120,180}`, et 180 en est le
+maximum — donc le choix le plus puissant, quoi qu'il en soit de la suite.
+
+> ⚠️ **Affirmation retirée, 15/09.** J'avais écrit ici qu'une valeur hors liste retombe
+> *silencieusement au défaut*, et j'en avais fait la raison du choix de 180. **Je n'en ai aucune
+> preuve.** L'audit du 15/09 soutient l'inverse : aucun étage ne validerait la valeur — ni le
+> moteur, ni `controle_avant_run.sh` qui ne lit jamais `description.ext`, ni `lancer.sh`. Balayage
+> du disque : **aucun job n'a jamais demandé de valeur hors liste**, donc la mesure ne peut pas
+> trancher sur l'existant. Un job de quatre minutes (`GARDE-VALUES-15-09`, `delai_porteur = 150`,
+> `geometrie=1`, cinq graines vierges) est en file pour lire ce que la mission joue réellement.
+> Tant qu'il n'a pas parlé, la question est **ouverte**. Le choix de 180 reste bon dans les deux
+> cas ; seule la raison que j'en avais donnée était sans fondement.
+>
+> Voir `audit-banc-neuf-fautes-sur-vingt-quatre`.
 
 **Prédiction enregistrée d'avance.** Si le temps est la contrainte, les 38 cas à bout de délai se
 convertissent en grande partie, et le taux de charges complètes — 98 sur 159, soit 62 % — monte
