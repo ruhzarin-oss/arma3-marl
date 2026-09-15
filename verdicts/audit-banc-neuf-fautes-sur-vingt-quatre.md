@@ -147,3 +147,48 @@ nul reste une faute — mais on ne réécrit pas un verdict pour elle.
 *Voir aussi : `le-porteur-narrive-pas-et-personne-ne-le-remplace`,
 `le-script-ne-choisit-pas-son-ouverture`, `un-levier-ecrit-nest-pas-un-levier-lu`,
 `phase3-porte-hors-datteinte`, `regle16-controle-positif-instruments`.*
+
+
+---
+
+## Amendement : la taille de la question n° 2, chiffrée sans dépenser un épisode
+
+Le vérificateur avait refusé de donner une gravité à la faute de la réserve, et il avait raison :
+le contrefactuel juste — reverser les trois hommes du bouchon à l'assaut — n'existe dans aucun bras.
+Mais on peut faire autre chose, qui ne demande aucun épisode : **re-noter les épisodes déjà au
+disque** en ne comptant que les hommes engagés.
+
+**Contrôle d'abord.** La recomposition des exfiltrés à partir des instantanés `CHACAL|S|`, des
+rôles lus sur les lignes `E|spawn` et de la position du point de ramassage reproduit le compte que
+le script écrit lui-même — **159 épisodes sur 159**, à une unité près. L'instrument sait donc lire
+ce qu'il prétend lire.
+
+| critère | succès |
+|---|---|
+| officiel : 6 exfiltrés sur 10, bouchon compris | 84/159 = **52,8 %** |
+| 4 exfiltrés parmi les 7 **engagés** (0,6 × 7, seuil proportionné) | 20/159 = **12,6 %** |
+| 6 exfiltrés parmi les 7 engagés (strict) | 6/159 = 3,8 % |
+| charges seules, sans condition d'exfiltration | 98/159 = 61,6 % |
+
+Médiane des exfiltrés : **3 du bouchon, 3 du reste**. La moitié du critère est remplie par trois
+hommes dont l'adversaire, au palier 4, est configuré pour ne jamais arriver — et qui rentrent dans
+99 % des épisodes, avec 242 m d'avance mécanique.
+
+### Ce que ce tableau dit, et ce qu'il ne dit pas
+
+**Il ne dit pas que 12,6 % est le « vrai » taux.** Demander 4 exfiltrés sur 7 engagés est une
+mission *différente*, et plus dure. Personne ne l'a jamais jouée.
+
+**Il dit que le critère est bien plus facile que « 6 sur 10 » ne le laisse croire.** Trois des six
+sont quasi acquis avant que le premier coup ne parte. Et le critère n'a **aucune marge** : 80 des 84
+succès ont exactement 6 exfiltrés. Retirer un seul homme du bouchon du comptage fait tomber la
+quasi-totalité des succès.
+
+**Conséquence pour le but du projet.** On veut mesurer si un agent sait mener la mission. Si la
+moitié du critère de succès est satisfaite par des hommes hors du combat, alors la mesure est
+faiblement couplée à la compétence de l'agent : elle bougera peu quand l'agent s'améliorera, et
+elle bougera beaucoup pour des raisons qui ne le concernent pas.
+
+C'est une question de **validité de mesure**, pas une faute de code. Elle ne se tranche pas en
+lisant du SQF : elle demande une décision sur ce que la mission doit demander. Elle est posée ici,
+chiffrée, et laissée ouverte.
