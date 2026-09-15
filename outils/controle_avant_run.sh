@@ -86,5 +86,13 @@ PY
 
 LIBRE=$(df --output=avail -BG /mnt/data | tail -n 1 | tr -dc 0-9)
 [ "${LIBRE:-0}" -gt 50 ] || { echo "REFUS: ${LIBRE:-?} Go libres, minimum 50"; ERR=1; }
+# ⚠️ 15/09 : values[] N EST PAS UNE GARDE, c est MESURE. Un job demandant delai_porteur=150,
+# absent de values[] = {45,60,90,120,180} dont le defaut est 45, a joue 150 : la ligne FINI porte
+# |delai_porteur|150 et le lecteur a ACCEPTE. Rien dans la chaine n arrete une faute de frappe -
+# ni le moteur, qui rend server.cfg verbatim, ni ce script, qui ne lisait jamais description.ext,
+# ni lancer.sh. On AVERTIT donc, et on ne REFUSE PAS : refuser changerait le comportement du banc,
+# et une valeur hors liste est parfois voulue. Le script sort toujours en 0, le `|| true` est une
+# ceinture de plus - il ne doit JAMAIS empecher un job de partir.
+python3 /mnt/data/hmt/depot/outils/verifier_valeurs.py "$JOB" 2>/dev/null || true
 [ $ERR = 0 ] && echo "CONTROLE OK"
 exit $ERR
