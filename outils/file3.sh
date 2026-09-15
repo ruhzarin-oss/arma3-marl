@@ -54,7 +54,19 @@ exec >> $H/etat/file.log 2>&1
 mkdir -p $H/queue/en_cours $H/queue/faits $H/queue/refuses $H/queue/verrous
 VERROUS=$H/queue/verrous
 
-inst_de() { python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('instance','?'))" "$1" 2>/dev/null; }
+# ⛔ 15/09 : CETTE FONCTION A LANCE UN JOB DEUX FOIS. Quand deux distributeurs concurrents
+# regardent la meme file, l un deplace le fichier pendant que l autre le lit : python echoue,
+# la sortie est VIDE — pas "?" — et le test `[ "$I" = "?" ]` ne l attrape pas. Le verrou cree
+# s appelle alors `j` tout court, il ne protege aucune instance, et il COMPTE dans le plafond.
+# Resultat mesure : DELAI180-g8-m2 parti deux fois sur l instance 10, deux serveurs Arma sur le
+# profil hmtech10 et le port 2502, RPT partage, numerotation des episodes trouee. Les deux runs
+# ont ete ecartes du corpus. Une sortie vide est une ERREUR, pas une valeur : on la nomme.
+inst_de() {
+  local I
+  I=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('instance','?'))" "$1" 2>/dev/null) || I=""
+  [ -z "$I" ] && I="?"
+  printf '%s' "$I"
+}
 
 # ⚠️ Les verrous changent de nom (`j<N>` au lieu de `i<N>`) : un processus BLOQUE par l ancienne
 # version tourne encore avec l ancien code en memoire, et son `trap` effacerait le verrou d un
