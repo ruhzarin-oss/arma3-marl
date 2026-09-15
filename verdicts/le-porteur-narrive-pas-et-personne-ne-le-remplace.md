@@ -104,7 +104,20 @@ maximum — donc le choix le plus puissant, quoi qu'il en soit de la suite.
 > du disque : **aucun job n'a jamais demandé de valeur hors liste**, donc la mesure ne peut pas
 > trancher sur l'existant. Un job de quatre minutes (`GARDE-VALUES-15-09`, `delai_porteur = 150`,
 > `geometrie=1`, cinq graines vierges) est en file pour lire ce que la mission joue réellement.
-> Tant qu'il n'a pas parlé, la question est **ouverte**. Le choix de 180 reste bon dans les deux
+> **TRANCHÉ le 15/09 à 05h46.** Le job a tourné. Le lanceur a écrit
+> `CHACAL_DELAI_PORTEUR = 150` dans `server.cfg`, et la ligne `FINI` des épisodes porte
+> `|delai_porteur|150` — lecteur `ACCEPTE`. **`values[]` n'est PAS une garde : la valeur hors
+> liste est jouée telle quelle.** Mon affirmation était fausse, l'audit avait raison.
+>
+> La conséquence dépasse mon erreur : **rien dans la chaîne n'arrête une faute de frappe dans un
+> job.** Ni le moteur, qui rend la valeur de `server.cfg` verbatim ; ni `controle_avant_run.sh`,
+> qui ne lit jamais `description.ext` ; ni `lancer.sh`. Un `delai_porteur: 1500` au lieu de 150
+> serait joué sans un mot. Le remède — comparer les valeurs d'un job aux listes déclarées, en
+> AVERTISSEMENT et non en refus — est préparé et sera posé avec les autres correctifs, machine
+> au repos.
+>
+> Le choix de 180 pour la campagne reste bon : c'est le maximum déclaré, donc le plus puissant.
+> 150 aurait marché aussi. Seule la raison que j'en avais donnée était fausse. Le choix de 180 reste bon dans les deux
 > cas ; seule la raison que j'en avais donnée était sans fondement.
 >
 > Voir `audit-banc-neuf-fautes-sur-vingt-quatre`.
