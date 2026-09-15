@@ -1,9 +1,9 @@
 # Catalogue des episodes CHACAL
 
-Genere par `outils/catalogue.py` le 2026-09-14 21:24. **Ne pas editer a la main** : il est
+Genere par `outils/catalogue.py` le 2026-09-15 05:00. **Ne pas editer a la main** : il est
 regenere apres chaque run (file3.sh) et chaque nuit (sauver.sh).
 
-- **935 episodes**, lus depuis 1189 journaux (22 sans ligne FINI ignores).
+- **1300 episodes**, lus depuis 1570 journaux (25 sans ligne FINI ignores).
 - Un episode = une ligne ; `episodes.csv` pour un tableur, `episodes.jsonl` pour un programme.
 - Le journal complet de chaque episode est dans la colonne `source` ; ses tables (etat de chaque homme
   toutes les ~2 s, perception, evenements, phases) sont a cote, dans `extrait/`.
@@ -44,7 +44,28 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 | AZIMUT-VIGNETTE-13-09 | AZ-C-IMPOSE0 | 23 | 11 |
 | BANC-APPUI-12-09 | BA-CLOUE | 8 | 0 |
 | BANC-APPUI-12-09 | BA-LIBRE | 6 | 0 |
+| CONFIRMATION-MISSION-15-09 | CONF-D180-g11-m1 | 2 | 1 |
+| CONFIRMATION-MISSION-15-09 | CONF-D180-g11-m2 | 3 | 2 |
+| CONFIRMATION-MISSION-15-09 | CONF-D180-g7-m1 | 6 | 5 |
+| CONFIRMATION-MISSION-15-09 | CONF-D180-g7-m2 | 6 | 5 |
+| CONFIRMATION-MISSION-15-09 | CONF-D180-g8-m1 | 4 | 2 |
+| CONFIRMATION-MISSION-15-09 | CONF-D180-g8-m2 | 4 | 3 |
+| CONFIRMATION-MISSION-15-09 | CONF-D45-g11-m1 | 5 | 1 |
+| CONFIRMATION-MISSION-15-09 | CONF-D45-g11-m2 | 6 | 2 |
+| CONFIRMATION-MISSION-15-09 | CONF-D45-g12-m1 | 1 | 0 |
+| CONFIRMATION-MISSION-15-09 | CONF-D45-g7-m1 | 6 | 4 |
+| CONFIRMATION-MISSION-15-09 | CONF-D45-g7-m2 | 6 | 5 |
+| CONFIRMATION-MISSION-15-09 | CONF-D45-g8-m1 | 6 | 4 |
+| CONFIRMATION-MISSION-15-09 | CONF-D45-g8-m2 | 4 | 2 |
 | CONTROLE-COUTURE-AZIMUT | COUTURE-CTRL | 1 | 0 |
+| DELAI-PORTEUR-14-09 | DELAI180-g11-m1 | 12 | 8 |
+| DELAI-PORTEUR-14-09 | DELAI180-g12-m2 | 12 | 9 |
+| DELAI-PORTEUR-14-09 | DELAI180-g5-m2 | 12 | 10 |
+| DELAI-PORTEUR-14-09 | DELAI180-g6-m1 | 12 | 8 |
+| DELAI-PORTEUR-14-09 | DELAI180-g6-m2 | 10 | 6 |
+| DELAI-PORTEUR-14-09 | DELAI180-g8-m1 | 10 | 6 |
+| DELAI-PORTEUR-14-09 | DELAI180-g8-m2 | 13 | 12 |
+| DELAI-PORTEUR-14-09 | DELAI180-g8-m2bis | 2 | 2 |
 | EXFIL-13-09 | EXF-A-REFERENCE | 1 | 0 |
 | EXFIL-13-09 | EXF-B-AWARE | 2 | 0 |
 | EXFIL-13-09 | EXF-C-BUDGET | 2 | 1 |
@@ -62,7 +83,7 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 | G8-FABLE-11-09 | V9 | 7 | 0 |
 | GEOMETRIE-14-09 | GEO-CORPUS | 24 | 0 |
 | GEOMETRIE-14-09 | GEO-JUGES | 8 | 0 |
-| GEOMETRIE-LARGE-14-09 | GEOL | 43 | 0 |
+| GEOMETRIE-LARGE-14-09 | GEOL | 139 | 0 |
 | ORACLE-11-09 | OR | 17 | 7 |
 | ORACLE-11-09 | REF-A | 12 | 4 |
 | ORACLE-COMPLET-11-09 | ORC | 18 | 9 |
@@ -73,6 +94,18 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 | PLACEUR-BALAYAGE-12-09 | PL4-B | 3 | 0 |
 | PLACEUR-HAUTEUR-12-09 | PL3-A | 1 | 0 |
 | PLACEUR-TEMOIN-12-09 | PL5-B | 1 | 0 |
+| PORTE-A-CONTRE-PORTE-B-14-09 | PORTE-A-g11-m1 | 12 | 9 |
+| PORTE-A-CONTRE-PORTE-B-14-09 | PORTE-A-g11-m2 | 12 | 6 |
+| PORTE-A-CONTRE-PORTE-B-14-09 | PORTE-A-g12-m1 | 12 | 8 |
+| PORTE-A-CONTRE-PORTE-B-14-09 | PORTE-A-g12-m2 | 12 | 7 |
+| PORTE-A-CONTRE-PORTE-B-14-09 | PORTE-A-g5-m1 | 12 | 6 |
+| PORTE-A-CONTRE-PORTE-B-14-09 | PORTE-A-g5-m2 | 12 | 7 |
+| PORTE-A-CONTRE-PORTE-B-14-09 | PORTE-A-g6-m1 | 12 | 6 |
+| PORTE-A-CONTRE-PORTE-B-14-09 | PORTE-A-g6-m2 | 12 | 8 |
+| PORTE-A-CONTRE-PORTE-B-14-09 | PORTE-A-g8-m1 | 10 | 6 |
+| PORTE-A-CONTRE-PORTE-B-14-09 | PORTE-A-g8-m2 | 11 | 6 |
+| PORTE-B-CONTROLE-14-09 | CTRL-PORTE-B-g7 | 5 | 4 |
+| PORTE-B-CONTROLE-14-09 | CTRL-PORTE-B-g8 | 5 | 3 |
 | REFERENCE-JAMBES-13-09 | REF-JAMBES | 15 | 11 |
 | REFERENCE-PROPRE-13-09 | REF-PROPRE | 144 | 87 |
 | S0-CONTROLE-POSITIF | S0 | 19 | 19 |

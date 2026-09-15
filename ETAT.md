@@ -1,4 +1,4 @@
-# ETAT — 2026-09-14 21:23
+# ETAT — 2026-09-15 04:52
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,18 +9,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-12T23:34:00+02:00 ok=True  conteneurs=20 ;
-- GPU : 4397 MiB, 24576 MiB, 95 %
+- GPU : 1235 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.6T libres sur 3.6T
-- serveurs Arma : 3 · residus : aucun
+- serveurs Arma : 8 · residus : aucun
 
 ## File
 
-- en cours : 2026-09-14_GEOL_00.json, 2026-09-14_GEOL_01.json, 2026-09-14_GEOL_03.json
-- en attente : 2026-09-14_GEOL_06.json, 2026-09-14_GEOL_07.json, 2026-09-14_GEOL_08.json, 2026-09-14_GEOL_09.json, 2026-09-14_GEOL_10.json, 2026-09-14_GEOL_11.json
+- en cours : 2026-09-15_CONF_D180_g11_m1.json, 2026-09-15_CONF_D180_g11_m2.json, 2026-09-15_CONF_D180_g7_m2.json, 2026-09-15_CONF_D180_g8_m1.json, 2026-09-15_CONF_D180_g8_m2.json, 2026-09-15_CONF_D45_g11_m1.json, 2026-09-15_CONF_D45_g12_m1.json, 2026-09-15_CONF_D45_g8_m2.json, 2026-09-15_DELAI180_g8_m2bis.json
+- en attente : 2026-09-15_CONF_D180_g12_m1.json, 2026-09-15_CONF_D180_g12_m2.json, 2026-09-15_CONF_D45_g12_m2.json, 2026-09-15_DELAI180_g11_m2.json, 2026-09-15_DELAI180_g12_m1.json, 2026-09-15_DELAI180_g5_m1.json, 2026-09-15_DELAI180_g7_m1.json, 2026-09-15_DELAI180_g7_m2.json, 2026-09-15_PORTEA_g7_m1.json, 2026-09-15_PORTEA_g7_m2.json
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 133 / 187
+- runs aboutis : 172 / 240
 
 ## Portes ouvertes
 
@@ -40,6 +40,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Angle mort et cout de se montrer, quatre bancs Arma | 2026-08-03 | n/a | 18/18 repere dans le cone, 0/26 hors du cone ; tirer plafonne a 1,50 quand se montrer donne 4,00 | PASSE | knowsabout-de-camp | angle-mort.md |
 | Arc de tir d'Arma, latence de riposte par angle | 2026-07-28 | n/a | riposte a 0,0 s a 0 deg contre 3,5 a 4,1 s a 90-180 deg ; taux de riposte 100 % partout | PASSE |  | arc-tir-sursis.md |
 | Reproductibilite du banc CHACAL, six pieges Arma | 2026-09-03 | 1 | meme graine et meme build rendent deux routes opposees ; 4163 s reels pour une phase budgetee a 1800 s | ECHEC |  | arma-pieges.md |
+| ? | ? | ? | ? | ? |  | audit-banc-neuf-fautes-sur-vingt-quatre.md |
 | ? | ? | ? | ? | ? |  | azimut-ne-porte-pas-et-le-bruit-commande.md |
 | Barreau B0@60, transfert zero-shot | 2026-09-02 | 0, 1 | 251/255 = 98,4 % et 251/254 = 98,8 %, sans un episode d'entrainement a 60 m | VIDE | b0-30 | b0-60-vide.md |
 | Coupe du banc live selon la presence d'un defenseur vivant | 2026-08-22 | n/a | 26 episodes du natif et 31 de la politique sans aucun defenseur ; natif 26/26 en monde vide, politique 18/31 | ECHEC |  | banc-quart-sans-adversaire.md |
@@ -62,6 +63,8 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Infrastructure de mesure : sentinelle de pont, harnais de banc, deploiement SQF depuis git | 2026-09-04 | n/a | trois outils en service ; une panne trouvee et non reparee : la couche bronze du lac est un lien mort | PASSE |  | infra-sentinelle-harnais.md |
 | Controle positif de la connaissance dans Arma | 2026-08-02 | 1 | knowsAbout 4,00 avec un camarade qui voit, 0,00 seul ; 0,00 a 50 m de flanc contre 2,00 a 300 m de face | PASSE |  | knowsabout-de-camp.md |
 | Lanceur HMT : un job dans queue/ produit un FIN.json sans session ssh | 2026-09-07 | 3, 4 | 2 runs COMPLET (4733 s puis 2793 s), 4 episodes CHACAL, 4 serveurs lances et arretes par PID, 0 session ssh ouverte | PASSE | chacal-portes | lanceur-hmt-temoin.md |
+| ? | ? | ? | ? | ? |  | le-porteur-narrive-pas-et-personne-ne-le-remplace.md |
+| ? | ? | ? | ? | ? |  | le-script-ne-choisit-pas-son-ouverture.md |
 | Forme de la loi auditive de CWR validee sur Arma | 2026-09-03 | 12 episodes valides sur 12, six geometries | audSide(d) = min(2177/d2 ; 1,35), jamais 1,5, nulle au-dela de 100 m ; 1/d2 predit 1,78, mesure 1,79 ; constante a.d2 = 2160 / 2196 / 2176, soit 0,9 % d'ecart | PASSE | loi-cwr, knowsabout-de-camp | loi-auditive-forme.md |
 | Loi couvert-tir lue dans la source CWR, confrontee a Arma 3 | 2026-09-03 | n/a | porte 0,63 refutee (237 impacts sur victime vivante, 29,5 % sous le seuil) ; exposant du couvert 0,72 au lieu de 2 ; ouie plafonnee a 1,35 en 1/d2 | PASSE | arc-tir-sursis, etre-vu-tue-2x | loi-cwr.md |
 | Mecanisme de la memorisation, cap absolu | 2026-09-03 | 0, 1 | cap 315 dans 50,0 % des echecs contre 13,2 % des reussites ; 96,9 % a moins de 90 deg contre 84,9 % au-dela | PASSE | site-memorise | memorisation-cap-absolu.md |
@@ -101,18 +104,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
-| 2026-09-14_211600_chacal_i2 | chacal | EN COURS |  |  |
-| 2026-09-14_210919_chacal_i6 | chacal | COMPLET | g240:REFUSE g241:REFUSE g242:REFUSE g243:REFUSE g244:REFUSE g245:REFUSE g246:REFUSE g247:REFUSE | 751 |
-| 2026-09-14_210857_chacal_i5 | chacal | COMPLET | g232:REFUSE g233:REFUSE g234:REFUSE g235:REFUSE g236:REFUSE g237:REFUSE g238:REFUSE g239:REFUSE | 813 |
-| 2026-09-14_210835_chacal_i4 | chacal | COMPLET | g224:REFUSE g225:REFUSE g226:REFUSE g227:REFUSE g228:REFUSE g229:REFUSE g230:REFUSE g231:REFUSE | 896 |
-| 2026-09-14_210812_chacal_i3 | chacal | COMPLET | g216:REFUSE g217:REFUSE g218:REFUSE g219:REFUSE g220:REFUSE g221:REFUSE g222:REFUSE g223:REFUSE | 671 |
-| 2026-09-14_210750_chacal_i1 | chacal | EN COURS |  |  |
-| 2026-09-14_210559_chacal_i2 | chacal | COMPLET | g121:REFUSE g122:REFUSE g123:REFUSE g124:REFUSE | 468 |
-| 2026-09-14_205600_chacal_i1 | chacal | COMPLET | g117:REFUSE g118:REFUSE g119:REFUSE g120:REFUSE | 365 |
-| 2026-09-14_204906_chacal_i6 | chacal | COMPLET | g113:REFUSE g114:REFUSE g115:REFUSE g116:REFUSE | 386 |
-| 2026-09-14_204841_chacal_i5 | chacal | COMPLET | g109:REFUSE g110:REFUSE g111:REFUSE g112:REFUSE | 469 |
-| 2026-09-14_204815_chacal_i4 | chacal | COMPLET | g105:REFUSE g106:REFUSE g107:REFUSE g108:REFUSE | 508 |
-| 2026-09-14_204750_chacal_i3 | chacal | COMPLET | g101:REFUSE g102:REFUSE g103:REFUSE g104:REFUSE | 326 |
-| 2026-09-14_204725_chacal_i2 | chacal | COMPLET | g3940:REFUSE g5625:REFUSE g5701:REFUSE g7579:REFUSE | 325 |
-| 2026-09-14_204659_chacal_i1 | chacal | COMPLET | g3183:REFUSE g3664:REFUSE g3694:REFUSE g3754:REFUSE | 387 |
-| 2026-09-14_191600_chacal_i7 | chacal | COMPLET | g8_r1:REFUSE g8_r2:REFUSE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:REFUSE g8_r6:ACCEPTE | 2760 |
+| 2026-09-15_045042_chacal_i3 | chacal | EN COURS |  |  |
+| 2026-09-15_044301_chacal_i11 | chacal | EN COURS |  |  |
+| 2026-09-15_041502_chacal_i1 | chacal | EN COURS |  |  |
+| 2026-09-15_035212_chacal_i2 | chacal | EN COURS |  |  |
+| 2026-09-15_034921_chacal_i9 | chacal | ECHEC |  | 13 |
+| 2026-09-15_025631_chacal_i10 | chacal | EN COURS |  |  |
+| 2026-09-15_025341_chacal_i6 | chacal | EN COURS |  |  |
+| 2026-09-15_025147_chacal_i11 | chacal | COMPLET | g11_r1:ACCEPTE g11_r2:ACCEPTE g11_r3:ACCEPTE g11_r4:ACCEPTE g11_r5:ACCEPTE g11_r6:ACCEPTE | 6508 |
+| 2026-09-15_025051_chacal_i8 | chacal | EN COURS |  |  |
+| 2026-09-15_025030_chacal_i3 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE | 7081 |
+| 2026-09-15_024741_chacal_i7 | chacal | EN COURS |  |  |
+| 2026-09-15_023721_chacal_i5 | chacal | COMPLET | g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE | 8105 |
+| 2026-09-15_022659_chacal_i4 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE | 8740 |
+| 2026-09-15_015844_chacal_i1 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE | 8103 |
+| 2026-09-15_014038_chacal_i2 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE | 7654 |
