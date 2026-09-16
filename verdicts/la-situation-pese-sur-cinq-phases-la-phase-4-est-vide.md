@@ -68,3 +68,36 @@ Phase 3 (8 à 31 min) et phase 6 (4 à 31 min) dépassent la durée visée par l
 - Phase 2 : une menace qui ne fait que retarder est un vrai choix (attendre ou traverser), mais il faut mesurer ce
   que coûte l'attente.
 - Ces 24 épisodes versent de premières expériences entrelacées au chercheur de causes (levier `menace_pK`).
+
+## Amendement 1 — 16/09, 19:40 : la phase 4 corrigée pèse aussi
+
+*Campagne PHASE4-REGROUPEMENT-16-09 : 2 jobs, 4 épisodes, attentes écrites dans les jobs avant le lancement.
+Garde du contrôle avant run : commit ad50266. Test dbt `phase_arretee_jouee` : dbt 37fafbe.*
+
+**Correction sans code de mission** : `depart=3 obs=0 arret=4` pose le détachement au regroupement, coupe
+l'observation et **joue la marche** de mise en place. Le contrôle avant run refuse désormais toute vignette qui
+s'arrête sur une phase que son départ ne joue pas (vérifié : l'ancien `d4a4` et `d3 obs=0 a3` refusés, les
+vignettes valides acceptées).
+
+| attente écrite avant | résultat |
+|---|---|
+| (1) zéro erreur SQF | **tenue** : 4 sur 4 |
+| (2) verdict ACCEPTE | **tenue** : 4 sur 4 (contre 0 sur 4 à `depart=4`) |
+| (3) phase 4 jouée : observation coupée, pas de téléport, au moins 60 s | **tenue** : 174 à 376 s |
+| (4) menaces posées, soldats dans la capture, aucune dans le témoin | **tenue** : patrouille de 3 à 313 / 374 m, poste d'écoute de 2 à 297 / 230 m |
+| (5) monde identique | **tenue** |
+| (6) la menace pèse dans au moins un épisode | **tenue** (graine 5) |
+| (7) épisode de 10 min au plus | **tenu** : 234 à 408 s |
+
+| graine | menace | témoin |
+|---|---|---|
+| 5 | contact 103 m, 14 tirs, **alarme à 169 s**, compromis à 230 s par un coup reçu, 1 tué, phase 4 interrompue à 174 s | compromis à 350 s en arrivant (ennemi vu en combat), sans alarme, 0 tué |
+| 6 | contact 237 m, rien d'autre, positions atteintes à 376 s sans compromission | compromis à 359 s en arrivant, sans alarme, 0 tué |
+
+**Lecture** : la menace de phase 4 agit (graine 5 : alarme, perte, compromission deux minutes plus tôt). Mais sans
+menace, le détachement est déjà compromis en arrivant dans les deux graines, et avec menace la graine 6 ne l'est
+pas : à deux épisodes par bras, **le sens de l'effet n'est pas lisible**, seulement son existence. La mise en place
+compromet déjà 60 épisodes sur 283 à `depart=3` dans l'historique, sans menace.
+
+**La couche de situation pèse maintenant sur les six phases** (la phase 2 par la proximité seulement). La faute
+« vignette de phase 4 vide » est corrigée.
