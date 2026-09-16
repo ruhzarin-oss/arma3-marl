@@ -50,8 +50,9 @@ Deux épisodes par bras : ce test montre que chaque menace **existe et agit**, p
    menace de phase 4 ne peut pas agir. Une vignette de phase 4 doit **partir du regroupement et jouer la marche**,
    sans la phase 3 (qui dure 8 à 31 min).
 2. **Test dbt `menaces_presentes_dans_la_capture` faux.** Il comptait `BLESSE_JAMBES` comme une menace de terrain :
-   « hommes » y compte nos hommes blessés, pas des soldats ennemis. Il échouait sur 4 épisodes où la blessure était
-   bien appliquée (`E|situation_blesse`, le médecin). Corrigé : référence `DETACHEMENT` exclue.
+   « hommes » y compte nos hommes blessés, pas des soldats ennemis. Il échouait sur 4 épisodes : les 2 de la phase 6, où la
+   blessure est bien appliquée (`E|situation_blesse`), et les 2 de la fumée, arrêtés en phase 1, où elle n'était pas
+   encore due. Corrigé : référence `DETACHEMENT` exclue.
 3. **Test qui passe sur zéro cas.** `insertion_sous_le_feu_non_annulee` passait sans qu'aucun cas n'existe. Ajout
    du test `insertion_sous_le_feu_exercee` (avertissement tant que la règle n'a jamais servi).
 
