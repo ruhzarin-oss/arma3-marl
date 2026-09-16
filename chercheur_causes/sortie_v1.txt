@@ -1,0 +1,172 @@
+episodes retenus 1556  ( exclus sans ligne FINI : 0 )  leviers qui varient : 25
+variables retenues 618  ( dont intermediaires 566 )
+
+== 1. recherche des causes
+   comparaisons : 64
+== 2. recherche des raisons
+   decouvertes famille E : 20
+== 3. pistes
+   fini_issue=SUCCES : 91 correlations intra-strate retenues
+   fini|charges : 167 correlations intra-strate retenues
+== placebos
+   placebo_0 : n 744/767  decouvertes E 0  M 0
+   placebo_1 : n 743/761  decouvertes E 0  M 0
+   placebo_2 : n 752/746  decouvertes E 0  M 0
+   placebo_3 : n 735/764  decouvertes E 0  M 0
+   placebo_4 : n 751/752  decouvertes E 0  M 0
+
+== CONTROLES
+   C+1  PASSE   {'testable': True, 'passe': True}
+   C+2  PASSE   {'testable': True, 'passe': True, 'comparaisons': ['0->5']}
+   C+3  non testable  {'testable': False, 'passe': False, 'cause_trouvee': False, 'raisons': []}
+   C+4_informatif  ECHOUE  {'testable': True, 'passe': False, 'cause_trouvee': False, 'raisons': []}
+   C+4p  ECHOUE  {'testable': True, 'passe': False, 'detail': {'moy_a': 0.32187255181377467, 'moy_b': 0.184792481007697, 'z': -2.8372222143456356, 'p': 0.0042997850107494625, 'q': 0.05016415845874373}}
+   C-1  PASSE   {'testable': True, 'passe': True, 'lectures': ['entrelacee', 'non_entrelacee'], 'fausses_decouvertes': []}
+   C-2  PASSE   {'testable': True, 'passe': True, 'placebos_avec_decouverte': 0}
+
+   CHERCHEUR NON CRU  ( positifs testables : 3 )
+
+== DECOUVERTES ( famille E ), par force
+   [non_en] job|arret 5->6  fini|exfiltres         0.00 -> 4.81  z=+16.8 q=0.00145  n=270/112 strates=16
+        raison : n|e|ordre                                     part 1.02 [0.47 ; 1.34]  (levier +, effet r=+0.90)
+        raison : n|e|chien_de_garde|p6                         part 0.99 [0.89 ; 1.03]  (levier +, effet r=+0.94)
+        raison : ph|6|issue=ATTEINT                            part 0.50 [0.37 ; 0.62]  (levier +, effet r=+0.91)
+          pourquoi de la raison : n|e|ordre|ASSAUT                    part 0.32
+          pourquoi de la raison : n|e|chien_de_garde|p6               part 0.24
+   [non_en] job|arret 5->6  fini|duree             424.03 -> 1263.90  z=+16.1 q=0.00145  n=270/112 strates=16
+        raison : n|e|ordre                                     part 1.35 [0.80 ; 1.69]  (levier +, effet r=+0.88)
+        raison : n|e|chien_de_garde|p6                         part 1.11 [1.03 ; 1.19]  (levier +, effet r=+0.91)
+        raison : n|e|ordre|ASSAUT                              part 0.44 [0.28 ; 0.53]  (levier +, effet r=+0.84)
+          pourquoi de la raison : n|e|ordre|ASSAUT                    part 0.32
+          pourquoi de la raison : n|e|chien_de_garde|p6               part 0.24
+   [non_en] job|arret 5->6  fini_issue=SUCCES      0.00 -> 0.48  z=+11.9 q=0.00145  n=270/112 strates=16
+        raison : ph|6|issue=ATTEINT                            part 1.00 [0.96 ; 1.04]  (levier +, effet r=+0.84)
+        raison : n|e|chien_de_garde|p6                         part 0.99 [0.85 ; 1.12]  (levier +, effet r=+0.68)
+        raison : n|e|ordre                                     part 0.93 [0.35 ; 1.29]  (levier +, effet r=+0.65)
+          pourquoi de la raison : n|e|chien_de_garde|p6               part 0.99
+          pourquoi de la raison : n|e|ordre                           part 0.99
+   [non_en] job|palier 4->9  fini|pertes_est        2.67 -> 0.00  z=-5.9 q=0.00145  n=24/20 strates=2
+        raison : max|e|budget|appui                            part 1.18 [0.48 ; 1.85]  (levier -, effet r=+0.91)
+        raison : n|e|mort                                      part 0.33 [0.14 ; 0.56]  (levier -, effet r=+0.83)
+        raison : n|e|mort|p5                                   part 0.33 [0.13 ; 0.60]  (levier -, effet r=+0.83)
+          pourquoi de la raison : max|e|budget|plafond                part 0.13
+          pourquoi de la raison : n|e|mort                            part 0.07
+   [non_en] job|palier 4->9  fini|duree             522.08 -> 389.30  z=-5.0 q=0.00145  n=24/20 strates=2
+        raison : n|e|destruction                               part 0.19 [-0.06 ; 0.47]  (levier +, effet r=-0.63)
+        raison : n|e|destruction|p5                            part 0.19 [-0.04 ; 0.43]  (levier +, effet r=-0.63)
+        raison : max|e|porteur|distance                        part 0.13 [-0.07 ; 0.32]  (levier -, effet r=+0.53)
+          pourquoi de la raison : ph|5|issue=ATTEINT                  part 0.54
+          pourquoi de la raison : ph|5|issue=INCOMPLET                part 0.54
+   [non_en] job|banc_appui 1->2  fini|pertes_est        0.00 -> 1.35  z=+4.5 q=0.00145  n=20/20 strates=2
+        raison : n|e|tir                                       part 0.66 [0.47 ; 0.96]  (levier +, effet r=+0.90)
+        raison : n|e|tir|p5                                    part 0.66 [0.47 ; 0.95]  (levier +, effet r=+0.90)
+        raison : n|e|oracle_alarme                             part 0.58 [0.29 ; 0.97]  (levier +, effet r=+0.83)
+          pourquoi de la raison : n|e|mort                            part 1.02
+          pourquoi de la raison : n|e|mort|p5                         part 1.02
+   [entrel] job|banc_appui 1->2  fini|pertes_est        0.00 -> 1.35  z=+4.4 q=0.00145  n=20/20 strates=2
+        raison : n|e|tir                                       part 0.66 [0.48 ; 0.91]  (levier +, effet r=+0.90)
+        raison : n|e|tir|p5                                    part 0.66 [0.46 ; 0.94]  (levier +, effet r=+0.90)
+        raison : n|e|oracle_alarme                             part 0.58 [0.25 ; 0.99]  (levier +, effet r=+0.83)
+          pourquoi de la raison : n|e|mort                            part 1.02
+          pourquoi de la raison : n|e|mort|p5                         part 1.02
+   [non_en] job|palier 4->9  fini|vivants           7.92 -> 10.00  z=+4.3 q=0.00267  n=24/20 strates=2
+        raison : n|e|mort                                      part 0.92 [0.67 ; 1.32]  (levier -, effet r=-0.89)
+        raison : n|e|mort|p5                                   part 0.92 [0.67 ; 1.36]  (levier -, effet r=-0.89)
+        raison : n|e|tir                                       part 0.87 [0.52 ; 1.29]  (levier -, effet r=-0.80)
+          pourquoi de la raison : max|e|budget|appui                  part 1.54
+          pourquoi de la raison : n|e|tir                             part 0.78
+   [non_en] job|socle 0->1  fini|charges           1.50 -> 2.68  z=+4.2 q=0.00145  n=10/34 strates=2
+        raison : n|e|porteur                                   part 0.35 [-0.07 ; 1.02]  (levier +, effet r=+0.67)
+        raison : n|e|porteur|p5                                part 0.35 [0.00 ; 0.88]  (levier +, effet r=+0.67)
+        raison : n|e|charge_posee|par=DEMO_1                   part 0.31 [0.07 ; 0.68]  (levier +, effet r=+0.64)
+        decomposition : ph|5|issue=ATTEINT                     part 0.67  (l effet redit autrement)
+        decomposition : ph|5|issue=INCOMPLET                   part 0.67  (l effet redit autrement)
+          pourquoi de la raison : max|e|degagement|charges            part 0.83
+          pourquoi de la raison : n|e|charge_posee                    part 0.83
+   [non_en] job|tactique 0->5  fini|charges           2.68 -> 1.30  z=-4.2 q=0.00145  n=34/10 strates=2
+        raison : n|e|porteur                                   part 1.03 [0.73 ; 1.42]  (levier -, effet r=+0.89)
+        raison : n|e|porteur|p5                                part 1.03 [0.77 ; 1.46]  (levier -, effet r=+0.89)
+        raison : n|e|suppression                               part 0.56 [0.13 ; 1.24]  (levier +, effet r=-0.72)
+        decomposition : n|e|charge_manquee                     part 0.74  (l effet redit autrement)
+        decomposition : n|e|charge_manquee|p5                  part 0.74  (l effet redit autrement)
+          pourquoi de la raison : max|e|degagement|charges            part 0.62
+          pourquoi de la raison : n|e|charge_posee                    part 0.62
+   [non_en] job|palier 4->9  fini|detruits_scriptes 1.75 -> 3.00  z=+4.1 q=0.00145  n=24/20 strates=2
+        raison : ph|5|issue=ATTEINT                            part 0.54 [0.07 ; 1.00]  (levier +, effet r=+0.70)
+        raison : ph|5|issue=INCOMPLET                          part 0.54 [0.05 ; 1.00]  (levier -, effet r=-0.70)
+        raison : ph|5|duree                                    part 0.49 [-0.18 ; 1.24]  (levier -, effet r=-0.63)
+          pourquoi de la raison : n|e|charge_posee|par=DEMO_1         part 0.70
+          pourquoi de la raison : ph|5|fin|vivants                    part 0.57
+   [non_en] job|palier 4->9  fini|charges           2.17 -> 3.00  z=+3.8 q=0.00145  n=24/20 strates=2
+        raison : n|e|charge_posee|par=DEMO_1                   part 0.85 [0.70 ; 1.00]  (levier +, effet r=+0.92)
+        raison : ph|5|fin|vivants                              part 0.63 [0.15 ; 1.10]  (levier +, effet r=+0.70)
+        raison : n|e|destruction                               part 0.57 [0.24 ; 0.87]  (levier +, effet r=+0.69)
+        decomposition : ph|5|issue=ATTEINT                     part 1.02  (l effet redit autrement)
+        decomposition : ph|5|issue=INCOMPLET                   part 1.02  (l effet redit autrement)
+          pourquoi de la raison : ph|5|issue=ATTEINT                  part 1.01
+          pourquoi de la raison : ph|5|issue=INCOMPLET                part 1.01
+   [non_en] job|ablation 1->2  fini|duree             502.32 -> 401.73  z=-3.3 q=0.00914  n=20/17 strates=2
+   [entrel] job|ablation 1->2  fini|duree             502.32 -> 401.73  z=-3.3 q=0.0107  n=20/17 strates=2
+   [entrel] job|tactique 0->5  fini|detruits_scriptes 2.50 -> 1.00  z=-3.3 q=0.00914  n=18/10 strates=2
+        raison : max|e|degagement|charges                      part 0.57 [0.10 ; 1.06]  (levier -, effet r=+0.76)
+        raison : n|e|charge_posee                              part 0.57 [0.10 ; 1.04]  (levier -, effet r=+0.76)
+        raison : n|e|charge_posee|p5                           part 0.57 [0.12 ; 1.06]  (levier -, effet r=+0.76)
+          pourquoi de la raison : n|e|porteur                         part 1.01
+          pourquoi de la raison : n|e|porteur|p5                      part 1.01
+   [entrel] job|tactique 0->5  fini|charges           2.67 -> 1.30  z=-3.2 q=0.0204  n=18/10 strates=2
+        raison : n|e|porteur                                   part 1.01 [0.74 ; 1.41]  (levier -, effet r=+0.93)
+        raison : n|e|porteur|p5                                part 1.01 [0.72 ; 1.57]  (levier -, effet r=+0.93)
+        raison : n|e|destruction                               part 0.62 [0.08 ; 1.19]  (levier -, effet r=+0.76)
+        decomposition : n|e|charge_manquee                     part 0.78  (l effet redit autrement)
+        decomposition : n|e|charge_manquee|p5                  part 0.78  (l effet redit autrement)
+          pourquoi de la raison : max|e|degagement|charges            part 0.77
+          pourquoi de la raison : n|e|charge_posee                    part 0.77
+   [entrel] job|socle 0->1  fini|charges           1.50 -> 2.67  z=+3.2 q=0.0204  n=10/18 strates=2
+        raison : n|e|destruction                               part 0.54 [0.13 ; 1.16]  (levier +, effet r=+0.75)
+        raison : n|e|destruction|p5                            part 0.54 [0.11 ; 1.20]  (levier +, effet r=+0.75)
+        decomposition : ph|5|issue=INCOMPLET                   part 0.85  (l effet redit autrement)
+        decomposition : ph|5|issue=ATTEINT                     part 0.85  (l effet redit autrement)
+          pourquoi de la raison : ph|5|issue=INCOMPLET                part 0.69
+          pourquoi de la raison : ph|5|issue=ATTEINT                  part 0.69
+   [non_en] job|socle 0->1  fini|duree             530.19 -> 431.33  z=-3.2 q=0.0204  n=10/34 strates=2
+   [non_en] job|oracle 0->2  fini|duree             522.08 -> 614.17  z=+3.1 q=0.0236  n=24/18 strates=2
+        raison : max|e|ouverture|reste                         part 0.73 [0.34 ; 1.54]  (levier -, effet r=-0.71)
+          pourquoi de la raison : ok|capture_arretee|ticks            part 0.51
+          pourquoi de la raison : ph|5|duree                          part 0.51
+   [entrel] job|socle 0->1  fini|detruits_scriptes 1.10 -> 2.50  z=+3.0 q=0.0416  n=10/18 strates=2
+        raison : ph|5|issue=INCOMPLET                          part 0.69 [0.34 ; 1.14]  (levier -, effet r=-0.75)
+        raison : ph|5|issue=ATTEINT                            part 0.69 [0.32 ; 1.17]  (levier +, effet r=+0.75)
+        raison : n|e|charge_manquee                            part 0.69 [0.15 ; 1.40]  (levier -, effet r=-0.73)
+          pourquoi de la raison : n|e|destruction                     part 0.49
+          pourquoi de la raison : n|e|destruction|p5                  part 0.49
+
+== PISTES ( correlations intra-strate, PAS des causes ) : 12 premieres par effet
+   fini_issue=SUCCES
+      r=+0.66 q=1.8e-185 n=1556   ph|6|issue=ATTEINT                               leviers : job|arret 5->6 (non_entrelacee)
+      r=-0.53 q=7.2e-103 n=1556   ph|6|issue=PLAFOND                               leviers : job|arret 5->6 (non_entrelacee)
+      r=+0.44 q=2.8e-16 n= 358   ph|6|fin|vivants                                 leviers : AUCUN - levier a construire
+      r=+0.42 q=1.4e-14 n= 358   ph|6|debut|vivants                               leviers : AUCUN - levier a construire
+      r=+0.39 q=1.1e-09 n= 268   max|e|exfil_jambes|vivants                       leviers : AUCUN - levier a construire
+      r=+0.38 q=6.2e-47 n=1556   ph|5|issue=ATTEINT                               leviers : job|palier 4->9 (non_entrelacee), job|socle 0->1 (entrelacee), job|socle 0->1 (non_entrelacee)
+      r=-0.37 q=1.6e-45 n=1556   ph|5|issue=INCOMPLET                             leviers : job|palier 4->9 (non_entrelacee), job|socle 0->1 (entrelacee), job|socle 0->1 (non_entrelacee)
+      r=+0.35 q=1.5e-31 n=1256   max|e|destruction|total                          leviers : AUCUN - levier a construire
+      r=+0.35 q=1.5e-31 n=1256   max|e|mise_a_feu|charges                         leviers : AUCUN - levier a construire
+      r=+0.33 q=2.3e-31 n=1382   max|e|charge_posee|actes                         leviers : job|palier 4->9 (non_entrelacee)
+      r=-0.32 q=1.4e-33 n=1556   n|e|exfil_impossible                             leviers : job|arret 5->6 (non_entrelacee)
+      r=-0.32 q=1.4e-33 n=1556   n|e|exfil_impossible|p6                          leviers : job|arret 5->6 (non_entrelacee)
+   fini|charges
+      r=-0.90 q=0 n=1556 D n|e|charge_manquee                               leviers : job|palier 4->9 (non_entrelacee), job|socle 0->1 (entrelacee), job|socle 0->1 (non_entrelacee)
+      r=-0.90 q=0 n=1556 D n|e|charge_manquee|p5                            leviers : job|palier 4->9 (non_entrelacee), job|socle 0->1 (entrelacee), job|socle 0->1 (non_entrelacee)
+      r=+0.87 q=0 n=1556 D ph|5|issue=ATTEINT                               leviers : job|palier 4->9 (non_entrelacee), job|socle 0->1 (entrelacee), job|socle 0->1 (non_entrelacee)
+      r=-0.83 q=0 n=1556 D ph|5|issue=INCOMPLET                             leviers : job|palier 4->9 (non_entrelacee), job|socle 0->1 (entrelacee), job|socle 0->1 (non_entrelacee)
+      r=+0.75 q=1.3e-289 n=1556   n|e|porteur                                      leviers : job|palier 4->9 (non_entrelacee), job|socle 0->1 (non_entrelacee), job|tactique 0->5 (entrelacee)
+      r=+0.75 q=1.3e-289 n=1556   n|e|porteur|p5                                   leviers : job|palier 4->9 (non_entrelacee), job|socle 0->1 (non_entrelacee), job|tactique 0->5 (entrelacee)
+      r=+0.71 q=3.5e-234 n=1556   n|e|charge_posee|par=DEMO_1                      leviers : job|palier 4->9 (non_entrelacee), job|socle 0->1 (non_entrelacee), job|tactique 0->5 (entrelacee)
+      r=+0.65 q=1.9e-183 n=1556   n|e|destruction                                  leviers : job|palier 4->9 (non_entrelacee), job|socle 0->1 (entrelacee), job|socle 0->1 (non_entrelacee)
+      r=+0.65 q=1.9e-183 n=1556   n|e|destruction|p5                               leviers : job|palier 4->9 (non_entrelacee), job|socle 0->1 (entrelacee), job|socle 0->1 (non_entrelacee)
+      r=+0.63 q=1.6e-167 n=1556   n|e|exploitation                                 leviers : job|tactique 0->5 (non_entrelacee)
+      r=+0.63 q=1.6e-167 n=1556   n|e|exploitation|p5                              leviers : job|tactique 0->5 (non_entrelacee)
+      r=-0.61 q=1.4e-153 n=1556   n|e|charge_manquee|cause=PORTEUR_N_ARRIVE_PAS    leviers : job|ablation 1->2 (entrelacee), job|ablation 1->2 (non_entrelacee), job|ablation 1->8 (entrelacee)
+
+sorties -> /mnt/data/hmt/chercheur_causes/resultats_v1
+FIN code 0
