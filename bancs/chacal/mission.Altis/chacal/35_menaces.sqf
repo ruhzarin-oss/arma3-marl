@@ -207,11 +207,14 @@ if (CHACAL_MENACE_P5 > 0) then {
         CHACAL_MENACES pushBack [5, "ALARME_AVANT_ASSAUT", grpNull];
         [] spawn {
             waitUntil { sleep 2; (CHACAL_PHASE >= 5) || CHACAL_FIN };
-            if (CHACAL_FIN || CHACAL_ALARME) exitWith {};
-            // l oracle de 60_phases.sqf voit CHACAL_ALARME et declenche la suite : garnison en COMBAT, reserve
-            CHACAL_T_ALARME = time;
-            CHACAL_ALARME = true;
-            (format ["CHACAL|E|situation_alarme|%1|phase|%2|cause|ALERTE_DONNEE_AVANT_L_ASSAUT", round (time * 100) / 100, CHACAL_PHASE]) call CHACAL_LOG;
+            if (!CHACAL_FIN && { !CHACAL_ALARME }) then {
+                // l oracle de 60_phases.sqf voit CHACAL_ALARME et declenche la suite : garnison en COMBAT, reserve
+                CHACAL_T_ALARME = time;
+                CHACAL_ALARME = true;
+                (format ["CHACAL|E|situation_alarme|%1|phase|%2|cause|ALERTE_DONNEE_AVANT_L_ASSAUT", round (time * 100) / 100, CHACAL_PHASE]) call CHACAL_LOG;
+            };
+            // ! 16/09 : la ligne de decision de la phase 5 attend ce drapeau, sinon elle lirait l alarme avant sa pose.
+            CHACAL_SITUATION_P5_FAITE = true;
         };
     };
 };

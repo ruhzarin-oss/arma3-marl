@@ -68,6 +68,23 @@ CHACAL_fnc_debutPhase = {
         count (CHACAL_FS select { alive _x }),
         (if (CHACAL_COMPROMIS) then {1} else {0}), (if (CHACAL_ALARME) then {1} else {0})]) call CHACAL_LOG;
 };
+// ! LA LIGNE DE DECISION ( plans/plan-choix-par-vignette.md, 16/09 ). Un choix = une ligne, toujours la meme forme,
+// lue par la table dbt stg_decision puis par le gymnase. Les observables sont ce que le detachement PEUT savoir au
+// moment du choix. verite_defenseurs ne l est pas : il est ecrit pour la lecture, jamais pour decider.
+// Ne tire aucun alea : ni le monde ni la situation ne bougent.
+"CHACAL|OK|decision|version|1" call CHACAL_LOG;
+CHACAL_fnc_decision = {
+    params ["_phase", "_point", "_options", "_choix", "_decideur"];
+    private _def = (if (isNil "CHACAL_EST_SITE") then {[]} else {CHACAL_EST_SITE}) select { alive _x };
+    (format ["CHACAL|E|decision|%1|phase|%2|point|%3|options|%4|choix|%5|decideur|%6|alarme|%7|depuis_alarme|%8|compromis|%9|vivants|%10|defenseurs_connus|%11|verite_defenseurs|%12|situation|%13",
+        round (time * 100) / 100, _phase, _point, _options, _choix, _decideur,
+        (if (CHACAL_ALARME) then {1} else {0}),
+        (if (CHACAL_T_ALARME >= 0) then { round (time - CHACAL_T_ALARME) } else { -1 }),
+        (if (CHACAL_COMPROMIS) then {1} else {0}),
+        count (CHACAL_FS select { alive _x }),
+        { (west knowsAbout _x) > 1.4 } count _def,
+        count _def, CHACAL_SITUATION]) call CHACAL_LOG;
+};
 CHACAL_fnc_finPhase = {
     params ["_n", "_nom", "_issue"];
     if (CHACAL_FIN && { _n > CHACAL_ARRET }) exitWith {};
@@ -1336,6 +1353,15 @@ if (CHACAL_MG_ASSAUT == 1) then {
             { _x == "200Rnd_65x39_cased_Box" } count (magazines _u)]) call CHACAL_LOG;
     } else { "CHACAL|AVERT|mg_assaut|aucun_tireur_disponible" call CHACAL_LOG };
 };
+// ! LE CHOIX DE LA PHASE 5 ( plans/plan-choix-par-vignette.md, 16/09 ) : combien de temps laisser au porteur.
+// Force par le job ( delai_porteur ), ecrit comme une decision juste avant le premier pas de l assaut. La menace
+// ALARME_AVANT_ASSAUT est posee par une tache qui regarde la phase toutes les 2 s : on attend son drapeau, 10 s au
+// plus, sinon l observable alarme serait lu avant la pose.
+if (CHACAL_MENACE_P5 in [2, 3]) then {
+    private _tDec = time;
+    waitUntil { sleep 0.5; (!isNil "CHACAL_SITUATION_P5_FAITE") || CHACAL_FIN || ((time - _tDec) > 10) };
+};
+[5, "DELAI_PORTEUR", [45, 180], CHACAL_DELAI_PORTEUR, "IMPOSE"] call CHACAL_fnc_decision;
 // LE chiffre de Fable : les coups de l appui AVANT le premier pas de l assaut.
 (format ["CHACAL|E|premier_pas_assaut|%1|tirs_appui_avant|%2|feu_avant|%3", round (time * 100) / 100,
     CHACAL_TIRS_APPUI, CHACAL_FEU_AVANT]) call CHACAL_LOG;
