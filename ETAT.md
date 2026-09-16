@@ -1,4 +1,4 @@
-# ETAT — 2026-09-15 04:52
+# ETAT — 2026-09-16 03:14
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -8,19 +8,19 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 ## Machine
 
-- dernier boot : 2026-09-12T23:34:00+02:00 ok=True  conteneurs=20 ;
-- GPU : 1235 MiB, 24576 MiB, 0 %
+- dernier boot : 2026-09-15T15:42:36+02:00 ok=True  conteneurs=20 ;
+- GPU : 1234 MiB, 24576 MiB, 4 %
 - /mnt/data : 2.6T libres sur 3.6T
-- serveurs Arma : 8 · residus : aucun
+- serveurs Arma : 6 · residus : aucun
 
 ## File
 
-- en cours : 2026-09-15_CONF_D180_g11_m1.json, 2026-09-15_CONF_D180_g11_m2.json, 2026-09-15_CONF_D180_g7_m2.json, 2026-09-15_CONF_D180_g8_m1.json, 2026-09-15_CONF_D180_g8_m2.json, 2026-09-15_CONF_D45_g11_m1.json, 2026-09-15_CONF_D45_g12_m1.json, 2026-09-15_CONF_D45_g8_m2.json, 2026-09-15_DELAI180_g8_m2bis.json
-- en attente : 2026-09-15_CONF_D180_g12_m1.json, 2026-09-15_CONF_D180_g12_m2.json, 2026-09-15_CONF_D45_g12_m2.json, 2026-09-15_DELAI180_g11_m2.json, 2026-09-15_DELAI180_g12_m1.json, 2026-09-15_DELAI180_g5_m1.json, 2026-09-15_DELAI180_g7_m1.json, 2026-09-15_DELAI180_g7_m2.json, 2026-09-15_PORTEA_g7_m1.json, 2026-09-15_PORTEA_g7_m2.json
+- en cours : 2026-09-15_PORTE9_A_g11.json, 2026-09-15_PORTE9_A_g12.json, 2026-09-15_PORTE9_A_g9.json, 2026-09-15_PORTE9_B_g11.json, 2026-09-15_PORTE9_B_g12.json, 2026-09-15_PORTE9_B_g7.json, 2026-09-15_PORTE9_B_g9.json
+- en attente : rien
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 172 / 240
+- runs aboutis : 221 / 297
 
 ## Portes ouvertes
 
@@ -44,6 +44,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | ? | ? | ? | ? | ? |  | azimut-ne-porte-pas-et-le-bruit-commande.md |
 | Barreau B0@60, transfert zero-shot | 2026-09-02 | 0, 1 | 251/255 = 98,4 % et 251/254 = 98,8 %, sans un episode d'entrainement a 60 m | VIDE | b0-30 | b0-60-vide.md |
 | Coupe du banc live selon la presence d'un defenseur vivant | 2026-08-22 | n/a | 26 episodes du natif et 31 de la politique sans aucun defenseur ; natif 26/26 en monde vide, politique 18/31 | ECHEC |  | banc-quart-sans-adversaire.md |
+| ? | ? | ? | ? | ? |  | cahier-des-charges-banc-a-decisions.md |
 | Controle d'instrument du canal ennemi, avant le barreau adverse | 2026-09-03 | 1 | 4 champs sur 5 allumes ; 118 coups sur 20 episodes en B1 contre 0 en B0 | PASSE | site-degele | canal-ennemi.md |
 | CHACAL palier 0, BRAS TEMOIN : marcher droit sur l'objectif ne le prend pas | 2026-09-08 | 5, 6 | 2 episodes ACCEPTES, 15 portes vertes sur 15 ; g5 ABANDON ARTICULATION_ROMPUE (103 min, 10 vivants, 0 charge) ; g6 ABANDON COMPROMIS_LOIN (52 min, 6 morts en 15 s par un MRAP a mitrailleuse lourde) ; 0 charge posee sur 3 dans les deux cas | PASSE | chacal-portes, lanceur-hmt-temoin | chacal-bras-temoin-palier0.md |
 | CHACAL palier 0, premiers episodes : hors corpus, DEPART=3 trainait | 2026-09-07 | 3, 4 | g3 ECHEC EXFIL_MANQUEE (2333 s) ; g4 ABANDON ARTICULATION_ROMPUE (367 s, detachement detruit par la HMG en 86 s) | VIDE | chacal-portes, lanceur-hmt-temoin | chacal-palier0-premiers-episodes.md |
@@ -54,6 +55,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Courbe de toucher, niveau et forme, nuit N1 | 2026-09-04 | n/a | rapport a l'ancienne courbe x0,75 a 25 m et x1,91 a 150 m ; replication 0,402 contre 0,383 a 100 m | ECHEC |  | courbe-2607.md |
 | Courbe de toucher remesuree a HitPart, instrument reproductible | 2026-09-04 | 2 repetitions independantes de la meme condition | 18 conditions, ~17 000 balles ; 100 m debout 0,402 IC95 [0,371 ; 0,435] n=902, puis 0,383 IC95 [0,335 ; 0,434] n=368 | PASSE | courbe-2607 | courbe-toucher-hitpart.md |
 | Degat par impact re-derive sur l'acte de mort | 2026-09-04 | n/a | 0,175 par impact ; mediane 4,0 impacts jusqu'a la neutralisation, n=83 ; l'ancien 0,233 venait d'un capteur qui sur-comptait | PASSE | courbe-toucher-hitpart | degat-par-impact.md |
+| ? | ? | ? | ? | ? |  | delai-porteur-le-mecanisme-tient-pas-le-resultat.md |
 | Un UAV d'Arma renseigne-t-il l'IA | 2026-08-16 | 1 | knowsAbout = 0 sur 4 montages, y compris cloue a 148 m au-dessus de la cible pendant 60 s | ECHEC | knowsabout-de-camp | drone-arma-rien.md |
 | Sonde 3 du corpus Battle Lines, mortalite selon le champ de vision ennemi | 2026-08-03 | n/a | mortalite 7,44 % a 0-20 % d'ennemis qui vous voient contre 13,00 % a 80-100 %, soit +75 % | PASSE | knowsabout-de-camp | etre-vu-tue-2x.md |
 | Fidelite du monde assemble, contraste vu contre non vu | 2026-08-11 | n/a | etre vu multiplie la mortalite de +856 % dans la sandbox contre +75 % certifies sur Arma | ECHEC | etre-vu-tue-2x, sandbox-letalite-4x | fidelite-arma-couvert-11x.md |
@@ -62,6 +64,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | ? | ? | ? | ? | ? |  | historique-08-au-13-septembre.md |
 | Infrastructure de mesure : sentinelle de pont, harnais de banc, deploiement SQF depuis git | 2026-09-04 | n/a | trois outils en service ; une panne trouvee et non reparee : la couche bronze du lac est un lien mort | PASSE |  | infra-sentinelle-harnais.md |
 | Controle positif de la connaissance dans Arma | 2026-08-02 | 1 | knowsAbout 4,00 avec un camarade qui voit, 0,00 seul ; 0,00 a 50 m de flanc contre 2,00 a 300 m de face | PASSE |  | knowsabout-de-camp.md |
+| ? | ? | ? | ? | ? |  | la-couture-est-ouverte.md |
 | Lanceur HMT : un job dans queue/ produit un FIN.json sans session ssh | 2026-09-07 | 3, 4 | 2 runs COMPLET (4733 s puis 2793 s), 4 episodes CHACAL, 4 serveurs lances et arretes par PID, 0 session ssh ouverte | PASSE | chacal-portes | lanceur-hmt-temoin.md |
 | ? | ? | ? | ? | ? |  | le-porteur-narrive-pas-et-personne-ne-le-remplace.md |
 | ? | ? | ? | ? | ? |  | le-script-ne-choisit-pas-son-ouverture.md |
@@ -104,18 +107,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
-| 2026-09-15_045042_chacal_i3 | chacal | EN COURS |  |  |
-| 2026-09-15_044301_chacal_i11 | chacal | EN COURS |  |  |
-| 2026-09-15_041502_chacal_i1 | chacal | EN COURS |  |  |
-| 2026-09-15_035212_chacal_i2 | chacal | EN COURS |  |  |
-| 2026-09-15_034921_chacal_i9 | chacal | ECHEC |  | 13 |
-| 2026-09-15_025631_chacal_i10 | chacal | EN COURS |  |  |
-| 2026-09-15_025341_chacal_i6 | chacal | EN COURS |  |  |
-| 2026-09-15_025147_chacal_i11 | chacal | COMPLET | g11_r1:ACCEPTE g11_r2:ACCEPTE g11_r3:ACCEPTE g11_r4:ACCEPTE g11_r5:ACCEPTE g11_r6:ACCEPTE | 6508 |
-| 2026-09-15_025051_chacal_i8 | chacal | EN COURS |  |  |
-| 2026-09-15_025030_chacal_i3 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE | 7081 |
-| 2026-09-15_024741_chacal_i7 | chacal | EN COURS |  |  |
-| 2026-09-15_023721_chacal_i5 | chacal | COMPLET | g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE | 8105 |
-| 2026-09-15_022659_chacal_i4 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE | 8740 |
-| 2026-09-15_015844_chacal_i1 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE | 8103 |
-| 2026-09-15_014038_chacal_i2 | chacal | COMPLET | g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE | 7654 |
+| 2026-09-16_020836_chacal_i1 | chacal | EN COURS |  |  |
+| 2026-09-16_013251_chacal_i5 | chacal | EN COURS |  |  |
+| 2026-09-16_012846_chacal_i6 | chacal | EN COURS |  |  |
+| 2026-09-16_010414_chacal_i2 | chacal | EN COURS |  |  |
+| 2026-09-16_002828_chacal_i4 | chacal | EN COURS |  |  |
+| 2026-09-15_235748_chacal_i3 | chacal | EN COURS |  |  |
+| 2026-09-15_201601_chacal_i1 | chacal | COMPLET | g8_r1:ACCEPTE g8_r10:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE g8_r7:ACCEPTE g8_r8:ACCEPTE g8_r9:ACCEPTE | 21075 |
+| 2026-09-15_191601_chacal_i10 | chacal | COMPLET | g8_r1:ACCEPTE g8_r10:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE g8_r7:ACCEPTE g8_r8:ACCEPTE g8_r9:ACCEPTE | 21384 |
+| 2026-09-15_190601_chacal_i8 | chacal | COMPLET | g7_r1:ACCEPTE g7_r10:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE g7_r7:ACCEPTE g7_r8:ACCEPTE g7_r9:ACCEPTE | 29324 |
+| 2026-09-15_185601_chacal_i4 | chacal | COMPLET | g5_r1:ACCEPTE g5_r10:ACCEPTE g5_r2:ACCEPTE g5_r3:ACCEPTE g5_r4:ACCEPTE g5_r5:ACCEPTE g5_r6:ACCEPTE g5_r7:ACCEPTE g5_r8:ACCEPTE g5_r9:ACCEPTE | 19912 |
+| 2026-09-15_184601_chacal_i5 | chacal | COMPLET | g6_r1:ACCEPTE g6_r10:ACCEPTE g6_r2:ACCEPTE g6_r3:ACCEPTE g6_r4:ACCEPTE g6_r5:ACCEPTE g6_r6:ACCEPTE g6_r7:ACCEPTE g6_r8:ACCEPTE g6_r9:ACCEPTE | 24375 |
+| 2026-09-15_183602_chacal_i6 | chacal | COMPLET | g6_r1:ACCEPTE g6_r10:ACCEPTE g6_r2:ACCEPTE g6_r3:ACCEPTE g6_r4:ACCEPTE g6_r5:ACCEPTE g6_r6:ACCEPTE g6_r7:ACCEPTE g6_r8:ACCEPTE g6_r9:ACCEPTE | 24681 |
+| 2026-09-15_181751_chacal_i3 | chacal | COMPLET | g5_r1:ACCEPTE g5_r10:ACCEPTE g5_r2:ACCEPTE g5_r3:ACCEPTE g5_r4:ACCEPTE g5_r5:ACCEPTE g5_r6:ACCEPTE g5_r7:ACCEPTE g5_r8:ACCEPTE g5_r9:ACCEPTE | 20341 |
+| 2026-09-15_181146_chacal_i2 | chacal | COMPLET | g4_r1:ACCEPTE g4_r10:ACCEPTE g4_r2:ACCEPTE g4_r3:ACCEPTE g4_r4:ACCEPTE g4_r5:ACCEPTE g4_r6:ACCEPTE g4_r7:ACCEPTE g4_r8:ACCEPTE g4_r9:ACCEPTE | 24643 |
+| 2026-09-15_175633_chacal_i11 | chacal | COMPLET | g4_r1:ACCEPTE g4_r10:ACCEPTE g4_r2:REFUSE g4_r3:ACCEPTE g4_r4:ACCEPTE g4_r5:ACCEPTE g4_r6:ACCEPTE g4_r7:ACCEPTE g4_r8:ACCEPTE g4_r9:ACCEPTE | 19920 |
