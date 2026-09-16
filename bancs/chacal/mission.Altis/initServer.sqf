@@ -8,7 +8,7 @@
 //   socle   -> le journal et le tirage existent avant tout le reste
 //   monde   -> la geometrie, qui peut declarer l episode VOID
 //   decor   -> les objectifs sont poses AVANT que la garnison s y garnisse
-//   opfor   -> la garnison ; blufor -> les dix
+//   opfor   -> la garnison ; situation -> les menaces qui varient ; blufor -> les dix
 //   capture -> l enregistreur, INSTALLE AVANT que quoi que ce soit bouge
 //   verdict -> les canaris de l enregistreur, puis l issue
 //   phases  -> et seulement alors, le temps commence
@@ -23,6 +23,7 @@ if (CHACAL_ISSUE == "VOID") exitWith {
     (format ["CHACAL|FINI|VOID|%1|graine|%2", CHACAL_CAUSE, CHACAL_GRAINE]) call CHACAL_LOG;
 };
 call compile preprocessFileLineNumbers "chacal\30_opfor.sqf";
+call compile preprocessFileLineNumbers "chacal\35_menaces.sqf";
 call compile preprocessFileLineNumbers "chacal\40_blufor.sqf";
 if (CHACAL_ISSUE == "VOID") exitWith {
     (format ["CHACAL|FINI|VOID|%1|graine|%2", CHACAL_CAUSE, CHACAL_GRAINE]) call CHACAL_LOG;

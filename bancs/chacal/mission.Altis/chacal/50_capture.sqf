@@ -227,7 +227,15 @@ CHACAL_EH_FRAME = addMissionEventHandler ["EachFrame", {
 
 // ======================= 4. LES MORTS =======================
 CHACAL_EH_MORT = addMissionEventHandler ["EntityKilled", {
-    params ["_vic", "_tueur"];
+    params ["_vic", "_tueur", ["_instig", objNull]];
+    // ! QUI A TUE ( 16/09, decision de Younes ). Une mort infligee par l EST pendant l insertion devient
+    // une issue tactique et n annule plus l episode ; seule une mort sans tueur ennemi l annule encore.
+    // L etiquette ne change rien a la ligne de trace ci-dessous.
+    private _qui = if (!isNull _instig) then { _instig } else { _tueur };
+    if (!isNull _qui && { _qui != _vic }) then {
+        private _cote = if (_qui isKindOf "CAManBase") then { side (group _qui) } else { side _qui };
+        if (_cote == east) then { _vic setVariable ["chacal_tue_par_est", true] };
+    };
     private _t = _tueur call CHACAL_fnc_idTueur;
     (format ["CHACAL|E|mort|%1|%2|%3|%4|%5|par|%6", round (time * 100) / 100,
         (_vic getVariable ["chacal_id", -1]),

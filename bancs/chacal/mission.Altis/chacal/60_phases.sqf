@@ -572,6 +572,19 @@ if (CHACAL_DEPART >= 3) then {
 // ---------------------------------------------------------------------
 // PHASE 1 - INSERTION
 // ---------------------------------------------------------------------
+// ! DEPART A LA ROUTE ( 16/09 ). La phase 2 se jouait apres ~50 min de marche depuis la zone de poser.
+// DEPART = 2 pose le detachement a 330 m de la route et joue la traversee. Les hommes sont poses en
+// anneau fixe, SANS tirage : ni l alea du monde ni celui de la situation ne bougent.
+if (CHACAL_DEPART == 2) then {
+    "CHACAL|AVERT|hors_corpus|depart|2|insertion_non_jouee" call CHACAL_LOG;
+    private _pt = CHACAL_ROUTE getPos [330, CHACAL_ROUTE getDir CHACAL_LZ];
+    private _k = 0;
+    { if (alive _x) then { _x setPosATL (_pt getPos [10, _k * 36]); _k = _k + 1 } } forEach CHACAL_FS;
+    CHACAL_gFS setBehaviour "STEALTH"; CHACAL_gFS setCombatMode "GREEN";
+    CHACAL_gFS setSpeedMode "LIMITED"; CHACAL_gFS setFormation "FILE";
+    (format ["CHACAL|E|depart_direct|%1|a_la_route|%2", round (time * 100) / 100, _pt]) call CHACAL_LOG;
+    sleep 5;
+} else {
 _plafond = 1 call CHACAL_fnc_duree;
 // ! GEOMETRIE SEULE : le monde est tire, on le publie, et on s arrete. Aucun coup de feu,
 // aucune issue de mission. C est la facon exacte de connaitre un site sans l user.
@@ -653,7 +666,14 @@ private _ecart = if (count _auSol > 0) then { round ((_auSol call CHACAL_fnc_cen
     count _auSol, _ecart, (if (_pose) then {1} else {0})]) call CHACAL_LOG;
 
 private _morts = CHACAL_EFFECTIF - (count (CHACAL_FS select { alive _x }));
-if (_morts > 0) exitWith {
+// ! MORTS SOUS LE FEU ENNEMI ( 16/09, decision de Younes ). Avec des menaces pres du poser, un homme
+// tue par l ennemi est une ISSUE : un poser mal choisi coute des vies, et l agent doit l apprendre.
+// Seule une mort sans tueur ennemi ( physique, ecrasement ) annule encore l episode.
+private _parEnnemi = { !alive _x && { _x getVariable ["chacal_tue_par_est", false] } } count CHACAL_FS;
+if (_parEnnemi > 0) then {
+    (format ["CHACAL|E|insertion_sous_le_feu|%1|morts_par_ennemi|%2|morts_total|%3", round (time * 100) / 100, _parEnnemi, _morts]) call CHACAL_LOG;
+};
+if ((_morts - _parEnnemi) > 0) exitWith {
     // Une insertion qui tue n est pas une insertion. On ne la rattrape pas : on
     // REFUSE l episode. Continuer a huit produirait un corpus ou l echec serait
     // mis au compte de la tactique.
@@ -661,7 +681,7 @@ if (_morts > 0) exitWith {
     (format ["CHACAL|VOID|insertion|%1|morts|%2|au_sol|%3", round (time * 100) / 100, _morts, count _auSol]) call CHACAL_LOG;
     CHACAL_FIN = true;
 };
-if (count _auSol < CHACAL_EFFECTIF) exitWith {
+if (count _auSol < (CHACAL_EFFECTIF - _parEnnemi)) exitWith {
     CHACAL_ISSUE = "VOID"; CHACAL_CAUSE = "INSERTION_INCOMPLETE";
     (format ["CHACAL|VOID|insertion|%1|au_sol|%2", round (time * 100) / 100, count _auSol]) call CHACAL_LOG;
     CHACAL_FIN = true;
@@ -692,6 +712,7 @@ CHACAL_gFS setBehaviour "STEALTH"; CHACAL_gFS setCombatMode "GREEN";
 CHACAL_gFS setSpeedMode "LIMITED"; CHACAL_gFS setFormation "FILE";
 sleep (60 * CHACAL_ECHELLE);
 [1, "INSERTION", _issue] call CHACAL_fnc_finPhase;
+};   // fin de l alternative DEPART = 2
 
 // ---------------------------------------------------------------------
 // PHASE 2 - APPROCHE, et le franchissement de la route
@@ -752,7 +773,9 @@ if ((_r in ["ATTEINT", "ENLISE"]) && !CHACAL_SAUT) then {
     [CHACAL_gFS, _degage, 90, [CHACAL_gFS, _degage, 1.1] call CHACAL_fnc_budget] call CHACAL_fnc_arrive;
 };
 
-if (!CHACAL_SAUT) then {
+// ! VIGNETTE DE LA ROUTE ( 16/09 ) : au depart a la route avec arret a la phase 2, la phase s arrete a la
+// sortie du couloir, sans la marche de ~1,7 km jusqu au regroupement qui ne decide plus rien.
+if (!CHACAL_SAUT && { !(CHACAL_DEPART == 2 && CHACAL_ARRET == 2) }) then {
     private _b2 = [CHACAL_gFS, CHACAL_RALLY, 0.5] call CHACAL_fnc_budget;
     (format ["CHACAL|E|budget|%1|etape|APPROCHE_RALLY|distance|%2|plafond|%3", round (time * 100) / 100,
         round (((units CHACAL_gFS) call CHACAL_fnc_centre) distance2D CHACAL_RALLY), round _b2]) call CHACAL_LOG;

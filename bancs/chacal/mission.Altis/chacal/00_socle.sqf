@@ -110,6 +110,14 @@ CHACAL_QRF_DELAI = ["CHACAL_QRF_DELAI", -1] call BIS_fnc_getParamValue;
 // Distance imposee de la base de reserve, appliquee dans 10_monde.sqf APRES le tirage.
 CHACAL_QRF_DIST  = ["CHACAL_QRF_DIST", -1] call BIS_fnc_getParamValue;
 CHACAL_ACC       = ["CHACAL_ACC", 1] call BIS_fnc_getParamValue;
+// La situation : voir 35_menaces.sqf. Tout a 0 par defaut.
+CHACAL_SITUATION = ["CHACAL_SITUATION", 0] call BIS_fnc_getParamValue;
+CHACAL_MENACE_P1 = ["CHACAL_MENACE_P1", 0] call BIS_fnc_getParamValue;
+CHACAL_MENACE_P2 = ["CHACAL_MENACE_P2", 0] call BIS_fnc_getParamValue;
+CHACAL_MENACE_P3 = ["CHACAL_MENACE_P3", 0] call BIS_fnc_getParamValue;
+CHACAL_MENACE_P4 = ["CHACAL_MENACE_P4", 0] call BIS_fnc_getParamValue;
+CHACAL_MENACE_P5 = ["CHACAL_MENACE_P5", 0] call BIS_fnc_getParamValue;
+CHACAL_MENACE_P6 = ["CHACAL_MENACE_P6", 0] call BIS_fnc_getParamValue;
 
 // --- LE TIRAGE EST A NOUS, PAS AU MOTEUR -----------------------------
 // `setRandomSeed` n existe pas dans ce build ( mesure du 03/09 : Missing ; a
