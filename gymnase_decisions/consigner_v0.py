@@ -3,7 +3,7 @@ COMMIT = sys.argv[1]
 S = "gymnase-de-decisions-predit-l-ecart-pas-le-niveau"
 c = sqlite3.connect("/mnt/data/hmt/socle/connaissance.sqlite")
 if c.execute("select 1 from verdict where slug=?", (S,)).fetchone(): sys.exit("deja consigne")
-c.execute("insert into verdict (slug, titre, date, fichier, commit, statut, enonce, domaine, n_amendements) values (?,?,?,?,?,?,?,?,0)",
+c.execute("insert into verdict (slug, titre, date, fichier, [commit], statut, enonce, domaine, n_amendements) values (?,?,?,?,?,?,?,?,0)",
   (S, "Le gymnase de decisions predit l ecart, pas le niveau", "2026-09-16", "verdicts/" + S + ".md", COMMIT, "ETABLI",
    "Un gymnase qui rejoue les transitions de phase mesurees dans Arma predit 96 episodes jamais vus (CONFIRMATION-MISSION-15-09) : "
    "les deux bras dans l IC d Arma (45 s 0,544 contre 0,438 ; 180 s 0,652 contre 0,542), l enchainement assaut-exfiltration tient "
