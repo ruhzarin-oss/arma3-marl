@@ -1,0 +1,81 @@
+== dbt run
+21:06:51  Done. PASS=24 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=24
+== dbt test
+21:06:59  1 of 34 WARN 2 acceleration_effective .......................................... [WARN 2 in 0.31s]
+21:06:59  5 of 34 FAIL 4 base_a_la_distance_imposee ...................................... [FAIL 4 in 0.17s]
+21:06:59  8 of 34 WARN 12 combat_au_bouchon .............................................. [WARN 12 in 0.13s]
+21:06:59  12 of 34 WARN 1 insertion_sous_le_feu_exercee .................................. [WARN 1 in 0.16s]
+21:07:00  22 of 34 WARN 3 reserve_au_contact_du_bouchon .................................. [WARN 3 in 0.12s]
+21:07:00  21 of 34 WARN 4 phase_arretee_jouee ............................................ [WARN 4 in 0.20s]
+21:07:00  27 of 34 FAIL 1 taux_combat_suffisant .......................................... [FAIL 1 in 0.12s]
+21:07:00  32 of 34 FAIL 4 vehicules_reserve_bien_decoupes ................................ [FAIL 4 in 0.14s]
+21:07:00  33 of 34 FAIL 4 verdict_accepte ................................................ [FAIL 4 in 0.13s]
+21:07:00    Got 4 results, configured to fail if != 0
+21:07:00    Got 1 result, configured to fail if != 0
+21:07:00    Got 4 results, configured to fail if != 0
+21:07:00    Got 4 results, configured to fail if != 0
+21:07:00  [WARNING]: Got 2 results, configured to warn if != 0
+21:07:00  [WARNING]: Got 12 results, configured to warn if != 0
+21:07:00  [WARNING]: Got 1 result, configured to warn if != 0
+21:07:00  [WARNING]: Got 3 results, configured to warn if != 0
+21:07:00  [WARNING]: Got 4 results, configured to warn if != 0
+21:07:00  Done. PASS=25 WARN=5 ERROR=4 SKIP=0 NO-OP=0 REUSED=0 TOTAL=34
+== lecture pre-enregistree
+== LECTURE DU PILOTE P5 : PILOTE-P5-DELAI-SITUATION-16-09
+   PASSE   Q1 episodes acceptes >= 90 % des 192 prevus : 192 acceptes sur 192 episodes ( prevus 192 )
+   PASSE   Q2 zero erreur SQF : 0 erreurs
+   PASSE   Q3 tests dbt bloquants verts sur la campagne : tous a zero
+   PASSE   Q4 chaque case ( monde, bras, choix ) a au moins 4 episodes : 32 cases pleines
+   PASSE   Q5 observable vivant : alarme au choix 1 partout en MENACE : MENACE 96/96 ; TEMOIN 0/96
+
+== ISSUE PRIMAIRE ( ecrite avant ) : assaut_utile = 3 charges ET au moins 6 vivants en fin d assaut
+
+   assaut_utile
+      TEMOIN  45 s 0.479   180 s 0.812
+      MENACE  45 s 0.438   180 s 0.583
+      ecart 180 - 45, TEMOIN : +0.333  IC [+0.125 ; +0.542]
+      ecart 180 - 45, MENACE : +0.146  IC [+0.021 ; +0.271]
+      MODULATION ( menace - temoin ) : -0.188  IC [-0.375 ; +0.021]
+      modulation par monde : 4:-0.50  5:+0.00  6:-0.50  7:-0.17  8:+0.33  9:+0.00  11:-0.33  12:-0.33
+
+== CRITERES
+   C1 effet du choix dans le temoin : +0.333, IC [+0.125 ; +0.542] ( informatif )
+   C2 MODULATION ETABLIE ( IC excluant 0 ) : NON
+   C3 INVERSION ( C2 et signes opposes ) : NON
+   sens conforme a l hypothese ecrite ( 180 aide sans menace, moins ou pas avec ) : OUI
+
+   DECISION : le choix DELAI_PORTEUR reste CHOIX TEMOIN
+
+== ISSUES SECONDAIRES ( descriptives, aucune decision )
+
+   trois_charges
+      TEMOIN  45 s 0.479   180 s 0.833
+      MENACE  45 s 0.458   180 s 0.583
+      ecart 180 - 45, TEMOIN : +0.354  IC [+0.125 ; +0.583]
+      ecart 180 - 45, MENACE : +0.125  IC [-0.000 ; +0.250]
+      MODULATION ( menace - temoin ) : -0.229  IC [-0.438 ; +0.000]
+      modulation par monde : 4:-0.67  5:+0.00  6:-0.50  7:-0.17  8:+0.33  9:+0.00  11:-0.33  12:-0.50
+
+   charges
+      TEMOIN  45 s 2.250   180 s 2.708
+      MENACE  45 s 2.125   180 s 2.312
+      ecart 180 - 45, TEMOIN : +0.458  IC [+0.000 ; +0.917]
+      ecart 180 - 45, MENACE : +0.187  IC [-0.063 ; +0.458]
+      MODULATION ( menace - temoin ) : -0.271  IC [-0.729 ; +0.208]
+      modulation par monde : 4:-1.50  5:+0.17  6:-0.50  7:-0.00  8:+1.00  9:-0.33  11:-0.33  12:-0.67
+
+   tues_p5
+      TEMOIN  45 s 2.208   180 s 2.083
+      MENACE  45 s 3.125   180 s 2.833
+      ecart 180 - 45, TEMOIN : -0.125  IC [-0.917 ; +0.667]
+      ecart 180 - 45, MENACE : -0.292  IC [-0.833 ; +0.312]
+      MODULATION ( menace - temoin ) : -0.167  IC [-0.875 ; +0.458]
+      modulation par monde : 4:+0.00  5:-0.50  6:+1.33  7:-0.33  8:-2.17  9:-0.50  11:+0.50  12:+0.33
+
+   vivants
+      TEMOIN  45 s 7.792   180 s 7.917
+      MENACE  45 s 6.875   180 s 7.167
+      ecart 180 - 45, TEMOIN : +0.125  IC [-0.667 ; +0.917]
+      ecart 180 - 45, MENACE : +0.292  IC [-0.312 ; +0.833]
+      MODULATION ( menace - temoin ) : +0.167  IC [-0.458 ; +0.875]
+      modulation par monde : 4:+0.00  5:+0.50  6:-1.33  7:+0.33  8:+2.17  9:+0.50  11:-0.50  12:-0.33
