@@ -909,6 +909,22 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
     CHACAL_gAssaut  = [CHACAL_ASSAUT,  "ASSAUT"]  call CHACAL_fnc_detacher;
     CHACAL_gBouchon = [CHACAL_BOUCHON, "BOUCHON"] call CHACAL_fnc_detacher;
 
+    // ! LA LIGNE DE DECISION ( 16/09 ). Elle porte l OPTION jouee ET l OBSERVABLE sur
+    // lequel elle devrait se decider, sur une seule ligne, comme choix_ouverture le fait
+    // pour les portes. C est elle qui remplira la table `decision` du socle : sans un
+    // triplet ( etat, action, issue ) ecrit noir sur blanc, le banc n est pas un support
+    // d apprentissage mais un tableau d affichage.
+    // Les comptes sont pris SUR LES GROUPES REELS, pas sur les listes de roles : un homme
+    // deja mort ne doit pas etre compte dans son element.
+    // ! Le palier 9 ( monde vide, controle positif de l acte ) sort de 30_opfor AVANT de
+    // definir CHACAL_PAL_QRF : d ou le garde isNil ci-dessous, sans lequel cette ligne
+    // ecrirait une variable non definie dans la trace du controle positif.
+    (format ["CHACAL|E|partage|%1|regle|%2|assaut|%3|bouchon|%4|appui|%5|qrf_vehicules|%6|qrf_hommes|%7|delai_qrf|%8",
+        round (time * 100) / 100,
+        (if (CHACAL_PARTAGE == 1) then {"SEPT_UN"} else {"CINQ_TROIS"}),
+        count (units CHACAL_gAssaut), count (units CHACAL_gBouchon), count (units CHACAL_gAppui),
+        (if (isNil "CHACAL_PAL_QRF") then {0} else {CHACAL_PAL_QRF}), count CHACAL_QRF, CHACAL_PAL_DELAI]) call CHACAL_LOG;
+
     // ! LE RENSEIGNEMENT CHOISIT L OUVERTURE. Le premier jet visait az_OP + 99 :
     // une constante deguisee en tactique, et c est " marche au 315 " en repere
     // relatif. Ici on compte les sentinelles LOCALISEES pres de chaque porte et

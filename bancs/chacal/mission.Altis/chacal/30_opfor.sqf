@@ -56,6 +56,13 @@ CHACAL_PAL_QRF   = [1, 1, 2, 2, 0]  select CHACAL_PALIER;   // vehicules de rese
 CHACAL_PAL_DELAI = [180, 120, 75, 45, 9999] select CHACAL_PALIER; // secondes avant depart de la reserve
 CHACAL_PAL_NVG   = [false, false, true, true, false] select CHACAL_PALIER; // jumelles a la patrouille de route
 CHACAL_PAL_SKILL = [0.40, 0.47, 0.55, 0.55, 0.40] select CHACAL_PALIER;
+// ! LE JOB PEUT IMPOSER LA RESERVE ( 16/09 ). -1 laisse la table du palier intacte, donc
+// tout job anterieur au 16/09 garde exactement le comportement sous lequel son corpus a
+// ete mesure. Au palier 4 la table donne QRF = 0 et delai = 9999 : c est la raison pour
+// laquelle le bouchon n a jamais rien bloque. Les deux valeurs sont publiees telles
+// quelles dans la ligne CHACAL|OK|opfor, donc la trace dit toujours ce qui a ete joue.
+if (CHACAL_QRF_N     >= 0) then { CHACAL_PAL_QRF   = CHACAL_QRF_N };
+if (CHACAL_QRF_DELAI >= 0) then { CHACAL_PAL_DELAI = CHACAL_QRF_DELAI };
 
 CHACAL_fnc_kitEst = {
     params ["_u", ["_skill", 0.55], ["_nvg", false]];

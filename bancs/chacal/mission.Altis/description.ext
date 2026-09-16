@@ -278,4 +278,36 @@ class Params
         texts[]  = {"1","2","3","4","5","6"};
         default = 6;
     };
+    // ! LE PARTAGE DE L EFFECTIF, LEVIER OUVERT LE 16/09. Jusque-la les trois elements
+    // etaient ecrits en dur dans 40_blufor.sqf. Le verdict la-porte-nest-pas-une-decision
+    // a montre que le seul choix offert par la mission - par quelle ouverture entrer -
+    // ne change pas l issue : les deux portes sont echangeables. Le partage, lui, ne l est
+    // pas : cinq hommes a l objectif n est pas la meme puissance de feu que sept, et trois
+    // sur la route n est pas le meme barrage qu un seul.
+    class CHACAL_PARTAGE
+    {
+        title = "Partage de l effectif : 0 = 5 assaut / 3 bouchon, 1 = 7 assaut / 1 bouchon";
+        values[] = {0,1};
+        texts[]  = {"5/3","7/1"};
+        default = 0;
+    };
+    // ! LA RESERVE ENNEMIE, RENDUE PILOTABLE LE 16/09. Au palier 4 la table donne ZERO
+    // vehicule de reserve et un delai de 9999 s : la reserve n existe pas, et le bouchon
+    // garde une route ou personne ne passe - 31 coups tires sur 5753, mesure du 15/09.
+    // Sans reserve, la question " combien d hommes au bouchon " n a pas d objet.
+    // -1 laisse la table du palier intacte : aucun job anterieur ne change de comportement.
+    class CHACAL_QRF_N
+    {
+        title = "Vehicules de reserve adverse : -1 = valeur du palier, 0 = aucune";
+        values[] = {-1,0,1,2};
+        texts[]  = {"palier","0","1","2"};
+        default = -1;
+    };
+    class CHACAL_QRF_DELAI
+    {
+        title = "Secondes avant depart de la reserve : -1 = valeur du palier, 9999 = jamais";
+        values[] = {-1,45,120,300,600,9999};
+        texts[]  = {"palier","45","120","300","600","jamais"};
+        default = -1;
+    };
 };

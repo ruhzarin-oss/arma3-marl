@@ -97,6 +97,16 @@ CHACAL_ACCESSIBLE = ["CHACAL_ACCESSIBLE", 0] call BIS_fnc_getParamValue;
 CHACAL_TENIR = ["CHACAL_TENIR", 0] call BIS_fnc_getParamValue;
 CHACAL_HMG_FORCE = ["CHACAL_HMG", -1] call BIS_fnc_getParamValue;
 CHACAL_ASSAUT_X  = (["CHACAL_ASSAUT_X", 100] call BIS_fnc_getParamValue) / 100;
+// ! TROIS LEVIERS OUVERTS LE 16/09, apres le verdict la-porte-nest-pas-une-decision.
+// Le partage de l effectif remplace la porte comme point de decision candidat : deux
+// options qui coutent des choses DIFFERENTES, contrairement aux deux ouvertures qui
+// etaient echangeables. 0 = 5 assaut / 3 bouchon, l historique ; 1 = 7 assaut / 1 bouchon.
+CHACAL_PARTAGE = ["CHACAL_PARTAGE", 0] call BIS_fnc_getParamValue;
+// La reserve adverse : -1 garde la valeur du palier. Au palier 4 elle vaut 0 vehicule et
+// 9999 s, donc aucune reserve ne nait et aucune ne part. Le bouchon garde alors une route
+// vide, ce qui rend le partage sans enjeu. Ces deux leviers existent pour le lui rendre.
+CHACAL_QRF_N     = ["CHACAL_QRF_N", -1] call BIS_fnc_getParamValue;
+CHACAL_QRF_DELAI = ["CHACAL_QRF_DELAI", -1] call BIS_fnc_getParamValue;
 
 // --- LE TIRAGE EST A NOUS, PAS AU MOTEUR -----------------------------
 // `setRandomSeed` n existe pas dans ce build ( mesure du 03/09 : Missing ; a

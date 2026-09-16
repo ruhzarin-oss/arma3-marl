@@ -104,6 +104,15 @@ CHACAL_RECO    = ["TIREUR_1","TIREUR_2"];
 CHACAL_APPUI   = ["TIREUR_1","TIREUR_2"];
 CHACAL_ASSAUT  = ["CHEF","ADJOINT","DEMO_1","DEMO_2","MEDECIN"];
 CHACAL_BOUCHON = ["AT","FUSILIER_1","FUSILIER_2"];
+// ! PARTAGE 7/1 ( 16/09 ). Les deux FUSILIERS passent du bouchon a l assaut.
+// L AT RESTE SEUL SUR LA ROUTE, et c est delibere : c est lui qui porte l arme antichar,
+// la seule qui detruise un MRAP de reserve. Le deplacer confondrait " moins d hommes au
+// bouchon " avec " plus d arme antichar a l assaut ", et le bras ne mesurerait plus
+// l effectif mais l armement. L effectif total reste dix dans les deux bras.
+if (CHACAL_PARTAGE == 1) then {
+    CHACAL_ASSAUT  = ["CHEF","ADJOINT","DEMO_1","DEMO_2","MEDECIN","FUSILIER_1","FUSILIER_2"];
+    CHACAL_BOUCHON = ["AT"];
+};
 
 CHACAL_gAppui = grpNull; CHACAL_gAssaut = grpNull;
 CHACAL_gBouchon = grpNull; CHACAL_gReco = grpNull; CHACAL_gDemo = grpNull;
