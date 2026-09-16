@@ -38,7 +38,7 @@ moins que lui sur le niveau. Il transfère l'écart entre les options, pas le ni
 
 L'exfiltration est juste (G3). L'erreur vient de **l'assaut** : sur les mêmes quatre mondes, la campagne test pose
 ses trois charges moins souvent que les campagnes de construction (0,500 contre 0,638 à 45 s). C'est la dérive
-déjà mesurée d'une campagne Arma à l'autre (verdict `un-taux-porte-sa-charge-machine` : 52,8 % contre 43,8 %,
+déjà mesurée d'une campagne Arma à l'autre (verdict `delai-porteur-le-mecanisme-tient-pas-le-resultat` : 52,8 % contre 43,8 %,
 mêmes mondes). Le gymnase hérite du niveau des campagnes anciennes. La dérive touche les deux bras : **l'écart
 survit, le niveau non.**
 
