@@ -120,6 +120,33 @@ if (!_trouve) exitWith {
 };
 (format ["CHACAL|OK|tirage|essais|%1|refus|%2", _essais, CHACAL_REFUS]) call CHACAL_LOG;
 
+// ! LA RESERVE RAPPROCHEE ( 16/09 ). Placee ICI, APRES que le monde est fige, et pas dans
+// la boucle de tirage : changer la bande 5-7 km a l interieur de la boucle changerait le
+// nombre de tirages consommes, donc le monde entier de la graine ( faute n7 du 14/09 :
+// CHACAL_fnc_rnd est un cycle unique, deux marches differentes rendent deux mondes ).
+// Ce bloc ne consomme AUCUN alea : il garde l azimut tire, vise la distance imposee, et
+// prend la route la plus proche de ce point. Site, crete, route, zone de poser, point
+// d extraction et regroupement sont donc identiques a ceux de la meme graine sans levier.
+if (CHACAL_QRF_DIST > 0) then {
+    private _d0 = round (CHACAL_SITE distance2D CHACAL_QRF_BASE);
+    private _az = CHACAL_SITE getDir CHACAL_QRF_BASE;
+    private _cible = CHACAL_SITE getPos [CHACAL_QRF_DIST, _az];
+    private _routes = _cible nearRoads 600;
+    private _base = +_cible;
+    private _surRoute = 0;
+    if (count _routes > 0) then {
+        _routes = [_routes, [_cible], { _x distance2D _input0 }, "ASCEND"] call BIS_fnc_sortBy;
+        _base = getPosATL (_routes select 0);
+        _surRoute = 1;
+    };
+    _base set [2, 0];
+    CHACAL_QRF_BASE = _base;
+    (format ["CHACAL|E|qrf_rapprochee|%1|dist_tiree|%2|dist_imposee|%3|dist_reelle|%4|sur_route|%5|azimut|%6|base|%7",
+        round (time * 100) / 100, _d0, CHACAL_QRF_DIST, round (CHACAL_SITE distance2D _base),
+        _surRoute, round _az, _base]) call CHACAL_LOG;
+    (format ["CHACAL|AVERT|hors_corpus|qrf_dist|%1", CHACAL_QRF_DIST]) call CHACAL_LOG;
+};
+
 // les deux bouts du circuit patrouille
 private _ext = CHACAL_ROUTE nearRoads 900;
 CHACAL_ROUTE_A = CHACAL_ROUTE; CHACAL_ROUTE_B = CHACAL_ROUTE;

@@ -107,6 +107,9 @@ CHACAL_PARTAGE = ["CHACAL_PARTAGE", 0] call BIS_fnc_getParamValue;
 // vide, ce qui rend le partage sans enjeu. Ces deux leviers existent pour le lui rendre.
 CHACAL_QRF_N     = ["CHACAL_QRF_N", -1] call BIS_fnc_getParamValue;
 CHACAL_QRF_DELAI = ["CHACAL_QRF_DELAI", -1] call BIS_fnc_getParamValue;
+// Distance imposee de la base de reserve, appliquee dans 10_monde.sqf APRES le tirage.
+CHACAL_QRF_DIST  = ["CHACAL_QRF_DIST", -1] call BIS_fnc_getParamValue;
+CHACAL_ACC       = ["CHACAL_ACC", 1] call BIS_fnc_getParamValue;
 
 // --- LE TIRAGE EST A NOUS, PAS AU MOTEUR -----------------------------
 // `setRandomSeed` n existe pas dans ce build ( mesure du 03/09 : Missing ; a
@@ -149,6 +152,23 @@ CHACAL_PHASE_NOM  = "AUCUNE";
 CHACAL_ALARME     = false;      // le camp EST a compris - irreversible
 CHACAL_COMPROMIS  = false;      // NOUS nous en sommes rendu compte
 CHACAL_FIN        = false;
+// ! L ACCELERATION EST DEMANDEE ET MESUREE, JAMAIS SUPPOSEE ( 16/09 ). Sur serveur dedie,
+// setAccTime a ete mesure inerte le 11/06. Trois temoins sont donc ecrits ensemble : le
+// temps de JEU ( time ), le temps REEL ( diag_tickTime ) et ce que le MOTEUR rapporte
+// ( accTime ). L acceleration effective est le rapport des deux premiers entre deux
+// lignes, pas la valeur demandee. Rien n est journalise a ACC = 1 : les traces des jobs
+// anterieurs restent identiques ligne pour ligne.
+if (CHACAL_ACC != 1) then {
+    setAccTime CHACAL_ACC;
+    (format ["CHACAL|AVERT|hors_corpus|acc|%1", CHACAL_ACC]) call CHACAL_LOG;
+    [] spawn {
+        while { !CHACAL_FIN } do {
+            (format ["CHACAL|E|horloge|%1|reel|%2|acc_demande|%3|acc_moteur|%4",
+                round (time * 100) / 100, round (diag_tickTime * 100) / 100, CHACAL_ACC, accTime]) call CHACAL_LOG;
+            sleep 30;
+        };
+    };
+};
 CHACAL_ISSUE      = "";
 CHACAL_CAUSE      = "";
 CHACAL_MANQUANTES = [];

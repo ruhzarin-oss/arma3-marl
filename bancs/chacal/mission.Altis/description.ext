@@ -310,4 +310,28 @@ class Params
         texts[]  = {"palier","45","120","300","600","jamais"};
         default = -1;
     };
+    // ! LA RESERVE RAPPROCHEE ( 16/09 ). Le controle CONTROLE-PARTAGE-16-09 a montre que la
+    // reserve, tiree a 5-7 km sur route, roule a environ 5 m/s et se trouve ENCORE a 5,5 km
+    // du site quand l episode se ferme a arret=5 : zero tir, jamais au contact du bouchon.
+    // Le partage 5/3 contre 7/1 redevenait donc echangeable. Ce levier rapproche la base
+    // APRES le tirage du monde, sans consommer d alea : la graine garde son site.
+    // Minimum 1000 : sous 900 m, le plafond de la phase 4 ( _dMep ) changerait aussi.
+    class CHACAL_QRF_DIST
+    {
+        title = "Distance imposee de la base de reserve au site, en metres : -1 = tirage 5-7 km";
+        values[] = {-1,1000,1500,2000,3000};
+        texts[]  = {"tirage","1000","1500","2000","3000"};
+        default = -1;
+    };
+    // ! ACCELERATION MOTEUR ( 16/09 ). setAccTime a ete MESURE INERTE sur serveur dedie le
+    // 11/06 ( calib_stepgame.py : temps de jeu / temps mur = 1,11 ). Ce levier existe pour
+    // le re-mesurer dans CHACAL : il journalise le temps de jeu, le temps reel et ce que le
+    // moteur rapporte. Tout episode a ACC different de 1 est hors corpus.
+    class CHACAL_ACC
+    {
+        title = "Acceleration demandee au moteur ( setAccTime ) : 1 = temps reel";
+        values[] = {1,2,4};
+        texts[]  = {"x1","x2","x4"};
+        default = 1;
+    };
 };
