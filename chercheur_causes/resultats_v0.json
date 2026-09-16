@@ -1,0 +1,5041 @@
+{
+ "criteres_commit": "6bedbad",
+ "episodes": 1556,
+ "variables": 618,
+ "leviers": [
+  "job|ablation",
+  "job|acc",
+  "job|accessible",
+  "job|appui_feu",
+  "job|appui_fixe",
+  "job|arret",
+  "job|azimut",
+  "job|banc_appui",
+  "job|delai_porteur",
+  "job|depart",
+  "job|exfil",
+  "job|feu_avant",
+  "job|jour",
+  "job|mg_assaut",
+  "job|obs",
+  "job|oracle",
+  "job|palier",
+  "job|partage",
+  "job|placeur",
+  "job|plafond_s",
+  "job|porte_B",
+  "job|qrf_n",
+  "job|socle",
+  "job|tactique",
+  "job|tenir"
+ ],
+ "controles": {
+  "C+1": {
+   "testable": true,
+   "passe": true
+  },
+  "C+2": {
+   "testable": true,
+   "passe": true,
+   "comparaisons": [
+    "0->5"
+   ]
+  },
+  "C+3": {
+   "testable": false,
+   "passe": false,
+   "cause_trouvee": false,
+   "raisons": []
+  },
+  "C+4": {
+   "testable": true,
+   "passe": false,
+   "cause_trouvee": false,
+   "raisons": []
+  },
+  "C-1": {
+   "testable": true,
+   "passe": true,
+   "lectures": [
+    "entrelacee",
+    "non_entrelacee"
+   ],
+   "fausses_decouvertes": []
+  },
+  "C-2": {
+   "testable": true,
+   "passe": false,
+   "placebos_avec_decouverte": 5
+  }
+ },
+ "cru": false,
+ "placebos": [
+  {
+   "placebo": "placebo_0",
+   "na": 744,
+   "nb": 767,
+   "decouvertes_E": 0,
+   "decouvertes_M": 19
+  },
+  {
+   "placebo": "placebo_1",
+   "na": 743,
+   "nb": 761,
+   "decouvertes_E": 0,
+   "decouvertes_M": 27
+  },
+  {
+   "placebo": "placebo_2",
+   "na": 752,
+   "nb": 746,
+   "decouvertes_E": 0,
+   "decouvertes_M": 29
+  },
+  {
+   "placebo": "placebo_3",
+   "na": 735,
+   "nb": 764,
+   "decouvertes_E": 0,
+   "decouvertes_M": 32
+  },
+  {
+   "placebo": "placebo_4",
+   "na": 751,
+   "nb": 752,
+   "decouvertes_E": 0,
+   "decouvertes_M": 23
+  }
+ ],
+ "decouvertes": [
+  {
+   "lecture": "entrelacee",
+   "levier": "job|ablation",
+   "a": 1.0,
+   "b": 2.0,
+   "effet": "fini|duree",
+   "na": 20,
+   "nb": 17,
+   "strates": 2,
+   "ecart": -100.59044585987257,
+   "moy_a": 502.31656050955417,
+   "moy_b": 401.72611464968156,
+   "ecart_std": -1.1218680341115144,
+   "z": -3.306152340036407,
+   "p": 0.0009458664727744373,
+   "q": 0.018917329455488748,
+   "raisons": [],
+   "pourquoi_du_pourquoi": []
+  },
+  {
+   "lecture": "entrelacee",
+   "levier": "job|banc_appui",
+   "a": 1.0,
+   "b": 2.0,
+   "effet": "fini|pertes_est",
+   "na": 20,
+   "nb": 20,
+   "strates": 2,
+   "ecart": 1.35,
+   "moy_a": 0.0,
+   "moy_b": 1.35,
+   "ecart_std": 1.4525789232327349,
+   "z": 4.437646909244126,
+   "p": 9.094764749005836e-06,
+   "q": 0.0004157606742402668,
+   "raisons": [
+    {
+     "variable": "n|e|tir",
+     "proportion": 0.6590131247868389,
+     "t_raison": 8.780294452543844,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6446951377019245,
+     "corr_effet": 0.9020816575791216,
+     "ic": [
+      0.46075237965939164,
+      0.9418413459597361
+     ]
+    },
+    {
+     "variable": "n|e|tir|p5",
+     "proportion": 0.6590131247868389,
+     "t_raison": 8.780294452543844,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6446951377019245,
+     "corr_effet": 0.9020816575791216,
+     "ic": [
+      0.45410776116639484,
+      0.9436939944604529
+     ]
+    },
+    {
+     "variable": "n|e|oracle_alarme",
+     "proportion": 0.5801264679313465,
+     "t_raison": 5.490546093910466,
+     "sens_levier": 1.0,
+     "corr_levier": 0.672213996993525,
+     "corr_effet": 0.8317855307592973,
+     "ic": [
+      0.2863295373439311,
+      0.9802707889859983
+     ]
+    },
+    {
+     "variable": "n|e|oracle_alarme|p5",
+     "proportion": 0.5801264679313465,
+     "t_raison": 5.490546093910466,
+     "sens_levier": 1.0,
+     "corr_levier": 0.672213996993525,
+     "corr_effet": 0.8317855307592973,
+     "ic": [
+      0.29613817918213636,
+      0.9925696088903923
+     ]
+    },
+    {
+     "variable": "ph|5|fin|alarme",
+     "proportion": 0.5801264679313465,
+     "t_raison": 5.490546093910466,
+     "sens_levier": 1.0,
+     "corr_levier": 0.672213996993525,
+     "corr_effet": 0.8317855307592973,
+     "ic": [
+      0.2663991050419114,
+      1.0020619241128803
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "max|e|banc_appui_fin|defenseurs_tues",
+     "proportion": 1.0343944478837448,
+     "t_raison": 8.780294452543846,
+     "sens_levier": 1.0,
+     "corr_levier": 0.7262894616163674,
+     "corr_effet": 0.9020816575791216,
+     "ic": [
+      0.8493323913969998,
+      1.436548973087751
+     ]
+    },
+    {
+     "variable": "n|e|mort",
+     "proportion": 1.0198889916743754,
+     "t_raison": 9.047122625501979,
+     "sens_levier": 1.0,
+     "corr_levier": 0.7181848464596079,
+     "corr_effet": 0.9063179919255644,
+     "ic": [
+      0.8294452482819407,
+      1.3835760489684725
+     ]
+    },
+    {
+     "variable": "n|e|mort|p5",
+     "proportion": 1.0198889916743754,
+     "t_raison": 9.047122625501979,
+     "sens_levier": 1.0,
+     "corr_levier": 0.7181848464596079,
+     "corr_effet": 0.9063179919255644,
+     "ic": [
+      0.8234590698667158,
+      1.35673854861875
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "entrelacee",
+   "levier": "job|socle",
+   "a": 0.0,
+   "b": 1.0,
+   "effet": "fini|charges",
+   "na": 10,
+   "nb": 18,
+   "strates": 2,
+   "ecart": 1.166666666666666,
+   "moy_a": 1.4999999999999998,
+   "moy_b": 2.6666666666666665,
+   "ecart_std": 1.3313939383673958,
+   "z": 3.361168044260952,
+   "p": 0.0007761358921169467,
+   "q": 0.017740248962673066,
+   "raisons": [
+    {
+     "variable": "ph|5|issue=INCOMPLET",
+     "proportion": 0.8528715852871579,
+     "t_raison": -6.306844961942549,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6667562663803518,
+     "corr_effet": -0.8786028600832324,
+     "ic": [
+      0.529097491881403,
+      1.4181112652628085
+     ]
+    },
+    {
+     "variable": "ph|5|issue=ATTEINT",
+     "proportion": 0.8528715852871571,
+     "t_raison": 6.306844961942546,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6667562663803518,
+     "corr_effet": 0.8786028600832324,
+     "ic": [
+      0.5124506265250598,
+      1.51208325151073
+     ]
+    },
+    {
+     "variable": "n|e|destruction",
+     "proportion": 0.5426356589147283,
+     "t_raison": 3.631792826309604,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6024640760767088,
+     "corr_effet": 0.7503787285063795,
+     "ic": [
+      0.07568876412505171,
+      1.1354923527726115
+     ]
+    },
+    {
+     "variable": "n|e|destruction|p5",
+     "proportion": 0.5426356589147283,
+     "t_raison": 3.631792826309604,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6024640760767088,
+     "corr_effet": 0.7503787285063795,
+     "ic": [
+      0.17071199442513363,
+      1.2749718101043233
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "n|e|charge_manquee",
+     "proportion": 0.8631049799594476,
+     "t_raison": 7.004750228646372,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6857907101366476,
+     "corr_effet": 0.9017450623145359,
+     "ic": [
+      0.4236596433639693,
+      1.4825541718521476
+     ]
+    },
+    {
+     "variable": "n|e|charge_manquee|p5",
+     "proportion": 0.8631049799594476,
+     "t_raison": 7.004750228646372,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6857907101366476,
+     "corr_effet": 0.9017450623145359,
+     "ic": [
+      0.5016518666963815,
+      1.4503170171380226
+     ]
+    },
+    {
+     "variable": "max|e|degagement|charges",
+     "proportion": 0.7312761170041787,
+     "t_raison": -6.3068449619425495,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6379472895044278,
+     "corr_effet": -0.8786028600832324,
+     "ic": [
+      0.37234001033339437,
+      1.2000015172603529
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "entrelacee",
+   "levier": "job|socle",
+   "a": 0.0,
+   "b": 1.0,
+   "effet": "fini|detruits_scriptes",
+   "na": 10,
+   "nb": 18,
+   "strates": 2,
+   "ecart": 1.3999999999999995,
+   "moy_a": 1.1,
+   "moy_b": 2.5,
+   "ecart_std": 1.2573405862351843,
+   "z": 3.049065171147545,
+   "p": 0.0022955467763031714,
+   "q": 0.038661840443000785,
+   "raisons": [
+    {
+     "variable": "ph|5|issue=INCOMPLET",
+     "proportion": 0.6897950404080744,
+     "t_raison": -3.5061535116878018,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6667562663803518,
+     "corr_effet": -0.7478896367788994,
+     "ic": [
+      0.3472837954206388,
+      1.1274944737854122
+     ]
+    },
+    {
+     "variable": "ph|5|issue=ATTEINT",
+     "proportion": 0.6897950404080738,
+     "t_raison": 3.5061535116878013,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6667562663803518,
+     "corr_effet": 0.7478896367788994,
+     "ic": [
+      0.3260885532446716,
+      1.1514254140714142
+     ]
+    },
+    {
+     "variable": "n|e|charge_manquee",
+     "proportion": 0.6882110838939097,
+     "t_raison": -3.23721004857305,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6857907101366476,
+     "corr_effet": -0.7334104024588467,
+     "ic": [
+      0.19981756482213814,
+      1.3010439665550906
+     ]
+    },
+    {
+     "variable": "n|e|charge_manquee|p5",
+     "proportion": 0.6882110838939097,
+     "t_raison": -3.23721004857305,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6857907101366476,
+     "corr_effet": -0.7334104024588467,
+     "ic": [
+      0.19639955411685017,
+      1.1785696385911095
+     ]
+    },
+    {
+     "variable": "max|e|degagement|charges",
+     "proportion": 0.653594771241829,
+     "t_raison": 3.6317928263096015,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6379472895044278,
+     "corr_effet": 0.7503787285063795,
+     "ic": [
+      0.27632598057698604,
+      1.1787571810330335
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "n|e|charge_manquee",
+     "proportion": 0.8631049799594476,
+     "t_raison": 7.004750228646372,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6857907101366476,
+     "corr_effet": 0.9017450623145359,
+     "ic": [
+      0.46322396404613886,
+      1.4013087976856828
+     ]
+    },
+    {
+     "variable": "n|e|charge_manquee|p5",
+     "proportion": 0.8631049799594476,
+     "t_raison": 7.004750228646372,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6857907101366476,
+     "corr_effet": 0.9017450623145359,
+     "ic": [
+      0.476207553053554,
+      1.4363861369447575
+     ]
+    },
+    {
+     "variable": "max|e|degagement|charges",
+     "proportion": 0.7312761170041787,
+     "t_raison": -6.3068449619425495,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6379472895044278,
+     "corr_effet": -0.8786028600832324,
+     "ic": [
+      0.39214422497960244,
+      1.2082084669548676
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "entrelacee",
+   "levier": "job|tactique",
+   "a": 0.0,
+   "b": 5.0,
+   "effet": "fini|charges",
+   "na": 18,
+   "nb": 10,
+   "strates": 2,
+   "ecart": -1.3666666666666665,
+   "moy_a": 2.6666666666666665,
+   "moy_b": 1.3,
+   "ecart_std": -1.325066297503302,
+   "z": -3.337132001880372,
+   "p": 0.0008464773517771484,
+   "q": 0.018058183504579165,
+   "raisons": [
+    {
+     "variable": "n|e|porteur",
+     "proportion": 1.008130081300812,
+     "t_raison": 9.019672796421016,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6859943405700348,
+     "corr_effet": 0.9295238945914449,
+     "ic": [
+      0.670320159925165,
+      1.4752466040474108
+     ]
+    },
+    {
+     "variable": "n|e|porteur|p5",
+     "proportion": 1.008130081300812,
+     "t_raison": 9.019672796421016,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6859943405700348,
+     "corr_effet": 0.9295238945914449,
+     "ic": [
+      0.7208227664473529,
+      1.37970915380989
+     ]
+    },
+    {
+     "variable": "n|e|charge_manquee",
+     "proportion": 0.776455706210223,
+     "t_raison": -10.866486856490916,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5734341538718538,
+     "corr_effet": -0.9410925099445945,
+     "ic": [
+      0.5390096435006534,
+      1.0895125835435624
+     ]
+    },
+    {
+     "variable": "n|e|charge_manquee|p5",
+     "proportion": 0.776455706210223,
+     "t_raison": -10.866486856490916,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5734341538718538,
+     "corr_effet": -0.9410925099445945,
+     "ic": [
+      0.5346969701840161,
+      1.0619338885996892
+     ]
+    },
+    {
+     "variable": "ph|5|issue=ATTEINT",
+     "proportion": 0.7266902828861501,
+     "t_raison": 8.698698488065578,
+     "sens_levier": -1.0,
+     "corr_levier": -0.5653509966463163,
+     "corr_effet": 0.9142113748359753,
+     "ic": [
+      0.4273686015884606,
+      1.045253420593277
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "max|e|degagement|charges",
+     "proportion": 0.7659702691844112,
+     "t_raison": 9.019672796421018,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6349153534095736,
+     "corr_effet": 0.9295238945914449,
+     "ic": [
+      0.4174125408063215,
+      1.0169608146736826
+     ]
+    },
+    {
+     "variable": "n|e|charge_posee",
+     "proportion": 0.7659702691844112,
+     "t_raison": 9.019672796421018,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6349153534095736,
+     "corr_effet": 0.9295238945914449,
+     "ic": [
+      0.4685301127954217,
+      0.9944778275604024
+     ]
+    },
+    {
+     "variable": "n|e|charge_posee|p5",
+     "proportion": 0.7659702691844112,
+     "t_raison": 9.019672796421018,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6349153534095736,
+     "corr_effet": 0.9295238945914449,
+     "ic": [
+      0.45997412166018936,
+      1.079305133509256
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "entrelacee",
+   "levier": "job|tactique",
+   "a": 0.0,
+   "b": 5.0,
+   "effet": "fini|detruits_scriptes",
+   "na": 18,
+   "nb": 10,
+   "strates": 2,
+   "ecart": -1.5000000000000002,
+   "moy_a": 2.5,
+   "moy_b": 1.0,
+   "ecart_std": -1.3598002073001703,
+   "z": -3.6461481461928607,
+   "p": 0.0002662005457728094,
+   "q": 0.006552628819023001,
+   "raisons": [
+    {
+     "variable": "max|e|degagement|charges",
+     "proportion": 0.5655551091469129,
+     "t_raison": 3.589918125489247,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6349153534095736,
+     "corr_effet": 0.7601030605085425,
+     "ic": [
+      0.11236910353802759,
+      1.0593740893122905
+     ]
+    },
+    {
+     "variable": "n|e|charge_posee",
+     "proportion": 0.5655551091469129,
+     "t_raison": 3.589918125489247,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6349153534095736,
+     "corr_effet": 0.7601030605085425,
+     "ic": [
+      0.10740029648096353,
+      1.0792142075327893
+     ]
+    },
+    {
+     "variable": "n|e|charge_posee|p5",
+     "proportion": 0.5655551091469129,
+     "t_raison": 3.589918125489247,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6349153534095736,
+     "corr_effet": 0.7601030605085425,
+     "ic": [
+      0.15251532034829915,
+      1.061428275190513
+     ]
+    },
+    {
+     "variable": "n|e|porteur",
+     "proportion": 0.5432098765432103,
+     "t_raison": 2.7898810146884436,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6859943405700348,
+     "corr_effet": 0.7201108422374329,
+     "ic": [
+      0.02957270046491867,
+      1.3247108830960799
+     ]
+    },
+    {
+     "variable": "n|e|porteur|p5",
+     "proportion": 0.5432098765432103,
+     "t_raison": 2.7898810146884436,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6859943405700348,
+     "corr_effet": 0.7201108422374329,
+     "ic": [
+      0.0022782413733947364,
+      1.287128566154403
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "n|e|porteur",
+     "proportion": 1.008130081300812,
+     "t_raison": 9.019672796421016,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6859943405700348,
+     "corr_effet": 0.9295238945914449,
+     "ic": [
+      0.6873955382190374,
+      1.5244536982854464
+     ]
+    },
+    {
+     "variable": "n|e|porteur|p5",
+     "proportion": 1.008130081300812,
+     "t_raison": 9.019672796421016,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6859943405700348,
+     "corr_effet": 0.9295238945914449,
+     "ic": [
+      0.7056195424485564,
+      1.4382478157470777
+     ]
+    },
+    {
+     "variable": "n|e|charge_manquee",
+     "proportion": 0.776455706210223,
+     "t_raison": -10.866486856490916,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5734341538718538,
+     "corr_effet": -0.9410925099445945,
+     "ic": [
+      0.5190283109567562,
+      1.0797134441734955
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "non_entrelacee",
+   "levier": "job|ablation",
+   "a": 1.0,
+   "b": 2.0,
+   "effet": "fini|duree",
+   "na": 20,
+   "nb": 17,
+   "strates": 2,
+   "ecart": -100.59044585987257,
+   "moy_a": 502.31656050955417,
+   "moy_b": 401.72611464968156,
+   "ecart_std": -1.1218680341115144,
+   "z": -3.185166364089229,
+   "p": 0.0014467081383507773,
+   "q": 0.02723215319248522,
+   "raisons": [],
+   "pourquoi_du_pourquoi": []
+  },
+  {
+   "lecture": "non_entrelacee",
+   "levier": "job|arret",
+   "a": 5.0,
+   "b": 6.0,
+   "effet": "fini|exfiltres",
+   "na": 270,
+   "nb": 112,
+   "strates": 16,
+   "ecart": 4.810268729886613,
+   "moy_a": 0.0,
+   "moy_b": 4.810268729886613,
+   "ecart_std": 1.9586101483267426,
+   "z": 16.259317182575437,
+   "p": 1.9186424530241158e-59,
+   "q": 6.13965584967717e-57,
+   "raisons": [
+    {
+     "variable": "n|e|ordre",
+     "proportion": 1.018949797155146,
+     "t_raison": 7.879544256344287,
+     "sens_levier": 1.0,
+     "corr_levier": 0.980147021527961,
+     "corr_effet": 0.8984072377375089,
+     "ic": [
+      0.4591782657806143,
+      1.354563525092042
+     ]
+    },
+    {
+     "variable": "n|e|chien_de_garde|p6",
+     "proportion": 0.9866853336615826,
+     "t_raison": 17.260618834921832,
+     "sens_levier": 1.0,
+     "corr_levier": 0.9387296508260081,
+     "corr_effet": 0.9358647665805985,
+     "ic": [
+      0.9006095735937135,
+      1.033624872958079
+     ]
+    },
+    {
+     "variable": "ph|6|issue=ATTEINT",
+     "proportion": 0.4985880578707603,
+     "t_raison": 24.9687602660751,
+     "sens_levier": 1.0,
+     "corr_levier": 0.7579826764304854,
+     "corr_effet": 0.9132156404666261,
+     "ic": [
+      0.36693769903694584,
+      0.6085334078326494
+     ]
+    },
+    {
+     "variable": "ok|capture_arretee|t",
+     "proportion": 0.483859926457051,
+     "t_raison": 12.930126601869357,
+     "sens_levier": 1.0,
+     "corr_levier": 0.847586435924354,
+     "corr_effet": 0.8872552983501537,
+     "ic": [
+      0.30171770479353943,
+      0.5914228528339776
+     ]
+    },
+    {
+     "variable": "ok|capture_arretee|ticks",
+     "proportion": 0.4829759149987095,
+     "t_raison": 12.907794365128767,
+     "sens_levier": 1.0,
+     "corr_levier": 0.8474327982361772,
+     "corr_effet": 0.8870178748769332,
+     "ic": [
+      0.28439956587930626,
+      0.5921124547953105
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "n|e|ordre|ASSAUT",
+     "proportion": 0.3240682152577101,
+     "t_raison": 1080506460958865.2,
+     "sens_levier": 1.0,
+     "corr_levier": 0.8482976245826727,
+     "corr_effet": 0.9364453655344946,
+     "ic": [
+      0.30342110543820294,
+      0.33851950813459025
+     ]
+    },
+    {
+     "variable": "n|e|chien_de_garde|p6",
+     "proportion": 0.23893376374323316,
+     "t_raison": 9.182051117614638,
+     "sens_levier": 1.0,
+     "corr_levier": 0.9387296508260081,
+     "corr_effet": 0.949727449590367,
+     "ic": [
+      0.061828259889863034,
+      0.42219705189382783
+     ]
+    },
+    {
+     "variable": "ok|capture_arretee|ticks",
+     "proportion": 0.14107872094135576,
+     "t_raison": 9.267229501606984,
+     "sens_levier": 1.0,
+     "corr_levier": 0.8474327982361772,
+     "corr_effet": 0.8766002041047446,
+     "ic": [
+      0.07615644934612803,
+      0.21568012510681753
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "non_entrelacee",
+   "levier": "job|arret",
+   "a": 5.0,
+   "b": 6.0,
+   "effet": "fini_issue=SUCCES",
+   "na": 270,
+   "nb": 112,
+   "strates": 16,
+   "ecart": 0.48286038677854964,
+   "moy_a": 0.0,
+   "moy_b": 0.48286038677854964,
+   "ecart_std": 1.4164684505728318,
+   "z": 11.500405430312584,
+   "p": 1.312972394489874e-30,
+   "q": 1.4005038874558655e-28,
+   "raisons": [
+    {
+     "variable": "ph|6|issue=ATTEINT",
+     "proportion": 1.0035248480193477,
+     "t_raison": 19.367514361401724,
+     "sens_levier": 1.0,
+     "corr_levier": 0.7579826764304854,
+     "corr_effet": 0.8407976774750386,
+     "ic": [
+      0.9616293405770651,
+      1.0382592960181438
+     ]
+    },
+    {
+     "variable": "n|e|chien_de_garde|p6",
+     "proportion": 0.9931533271860836,
+     "t_raison": 6.017657492899689,
+     "sens_levier": 1.0,
+     "corr_levier": 0.9387296508260081,
+     "corr_effet": 0.6773389902934501,
+     "ic": [
+      0.8612206125294606,
+      1.1239052221220944
+     ]
+    },
+    {
+     "variable": "n|e|ordre",
+     "proportion": 0.9314967739164436,
+     "t_raison": 3.002178040420618,
+     "sens_levier": 1.0,
+     "corr_levier": 0.980147021527961,
+     "corr_effet": 0.6474967800876316,
+     "ic": [
+      0.1659354069335318,
+      1.3031176722554292
+     ]
+    },
+    {
+     "variable": "n|e|ordre|ASSAUT",
+     "proportion": 0.3018684970414135,
+     "t_raison": 3.002178040420517,
+     "sens_levier": 1.0,
+     "corr_levier": 0.8482976245826727,
+     "corr_effet": 0.603313222191189,
+     "ic": [
+      0.12090375367567123,
+      0.43160714921200216
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "n|e|chien_de_garde|p6",
+     "proportion": 0.991269108741262,
+     "t_raison": 8.904452203625846,
+     "sens_levier": 1.0,
+     "corr_levier": 0.9387296508260081,
+     "corr_effet": 0.8066183505331866,
+     "ic": [
+      0.8854161721312681,
+      1.0633494865315893
+     ]
+    },
+    {
+     "variable": "n|e|ordre",
+     "proportion": 0.9879766893253403,
+     "t_raison": 4.5555055948744965,
+     "sens_levier": 1.0,
+     "corr_levier": 0.980147021527961,
+     "corr_effet": 0.7729701698605219,
+     "ic": [
+      0.4772548554165507,
+      1.2920574048447873
+     ]
+    },
+    {
+     "variable": "n|e|ordre|ASSAUT",
+     "proportion": 0.320171842425898,
+     "t_raison": 4.555505594874575,
+     "sens_levier": 1.0,
+     "corr_levier": 0.8482976245826727,
+     "corr_effet": 0.7232104326953046,
+     "ic": [
+      0.14597646868739816,
+      0.41366927702717854
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "non_entrelacee",
+   "levier": "job|arret",
+   "a": 5.0,
+   "b": 6.0,
+   "effet": "fini|duree",
+   "na": 270,
+   "nb": 112,
+   "strates": 16,
+   "ecart": 839.8693268970493,
+   "moy_a": 424.026711329664,
+   "moy_b": 1263.8960382267135,
+   "ecart_std": 1.8865914046853083,
+   "z": 15.542390164926788,
+   "p": 1.7917429190788016e-54,
+   "q": 2.866788670526083e-52,
+   "raisons": [
+    {
+     "variable": "n|e|ordre",
+     "proportion": 1.3505976134226156,
+     "t_raison": 9.251919137654575,
+     "sens_levier": 1.0,
+     "corr_levier": 0.980147021527961,
+     "corr_effet": 0.876646555612357,
+     "ic": [
+      0.9295895295922245,
+      1.7093276599655003
+     ]
+    },
+    {
+     "variable": "n|e|chien_de_garde|p6",
+     "proportion": 1.1087553479132621,
+     "t_raison": 16.324584606143873,
+     "sens_levier": 1.0,
+     "corr_levier": 0.9387296508260081,
+     "corr_effet": 0.9145447388131395,
+     "ic": [
+      1.0139609343538072,
+      1.190138545188001
+     ]
+    },
+    {
+     "variable": "n|e|ordre|ASSAUT",
+     "proportion": 0.43768575811319554,
+     "t_raison": 9.25191913765448,
+     "sens_levier": 1.0,
+     "corr_levier": 0.8482976245826727,
+     "corr_effet": 0.841600518130501,
+     "ic": [
+      0.26300391177725546,
+      0.5416358716021293
+     ]
+    },
+    {
+     "variable": "ph|6|issue=PLAFOND",
+     "proportion": 0.15360833496147763,
+     "t_raison": 13.366825945949277,
+     "sens_levier": 1.0,
+     "corr_levier": 0.39311929495759224,
+     "corr_effet": 0.6131892766618151,
+     "ic": [
+      0.10265922192157068,
+      0.21097145300583023
+     ]
+    },
+    {
+     "variable": "n|e|chien_de_garde",
+     "proportion": 0.06106095159936775,
+     "t_raison": 12.714438991804986,
+     "sens_levier": 1.0,
+     "corr_levier": 0.17319198481009485,
+     "corr_effet": 0.436645524951218,
+     "ic": [
+      0.021944038181842256,
+      0.10135701448240537
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "n|e|ordre|ASSAUT",
+     "proportion": 0.3240682152577101,
+     "t_raison": 1080506460958865.2,
+     "sens_levier": 1.0,
+     "corr_levier": 0.8482976245826727,
+     "corr_effet": 0.9364453655344946,
+     "ic": [
+      0.299707020959595,
+      0.34056965895937374
+     ]
+    },
+    {
+     "variable": "n|e|chien_de_garde|p6",
+     "proportion": 0.23893376374323316,
+     "t_raison": 9.182051117614638,
+     "sens_levier": 1.0,
+     "corr_levier": 0.9387296508260081,
+     "corr_effet": 0.949727449590367,
+     "ic": [
+      0.08408568289885217,
+      0.4095497244642495
+     ]
+    },
+    {
+     "variable": "ok|capture_arretee|ticks",
+     "proportion": 0.14107872094135576,
+     "t_raison": 9.267229501606984,
+     "sens_levier": 1.0,
+     "corr_levier": 0.8474327982361772,
+     "corr_effet": 0.8766002041047446,
+     "ic": [
+      0.060394434904187555,
+      0.21792208944084313
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "non_entrelacee",
+   "levier": "job|banc_appui",
+   "a": 1.0,
+   "b": 2.0,
+   "effet": "fini|pertes_est",
+   "na": 20,
+   "nb": 20,
+   "strates": 2,
+   "ecart": 1.35,
+   "moy_a": 0.0,
+   "moy_b": 1.35,
+   "ecart_std": 1.4525789232327349,
+   "z": 4.533524994302827,
+   "p": 5.800739851341917e-06,
+   "q": 0.0003093727920715689,
+   "raisons": [
+    {
+     "variable": "n|e|tir",
+     "proportion": 0.6590131247868389,
+     "t_raison": 8.780294452543844,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6446951377019245,
+     "corr_effet": 0.9020816575791216,
+     "ic": [
+      0.4604072907515945,
+      0.913546626196696
+     ]
+    },
+    {
+     "variable": "n|e|tir|p5",
+     "proportion": 0.6590131247868389,
+     "t_raison": 8.780294452543844,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6446951377019245,
+     "corr_effet": 0.9020816575791216,
+     "ic": [
+      0.4758461479533737,
+      0.905518645579533
+     ]
+    },
+    {
+     "variable": "n|e|oracle_alarme",
+     "proportion": 0.5801264679313465,
+     "t_raison": 5.490546093910466,
+     "sens_levier": 1.0,
+     "corr_levier": 0.672213996993525,
+     "corr_effet": 0.8317855307592973,
+     "ic": [
+      0.2987382956447744,
+      0.9767514691369649
+     ]
+    },
+    {
+     "variable": "n|e|oracle_alarme|p5",
+     "proportion": 0.5801264679313465,
+     "t_raison": 5.490546093910466,
+     "sens_levier": 1.0,
+     "corr_levier": 0.672213996993525,
+     "corr_effet": 0.8317855307592973,
+     "ic": [
+      0.23692756356367853,
+      0.9930804730606537
+     ]
+    },
+    {
+     "variable": "ph|5|fin|alarme",
+     "proportion": 0.5801264679313465,
+     "t_raison": 5.490546093910466,
+     "sens_levier": 1.0,
+     "corr_levier": 0.672213996993525,
+     "corr_effet": 0.8317855307592973,
+     "ic": [
+      0.28254334927517344,
+      0.8952879675347756
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "max|e|banc_appui_fin|defenseurs_tues",
+     "proportion": 1.0343944478837448,
+     "t_raison": 8.780294452543846,
+     "sens_levier": 1.0,
+     "corr_levier": 0.7262894616163674,
+     "corr_effet": 0.9020816575791216,
+     "ic": [
+      0.8345756696470995,
+      1.4456434443730029
+     ]
+    },
+    {
+     "variable": "n|e|mort",
+     "proportion": 1.0198889916743754,
+     "t_raison": 9.047122625501979,
+     "sens_levier": 1.0,
+     "corr_levier": 0.7181848464596079,
+     "corr_effet": 0.9063179919255644,
+     "ic": [
+      0.8248005974469826,
+      1.378651269772882
+     ]
+    },
+    {
+     "variable": "n|e|mort|p5",
+     "proportion": 1.0198889916743754,
+     "t_raison": 9.047122625501979,
+     "sens_levier": 1.0,
+     "corr_levier": 0.7181848464596079,
+     "corr_effet": 0.9063179919255644,
+     "ic": [
+      0.8165563545512534,
+      1.373851951162021
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "non_entrelacee",
+   "levier": "job|oracle",
+   "a": 0.0,
+   "b": 2.0,
+   "effet": "fini|duree",
+   "na": 24,
+   "nb": 18,
+   "strates": 2,
+   "ecart": 92.08333333333323,
+   "moy_a": 522.0833333333334,
+   "moy_b": 614.1666666666667,
+   "ecart_std": 0.9580492654999688,
+   "z": 3.010797128619609,
+   "p": 0.0026056287707851827,
+   "q": 0.04169006033256292,
+   "raisons": [
+    {
+     "variable": "max|e|ouverture|reste",
+     "proportion": 0.729154522389966,
+     "t_raison": -4.732364375518997,
+     "sens_levier": -1.0,
+     "corr_levier": -0.5419003276996641,
+     "corr_effet": -0.707527032233512,
+     "ic": [
+      0.3305500832075274,
+      1.4687107934122687
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "ok|capture_arretee|ticks",
+     "proportion": 0.5124983748522207,
+     "t_raison": -4.668433049761691,
+     "sens_levier": 1.0,
+     "corr_levier": 0.4801307400833301,
+     "corr_effet": -0.7052717484126354,
+     "ic": [
+      0.1125117603451167,
+      0.8806516928010887
+     ]
+    },
+    {
+     "variable": "ph|5|duree",
+     "proportion": 0.5088452486165417,
+     "t_raison": -4.688431089778825,
+     "sens_levier": 1.0,
+     "corr_levier": 0.4764914104838811,
+     "corr_effet": -0.7055169276738659,
+     "ic": [
+      0.07592222128560773,
+      0.8431954574661018
+     ]
+    },
+    {
+     "variable": "ok|capture_arretee|t",
+     "proportion": 0.5085156878688598,
+     "t_raison": -4.733320280678171,
+     "sens_levier": 1.0,
+     "corr_levier": 0.4740397821341604,
+     "corr_effet": -0.7075652137104868,
+     "ic": [
+      0.09997170703661057,
+      0.9044379480580484
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "non_entrelacee",
+   "levier": "job|palier",
+   "a": 4.0,
+   "b": 9.0,
+   "effet": "fini|charges",
+   "na": 24,
+   "nb": 20,
+   "strates": 2,
+   "ecart": 0.8333333333333331,
+   "moy_a": 2.1666666666666665,
+   "moy_b": 3.0,
+   "ecart_std": 1.164167830835079,
+   "z": 3.8324604032891405,
+   "p": 0.00012686802430001592,
+   "q": 0.003383147314667091,
+   "raisons": [
+    {
+     "variable": "ph|5|issue=ATTEINT",
+     "proportion": 1.019944598337951,
+     "t_raison": 11.762305691637094,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6358383670736648,
+     "corr_effet": 0.9224999015440436,
+     "ic": [
+      0.963881296232337,
+      1.1095613262323318
+     ]
+    },
+    {
+     "variable": "ph|5|issue=INCOMPLET",
+     "proportion": 1.019944598337951,
+     "t_raison": -11.762305691637094,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6358383670736649,
+     "corr_effet": -0.9224999015440437,
+     "ic": [
+      0.9608653982723633,
+      1.1093697523595232
+     ]
+    },
+    {
+     "variable": "n|e|charge_posee|par=DEMO_1",
+     "proportion": 0.851764705882352,
+     "t_raison": 11.916020660443072,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5656854249492378,
+     "corr_effet": 0.9214352992764546,
+     "ic": [
+      0.6850312666520902,
+      0.9999999999999999
+     ]
+    },
+    {
+     "variable": "ph|5|fin|vivants",
+     "proportion": 0.6337452173367624,
+     "t_raison": 3.8456765818088514,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6553989102076379,
+     "corr_effet": 0.6996683972766884,
+     "ic": [
+      0.24179496740665848,
+      1.0615835945291785
+     ]
+    },
+    {
+     "variable": "n|e|destruction",
+     "proportion": 0.5712000000000008,
+     "t_raison": 3.8970687377463697,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6123724356957951,
+     "corr_effet": 0.6929134377814185,
+     "ic": [
+      0.23441665465470674,
+      0.8612805613922506
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "max|e|charge_posee|actes",
+     "proportion": 0.7605552342394448,
+     "t_raison": 11.762305691637089,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5796736197002103,
+     "corr_effet": 0.9224999015440435,
+     "ic": [
+      0.6645553501151875,
+      0.8700196752215865
+     ]
+    },
+    {
+     "variable": "max|e|degagement|charges",
+     "proportion": 0.7605552342394448,
+     "t_raison": 11.762305691637089,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5796736197002103,
+     "corr_effet": 0.9224999015440435,
+     "ic": [
+      0.6467135924879258,
+      0.8673525855145835
+     ]
+    },
+    {
+     "variable": "n|e|charge_posee",
+     "proportion": 0.7605552342394448,
+     "t_raison": 11.762305691637089,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5796736197002103,
+     "corr_effet": 0.9224999015440435,
+     "ic": [
+      0.6635164645566569,
+      0.8800431586539503
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "non_entrelacee",
+   "levier": "job|palier",
+   "a": 4.0,
+   "b": 9.0,
+   "effet": "fini|detruits_scriptes",
+   "na": 24,
+   "nb": 20,
+   "strates": 2,
+   "ecart": 1.25,
+   "moy_a": 1.75,
+   "moy_b": 3.0,
+   "ecart_std": 1.2298373876248845,
+   "z": 3.909629682597561,
+   "p": 9.243772001678069e-05,
+   "q": 0.0026890973095790747,
+   "raisons": [
+    {
+     "variable": "ph|5|issue=ATTEINT",
+     "proportion": 0.5390581717451526,
+     "t_raison": 3.71867395493459,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6358383670736648,
+     "corr_effet": 0.6986408303992762,
+     "ic": [
+      0.06351257615339842,
+      1.0032054730304352
+     ]
+    },
+    {
+     "variable": "ph|5|issue=INCOMPLET",
+     "proportion": 0.5390581717451525,
+     "t_raison": -3.718673954934589,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6358383670736649,
+     "corr_effet": -0.698640830399276,
+     "ic": [
+      0.12103713180475109,
+      1.013673692097922
+     ]
+    },
+    {
+     "variable": "ph|5|duree",
+     "proportion": 0.4916063605507681,
+     "t_raison": -2.089824847879357,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7717823643256584,
+     "corr_effet": -0.6303422718532357,
+     "ic": [
+      -0.08463626454546141,
+      1.0963287446674392
+     ]
+    },
+    {
+     "variable": "ok|capture_arretee|ticks",
+     "proportion": 0.4913306952976202,
+     "t_raison": -2.0535453951379807,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7765141978163005,
+     "corr_effet": -0.6293521640852024,
+     "ic": [
+      -0.14171761501862956,
+      1.146180385965317
+     ]
+    },
+    {
+     "variable": "ok|capture_arretee|t",
+     "proportion": 0.4840424105269805,
+     "t_raison": -2.019489189699532,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7765780925179719,
+     "corr_effet": -0.6270589735830973,
+     "ic": [
+      -0.22223642151205517,
+      1.2228350430719201
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "max|e|charge_posee|actes",
+     "proportion": 0.7605552342394448,
+     "t_raison": 11.762305691637089,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5796736197002103,
+     "corr_effet": 0.9224999015440435,
+     "ic": [
+      0.6462580936351583,
+      0.862432405316953
+     ]
+    },
+    {
+     "variable": "max|e|degagement|charges",
+     "proportion": 0.7605552342394448,
+     "t_raison": 11.762305691637089,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5796736197002103,
+     "corr_effet": 0.9224999015440435,
+     "ic": [
+      0.6428552513862635,
+      0.861813639879609
+     ]
+    },
+    {
+     "variable": "n|e|charge_posee",
+     "proportion": 0.7605552342394448,
+     "t_raison": 11.762305691637089,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5796736197002103,
+     "corr_effet": 0.9224999015440435,
+     "ic": [
+      0.6519316273259492,
+      0.8715775270264432
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "non_entrelacee",
+   "levier": "job|palier",
+   "a": 4.0,
+   "b": 9.0,
+   "effet": "fini|vivants",
+   "na": 24,
+   "nb": 20,
+   "strates": 2,
+   "ecart": 2.0833333333333335,
+   "moy_a": 7.916666666666667,
+   "moy_b": 10.0,
+   "ecart_std": 1.3187059821109994,
+   "z": 4.3446263386170685,
+   "p": 1.3951293307066051e-05,
+   "q": 0.000558051732282642,
+   "raisons": [
+    {
+     "variable": "n|e|mort",
+     "proportion": 0.9228493150684939,
+     "t_raison": -8.453125706709635,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7083124202226293,
+     "corr_effet": -0.8913859516823159,
+     "ic": [
+      0.6972163996497867,
+      1.3811084329776713
+     ]
+    },
+    {
+     "variable": "n|e|mort|p5",
+     "proportion": 0.9228493150684939,
+     "t_raison": -8.453125706709635,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7083124202226293,
+     "corr_effet": -0.8913859516823159,
+     "ic": [
+      0.7149815313839736,
+      1.3630996876461385
+     ]
+    },
+    {
+     "variable": "n|e|tir",
+     "proportion": 0.8741086218808436,
+     "t_raison": -4.956785174319952,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7768391895869206,
+     "corr_effet": -0.8030556213810836,
+     "ic": [
+      0.5107074259332803,
+      1.3829610476625538
+     ]
+    },
+    {
+     "variable": "n|e|tir|p5",
+     "proportion": 0.8741086218808436,
+     "t_raison": -4.956785174319952,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7768391895869206,
+     "corr_effet": -0.8030556213810836,
+     "ic": [
+      0.5608378669729746,
+      1.3044808535724788
+     ]
+    },
+    {
+     "variable": "n|e|mort|DEMO_2",
+     "proportion": 0.6967741935483867,
+     "t_raison": -11.269643615184789,
+     "sens_levier": -1.0,
+     "corr_levier": -0.5710402407201609,
+     "corr_effet": -0.9148975372134274,
+     "ic": [
+      0.4707962811383394,
+      0.9233843797500471
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "max|e|budget|appui",
+     "proportion": 1.539985604424742,
+     "t_raison": 2.1485847743786266,
+     "sens_levier": -1.0,
+     "corr_levier": -0.9790134490203409,
+     "corr_effet": 0.7397219858560967,
+     "ic": [
+      0.40180006223192083,
+      3.174553444402467
+     ]
+    },
+    {
+     "variable": "n|e|tir",
+     "proportion": 0.7814362389305206,
+     "t_raison": 5.206858138459898,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7768391895869206,
+     "corr_effet": 0.8327675364440649,
+     "ic": [
+      0.4909727091170491,
+      1.2179304407425158
+     ]
+    },
+    {
+     "variable": "n|e|tir|p5",
+     "proportion": 0.7814362389305206,
+     "t_raison": 5.206858138459898,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7768391895869206,
+     "corr_effet": 0.8327675364440649,
+     "ic": [
+      0.46363817064268575,
+      1.19356839363123
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "non_entrelacee",
+   "levier": "job|palier",
+   "a": 4.0,
+   "b": 9.0,
+   "effet": "fini|pertes_est",
+   "na": 24,
+   "nb": 20,
+   "strates": 2,
+   "ecart": -2.666666666666667,
+   "moy_a": 2.666666666666667,
+   "moy_b": 0.0,
+   "ecart_std": -1.776962096258456,
+   "z": -5.565325742325281,
+   "p": 2.616631513273338e-08,
+   "q": 2.0933052106186703e-06,
+   "raisons": [
+    {
+     "variable": "max|e|budget|appui",
+     "proportion": 1.1773402280562069,
+     "t_raison": 3.325285275768014,
+     "sens_levier": -1.0,
+     "corr_levier": -0.9790134490203409,
+     "corr_effet": 0.9104256479855785,
+     "ic": [
+      0.5814101806282627,
+      1.8447990531555611
+     ]
+    },
+    {
+     "variable": "n|e|mort",
+     "proportion": 0.3299229452054788,
+     "t_raison": 5.054929386719168,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7083124202226293,
+     "corr_effet": 0.8320777507079619,
+     "ic": [
+      0.13459323883181257,
+      0.6174441958653687
+     ]
+    },
+    {
+     "variable": "n|e|mort|p5",
+     "proportion": 0.3299229452054788,
+     "t_raison": 5.054929386719168,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7083124202226293,
+     "corr_effet": 0.8320777507079619,
+     "ic": [
+      0.12901461469839112,
+      0.6004460050013036
+     ]
+    },
+    {
+     "variable": "n|e|tir",
+     "proportion": 0.29514166445409085,
+     "t_raison": 3.22510735244299,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7768391895869206,
+     "corr_effet": 0.8206431787644822,
+     "ic": [
+      0.08606863517764578,
+      0.5761007959251658
+     ]
+    },
+    {
+     "variable": "n|e|tir|p5",
+     "proportion": 0.29514166445409085,
+     "t_raison": 3.22510735244299,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7768391895869206,
+     "corr_effet": 0.8206431787644822,
+     "ic": [
+      0.09279610405489486,
+      0.5413792698335886
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "max|e|budget|plafond",
+     "proportion": 0.1293147863563865,
+     "t_raison": 13.73349711590541,
+     "sens_levier": -1.0,
+     "corr_levier": -0.5645224244103811,
+     "corr_effet": 0.7054679673755152,
+     "ic": [
+      0.09205344053729744,
+      0.17114441477559197
+     ]
+    },
+    {
+     "variable": "n|e|mort",
+     "proportion": 0.06718829811934002,
+     "t_raison": 2.148584774378619,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7083124202226293,
+     "corr_effet": 0.7397219858560967,
+     "ic": [
+      0.023091311245143086,
+      0.14218495654724778
+     ]
+    },
+    {
+     "variable": "n|e|mort|p5",
+     "proportion": 0.06718829811934002,
+     "t_raison": 2.148584774378619,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7083124202226293,
+     "corr_effet": 0.7397219858560967,
+     "ic": [
+      0.024027557855897372,
+      0.13047026803270959
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "non_entrelacee",
+   "levier": "job|palier",
+   "a": 4.0,
+   "b": 9.0,
+   "effet": "fini|duree",
+   "na": 24,
+   "nb": 20,
+   "strates": 2,
+   "ecart": -132.7833333333334,
+   "moy_a": 522.0833333333334,
+   "moy_b": 389.3,
+   "ecart_std": -1.559574946301014,
+   "z": -4.990095353354466,
+   "p": 6.034949466959479e-07,
+   "q": 3.8623676588540666e-05,
+   "raisons": [
+    {
+     "variable": "n|e|destruction",
+     "proportion": 0.1905208987071666,
+     "t_raison": -2.0120273712487844,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6123724356957951,
+     "corr_effet": -0.6265445134031319,
+     "ic": [
+      -0.05860356441765108,
+      0.4324034139699612
+     ]
+    },
+    {
+     "variable": "n|e|destruction|p5",
+     "proportion": 0.1905208987071666,
+     "t_raison": -2.0120273712487844,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6123724356957951,
+     "corr_effet": -0.6265445134031319,
+     "ic": [
+      -0.043475534937374924,
+      0.4082551137097945
+     ]
+    },
+    {
+     "variable": "max|e|porteur|distance",
+     "proportion": 0.13421041096855135,
+     "t_raison": 2.341128846532186,
+     "sens_levier": -1.0,
+     "corr_levier": -0.4301734272328169,
+     "corr_effet": 0.5315007884336336,
+     "ic": [
+      -0.06734564797590217,
+      0.29495813257996195
+     ]
+    },
+    {
+     "variable": "max|e|mise_a_feu|attente",
+     "proportion": 0.1117866452989339,
+     "t_raison": 2.311381937419757,
+     "sens_levier": -1.0,
+     "corr_levier": -0.3725075178053109,
+     "corr_effet": 0.4899761809232058,
+     "ic": [
+      0.00315604098858689,
+      0.2817075213836393
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "ph|5|issue=ATTEINT",
+     "proportion": 0.5390581717451526,
+     "t_raison": 3.71867395493459,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6358383670736648,
+     "corr_effet": 0.6986408303992762,
+     "ic": [
+      0.11296703664900404,
+      1.0049673073764356
+     ]
+    },
+    {
+     "variable": "ph|5|issue=INCOMPLET",
+     "proportion": 0.5390581717451525,
+     "t_raison": -3.718673954934589,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6358383670736649,
+     "corr_effet": -0.698640830399276,
+     "ic": [
+      0.07321264692213951,
+      1.00986968881045
+     ]
+    },
+    {
+     "variable": "ph|5|duree",
+     "proportion": 0.4916063605507681,
+     "t_raison": -2.089824847879357,
+     "sens_levier": -1.0,
+     "corr_levier": -0.7717823643256584,
+     "corr_effet": -0.6303422718532357,
+     "ic": [
+      -0.1980877478067661,
+      1.111032586513734
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "non_entrelacee",
+   "levier": "job|socle",
+   "a": 0.0,
+   "b": 1.0,
+   "effet": "fini|charges",
+   "na": 10,
+   "nb": 34,
+   "strates": 2,
+   "ecart": 1.1890080428954426,
+   "moy_a": 1.4959785522788203,
+   "moy_b": 2.684986595174263,
+   "ecart_std": 1.5216482733806456,
+   "z": 4.197606559196568,
+   "p": 2.6975074178369466e-05,
+   "q": 0.0008632023737078229,
+   "raisons": [
+    {
+     "variable": "ph|5|issue=ATTEINT",
+     "proportion": 0.6659205081889727,
+     "t_raison": 8.632100436907196,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5640287291153787,
+     "corr_effet": 0.8727658541430409,
+     "ic": [
+      0.44543553988279144,
+      1.1271915078599841
+     ]
+    },
+    {
+     "variable": "ph|5|issue=INCOMPLET",
+     "proportion": 0.6659205081889727,
+     "t_raison": -8.632100436907196,
+     "sens_levier": -1.0,
+     "corr_levier": -0.5640287291153787,
+     "corr_effet": -0.8727658541430409,
+     "ic": [
+      0.43268832258481094,
+      1.0609571631613868
+     ]
+    },
+    {
+     "variable": "n|e|porteur",
+     "proportion": 0.3501083574564946,
+     "t_raison": 4.049840985411195,
+     "sens_levier": 1.0,
+     "corr_levier": 0.4732287959144178,
+     "corr_effet": 0.6676849150731625,
+     "ic": [
+      0.0058939185039964224,
+      0.9148074197316117
+     ]
+    },
+    {
+     "variable": "n|e|porteur|p5",
+     "proportion": 0.3501083574564946,
+     "t_raison": 4.049840985411195,
+     "sens_levier": 1.0,
+     "corr_levier": 0.4732287959144178,
+     "corr_effet": 0.6676849150731625,
+     "ic": [
+      -0.007708241645717156,
+      0.9057571675301345
+     ]
+    },
+    {
+     "variable": "n|e|charge_posee|par=DEMO_1",
+     "proportion": 0.30544403744455584,
+     "t_raison": 3.9112866981230163,
+     "sens_levier": 1.0,
+     "corr_levier": 0.43308944651204084,
+     "corr_effet": 0.6413544792753841,
+     "ic": [
+      0.0861350328979475,
+      0.7485688267586973
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "n|e|charge_manquee",
+     "proportion": 1.113601766769646,
+     "t_raison": -10.520722875228461,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6637848783324529,
+     "corr_effet": -0.9037136118373529,
+     "ic": [
+      0.6761964563167229,
+      1.7450433318219167
+     ]
+    },
+    {
+     "variable": "n|e|charge_manquee|p5",
+     "proportion": 1.113601766769646,
+     "t_raison": -10.520722875228461,
+     "sens_levier": -1.0,
+     "corr_levier": -0.6637848783324529,
+     "corr_effet": -0.9037136118373529,
+     "ic": [
+      0.7725886432679541,
+      1.8181428816792768
+     ]
+    },
+    {
+     "variable": "max|e|degagement|charges",
+     "proportion": 0.9771363920515223,
+     "t_raison": 8.632100436907201,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6374832672450017,
+     "corr_effet": 0.8727658541430409,
+     "ic": [
+      0.6235432971656503,
+      1.5147914765530524
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "non_entrelacee",
+   "levier": "job|socle",
+   "a": 0.0,
+   "b": 1.0,
+   "effet": "fini|duree",
+   "na": 10,
+   "nb": 34,
+   "strates": 2,
+   "ecart": -98.86058981233244,
+   "moy_a": 530.1876675603216,
+   "moy_b": 431.3270777479892,
+   "ecart_std": -1.1571740643069526,
+   "z": -3.130515941400735,
+   "p": 0.0017449952810665893,
+   "q": 0.0310221383300727,
+   "raisons": [],
+   "pourquoi_du_pourquoi": []
+  },
+  {
+   "lecture": "non_entrelacee",
+   "levier": "job|tactique",
+   "a": 0.0,
+   "b": 5.0,
+   "effet": "fini|charges",
+   "na": 34,
+   "nb": 10,
+   "strates": 2,
+   "ecart": -1.383646112600536,
+   "moy_a": 2.684986595174263,
+   "moy_b": 1.3013404825737265,
+   "ecart_std": -1.5366759423140774,
+   "z": -4.232405271249624,
+   "p": 2.3120530465525156e-05,
+   "q": 0.0008220633054408944,
+   "raisons": [
+    {
+     "variable": "n|e|porteur",
+     "proportion": 1.033541300470181,
+     "t_raison": 8.510059952895991,
+     "sens_levier": -1.0,
+     "corr_levier": -0.734813092601726,
+     "corr_effet": 0.8896315851683262,
+     "ic": [
+      0.7096051134341884,
+      1.508828038736283
+     ]
+    },
+    {
+     "variable": "n|e|porteur|p5",
+     "proportion": 1.033541300470181,
+     "t_raison": 8.510059952895991,
+     "sens_levier": -1.0,
+     "corr_levier": -0.734813092601726,
+     "corr_effet": 0.8896315851683262,
+     "ic": [
+      0.7576211058590205,
+      1.4254624287188045
+     ]
+    },
+    {
+     "variable": "n|e|charge_manquee",
+     "proportion": 0.7440612809207567,
+     "t_raison": -14.962118499680265,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5620912659112359,
+     "corr_effet": -0.9448090319767284,
+     "ic": [
+      0.518973852810315,
+      0.9772877299719531
+     ]
+    },
+    {
+     "variable": "n|e|charge_manquee|p5",
+     "proportion": 0.7440612809207567,
+     "t_raison": -14.962118499680265,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5620912659112359,
+     "corr_effet": -0.9448090319767284,
+     "ic": [
+      0.5303897306739432,
+      1.0539669145829498
+     ]
+    },
+    {
+     "variable": "n|e|suppression",
+     "proportion": 0.5588161375443215,
+     "t_raison": -3.529985966359178,
+     "sens_levier": 1.0,
+     "corr_levier": 0.6942705698510881,
+     "corr_effet": -0.7153657668987564,
+     "ic": [
+      0.1394878738571364,
+      1.3399380481765006
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "max|e|degagement|charges",
+     "proportion": 0.6232890458752653,
+     "t_raison": 8.510059952895988,
+     "sens_levier": -1.0,
+     "corr_levier": -0.643778997775078,
+     "corr_effet": 0.8896315851683261,
+     "ic": [
+      0.28085791981995584,
+      0.8581214088641844
+     ]
+    },
+    {
+     "variable": "n|e|charge_posee",
+     "proportion": 0.6232890458752653,
+     "t_raison": 8.510059952895988,
+     "sens_levier": -1.0,
+     "corr_levier": -0.643778997775078,
+     "corr_effet": 0.8896315851683261,
+     "ic": [
+      0.27849145526011776,
+      0.8438710315887537
+     ]
+    },
+    {
+     "variable": "n|e|charge_posee|p5",
+     "proportion": 0.6232890458752653,
+     "t_raison": 8.510059952895988,
+     "sens_levier": -1.0,
+     "corr_levier": -0.643778997775078,
+     "corr_effet": 0.8896315851683261,
+     "ic": [
+      0.35442529476470863,
+      0.8444920556778676
+     ]
+    }
+   ]
+  },
+  {
+   "lecture": "non_entrelacee",
+   "levier": "job|tactique",
+   "a": 0.0,
+   "b": 5.0,
+   "effet": "fini|detruits_scriptes",
+   "na": 34,
+   "nb": 10,
+   "strates": 2,
+   "ecart": -1.2493297587131367,
+   "moy_a": 2.2466487935656834,
+   "moy_b": 0.9973190348525468,
+   "ecart_std": -1.0912333030114347,
+   "z": -2.9878532175872503,
+   "p": 0.0028094444680345065,
+   "q": 0.04281058237004962,
+   "raisons": [
+    {
+     "variable": "max|e|degagement|charges",
+     "proportion": 0.5466977611046187,
+     "t_raison": 2.241270112590545,
+     "sens_levier": -1.0,
+     "corr_levier": -0.643778997775078,
+     "corr_effet": 0.5216367928519231,
+     "ic": [
+      0.12501509697837065,
+      1.316134516087259
+     ]
+    },
+    {
+     "variable": "n|e|charge_posee",
+     "proportion": 0.5466977611046187,
+     "t_raison": 2.241270112590545,
+     "sens_levier": -1.0,
+     "corr_levier": -0.643778997775078,
+     "corr_effet": 0.5216367928519231,
+     "ic": [
+      0.12408739359455273,
+      1.2293773699606116
+     ]
+    },
+    {
+     "variable": "n|e|charge_posee|p5",
+     "proportion": 0.5466977611046187,
+     "t_raison": 2.241270112590545,
+     "sens_levier": -1.0,
+     "corr_levier": -0.643778997775078,
+     "corr_effet": 0.5216367928519231,
+     "ic": [
+      0.07711094050110656,
+      1.2652484199189622
+     ]
+    },
+    {
+     "variable": "n|e|charge_manquee",
+     "proportion": 0.4164030836843642,
+     "t_raison": -2.0986949145983114,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5620912659112359,
+     "corr_effet": -0.488637650107675,
+     "ic": [
+      0.06053370452733267,
+      0.8742364558127012
+     ]
+    },
+    {
+     "variable": "n|e|charge_manquee|p5",
+     "proportion": 0.4164030836843642,
+     "t_raison": -2.0986949145983114,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5620912659112359,
+     "corr_effet": -0.488637650107675,
+     "ic": [
+      0.05248498942555102,
+      0.9193330071442896
+     ]
+    }
+   ],
+   "pourquoi_du_pourquoi": [
+    {
+     "variable": "n|e|porteur",
+     "proportion": 1.033541300470181,
+     "t_raison": 8.510059952895991,
+     "sens_levier": -1.0,
+     "corr_levier": -0.734813092601726,
+     "corr_effet": 0.8896315851683262,
+     "ic": [
+      0.7153712602499702,
+      1.4807976453096146
+     ]
+    },
+    {
+     "variable": "n|e|porteur|p5",
+     "proportion": 1.033541300470181,
+     "t_raison": 8.510059952895991,
+     "sens_levier": -1.0,
+     "corr_levier": -0.734813092601726,
+     "corr_effet": 0.8896315851683262,
+     "ic": [
+      0.6207215518016194,
+      1.449403490220549
+     ]
+    },
+    {
+     "variable": "n|e|charge_manquee",
+     "proportion": 0.7440612809207567,
+     "t_raison": -14.962118499680265,
+     "sens_levier": 1.0,
+     "corr_levier": 0.5620912659112359,
+     "corr_effet": -0.9448090319767284,
+     "ic": [
+      0.5218390783830312,
+      0.9850137731527905
+     ]
+    }
+   ]
+  }
+ ],
+ "pistes": {
+  "fini_issue=SUCCES": [
+   {
+    "variable": "ph|6|issue=ATTEINT",
+    "r": 0.6570065988943987,
+    "p": 5.2318632638031185e-188,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.815456552539682e-185,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ph|6|issue=PLAFOND",
+    "r": -0.5272444482315108,
+    "p": 4.186625052526285e-105,
+    "n": 1556,
+    "dof": 1381,
+    "q": 7.263794466133104e-103,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ph|6|fin|vivants",
+    "r": 0.4441599697677773,
+    "p": 1.6907481295290918e-17,
+    "n": 358,
+    "dof": 320,
+    "q": 2.7937600045075946e-16,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ph|6|debut|vivants",
+    "r": 0.42235503083311515,
+    "p": 9.39268838194883e-16,
+    "n": 358,
+    "dof": 320,
+    "q": 1.4170708124070625e-14,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|exfil_jambes|vivants",
+    "r": 0.39281646606111326,
+    "p": 8.90405673834861e-11,
+    "n": 268,
+    "dof": 246,
+    "q": 1.1034670315024885e-09,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ph|5|issue=ATTEINT",
+    "r": 0.3766761876602692,
+    "p": 5.3890570095628455e-49,
+    "n": 1556,
+    "dof": 1381,
+    "q": 6.233342607727691e-47,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ph|5|issue=INCOMPLET",
+    "r": -0.37109901007226087,
+    "p": 1.838122598319543e-47,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.5945713540422035e-45,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|destruction|total",
+    "r": 0.34572036350953644,
+    "p": 4.791959111008345e-33,
+    "n": 1256,
+    "dof": 1105,
+    "q": 1.5116452831999051e-31,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|mise_a_feu|charges",
+    "r": 0.34572036350953644,
+    "p": 4.791959111008345e-33,
+    "n": 1256,
+    "dof": 1105,
+    "q": 1.5116452831999051e-31,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|charge_posee|actes",
+    "r": 0.32788203129416404,
+    "p": 8.213050097765277e-33,
+    "n": 1382,
+    "dof": 1230,
+    "q": 2.3749403199371257e-31,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|exfil_impossible",
+    "r": -0.3218252216144626,
+    "p": 2.9150179506691955e-35,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.4450160412603012e-33,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|exfil_impossible|p6",
+    "r": -0.3218252216144626,
+    "p": 2.9150179506691955e-35,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.4450160412603012e-33,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ph|6|issue=PERTES_EXCESSIVES",
+    "r": -0.3218252216144626,
+    "p": 2.9150179506691955e-35,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.4450160412603012e-33,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_manquee",
+    "r": -0.31816669275059917,
+    "p": 1.9030966626469352e-34,
+    "n": 1556,
+    "dof": 1381,
+    "q": 7.337494910427627e-33,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_manquee|p5",
+    "r": -0.31816669275059917,
+    "p": 1.9030966626469352e-34,
+    "n": 1556,
+    "dof": 1381,
+    "q": 7.337494910427627e-33,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|degagement|charges",
+    "r": 0.3108262502933408,
+    "p": 3.163179153179255e-30,
+    "n": 1417,
+    "dof": 1265,
+    "q": 7.317487774354676e-29,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_posee",
+    "r": 0.3097404113246929,
+    "p": 1.2907809248655152e-32,
+    "n": 1556,
+    "dof": 1381,
+    "q": 3.1992927209166698e-31,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_posee|p5",
+    "r": 0.3097404113246929,
+    "p": 1.2907809248655152e-32,
+    "n": 1556,
+    "dof": 1381,
+    "q": 3.1992927209166698e-31,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_manquee|cause=PORTEUR_N_ARRIVE_PAS",
+    "r": -0.2898541009872406,
+    "p": 1.5459394808861987e-28,
+    "n": 1556,
+    "dof": 1381,
+    "q": 3.352756249171943e-27,
+    "leviers_qui_la_bougent": [
+     "job|ablation 1->2 (entrelacee)",
+     "job|ablation 1->2 (non_entrelacee)",
+     "job|ablation 1->8 (entrelacee)",
+     "job|ablation 1->8 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|destruction",
+    "r": 0.2480851703748033,
+    "p": 5.0127203881516505e-21,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.663410970492349e-20,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|destruction|p5",
+    "r": 0.2480851703748033,
+    "p": 5.0127203881516505e-21,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.663410970492349e-20,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_manquee|DEMO_1",
+    "r": -0.23617658733391136,
+    "p": 3.921919773420612e-19,
+    "n": 1556,
+    "dof": 1381,
+    "q": 7.162664007247117e-18,
+    "leviers_qui_la_bougent": [
+     "job|ablation 1->8 (entrelacee)",
+     "job|ablation 1->8 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_posee|par=DEMO_1",
+    "r": 0.2298115541493773,
+    "p": 3.649637549581328e-18,
+    "n": 1556,
+    "dof": 1381,
+    "q": 6.332121148523604e-17,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|porteur|distance",
+    "r": -0.22650272396162163,
+    "p": 3.859771399888391e-16,
+    "n": 1402,
+    "dof": 1250,
+    "q": 6.087912162551234e-15,
+    "leviers_qui_la_bougent": [
+     "job|ablation 1->2 (entrelacee)",
+     "job|ablation 1->2 (non_entrelacee)",
+     "job|ablation 1->8 (entrelacee)",
+     "job|ablation 1->8 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ph|5|fin|vivants",
+    "r": 0.20760012748097414,
+    "p": 1.1886561114767335e-14,
+    "n": 1513,
+    "dof": 1344,
+    "q": 1.718598627843444e-13,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mort|DEMO_1",
+    "r": -0.1974136143314122,
+    "p": 1.0987132600296312e-13,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.525014004921128e-12,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mort|DEMO_2",
+    "r": -0.1966100081145763,
+    "p": 1.3886557565181768e-13,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.8533213365838744e-12,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|chien_de_garde|p6",
+    "r": 0.18098086265712698,
+    "p": 1.078942789400631e-11,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.3866412886000704e-10,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ph|6|duree",
+    "r": -0.16626769198146063,
+    "p": 0.0027646504283188513,
+    "n": 358,
+    "dof": 320,
+    "q": 0.015473124171397443,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|porteur|temps",
+    "r": -0.15672960232911984,
+    "p": 2.3666436617078036e-08,
+    "n": 1402,
+    "dof": 1250,
+    "q": 2.649114034234219e-07,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|porteur",
+    "r": 0.15051677908755992,
+    "p": 1.779074566859079e-08,
+    "n": 1556,
+    "dof": 1381,
+    "q": 2.0577962490003349e-07,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|porteur|p5",
+    "r": 0.15051677908755992,
+    "p": 1.779074566859079e-08,
+    "n": 1556,
+    "dof": 1381,
+    "q": 2.0577962490003349e-07,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|porteur|DEMO_1",
+    "r": 0.1392663809048689,
+    "p": 1.9350509641803216e-07,
+    "n": 1556,
+    "dof": 1381,
+    "q": 2.0983208892830362e-06,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ok|capture_arretee|t",
+    "r": -0.1365860186907597,
+    "p": 3.325380572545842e-07,
+    "n": 1556,
+    "dof": 1381,
+    "q": 3.496688056586082e-06,
+    "leviers_qui_la_bougent": [
+     "job|ablation 1->2 (entrelacee)",
+     "job|ablation 1->2 (non_entrelacee)",
+     "job|arret 5->6 (non_entrelacee)",
+     "job|oracle 0->2 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)",
+     "job|placeur 0->1 (non_entrelacee)",
+     "job|socle 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|trahi_par_son_tir|p6",
+    "r": -0.1351710144177465,
+    "p": 4.4072116940408887e-07,
+    "n": 1556,
+    "dof": 1381,
+    "q": 4.4006115030173334e-06,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ok|capture_arretee|ticks",
+    "r": -0.1351351081465711,
+    "p": 4.4386571356082616e-07,
+    "n": 1556,
+    "dof": 1381,
+    "q": 4.4006115030173334e-06,
+    "leviers_qui_la_bougent": [
+     "job|ablation 1->2 (entrelacee)",
+     "job|ablation 1->2 (non_entrelacee)",
+     "job|arret 5->6 (non_entrelacee)",
+     "job|banc_appui 1->2 (entrelacee)",
+     "job|banc_appui 1->2 (non_entrelacee)",
+     "job|oracle 0->2 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)",
+     "job|placeur 0->1 (entrelacee)",
+     "job|placeur 0->1 (non_entrelacee)",
+     "job|socle 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mort|FUSILIER_2",
+    "r": -0.12678734992387594,
+    "p": 2.2045406595557582e-06,
+    "n": 1556,
+    "dof": 1381,
+    "q": 2.124932246849578e-05,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|mise_a_feu|degagement=DETRUIT",
+    "r": -0.12059370113730065,
+    "p": 6.791067168545753e-06,
+    "n": 1556,
+    "dof": 1381,
+    "q": 6.368919749960476e-05,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mise_a_feu|degagement=ATTEINT",
+    "r": 0.1180900982354389,
+    "p": 1.0538466405513443e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.458850577481398e-05,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|porteur|ADJOINT",
+    "r": -0.11803978361330802,
+    "p": 1.0630984798898401e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.458850577481398e-05,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|mort|AT",
+    "r": -0.11624403836796784,
+    "p": 1.448931743293183e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0001256948287306836,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|mort|MEDECIN",
+    "r": -0.11476758295435029,
+    "p": 1.8627062262507273e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.00015764855134365913,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_manquee|issue=DETRUIT",
+    "r": -0.1115634874759578,
+    "p": 3.1794768315601124e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.00026268534775032357,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|trahi_par_son_tir",
+    "r": -0.10964625828758787,
+    "p": 4.3485047837820295e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.000350914223249387,
+    "leviers_qui_la_bougent": [
+     "job|ablation 0->8 (entrelacee)",
+     "job|ablation 0->8 (non_entrelacee)",
+     "job|ablation 1->8 (entrelacee)",
+     "job|ablation 1->8 (non_entrelacee)",
+     "job|ablation 2->8 (entrelacee)",
+     "job|ablation 2->8 (non_entrelacee)",
+     "job|ablation 4->8 (entrelacee)",
+     "job|ablation 4->8 (non_entrelacee)",
+     "job|azimut 0->1 (entrelacee)",
+     "job|azimut 0->1 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mort|ADJOINT",
+    "r": -0.10900674109006671,
+    "p": 4.8217784897084484e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0003802629854383708,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|budget|plafond",
+    "r": -0.10747099508328996,
+    "p": 6.16522677104648e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0004754074865673619,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)",
+     "job|azimut 0->1 (entrelacee)",
+     "job|azimut 0->1 (non_entrelacee)",
+     "job|azimut 1->2 (entrelacee)",
+     "job|azimut 1->2 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)",
+     "job|porte_B 0->1 (entrelacee)",
+     "job|porte_B 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_manquee|cause=ELEMENT_N_ARRIVE_PAS",
+    "r": -0.10702385142291405,
+    "p": 6.618534157137515e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0004992676853318951,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|porte_B 0->1 (non_entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|exploitation",
+    "r": 0.1059186721646874,
+    "p": 7.877823969666923e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.000569501024473838,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|exploitation|p5",
+    "r": 0.1059186721646874,
+    "p": 7.877823969666923e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.000569501024473838,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_manquee|ADJOINT",
+    "r": -0.10217900604750886,
+    "p": 0.00014026832425524137,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.000993328745236097,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|charge_manquee|DEMO_2",
+    "r": -0.09878436305464885,
+    "p": 0.0002329148858572379,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.001616429307849231,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|trahi_par_son_tir|p5",
+    "r": -0.09706921588122533,
+    "p": 0.000299143524466419,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.002035349078232302,
+    "leviers_qui_la_bougent": [
+     "job|ablation 0->8 (entrelacee)",
+     "job|ablation 0->8 (non_entrelacee)",
+     "job|ablation 1->8 (entrelacee)",
+     "job|ablation 1->8 (non_entrelacee)",
+     "job|ablation 2->8 (entrelacee)",
+     "job|ablation 2->8 (non_entrelacee)",
+     "job|ablation 4->8 (entrelacee)",
+     "job|ablation 4->8 (non_entrelacee)",
+     "job|azimut 0->1 (entrelacee)",
+     "job|azimut 0->1 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|budget|bouchon",
+    "r": -0.09422327899861228,
+    "p": 0.00045130490525469296,
+    "n": 1555,
+    "dof": 1380,
+    "q": 0.003011592348526509,
+    "leviers_qui_la_bougent": [
+     "job|azimut 1->2 (non_entrelacee)",
+     "job|oracle 0->1 (entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|objectif|emprise",
+    "r": 0.09378847072022056,
+    "p": 0.0008289393671860455,
+    "n": 1417,
+    "dof": 1265,
+    "q": 0.0052298538257010505,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|objectif",
+    "r": 0.09211686344864672,
+    "p": 0.0006025261716294656,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.003871788547322677,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|objectif|p5",
+    "r": 0.09211686344864672,
+    "p": 0.0006025261716294656,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.003871788547322677,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|tir|p6",
+    "r": -0.08871639394324349,
+    "p": 0.0009560261751953409,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.005923947907013988,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|file_interrompue",
+    "r": -0.08533787068046135,
+    "p": 0.001489410106779489,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.008910781156077286,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|file_interrompue|p5",
+    "r": -0.08533787068046135,
+    "p": 0.001489410106779489,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.008910781156077286,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|tir",
+    "r": -0.08368993893008383,
+    "p": 0.0018388070057312918,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.010814678491334885,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)",
+     "job|azimut 0->1 (entrelacee)",
+     "job|azimut 0->1 (non_entrelacee)",
+     "job|banc_appui 1->2 (entrelacee)",
+     "job|banc_appui 1->2 (non_entrelacee)",
+     "job|oracle 0->1 (entrelacee)",
+     "job|oracle 0->1 (non_entrelacee)",
+     "job|oracle 0->2 (entrelacee)",
+     "job|oracle 0->2 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_posee|par=ADJOINT",
+    "r": -0.08198682706301381,
+    "p": 0.0022776090176351693,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.013172172151990062,
+    "leviers_qui_la_bougent": [
+     "job|socle 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mort|CHEF",
+    "r": -0.08088330580900445,
+    "p": 0.002611028990517976,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.01485290261819242,
+    "leviers_qui_la_bougent": [
+     "job|oracle 0->2 (entrelacee)",
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|qrf_partie",
+    "r": -0.08005471003940622,
+    "p": 0.0028900393913542533,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.01566943232499884,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|qrf_partie|p5",
+    "r": -0.08005471003940622,
+    "p": 0.0028900393913542533,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.01566943232499884,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|trahi_par_son_tir|connus",
+    "r": -0.07930837686105334,
+    "p": 0.010451103339770455,
+    "n": 1170,
+    "dof": 1040,
+    "q": 0.040747560212363455,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|budget|vers=PZ",
+    "r": 0.07846931127057238,
+    "p": 0.0035008508621846984,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.017864636017324933,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|budget|vers=LZ",
+    "r": -0.07846931127057237,
+    "p": 0.0035008508621847127,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.017864636017324933,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ordre|pourquoi=ABANDON_REPLI_PAR_LA_LZ",
+    "r": -0.07846931127057237,
+    "p": 0.0035008508621847127,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.017864636017324933,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ordre|pourquoi=OBJECTIFS_TRAITES",
+    "r": 0.07846931127057237,
+    "p": 0.0035008508621847127,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.017864636017324933,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|fumigene|p6",
+    "r": 0.07779225257067994,
+    "p": 0.003795751338717721,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.019088778471522454,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|chien_de_garde|relance",
+    "r": 0.0774229645818946,
+    "p": 0.009780830386172038,
+    "n": 1242,
+    "dof": 1111,
+    "q": 0.03856759254547383,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|porteur|MEDECIN",
+    "r": -0.0767415706022407,
+    "p": 0.004298211904317526,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.02130685043997402,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|charge_posee|par=MEDECIN",
+    "r": -0.07642237336400597,
+    "p": 0.004462371360722005,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.02180905439676811,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|charge_manquee|cause=AUCUN_PORTEUR_VIVANT",
+    "r": -0.07571276061300508,
+    "p": 0.0048478158342699015,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.023363779090161886,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|mort|FUSILIER_1",
+    "r": -0.07338566573538467,
+    "p": 0.006331962435292778,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03009850637050129,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ordre|pourquoi=BOUCHON_JAMBE_DISCRETE",
+    "r": 0.07251317604084867,
+    "p": 0.006986157587936919,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03265061655933597,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|objectif|cap",
+    "r": 0.07148316960960453,
+    "p": 0.010935284025370192,
+    "n": 1417,
+    "dof": 1265,
+    "q": 0.042161595075593965,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|articulation",
+    "r": 0.07119243683386917,
+    "p": 0.008092083642947775,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03265061655933597,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|articulation|p4",
+    "r": 0.07119243683386917,
+    "p": 0.008092083642947775,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03265061655933597,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|budget",
+    "r": 0.07119243683386917,
+    "p": 0.008092083642947775,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03265061655933597,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|budget|etape=MISE_EN_PLACE",
+    "r": 0.07119243683386917,
+    "p": 0.008092083642947775,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03265061655933597,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|budget|p4",
+    "r": 0.07119243683386917,
+    "p": 0.008092083642947775,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03265061655933597,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|choix_ouverture",
+    "r": 0.07119243683386917,
+    "p": 0.008092083642947775,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03265061655933597,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|choix_ouverture|p4",
+    "r": 0.07119243683386917,
+    "p": 0.008092083642947775,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03265061655933597,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|scission|APPUI",
+    "r": 0.07119243683386917,
+    "p": 0.008092083642947775,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03265061655933597,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|scission|ASSAUT",
+    "r": 0.07119243683386917,
+    "p": 0.008092083642947775,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03265061655933597,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|scission|BOUCHON",
+    "r": 0.07119243683386917,
+    "p": 0.008092083642947775,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03265061655933597,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ph|4|joue",
+    "r": 0.07119243683386917,
+    "p": 0.008092083642947775,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03265061655933597,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|scission|p4",
+    "r": 0.07119243683386912,
+    "p": 0.00809208364294782,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03265061655933597,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|compromis|cause=ENNEMI_VU_EN_COMBAT",
+    "r": 0.07003173518501167,
+    "p": 0.009190515029131267,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03665642201274195,
+    "leviers_qui_la_bougent": [
+     "job|banc_appui 1->2 (entrelacee)",
+     "job|banc_appui 1->2 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)",
+     "job|porte_B 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|compromis|cause=FEU_PROCHE",
+    "r": -0.06803431740398454,
+    "p": 0.011394693410408415,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.04345009465287604,
+    "leviers_qui_la_bougent": [
+     "job|porte_B 0->1 (non_entrelacee)"
+    ]
+   }
+  ],
+  "fini|charges": [
+   {
+    "variable": "n|e|charge_manquee",
+    "r": -0.89662616119008,
+    "p": 0.0,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_manquee|p5",
+    "r": -0.89662616119008,
+    "p": 0.0,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ph|5|issue=ATTEINT",
+    "r": 0.8686365654272604,
+    "p": 0.0,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ph|5|issue=INCOMPLET",
+    "r": -0.8254941795070185,
+    "p": 0.0,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|porteur",
+    "r": 0.754077787595394,
+    "p": 2.3747308116204984e-291,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.3575544473097183e-289,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|porteur|p5",
+    "r": 0.754077787595394,
+    "p": 2.3747308116204984e-291,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.3575544473097183e-289,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_posee|par=DEMO_1",
+    "r": 0.7079670539618336,
+    "p": 7.245495459711024e-236,
+    "n": 1556,
+    "dof": 1381,
+    "q": 3.5502927752584017e-234,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|destruction",
+    "r": 0.6533892564448621,
+    "p": 5.006735574319275e-185,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.908122557768346e-183,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|destruction|p5",
+    "r": 0.6533892564448621,
+    "p": 5.006735574319275e-185,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.908122557768346e-183,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|exploitation",
+    "r": 0.632897689184009,
+    "p": 5.093355012204103e-169,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.5882006992600067e-167,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|exploitation|p5",
+    "r": 0.632897689184009,
+    "p": 5.093355012204103e-169,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.5882006992600067e-167,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_manquee|cause=PORTEUR_N_ARRIVE_PAS",
+    "r": -0.6133587863179306,
+    "p": 4.9891713733779875e-155,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.4260714842238748e-153,
+    "leviers_qui_la_bougent": [
+     "job|ablation 1->2 (entrelacee)",
+     "job|ablation 1->2 (non_entrelacee)",
+     "job|ablation 1->8 (entrelacee)",
+     "job|ablation 1->8 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|objectif",
+    "r": 0.5514035710762336,
+    "p": 1.925703856823403e-117,
+    "n": 1556,
+    "dof": 1381,
+    "q": 4.7179744492173373e-116,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|objectif|p5",
+    "r": 0.5514035710762336,
+    "p": 1.925703856823403e-117,
+    "n": 1556,
+    "dof": 1381,
+    "q": 4.7179744492173373e-116,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|porteur|DEMO_1",
+    "r": 0.5500147405126002,
+    "p": 1.0603160022686423e-116,
+    "n": 1556,
+    "dof": 1381,
+    "q": 2.424589258520962e-115,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|porteur|distance",
+    "r": -0.5453139044097377,
+    "p": 1.4745713657078517e-103,
+    "n": 1402,
+    "dof": 1250,
+    "q": 2.9751645790458416e-102,
+    "leviers_qui_la_bougent": [
+     "job|ablation 1->2 (entrelacee)",
+     "job|ablation 1->2 (non_entrelacee)",
+     "job|ablation 1->8 (entrelacee)",
+     "job|ablation 1->8 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_manquee|cause=ELEMENT_N_ARRIVE_PAS",
+    "r": -0.5357859044464366,
+    "p": 2.4570845234319747e-109,
+    "n": 1556,
+    "dof": 1381,
+    "q": 5.267374947107296e-108,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|porte_B 0->1 (non_entrelacee)",
+     "job|socle 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|exfil_jambes|vivants",
+    "r": 0.5160931396743933,
+    "p": 4.69237775492104e-19,
+    "n": 268,
+    "dof": 246,
+    "q": 2.682475949896528e-18,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ph|5|fin|vivants",
+    "r": 0.5142603443376537,
+    "p": 2.5048191239558093e-96,
+    "n": 1513,
+    "dof": 1344,
+    "q": 4.773071997315792e-95,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|file_interrompue",
+    "r": -0.49129531493032913,
+    "p": 1.0066714618159074e-88,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.7264415570142814e-87,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|file_interrompue|p5",
+    "r": -0.49129531493032913,
+    "p": 1.0066714618159074e-88,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.7264415570142814e-87,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mise_a_feu|degagement=DETRUIT",
+    "r": -0.4774296136769766,
+    "p": 5.677137020240391e-83,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.272657133059304e-82,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|charge_manquee|distance",
+    "r": -0.4762942655851516,
+    "p": 9.408794034732695e-23,
+    "n": 489,
+    "dof": 361,
+    "q": 6.454432707826628e-22,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|mort|DEMO_1",
+    "r": -0.46677388537338194,
+    "p": 9.4798208497303e-79,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.477990250662497e-77,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_manquee|DEMO_1",
+    "r": -0.4328558577056896,
+    "p": 2.292218514739662e-66,
+    "n": 1556,
+    "dof": 1381,
+    "q": 3.418395437198713e-65,
+    "leviers_qui_la_bougent": [
+     "job|ablation 1->8 (entrelacee)",
+     "job|ablation 1->8 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mort|DEMO_2",
+    "r": -0.4294412918885775,
+    "p": 3.333779414284104e-65,
+    "n": 1556,
+    "dof": 1381,
+    "q": 4.7645264129143654e-64,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ph|6|debut|vivants",
+    "r": 0.4222908849666665,
+    "p": 9.499930704346228e-16,
+    "n": 358,
+    "dof": 320,
+    "q": 5.172184494588502e-15,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ph|6|fin|vivants",
+    "r": 0.4195184419903467,
+    "p": 1.5478258555724749e-15,
+    "n": 358,
+    "dof": 320,
+    "q": 8.167757976328598e-15,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|charge_manquee|issue=DETRUIT",
+    "r": -0.4142562411455485,
+    "p": 3.3029236523528797e-60,
+    "n": 1556,
+    "dof": 1381,
+    "q": 4.531611251028151e-59,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|moteur_dit_fini|rayon",
+    "r": -0.41410587289259654,
+    "p": 0.0009778431481982386,
+    "n": 72,
+    "dof": 58,
+    "q": 0.0027048403212257726,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|objectif|emprise",
+    "r": 0.3912915116427399,
+    "p": 7.581678847407714e-49,
+    "n": 1417,
+    "dof": 1265,
+    "q": 1.0001984017926332e-47,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mise_a_feu|degagement=ATTEINT",
+    "r": 0.3505394342396299,
+    "p": 4.373628658708745e-42,
+    "n": 1556,
+    "dof": 1381,
+    "q": 5.556128259026294e-41,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_manquee|issue=ENLISE",
+    "r": -0.3389800253727599,
+    "p": 3.0272115667840705e-39,
+    "n": 1556,
+    "dof": 1381,
+    "q": 3.7083341693104863e-38,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ouverture|issue=ATTEINT",
+    "r": 0.33201420095350465,
+    "p": 1.3533008352874646e-37,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.6006282293227598e-36,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mort|MEDECIN",
+    "r": -0.3286182593776668,
+    "p": 8.310218858859937e-37,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.501350228629862e-36,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|budget|distance",
+    "r": -0.2901796851948071,
+    "p": 9.946541492711903e-08,
+    "n": 358,
+    "dof": 320,
+    "q": 3.9670508511630035e-07,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|charge_manquee|ADJOINT",
+    "r": -0.28318574859229495,
+    "p": 3.035539221804321e-27,
+    "n": 1556,
+    "dof": 1381,
+    "q": 3.358677267996394e-26,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|cqb",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|cqb|p5",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|degagement",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|degagement|p5",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|feu_appui_total",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|feu_appui_total|p5",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|file_objectifs",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|file_objectifs|p5",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|mise_a_feu",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|mise_a_feu|p5",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ordre|pourquoi=DEGAGEMENT_AVANT_MISE_A_FEU",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ordre|pourquoi=OUVERTURE_CHOISIE",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ouverture",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ouverture|p5",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|premier_pas_assaut",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|premier_pas_assaut|p5",
+    "r": 0.2746034888572534,
+    "p": 1.2382981784439194e-25,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.036942025665198e-25,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|chien_de_garde|relance",
+    "r": 0.26911369801889956,
+    "p": 3.99489704149038e-20,
+    "n": 1242,
+    "dof": 1111,
+    "q": 2.322457093612204e-19,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|charge_manquee|cause=AUCUN_PORTEUR_VIVANT",
+    "r": -0.26510951629418433,
+    "p": 6.391037854950633e-24,
+    "n": 1556,
+    "dof": 1381,
+    "q": 4.56692913385014e-23,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|porteur|ADJOINT",
+    "r": -0.2637774922073252,
+    "p": 1.0968909657749506e-23,
+    "n": 1556,
+    "dof": 1381,
+    "q": 7.678236760424654e-23,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|dispositif|assaut",
+    "r": 0.2581219493594649,
+    "p": 4.001330155627337e-22,
+    "n": 1512,
+    "dof": 1343,
+    "q": 2.4078179708424148e-21,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|renoncement",
+    "r": -0.2567927697301183,
+    "p": 1.7684270681899828e-22,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.0831615792663912e-21,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|renoncement|cause=ARTICULATION_ROMPUE",
+    "r": -0.2567927697301183,
+    "p": 1.7684270681899828e-22,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.0831615792663912e-21,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|renoncement|p5",
+    "r": -0.2567927697301183,
+    "p": 1.7684270681899828e-22,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.0831615792663912e-21,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ph|5|issue=ARTICULATION_ROMPUE",
+    "r": -0.2567927697301183,
+    "p": 1.7684270681899828e-22,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.0831615792663912e-21,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|socle",
+    "r": 0.2567927697301182,
+    "p": 1.7684270681900266e-22,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.0831615792663912e-21,
+    "leviers_qui_la_bougent": [
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|socle|p5",
+    "r": 0.2567927697301182,
+    "p": 1.7684270681900266e-22,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.0831615792663912e-21,
+    "leviers_qui_la_bougent": [
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_manquee|DEMO_2",
+    "r": -0.2431243489226225,
+    "p": 3.17514260286861e-20,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.877713642730919e-19,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|porteur|temps",
+    "r": -0.24118427698210362,
+    "p": 3.57517534194768e-18,
+    "n": 1402,
+    "dof": 1250,
+    "q": 2.0103035119476298e-17,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mort|ADJOINT",
+    "r": -0.2134769638539224,
+    "p": 8.193820805168703e-16,
+    "n": 1556,
+    "dof": 1381,
+    "q": 4.5330331228594595e-15,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mort|CHEF",
+    "r": -0.2123366943145459,
+    "p": 1.1761956420728473e-15,
+    "n": 1556,
+    "dof": 1381,
+    "q": 6.3036735192341654e-15,
+    "leviers_qui_la_bougent": [
+     "job|oracle 0->2 (entrelacee)",
+     "job|palier 4->9 (non_entrelacee)",
+     "job|socle 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_manquee|issue=PLAFOND",
+    "r": -0.20724166504389488,
+    "p": 5.764217418929814e-15,
+    "n": 1556,
+    "dof": 1381,
+    "q": 2.9956463252923124e-14,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|ordre|ASSAUT",
+    "r": 0.20507946651186731,
+    "p": 1.1172543557493173e-14,
+    "n": 1556,
+    "dof": 1381,
+    "q": 5.719675283910684e-14,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|charge_posee|distance",
+    "r": 0.1932093354892314,
+    "p": 7.042533013191857e-12,
+    "n": 1382,
+    "dof": 1230,
+    "q": 3.30902578565042e-11,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|exfil_impossible",
+    "r": -0.1926143500403163,
+    "p": 4.3824828339718274e-13,
+    "n": 1556,
+    "dof": 1381,
+    "q": 2.1474165886461955e-12,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|exfil_impossible|p6",
+    "r": -0.1926143500403163,
+    "p": 4.3824828339718274e-13,
+    "n": 1556,
+    "dof": 1381,
+    "q": 2.1474165886461955e-12,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ph|6|issue=PERTES_EXCESSIVES",
+    "r": -0.1926143500403163,
+    "p": 4.3824828339718274e-13,
+    "n": 1556,
+    "dof": 1381,
+    "q": 2.1474165886461955e-12,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ph|6|fin|compromis",
+    "r": 0.19240118713768498,
+    "p": 0.0005121743833708469,
+    "n": 358,
+    "dof": 320,
+    "q": 0.0014887780804762752,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ouverture|issue=ENLISE",
+    "r": -0.1877120416861684,
+    "p": 1.73454381642173e-12,
+    "n": 1556,
+    "dof": 1381,
+    "q": 8.37955674693878e-12,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|ordre|p5",
+    "r": 0.18634419292459667,
+    "p": 2.5291515057189216e-12,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.2048596756410974e-11,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|mise_a_feu|attente",
+    "r": 0.16945842418756307,
+    "p": 2.020571535054118e-09,
+    "n": 1382,
+    "dof": 1230,
+    "q": 8.772861221817247e-09,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ok|appui_feu|gain",
+    "r": -0.16710136434918416,
+    "p": 0.003072604323910499,
+    "n": 360,
+    "dof": 310,
+    "q": 0.0069794919410682485,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ok|appui_feu|dist_ouverture",
+    "r": -0.16710136434918407,
+    "p": 0.0030726043239105117,
+    "n": 360,
+    "dof": 310,
+    "q": 0.0069794919410682485,
+    "leviers_qui_la_bougent": [
+     "job|ablation 1->8 (entrelacee)",
+     "job|ablation 1->8 (non_entrelacee)",
+     "job|ablation 2->8 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ok|appui_feu|score",
+    "r": -0.16710136434918407,
+    "p": 0.0030726043239105117,
+    "n": 360,
+    "dof": 310,
+    "q": 0.0069794919410682485,
+    "leviers_qui_la_bougent": [
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_manquee|CHEF",
+    "r": -0.16275089068314064,
+    "p": 1.0742886207368995e-09,
+    "n": 1556,
+    "dof": 1381,
+    "q": 4.979472931253467e-09,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|budget|vers=LZ",
+    "r": -0.16060155832129364,
+    "p": 1.7877399051199217e-09,
+    "n": 1556,
+    "dof": 1381,
+    "q": 7.86147163405305e-09,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|budget|vers=PZ",
+    "r": 0.16060155832129364,
+    "p": 1.7877399051199217e-09,
+    "n": 1556,
+    "dof": 1381,
+    "q": 7.86147163405305e-09,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|ordre|pourquoi=ABANDON_REPLI_PAR_LA_LZ",
+    "r": -0.1606015583212936,
+    "p": 1.7877399051199356e-09,
+    "n": 1556,
+    "dof": 1381,
+    "q": 7.86147163405305e-09,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ordre|pourquoi=OBJECTIFS_TRAITES",
+    "r": 0.1606015583212936,
+    "p": 1.7877399051199356e-09,
+    "n": 1556,
+    "dof": 1381,
+    "q": 7.86147163405305e-09,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|trahi_par_son_tir|connus",
+    "r": -0.15976108982538853,
+    "p": 2.084288826425387e-07,
+    "n": 1170,
+    "dof": 1040,
+    "q": 8.123989402998952e-07,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|tir|p5",
+    "r": -0.159435526006606,
+    "p": 2.3498597668898236e-09,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.0075023750540119e-08,
+    "leviers_qui_la_bougent": [
+     "job|azimut 0->1 (entrelacee)",
+     "job|azimut 0->1 (non_entrelacee)",
+     "job|banc_appui 1->2 (entrelacee)",
+     "job|banc_appui 1->2 (non_entrelacee)",
+     "job|oracle 0->1 (entrelacee)",
+     "job|oracle 0->1 (non_entrelacee)",
+     "job|oracle 0->2 (entrelacee)",
+     "job|oracle 0->2 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ph|6|debut|alarme",
+    "r": 0.15711708634210783,
+    "p": 0.004725089345008012,
+    "n": 358,
+    "dof": 320,
+    "q": 0.01059284735514868,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|progression|hommes",
+    "r": 0.1553873720435396,
+    "p": 0.013436073055112083,
+    "n": 292,
+    "dof": 251,
+    "q": 0.028273454342965916,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|progression|ASSAUT_REPRISE",
+    "r": -0.15365152601686227,
+    "p": 8.85168587050499e-09,
+    "n": 1556,
+    "dof": 1381,
+    "q": 3.748269316722893e-08,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ph|6|issue=ATTEINT",
+    "r": 0.1535970275377699,
+    "p": 8.960877083710707e-09,
+    "n": 1556,
+    "dof": 1381,
+    "q": 3.748269316722893e-08,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|tir",
+    "r": -0.1528576047591617,
+    "p": 1.0578008053321692e-08,
+    "n": 1556,
+    "dof": 1381,
+    "q": 4.3713936895052294e-08,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)",
+     "job|azimut 0->1 (entrelacee)",
+     "job|azimut 0->1 (non_entrelacee)",
+     "job|banc_appui 1->2 (entrelacee)",
+     "job|banc_appui 1->2 (non_entrelacee)",
+     "job|oracle 0->1 (entrelacee)",
+     "job|oracle 0->1 (non_entrelacee)",
+     "job|oracle 0->2 (entrelacee)",
+     "job|oracle 0->2 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|trahi_par_son_tir",
+    "r": -0.14846841630316354,
+    "p": 2.7854678136877894e-08,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.1373993572558473e-07,
+    "leviers_qui_la_bougent": [
+     "job|ablation 0->8 (entrelacee)",
+     "job|ablation 0->8 (non_entrelacee)",
+     "job|ablation 1->8 (entrelacee)",
+     "job|ablation 1->8 (non_entrelacee)",
+     "job|ablation 2->8 (entrelacee)",
+     "job|ablation 2->8 (non_entrelacee)",
+     "job|ablation 4->8 (entrelacee)",
+     "job|ablation 4->8 (non_entrelacee)",
+     "job|azimut 0->1 (entrelacee)",
+     "job|azimut 0->1 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|trahi_par_son_tir|p5",
+    "r": -0.14262846254502104,
+    "p": 9.66819469757378e-08,
+    "n": 1556,
+    "dof": 1381,
+    "q": 3.901400919138596e-07,
+    "leviers_qui_la_bougent": [
+     "job|ablation 0->8 (entrelacee)",
+     "job|ablation 0->8 (non_entrelacee)",
+     "job|ablation 1->8 (entrelacee)",
+     "job|ablation 1->8 (non_entrelacee)",
+     "job|ablation 2->8 (entrelacee)",
+     "job|ablation 2->8 (non_entrelacee)",
+     "job|ablation 4->8 (entrelacee)",
+     "job|ablation 4->8 (non_entrelacee)",
+     "job|azimut 0->1 (entrelacee)",
+     "job|azimut 0->1 (non_entrelacee)",
+     "job|socle 0->1 (entrelacee)",
+     "job|socle 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mise_a_feu|REFUSEE",
+    "r": 0.141891551753141,
+    "p": 1.1272121540231916e-07,
+    "n": 1556,
+    "dof": 1381,
+    "q": 4.4440663083902843e-07,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|charge_posee|par=ADJOINT",
+    "r": -0.13800117145613008,
+    "p": 2.5017939058323813e-07,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.641745052814684e-07,
+    "leviers_qui_la_bougent": [
+     "job|socle 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mort|p5",
+    "r": 0.13769176321858842,
+    "p": 2.6630568299278864e-07,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.01492054740585e-06,
+    "leviers_qui_la_bougent": [
+     "job|banc_appui 1->2 (entrelacee)",
+     "job|banc_appui 1->2 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|chien_de_garde|p6",
+    "r": 0.13329967955576158,
+    "p": 6.368147283732918e-07,
+    "n": 1556,
+    "dof": 1381,
+    "q": 2.400301668483946e-06,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mort",
+    "r": 0.1328173099396712,
+    "p": 6.99621173748816e-07,
+    "n": 1556,
+    "dof": 1381,
+    "q": 2.6083702456069985e-06,
+    "leviers_qui_la_bougent": [
+     "job|banc_appui 1->2 (entrelacee)",
+     "job|banc_appui 1->2 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|dispositif|appui",
+    "r": 0.13025778352945552,
+    "p": 1.6085693565369161e-06,
+    "n": 1512,
+    "dof": 1343,
+    "q": 5.9326805300232505e-06,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ph|6|debut|compromis",
+    "r": 0.12784516168538237,
+    "p": 0.021885470128816444,
+    "n": 358,
+    "dof": 320,
+    "q": 0.04495039673164096,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|porteur|MEDECIN",
+    "r": -0.1266882501754161,
+    "p": 2.2455460982745196e-06,
+    "n": 1556,
+    "dof": 1381,
+    "q": 8.193854379874045e-06,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|charge_posee|par=DEMO_2",
+    "r": 0.12547952388902506,
+    "p": 2.808393958220541e-06,
+    "n": 1556,
+    "dof": 1381,
+    "q": 1.0139780291259427e-05,
+    "leviers_qui_la_bougent": [
+     "job|azimut 1->2 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|charge_posee|par=MEDECIN",
+    "r": -0.11833171077567166,
+    "p": 1.010478344925638e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 3.610354919890561e-05,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|ouverture|distance",
+    "r": -0.11460559009890538,
+    "p": 4.296861891748833e-05,
+    "n": 1417,
+    "dof": 1265,
+    "q": 0.00014887107362321713,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|blocage|p5",
+    "r": -0.11317873762898145,
+    "p": 2.4325916214065728e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 8.601844599406747e-05,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|budget|plafond",
+    "r": -0.11238214197244471,
+    "p": 2.7772523735762872e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 9.720383307517006e-05,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)",
+     "job|azimut 0->1 (entrelacee)",
+     "job|azimut 0->1 (non_entrelacee)",
+     "job|azimut 1->2 (entrelacee)",
+     "job|azimut 1->2 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)",
+     "job|porte_B 0->1 (entrelacee)",
+     "job|porte_B 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|rearticulation",
+    "r": -0.10822462929886821,
+    "p": 5.46694487787647e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.00018565961317936922,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|rearticulation|p5",
+    "r": -0.10822462929886821,
+    "p": 5.46694487787647e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.00018565961317936922,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|oracle_alarme|p5",
+    "r": 0.1058795947023666,
+    "p": 7.926246395386183e-05,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.00026653946211935894,
+    "leviers_qui_la_bougent": [
+     "job|banc_appui 1->2 (entrelacee)",
+     "job|banc_appui 1->2 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|deblocage|p5",
+    "r": -0.10278860124426331,
+    "p": 0.00012784562407520942,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.00042573834036695955,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|restitution",
+    "r": 0.1003215792790462,
+    "p": 0.00018548636663108845,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0005890909606894769,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|restitution|p5",
+    "r": 0.1003215792790462,
+    "p": 0.00018548636663108845,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0005890909606894769,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ph|5|joue",
+    "r": 0.1003215792790462,
+    "p": 0.00018548636663108845,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0005890909606894769,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ok|socle|arret",
+    "r": 0.10032157927904618,
+    "p": 0.0001854863666310889,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0005890909606894769,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ok|vignette|arret",
+    "r": 0.10032157927904618,
+    "p": 0.0001854863666310889,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0005890909606894769,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|porteur|CHEF",
+    "r": -0.09973385104800066,
+    "p": 0.00020243436921588495,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0006370182444132893,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ordre|pourquoi=ASSAUT_DEBLOCAGE_RELEVER",
+    "r": -0.09960679898798415,
+    "p": 0.00020628421778549314,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0006432316972765831,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|deblocage|ASSAUT",
+    "r": -0.09944882655989647,
+    "p": 0.0002111667831647053,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0006525243840134588,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|ouverture|reste",
+    "r": 0.09789920995292935,
+    "p": 0.00048231371320428946,
+    "n": 1417,
+    "dof": 1265,
+    "q": 0.0014261517554230282,
+    "leviers_qui_la_bougent": [
+     "job|oracle 0->1 (entrelacee)",
+     "job|oracle 0->1 (non_entrelacee)",
+     "job|oracle 0->2 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)",
+     "job|tactique 0->1 (entrelacee)",
+     "job|tactique 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|compromis|cause=ENNEMI_VU_EN_COMBAT",
+    "r": 0.09584698879230467,
+    "p": 0.0003566719653728326,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0010923078939542997,
+    "leviers_qui_la_bougent": [
+     "job|banc_appui 1->2 (entrelacee)",
+     "job|banc_appui 1->2 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)",
+     "job|porte_B 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|moteur_dit_fini",
+    "r": -0.09566838867850376,
+    "p": 0.00036589617452021305,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.001110640600534806,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ph|4|issue=PLAFOND",
+    "r": -0.09472001735814284,
+    "p": 0.000418722231207536,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0012598396956507443,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ordre",
+    "r": 0.09411477778656345,
+    "p": 0.00045606568669492756,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.001360265482924871,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|oracle_alarme",
+    "r": 0.09344962165341658,
+    "p": 0.0005006726172024299,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0014677838264994312,
+    "leviers_qui_la_bougent": [
+     "job|banc_appui 1->2 (entrelacee)",
+     "job|banc_appui 1->2 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|blocage|comport=AWARE",
+    "r": -0.08984274369834158,
+    "p": 0.0008218750210853457,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.00236893388430482,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|articulation|appui=NON",
+    "r": -0.08977900042470242,
+    "p": 0.0008289753149405975,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0023694877752052077,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|blocage|ASSAUT",
+    "r": -0.08936775372984551,
+    "p": 0.0008761667596556418,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0024836793269577286,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|blocage|posture=STAND",
+    "r": -0.08922199802591001,
+    "p": 0.0008934810321446169,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0025119999510295377,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ph|5|fin|alarme",
+    "r": 0.08917053747635549,
+    "p": 0.0010554524636059012,
+    "n": 1513,
+    "dof": 1344,
+    "q": 0.0028961615601345927,
+    "leviers_qui_la_bougent": [
+     "job|banc_appui 1->2 (entrelacee)",
+     "job|banc_appui 1->2 (non_entrelacee)",
+     "job|palier 4->9 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|deblocage|essai=RELEVER",
+    "r": -0.08873302976732998,
+    "p": 0.0009539054169671748,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0026600777074775686,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|blocage",
+    "r": -0.08782269484234971,
+    "p": 0.001076579300505813,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0029306880958213798,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|compromis|cause=FEU_PROCHE",
+    "r": -0.08715098824760542,
+    "p": 0.0011762665707297421,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0031768459351204847,
+    "leviers_qui_la_bougent": [
+     "job|porte_B 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|articulation|appui=ATTEINT",
+    "r": 0.08482012934945239,
+    "p": 0.0015919781177953574,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.004266003862529747,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|articulation|assaut=NON",
+    "r": -0.08439195376755429,
+    "p": 0.0016816653035381778,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.0044714046442914344,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|articulation|assaut=ATTEINT",
+    "r": 0.08337414199569894,
+    "p": 0.0019137974406843873,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.005049480939651883,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|dispositif|vivants",
+    "r": 0.08219314150922209,
+    "p": 0.0025555013193979416,
+    "n": 1512,
+    "dof": 1343,
+    "q": 0.006087062170510375,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ph|5|debut|vivants",
+    "r": 0.08219297279521968,
+    "p": 0.0025460898633262877,
+    "n": 1513,
+    "dof": 1344,
+    "q": 0.006087062170510375,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|suppression",
+    "r": -0.08215110778223397,
+    "p": 0.002231447218592669,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.005672670630049155,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|suppression|p5",
+    "r": -0.08215110778223397,
+    "p": 0.002231447218592669,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.005672670630049155,
+    "leviers_qui_la_bougent": [
+     "job|tactique 0->1 (non_entrelacee)",
+     "job|tactique 0->5 (entrelacee)",
+     "job|tactique 0->5 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|avert|hors_corpus|depart",
+    "r": 0.08211090348929935,
+    "p": 0.0022760672245392254,
+    "n": 1548,
+    "dof": 1377,
+    "q": 0.005672670630049155,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ph|4|fin|vivants",
+    "r": 0.08177006021031481,
+    "p": 0.0023484525640436733,
+    "n": 1555,
+    "dof": 1380,
+    "q": 0.005672670630049155,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|avert|hors_corpus|p4",
+    "r": 0.08176989408823691,
+    "p": 0.0023399041656979825,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.005672670630049155,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|mg_assaut",
+    "r": 0.08176989408823691,
+    "p": 0.0023399041656979825,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.005672670630049155,
+    "leviers_qui_la_bougent": [
+     "job|mg_assaut 0->1 (entrelacee)",
+     "job|mg_assaut 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mg_assaut|p5",
+    "r": 0.08176989408823691,
+    "p": 0.0023399041656979825,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.005672670630049155,
+    "leviers_qui_la_bougent": [
+     "job|mg_assaut 0->1 (entrelacee)",
+     "job|mg_assaut 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|mg_assaut|role=ADJOINT",
+    "r": 0.08176989408823691,
+    "p": 0.0023399041656979825,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.005672670630049155,
+    "leviers_qui_la_bougent": [
+     "job|mg_assaut 0->1 (entrelacee)",
+     "job|mg_assaut 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ok|socle|depart",
+    "r": 0.08176989408823691,
+    "p": 0.0023399041656979825,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.005672670630049155,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|appui_fixe",
+    "r": -0.0817698940882369,
+    "p": 0.0023399041656979825,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.005672670630049155,
+    "leviers_qui_la_bougent": [
+     "job|appui_fixe 0->1 (entrelacee)",
+     "job|appui_fixe 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|appui_fixe|p4",
+    "r": -0.0817698940882369,
+    "p": 0.0023399041656979825,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.005672670630049155,
+    "leviers_qui_la_bougent": [
+     "job|appui_fixe 0->1 (entrelacee)",
+     "job|appui_fixe 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "ph|3|joue",
+    "r": -0.0817698940882369,
+    "p": 0.0023399041656979825,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.005672670630049155,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ordre|pourquoi=ASSAUT_REPRISE_JAMBE_DISCRETE",
+    "r": -0.08020046210478687,
+    "p": 0.0028390715538175303,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.006579740155131168,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ordre|pourquoi=ASSAUT_REPRISE_JAMBE_RAPIDE",
+    "r": -0.08020046210478687,
+    "p": 0.0028390715538175303,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.006579740155131168,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ordre|pourquoi=REARTICULATION",
+    "r": -0.08020046210478687,
+    "p": 0.0028390715538175303,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.006579740155131168,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|rearticulation|cause=DISPOSITIF_ECLATE",
+    "r": -0.08020046210478687,
+    "p": 0.0028390715538175303,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.006579740155131168,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|moteur_dit_fini|p4",
+    "r": -0.07764550992539619,
+    "p": 0.003862566510638153,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.008716186270716358,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "ph|4|issue=ATTEINT",
+    "r": 0.07503402320062891,
+    "p": 0.005244375928449405,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.011680655477000947,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|qrf_partie",
+    "r": -0.07479942614765016,
+    "p": 0.005388102552697537,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.01184691779214907,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|qrf_partie|p5",
+    "r": -0.07479942614765016,
+    "p": 0.005388102552697537,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.01184691779214907,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ordre|pourquoi=BOUCHON_JAMBE_DISCRETE",
+    "r": 0.07205974246888615,
+    "p": 0.0073495413961643516,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.01605664139416798,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "max|e|budget|assaut",
+    "r": 0.07157931158420619,
+    "p": 0.007775224729517182,
+    "n": 1555,
+    "dof": 1380,
+    "q": 0.016879127102686034,
+    "leviers_qui_la_bougent": [
+     "job|azimut 0->1 (entrelacee)",
+     "job|azimut 0->1 (non_entrelacee)",
+     "job|azimut 1->2 (entrelacee)",
+     "job|azimut 1->2 (non_entrelacee)",
+     "job|porte_B 0->1 (entrelacee)",
+     "job|porte_B 0->1 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "max|e|dispositif|bouchon",
+    "r": 0.0712788326264858,
+    "p": 0.008932124149404497,
+    "n": 1512,
+    "dof": 1343,
+    "q": 0.019268670334878883,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|deblocage",
+    "r": -0.0700931392931219,
+    "p": 0.009129234216426044,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.019570795851463332,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|articulation|bouchon=NON",
+    "r": -0.06811558262236632,
+    "p": 0.011296597691690018,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.024066664647513517,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|articulation|bouchon=ATTEINT",
+    "r": 0.06701049892717086,
+    "p": 0.012696803760551873,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.026882738826353655,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|trahi_par_son_tir|p6",
+    "r": -0.06470851289561459,
+    "p": 0.016114770431619768,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03370345279296086,
+    "leviers_qui_la_bougent": []
+   },
+   {
+    "variable": "n|e|ordre|p6",
+    "r": -0.06437709595016013,
+    "p": 0.01666814996165957,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03464954810211657,
+    "leviers_qui_la_bougent": [
+     "job|arret 5->6 (non_entrelacee)"
+    ]
+   },
+   {
+    "variable": "n|e|fumigene|p6",
+    "r": 0.0638214061278367,
+    "p": 0.017633444874784455,
+    "n": 1556,
+    "dof": 1381,
+    "q": 0.03643537103645222,
+    "leviers_qui_la_bougent": []
+   }
+  ]
+ }
+}
