@@ -82,6 +82,21 @@ if manque and vignette:
     print("  vignette declaree : issue SUCCES hors d atteinte, c est assume (" + " ; ".join(manque) + ")")
 if depart >= 3 and not vignette:
     print(f"  note : depart={depart}, les phases anterieures ne sont pas jouees (hors corpus, ecrit dans le journal)")
+# ! 16/09 : VIGNETTE VIDE. Un depart saute ou teleporte des phases : depart=2 saute la 1 ; depart>=3 saute
+# la 1 et la 2 ; obs=0 coupe la 3 ; depart>=4 saute la 3 et TELEPORTE la mise en place. A depart=4 arret=4,
+# la phase 4 a dure 11 s, l episode s est ferme avant les canaris, les deux bras ont ete refuses et la menace
+# de phase 4 n avait rien sur quoi agir. Une vignette qui s arrete sur une phase non jouee ne mesure rien.
+# Pour tester la phase 4 : depart=3 obs=0 arret=4 ( regroupement, observation coupee, marche jouee ).
+obs = j.get("obs", 1)
+non_jouees = set()
+if depart >= 2: non_jouees.add(1)
+if depart >= 3: non_jouees.add(2)
+if depart >= 4 or obs == 0: non_jouees.add(3)
+if depart >= 4: non_jouees.add(4)
+if arret in non_jouees:
+    print(f"REFUS: VIGNETTE VIDE - arret={arret} s arrete sur une phase que depart={depart} obs={obs} ne joue pas.")
+    print("        Phase 4 : depart=3 obs=0 arret=4. Phase 3 : depart=3 obs=1 arret=3.")
+    sys.exit(1)
 PY
 
 LIBRE=$(df --output=avail -BG /mnt/data | tail -n 1 | tr -dc 0-9)
