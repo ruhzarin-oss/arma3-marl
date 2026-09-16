@@ -12,6 +12,7 @@ CHAMPS = {
     "tenir": "CHACAL_TENIR", "appui_feu": "CHACAL_APPUI_FEU", "oracle": "CHACAL_ORACLE",
     "tactique": "CHACAL_TACTIQUE", "ablation": "CHACAL_ABLATION", "placeur": "CHACAL_PLACEUR",
     "azimut": "CHACAL_AZIMUT", "obs": "CHACAL_OBS", "hmg": "CHACAL_HMG",
+    "p1_attente": "CHACAL_P1_ATTENTE", "traversee": "CHACAL_TRAVERSEE", "obs_duree": "CHACAL_OBS_DUREE", "itineraire": "CHACAL_ITINERAIRE", "exfil": "CHACAL_EXFIL",
 }
 
 def declarees(ext):

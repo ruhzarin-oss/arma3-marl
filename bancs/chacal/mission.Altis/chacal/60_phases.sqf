@@ -72,18 +72,18 @@ CHACAL_fnc_debutPhase = {
 // lue par la table dbt stg_decision puis par le gymnase. Les observables sont ce que le detachement PEUT savoir au
 // moment du choix. verite_defenseurs ne l est pas : il est ecrit pour la lecture, jamais pour decider.
 // Ne tire aucun alea : ni le monde ni la situation ne bougent.
-"CHACAL|OK|decision|version|1" call CHACAL_LOG;
+"CHACAL|OK|decision|version|2" call CHACAL_LOG;   // 2 : champ libre en fin de ligne et points des phases 1, 2, 3, 4, 6
 CHACAL_fnc_decision = {
-    params ["_phase", "_point", "_options", "_choix", "_decideur"];
+    params ["_phase", "_point", "_options", "_choix", "_decideur", ["_extra", ""]];
     private _def = (if (isNil "CHACAL_EST_SITE") then {[]} else {CHACAL_EST_SITE}) select { alive _x };
-    (format ["CHACAL|E|decision|%1|phase|%2|point|%3|options|%4|choix|%5|decideur|%6|alarme|%7|depuis_alarme|%8|compromis|%9|vivants|%10|defenseurs_connus|%11|verite_defenseurs|%12|situation|%13",
+    (format ["CHACAL|E|decision|%1|phase|%2|point|%3|options|%4|choix|%5|decideur|%6|alarme|%7|depuis_alarme|%8|compromis|%9|vivants|%10|defenseurs_connus|%11|verite_defenseurs|%12|situation|%13%14",
         round (time * 100) / 100, _phase, _point, _options, _choix, _decideur,
         (if (CHACAL_ALARME) then {1} else {0}),
         (if (CHACAL_T_ALARME >= 0) then { round (time - CHACAL_T_ALARME) } else { -1 }),
         (if (CHACAL_COMPROMIS) then {1} else {0}),
         count (CHACAL_FS select { alive _x }),
         { (west knowsAbout _x) > 1.4 } count _def,
-        count _def, CHACAL_SITUATION]) call CHACAL_LOG;
+        count _def, CHACAL_SITUATION, _extra]) call CHACAL_LOG;
 };
 CHACAL_fnc_finPhase = {
     params ["_n", "_nom", "_issue"];
@@ -289,6 +289,37 @@ CHACAL_fnc_rejoindre = {
     };
     if (_res == "") then { _res = if (CHACAL_SAUT) then {"COMPROMIS"} else {"PLAFOND"} };
     _res
+};
+
+// ! LE CHOIX DE LA PHASE 4 ( plans/plan-choix-par-vignette.md, 17/09 ) : itineraire direct ou detour. A ITINERAIRE = 2,
+// chaque element passe d abord par un point decale de 350 m a droite de son axe, a mi-chemin, puis rejoint sa
+// position comme avant. Sans tirage : le point est geometrique ; s il tombe dans l eau, on prend la gauche et on le dit.
+CHACAL_fnc_rejoindreItineraire = {
+    params ["_g", "_p", "_ray", "_plafond", "_nom"];
+    if (isNull _g) exitWith { "ABSENT" };
+    if (CHACAL_ITINERAIRE == 2) then {
+        private _v = (units _g) select { alive _x };
+        if (count _v > 0) then {
+            private _c = _v call CHACAL_fnc_centre;
+            private _dir = _c getDir _p;
+            private _mi = _c getPos [(_c distance2D _p) / 2, _dir];
+            private _cote = 90;
+            private _wp = _mi getPos [350, _dir + _cote];
+            if (surfaceIsWater _wp) then { _cote = -90; _wp = _mi getPos [350, _dir + _cote] };
+            _wp set [2, 0];
+            private _t0 = time;
+            [_g, _wp, "NORMAL", "AWARE", "WEDGE", _nom + "_DETOUR"] call CHACAL_fnc_ordreAller;
+            private _rD = [_g, _wp, 80, ([_g, _wp] call CHACAL_fnc_budgetDeuxJambes)] call CHACAL_fnc_arrive;
+            (format ["CHACAL|E|choix_joue|%1|point|ITINERAIRE|choix|2|detail|DETOUR|element|%2|cote|%3|point_detour|%4|issue|%5|duree|%6",
+                round (time * 100) / 100, _nom, _cote, _wp, _rD, round (time - _t0)]) call CHACAL_LOG;
+            _plafond = _plafond - (time - _t0);
+        };
+    } else {
+        if (CHACAL_ITINERAIRE == 1) then {
+            (format ["CHACAL|E|choix_joue|%1|point|ITINERAIRE|choix|1|detail|DIRECT|element|%2", round (time * 100) / 100, _nom]) call CHACAL_LOG;
+        };
+    };
+    [_g, _p, _ray, (_plafond max 60), _nom] call CHACAL_fnc_rejoindre
 };
 
 // Le budget d une position rejointe en deux jambes : la jambe rapide a 1,1 m/s,
@@ -727,7 +758,24 @@ if (!isNull CHACAL_HELO) then {
 
 CHACAL_gFS setBehaviour "STEALTH"; CHACAL_gFS setCombatMode "GREEN";
 CHACAL_gFS setSpeedMode "LIMITED"; CHACAL_gFS setFormation "FILE";
-sleep (60 * CHACAL_ECHELLE);
+// ! LE CHOIX DE LA PHASE 1 ( plans/plan-choix-par-vignette.md, 17/09 ) : partir tout de suite ou se terrer.
+// Les deux options durent 180 s, pour que la consequence ait le meme temps d arriver. 0 = les 60 s d origine.
+if (CHACAL_P1_ATTENTE > 0) then {
+    [1, "INSERTION_ATTENTE", [1, 2], CHACAL_P1_ATTENTE, "IMPOSE"] call CHACAL_fnc_decision;
+    if (CHACAL_P1_ATTENTE == 1) then {
+        private _dest = CHACAL_LZ getPos [300, CHACAL_LZ getDir CHACAL_ROUTE];
+        [CHACAL_gFS, _dest, "LIMITED", "STEALTH", "FILE", "CHOIX_P1_PARTIR"] call CHACAL_fnc_ordreAller;
+        (format ["CHACAL|E|choix_joue|%1|point|INSERTION_ATTENTE|choix|1|detail|PARTIR|vers|%2", round (time * 100) / 100, _dest]) call CHACAL_LOG;
+    } else {
+        { if (alive _x) then { doStop _x; _x setUnitPos "DOWN" } } forEach (units CHACAL_gFS);
+        (format ["CHACAL|E|choix_joue|%1|point|INSERTION_ATTENTE|choix|2|detail|SE_TERRER", round (time * 100) / 100]) call CHACAL_LOG;
+    };
+    private _tC = time;
+    waitUntil { sleep 2; ((time - _tC) > 180) || CHACAL_FIN };
+    { if (alive _x) then { _x setUnitPos "AUTO" } } forEach (units CHACAL_gFS);
+} else {
+    sleep (60 * CHACAL_ECHELLE);
+};
 [1, "INSERTION", _issue] call CHACAL_fnc_finPhase;
 };   // fin de l alternative DEPART = 2
 
@@ -757,24 +805,41 @@ _r = [CHACAL_gFS, _avant, 60, _b1] call CHACAL_fnc_arrive;
 // donnee, et elle est etiquetee.
 if ((_r in ["ATTEINT", "ENLISE"]) && !CHACAL_SAUT) then {
     { doStop _x } forEach (units CHACAL_gFS);
+    // ! LE CHOIX DE LA PHASE 2 ( plans/plan-choix-par-vignette.md, 17/09 ) : traverser tout de suite ( 1 ) ou attendre la
+    // patrouille ( 2 ). ATTENDRE applique la regle de perception SANS la sortie PATROUILLE_ABSENTE, qui lisait l etat vrai
+    // du monde : le detachement ne peut pas savoir qu aucune patrouille ne viendra. 0 = la regle d origine, inchangee.
+    if (CHACAL_TRAVERSEE > 0) then {
+        private _vD = if (isNil "CHACAL_VEH_ROUTE") then { objNull } else { CHACAL_VEH_ROUTE };
+        private _vuD = 0;
+        if (!isNull _vD && { alive _vD }) then {
+            if (({ [_x, _vD, 800, 70] call CHACAL_fnc_voit } count ((units CHACAL_gFS) select { alive _x })) > 0) then { _vuD = 1 };
+        };
+        [2, "TRAVERSEE", [1, 2], CHACAL_TRAVERSEE, "IMPOSE", format ["|vehicule_vu|%1", _vuD]] call CHACAL_fnc_decision;
+    };
     private _tf = time;
     private _dejaVu = false; private _dernierVu = -1; private _traverse = false; private _cause = "";
     while { !_traverse && (time - _tf < 420 * CHACAL_ECHELLE) && ((call CHACAL_fnc_reste) > 0) && !CHACAL_SAUT && !CHACAL_FIN } do {
-        private _v = CHACAL_VEH_ROUTE;
-        private _vu = false;
-        if (!isNull _v && { alive _v }) then {
-            private _hommes = (units CHACAL_gFS) select { alive _x };
-            _vu = ({ [_x, _v, 800, 70] call CHACAL_fnc_voit } count _hommes) > 0;
+        if (CHACAL_TRAVERSEE == 1) then { _traverse = true; _cause = "IMPOSE_TOUT_DE_SUITE" } else {
+            private _v = CHACAL_VEH_ROUTE;
+            private _vu = false;
+            if (!isNull _v && { alive _v }) then {
+                private _hommes = (units CHACAL_gFS) select { alive _x };
+                _vu = ({ [_x, _v, 800, 70] call CHACAL_fnc_voit } count _hommes) > 0;
+            };
+            if (_vu) then { _dejaVu = true; _dernierVu = time };
+            if (_dejaVu && { !_vu } && { (time - _dernierVu) > (45 * CHACAL_ECHELLE) }) then { _traverse = true; _cause = "FENETRE_OBSERVEE" };
+            if (!_dejaVu && { (time - _tf) > (240 * CHACAL_ECHELLE) }) then { _traverse = true; _cause = "TRAVERSEE_AVEUGLE" };
+            if ((CHACAL_TRAVERSEE != 2) && { isNull _v || { !alive _v } }) then { _traverse = true; _cause = "PATROUILLE_ABSENTE" };
+            sleep 3;
         };
-        if (_vu) then { _dejaVu = true; _dernierVu = time };
-        if (_dejaVu && { !_vu } && { (time - _dernierVu) > (45 * CHACAL_ECHELLE) }) then { _traverse = true; _cause = "FENETRE_OBSERVEE" };
-        if (!_dejaVu && { (time - _tf) > (240 * CHACAL_ECHELLE) }) then { _traverse = true; _cause = "TRAVERSEE_AVEUGLE" };
-        if (isNull _v || { !alive _v }) then { _traverse = true; _cause = "PATROUILLE_ABSENTE" };
-        sleep 3;
     };
     if (!_traverse) then { _cause = "PLAFOND_FENETRE" };
     (format ["CHACAL|E|fenetre|%1|%2|attente|%3|vehicule_vu|%4", round (time * 100) / 100,
         _cause, round (time - _tf), (if (_dejaVu) then {1} else {0})]) call CHACAL_LOG;
+    if (CHACAL_TRAVERSEE > 0) then {
+        (format ["CHACAL|E|choix_joue|%1|point|TRAVERSEE|choix|%2|detail|%3|attente|%4", round (time * 100) / 100,
+            CHACAL_TRAVERSEE, _cause, round (time - _tf)]) call CHACAL_LOG;
+    };
     { _x doFollow (leader CHACAL_gFS) } forEach (units CHACAL_gFS);
 
     // ! ILS ONT BIEN FRANCHI, PUIS SONT RESTES DANS L ENVELOPPE DU VEHICULE.
@@ -876,8 +941,15 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" } &
 
     // LE RENSEIGNEMENT EST RETENU, pas seulement compte : ce qui entre dans
     // CHACAL_VUES est ce que la reco a vu GEOMETRIQUEMENT au moins une fois.
+    // ! LE CHOIX DE LA PHASE 3 ( plans/plan-choix-par-vignette.md, 17/09 ) : observer 120 ou 480 s. Le rapprochement
+    // vers un second poste est une AUTRE decision : il n est pas joue quand la duree est imposee. 0 = regle d origine.
+    private _dureeObs = _plafond * 0.55;
+    if (CHACAL_OBS_DUREE > 0) then {
+        _dureeObs = CHACAL_OBS_DUREE;
+        [3, "OBS_DUREE", [120, 480], CHACAL_OBS_DUREE, "IMPOSE", format ["|reco_vivants|%1", count ((units CHACAL_gReco) select { alive _x })]] call CHACAL_fnc_decision;
+    };
     private _tObs = time;
-    while { (time - _tObs) < (_plafond * 0.55) && ((call CHACAL_fnc_reste) > 0) && !CHACAL_SAUT && !CHACAL_FIN } do {
+    while { (time - _tObs) < _dureeObs && ((call CHACAL_fnc_reste) > 0) && !CHACAL_SAUT && !CHACAL_FIN } do {
         private _obs = (units CHACAL_gReco) select { alive _x };
         if (count _obs > 0) then {
             {
@@ -906,7 +978,11 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" } &
     // bunkers et la garnison des batiments ne sont JAMAIS vus.
     // Un detachement qui ne voit pas se rapproche. L abandon reste reserve a la
     // compromission ; un renseignement pauvre devient une CONDITION, pas un veto.
-    if (!CHACAL_SAUT && { count CHACAL_VUES < CHACAL_SEUIL_RENS }) then {
+    if (CHACAL_OBS_DUREE > 0) then {
+        (format ["CHACAL|E|choix_joue|%1|point|OBS_DUREE|choix|%2|detail|OBSERVE|duree_reelle|%3|localisees|%4|rapprochement|0",
+            round (time * 100) / 100, CHACAL_OBS_DUREE, round (time - _tObs), count CHACAL_VUES]) call CHACAL_LOG;
+    };
+    if (!CHACAL_SAUT && { CHACAL_OBS_DUREE == 0 } && { count CHACAL_VUES < CHACAL_SEUIL_RENS }) then {
         private _second = [CHACAL_SITE getPos [250, CHACAL_SITE getDir CHACAL_OP], 60] call CHACAL_fnc_plat;
         (format ["CHACAL|E|rapprochement|%1|localisees|%2|seuil|%3|vers|%4", round (time * 100) / 100,
             count CHACAL_VUES, CHACAL_SEUIL_RENS, _second]) call CHACAL_LOG;
@@ -1096,6 +1172,8 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
     private _b2 = [CHACAL_gAssaut,  CHACAL_POS_ASSAUT]  call CHACAL_fnc_budgetDeuxJambes;
     private _b3 = [CHACAL_gBouchon, CHACAL_POS_BOUCHON] call CHACAL_fnc_budgetDeuxJambes;
     _plafond = (_b1 max _b2) max _b3;
+    // ! Un choix d itineraire impose double le plafond pour LES DEUX options : un detour ne doit pas echouer au chronometre.
+    if (CHACAL_ITINERAIRE > 0) then { _plafond = _plafond * 2 };
     CHACAL_TPHASE = time; CHACAL_PLAFOND_COURANT = _plafond;
     (format ["CHACAL|E|budget|%1|etape|MISE_EN_PLACE|appui|%2|assaut|%3|bouchon|%4|plafond|%5",
         round (time * 100) / 100, round _b1, round _b2, round _b3, round _plafond]) call CHACAL_LOG;
@@ -1128,9 +1206,10 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
         } forEach [[CHACAL_gAppui, CHACAL_POS_APPUI], [CHACAL_gAssaut, CHACAL_POS_ASSAUT], [CHACAL_gBouchon, CHACAL_POS_BOUCHON]];
         sleep 5;
     } else {
-        private _h1 = [CHACAL_gAppui,   CHACAL_POS_APPUI,   70, _plafond, "APPUI"]   spawn CHACAL_fnc_rejoindre;
-        private _h2 = [CHACAL_gAssaut,  CHACAL_POS_ASSAUT,  70, _plafond, "ASSAUT"]  spawn CHACAL_fnc_rejoindre;
-        private _h3 = [CHACAL_gBouchon, CHACAL_POS_BOUCHON, 80, _plafond, "BOUCHON"] spawn CHACAL_fnc_rejoindre;
+        if (CHACAL_ITINERAIRE > 0) then { [4, "ITINERAIRE", [1, 2], CHACAL_ITINERAIRE, "IMPOSE"] call CHACAL_fnc_decision };
+        private _h1 = [CHACAL_gAppui,   CHACAL_POS_APPUI,   70, _plafond, "APPUI"]   spawn CHACAL_fnc_rejoindreItineraire;
+        private _h2 = [CHACAL_gAssaut,  CHACAL_POS_ASSAUT,  70, _plafond, "ASSAUT"]  spawn CHACAL_fnc_rejoindreItineraire;
+        private _h3 = [CHACAL_gBouchon, CHACAL_POS_BOUCHON, 80, _plafond, "BOUCHON"] spawn CHACAL_fnc_rejoindreItineraire;
         waitUntil { sleep 3; (scriptDone _h1 && scriptDone _h2 && scriptDone _h3) || CHACAL_FIN || CHACAL_SAUT };
     };
     _r1 = if ([CHACAL_gAppui,   CHACAL_POS_APPUI,   70] call CHACAL_fnc_enPlace) then {"ATTEINT"} else {"NON"};
@@ -1546,6 +1625,15 @@ CHACAL_EXFIL_POINT = if (CHACAL_ABANDON) then { CHACAL_LZ } else { CHACAL_PZ };
 private _vitBudget = if (CHACAL_EXFIL == 2) then {1.2} else {1.8};
 _plafond = [(CHACAL_FS select { alive _x }), CHACAL_EXFIL_POINT, _vitBudget] call CHACAL_fnc_budget;
 [6, "EXFILTRATION", _plafond] call CHACAL_fnc_debutPhase;
+// ! LE CHOIX DE LA PHASE 6 ( plans/plan-choix-par-vignette.md, 17/09 ) : repli prudent ( EXFIL = 0 : le comportement du
+// detachement tout du long ) ou rapide ( EXFIL = 1 : rompre en COMBAT puis AWARE et FULL au-dela de 200 m ). Ecrit a
+// chaque exfiltration, comme le delai du porteur a chaque assaut. Remplace le choix principale / secours du plan :
+// il n existe pas de second point d extraction dans la mission.
+if (CHACAL_EXFIL in [0, 1]) then {
+    private _vD6 = CHACAL_FS select { alive _x };
+    private _dD6 = if (count _vD6 > 0) then { round ((_vD6 call CHACAL_fnc_centre) distance2D CHACAL_EXFIL_POINT) } else { -1 };
+    [6, "EXFIL_ALLURE", [0, 1], CHACAL_EXFIL, "IMPOSE", format ["|distance_point|%1", _dD6]] call CHACAL_fnc_decision;
+};
 (format ["CHACAL|E|budget|%1|etape|EXFIL|vers|%2|distance|%3|plafond|%4", round (time * 100) / 100,
     (if (CHACAL_ABANDON) then {"LZ"} else {"PZ"}),
     round (((CHACAL_FS select { alive _x }) call CHACAL_fnc_centre) distance2D CHACAL_EXFIL_POINT),
@@ -1583,6 +1671,10 @@ if (CHACAL_SANS_JAMBES > 0) then {
     (format ["CHACAL|AVERT|exfil|hommes_vivants_sans_jambes|%1", CHACAL_SANS_JAMBES]) call CHACAL_LOG;
 };
 private _compExf = if (CHACAL_COMPROMIS) then {"COMBAT"} else {"AWARE"};
+if (CHACAL_EXFIL in [0, 1]) then {
+    (format ["CHACAL|E|choix_joue|%1|point|EXFIL_ALLURE|choix|%2|detail|%3|comportement_initial|%4", round (time * 100) / 100,
+        CHACAL_EXFIL, (if (CHACAL_EXFIL == 1) then {"RAPIDE"} else {"PRUDENT"}), _compExf]) call CHACAL_LOG;
+};
 // ! EXFIL=1 : on rompt le contact en COMBAT, puis on rend les jambes. La recolte du moteur du
 // 13/09 dit que le chemin se calcule en fonction du comportement ; un homme en COMBAT ne prend
 // pas le meme itineraire. Des que le detachement est a plus de 300 m du site, il repasse en

@@ -118,6 +118,11 @@ CHACAL_MENACE_P3 = ["CHACAL_MENACE_P3", 0] call BIS_fnc_getParamValue;
 CHACAL_MENACE_P4 = ["CHACAL_MENACE_P4", 0] call BIS_fnc_getParamValue;
 CHACAL_MENACE_P5 = ["CHACAL_MENACE_P5", 0] call BIS_fnc_getParamValue;
 CHACAL_MENACE_P6 = ["CHACAL_MENACE_P6", 0] call BIS_fnc_getParamValue;
+// ! LES CHOIX DES VIGNETTES ( plans/plan-choix-par-vignette.md, 17/09 ). 0 = la regle d origine, inchangee.
+CHACAL_P1_ATTENTE = ["CHACAL_P1_ATTENTE", 0] call BIS_fnc_getParamValue;   // 1 partir tout de suite, 2 se terrer 3 min
+CHACAL_TRAVERSEE  = ["CHACAL_TRAVERSEE", 0] call BIS_fnc_getParamValue;    // 1 traverser tout de suite, 2 attendre la patrouille
+CHACAL_OBS_DUREE  = ["CHACAL_OBS_DUREE", 0] call BIS_fnc_getParamValue;    // secondes d observation : 120 ou 480
+CHACAL_ITINERAIRE = ["CHACAL_ITINERAIRE", 0] call BIS_fnc_getParamValue;   // 1 direct, 2 detour de 350 m
 
 // --- LE TIRAGE EST A NOUS, PAS AU MOTEUR -----------------------------
 // `setRandomSeed` n existe pas dans ce build ( mesure du 03/09 : Missing ; a

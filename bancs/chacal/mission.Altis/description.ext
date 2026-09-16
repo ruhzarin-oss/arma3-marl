@@ -376,4 +376,24 @@ class Params
         title = "Menaces de la phase 6, a l exfiltration : 0 aucune, 1 patrouille sur la sortie, 2 un blesse aux jambes, 3 les deux";
         values[] = {0,1,2,3}; texts[] = {"0","1","2","3"}; default = 0;
     };
+    class CHACAL_P1_ATTENTE
+    {
+        title = "Choix de la phase 1 apres le poser : 0 regle d origine ( 60 s ), 1 partir tout de suite, 2 se terrer 3 min";
+        values[] = {0,1,2}; texts[] = {"0","1","2"}; default = 0;
+    };
+    class CHACAL_TRAVERSEE
+    {
+        title = "Choix de la phase 2 a la route : 0 regle du script, 1 traverser tout de suite, 2 attendre la patrouille";
+        values[] = {0,1,2}; texts[] = {"0","1","2"}; default = 0;
+    };
+    class CHACAL_OBS_DUREE
+    {
+        title = "Choix de la phase 3 : 0 regle d origine, sinon duree d observation en secondes, sans rapprochement";
+        values[] = {0,120,480}; texts[] = {"0","120","480"}; default = 0;
+    };
+    class CHACAL_ITINERAIRE
+    {
+        title = "Choix de la phase 4 : 0 regle d origine, 1 itineraire direct, 2 detour de 350 m a mi-chemin";
+        values[] = {0,1,2}; texts[] = {"0","1","2"}; default = 0;
+    };
 };
