@@ -569,11 +569,16 @@ class Params
     class CHACAL_OBSERVATION
     {
         title = "Menace visible : fenetre d observation avant les choix des phases 1, 2, 4, en secondes (0 = origine)";
-        values[] = {0,30,45,60,90}; texts[] = {"0","30","45","60","90"}; default = 0;
+        values[] = {0,30,45,60,90,120,180,300}; texts[] = {"0","30","45","60","90","120","180","300"}; default = 0;
     };
     class CHACAL_CONTROLE_PERCEPTION
     {
-        title = "Controle de perception : 0 aucun, 1 groupe inerte a 150 m devant, 2 a 1500 m derriere";
-        values[] = {0,1,2}; texts[] = {"0","1","2"}; default = 0;
+        title = "Controle de perception : 0 aucun, 1 groupe inerte a 150 m devant accroupi, 2 a 1500 m derriere, 3 a 150 m devant debout";
+        values[] = {0,1,2,3}; texts[] = {"0","1","2","3"}; default = 0;
+    };
+    class CHACAL_SONDE
+    {
+        title = "Sonde de perception : 1 = une ligne toutes les 5 s pendant la fenetre d observation";
+        values[] = {0,1}; texts[] = {"0","1"}; default = 0;
     };
 };
