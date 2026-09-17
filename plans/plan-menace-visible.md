@@ -52,7 +52,7 @@ plus proche), `verite_types` (types posés).
 ## 2. La fenêtre d'observation
 
 Nouveau levier `CHACAL_OBSERVATION` : 0 = origine (décision immédiate, rien ne change), sinon la durée de la fenêtre en
-secondes (30, 45, 60 ou 90). Pendant la fenêtre, le détachement reste immobile (couché ou arrêté selon la phase). Les
+secondes. **Durée fixée à 90 s par Younes le 17/09.** Pendant la fenêtre, le détachement reste immobile (couché ou arrêté selon la phase). Les
 perceptions sont échantillonnées toutes les 5 s, et la ligne de décision écrit leur état **à la fin** de la fenêtre.
 
 | phase | où observe-t-on | puis le choix |
@@ -79,14 +79,15 @@ l'ont.
 | **origine intacte** | `CHACAL_OBSERVATION = 0` | décisions, délais et `choix_joue` identiques à la mission actuelle sur une fumée appariée (mêmes mondes, mêmes graines) |
 | **pas de fuite** | test dbt | les colonnes `verite_*`, `bras`, `niveau_menace` et `graine` sont absentes de la table de l'Architecte |
 
-## 4. Calibrage de la fenêtre, sur graines disjointes
+## 4. Vérifier que la perception varie à 90 s, sur graines disjointes
 
-On veut que la perception **varie** sous menace. Si le détachement voit toujours la menace, ou ne la voit jamais, une
-règle n'a rien à apprendre.
+La durée est fixée à 90 s (Younes, 17/09). On vérifie seulement que la perception **varie** sous menace : si le
+détachement voit toujours la menace, ou ne la voit jamais, une règle n'a rien à apprendre.
 - **Mesure** : pour chaque phase (P1, P2, P4) et chaque type de menace **séparé** (niveaux 1 et 2, pas le 3 qui les
-  mêle), la part d'épisodes où `menaces_connues` > 0, avec des fenêtres de 30, 45, 60 et 90 s.
-- **Choix** : la fenêtre la plus courte où cette part est entre 30 et 70 %, écrite avant les campagnes.
-- **Coût** : 3 phases × 2 types × 4 fenêtres × 2 mondes × 2 épisodes = 96 épisodes courts, environ 1 h sur 12 serveurs.
+  mêle), la part d'épisodes où `menaces_connues` > 0 à la fin des 90 s.
+- **Attendu** : entre 30 et 70 %. Hors de cette plage pour une phase ou un type, c'est rapporté à Younes avant la
+  campagne de cette phase. Rien n'est changé seul.
+- **Coût** : 3 phases × 2 types × 4 mondes × 2 épisodes = 48 épisodes, moins d'une heure sur 12 serveurs.
 
 ## 5. Les campagnes qui suivent (critères écrits à part, avant)
 
@@ -133,7 +134,7 @@ règle n'a rien à apprendre.
 
 ## Décisions pour Younes
 
-1. **La fenêtre d'observation** : d'accord pour la calibrer entre 30 et 90 s, ou tu fixes une durée tactique ?
+1. ~~La fenêtre d'observation~~ : **90 s**, fixée par Younes le 17/09.
 2. **L'ordre** : P2, P1 puis P4, ou autre chose ?
 3. **La perception de groupe** (`targetKnowledge` du détachement) plutôt que la connaissance du camp (`knowsAbout`) :
    d'accord ?
