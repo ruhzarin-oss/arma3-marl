@@ -50,6 +50,16 @@ lu. Règle ajoutée : **à la fin d'une campagne, si une case (monde, bras, opti
 refus de l'enregistreur, des épisodes de remplacement de cette case sont rejoués** (même monde, même bras, même option),
 et la lecture attend leur fin. Le compte par case est fait sans lire aucune issue. Les portes Q1 à Q5 restent inchangées.
 
+## Amendement 3 (07:18), avant toute lecture : un monde dont l'enregistreur échoue est retiré de la lecture
+
+Dans le monde 9, le témoin du canari abat parfois le canari après ses premiers tirs ; le contrôle de l'enregistreur
+refuse alors l'épisode. Mesuré sur la nuit : 8 refus sur 18 en phase 2, 2 sur 11 en phase 1, puis 5 refus sur 5 dans un
+remplacement. Règle : **si, après une série de remplacements (5 épisodes), une case reste sous le seuil de Q4, le monde
+est retiré de la lecture de cette campagne, dans ses quatre cases**, et la lecture porte sur les mondes restants, au
+moins 6. La décision ne dépend que des comptes d'épisodes acceptés, jamais d'une issue. `lire_choix.py` reçoit le
+monde retiré en argument (`--sans-monde 9`) et l'écrit dans sa sortie. La puissance baisse d'autant : sur 7 mondes,
+l'écart-type de la modulation moyenne est multiplié par √(8/7) ≈ 1,07.
+
 ## Portes de qualité, avant toute lecture d'effet (sinon : lecture refusée)
 
 | porte | critère |
