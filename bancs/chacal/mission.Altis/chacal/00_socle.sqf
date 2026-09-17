@@ -131,7 +131,11 @@ CHACAL_MENACE_P6 = ["CHACAL_MENACE_P6", 0] call BIS_fnc_getParamValue;
 CHACAL_P1_ATTENTE = ["CHACAL_P1_ATTENTE", 0] call BIS_fnc_getParamValue;   // 1 partir tout de suite, 2 se terrer 3 min
 CHACAL_TRAVERSEE  = ["CHACAL_TRAVERSEE", 0] call BIS_fnc_getParamValue;    // 1 traverser tout de suite, 2 attendre la patrouille
 CHACAL_OBS_DUREE  = ["CHACAL_OBS_DUREE", 0] call BIS_fnc_getParamValue;    // secondes d observation : 120 ou 480
-CHACAL_ITINERAIRE = ["CHACAL_ITINERAIRE", 0] call BIS_fnc_getParamValue;   // 1 direct, 2 detour de 350 m
+CHACAL_ITINERAIRE = ["CHACAL_ITINERAIRE", 0] call BIS_fnc_getParamValue;
+// ! LA MENACE VISIBLE ( plans/plan-menace-visible.md, 17/09 ) : fenetre d observation avant les choix des phases 1, 2 et 4,
+// en secondes ( 90 fixe par Younes ). 0 = origine. CONTROLE_PERCEPTION : 1 groupe inerte a 150 m devant, 2 a 1500 m derriere.
+CHACAL_OBSERVATION = ["CHACAL_OBSERVATION", 0] call BIS_fnc_getParamValue;
+CHACAL_CONTROLE_PERCEPTION = ["CHACAL_CONTROLE_PERCEPTION", 0] call BIS_fnc_getParamValue;   // 1 direct, 2 detour de 350 m
 
 // --- LE TIRAGE EST A NOUS, PAS AU MOTEUR -----------------------------
 // `setRandomSeed` n existe pas dans ce build ( mesure du 03/09 : Missing ; a

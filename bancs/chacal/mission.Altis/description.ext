@@ -566,4 +566,14 @@ class Params
         title = "Choix de la phase 4 : 0 regle d origine, 1 itineraire direct, 2 detour de 350 m a mi-chemin";
         values[] = {0,1,2}; texts[] = {"0","1","2"}; default = 0;
     };
+    class CHACAL_OBSERVATION
+    {
+        title = "Menace visible : fenetre d observation avant les choix des phases 1, 2, 4, en secondes (0 = origine)";
+        values[] = {0,30,45,60,90}; texts[] = {"0","30","45","60","90"}; default = 0;
+    };
+    class CHACAL_CONTROLE_PERCEPTION
+    {
+        title = "Controle de perception : 0 aucun, 1 groupe inerte a 150 m devant, 2 a 1500 m derriere";
+        values[] = {0,1,2}; texts[] = {"0","1","2"}; default = 0;
+    };
 };

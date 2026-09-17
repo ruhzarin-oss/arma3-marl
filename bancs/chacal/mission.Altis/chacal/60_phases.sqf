@@ -72,7 +72,94 @@ CHACAL_fnc_debutPhase = {
 // lue par la table dbt stg_decision puis par le gymnase. Les observables sont ce que le detachement PEUT savoir au
 // moment du choix. verite_defenseurs ne l est pas : il est ecrit pour la lecture, jamais pour decider.
 // Ne tire aucun alea : ni le monde ni la situation ne bougent.
-"CHACAL|OK|decision|version|2" call CHACAL_LOG;   // 2 : champ libre en fin de ligne et points des phases 1, 2, 3, 4, 6
+"CHACAL|OK|decision|version|3" call CHACAL_LOG;   // 3 : perceptions de la menace en fin de ligne ( plans/plan-menace-visible.md )
+// ! LA MENACE VISIBLE ( 17/09 ). Deux canaux : ce qu un homme du detachement VOIT maintenant ( CHACAL_fnc_voit, geometrie ) et
+// ce que le GROUPE du detachement CONNAIT ( targetKnowledge, champ 0 « known by group », position crue, erreur, derniere vue ).
+// Pas knowsAbout : connaissance de camp. La verite ( verite_* ) est ecrite a part, pour la lecture seulement.
+CHACAL_fnc_unitesMenace = {
+    private _t = [];
+    { private _g = _x select 2; if (!isNull _g) then { _t append ((units _g) select { alive _x }) } } forEach CHACAL_MENACES;
+    _t
+};
+CHACAL_fnc_chefsDetachement = {
+    private _g = [];
+    { if (alive _x) then { _g pushBackUnique (group _x) } } forEach CHACAL_FS;
+    (_g select { !isNull _x && { alive (leader _x) } }) apply { leader _x }
+};
+CHACAL_fnc_suiviMenaces = {
+    while { !CHACAL_FIN } do {
+        private _chefs = call CHACAL_fnc_chefsDetachement;
+        {
+            private _t = _x; private _crue = [];
+            { private _k = _x targetKnowledge _t; if (_k select 0) exitWith { _crue = _k select 6 } } forEach _chefs;
+            if (count _crue > 0) then {
+                private _h = _t getVariable ["chacal_crue", []];
+                _h pushBack [time, _crue];
+                if (count _h > 6) then { _h deleteAt 0 };
+                _t setVariable ["chacal_crue", _h];
+            };
+        } forEach (call CHACAL_fnc_unitesMenace);
+        sleep 5;
+    };
+};
+[] spawn CHACAL_fnc_suiviMenaces;
+CHACAL_fnc_perceptionMenace = {
+    private _menaces = call CHACAL_fnc_unitesMenace;
+    private _hommes = CHACAL_FS select { alive _x };
+    private _chefs = call CHACAL_fnc_chefsDetachement;
+    private _vues = { private _t = _x; ({ [_x, _t, 800, 70] call CHACAL_fnc_voit } count _hommes) > 0 } count _menaces;
+    private _connues = 0; private _dMin = -1; private _err = -1; private _vueDepuis = -1; private _mobile = -1; private _proche = objNull;
+    {
+        private _t = _x; private _k = [];
+        { private _kk = _x targetKnowledge _t; if (_kk select 0) exitWith { _k = _kk } } forEach _chefs;
+        if (count _k > 0) then {
+            _connues = _connues + 1;
+            private _crue = _k select 6;
+            private _d = 1e9;
+            { _d = _d min (_x distance2D _crue) } forEach _hommes;
+            if ((_dMin < 0) || { _d < _dMin }) then {
+                _dMin = _d; _err = _k select 5; _proche = _t;
+                _vueDepuis = if ((_k select 2) > 0) then { round (time - (_k select 2)) } else { -1 };
+            };
+        };
+    } forEach _menaces;
+    if (!isNull _proche) then {
+        private _h = (_proche getVariable ["chacal_crue", []]) select { (time - (_x select 0)) <= 25 };
+        _mobile = if (count _h >= 2) then { if ((((_h select 0) select 1) distance2D ((_h select ((count _h) - 1)) select 1)) > 10) then {1} else {0} } else {-1};
+    };
+    private _veh = 0;
+    if ((!isNil "CHACAL_VEH_ROUTE") && { !isNull CHACAL_VEH_ROUTE } && { ({ (_x select 1) == "PATROUILLE_ROUTE" } count CHACAL_MENACES) > 0 }) then {
+        if (({ (_x targetKnowledge CHACAL_VEH_ROUTE) select 0 } count _chefs) > 0) then { _veh = 1 };
+    };
+    private _vDist = -1;
+    { private _t = _x; { private _dd = _x distance2D _t; if ((_vDist < 0) || { _dd < _vDist }) then { _vDist = _dd } } forEach _hommes } forEach _menaces;
+    format ["|menaces_vues|%1|menaces_connues|%2|distance_menace|%3|erreur_position|%4|menace_mobile|%5|vue_depuis|%6|vehicule_connu|%7|verite_menaces|%8|verite_distance_menace|%9|azimut_chef|%10",
+        _vues, _connues, round _dMin, (round (_err * 10)) / 10, _mobile, _vueDepuis, _veh, count _menaces, round _vDist,
+        (if (count _chefs > 0) then { round (getDir (_chefs select 0)) } else { -1 })]
+};
+CHACAL_fnc_fenetreObservation = {
+    params ["_phase"];
+    if (CHACAL_OBSERVATION <= 0) exitWith {};
+    private _t0 = time;
+    private _hommes = CHACAL_FS select { alive _x };
+    { doStop _x; if (_phase == 1) then { _x setUnitPos "DOWN" } } forEach _hommes;
+    if ((CHACAL_CONTROLE_PERCEPTION > 0) && { count _hommes > 0 }) then {
+        private _chef = leader (group (_hommes select 0));
+        private _p = if (CHACAL_CONTROLE_PERCEPTION == 1) then { _chef getPos [150, getDir _chef] } else { _chef getPos [1500, (getDir _chef) + 180] };
+        private _g = createGroup east;
+        { private _u = _g createUnit [_x, _p, [], 5, "NONE"]; _u disableAI "AUTOTARGET"; _u disableAI "TARGET"; _u disableAI "MOVE" } forEach ["O_Soldier_TL_F", "O_Soldier_F", "O_Soldier_F"];
+        _g setCombatMode "BLUE";
+        CHACAL_MENACES pushBack [_phase, "CONTROLE_PERCEPTION", _g];
+        (format ["CHACAL|E|controle_perception|%1|phase|%2|mode|%3|distance|%4", round (time * 100) / 100, _phase,
+            CHACAL_CONTROLE_PERCEPTION, round (_chef distance2D _p)]) call CHACAL_LOG;
+    };
+    (format ["CHACAL|E|observation|%1|phase|%2|debut|duree_prevue|%3%4", round (time * 100) / 100, _phase, CHACAL_OBSERVATION,
+        call CHACAL_fnc_perceptionMenace]) call CHACAL_LOG;
+    waitUntil { sleep 1; CHACAL_FIN || ((time - _t0) >= (CHACAL_OBSERVATION * CHACAL_ECHELLE)) };
+    if (_phase == 1) then { { if (alive _x) then { _x setUnitPos "AUTO" } } forEach _hommes };
+    (format ["CHACAL|E|observation|%1|phase|%2|fin|duree|%3%4", round (time * 100) / 100, _phase, round (time - _t0),
+        call CHACAL_fnc_perceptionMenace]) call CHACAL_LOG;
+};   // 2 : champ libre en fin de ligne et points des phases 1, 2, 3, 4, 6
 CHACAL_fnc_decision = {
     params ["_phase", "_point", "_options", "_choix", "_decideur", ["_extra", ""]];
     private _def = (if (isNil "CHACAL_EST_SITE") then {[]} else {CHACAL_EST_SITE}) select { alive _x };
@@ -83,7 +170,7 @@ CHACAL_fnc_decision = {
         (if (CHACAL_COMPROMIS) then {1} else {0}),
         count (CHACAL_FS select { alive _x }),
         { (west knowsAbout _x) > 1.4 } count _def,
-        count _def, CHACAL_SITUATION, _extra]) call CHACAL_LOG;
+        count _def, CHACAL_SITUATION, _extra + (call CHACAL_fnc_perceptionMenace)]) call CHACAL_LOG;
 };
 // Interprete des formules EvoGP ( codes prefixes ). ">" vaut +1 si a > b, sinon -1, comme dans EvoGP ( mesure le 17/09 ).
 CHACAL_F_CONST = [-1, -0.5, -0.25, 0, 0.25, 0.5, 1];
@@ -783,6 +870,7 @@ CHACAL_gFS setSpeedMode "LIMITED"; CHACAL_gFS setFormation "FILE";
 // ! LE CHOIX DE LA PHASE 1 ( plans/plan-choix-par-vignette.md, 17/09 ) : partir tout de suite ou se terrer.
 // Les deux options durent 180 s, pour que la consequence ait le meme temps d arriver. 0 = les 60 s d origine.
 if (CHACAL_P1_ATTENTE > 0) then {
+    [1] call CHACAL_fnc_fenetreObservation;   // menace visible : regarder avant de choisir ( 0 = origine )
     [1, "INSERTION_ATTENTE", [1, 2], CHACAL_P1_ATTENTE, "IMPOSE"] call CHACAL_fnc_decision;
     if (CHACAL_P1_ATTENTE == 1) then {
         private _dest = CHACAL_LZ getPos [300, CHACAL_LZ getDir CHACAL_ROUTE];
@@ -831,6 +919,7 @@ if ((_r in ["ATTEINT", "ENLISE"]) && !CHACAL_SAUT) then {
     // patrouille ( 2 ). ATTENDRE applique la regle de perception SANS la sortie PATROUILLE_ABSENTE, qui lisait l etat vrai
     // du monde : le detachement ne peut pas savoir qu aucune patrouille ne viendra. 0 = la regle d origine, inchangee.
     if (CHACAL_TRAVERSEE > 0) then {
+        [2] call CHACAL_fnc_fenetreObservation;   // menace visible : regarder avant de choisir ( 0 = origine )
         private _vD = if (isNil "CHACAL_VEH_ROUTE") then { objNull } else { CHACAL_VEH_ROUTE };
         private _vuD = 0;
         if (!isNull _vD && { alive _vD }) then {
@@ -1228,7 +1317,7 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
         } forEach [[CHACAL_gAppui, CHACAL_POS_APPUI], [CHACAL_gAssaut, CHACAL_POS_ASSAUT], [CHACAL_gBouchon, CHACAL_POS_BOUCHON]];
         sleep 5;
     } else {
-        if (CHACAL_ITINERAIRE > 0) then { [4, "ITINERAIRE", [1, 2], CHACAL_ITINERAIRE, "IMPOSE"] call CHACAL_fnc_decision };
+        if (CHACAL_ITINERAIRE > 0) then { [4] call CHACAL_fnc_fenetreObservation; [4, "ITINERAIRE", [1, 2], CHACAL_ITINERAIRE, "IMPOSE"] call CHACAL_fnc_decision };
         private _h1 = [CHACAL_gAppui,   CHACAL_POS_APPUI,   70, _plafond, "APPUI"]   spawn CHACAL_fnc_rejoindreItineraire;
         private _h2 = [CHACAL_gAssaut,  CHACAL_POS_ASSAUT,  70, _plafond, "ASSAUT"]  spawn CHACAL_fnc_rejoindreItineraire;
         private _h3 = [CHACAL_gBouchon, CHACAL_POS_BOUCHON, 80, _plafond, "BOUCHON"] spawn CHACAL_fnc_rejoindreItineraire;
