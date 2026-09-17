@@ -85,6 +85,28 @@ CHACAL_fnc_decision = {
         { (west knowsAbout _x) > 1.4 } count _def,
         count _def, CHACAL_SITUATION, _extra]) call CHACAL_LOG;
 };
+// Interprete des formules EvoGP ( codes prefixes ). ">" vaut +1 si a > b, sinon -1, comme dans EvoGP ( mesure le 17/09 ).
+CHACAL_F_CONST = [-1, -0.5, -0.25, 0, 0.25, 0.5, 1];
+CHACAL_fnc_evalNoeud = {
+    params ["_i", "_obs"];
+    private _c = CHACAL_F select _i;
+    if (_c >= 301) exitWith { [CHACAL_F_CONST select (_c - 301), _i + 1] };
+    if (_c >= 201) exitWith { [_obs select (_c - 201), _i + 1] };
+    if (_c == 106) exitWith { private _m = [_i + 1, _obs] call CHACAL_fnc_evalNoeud; [-(_m select 0), _m select 1] };
+    private _g = [_i + 1, _obs] call CHACAL_fnc_evalNoeud;
+    private _d = [_g select 1, _obs] call CHACAL_fnc_evalNoeud;
+    private _u = _g select 0; private _v = _d select 0;
+    private _r = switch (_c) do {
+        case 101: { _u + _v };
+        case 102: { _u - _v };
+        case 103: { _u * _v };
+        case 104: { _u min _v };
+        case 105: { _u max _v };
+        case 107: { if (_u > _v) then {1} else {-1} };
+        default { (format ["CHACAL|ERREUR|formule|code_inconnu|%1", _c]) call CHACAL_LOG; 0 };
+    };
+    [_r, _d select 1]
+};
 CHACAL_fnc_finPhase = {
     params ["_n", "_nom", "_issue"];
     if (CHACAL_FIN && { _n > CHACAL_ARRET }) exitWith {};
@@ -1440,7 +1462,23 @@ if (CHACAL_MENACE_P5 in [2, 3]) then {
     private _tDec = time;
     waitUntil { sleep 0.5; (!isNil "CHACAL_SITUATION_P5_FAITE") || CHACAL_FIN || ((time - _tDec) > 10) };
 };
-[5, "DELAI_PORTEUR", [45, 180], CHACAL_DELAI_PORTEUR, "IMPOSE"] call CHACAL_fnc_decision;
+if ((CHACAL_DELAI_MODE == 1) && { CHACAL_F_LEN > 0 }) then {
+    // memes perceptions, memes calculs et meme instant que la ligne de decision ecrite juste apres
+    private _defF = (if (isNil "CHACAL_EST_SITE") then {[]} else {CHACAL_EST_SITE}) select { alive _x };
+    private _obsF = [
+        (if (CHACAL_ALARME) then {1} else {0}),
+        (if (CHACAL_T_ALARME >= 0) then { round (time - CHACAL_T_ALARME) } else { -1 }),
+        (if (CHACAL_COMPROMIS) then {1} else {0}),
+        count (CHACAL_FS select { alive _x }),
+        { (west knowsAbout _x) > 1.4 } count _defF
+    ];
+    private _res = [0, _obsF] call CHACAL_fnc_evalNoeud;
+    private _valF = _res select 0;
+    CHACAL_DELAI_JOUE = if (_valF > 0) then {180} else {45};
+    [5, "DELAI_PORTEUR", [45, 180], CHACAL_DELAI_JOUE, "FORMULE", format ["|valeur_formule|%1|codes_lus|%2|codes_attendus|%3", _valF, _res select 1, CHACAL_F_LEN]] call CHACAL_fnc_decision;
+} else {
+    [5, "DELAI_PORTEUR", [45, 180], CHACAL_DELAI_PORTEUR, "IMPOSE"] call CHACAL_fnc_decision;
+};
 // LE chiffre de Fable : les coups de l appui AVANT le premier pas de l assaut.
 (format ["CHACAL|E|premier_pas_assaut|%1|tirs_appui_avant|%2|feu_avant|%3", round (time * 100) / 100,
     CHACAL_TIRS_APPUI, CHACAL_FEU_AVANT]) call CHACAL_LOG;
@@ -1565,10 +1603,10 @@ private _hExpl = scriptNull;
     private _h = if (count _demo > 0) then { _demo select 0 } else { _porteurs select 0 };
     _h doMove _pt;
     private _t = time;
-    waitUntil { sleep 1; ((_h distance2D _pt) < 5) || !(alive _h) || (time - _t > CHACAL_DELAI_PORTEUR * CHACAL_ECHELLE) || CHACAL_FIN };
+    waitUntil { sleep 1; ((_h distance2D _pt) < 5) || !(alive _h) || (time - _t > CHACAL_DELAI_JOUE * CHACAL_ECHELLE) || CHACAL_FIN };
     private _dH = round (_h distance2D _pt);
     (format ["CHACAL|E|porteur|%1|%2|%3|temps|%4|distance|%5|delai|%6", round (time * 100) / 100, typeOf _o,
-        (_h getVariable ["chacal_role", ""]), round (time - _t), _dH, CHACAL_DELAI_PORTEUR]) call CHACAL_LOG;
+        (_h getVariable ["chacal_role", ""]), round (time - _t), _dH, CHACAL_DELAI_JOUE]) call CHACAL_LOG;
     if (!alive _h || { _dH > 12 }) then {
         (format ["CHACAL|E|charge_manquee|%1|%2|cause|PORTEUR_N_ARRIVE_PAS|%3|distance|%4", round (time * 100) / 100,
             typeOf _o, (_h getVariable ["chacal_role", ""]), _dH]) call CHACAL_LOG;

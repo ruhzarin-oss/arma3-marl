@@ -41,6 +41,15 @@ CHACAL_FEU_AVANT = ["CHACAL_FEU_AVANT", 0] call BIS_fnc_getParamValue;
 // ! CAMPAGNE GRAINE 8 ( Fable, 11/09 ) - trois leviers, 0 / 45 = comportement d origine.
 CHACAL_MG_ASSAUT = ["CHACAL_MG_ASSAUT", 0] call BIS_fnc_getParamValue;
 CHACAL_DELAI_PORTEUR = ["CHACAL_DELAI_PORTEUR", 45] call BIS_fnc_getParamValue;
+// ! BOUCLE EVOGP ( equation/PROTOCOLE_BOUCLE_EVOGP_P5.md, 17/09 ) : le delai du porteur peut etre decide par une formule
+// apprise par EvoGP, passee en codes entiers ( CHACAL_F0..F31, ordre prefixe, equation/formule.py ). Mode 0 = impose par
+// le job ( origine ). CHACAL_DELAI_PORTEUR reste la valeur du job ( ligne FINI ) ; CHACAL_DELAI_JOUE est le delai joue.
+CHACAL_DELAI_MODE = ["CHACAL_DELAI_MODE", 0] call BIS_fnc_getParamValue;
+CHACAL_F_LEN = ["CHACAL_F_LEN", 0] call BIS_fnc_getParamValue;
+CHACAL_F = [];
+for "_k" from 0 to 31 do { CHACAL_F pushBack (["CHACAL_F" + str _k, 0] call BIS_fnc_getParamValue) };
+CHACAL_F resize CHACAL_F_LEN;
+CHACAL_DELAI_JOUE = CHACAL_DELAI_PORTEUR;
 CHACAL_APPUI_FIXE = ["CHACAL_APPUI_FIXE", 0] call BIS_fnc_getParamValue;
 // ! CHACAL_ORACLE ( Fable, 11/09 ) : les defenseurs reveles a tous et inscrits comme vus. 0 = origine.
 CHACAL_ORACLE = ["CHACAL_ORACLE", 0] call BIS_fnc_getParamValue;
