@@ -1,0 +1,50 @@
+oracle              monde             reps  decouverte  regions [IC95]            reps_avec_fausse  budget_en_faille  duree_s
+botorch_ts          W0_nul              20    0/20      0.00/0 [0.00 ; 0.00]      0/20           0.000          6.1
+botorch_ts          W1_aiguille         20    1/20      0.05/1 [0.00 ; 0.15]      0/20           0.005          6.1
+botorch_ts          W2_quatre           20   10/20      0.50/4 [0.30 ; 0.70]      0/20           0.054          6.3
+botorch_ts          W3_large_faible     20    3/20      0.15/1 [0.00 ; 0.30]      0/20           0.045          6.4
+botorch_ts_court    W0_nul              20    0/20      0.00/0 [0.00 ; 0.00]      0/20           0.000          7.3
+botorch_ts_court    W1_aiguille         20    9/20      0.45/1 [0.25 ; 0.65]      0/20           0.010          7.2
+botorch_ts_court    W2_quatre           20   19/20      1.45/4 [1.15 ; 1.75]      0/20           0.129          8.0
+botorch_ts_court    W3_large_faible     20   12/20      0.60/1 [0.40 ; 0.80]      0/20           0.172          8.0
+cases_plan          W0_nul              20    0/20      0.00/0 [0.00 ; 0.00]      0/20           0.000          0.0
+cases_plan          W1_aiguille         20   11/20      0.55/1 [0.35 ; 0.75]      0/20           0.088          0.0
+cases_plan          W2_quatre           20   18/20      1.60/4 [1.20 ; 2.00]      0/20           0.149          0.0
+cases_plan          W3_large_faible     20   12/20      0.60/1 [0.40 ; 0.80]      0/20           0.279          0.0
+parfait             W0_nul              20    0/20      0.00/0 [0.00 ; 0.00]      0/20           0.000          0.0
+parfait             W1_aiguille         20   20/20      1.00/1 [1.00 ; 1.00]      0/20           1.000          0.0
+parfait             W2_quatre           20   20/20      3.60/4 [3.35 ; 3.85]      0/20           1.000          0.0
+parfait             W3_large_faible     20    8/20      0.40/1 [0.20 ; 0.60]      0/20           1.000          0.0
+qdax_me4            W0_nul              20    0/20      0.00/0 [0.00 ; 0.00]      0/20           0.000          2.1
+qdax_me4            W1_aiguille         20   13/20      0.65/1 [0.45 ; 0.85]      0/20           0.022          2.0
+qdax_me4            W2_quatre           20   19/20      1.95/4 [1.55 ; 2.35]      0/20           0.128          2.1
+qdax_me4            W3_large_faible     20   11/20      0.55/1 [0.35 ; 0.75]      1/20           0.184          2.0
+qdax_me8            W0_nul              20    0/20      0.00/0 [0.00 ; 0.00]      0/20           0.000          2.0
+qdax_me8            W1_aiguille         20   12/20      0.60/1 [0.40 ; 0.80]      0/20           0.025          2.0
+qdax_me8            W2_quatre           20   19/20      1.60/4 [1.25 ; 2.00]      0/20           0.122          2.0
+qdax_me8            W3_large_faible     20    8/20      0.40/1 [0.20 ; 0.60]      0/20           0.203          1.9
+uniforme            W0_nul              20    0/20      0.00/0 [0.00 ; 0.00]      0/20           0.000          0.0
+uniforme            W1_aiguille         20    7/20      0.35/1 [0.15 ; 0.55]      0/20           0.019          0.0
+uniforme            W2_quatre           20   16/20      1.65/4 [1.15 ; 2.10]      0/20           0.120          0.0
+uniforme            W3_large_faible     20   11/20      0.55/1 [0.35 ; 0.75]      0/20           0.174          0.0
+
+== CRITERES ECRITS AVANT
+   botorch_ts : controle nul 0/20 ( <= 1 ) ; aiguille 1/20 contre uniforme 7/20 ( +5 ? NON ) ; quatre failles 0.50 contre uniforme 1.65 ( +1 ? NON )  ->  PAS UTILE
+   botorch_ts_court : controle nul 0/20 ( <= 1 ) ; aiguille 9/20 contre uniforme 7/20 ( +5 ? NON ) ; quatre failles 1.45 contre uniforme 1.65 ( +1 ? NON )  ->  PAS UTILE
+   cases_plan : controle nul 0/20 ( <= 1 ) ; aiguille 11/20 contre uniforme 7/20 ( +5 ? NON ) ; quatre failles 1.60 contre uniforme 1.65 ( +1 ? NON )  ->  PAS UTILE
+   qdax_me4 : controle nul 0/20 ( <= 1 ) ; aiguille 13/20 contre uniforme 7/20 ( +5 ? OUI ) ; quatre failles 1.95 contre uniforme 1.65 ( +1 ? NON )  ->  UTILE
+   qdax_me8 : controle nul 0/20 ( <= 1 ) ; aiguille 12/20 contre uniforme 7/20 ( +5 ? OUI ) ; quatre failles 1.60 contre uniforme 1.65 ( +1 ? NON )  ->  UTILE
+
+== COMPARAISONS AU PLAN ( cases ), regions trouvees, ecart et IC95 par reechantillonnage des repetitions
+   botorch_ts          - cases_plan, W1_aiguille       : -0.50 [-0.75 ; -0.25]
+   botorch_ts          - cases_plan, W2_quatre         : -1.10 [-1.55 ; -0.65]
+   botorch_ts          - cases_plan, W3_large_faible   : -0.45 [-0.70 ; -0.20]
+   botorch_ts_court    - cases_plan, W1_aiguille       : -0.10 [-0.40 ; +0.20]
+   botorch_ts_court    - cases_plan, W2_quatre         : -0.15 [-0.60 ; +0.30]
+   botorch_ts_court    - cases_plan, W3_large_faible   : +0.00 [-0.30 ; +0.30]
+   qdax_me4            - cases_plan, W1_aiguille       : +0.10 [-0.20 ; +0.40]
+   qdax_me4            - cases_plan, W2_quatre         : +0.35 [-0.20 ; +0.90]
+   qdax_me4            - cases_plan, W3_large_faible   : -0.05 [-0.35 ; +0.25]
+   qdax_me8            - cases_plan, W1_aiguille       : +0.05 [-0.25 ; +0.35]
+   qdax_me8            - cases_plan, W2_quatre         : +0.00 [-0.55 ; +0.55]
+   qdax_me8            - cases_plan, W3_large_faible   : -0.20 [-0.50 ; +0.10]
