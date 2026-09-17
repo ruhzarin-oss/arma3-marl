@@ -118,6 +118,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--tours", type=int, default=12)
     ap.add_argument("--fumee", action="store_true", help="un seul job FORMULE de 2 episodes, puis verification et arret")
+    ap.add_argument("--sec", action="store_true", help="a sec : formule factice, controle avant run de chaque job, rien n est pose")
     o = ap.parse_args()
     global JOURNAL
     os.makedirs(DOSSIER, exist_ok=True)
@@ -138,7 +139,7 @@ def main():
         X = np.array([e["x"] for e in explo]); a = np.array([e["a"] for e in explo]); Y = np.array([e["Y"] for e in explo])
         m = np.array([e["monde"] for e in explo])
         t0 = time.time()
-        res = A.apprendre(X, a, Y, m, 20260917 + tour)
+        res = A.apprendre(X, a, Y, m, 20260917 + tour) if not o.sec else dict(parcimonie=0, codes=[107, 201, 306], formule="(alarme > 0.5)", rapport={})
         form = [e for e in propres if e["campagne"] == CAMPAGNE and e["decideur"] == "FORMULE"]
         boucle_explo = [e for e in explo if e["campagne"] == CAMPAGNE]
         taux = lambda L: (round(float(np.mean([e["Y"] for e in L])), 3), len(L)) if L else (None, 0)
@@ -173,6 +174,15 @@ def main():
                                    note=f"Boucle EvoGP tour {tour} : exploration, delai impose {genre[1:]} s, menace_p5 {menace}.")
                     job["version"] = f"BOUCLE-T{tour:02d}-{genre}-M{menace}-g{w[0]}g{w[1]}"
                     jobs.append((f"2026-09-17_BOUCLE_T{tour:02d}_G{grp}_{genre}.json", job))
+        if o.sec:
+            for nom, job in jobs:
+                prep = f"{H}/queue_preparation/SEC_{nom}"
+                json.dump(job, open(prep, "w"), indent=1, ensure_ascii=True)
+                r = subprocess.run(["bash", f"{H}/depot/outils/controle_avant_run.sh", prep], capture_output=True, text=True)
+                print(nom, job["instance"], job["graines"], job["repetitions"], job["menace_p5"], job.get("delai_mode"), job.get("delai_porteur"), job.get("f_len"),
+                      "CONTROLE OK" if "CONTROLE OK" in r.stdout else "REFUS : " + " | ".join(l for l in r.stdout.splitlines() if "REFUS" in l or "AVERT" in l))
+                os.remove(prep)
+            return
         for rang, (nom, job) in enumerate(jobs):
             poser(nom, job, rang)
         declencher(n=len(jobs) + 2)
