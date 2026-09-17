@@ -1,0 +1,110 @@
+== dbt run
+06:18:09  Done. PASS=26 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=26
+== dbt test
+06:18:17  1 of 38 WARN 2 acceleration_effective .......................................... [WARN 2 in 0.35s]
+06:18:18  5 of 38 FAIL 4 base_a_la_distance_imposee ...................................... [FAIL 4 in 0.15s]
+06:18:18  11 of 38 WARN 12 combat_au_bouchon ............................................. [WARN 12 in 0.08s]
+06:18:19  26 of 38 WARN 3 reserve_au_contact_du_bouchon .................................. [WARN 3 in 0.07s]
+06:18:19  25 of 38 WARN 7 phase_arretee_jouee ............................................ [WARN 7 in 0.30s]
+06:18:19  31 of 38 FAIL 1 taux_combat_suffisant .......................................... [FAIL 1 in 0.14s]
+06:18:20  36 of 38 FAIL 4 vehicules_reserve_bien_decoupes ................................ [FAIL 4 in 0.16s]
+06:18:20  37 of 38 FAIL 31 verdict_accepte ............................................... [FAIL 31 in 0.14s]
+06:18:20    Got 4 results, configured to fail if != 0
+06:18:20    Got 1 result, configured to fail if != 0
+06:18:20    Got 4 results, configured to fail if != 0
+06:18:20    Got 31 results, configured to fail if != 0
+06:18:20  [WARNING]: Got 2 results, configured to warn if != 0
+06:18:20  [WARNING]: Got 12 results, configured to warn if != 0
+06:18:20  [WARNING]: Got 3 results, configured to warn if != 0
+06:18:20  [WARNING]: Got 7 results, configured to warn if != 0
+06:18:20  Done. PASS=30 WARN=4 ERROR=4 SKIP=0 NO-OP=0 REUSED=0 TOTAL=38
+== lecture pre-enregistree
+== LECTURE CHOIX-P2-17-09 : point TRAVERSEE, options TOUT_DE_SUITE ( 1 ) / ATTENDRE ( 2 ), issue primaire phase_discrete
+   PASSE   Q1 episodes acceptes >= 90 % des prevus : 128 acceptes sur 148 ( prevus 128 )
+   PASSE   Q2 zero erreur SQF : 0 erreurs
+   PASSE   Q3 tests dbt bloquants a zero sur la campagne : tous a zero
+   PASSE   Q4 chaque case ( monde, bras, option ) a au moins 3 episodes : 32 cases pleines
+   PASSE   Q5 menaces posees sur la phase dans tous les episodes MENACE, aucune dans le TEMOIN : {'TEMOIN': (74, 0), 'MENACE': (74, 74)}
+
+== ISSUE PRIMAIRE ( ecrite avant ) : phase_discrete
+
+   phase_discrete
+      TEMOIN  TOUT_DE_SUITE  1.000   ATTENDRE       1.000
+      MENACE  TOUT_DE_SUITE  0.771   ATTENDRE       0.781
+      ecart ATTENDRE - TOUT_DE_SUITE, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart ATTENDRE - TOUT_DE_SUITE, MENACE : +0.010  IC [-0.250 ; +0.281]
+      MODULATION ( menace - temoin ) : +0.010  IC [-0.250 ; +0.281]
+      ecart moyen des deux situations : +0.005  IC [-0.125 ; +0.141]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.75  8:-0.25  9:-0.67  11:+0.00  12:+0.25
+
+== CRITERES
+   C2 MODULATION ETABLIE : NON
+   C3 INVERSION ( C2 et signes opposes ) : NON
+
+   CLASSEMENT : INDIFFERENT
+   DECISION : choix indifferent a la precision du dispositif
+
+== ISSUES SECONDAIRES ( descriptives, aucune decision )
+
+   observation_utile
+      TEMOIN  TOUT_DE_SUITE  0.000   ATTENDRE       0.000
+      MENACE  TOUT_DE_SUITE  0.000   ATTENDRE       0.000
+      ecart ATTENDRE - TOUT_DE_SUITE, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart ATTENDRE - TOUT_DE_SUITE, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
+
+   mise_en_place_propre
+      TEMOIN  TOUT_DE_SUITE  0.969   ATTENDRE       0.969
+      MENACE  TOUT_DE_SUITE  0.646   ATTENDRE       0.688
+      ecart ATTENDRE - TOUT_DE_SUITE, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart ATTENDRE - TOUT_DE_SUITE, MENACE : +0.042  IC [-0.219 ; +0.312]
+      MODULATION ( menace - temoin ) : +0.042  IC [-0.219 ; +0.312]
+      ecart moyen des deux situations : +0.021  IC [-0.109 ; +0.156]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.75  8:-0.25  9:-0.67  11:+0.25  12:+0.25
+
+   exfil_reussie
+      TEMOIN  TOUT_DE_SUITE  0.000   ATTENDRE       0.000
+      MENACE  TOUT_DE_SUITE  0.000   ATTENDRE       0.000
+      ecart ATTENDRE - TOUT_DE_SUITE, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart ATTENDRE - TOUT_DE_SUITE, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
+
+   fin_vivants
+      TEMOIN  TOUT_DE_SUITE  10.000   ATTENDRE       10.000
+      MENACE  TOUT_DE_SUITE  9.833   ATTENDRE       9.906
+      ecart ATTENDRE - TOUT_DE_SUITE, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart ATTENDRE - TOUT_DE_SUITE, MENACE : +0.073  IC [-0.031 ; +0.167]
+      MODULATION ( menace - temoin ) : +0.073  IC [-0.031 ; +0.167]
+      ecart moyen des deux situations : +0.036  IC [-0.016 ; +0.083]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.25  7:+0.25  8:+0.00  9:-0.17  11:+0.00  12:+0.25
+
+   duree_phase
+      TEMOIN  TOUT_DE_SUITE  443.414   ATTENDRE       708.533
+      MENACE  TOUT_DE_SUITE  646.505   ATTENDRE       787.842
+      ecart ATTENDRE - TOUT_DE_SUITE, TEMOIN : +265.118  IC [+168.389 ; +370.700]
+      ecart ATTENDRE - TOUT_DE_SUITE, MENACE : +141.336  IC [+3.431 ; +292.080]
+      MODULATION ( menace - temoin ) : -123.782  IC [-254.108 ; +15.219]
+      ecart moyen des deux situations : +203.227  IC [+107.661 ; +310.793]
+      modulation par monde : 4:-285.22  5:-342.15  6:-134.02  7:-124.10  8:-385.97  9:+41.20  11:+23.77  12:+216.24
+
+   renseignement
+      TEMOIN  TOUT_DE_SUITE  0.000   ATTENDRE       0.000
+      MENACE  TOUT_DE_SUITE  0.000   ATTENDRE       0.000
+      ecart ATTENDRE - TOUT_DE_SUITE, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart ATTENDRE - TOUT_DE_SUITE, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
+
+   exfiltres
+      TEMOIN  TOUT_DE_SUITE  0.000   ATTENDRE       0.000
+      MENACE  TOUT_DE_SUITE  0.000   ATTENDRE       0.000
+      ecart ATTENDRE - TOUT_DE_SUITE, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart ATTENDRE - TOUT_DE_SUITE, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
