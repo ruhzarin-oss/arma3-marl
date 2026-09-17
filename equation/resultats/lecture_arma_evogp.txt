@@ -1,0 +1,16 @@
+
+== CHOIX-P1-17-09 INSERTION_ATTENTE : 132 episodes, 8 mondes, option 1 jouee 0.50, issue 0.682 ; perceptions qui varient : ['alarme', 'depuis_alarme', 'compromis', 'vivants']
+   evogp    G -0.030  IC95 [-0.086 ; +0.000]  p1% -0.111  pas de gain  variables []  formule : (0.25 * 0.25)
+   evogp_p01 G -0.061  IC95 [-0.125 ; +0.016]  p1% -0.136  pas de gain  variables ['defenseurs_connus']  formule : defenseurs_connus
+
+== CHOIX-P2-17-09 TRAVERSEE : 128 episodes, 8 mondes, option 1 jouee 0.52, issue 0.891 ; perceptions qui varient : ['vehicule_vu']
+   evogp    G -0.062  IC95 [-0.156 ; +0.000]  p1% -0.188  pas de gain  variables ['vehicule_vu']  formule : ((vehicule_vu max 0.25) * 0.25)
+   evogp_p01 G -0.062  IC95 [-0.172 ; +0.016]  p1% -0.188  pas de gain  variables ['alarme']  formule : alarme
+
+== CHOIX-P4-17-09 ITINERAIRE : 133 episodes, 8 mondes, option 1 jouee 0.51, issue 0.233 ; perceptions qui varient : aucune
+   evogp    G +0.000  IC95 [+0.000 ; +0.000]  p1% +0.000  pas de gain  variables []  formule : -0.25
+   evogp_p01 G +0.000  IC95 [+0.000 ; +0.000]  p1% +0.000  pas de gain  variables []  formule : -0.25
+
+== PILOTE-P5-DELAI-SITUATION-16-09 DELAI_PORTEUR : 192 episodes, 8 mondes, option 1 jouee 0.50, issue 0.578 ; perceptions qui varient : ['alarme', 'depuis_alarme', 'compromis']
+   evogp    G -0.021  IC95 [-0.062 ; +0.000]  p1% -0.083  pas de gain  variables ['compromis', 'defenseurs_connus']  formule : (defenseurs_connus max (0.25 − compromis))
+   evogp_p01 G +0.000  IC95 [+0.000 ; +0.000]  p1% +0.000  pas de gain  variables []  formule : 0.25

@@ -1,0 +1,91 @@
+== TEST A, banc synthetique : une ligne par ( algo, formule, n )
+algo     form    n  reps  declare  retrouvee  accord  vraies  leurres  niveau_seul  gain_vrai/ideal  duree_s
+arbre    F0    200   20     0/20       -       nan     nan    0.15      0.00     +0.000/+0.000      0.3
+arbre    F0    500   20     0/20       -       nan     nan    0.00      0.00     +0.000/+0.000      0.3
+arbre    F0   1000   20     0/20       -       nan     nan    0.20      0.10     +0.000/+0.000      0.3
+arbre    F1    200   20     0/20      0/20   0.642    0.25    0.05      0.00     +0.045/+0.160      0.3
+arbre    F1    500   20    15/20     12/20   0.816    0.55    0.20      0.00     +0.109/+0.160      0.3
+arbre    F1   1000   20    20/20     18/20   0.867    0.68    0.30      0.05     +0.123/+0.160      0.4
+arbre    F2    200   20     2/20      0/20   0.536    0.15    0.10      0.15     +0.005/+0.215      0.3
+arbre    F2    500   20     1/20      0/20   0.542    0.23    0.30      0.00     +0.009/+0.216      0.3
+arbre    F2   1000   20     6/20      1/20   0.588    0.45    0.45      0.20     +0.035/+0.215      0.4
+arbre    F3    200   20     9/20      9/20   0.851    0.53    0.25      0.05     +0.115/+0.185      0.3
+arbre    F3    500   20    18/20     18/20   0.957    0.93    0.60      0.25     +0.166/+0.185      0.3
+arbre    F3   1000   20    20/20     20/20   0.995    1.00    0.35      0.25     +0.183/+0.185      0.4
+evogp    F0    200   20     0/20       -       nan     nan    2.25      0.50     +0.000/+0.000      2.1
+evogp    F0    500   20     0/20       -       nan     nan    1.70      0.55     +0.000/+0.000      2.0
+evogp    F0   1000   20     0/20       -       nan     nan    1.15      0.25     +0.000/+0.000      1.8
+evogp    F1    200   20     4/20      0/20   0.683    0.85    2.10      0.65     +0.060/+0.160      2.0
+evogp    F1    500   20    15/20     14/20   0.837    0.95    1.25      0.45     +0.117/+0.160      2.1
+evogp    F1   1000   20    19/20     19/20   0.903    0.97    0.75      0.45     +0.136/+0.160      2.0
+evogp    F2    200   20     6/20      3/20   0.645    0.93    2.10      0.25     +0.053/+0.215      1.9
+evogp    F2    500   20    12/20      7/20   0.838    0.93    1.35      0.30     +0.142/+0.216      2.0
+evogp    F2   1000   20    20/20     19/20   0.978    1.00    0.30      0.10     +0.205/+0.215      2.0
+evogp    F3    200   20     8/20      8/20   0.825    0.90    2.00      0.45     +0.104/+0.185      2.0
+evogp    F3    500   20    15/20     15/20   0.918    0.95    1.35      0.35     +0.148/+0.185      2.0
+evogp    F3   1000   20    20/20     20/20   0.965    1.00    0.95      0.40     +0.170/+0.185      1.9
+evogp_p01 F0    200   20     0/20       -       nan     nan    0.65      0.10     +0.000/+0.000      1.6
+evogp_p01 F0    500   20     0/20       -       nan     nan    0.00      0.00     +0.000/+0.000      1.7
+evogp_p01 F0   1000   20     0/20       -       nan     nan    0.00      0.00     +0.000/+0.000      1.8
+evogp_p01 F1    200   20     2/20      0/20   0.722    0.65    0.55      0.10     +0.076/+0.160      1.6
+evogp_p01 F1    500   20    14/20     14/20   0.834    0.55    0.05      0.00     +0.118/+0.160      1.7
+evogp_p01 F1   1000   20    19/20     18/20   0.846    0.60    0.00      0.00     +0.123/+0.160      1.8
+evogp_p01 F2    200   20     2/20      1/20   0.632    0.45    0.60      0.10     +0.046/+0.215      1.6
+evogp_p01 F2    500   20     7/20      3/20   0.616    0.35    0.25      0.00     +0.037/+0.216      1.7
+evogp_p01 F2   1000   20     7/20      1/20   0.645    0.33    0.45      0.00     +0.052/+0.215      1.7
+evogp_p01 F3    200   20    12/20     11/20   0.860    0.80    0.35      0.15     +0.122/+0.185      1.6
+evogp_p01 F3    500   20    14/20     14/20   0.865    0.93    0.20      0.10     +0.126/+0.185      1.7
+evogp_p01 F3   1000   20    20/20     20/20   0.908    0.93    0.00      0.05     +0.145/+0.185      1.7
+gplearn  F0    200   20     0/20       -       nan     nan    1.95      0.55     +0.000/+0.000     43.5
+gplearn  F0    500   20     0/20       -       nan     nan    0.85      0.45     +0.000/+0.000     43.9
+gplearn  F0   1000   20     0/20       -       nan     nan    0.55      0.25     +0.000/+0.000     44.1
+gplearn  F1    200   20     4/20      1/20   0.638    0.65    1.20      0.60     +0.042/+0.160     42.2
+gplearn  F1    500   20     7/20      2/20   0.725    0.65    1.00      0.30     +0.075/+0.160     40.6
+gplearn  F1   1000   20    15/20      7/20   0.780    0.68    0.65      0.10     +0.097/+0.160     40.0
+gplearn  F2    200   20     0/20      0/20   0.523    0.65    1.80      0.45     -0.007/+0.215     45.1
+gplearn  F2    500   20     1/20      0/20   0.551    0.55    1.20      0.45     +0.007/+0.216     44.1
+gplearn  F2   1000   20     0/20      0/20   0.514    0.53    0.35      0.25     -0.002/+0.215     44.7
+gplearn  F3    200   20    10/20     10/20   0.848    0.90    1.35      0.50     +0.115/+0.185     44.2
+gplearn  F3    500   20    19/20     18/20   0.882    0.93    0.30      0.20     +0.133/+0.185     43.3
+gplearn  F3   1000   20    20/20     20/20   0.896    1.00    0.35      0.10     +0.140/+0.185     41.7
+l1       F0    200   20     1/20       -       nan     nan    0.30      0.05     +0.000/+0.000      0.8
+l1       F0    500   20     0/20       -       nan     nan    0.35      0.10     +0.000/+0.000      1.0
+l1       F0   1000   20     0/20       -       nan     nan    0.45      0.15     +0.000/+0.000      1.2
+l1       F1    200   20     6/20      6/20   0.963    1.00    1.05      0.50     +0.150/+0.160      8.7
+l1       F1    500   20    19/20     19/20   0.988    1.00    1.55      0.45     +0.156/+0.160      0.9
+l1       F1   1000   20    20/20     20/20   0.995    1.00    2.05      0.65     +0.158/+0.160      1.1
+l1       F2    200   20     0/20      0/20   0.499    0.10    0.25      0.05     -0.019/+0.215      0.8
+l1       F2    500   20     0/20      0/20   0.499    0.05    0.15      0.05     -0.018/+0.216      1.0
+l1       F2   1000   20     1/20      0/20   0.498    0.23    0.85      0.35     -0.012/+0.215      1.2
+l1       F3    200   20    12/20     12/20   0.926    1.00    1.15      0.30     +0.153/+0.185     22.1
+l1       F3    500   20    19/20     19/20   0.960    1.00    1.65      0.50     +0.168/+0.185      1.0
+l1       F3   1000   20    20/20     20/20   0.963    1.00    1.70      0.70     +0.169/+0.185      1.1
+
+== CRITERES ECRITS AVANT
+   arbre : F1/F2/F3 retrouvees >= 18/20 a n = 500 : F1 NON, F2 NON, F3 OUI ; F0 declarees <= 1/20 : n=200 OUI, n=500 OUI, n=1000 OUI  ->  NON RETENU
+   evogp : F1/F2/F3 retrouvees >= 18/20 a n = 500 : F1 NON, F2 NON, F3 NON ; F0 declarees <= 1/20 : n=200 OUI, n=500 OUI, n=1000 OUI  ->  NON RETENU
+   evogp_p01 : F1/F2/F3 retrouvees >= 18/20 a n = 500 : F1 NON, F2 NON, F3 NON ; F0 declarees <= 1/20 : n=200 OUI, n=500 OUI, n=1000 OUI  ->  NON RETENU
+   gplearn : F1/F2/F3 retrouvees >= 18/20 a n = 500 : F1 NON, F2 NON, F3 OUI ; F0 declarees <= 1/20 : n=200 OUI, n=500 OUI, n=1000 OUI  ->  NON RETENU
+   l1 : F1/F2/F3 retrouvees >= 18/20 a n = 500 : F1 OUI, F2 NON, F3 OUI ; F0 declarees <= 1/20 : n=200 OUI, n=500 OUI, n=1000 OUI  ->  NON RETENU
+
+== EXEMPLES DE FORMULES APPRISES ( rep 0, n = 1000 )
+   arbre F0 : constante 0
+   arbre F1 : |--- distance <= 0.412 ; |   |--- value: [0.483] ; |--- distance >  0.412 ; |   |--- value: [-0.137] ; 
+   arbre F2 : constante 1
+   arbre F3 : |--- alarme <= 0.500 ; |   |--- defenseurs_connus <= 4.500 ; |   |   |--- value: [-0.539] ; |   |--- defenseurs_connus >  4.500 ; |   |   |--- value: [-0.205] ; |--- alarme >  0.500 ; |   |--- distance <= 0.700 ; |   |   |--- value: [0.506] ; |   |--- distance >  0.700 ; |   |   |--- value: [-0.496]
+   evogp F0 : ((distance * ((leurre_distance min moment) − leurre_uniforme)) * (distance * alarme))
+   evogp F1 : (((leurre_distance * leurre_uniforme) min (((vehicule_vu − distance) min -0.25) − distance)) + 1.00)
+   evogp F2 : ((0.50 + (0.00 min neg(((0.50 * (moment > 0.50)) > 0.25)))) * neg((distance > 0.50)))
+   evogp F3 : (-0.50 max (((-0.25 * distance) − distance) + (alarme > (leurre_distance max 0.00))))
+   evogp_p01 F0 : 0.00
+   evogp_p01 F1 : (0.50 − distance)
+   evogp_p01 F2 : 0.00
+   evogp_p01 F3 : (((alarme − distance) − 0.25) max -0.50)
+   gplearn F0 : mul(neg(0.231), add(-0.223, alarme))
+   gplearn F1 : mul(sub(add(vehicule_vu, max(leurre_binaire, vehicule_vu)), add(distance, vehicule_vu)), 0.417)
+   gplearn F2 : mul(min(moment, distance), mul(min(moment, max(distance, leurre_distance)), min(moment, distance)))
+   gplearn F3 : min(sub(gt(sub(alarme, distance), sub(leurre_distance, distance)), distance), sub(alarme, distance))
+   l1 F0 : +0.000 -0.036*z(alarme)
+   l1 F1 : +0.123 -1.871*z(distance) +0.148*z(alarme) +1.084*z(vehicule_vu) +0.073*z(defenseurs_connus) -0.010*z(leurre_uniforme) -0.066*z(leurre_binaire) +0.004*z(leurre_distance)
+   l1 F2 : +0.238 -0.075*z(moment) -0.057*z(alarme) +0.115*z(vehicule_vu) +0.201*z(defenseurs_connus) +0.197*z(leurre_binaire) -0.062*z(leurre_distance)
+   l1 F3 : -1.694 -2.004*z(distance) -0.013*z(moment) +3.311*z(alarme) -0.033*z(vehicule_vu) +0.276*z(defenseurs_connus)
