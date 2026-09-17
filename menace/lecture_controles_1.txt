@@ -1,0 +1,110 @@
+== 74 episodes ; erreurs SQF totales 0 ; refuses 0 ; version 3 partout : True
+
+-- MV-NEGATIF : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g4_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 1476 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g4_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 1456 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g5_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 1461 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g5_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 1459 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g6_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 1470 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 1473 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g7_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 0 dist_vraie -1 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g7_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 0 dist_vraie -1 | decision TRAVERSEE choix 1 connues_au_choix 0
+
+-- MV-NUL : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g6_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 0 dist_vraie -1 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 0 dist_vraie -1 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g7_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 0 dist_vraie -1 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g7_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 0 dist_vraie -1 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g4_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 0 dist_vraie -1 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g4_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 0 dist_vraie -1 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g5_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 0 dist_vraie -1 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g5_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 0 dist_vraie -1 | decision TRAVERSEE choix 1 connues_au_choix 0
+
+-- MV-ORIGINE : 2 episodes, acceptes 2, erreurs 0, fenetres 0
+   g4      fin fenetre : vues None connues None dist None err None mobile None vue_depuis None vehicule None | verite None dist_vraie None | decision TRAVERSEE choix 1 connues_au_choix 0
+   g5      fin fenetre : vues None connues None dist None err None mobile None vue_depuis None vehicule None | verite None dist_vraie None | decision TRAVERSEE choix 1 connues_au_choix 0
+
+-- MV-P1_TYPE1 : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g4_r1   fin fenetre : vues 2 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 2 dist_vraie 668 | decision INSERTION_ATTENTE choix 1 connues_au_choix 0
+   g4_r2   fin fenetre : vues 2 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 2 dist_vraie 669 | decision INSERTION_ATTENTE choix 1 connues_au_choix 0
+   g5_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 2 dist_vraie 894 | decision INSERTION_ATTENTE choix 1 connues_au_choix 0
+   g5_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 2 dist_vraie 895 | decision INSERTION_ATTENTE choix 1 connues_au_choix 0
+   g6_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 2 dist_vraie 577 | decision INSERTION_ATTENTE choix 1 connues_au_choix 0
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 2 dist_vraie 575 | decision INSERTION_ATTENTE choix 1 connues_au_choix 0
+   g7_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 0 dist_vraie -1 | decision INSERTION_ATTENTE choix 1 connues_au_choix 0
+   g7_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 0 dist_vraie -1 | decision INSERTION_ATTENTE choix 1 connues_au_choix 0
+
+-- MV-P1_TYPE2 : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g6_r1   fin fenetre : vues 2 connues 3 dist 389 err 0.2 mobile 1 vue_depuis 1 vehicule 0 | verite 3 dist_vraie 389 | decision INSERTION_ATTENTE choix 1 connues_au_choix 3
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 0 dist_vraie -1 | decision INSERTION_ATTENTE choix 1 connues_au_choix 0
+   g7_r1   fin fenetre : vues 2 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 253 | decision INSERTION_ATTENTE choix 1 connues_au_choix 0
+   g7_r2   fin fenetre : vues 4 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 4 dist_vraie 244 | decision INSERTION_ATTENTE choix 1 connues_au_choix 0
+   g4_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 4 dist_vraie 477 | decision INSERTION_ATTENTE choix 1 connues_au_choix 0
+   g4_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 4 dist_vraie 456 | decision INSERTION_ATTENTE choix 1 connues_au_choix 0
+   g5_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 4 dist_vraie 822 | decision INSERTION_ATTENTE choix 1 connues_au_choix 0
+   g5_r2   fin fenetre : vues 3 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 4 dist_vraie 506 | decision INSERTION_ATTENTE choix 1 connues_au_choix 0
+
+-- MV-P2_TYPE1 : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g6_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 1 | verite 3 dist_vraie 632 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 1 | verite 3 dist_vraie 644 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g7_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 1055 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g7_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 1011 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g4_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 495 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g4_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 1 | verite 3 dist_vraie 503 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g5_r1   fin fenetre : vues 3 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 1 | verite 3 dist_vraie 255 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g5_r2   fin fenetre : vues 3 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 290 | decision TRAVERSEE choix 1 connues_au_choix 0
+
+-- MV-P2_TYPE2 : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g6_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 632 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 632 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g7_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 398 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g7_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 426 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g4_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 710 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g4_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 708 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g5_r1   fin fenetre : vues 2 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 360 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g5_r2   fin fenetre : vues 2 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 366 | decision TRAVERSEE choix 1 connues_au_choix 0
+
+-- MV-P4_TYPE1 : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g4_r1   fin fenetre : vues 1 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 742 | decision ITINERAIRE choix 1 connues_au_choix 0
+   g4_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 496 | decision ITINERAIRE choix 1 connues_au_choix 0
+   g5_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 243 | decision ITINERAIRE choix 1 connues_au_choix 0
+   g5_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 355 | decision ITINERAIRE choix 1 connues_au_choix 0
+   g6_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 556 | decision ITINERAIRE choix 1 connues_au_choix 0
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 509 | decision ITINERAIRE choix 1 connues_au_choix 0
+   g7_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 453 | decision ITINERAIRE choix 1 connues_au_choix 0
+   g7_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 473 | decision ITINERAIRE choix 1 connues_au_choix 0
+
+-- MV-P4_TYPE2 : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g6_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 2 dist_vraie 541 | decision ITINERAIRE choix 1 connues_au_choix 0
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 2 dist_vraie 538 | decision ITINERAIRE choix 1 connues_au_choix 0
+   g7_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 2 dist_vraie 638 | decision ITINERAIRE choix 1 connues_au_choix 0
+   g7_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 2 dist_vraie 634 | decision ITINERAIRE choix 1 connues_au_choix 0
+   g4_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 2 dist_vraie 673 | decision ITINERAIRE choix 1 connues_au_choix 0
+   g4_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 2 dist_vraie 676 | decision ITINERAIRE choix 1 connues_au_choix 0
+   g5_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 2 dist_vraie 508 | decision ITINERAIRE choix 1 connues_au_choix 0
+   g5_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 2 dist_vraie 505 | decision ITINERAIRE choix 1 connues_au_choix 0
+
+-- MV-POSITIF : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g4_r1   fin fenetre : vues 1 connues 1 dist 147 err 0.1 mobile 0 vue_depuis 0 vehicule 0 | verite 3 dist_vraie 147 | decision TRAVERSEE choix 1 connues_au_choix 1
+   g4_r2   fin fenetre : vues 3 connues 3 dist 146 err 0.1 mobile 0 vue_depuis 0 vehicule 0 | verite 3 dist_vraie 146 | decision TRAVERSEE choix 1 connues_au_choix 3
+   g5_r1   fin fenetre : vues 3 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 149 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g5_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 148 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g6_r1   fin fenetre : vues 2 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 146 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 146 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g7_r1   fin fenetre : vues 3 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 148 | decision TRAVERSEE choix 1 connues_au_choix 0
+   g7_r2   fin fenetre : vues 3 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 vehicule 0 | verite 3 dist_vraie 152 | decision TRAVERSEE choix 1 connues_au_choix 0
+
+== CRITERES ECRITS AVANT
+   POSITIF  connues > 0 en fin de fenetre : 2/8  ( attendu >= 80 % ) -> NON
+   NEGATIF  vues = 0 en fin de fenetre : 8/8  ( attendu >= 95 % ) -> OUI
+   NUL      aucune perception ni verite de menace : 8/8  ( attendu 100 % ) -> OUI
+   ORIGINE  pas de fenetre, 0 erreur, decision identique a CHOIX-P2 ( phase, point, options, choix, decideur ) : OUI ( 2 episodes, 8 de reference )
+   GLOBAL   0 erreur SQF : OUI
+
+== VARIANCE DE LA PERCEPTION A 90 S ( part des episodes ou la menace est connue au moment du choix ; attendu 30 a 70 % )
+   MV-P2_TYPE1   0/8  HORS PLAGE : a rapporter a Younes
+   MV-P2_TYPE2   0/8  HORS PLAGE : a rapporter a Younes
+   MV-P1_TYPE1   0/8  HORS PLAGE : a rapporter a Younes
+   MV-P1_TYPE2   1/8  HORS PLAGE : a rapporter a Younes
+   MV-P4_TYPE1   0/8  HORS PLAGE : a rapporter a Younes
+   MV-P4_TYPE2   0/8  HORS PLAGE : a rapporter a Younes
