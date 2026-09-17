@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Trouver l'équation d'une décision</title>
+<style>
+  @page { size: A4; margin: 10mm 11mm 9mm 11mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9.3pt; line-height: 1.36; color: #1c2430; margin: 0; }
+  .page { position: relative; }
+  .page + .page { page-break-before: always; }
+  header { border-bottom: 2px solid #1f4e79; padding-bottom: 2mm; margin-bottom: 2.4mm; }
+  header h1 { font-size: 17pt; margin: 0 0 0.6mm; color: #1f4e79; letter-spacing: -0.2px; }
+  header .sous { font-size: 8.6pt; color: #5b6878; display: block; }
+  .cols { column-count: 2; column-gap: 6mm; }
+  h2 { font-size: 10.8pt; color: #1f4e79; margin: 2.4mm 0 1.2mm; break-after: avoid; }
+  h2 .n { display: inline-block; background: #1f4e79; color: #fff; border-radius: 50%; width: 4.6mm; height: 4.6mm; text-align: center; line-height: 4.6mm; font-size: 7.6pt; margin-right: 1.4mm; vertical-align: 1px; }
+  p { margin: 0 0 1.4mm; }
+  ul { margin: 0 0 1.4mm; padding-left: 4.2mm; }
+  li { margin-bottom: 0.7mm; }
+  .f { font-family: "Menlo", "DejaVu Sans Mono", monospace; font-size: 7.9pt; background: #eef3f8; border-left: 3px solid #1f4e79; padding: 1.4mm 2mm; margin: 1.2mm 0 1.6mm; break-inside: avoid; white-space: pre-wrap; }
+  .clair { color: #3a4656; }
+  .clair b { color: #1c2430; }
+  .encadre { background: #fff7e6; border: 1px solid #f0c36d; border-radius: 2mm; padding: 1.6mm 2.2mm; margin: 1.4mm 0 1.8mm; break-inside: avoid; }
+  .encadre b.t { color: #9a5b00; }
+  table { border-collapse: collapse; width: 100%; font-size: 8.5pt; margin: 1mm 0 1.8mm; break-inside: avoid; }
+  th { background: #1f4e79; color: #fff; text-align: left; padding: 1mm 1.3mm; font-weight: 600; }
+  td { padding: 0.9mm 1.3mm; border-bottom: 1px solid #d9e1ea; vertical-align: top; }
+  tr:nth-child(even) td { background: #f6f9fc; }
+  .large { column-span: all; }
+  svg { display: block; margin: 1mm auto 1.4mm; break-inside: avoid; }
+  .refs { font-size: 7.8pt; color: #5b6878; border-top: 1px solid #d9e1ea; padding-top: 1.2mm; margin-top: 1.6mm; }
+  .pied { position: absolute; bottom: 0; right: 0; font-size: 7pt; color: #8a95a3; }
+  .ok { color: #1a7f37; font-weight: 600; }
+  .ko { color: #b42318; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- ============================== PAGE 1 ============================== -->
+<div class="page">
+<header>
+  <h1>Trouver l'équation d'une décision</h1>
+  <span class="sous">Fiche de formation · régression symbolique, programmation génétique, Architecte et Oracle · 17/09/2026</span>
+</header>
+
+<div class="cols">
+
+<h2><span class="n">1</span>Le problème</h2>
+<p>Dans chaque vignette, le détachement choisit entre deux options : partir ou se terrer, direct ou détour.</p>
+<p>On cherche <b>la règle</b> qui dit dans quelle situation l'option 1 vaut mieux.</p>
+<p>On la veut sous forme d'<b>équation lisible</b>, pour pouvoir la vérifier, la comprendre et la contredire. Un réseau de neurones pourrait bien décider, mais sans dire pourquoi.</p>
+
+<h2><span class="n">2</span>Régression classique ou symbolique</h2>
+<ul>
+  <li><b>Classique</b> : on fixe la forme, par exemple une droite <i>y = a·x + b</i>, et on cherche seulement les nombres <i>a</i> et <i>b</i>.</li>
+  <li><b>Symbolique</b> : on cherche <b>la forme et les nombres</b>. La réponse peut être <i>3·(0,5 − distance)</i>, <i>min(distance ; 0,4) × alarme</i> ou « si alarme et distance &lt; 0,7 ».</li>
+  <li><b>Le prix</b> : l'espace des formules est immense. Il faut une méthode de recherche, et une règle qui punit les formules trop longues.</li>
+</ul>
+
+<h2><span class="n">3</span>L'astuce : la pièce de monnaie</h2>
+<p>L'option est tirée à pile ou face (p = 1/2). Pour chaque épisode, on fabrique une <b>pseudo-issue</b> :</p>
+<div class="f">ψ = 2 · Y · (2a − 1)</div>
+<p class="clair">En clair : ψ vaut <b>+2</b> si l'option 1 a réussi, <b>−2</b> si l'option 0 a réussi, <b>0</b> en cas d'échec.</p>
+<p>En moyenne, dans une situation x :</p>
+<div class="f">E[ψ | x] = P(réussite | option 1)
+         − P(réussite | option 0)  =  τ(x)</div>
+<ul>
+  <li>N'importe quel algorithme de régression appliqué à ψ cherche donc directement <b>l'avantage τ(x)</b>.</li>
+  <li>La règle devient : <b>option 1 si la formule est positive</b>.</li>
+  <li>La pièce décide seule, donc l'effet est <b>causal</b> : il ne vient pas de qui a choisi quoi.</li>
+</ul>
+
+<h2><span class="n">4</span>Une formule doit payer sa place</h2>
+<div class="f">f* = argmin [ erreur(f) + λ · |f| ]
+|f| = nombre de symboles de la formule</div>
+<ul>
+  <li>Chaque symbole coûte λ. Un terme n'est gardé que s'il réduit l'erreur <b>plus qu'il ne coûte</b>.</li>
+  <li>C'est le rasoir d'Occam écrit en mathématiques (longueur de description minimale).</li>
+  <li>Sans cette pénalité, l'algorithme <b>apprend le bruit</b> : une formule compliquée qui colle aux épisodes d'hier et se trompe demain.</li>
+</ul>
+
+<h2><span class="n">5</span>Juger un algorithme : il doit savoir échouer</h2>
+<ul>
+  <li><b>Données jamais vues</b> : la règle est apprise sur 4 parts des épisodes et jugée sur la 5ᵉ, ou sur un monde laissé de côté.</li>
+  <li><b>Gain sur la meilleure option fixe</b>, qui doit être nettement positif :</li>
+</ul>
+<div class="f">G = V(règle) − max( V(option 0), V(option 1) )</div>
+<ul>
+  <li><b>Contrôle positif</b> : une formule cachée, connue de nous, doit être retrouvée.</li>
+  <li><b>Contrôle nul</b> : sans formule cachée, l'algorithme ne doit rien inventer (au plus 1 fois sur 20).</li>
+  <li><b>Leurres</b> : des variables sans effet, dont une corrélée à une vraie, ne doivent pas entrer dans la formule.</li>
+</ul>
+<div class="encadre"><b class="t">Leçon du 17/09.</b> Calibrer <b>avant</b> de juger. Il faut vérifier que la <b>bonne</b> règle serait détectée avec ce nombre d'épisodes. Avec les premiers réglages du banc, la vraie formule en croix n'était détectée que <b>9 fois sur 100</b> à 500 épisodes : le banc n'aurait rien départagé.</div>
+
+<h2><span class="n">6</span>La programmation génétique</h2>
+<p>C'est la sélection naturelle appliquée aux équations (Koza, 1992). Une formule est un <b>arbre</b> : les nœuds sont des opérations, les feuilles des variables ou des constantes.</p>
+<svg width="300" height="122" viewBox="0 0 300 122" font-family="Helvetica, Arial" font-size="9">
+  <defs><marker id="fl" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#1f4e79"/></marker></defs>
+  <text x="38" y="11" text-anchor="middle" fill="#5b6878">parent A</text>
+  <line x1="38" y1="25" x2="18" y2="50" stroke="#8a95a3"/><line x1="38" y1="25" x2="58" y2="50" stroke="#8a95a3"/>
+  <circle cx="38" cy="25" r="10" fill="#1f4e79"/><text x="38" y="28.5" text-anchor="middle" fill="#fff">×</text>
+  <rect x="3" y="50" width="32" height="15" rx="3" fill="#eef3f8" stroke="#1f4e79"/><text x="19" y="61" text-anchor="middle">alarme</text>
+  <line x1="58" y1="58" x2="46" y2="82" stroke="#e8912d"/><line x1="58" y1="58" x2="72" y2="82" stroke="#e8912d"/>
+  <circle cx="58" cy="58" r="10" fill="#e8912d"/><text x="58" y="61.5" text-anchor="middle" fill="#fff">min</text>
+  <rect x="30" y="82" width="34" height="15" rx="3" fill="#fff7e6" stroke="#e8912d"/><text x="47" y="93" text-anchor="middle">dist.</text>
+  <rect x="64" y="82" width="22" height="15" rx="3" fill="#fff7e6" stroke="#e8912d"/><text x="75" y="93" text-anchor="middle">0,4</text>
+  <text x="150" y="11" text-anchor="middle" fill="#5b6878">parent B</text>
+  <line x1="150" y1="25" x2="130" y2="50" stroke="#8a95a3"/><line x1="150" y1="25" x2="170" y2="50" stroke="#8a95a3"/>
+  <circle cx="150" cy="25" r="10" fill="#1f4e79"/><text x="150" y="28.5" text-anchor="middle" fill="#fff">−</text>
+  <rect x="116" y="50" width="28" height="15" rx="3" fill="#eef3f8" stroke="#1f4e79"/><text x="130" y="61" text-anchor="middle">0,5</text>
+  <line x1="170" y1="58" x2="160" y2="82" stroke="#1a7f37"/><line x1="170" y1="58" x2="184" y2="82" stroke="#1a7f37"/>
+  <circle cx="170" cy="58" r="10" fill="#1a7f37"/><text x="170" y="61.5" text-anchor="middle" fill="#fff">&gt;</text>
+  <rect x="140" y="82" width="36" height="15" rx="3" fill="#e9f6ec" stroke="#1a7f37"/><text x="158" y="93" text-anchor="middle">moment</text>
+  <rect x="178" y="82" width="22" height="15" rx="3" fill="#e9f6ec" stroke="#1a7f37"/><text x="189" y="93" text-anchor="middle">0,6</text>
+  <line x1="203" y1="55" x2="218" y2="55" stroke="#1f4e79" stroke-width="1.5" marker-end="url(#fl)"/>
+  <text x="211" y="46" text-anchor="middle" fill="#1f4e79" font-size="8">croiser</text>
+  <text x="258" y="11" text-anchor="middle" fill="#5b6878">enfant</text>
+  <line x1="255" y1="25" x2="238" y2="50" stroke="#8a95a3"/><line x1="255" y1="25" x2="273" y2="50" stroke="#8a95a3"/>
+  <circle cx="255" cy="25" r="10" fill="#1f4e79"/><text x="255" y="28.5" text-anchor="middle" fill="#fff">×</text>
+  <rect x="222" y="50" width="32" height="15" rx="3" fill="#eef3f8" stroke="#1f4e79"/><text x="238" y="61" text-anchor="middle">alarme</text>
+  <line x1="273" y1="58" x2="264" y2="82" stroke="#1a7f37"/><line x1="273" y1="58" x2="291" y2="82" stroke="#1a7f37"/>
+  <circle cx="273" cy="58" r="10" fill="#1a7f37"/><text x="273" y="61.5" text-anchor="middle" fill="#fff">&gt;</text>
+  <rect x="246" y="82" width="36" height="15" rx="3" fill="#e9f6ec" stroke="#1a7f37"/><text x="264" y="93" text-anchor="middle">moment</text>
+  <rect x="283" y="82" width="17" height="15" rx="3" fill="#e9f6ec" stroke="#1a7f37"/><text x="291.5" y="93" text-anchor="middle">0,6</text>
+  <text x="150" y="115" text-anchor="middle" fill="#3a4656" font-size="8.4">alarme × min(distance ; 0,4)   et   0,5 − (moment &gt; 0,6)   →   alarme × (moment &gt; 0,6)</text>
+</svg>
+<ul>
+  <li><b>Naissance</b> : 500 à 5000 formules tirées au hasard.</li>
+  <li><b>Sélection</b> : on garde les plus justes, pénalisées par leur longueur.</li>
+  <li><b>Croisement</b> : deux parents échangent un sous-arbre.</li>
+  <li><b>Mutation</b> : un symbole change au hasard.</li>
+  <li>On recommence pendant 15 à 100 <b>générations</b>.</li>
+</ul>
+<p><b>EvoGP</b> fait exactement cela, mais range toute la population dans des tableaux de taille fixe et l'évalue <b>d'un seul coup sur la carte graphique</b>. Ses auteurs annoncent jusqu'à 100 fois plus vite.</p>
+
+</div>
+</div>
+
+<!-- ============================== PAGE 2 ============================== -->
+<div class="page">
+<h2 style="margin-top:0"><span class="n">7</span>Les familles d'algorithmes</h2>
+<table>
+  <tr><th>famille</th><th>idée</th><th>exemples</th><th>machine</th></tr>
+  <tr><td><b>Linéaire parcimonieux</b></td><td>une frontière droite ; la pénalité L1 met à zéro les coefficients inutiles</td><td>logistique L1</td><td>CPU, 1 s</td></tr>
+  <tr><td><b>Arbre</b></td><td>une suite de questions : « distance &lt; 0,4 ? »</td><td>arbre de régression</td><td>CPU, 1 s</td></tr>
+  <tr><td><b>Programmation génétique</b></td><td>une population de formules évolue (§ 6)</td><td>gplearn, PySR, <b>EvoGP</b></td><td>CPU ; EvoGP sur GPU</td></tr>
+  <tr><td><b>Réseau symbolisé</b></td><td>un réseau est appris, puis chaque lien est remplacé par une fonction simple</td><td>KAN, EQL</td><td>GPU</td></tr>
+  <tr><td><b>Transformeur pré-entraîné</b></td><td>lit le nuage de points et écrit la formule d'un coup ; fragile au bruit</td><td>E2E, TPSR</td><td>GPU</td></tr>
+  <tr><td><b>Modèle de langage</b></td><td>propose des squelettes de formules, puis on ajuste les constantes</td><td>LLM-SR, FunSearch</td><td>GPU</td></tr>
+  <tr><td><b>Renforcement</b></td><td>un agent écrit la formule symbole par symbole ; récompense = ajustement</td><td>DSR, Φ-SO</td><td>GPU ou CPU</td></tr>
+</table>
+
+<div class="cols">
+
+<h2><span class="n">8</span>L'Architecte et l'Oracle</h2>
+<svg width="300" height="96" viewBox="0 0 300 96" font-family="Helvetica, Arial" font-size="8.6">
+  <defs><marker id="fl2" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#1f4e79"/></marker></defs>
+  <rect x="4" y="30" width="86" height="36" rx="5" fill="#eef3f8" stroke="#1f4e79" stroke-width="1.4"/>
+  <text x="47" y="45" text-anchor="middle" font-weight="bold" fill="#1f4e79">Architecte</text>
+  <text x="47" y="58" text-anchor="middle" fill="#3a4656">la règle la plus propre</text>
+  <rect x="210" y="30" width="86" height="36" rx="5" fill="#fdecea" stroke="#b42318" stroke-width="1.4"/>
+  <text x="253" y="45" text-anchor="middle" font-weight="bold" fill="#b42318">Oracle</text>
+  <text x="253" y="58" text-anchor="middle" fill="#3a4656">cherche à la casser</text>
+  <rect x="112" y="4" width="76" height="24" rx="4" fill="#fff" stroke="#8a95a3"/>
+  <text x="150" y="19" text-anchor="middle" fill="#3a4656">règle publique</text>
+  <rect x="112" y="68" width="76" height="24" rx="4" fill="#fff" stroke="#8a95a3"/>
+  <text x="150" y="83" text-anchor="middle" fill="#3a4656">épisodes Arma</text>
+  <path d="M90,38 C100,20 104,16 112,16" fill="none" stroke="#1f4e79" stroke-width="1.3" marker-end="url(#fl2)"/>
+  <path d="M188,16 C198,16 202,22 210,38" fill="none" stroke="#1f4e79" stroke-width="1.3" marker-end="url(#fl2)"/>
+  <path d="M210,58 C202,74 198,80 188,80" fill="none" stroke="#b42318" stroke-width="1.3" marker-end="url(#fl2)"/>
+  <path d="M112,80 C102,80 98,74 90,58" fill="none" stroke="#1f4e79" stroke-width="1.3" marker-end="url(#fl2)"/>
+  <text x="214" y="86" text-anchor="start" fill="#b42318" font-size="7.6">situations où</text><text x="214" y="95" text-anchor="start" fill="#b42318" font-size="7.6">elle perd</text>
+</svg>
+<ul>
+  <li>L'<b>Architecte</b> apprend la règle la plus simple sur tous les épisodes.</li>
+  <li>L'<b>Oracle</b> cherche à la <b>casser au maximum</b>. Il envoie les épisodes suivants là où le <b>regret</b> est grand :</li>
+</ul>
+<div class="f">ρ(θ) = max( V₀(θ), V₁(θ) ) − V_règle(θ)</div>
+<p class="clair">En clair : casser, c'est faire perdre la règle <b>là où une autre option aurait réussi</b>. Un monde impossible (tout échoue) rapporte ρ = 0 : l'Oracle n'y gagne rien, et l'Architecte n'y apprendrait rien.</p>
+<p>L'Oracle <b>voit ce que le détachement ne voit pas</b> : la situation vraie θ. La valeur de cette information cachée est :</p>
+<div class="f">VI(x) = E[ max_a μ_a(θ) | x ]
+       − max_a E[ μ_a(θ) | x ]   ≥ 0</div>
+<p class="clair">En clair : c'est ce que gagnerait un détachement qui verrait θ. Elle n'est jamais négative, car la moyenne des maximums dépasse toujours le maximum des moyennes.</p>
+<p>Poussé par l'Oracle, <b>l'Architecte se dépasse en trois niveaux</b> :</p>
+<table>
+  <tr><th>niveau</th><th>quand</th><th>ce qui change</th></tr>
+  <tr><td>1. coefficients</td><td>la faille se corrige en réajustant</td><td>les nombres de la formule</td></tr>
+  <tr><td>2. forme</td><td>la faille résiste, et VI ≈ 0</td><td>un <b>terme nouveau</b>, s'il paie sa place (§ 4)</td></tr>
+  <tr><td>3. perception</td><td>VI grande : la faille est invisible</td><td>une <b>perception</b> ou une <b>option</b> nouvelle</td></tr>
+</table>
+<p>Le progrès se mesure par la <b>pire faille confirmée</b> à chaque tour, qui doit baisser. Une <b>archive</b> des anciennes failles empêche l'Architecte de les rouvrir.</p>
+
+<h2><span class="n">9</span>Pièges à retenir</h2>
+<ul>
+  <li><b>Le maximum de moyennes bruitées est trop optimiste.</b> Une faille se confirme sur des épisodes neufs.</li>
+  <li><b>Une variable corrélée</b> à la vraie peut prendre sa place dans la formule.</li>
+  <li><b>« Indifférent » veut dire « plus petit que ce qu'on sait voir »</b>, pas « nul ».</li>
+  <li><b>Une équation ne décide pas selon ce qui n'est pas perçu.</b> Au 17/09, au moment du choix, le détachement ne voyait presque rien de la menace. En P2, seul « véhicule vu » variait (8 épisodes sur 128) ; en P4, rien.</li>
+</ul>
+
+<div class="encadre"><b class="t">Où en est le banc (17/09).</b> Test B, sur les vrais épisodes Arma : <span class="ko">aucune règle</span> ne bat la meilleure option fixe, comme attendu. Une piste non établie sur le pilote P5 : « alarme depuis plus de 7,5 s → repartir à 45 s », +6 points, IC [−1 ; +13,5]. Test A, avec des formules cachées : L1 et arbre finis, gplearn en cours, <b>EvoGP</b> (GPU) en installation.</div>
+
+<div class="refs">
+<b>Pour aller plus loin.</b> Koza (1992), <i>Genetic Programming</i>. Schmidt et Lipson (2009), <i>Science</i>, lois physiques retrouvées par évolution. Cranmer (2023), PySR. Petersen et al. (2021), Deep Symbolic Regression. Kamienny et al. (2022), régression symbolique de bout en bout par transformeurs. Liu et al. (2024), KAN. Shojaee et al. (2024), LLM-SR. EMI-Group (2025), EvoGP, arXiv 2501.17168. Dennis et al. (2020), PAIRED : générer des environnements par le regret. Dépôt : <i>plans/plan-architecte-oracle.md</i>, <i>equation/CRITERES_BANC_EQUATION.md</i>.
+</div>
+
+</div>
+</div>
+
+</body>
+</html>
