@@ -7,6 +7,6 @@ for c in P2 P1 P4 P3 P6; do
   for d in $(grep -l "\"campagne\": *\"CHOIX-$c-17-09\"" /mnt/data/hmt/runs/2026-09-17_*/job.json 2>/dev/null | xargs -r -n1 dirname); do
     A=$((A + $(grep -l '"verdict": "ACCEPTE"' $d/g*/resultat.json 2>/dev/null | wc -l))); X=$((X + $(grep -l '"verdict": "REFUSE"' $d/g*/resultat.json 2>/dev/null | wc -l)))
   done
-  printf "%s:%s/32,r%s,a%s,x%s " $c $F $R $A $X
+  printf "%s:%s/16,r%s,a%s,x%s " $c $F $R $A $X
 done
 echo

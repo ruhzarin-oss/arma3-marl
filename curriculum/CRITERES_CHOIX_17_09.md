@@ -13,7 +13,10 @@ La situation (menace de niveau 3 sur la phase, contre le témoin sans menace) ch
 
 - 2 options × 2 bras (TÉMOIN `menace_pK=0`, MENACE `menace_pK=3`) × 8 mondes (graines 4, 5, 6, 7, 8, 9, 11, 12 :
   8 sites distincts) × R répétitions ; graine de situation 1 ; palier 4, socle 1, sans réserve.
-- Un job par (bras, option, monde) ; dans une campagne, les 4 cases d'un monde partent ensemble.
+- ~~Un job par (bras, option, monde)~~ **Amendement avant lancement (02:35)** : le contrôle avant run refuse un job d'une
+  seule graine à moins de 5 répétitions. Un job porte donc **une paire de mondes** (4-5, 6-7, 8-9, 11-12), chaque monde
+  avec ses R répétitions : 16 jobs par campagne, 80 au total. Chaque case garde 8 mondes × R épisodes ; les 4 cases
+  d'une paire partent ensemble. Aucun épisode n'avait été lancé.
 - Ordre de la file : P2, P1, P4, P3, P6 ; instances 1-8 et 10-13 en rotation ; 12 serveurs au plus.
 - La fumée FUMEE-CHOIX-17-09 doit avoir tenu toutes ses attentes, sinon rien ne part.
 
