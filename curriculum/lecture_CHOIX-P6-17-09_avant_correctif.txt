@@ -1,0 +1,112 @@
+== dbt run
+12:23:03  Done. PASS=26 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=26
+== dbt test
+12:23:11  1 of 38 WARN 2 acceleration_effective .......................................... [WARN 2 in 0.32s]
+12:23:11  5 of 38 FAIL 4 base_a_la_distance_imposee ...................................... [FAIL 4 in 0.11s]
+12:23:11  11 of 38 WARN 12 combat_au_bouchon ............................................. [WARN 12 in 0.07s]
+12:23:12  26 of 38 WARN 3 reserve_au_contact_du_bouchon .................................. [WARN 3 in 0.06s]
+12:23:12  23 of 38 WARN 1 observable_vivant .............................................. [WARN 1 in 0.29s]
+12:23:12  25 of 38 WARN 7 phase_arretee_jouee ............................................ [WARN 7 in 0.27s]
+12:23:13  31 of 38 FAIL 1 taux_combat_suffisant .......................................... [FAIL 1 in 0.09s]
+12:23:13  36 of 38 FAIL 4 vehicules_reserve_bien_decoupes ................................ [FAIL 4 in 0.14s]
+12:23:13  37 of 38 FAIL 41 verdict_accepte ............................................... [FAIL 41 in 0.13s]
+12:23:13    Got 4 results, configured to fail if != 0
+12:23:13    Got 1 result, configured to fail if != 0
+12:23:13    Got 4 results, configured to fail if != 0
+12:23:13    Got 41 results, configured to fail if != 0
+12:23:13  [WARNING]: Got 2 results, configured to warn if != 0
+12:23:13  [WARNING]: Got 12 results, configured to warn if != 0
+12:23:13  [WARNING]: Got 3 results, configured to warn if != 0
+12:23:13  [WARNING]: Got 1 result, configured to warn if != 0
+12:23:13  [WARNING]: Got 7 results, configured to warn if != 0
+12:23:13  Done. PASS=29 WARN=5 ERROR=4 SKIP=0 NO-OP=0 REUSED=0 TOTAL=38
+== lecture pre-enregistree
+== LECTURE CHOIX-P6-17-09 : point EXFIL_ALLURE, options PRUDENT ( 0 ) / RAPIDE ( 1 ), issue primaire exfil_reussie
+   PASSE   Q1 episodes acceptes >= 90 % des prevus : 96 acceptes sur 96 ( prevus 96 )
+   PASSE   Q2 zero erreur SQF : 0 erreurs
+   PASSE   Q3 tests dbt bloquants a zero sur la campagne : tous a zero
+   PASSE   Q4 chaque case ( monde, bras, option ) a au moins 2 episodes : 32 cases pleines
+   PASSE   Q5 menaces posees sur la phase dans tous les episodes MENACE, aucune dans le TEMOIN : {'TEMOIN': (48, 0), 'MENACE': (48, 48)}
+
+== ISSUE PRIMAIRE ( ecrite avant ) : exfil_reussie
+
+   exfil_reussie
+      TEMOIN  PRUDENT        0.583   RAPIDE         0.833
+      MENACE  PRUDENT        0.500   RAPIDE         0.708
+      ecart RAPIDE - PRUDENT, TEMOIN : +0.250  IC [-0.042 ; +0.542]
+      ecart RAPIDE - PRUDENT, MENACE : +0.208  IC [-0.083 ; +0.500]
+      MODULATION ( menace - temoin ) : -0.042  IC [-0.375 ; +0.292]
+      ecart moyen des deux situations : +0.229  IC [+0.000 ; +0.479]
+      modulation par monde : 4:-0.67  5:+0.33  6:-0.67  7:-0.33  8:-0.33  9:+0.33  11:+0.33  12:+0.67
+
+== CRITERES
+   C2 MODULATION ETABLIE : NON
+   C3 INVERSION ( C2 et signes opposes ) : NON
+
+   CLASSEMENT : DOMINE
+   DECISION : choix domine, RAPIDE vaut mieux dans les deux situations ; pas une decision dependant de la situation
+
+== ISSUES SECONDAIRES ( descriptives, aucune decision )
+
+   phase_discrete
+      TEMOIN  PRUDENT        0.000   RAPIDE         0.000
+      MENACE  PRUDENT        0.000   RAPIDE         0.000
+      ecart RAPIDE - PRUDENT, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart RAPIDE - PRUDENT, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
+
+   observation_utile
+      TEMOIN  PRUDENT        0.000   RAPIDE         0.000
+      MENACE  PRUDENT        0.000   RAPIDE         0.000
+      ecart RAPIDE - PRUDENT, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart RAPIDE - PRUDENT, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
+
+   mise_en_place_propre
+      TEMOIN  PRUDENT        0.000   RAPIDE         0.000
+      MENACE  PRUDENT        0.000   RAPIDE         0.000
+      ecart RAPIDE - PRUDENT, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart RAPIDE - PRUDENT, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
+
+   fin_vivants
+      TEMOIN  PRUDENT        7.458   RAPIDE         7.792
+      MENACE  PRUDENT        7.417   RAPIDE         7.917
+      ecart RAPIDE - PRUDENT, TEMOIN : +0.333  IC [-0.667 ; +1.333]
+      ecart RAPIDE - PRUDENT, MENACE : +0.500  IC [-0.417 ; +1.292]
+      MODULATION ( menace - temoin ) : +0.167  IC [-1.250 ; +1.542]
+      ecart moyen des deux situations : +0.417  IC [-0.208 ; +1.000]
+      modulation par monde : 4:-1.00  5:+1.67  6:-3.00  7:-1.00  8:-2.00  9:+2.00  11:+2.00  12:+2.67
+
+   duree_phase
+      TEMOIN  PRUDENT        713.575   RAPIDE         371.072
+      MENACE  PRUDENT        1015.112   RAPIDE         565.180
+      ecart RAPIDE - PRUDENT, TEMOIN : -342.502  IC [-559.385 ; -120.955]
+      ecart RAPIDE - PRUDENT, MENACE : -449.932  IC [-627.278 ; -266.724]
+      MODULATION ( menace - temoin ) : -107.430  IC [-438.571 ; +205.673]
+      ecart moyen des deux situations : -396.217  IC [-516.596 ; -280.341]
+      modulation par monde : 4:-813.39  5:+93.68  6:-700.95  7:+507.26  8:-546.72  9:+317.98  11:+250.57  12:+32.11
+
+   renseignement
+      TEMOIN  PRUDENT        0.000   RAPIDE         0.000
+      MENACE  PRUDENT        0.000   RAPIDE         0.000
+      ecart RAPIDE - PRUDENT, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart RAPIDE - PRUDENT, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
+
+   exfiltres
+      TEMOIN  PRUDENT        4.083   RAPIDE         5.083
+      MENACE  PRUDENT        4.458   RAPIDE         4.917
+      ecart RAPIDE - PRUDENT, TEMOIN : +1.000  IC [-0.417 ; +2.500]
+      ecart RAPIDE - PRUDENT, MENACE : +0.458  IC [-0.833 ; +1.583]
+      MODULATION ( menace - temoin ) : -0.542  IC [-2.542 ; +1.418]
+      ecart moyen des deux situations : +0.729  IC [-0.208 ; +1.604]
+      modulation par monde : 4:-5.00  5:+1.67  6:-4.00  7:-0.67  8:-2.67  9:+1.67  11:+1.00  12:+3.67
