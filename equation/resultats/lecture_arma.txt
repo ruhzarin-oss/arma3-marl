@@ -1,0 +1,20 @@
+
+== CHOIX-P1-17-09 INSERTION_ATTENTE : 132 episodes, 8 mondes, option 1 jouee 0.50, issue 0.682 ; perceptions qui varient : ['alarme', 'depuis_alarme', 'compromis', 'vivants']
+   l1       G -0.030  IC95 [-0.086 ; +0.000]  p1% -0.111  pas de gain  variables []  formule : +0.153 
+   arbre    G +0.000  IC95 [+0.000 ; +0.000]  p1% +0.000  pas de gain  variables []  formule : constante 1
+   gplearn  G +0.000  IC95 [+0.000 ; +0.000]  p1% +0.000  pas de gain  variables []  formule : 0.044
+
+== CHOIX-P2-17-09 TRAVERSEE : 128 episodes, 8 mondes, option 1 jouee 0.52, issue 0.891 ; perceptions qui varient : ['vehicule_vu']
+   l1       G -0.031  IC95 [-0.141 ; +0.047]  p1% -0.172  pas de gain  variables []  formule : +0.000 
+   arbre    G +0.000  IC95 [+0.000 ; +0.000]  p1% +0.000  pas de gain  variables []  formule : constante 1
+   gplearn  G -0.047  IC95 [-0.141 ; +0.000]  p1% -0.188  pas de gain  variables []  formule : 0.066
+
+== CHOIX-P4-17-09 ITINERAIRE : 133 episodes, 8 mondes, option 1 jouee 0.51, issue 0.233 ; perceptions qui varient : aucune
+   l1       G +0.000  IC95 [+0.000 ; +0.000]  p1% +0.000  pas de gain  variables []  formule : constante 0
+   arbre    G +0.000  IC95 [+0.000 ; +0.000]  p1% +0.000  pas de gain  variables []  formule : constante 0
+   gplearn  G +0.000  IC95 [+0.000 ; +0.000]  p1% +0.000  pas de gain  variables []  formule : -0.204
+
+== PILOTE-P5-DELAI-SITUATION-16-09 DELAI_PORTEUR : 192 episodes, 8 mondes, option 1 jouee 0.50, issue 0.578 ; perceptions qui varient : ['alarme', 'depuis_alarme', 'compromis']
+   l1       G -0.073  IC95 [-0.219 ; +0.000]  p1% -0.292  pas de gain  variables ['depuis_alarme']  formule : +0.725 -0.329*z(depuis_alarme)
+   arbre    G +0.062  IC95 [-0.010 ; +0.135]  p1% -0.031  pas de gain  variables ['depuis_alarme']  formule : |--- depuis_alarme <= 7.500 ; |   |--- value: [0.395] ; |--- depuis_alarme >  7.500 ; |   |--- value: [-0.267] ; 
+   gplearn  G +0.000  IC95 [+0.000 ; +0.000]  p1% +0.000  pas de gain  variables []  formule : 0.290
