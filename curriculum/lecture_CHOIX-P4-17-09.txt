@@ -1,0 +1,112 @@
+== dbt run
+07:54:11  Done. PASS=26 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=26
+== dbt test
+07:54:19  1 of 38 WARN 2 acceleration_effective .......................................... [WARN 2 in 0.36s]
+07:54:19  5 of 38 FAIL 4 base_a_la_distance_imposee ...................................... [FAIL 4 in 0.14s]
+07:54:20  11 of 38 WARN 12 combat_au_bouchon ............................................. [WARN 12 in 0.08s]
+07:54:21  23 of 38 WARN 1 observable_vivant .............................................. [WARN 1 in 0.36s]
+07:54:21  26 of 38 WARN 3 reserve_au_contact_du_bouchon .................................. [WARN 3 in 0.10s]
+07:54:21  25 of 38 WARN 7 phase_arretee_jouee ............................................ [WARN 7 in 0.31s]
+07:54:21  31 of 38 FAIL 1 taux_combat_suffisant .......................................... [FAIL 1 in 0.08s]
+07:54:22  36 of 38 FAIL 4 vehicules_reserve_bien_decoupes ................................ [FAIL 4 in 0.16s]
+07:54:22  37 of 38 FAIL 41 verdict_accepte ............................................... [FAIL 41 in 0.17s]
+07:54:22    Got 4 results, configured to fail if != 0
+07:54:22    Got 1 result, configured to fail if != 0
+07:54:22    Got 4 results, configured to fail if != 0
+07:54:22    Got 41 results, configured to fail if != 0
+07:54:22  [WARNING]: Got 2 results, configured to warn if != 0
+07:54:22  [WARNING]: Got 12 results, configured to warn if != 0
+07:54:22  [WARNING]: Got 1 result, configured to warn if != 0
+07:54:22  [WARNING]: Got 3 results, configured to warn if != 0
+07:54:22  [WARNING]: Got 7 results, configured to warn if != 0
+07:54:22  Done. PASS=29 WARN=5 ERROR=4 SKIP=0 NO-OP=0 REUSED=0 TOTAL=38
+== lecture pre-enregistree
+== LECTURE CHOIX-P4-17-09 : point ITINERAIRE, options DIRECT ( 1 ) / DETOUR ( 2 ), issue primaire mise_en_place_propre
+   PASSE   Q1 episodes acceptes >= 90 % des prevus : 133 acceptes sur 138 ( prevus 128 )
+   PASSE   Q2 zero erreur SQF : 0 erreurs
+   PASSE   Q3 tests dbt bloquants a zero sur la campagne : tous a zero
+   PASSE   Q4 chaque case ( monde, bras, option ) a au moins 3 episodes : 32 cases pleines
+   PASSE   Q5 menaces posees sur la phase dans tous les episodes MENACE, aucune dans le TEMOIN : {'TEMOIN': (64, 0), 'MENACE': (74, 74)}
+
+== ISSUE PRIMAIRE ( ecrite avant ) : mise_en_place_propre
+
+   mise_en_place_propre
+      TEMOIN  DIRECT         0.625   DETOUR         0.250
+      MENACE  DIRECT         0.094   DETOUR         0.000
+      ecart DETOUR - DIRECT, TEMOIN : -0.375  IC [-0.688 ; -0.062]
+      ecart DETOUR - DIRECT, MENACE : -0.094  IC [-0.219 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.281  IC [-0.062 ; +0.625]
+      ecart moyen des deux situations : -0.234  IC [-0.406 ; -0.078]
+      modulation par monde : 4:+0.75  5:+0.25  6:+0.75  7:-0.50  8:+1.00  9:-0.25  11:+0.25  12:+0.00
+
+== CRITERES
+   C2 MODULATION ETABLIE : NON
+   C3 INVERSION ( C2 et signes opposes ) : NON
+
+   CLASSEMENT : DOMINE
+   DECISION : choix domine, DIRECT vaut mieux dans les deux situations ; pas une decision dependant de la situation
+
+== ISSUES SECONDAIRES ( descriptives, aucune decision )
+
+   phase_discrete
+      TEMOIN  DIRECT         0.625   DETOUR         0.250
+      MENACE  DIRECT         0.094   DETOUR         0.000
+      ecart DETOUR - DIRECT, TEMOIN : -0.375  IC [-0.688 ; -0.062]
+      ecart DETOUR - DIRECT, MENACE : -0.094  IC [-0.219 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.281  IC [-0.062 ; +0.625]
+      ecart moyen des deux situations : -0.234  IC [-0.406 ; -0.078]
+      modulation par monde : 4:+0.75  5:+0.25  6:+0.75  7:-0.50  8:+1.00  9:-0.25  11:+0.25  12:+0.00
+
+   observation_utile
+      TEMOIN  DIRECT         0.000   DETOUR         0.000
+      MENACE  DIRECT         0.000   DETOUR         0.000
+      ecart DETOUR - DIRECT, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart DETOUR - DIRECT, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
+
+   exfil_reussie
+      TEMOIN  DIRECT         0.000   DETOUR         0.000
+      MENACE  DIRECT         0.000   DETOUR         0.000
+      ecart DETOUR - DIRECT, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart DETOUR - DIRECT, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
+
+   fin_vivants
+      TEMOIN  DIRECT         10.000   DETOUR         9.906
+      MENACE  DIRECT         9.594   DETOUR         9.734
+      ecart DETOUR - DIRECT, TEMOIN : -0.094  IC [-0.219 ; +0.000]
+      ecart DETOUR - DIRECT, MENACE : +0.141  IC [-0.281 ; +0.516]
+      MODULATION ( menace - temoin ) : +0.234  IC [-0.172 ; +0.656]
+      ecart moyen des deux situations : +0.023  IC [-0.203 ; +0.211]
+      modulation par monde : 4:+0.50  5:+1.25  6:-0.75  7:+0.00  8:+0.75  9:-0.38  11:+0.00  12:+0.50
+
+   duree_phase
+      TEMOIN  DIRECT         354.462   DETOUR         341.711
+      MENACE  DIRECT         248.775   DETOUR         266.576
+      ecart DETOUR - DIRECT, TEMOIN : -12.751  IC [-63.973 ; +41.764]
+      ecart DETOUR - DIRECT, MENACE : +17.801  IC [-41.576 ; +66.115]
+      MODULATION ( menace - temoin ) : +30.552  IC [-32.721 ; +94.892]
+      ecart moyen des deux situations : +2.525  IC [-44.471 ; +42.700]
+      modulation par monde : 4:+196.60  5:+18.72  6:-43.54  7:-131.14  8:+81.08  9:+81.43  11:+47.31  12:-6.06
+
+   renseignement
+      TEMOIN  DIRECT         0.000   DETOUR         0.000
+      MENACE  DIRECT         0.000   DETOUR         0.000
+      ecart DETOUR - DIRECT, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart DETOUR - DIRECT, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
+
+   exfiltres
+      TEMOIN  DIRECT         0.000   DETOUR         0.000
+      MENACE  DIRECT         0.000   DETOUR         0.000
+      ecart DETOUR - DIRECT, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart DETOUR - DIRECT, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
