@@ -38,8 +38,8 @@ Exemples de formules apprises (n = 1000, première répétition) :
 1. **Aucun algorithme ne gagne partout.** Le linéaire est imbattable quand la forme est linéaire ou presque, et aveugle
    à la croix. La programmation génétique sur GPU est la seule à voir la croix, mais elle demande deux fois plus
    d'épisodes et produit des formules chargées si la parcimonie est faible.
-2. **La parcimonie est le vrai réglage.** À 0,001 par nœud, EvoGP trouve la croix mais prend des leurres (1,2 à 2,3 par
-   formule). À 0,01, il ne prend presque plus de leurres, mais il manque la croix. Il faudra la choisir par validation
+2. **La parcimonie est le vrai réglage.** À 0,001 par nœud, EvoGP trouve la croix mais prend des leurres (0,3 à 2,3 par
+   formule selon n). À 0,01, il en prend au plus 0,65 et souvent 0, mais il manque la croix. Il faudra la choisir par validation
    croisée, pas à la main.
 3. **La vitesse change ce qui est possible.** EvoGP explore environ 30 fois plus de formules que gplearn, en 20 fois
    moins de temps. Pour l'Architecte du plan, c'est le candidat du niveau 2 (nouvelle forme).
