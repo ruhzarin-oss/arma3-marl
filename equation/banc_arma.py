@@ -1,6 +1,6 @@
 """
 Test B : les memes algorithmes sur les vrais episodes Arma ( criteres : equation/CRITERES_BANC_EQUATION.md ).
-  python banc_arma.py /mnt/c/hmt/tmp/equation/arma_choix.parquet resultats/arma.jsonl
+  python banc_arma.py /mnt/c/hmt/tmp/equation/arma_choix.parquet resultats/arma.jsonl [ algos separes par des virgules ]
 Plis = mondes ( graine ) ; IC par reechantillonnage des mondes ; gain declare si le percentile 1 % est > 0.
 """
 import json, sys
@@ -14,6 +14,7 @@ B, GRAINE = 10000, 20260917
 
 df = pd.read_parquet(sys.argv[1])
 sortie = open(sys.argv[2], "w")
+CHOISIS = sys.argv[3].split(",") if len(sys.argv) > 3 else list(ALGOS)
 for (camp, point), g in df.groupby(["campagne", "point"]):
     noms = PERCEPTIONS + EXTRAS.get(point, [])
     X = g[noms].fillna(0).to_numpy(float)
@@ -24,7 +25,7 @@ for (camp, point), g in df.groupby(["campagne", "point"]):
     liste_mondes = sorted(set(mondes))
     rng = np.random.default_rng(GRAINE)
     tirages = [rng.choice(liste_mondes, len(liste_mondes)) for _ in range(B)]
-    for nom_algo, algo in ALGOS.items():
+    for nom_algo, algo in [(k, ALGOS[k]) for k in CHOISIS]:
         d = ecarts_croises(algo, X, a, Y, noms, mondes, GRAINE)
         par_monde = {w: d[mondes == w] for w in liste_mondes}
         boot = [np.concatenate([par_monde[w] for w in t]).mean() for t in tirages]

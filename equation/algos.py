@@ -89,7 +89,51 @@ def gplearn(X, a, Y, noms, graine):
     return Regle(lambda Xn, e=est: e.predict(Xn) > 0, variables, prog)
 
 
-ALGOS = {"l1": l1, "arbre": arbre, "gplearn": gplearn}
+def evogp(X, a, Y, noms, graine, parcimonie=0.001):
+    """Programmation genetique sur GPU ( EvoGP, EMI-Group ) sur psi ; parcimonie ajoutee a la fitness ; regle = formule > 0.
+    Amendement 1 des criteres : population 5000, 50 generations, fonctions + - * min max neg >, parcimonie 0,001 par noeud."""
+    import torch
+    from evogp.tree import Forest, GenerateDescriptor
+    from evogp.algorithm import GeneticProgramming, DefaultSelection, DefaultMutation, DefaultCrossover
+    from evogp.problem import SymbolicRegression
+    from evogp.pipeline import StandardPipeline
+
+    class RegressionParcimonieuse(SymbolicRegression):
+        def evaluate(self, forest):
+            return super().evaluate(forest) - parcimonie * forest.batch_subtree_size[:, 0].float()
+
+    torch.manual_seed(graine)
+    torch.cuda.manual_seed_all(graine)
+    psi = pseudo_issue(a, Y)
+    Xg = torch.tensor(X, dtype=torch.float32, device="cuda")
+    Yg = torch.tensor(psi, dtype=torch.float32, device="cuda")[:, None]
+    pb = RegressionParcimonieuse(datapoints=Xg, labels=Yg)
+    d = GenerateDescriptor(max_tree_len=32, input_len=X.shape[1], output_len=1,
+                           using_funcs=["+", "-", "*", "min", "max", "neg", ">"], max_layer_cnt=5,
+                           const_samples=[-1.0, -0.5, -0.25, 0.0, 0.25, 0.5, 1.0])
+    alg = GeneticProgramming(initial_forest=Forest.random_generate(pop_size=5000, descriptor=d), crossover=DefaultCrossover(),
+                             mutation=DefaultMutation(mutation_rate=0.2, descriptor=d.update(max_layer_cnt=3)),
+                             selection=DefaultSelection(survival_rate=0.3, elite_rate=0.01))
+    best = StandardPipeline(alg, pb, generation_limit=50, is_show_details=False).run()
+    texte = str(best.to_infix())          # to_sympy_expr refuse le « > » dans un produit
+    variables = []
+    for j in sorted({int(m) for m in re.findall(r"\bx(\d+)\b", texte)}, reverse=True):
+        variables.append(noms[j])
+        texte = re.sub(rf"\bx{j}\b", noms[j], texte)
+
+    def regle(Xn, best=best):
+        with torch.no_grad():
+            out = best.forward(torch.tensor(Xn, dtype=torch.float32, device="cuda"))
+        return (out.reshape(-1).cpu().numpy() > 0)
+    return Regle(regle, variables, texte)
+
+
+def evogp_p01(X, a, Y, noms, graine):
+    """EvoGP avec une parcimonie 10 fois plus forte ( 0,01 par noeud ), variante declaree avant calcul."""
+    return evogp(X, a, Y, noms, graine, parcimonie=0.01)
+
+
+ALGOS = {"l1": l1, "arbre": arbre, "gplearn": gplearn, "evogp": evogp, "evogp_p01": evogp_p01}
 
 
 def ecarts_croises(algo, X, a, Y, noms, plis, graine):

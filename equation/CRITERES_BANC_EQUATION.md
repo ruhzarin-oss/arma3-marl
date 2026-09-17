@@ -127,3 +127,23 @@ sur données réelles.
 
 **Attendu écrit avant** : aucun gain déclaré. Un gain déclaré ne sera pas cru avant d'avoir vérifié la fuite de
 perception et l'effet d'un seul monde.
+
+## Amendement 1 — ajout d'EvoGP (17/09, vers 11 h 30, avant tout calcul EvoGP)
+
+Younes a demandé d'essayer EvoGP (« essaye celui-là », puis « lance evogp dès que c'est installé »). Les résultats du
+test A pour L1 et l'arbre sont calculés mais **pas lus** (lecture unique à la fin du test A). Le test B est lu
+(3f0547c), sans gain.
+
+| algo | réglages |
+|---|---|
+| `evogp` | EvoGP 0.1.0 (EMI-Group), GPU RTX 3090 ; population 5000, 50 générations, arbres de 32 nœuds au plus, profondeur initiale 5 ; fonctions +, −, ×, min, max, neg, > ; constantes {−1 ; −0,5 ; −0,25 ; 0 ; 0,25 ; 0,5 ; 1} ; mutation 0,2, survie 0,3, élite 1 % ; fitness = −MSE sur ψ − 0,001 × nombre de nœuds (même parcimonie que gplearn) ; règle = formule > 0 |
+
+- **Environnement séparé** : `/mnt/data/hmt/evogp/env`, avec Python 3.12, torch 2.7.1+cu126, CUDA 12.6 et gcc 13, installé sans droits administrateur.
+- **Graines** : torch et CUDA sont fixées par la graine du banc, mais les noyaux CUDA ne sont pas garantis déterministes.
+- **Critères** : les mêmes, test A (RETENU si F1, F2 et F3 ≥ 18/20 à n = 500 et F0 ≤ 1/20) et test B (même méthode).
+- **Fumée** : sur graines décalées, pour la durée et le bon fonctionnement seulement.
+- **Variante `evogp_p01`**, déclarée avant tout calcul : mêmes réglages, mais parcimonie 0,01 par nœud (10 fois plus
+  forte). Raison : EvoGP explore environ 30 fois plus de formules que gplearn (5000 × 50 contre 500 × 15), donc il a
+  plus d'occasions d'apprendre le bruit. La fumée (graines décalées, une répétition) a montré des formules longues
+  qui prennent des leurres. Les deux variantes sont jugées chacune sur les mêmes critères.
+- **Correctif de fumée** : le texte de la formule vient de `to_infix`, car `to_sympy_expr` d'EvoGP refuse un « > » dans un produit.
