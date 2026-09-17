@@ -1,0 +1,110 @@
+== dbt run
+06:34:33  Done. PASS=26 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=26
+== dbt test
+06:34:41  1 of 38 WARN 2 acceleration_effective .......................................... [WARN 2 in 0.35s]
+06:34:41  5 of 38 FAIL 4 base_a_la_distance_imposee ...................................... [FAIL 4 in 0.13s]
+06:34:42  11 of 38 WARN 12 combat_au_bouchon ............................................. [WARN 12 in 0.07s]
+06:34:43  26 of 38 WARN 3 reserve_au_contact_du_bouchon .................................. [WARN 3 in 0.07s]
+06:34:43  25 of 38 WARN 7 phase_arretee_jouee ............................................ [WARN 7 in 0.30s]
+06:34:43  31 of 38 FAIL 1 taux_combat_suffisant .......................................... [FAIL 1 in 0.09s]
+06:34:43  36 of 38 FAIL 4 vehicules_reserve_bien_decoupes ................................ [FAIL 4 in 0.15s]
+06:34:43  37 of 38 FAIL 36 verdict_accepte ............................................... [FAIL 36 in 0.13s]
+06:34:44    Got 4 results, configured to fail if != 0
+06:34:44    Got 1 result, configured to fail if != 0
+06:34:44    Got 4 results, configured to fail if != 0
+06:34:44    Got 36 results, configured to fail if != 0
+06:34:44  [WARNING]: Got 2 results, configured to warn if != 0
+06:34:44  [WARNING]: Got 12 results, configured to warn if != 0
+06:34:44  [WARNING]: Got 3 results, configured to warn if != 0
+06:34:44  [WARNING]: Got 7 results, configured to warn if != 0
+06:34:44  Done. PASS=30 WARN=4 ERROR=4 SKIP=0 NO-OP=0 REUSED=0 TOTAL=38
+== lecture pre-enregistree
+== LECTURE CHOIX-P1-17-09 : point INSERTION_ATTENTE, options PARTIR ( 1 ) / SE_TERRER ( 2 ), issue primaire phase_discrete
+   PASSE   Q1 episodes acceptes >= 90 % des prevus : 135 acceptes sur 143 ( prevus 128 )
+   PASSE   Q2 zero erreur SQF : 0 erreurs
+   PASSE   Q3 tests dbt bloquants a zero sur la campagne : tous a zero
+   PASSE   Q4 chaque case ( monde, bras, option ) a au moins 3 episodes : 32 cases pleines
+   PASSE   Q5 menaces posees sur la phase dans tous les episodes MENACE, aucune dans le TEMOIN : {'TEMOIN': (69, 0), 'MENACE': (71, 71)}
+
+== ISSUE PRIMAIRE ( ecrite avant ) : phase_discrete
+
+   phase_discrete
+      TEMOIN  PARTIR         1.000   SE_TERRER      1.000
+      MENACE  PARTIR         0.333   SE_TERRER      0.425
+      ecart SE_TERRER - PARTIR, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart SE_TERRER - PARTIR, MENACE : +0.092  IC [-0.033 ; +0.213]
+      MODULATION ( menace - temoin ) : +0.092  IC [-0.033 ; +0.213]
+      ecart moyen des deux situations : +0.046  IC [-0.017 ; +0.106]
+      modulation par monde : 4:+0.25  5:-0.25  6:+0.00  7:+0.25  8:+0.25  9:+0.23  11:+0.00  12:+0.00
+
+== CRITERES
+   C2 MODULATION ETABLIE : NON
+   C3 INVERSION ( C2 et signes opposes ) : NON
+
+   CLASSEMENT : INDIFFERENT
+   DECISION : choix indifferent a la precision du dispositif
+
+== ISSUES SECONDAIRES ( descriptives, aucune decision )
+
+   observation_utile
+      TEMOIN  PARTIR         0.000   SE_TERRER      0.000
+      MENACE  PARTIR         0.000   SE_TERRER      0.000
+      ecart SE_TERRER - PARTIR, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart SE_TERRER - PARTIR, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
+
+   mise_en_place_propre
+      TEMOIN  PARTIR         1.000   SE_TERRER      1.000
+      MENACE  PARTIR         0.333   SE_TERRER      0.425
+      ecart SE_TERRER - PARTIR, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart SE_TERRER - PARTIR, MENACE : +0.092  IC [-0.033 ; +0.213]
+      MODULATION ( menace - temoin ) : +0.092  IC [-0.033 ; +0.213]
+      ecart moyen des deux situations : +0.046  IC [-0.017 ; +0.106]
+      modulation par monde : 4:+0.25  5:-0.25  6:+0.00  7:+0.25  8:+0.25  9:+0.23  11:+0.00  12:+0.00
+
+   exfil_reussie
+      TEMOIN  PARTIR         0.000   SE_TERRER      0.000
+      MENACE  PARTIR         0.000   SE_TERRER      0.000
+      ecart SE_TERRER - PARTIR, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart SE_TERRER - PARTIR, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
+
+   fin_vivants
+      TEMOIN  PARTIR         10.000   SE_TERRER      10.000
+      MENACE  PARTIR         9.396   SE_TERRER      9.300
+      ecart SE_TERRER - PARTIR, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart SE_TERRER - PARTIR, MENACE : -0.096  IC [-0.500 ; +0.248]
+      MODULATION ( menace - temoin ) : -0.096  IC [-0.500 ; +0.248]
+      ecart moyen des deux situations : -0.048  IC [-0.250 ; +0.124]
+      modulation par monde : 4:+0.25  5:+0.50  6:-1.25  7:+0.50  8:+0.00  9:-0.27  11:-0.25  12:-0.25
+
+   duree_phase
+      TEMOIN  PARTIR         291.131   SE_TERRER      290.857
+      MENACE  PARTIR         291.243   SE_TERRER      291.350
+      ecart SE_TERRER - PARTIR, TEMOIN : -0.274  IC [-0.745 ; +0.118]
+      ecart SE_TERRER - PARTIR, MENACE : +0.107  IC [-0.050 ; +0.257]
+      MODULATION ( menace - temoin ) : +0.380  IC [-0.025 ; +0.919]
+      ecart moyen des deux situations : -0.083  IC [-0.310 ; +0.131]
+      modulation par monde : 4:+0.21  5:-0.20  6:+2.08  7:+0.29  8:-0.36  9:+0.19  11:+0.25  12:+0.60
+
+   renseignement
+      TEMOIN  PARTIR         0.000   SE_TERRER      0.000
+      MENACE  PARTIR         0.000   SE_TERRER      0.000
+      ecart SE_TERRER - PARTIR, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart SE_TERRER - PARTIR, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
+
+   exfiltres
+      TEMOIN  PARTIR         0.000   SE_TERRER      0.000
+      MENACE  PARTIR         0.000   SE_TERRER      0.000
+      ecart SE_TERRER - PARTIR, TEMOIN : +0.000  IC [+0.000 ; +0.000]
+      ecart SE_TERRER - PARTIR, MENACE : +0.000  IC [+0.000 ; +0.000]
+      MODULATION ( menace - temoin ) : +0.000  IC [+0.000 ; +0.000]
+      ecart moyen des deux situations : +0.000  IC [+0.000 ; +0.000]
+      modulation par monde : 4:+0.00  5:+0.00  6:+0.00  7:+0.00  8:+0.00  9:+0.00  11:+0.00  12:+0.00
