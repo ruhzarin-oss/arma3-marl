@@ -42,6 +42,14 @@ Total : 576 épisodes, estimés à 8 à 9 heures sur 12 serveurs.
 - **Phase 2** : l'option « attendre » applique la règle de perception du script **sans** sa sortie
   PATROUILLE_ABSENTE, qui lisait l'état vrai du monde.
 
+## Amendement 2 (03:58), avant toute lecture : remplacement des épisodes refusés par l'enregistreur
+
+Dans CHOIX-P2-17-09, 4 épisodes du monde 9 ont été refusés, un par case, tous par un contrôle de l'enregistreur
+(canari ou témoin : `canari_tir_journalise`, `temoin_vu_par_*`), jamais par une cause liée au choix. Aucun effet n'a été
+lu. Règle ajoutée : **à la fin d'une campagne, si une case (monde, bras, option) a moins de R épisodes acceptés à cause de
+refus de l'enregistreur, des épisodes de remplacement de cette case sont rejoués** (même monde, même bras, même option),
+et la lecture attend leur fin. Le compte par case est fait sans lire aucune issue. Les portes Q1 à Q5 restent inchangées.
+
 ## Portes de qualité, avant toute lecture d'effet (sinon : lecture refusée)
 
 | porte | critère |
