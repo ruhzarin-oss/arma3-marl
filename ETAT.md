@@ -1,4 +1,4 @@
-# ETAT — 2026-09-16 03:14
+# ETAT — 2026-09-17 04:41
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,18 +9,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-15T15:42:36+02:00 ok=True  conteneurs=20 ;
-- GPU : 1234 MiB, 24576 MiB, 4 %
+- GPU : 1142 MiB, 24576 MiB, 4 %
 - /mnt/data : 2.6T libres sur 3.6T
-- serveurs Arma : 6 · residus : aucun
+- serveurs Arma : 11 · residus : aucun
 
 ## File
 
-- en cours : 2026-09-15_PORTE9_A_g11.json, 2026-09-15_PORTE9_A_g12.json, 2026-09-15_PORTE9_A_g9.json, 2026-09-15_PORTE9_B_g11.json, 2026-09-15_PORTE9_B_g12.json, 2026-09-15_PORTE9_B_g7.json, 2026-09-15_PORTE9_B_g9.json
-- en attente : rien
+- en cours : 2026-09-17_CHOIX_005_P2_P2-TEMOIN-traversee2-g6g7.json, 2026-09-17_CHOIX_006_P2_P2-MENACE-traversee1-g6g7.json, 2026-09-17_CHOIX_007_P2_P2-MENACE-traversee2-g6g7.json, 2026-09-17_CHOIX_012_P2_P2-TEMOIN-traversee1-g11g12.json, 2026-09-17_CHOIX_013_P2_P2-TEMOIN-traversee2-g11g12.json, 2026-09-17_CHOIX_014_P2_P2-MENACE-traversee1-g11g12.json, 2026-09-17_CHOIX_015_P2_P2-MENACE-traversee2-g11g12.json, 2026-09-17_CHOIX_016_P1_P1-TEMOIN-p1_attente1-g4g5.json, 2026-09-17_CHOIX_021_P1_P1-TEMOIN-p1_attente2-g6g7.json, 2026-09-17_CHOIX_022_P1_P1-MENACE-p1_attente1-g6g7.json, 2026-09-17_CHOIX_023_P1_P1-MENACE-p1_attente2-g6g7.json, 2026-09-17_CHOIX_032_P4_P4-TEMOIN-itineraire1-g4g5.json
+- en attente : 2026-09-17_CHOIX_017_P1_P1-TEMOIN-p1_attente2-g4g5.json, 2026-09-17_CHOIX_018_P1_P1-MENACE-p1_attente1-g4g5.json, 2026-09-17_CHOIX_019_P1_P1-MENACE-p1_attente2-g4g5.json, 2026-09-17_CHOIX_024_P1_P1-TEMOIN-p1_attente1-g8g9.json, 2026-09-17_CHOIX_025_P1_P1-TEMOIN-p1_attente2-g8g9.json, 2026-09-17_CHOIX_026_P1_P1-MENACE-p1_attente1-g8g9.json, 2026-09-17_CHOIX_027_P1_P1-MENACE-p1_attente2-g8g9.json, 2026-09-17_CHOIX_028_P1_P1-TEMOIN-p1_attente1-g11g12.json, 2026-09-17_CHOIX_029_P1_P1-TEMOIN-p1_attente2-g11g12.json, 2026-09-17_CHOIX_030_P1_P1-MENACE-p1_attente1-g11g12.json, 2026-09-17_CHOIX_031_P1_P1-MENACE-p1_attente2-g11g12.json, 2026-09-17_CHOIX_033_P4_P4-TEMOIN-itineraire2-g4g5.json, 2026-09-17_CHOIX_034_P4_P4-MENACE-itineraire1-g4g5.json, 2026-09-17_CHOIX_035_P4_P4-MENACE-itineraire2-g4g5.json, 2026-09-17_CHOIX_036_P4_P4-TEMOIN-itineraire1-g6g7.json, 2026-09-17_CHOIX_037_P4_P4-TEMOIN-itineraire2-g6g7.json, 2026-09-17_CHOIX_038_P4_P4-MENACE-itineraire1-g6g7.json, 2026-09-17_CHOIX_039_P4_P4-MENACE-itineraire2-g6g7.json, 2026-09-17_CHOIX_040_P4_P4-TEMOIN-itineraire1-g8g9.json, 2026-09-17_CHOIX_041_P4_P4-TEMOIN-itineraire2-g8g9.json, 2026-09-17_CHOIX_042_P4_P4-MENACE-itineraire1-g8g9.json, 2026-09-17_CHOIX_043_P4_P4-MENACE-itineraire2-g8g9.json, 2026-09-17_CHOIX_044_P4_P4-TEMOIN-itineraire1-g11g12.json, 2026-09-17_CHOIX_045_P4_P4-TEMOIN-itineraire2-g11g12.json, 2026-09-17_CHOIX_046_P4_P4-MENACE-itineraire1-g11g12.json, 2026-09-17_CHOIX_047_P4_P4-MENACE-itineraire2-g11g12.json, 2026-09-17_CHOIX_048_P3_P3-TEMOIN-obs_duree120-g4g5.json, 2026-09-17_CHOIX_049_P3_P3-TEMOIN-obs_duree480-g4g5.json, 2026-09-17_CHOIX_050_P3_P3-MENACE-obs_duree120-g4g5.json, 2026-09-17_CHOIX_051_P3_P3-MENACE-obs_duree480-g4g5.json, 2026-09-17_CHOIX_052_P3_P3-TEMOIN-obs_duree120-g6g7.json, 2026-09-17_CHOIX_053_P3_P3-TEMOIN-obs_duree480-g6g7.json, 2026-09-17_CHOIX_054_P3_P3-MENACE-obs_duree120-g6g7.json, 2026-09-17_CHOIX_055_P3_P3-MENACE-obs_duree480-g6g7.json, 2026-09-17_CHOIX_056_P3_P3-TEMOIN-obs_duree120-g8g9.json, 2026-09-17_CHOIX_057_P3_P3-TEMOIN-obs_duree480-g8g9.json, 2026-09-17_CHOIX_058_P3_P3-MENACE-obs_duree120-g8g9.json, 2026-09-17_CHOIX_059_P3_P3-MENACE-obs_duree480-g8g9.json, 2026-09-17_CHOIX_060_P3_P3-TEMOIN-obs_duree120-g11g12.json, 2026-09-17_CHOIX_061_P3_P3-TEMOIN-obs_duree480-g11g12.json, 2026-09-17_CHOIX_062_P3_P3-MENACE-obs_duree120-g11g12.json, 2026-09-17_CHOIX_063_P3_P3-MENACE-obs_duree480-g11g12.json, 2026-09-17_CHOIX_064_P6_P6-TEMOIN-exfil0-g4g5.json, 2026-09-17_CHOIX_065_P6_P6-TEMOIN-exfil1-g4g5.json, 2026-09-17_CHOIX_066_P6_P6-MENACE-exfil0-g4g5.json, 2026-09-17_CHOIX_067_P6_P6-MENACE-exfil1-g4g5.json, 2026-09-17_CHOIX_068_P6_P6-TEMOIN-exfil0-g6g7.json, 2026-09-17_CHOIX_069_P6_P6-TEMOIN-exfil1-g6g7.json, 2026-09-17_CHOIX_070_P6_P6-MENACE-exfil0-g6g7.json, 2026-09-17_CHOIX_071_P6_P6-MENACE-exfil1-g6g7.json, 2026-09-17_CHOIX_072_P6_P6-TEMOIN-exfil0-g8g9.json, 2026-09-17_CHOIX_073_P6_P6-TEMOIN-exfil1-g8g9.json, 2026-09-17_CHOIX_074_P6_P6-MENACE-exfil0-g8g9.json, 2026-09-17_CHOIX_075_P6_P6-MENACE-exfil1-g8g9.json, 2026-09-17_CHOIX_076_P6_P6-TEMOIN-exfil0-g11g12.json, 2026-09-17_CHOIX_077_P6_P6-TEMOIN-exfil1-g11g12.json, 2026-09-17_CHOIX_078_P6_P6-MENACE-exfil0-g11g12.json, 2026-09-17_CHOIX_079_P6_P6-MENACE-exfil1-g11g12.json
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 221 / 297
+- runs aboutis : 320 / 401
 
 ## Portes ouvertes
 
@@ -61,11 +61,16 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Fidelite du monde assemble, contraste vu contre non vu | 2026-08-11 | n/a | etre vu multiplie la mortalite de +856 % dans la sandbox contre +75 % certifies sur Arma | ECHEC | etre-vu-tue-2x, sandbox-letalite-4x | fidelite-arma-couvert-11x.md |
 | ? | ? | ? | ? | ? |  | file-par-instance-08-09.md |
 | Greffe du prix sur une politique figee, marge attribuable | 2026-08-25 | 6 graines de jugement jamais vues | temoin 39,3 %, greffe 61,6 % ; +8,8 pts dus au decodeur, marge attribuable au prix +15,3 pts | PASSE | politique-est-navigateur | greffe-credit.md |
+| ? | ? | ? | ? | ? |  | gymnase-de-decisions-predit-l-ecart-pas-le-niveau.md |
 | ? | ? | ? | ? | ? |  | historique-08-au-13-septembre.md |
 | Infrastructure de mesure : sentinelle de pont, harnais de banc, deploiement SQF depuis git | 2026-09-04 | n/a | trois outils en service ; une panne trouvee et non reparee : la couche bronze du lac est un lien mort | PASSE |  | infra-sentinelle-harnais.md |
 | Controle positif de la connaissance dans Arma | 2026-08-02 | 1 | knowsAbout 4,00 avec un camarade qui voit, 0,00 seul ; 0,00 a 50 m de flanc contre 2,00 a 300 m de face | PASSE |  | knowsabout-de-camp.md |
 | ? | ? | ? | ? | ? |  | la-couture-est-ouverte.md |
+| ? | ? | ? | ? | ? |  | la-porte-nest-pas-une-decision.md |
+| ? | ? | ? | ? | ? |  | la-situation-pese-sur-cinq-phases-la-phase-4-est-vide.md |
 | Lanceur HMT : un job dans queue/ produit un FIN.json sans session ssh | 2026-09-07 | 3, 4 | 2 runs COMPLET (4733 s puis 2793 s), 4 episodes CHACAL, 4 serveurs lances et arretes par PID, 0 session ssh ouverte | PASSE | chacal-portes | lanceur-hmt-temoin.md |
+| ? | ? | ? | ? | ? |  | le-chercheur-de-causes-n-est-pas-encore-cru.md |
+| ? | ? | ? | ? | ? |  | le-delai-du-porteur-domine-sans-inversion.md |
 | ? | ? | ? | ? | ? |  | le-porteur-narrive-pas-et-personne-ne-le-remplace.md |
 | ? | ? | ? | ? | ? |  | le-script-ne-choisit-pas-son-ouverture.md |
 | Forme de la loi auditive de CWR validee sur Arma | 2026-09-03 | 12 episodes valides sur 12, six geometries | audSide(d) = min(2177/d2 ; 1,35), jamais 1,5, nulle au-dela de 100 m ; 1/d2 predit 1,78, mesure 1,79 ; constante a.d2 = 2160 / 2196 / 2176, soit 0,9 % d'ecart | PASSE | loi-cwr, knowsabout-de-camp | loi-auditive-forme.md |
@@ -107,18 +112,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
-| 2026-09-16_020836_chacal_i1 | chacal | EN COURS |  |  |
-| 2026-09-16_013251_chacal_i5 | chacal | EN COURS |  |  |
-| 2026-09-16_012846_chacal_i6 | chacal | EN COURS |  |  |
-| 2026-09-16_010414_chacal_i2 | chacal | EN COURS |  |  |
-| 2026-09-16_002828_chacal_i4 | chacal | EN COURS |  |  |
-| 2026-09-15_235748_chacal_i3 | chacal | EN COURS |  |  |
-| 2026-09-15_201601_chacal_i1 | chacal | COMPLET | g8_r1:ACCEPTE g8_r10:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE g8_r7:ACCEPTE g8_r8:ACCEPTE g8_r9:ACCEPTE | 21075 |
-| 2026-09-15_191601_chacal_i10 | chacal | COMPLET | g8_r1:ACCEPTE g8_r10:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g8_r5:ACCEPTE g8_r6:ACCEPTE g8_r7:ACCEPTE g8_r8:ACCEPTE g8_r9:ACCEPTE | 21384 |
-| 2026-09-15_190601_chacal_i8 | chacal | COMPLET | g7_r1:ACCEPTE g7_r10:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE g7_r5:ACCEPTE g7_r6:ACCEPTE g7_r7:ACCEPTE g7_r8:ACCEPTE g7_r9:ACCEPTE | 29324 |
-| 2026-09-15_185601_chacal_i4 | chacal | COMPLET | g5_r1:ACCEPTE g5_r10:ACCEPTE g5_r2:ACCEPTE g5_r3:ACCEPTE g5_r4:ACCEPTE g5_r5:ACCEPTE g5_r6:ACCEPTE g5_r7:ACCEPTE g5_r8:ACCEPTE g5_r9:ACCEPTE | 19912 |
-| 2026-09-15_184601_chacal_i5 | chacal | COMPLET | g6_r1:ACCEPTE g6_r10:ACCEPTE g6_r2:ACCEPTE g6_r3:ACCEPTE g6_r4:ACCEPTE g6_r5:ACCEPTE g6_r6:ACCEPTE g6_r7:ACCEPTE g6_r8:ACCEPTE g6_r9:ACCEPTE | 24375 |
-| 2026-09-15_183602_chacal_i6 | chacal | COMPLET | g6_r1:ACCEPTE g6_r10:ACCEPTE g6_r2:ACCEPTE g6_r3:ACCEPTE g6_r4:ACCEPTE g6_r5:ACCEPTE g6_r6:ACCEPTE g6_r7:ACCEPTE g6_r8:ACCEPTE g6_r9:ACCEPTE | 24681 |
-| 2026-09-15_181751_chacal_i3 | chacal | COMPLET | g5_r1:ACCEPTE g5_r10:ACCEPTE g5_r2:ACCEPTE g5_r3:ACCEPTE g5_r4:ACCEPTE g5_r5:ACCEPTE g5_r6:ACCEPTE g5_r7:ACCEPTE g5_r8:ACCEPTE g5_r9:ACCEPTE | 20341 |
-| 2026-09-15_181146_chacal_i2 | chacal | COMPLET | g4_r1:ACCEPTE g4_r10:ACCEPTE g4_r2:ACCEPTE g4_r3:ACCEPTE g4_r4:ACCEPTE g4_r5:ACCEPTE g4_r6:ACCEPTE g4_r7:ACCEPTE g4_r8:ACCEPTE g4_r9:ACCEPTE | 24643 |
-| 2026-09-15_175633_chacal_i11 | chacal | COMPLET | g4_r1:ACCEPTE g4_r10:ACCEPTE g4_r2:REFUSE g4_r3:ACCEPTE g4_r4:ACCEPTE g4_r5:ACCEPTE g4_r6:ACCEPTE g4_r7:ACCEPTE g4_r8:ACCEPTE g4_r9:ACCEPTE | 19920 |
+| 2026-09-17_043019_chacal_i13 | chacal | EN COURS |  |  |
+| 2026-09-17_042925_chacal_i10 | chacal | EN COURS |  |  |
+| 2026-09-17_041627_chacal_i12 | chacal | EN COURS |  |  |
+| 2026-09-17_041521_chacal_i5 | chacal | EN COURS |  |  |
+| 2026-09-17_041321_chacal_i11 | chacal | EN COURS |  |  |
+| 2026-09-17_040600_chacal_i3 | chacal | EN COURS |  |  |
+| 2026-09-17_040331_chacal_i2 | chacal | EN COURS |  |  |
+| 2026-09-17_035652_chacal_i4 | chacal | EN COURS |  |  |
+| 2026-09-17_033353_chacal_i10 | chacal | COMPLET | g6_r1:ACCEPTE g6_r2:ACCEPTE g6_r3:ACCEPTE g6_r4:ACCEPTE g7_r1:ACCEPTE g7_r2:ACCEPTE g7_r3:ACCEPTE g7_r4:ACCEPTE | 3267 |
+| 2026-09-17_033041_chacal_i1 | chacal | EN COURS |  |  |
+| 2026-09-17_024057_chacal_i13 | chacal | COMPLET | g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g9_r1:REFUSE g9_r2:REFUSE g9_r3:ACCEPTE g9_r4:ACCEPTE | 6504 |
+| 2026-09-17_024025_chacal_i12 | chacal | COMPLET | g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g9_r1:REFUSE g9_r2:REFUSE g9_r3:ACCEPTE g9_r4:ACCEPTE | 5706 |
+| 2026-09-17_023954_chacal_i11 | chacal | COMPLET | g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g9_r1:ACCEPTE g9_r2:REFUSE g9_r3:ACCEPTE g9_r4:ACCEPTE | 5541 |
+| 2026-09-17_023923_chacal_i10 | chacal | COMPLET | g8_r1:ACCEPTE g8_r2:ACCEPTE g8_r3:ACCEPTE g8_r4:ACCEPTE g9_r1:ACCEPTE g9_r2:REFUSE g9_r3:ACCEPTE g9_r4:ACCEPTE | 3206 |
+| 2026-09-17_023851_chacal_i8 | chacal | EN COURS |  |  |
