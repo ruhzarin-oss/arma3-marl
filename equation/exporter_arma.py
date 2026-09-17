@@ -38,7 +38,7 @@ pilote as (
   select campagne, 'DELAI_PORTEUR' as point, graine, bras, (choix = 180)::int as a, assaut_utile::int as Y,
     alarme_au_choix as alarme, depuis_alarme, compromis_au_choix as compromis, vivants_au_choix as vivants, defenseurs_connus,
     null::double as vehicule_vu, null::double as reco_vivants, null::double as distance_point
-  from pilote_p5 where verdict = 'ACCEPTE' and erreurs_sqf = 0
+  from pilote_p5 where verdict = 'ACCEPTE' and erreurs_sqf = 0 and campagne = 'PILOTE-P5-DELAI-SITUATION-16-09'
 )
 select * from choix union all select * from pilote
 """
