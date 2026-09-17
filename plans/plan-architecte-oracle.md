@@ -1,6 +1,6 @@
 # Plan — l'Architecte et l'Oracle
 
-*17/09/2026, matin. Demandé par Younes après les lectures de P2 et P1 (deux choix « indifférents », témoin au plafond).
+*17/09/2026, matin ; complété à midi (§ 4 bis : casser au maximum ; § 4 ter : voir ce que le détachement ne voit pas). Demandé par Younes après les lectures de P2 et P1 (deux choix « indifférents », témoin au plafond).
 Son image : l'Architecte de Matrix cherche l'équation la plus propre, l'Oracle passe son temps à la perturber, et leur
 lutte améliore les deux. Plan à valider : aucune ligne de code avant.*
 
@@ -14,7 +14,11 @@ lutte améliore les deux. Plan à valider : aucune ligne de code avant.*
 
 **Nouveau principe.** Deux camps se disputent le budget d'épisodes :
 - l'**Architecte** apprend la règle de décision la plus simple ;
-- l'**Oracle** cherche les situations où cette règle se trompe, et y envoie les épisodes suivants.
+- l'**Oracle** cherche à **casser au maximum** les plans de l'Architecte, et y envoie les épisodes suivants ;
+- l'Oracle **voit ce que le détachement ne voit pas** (la situation vraie θ) et dit quoi rendre visible.
+
+La pression de l'Oracle doit pousser l'Architecte à se dépasser : corriger ses coefficients, puis inventer de
+nouveaux termes, puis demander de nouvelles perceptions ou de nouvelles options (§ 4 bis et § 4 ter).
 
 L'expérimentateur n'écrit plus les hypothèses. Il écrit les **règles du duel**, commitées avant le premier tour.
 
@@ -134,6 +138,108 @@ uniformément dans Θ : l'Oracle ne perd jamais la vue d'ensemble.
 
 **Limites de Θ**, écrites avant le premier tour : types de menace doctrinaux, distances plausibles, moments compris dans
 la fenêtre de la phase. L'Oracle ne sort pas de Θ.
+
+## 4 bis. Casser au maximum les plans de l'Architecte
+
+*Ajouté le 17/09 à la demande de Younes : « l'Oracle doit casser au maximum les plans de l'Architecte, ça doit
+pousser l'Architecte à se dépasser et trouver de nouvelles choses ».*
+
+**Casser, c'est maximiser le regret, pas l'échec**
+
+```
+Oracle :   θ* = argmax_{θ ∈ Θ}  ρ_π(θ)          et non   argmax_{θ}  P(échec)
+```
+
+En clair : un Oracle qui gagne en rendant la mission impossible (tout échoue quelle que soit l'option) n'apprend rien
+à l'Architecte. Dans ce monde-là, ρ = 0. L'Oracle n'est payé que quand **une autre option aurait réussi** et que la
+règle ne l'a pas prise. C'est la seule manière de casser qui force l'Architecte à progresser.
+
+**L'Oracle attaque en connaissant la règle** (boîte blanche). La frontière de l'Architecte, γ₀ + γ·x = 0, est
+publique. L'Oracle regarde d'abord là où la règle bascule sous une petite perturbation de la situation :
+
+```
+sₖ = P( π(x') ≠ π(x) )   pour θ' voisin de θ dans la case k          (sensibilité de la règle)
+Uₖ = ρ̂ₖ + κ · σ̂ₖ + κ_s · sₖ
+```
+
+- **Agressivité** : ν grand, pour que l'Oracle se concentre vite sur ce qui casse. La part uniforme η reste fixée
+  (§ 6), elle garde la mesure honnête.
+- **Pré-recherche** : le gymnase v0 prédit bien l'écart entre options. L'Oracle peut y chercher ses attaques sans
+  dépenser d'épisodes, puis n'envoyer dans Arma que les meilleures. Arma confirme ou dément.
+
+**Mesure du progrès : l'exploitabilité**
+
+```
+eₜ = maxₖ ρ̃ₖ(πₜ)        la pire faille confirmée de la règle au tour t
+```
+
+En clair : si l'Architecte se dépasse, la pire faille que l'Oracle arrive à confirmer baisse de tour en tour, alors
+même que l'Oracle cherche de mieux en mieux. Si eₜ cesse de baisser alors que des failles restent, l'Architecte a
+atteint la limite de sa forme ou de ses perceptions. Il doit monter d'un niveau (tableau ci-dessous).
+
+**Non-régression : l'archive des failles.** Chaque faille confirmée entre dans une archive A. Une nouvelle règle
+n'est acceptée que si elle ne rouvre pas les anciennes failles (mesure par ajustement croisé) :
+
+```
+accepter πₜ₊₁   seulement si   max_{k ∈ A} ρ̃ₖ(πₜ₊₁)  ≤  max_{k ∈ A} ρ̃ₖ(πₜ) + marge
+```
+
+Sans archive, les deux camps tournent en rond : l'Architecte oublie ce que l'Oracle lui a appris.
+
+**Les trois niveaux pour se dépasser**
+
+| niveau | quand l'Architecte y monte | ce qu'il change | critère d'acceptation |
+|---|---|---|---|
+| 1. coefficients | la faille se corrige en réajustant | γ | − log L + λ‖γ‖₁ minimal |
+| 2. forme | la faille persiste après réajustement, et VI ≈ 0 (§ 4 ter) | un terme nouveau : produit, seuil, min… (agent-équation) | le terme paie sa place, voir ci-dessous |
+| 3. perception ou option | VI élevée : la faille est invisible pour le détachement | une perception nouvelle dans la ligne de décision, ou une option nouvelle (« observer d'abord ») | VIⱼ plus grand que le coût de la perception |
+
+**Niveau 2, la forme qui paie sa place** (longueur de description minimale)
+
+```
+f* = argmin_f   [ − log L_croisé(f)  +  λ · |f| ]          |f| = nombre de symboles de la formule
+un terme nouveau est gardé si   log L_croisé(f') − log L_croisé(f)  >  λ · ( |f'| − |f| )
+```
+
+En clair : l'Architecte a le droit d'inventer un terme seulement si ce terme explique assez de failles, sur des
+épisodes qu'il n'a pas vus, pour payer les symboles qu'il ajoute. C'est là que naissent les « nouvelles choses ».
+Le banc `equation/` (dépôt 41f2ae6) teste justement quels algorithmes savent faire ce niveau sans inventer de fausses
+formules.
+
+## 4 ter. Voir ce que le détachement ne voit pas
+
+**La valeur de l'information cachée**
+
+```
+VI(x) = E[ max_a μ_a(θ) | x ]  −  max_a E[ μ_a(θ) | x ]   ≥ 0
+```
+
+- Premier terme : on choisit en voyant la situation vraie θ, comme l'Oracle.
+- Second terme : on choisit avec ce que perçoit le détachement, x.
+- VI est toujours ≥ 0, parce que la moyenne des maximums est au moins le maximum des moyennes (inégalité de Jensen,
+  le maximum est convexe).
+
+**Ce que VI sépare**
+
+- Regret élevé et VI ≈ 0 : l'information est visible, mais l'équation est mauvaise. C'est l'Architecte qui doit
+  corriger (niveaux 1 et 2).
+- VI élevée : aucune équation sur x ne peut gagner. L'Oracle a trouvé une variable cachée (niveau 3).
+
+**Quelle variable cachée rendre visible**
+
+```
+VIⱼ = V̂( π_{x, θⱼ} ) − V̂( π_x )          règles apprises hors pli, valeurs par scores Γ (§ 3)
+```
+
+En clair : on compare une règle qui verrait aussi la composante θⱼ (type de menace, distance, position) à la règle
+actuelle. La composante au plus grand VIⱼ est **ce que le détachement a le plus besoin de percevoir**. Elle devient une
+perception nouvelle dans la ligne de décision (par exemple « patrouille repérée »), ou une option « observer d'abord ».
+Chaque règle étant apprise imparfaitement, cette estimation est prudente : elle sous-estime plutôt VI.
+
+**Premier usage possible, sans nouvel épisode.** Dans P1, P2 et P4, les perceptions au moment du choix sont presque
+constantes, alors que le bras (menace ou témoin) change le résultat. Avec θ = bras, VI mesure ce que gagnerait un
+détachement qui percevrait la menace. Une VI proche de 0 veut dire que voir la menace ne changerait pas le choix : c'est
+ce qu'on attend pour P4, où le direct gagne partout.
 
 ## 5. Le duel, et quand il s'arrête
 
@@ -260,5 +366,5 @@ plan uniforme sur Θ, analysé par l'Architecte, suffit.
 1. **Phase pilote** : P1 (épisodes de ~5 min, menace très lourde) ou P2 (patrouille qui roule contre poste fixe, et
    l'observable `vehicule_vu` déjà écrit) ?
 2. **Limites de Θ** (types, distances, moments plausibles) : tu les fixes, ou je propose une table ?
-3. **Seuils** : δ d'arrêt à 10 points ? part uniforme η à 20 % ?
+3. **Seuils** : δ d'arrêt à 10 points ? part uniforme η à 20 % ? agressivité ν de l'Oracle ?
 4. **P3, P4, P6** : les laisser finir et les lire (recommandé), leurs données pouvant amorcer l'Architecte.
