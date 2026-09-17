@@ -1,7 +1,7 @@
 # Protocole — boucle Arma ↔ EvoGP sur le délai du porteur (phase 5)
 
 *17/09/2026, après-midi. Demandé par Younes : « branche evogp sur arma comme ça sur un serveur pour voir ce que ça
-donne ; on laisse evogp sur gpu, il faut lui donner de la puissance ». Suite de `plans/plan-architecte-oracle.md`
+donne ; on laisse evogp sur gpu, il faut lui donner de la puissance », puis « oui vas y lance sur 12 serveurs ». Suite de `plans/plan-architecte-oracle.md`
 (l'Architecte seul, sans Oracle) et du verdict `aucun-algorithme-d-equation-retenu-evogp-seul-trouve-les-trois-formes`.
 Écrit et commité avant le premier épisode de la boucle.*
 
@@ -12,9 +12,9 @@ Une **démonstration**, pas une mesure. Elle répond à trois questions :
 2. La boucle tourne-t-elle seule : Arma joue → EvoGP réapprend sur la 3090 → la nouvelle formule part au tour suivant ?
 3. Que devient la formule au fil des tours ? C'est descriptif, sans décision.
 
-Aucun classement « la formule bat l'option fixe » ne sera tiré de cette boucle. Sur un seul serveur, un tour fait
-12 épisodes, soit environ 1 h 30. Le banc a montré qu'il faut de l'ordre de 1000 épisodes pour qu'EvoGP retrouve une
-forme non linéaire.
+Aucun classement « la formule bat l'option fixe » ne sera tiré de cette boucle. Sur 12 serveurs, un tour fait
+96 épisodes en environ 1 h. Le banc a montré qu'il faut de l'ordre de 1000 épisodes pour qu'EvoGP retrouve une
+forme non linéaire : il faudra une dizaine de tours.
 
 ## Pourquoi le délai du porteur
 
@@ -44,12 +44,16 @@ constante.
    l'exploration de la boucle.
    - Réglages : EvoGP à population 300 000 et 300 générations (environ 15 s par ajustement sur la 3090).
    - Parcimonie choisie parmi {0,001 ; 0,003 ; 0,01 ; 0,03} par gain croisé, un monde laissé de côté à chaque fois.
-2. **Poser 3 jobs** sur l'instance 1, sur une paire de mondes tournante (4, 5, 6, 7, 8, 11, 12 ; le monde 9 est retiré),
-   2 répétitions chacun :
+2. **Poser 12 jobs sur 12 serveurs** (instances 1 à 8 et 10 à 13), en 4 groupes. Chaque groupe a une menace de
+   phase 5 (niveau 3 pour deux groupes, témoin pour les deux autres) et une paire de mondes tournante (4, 5, 6, 7, 8,
+   11, 12 ; le monde 9 est retiré). Il reçoit 3 jobs sur les mêmes mondes :
    - délai imposé 45 s ;
    - délai imposé 180 s ;
    - formule.
-   La menace de phase 5 alterne d'un tour à l'autre : niveau 3, puis témoin.
+   Chaque job joue 2 mondes × 4 répétitions = 8 épisodes. Un tour fait donc 96 épisodes : 32 à 45 s, 32 à 180 s,
+   32 à la formule.
+   - **Démarrage** : un processus détaché sous WSL ne peut pas appeler `schtasks.exe` (mesuré le 17/09 : erreur vsock).
+     Une nourrice sur le Mac déclenche donc HMT_RUN par ssh tant que des jobs de la boucle attendent.
 3. **Vérifier** chaque épisode FORMULE : recalculer la formule en Python sur les perceptions écrites.
    - Le choix doit être égal, `valeur_formule` égale, et `codes_lus` égal à `f_len`.
    - **Une seule faute arrête la boucle.**
