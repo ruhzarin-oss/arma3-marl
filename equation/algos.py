@@ -105,8 +105,8 @@ def evogp(X, a, Y, noms, graine, parcimonie=0.001):
     torch.manual_seed(graine)
     torch.cuda.manual_seed_all(graine)
     psi = pseudo_issue(a, Y)
-    Xg = torch.tensor(X, dtype=torch.float32, device="cuda")
-    Yg = torch.tensor(psi, dtype=torch.float32, device="cuda")[:, None]
+    Xg = torch.tensor(np.ascontiguousarray(X), dtype=torch.float32, device="cuda").contiguous()   # les noyaux CUDA exigent un tableau contigu
+    Yg = torch.tensor(psi, dtype=torch.float32, device="cuda")[:, None].contiguous()
     pb = RegressionParcimonieuse(datapoints=Xg, labels=Yg)
     d = GenerateDescriptor(max_tree_len=32, input_len=X.shape[1], output_len=1,
                            using_funcs=["+", "-", "*", "min", "max", "neg", ">"], max_layer_cnt=5,
@@ -123,7 +123,7 @@ def evogp(X, a, Y, noms, graine, parcimonie=0.001):
 
     def regle(Xn, best=best):
         with torch.no_grad():
-            out = best.forward(torch.tensor(Xn, dtype=torch.float32, device="cuda"))
+            out = best.forward(torch.tensor(np.ascontiguousarray(Xn), dtype=torch.float32, device="cuda").contiguous())
         return (out.reshape(-1).cpu().numpy() > 0)
     return Regle(regle, variables, texte)
 
