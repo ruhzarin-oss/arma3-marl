@@ -47,14 +47,18 @@ for v in sorted({e["version"] for e in P}):
 # alors que le monde 4 n etait JAMAIS percu et le monde 5 TOUJOURS : une part globale de 50 % peut n etre que
 # deux mondes constants. Une regle conditionnee sur la perception serait alors confondue avec le monde.
 # On exige donc EN PLUS qu au moins un monde melange les deux issues.
+# ! L UNITE EST LE MONDE, TOUS PLACEMENTS CONFONDUS. Grouper par bras remettrait un episode par monde et
+# ne pourrait rien voir : c est le placement qui doit faire varier la perception A L INTERIEUR d un monde.
 intra = False
-for v in sorted({e["version"] for e in P}):
-    for w in sorted({e["monde"].split("_")[0] for e in P if e["version"] == v}):
-        L = [e for e in P if e["version"] == v and e["monde"].split("_")[0] == w]
-        parts = {e["percue"] > 0 for e in L}
-        if len(L) > 1 and len(parts) > 1: intra = True
-        print(f"   intra-monde {v:18s} {w:5s} : {len(L)} episodes, percue > 0 dans {sum(e['percue'] > 0 for e in L)}"
-              f"{'  <- melange' if len(parts) > 1 else '  ( constant )'}")
+for w in sorted({e["monde"].split("_")[0] for e in P}):
+    L = [e for e in P if e["monde"].split("_")[0] == w]
+    k = sum(e["percue"] > 0 for e in L)
+    if len(L) > 1 and 0 < k < len(L): intra = True
+    print(f"   intra-monde {w:5s} : {k} percues sur {len(L)} episodes ( placements {sorted(e['distance'] for e in L)} m )"
+          f"{'  <- melange' if 0 < k < len(L) else '  ( constant )'}")
+part_globale = sum(e["percue"] > 0 for e in P) / len(P)
+ok = 0.30 <= part_globale <= 0.70
+print(f"\n part globale, tous bras confondus : {part_globale:.0%}")
 print(f"\n PORTE, part globale 30-70 % : {'OK' if ok else 'ECHEC'}")
 print(f" PORTE, variance A L INTERIEUR d un monde : {'OK' if intra else 'ECHEC - la perception est une propriete du monde, pas de l episode'}")
 print(f" DECISION : {'la campagne P2 peut partir' if (ok and intra) else 'la campagne P2 ne part pas ; faire varier le placement ( graine de situation ) ou placer a d* x [0,8 ; 1,2]'}")
