@@ -9,9 +9,9 @@ POINTS = {"TRAVERSEE", "INSERTION_ATTENTE", "ITINERAIRE"}
 def champs(t):
     p = t.split("|"); return {p[i]: p[i + 1] for i in range(len(p) - 1) if re.fullmatch(r"[a-z_]+", p[i])}
 
-def episodes(campagne, filtre=None):
+def episodes(campagne, filtre=None, prefixe=None):
     out = []
-    for jf in glob.glob(f"{H}/runs/{PREFIXE}*/job.json"):
+    for jf in glob.glob(f"{H}/runs/{prefixe or PREFIXE}*/job.json"):
         j = json.load(open(jf))
         if j.get("campagne") != campagne or (filtre and not filtre(j)): continue
         for d in sorted(glob.glob(os.path.dirname(jf) + "/g*/")):
@@ -50,7 +50,7 @@ k, n = part("MV-NEGATIF", lambda e: f(e["obs"], "menace_percue") == 0); print(f"
 k, n = part("MV-NUL", lambda e: f(e["obs"], "menace_percue") == 0 and f(e["obs"], "verite_menaces") == 0 and f(e["dec"], "menace_percue") == 0)
 print(f"   NUL      aucune perception ni verite de menace : {k}/{n}  ( attendu 100 % ) -> {'OUI' if n and k == n else 'NON'}")
 o = par.get("MV-ORIGINE", [])
-ref = episodes("CHOIX-P2-17-09", lambda j: j.get("traversee") == 1 and j.get("menace_p2") == 3 and set(j.get("graines", [])) & {4, 5})
+ref = episodes("CHOIX-P2-17-09", lambda j: j.get("traversee") == 1 and j.get("menace_p2") == 3 and set(j.get("graines", [])) & {4, 5}, prefixe="2026-09-17")   # la reference est d avant le patch
 cles = ("phase", "point", "options", "choix", "decideur")
 ok_or = bool(o) and all(e["n_obs"] == 0 and e["dec"] and e["erreurs"] == 0 for e in o) and all(
     any(r["dec"] and all(r["dec"].get(c) == e["dec"].get(c) for c in cles) for r in ref) for e in o)
