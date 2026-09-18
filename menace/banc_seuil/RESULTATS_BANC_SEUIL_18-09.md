@@ -1,3 +1,7 @@
+> **CORRIGE PAR `RESULTATS_SEUIL_PAR_MONDE_18-09.md` ( 18/09, 22 h 45 ).** Regard centre, il n y a PAS de seuil de distance entre 128 et
+> 215 m de nuit. Le « seuil 156-173 m », « le seuil depend du lieu » et « le delai s allonge pres du seuil » ci-dessous etaient des
+> artefacts du banc ( pivot lent sous doWatch, angle_min = le meilleur des dix hommes, cibles masquees ). A lire avec la correction.
+
 # Banc de perception - le seuil de connaissance, nuit et jour ( 18/09/2026 )
 
 **Statut : DESCRIPTIF, pas un verdict.** 1 a 2 mondes par point, 4 mondes, une posture ( debout ), une heure de nuit ( 1 h 30,

@@ -4,18 +4,18 @@ H = "/mnt/data/hmt"
 g = json.load(open(f"{H}/queue/faits/2026-09-18_BANC_150m.json"))
 assert g["campagne"] == "BANC-PERCEPTION-18-09" and g["controle_perception"] == 5 and g["jour"] == 0
 g = {k: v for k, v in g.items() if k != "note"}
-INST = [5, 6, 7, 8, 10, 11, 12, 13]
+INST = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13]
 if "--fumee" in sys.argv:
     CAMPAGNE = "FUMEE-BANC-JOURNAL-18-09"; CAS = [([4, 5], 150, "A"), ([4, 5], 250, "B")]
 else:
     CAMPAGNE = "SEUIL-PAR-MONDE-18-09"
     D = {(4, 5): (150, 157, 164, 171), (6, 7): (170, 185, 200, 215), (8, 9): (150, 170, 190, 210), (11, 12): (150, 170, 190, 210)}
-    # ! ENTRELACER : chaque instance joue DEUX paires de mondes differentes et deux rangs de distance eloignes ; chaque paire voit ses
-    # quatre distances sur quatre instances differentes ; les distances proches et lointaines sont melees dans chaque tour.
-    P = list(D)
-    CAS = [(list(P[k % 4]), D[P[k % 4]][0 if k < 4 else 2], "", INST[k]) for k in range(8)]                       # tour 1
-    CAS += [(list(P[(k + 1) % 4]), D[P[(k + 1) % 4]][3 if k < 4 else 1], "", INST[k]) for k in range(8)]          # tour 2, paires decalees
-    CAS += [([4, 5], 157, "REJEU", 12)]                                                                          # determinisme
+    # ! ENTRELACER sur 12 instances ( Younes, 18/09 22 h 10 : « fais tourner sur 14 serveurs » ; la file plafonne a 12, la 9 est le labo,
+    # la 0 le gymnase ). Tour 1 : 12 jobs, un par instance. Tour 2 : 4 jobs + le rejeu, chacun sur une instance qui a joue une AUTRE
+    # paire de mondes. Les rangs de distance sont meles ( 0, 2, 3 puis 1 ) : aucun tour ne porte que des distances proches.
+    P = list(D); RANGS = [0, 2, 3, 1]
+    CAS = [(list(P[k % 4]), D[P[k % 4]][RANGS[k // 4]], "", INST[k] if k < 12 else INST[(k - 12 + 1) % 4]) for k in range(16)]
+    CAS += [([4, 5], 157, "REJEU", INST[6])]                                                                     # determinisme
 L = []
 if "--fumee" in sys.argv: CAS = [(m, d, suf, INST[k]) for k, (m, d, suf) in enumerate(CAS)]
 for rang, (mondes, d, suf, inst) in enumerate(CAS):

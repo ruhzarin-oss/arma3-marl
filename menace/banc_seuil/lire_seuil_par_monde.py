@@ -2,7 +2,8 @@
 monde -> d*, puis les quatre predictions ecrites avant. La fumee FUMEE-BANC-JOURNAL-18-09 est lue avec ( meme instrument ).
 Usage : python3 lire_seuil_par_monde.py [--md]"""
 import glob, json, os, re, sys
-H = "/mnt/data/hmt"; CAMPAGNES = ("FUMEE-BANC-JOURNAL-18-09", "SEUIL-PAR-MONDE-18-09"); md = "--md" in sys.argv
+H = "/mnt/data/hmt"; CAMPAGNES = ("FUMEE-BANC-JOURNAL-18-09", "FUMEE-BANC-REGARD-18-09", "SEUIL-PAR-MONDE-18-09"); md = "--md" in sys.argv
+# FUMEE-BANC-JOURNAL = avant le setDir ( regard non centre ) : lue, marquee NON-CENTRE, sortie de la table
 E = []
 for jf in sorted(glob.glob(f"{H}/runs/2026-09-1[89]_*/job.json")):
     j = json.load(open(jf))
@@ -15,7 +16,7 @@ for jf in sorted(glob.glob(f"{H}/runs/2026-09-1[89]_*/job.json")):
             if not v: continue
             rpt, etat = v[-1], "en vol"
         t = open(rpt, encoding="utf-8", errors="ignore").read()
-        e = dict(version=j["version"], rejeu="REJEU" in j["version"], inst=j["instance"], monde=int(g[1:]), etat=etat, consigne=j["controle_dist"],
+        e = dict(version=j["version"], centre=j["campagne"] != "FUMEE-BANC-JOURNAL-18-09", rejeu="REJEU" in j["version"], inst=j["instance"], monde=int(g[1:]), etat=etat, consigne=j["controle_dist"],
                  obs=int(j.get("observation", 300)), erreurs=len(re.findall(r"(?i)error in expression", t)), refuse="banc_refuse" in t)
         b = re.search(r'banc_perception\|([^"]*)', t)
         if b:
@@ -40,9 +41,9 @@ for e in sorted(E, key=lambda e: (e["monde"], e.get("distance", 0))):
     c = [e["monde"], e["consigne"], e.get("distance", "-"), e["inst"], "REFUS" if e["refuse"] else e.get("hommes", "-"),
          "-" if e.get("vue") is None else f"{e['vue']} s", ("jamais" if e.get("sondes") else "-") if e.get("connue") is None else f"{e['connue']} s",
          "-" if not e.get("sondes") else ("oui" if (e.get("connue") is not None and e["connue"] <= 90) else "non"), e.get("vis_moy", "-"), e.get("vis_max", "-"), e.get("angle", "-"),
-         e["etat"] + (" REJEU" if e["rejeu"] else "") + ("" if e["valide"] else " ( exclu )")]
+         e["etat"] + (" REJEU" if e["rejeu"] else "") + ("" if e["centre"] else " NON-CENTRE") + ("" if e["valide"] else " ( exclu )")]
     print(("| " + " | ".join(str(x) for x in c) + " |") if md else "  ".join(str(x).ljust(w) for x, w in zip(c, (3, 5, 5, 3, 5, 5, 7, 4, 5, 5, 4, 20))))
-V = [e for e in E if e["valide"] and not e["rejeu"]]
+V = [e for e in E if e["valide"] and not e["rejeu"] and e["centre"]]   # la table ne prend que les episodes a regard centre des la 1re seconde
 print("\n== TABLE monde -> d* ( milieu entre le plus loin CONNU et le plus pres JAMAIS ; en 600 s, puis en 90 s )")
 seuils = {}
 for m in sorted(set(e["monde"] for e in V)):
