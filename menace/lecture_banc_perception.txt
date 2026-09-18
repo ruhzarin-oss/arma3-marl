@@ -1,0 +1,11 @@
+jobs banc finis : 5 / 5 ; en vol 8
+BANC-50m   g4    57 mesures sur 296 s : vues max 3 ( 100 % du temps ), connues max 3, camp max 3, homme max 3 ; premiere connaissance a 6 s
+BANC-50m   g5    57 mesures sur 296 s : vues max 3 ( 100 % du temps ), connues max 3, camp max 3, homme max 3 ; premiere connaissance a 6 s
+BANC-100m  g4    57 mesures sur 297 s : vues max 0 ( 0 % du temps ), connues max 0, camp max 0, homme max 0 ; premiere connaissance a -1 s
+BANC-100m  g5    57 mesures sur 296 s : vues max 3 ( 100 % du temps ), connues max 3, camp max 2, homme max 3 ; premiere connaissance a 6 s
+BANC-150m  g4    58 mesures sur 300 s : vues max 3 ( 100 % du temps ), connues max 3, camp max 3, homme max 3 ; premiere connaissance a 6 s
+BANC-150m  g5    57 mesures sur 297 s : vues max 3 ( 100 % du temps ), connues max 0, camp max 0, homme max 0 ; premiere connaissance a -1 s
+BANC-300m  g4    57 mesures sur 297 s : vues max 3 ( 100 % du temps ), connues max 0, camp max 0, homme max 0 ; premiere connaissance a -1 s
+BANC-300m  g5    57 mesures sur 297 s : vues max 3 ( 100 % du temps ), connues max 0, camp max 0, homme max 0 ; premiere connaissance a -1 s
+BANC-600m  g4    57 mesures sur 297 s : vues max 0 ( 0 % du temps ), connues max 0, camp max 0, homme max 0 ; premiere connaissance a -1 s
+BANC-600m  g5    57 mesures sur 297 s : vues max 3 ( 100 % du temps ), connues max 0, camp max 0, homme max 0 ; premiere connaissance a -1 s

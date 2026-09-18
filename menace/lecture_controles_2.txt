@@ -1,0 +1,111 @@
+== 74 episodes ; erreurs SQF totales 0 ; refuses 0 ; version 3 partout : True
+
+-- MV-NEGATIF : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g6_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 1463 | TRAVERSEE choix 1 percue_au_choix 0
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 1463 | TRAVERSEE choix 1 percue_au_choix 0
+   g7_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 1447 | TRAVERSEE choix 1 percue_au_choix 0
+   g7_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 0 dist_vraie -1 | TRAVERSEE choix 1 percue_au_choix 0
+   g4_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 1458 | TRAVERSEE choix 1 percue_au_choix 0
+   g4_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 1474 | TRAVERSEE choix 1 percue_au_choix 0
+   g5_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 1465 | TRAVERSEE choix 1 percue_au_choix 0
+   g5_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 1459 | TRAVERSEE choix 1 percue_au_choix 0
+
+-- MV-NUL : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g6_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 0 dist_vraie -1 | TRAVERSEE choix 1 percue_au_choix 0
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 0 dist_vraie -1 | TRAVERSEE choix 1 percue_au_choix 0
+   g7_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 0 dist_vraie -1 | TRAVERSEE choix 1 percue_au_choix 0
+   g7_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 0 dist_vraie -1 | TRAVERSEE choix 1 percue_au_choix 0
+   g4_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 0 dist_vraie -1 | TRAVERSEE choix 1 percue_au_choix 0
+   g4_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 0 dist_vraie -1 | TRAVERSEE choix 1 percue_au_choix 0
+   g5_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 0 dist_vraie -1 | TRAVERSEE choix 1 percue_au_choix 0
+   g5_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 0 dist_vraie -1 | TRAVERSEE choix 1 percue_au_choix 0
+
+-- MV-ORIGINE : 2 episodes, acceptes 2, erreurs 0, fenetres 0
+   g4      fin fenetre : vues None connues None dist None err None mobile None vue_depuis None | percue None camp None homme None | verite None dist_vraie None | TRAVERSEE choix 1 percue_au_choix 0
+   g5      fin fenetre : vues None connues None dist None err None mobile None vue_depuis None | percue None camp None homme None | verite None dist_vraie None | TRAVERSEE choix 1 percue_au_choix 1
+
+-- MV-P1_TYPE1 : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g6_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 2 dist_vraie 577 | INSERTION_ATTENTE choix 1 percue_au_choix 0
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 2 dist_vraie 573 | INSERTION_ATTENTE choix 1 percue_au_choix 0
+   g7_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 0 dist_vraie -1 | INSERTION_ATTENTE choix 1 percue_au_choix 0
+   g7_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 0 dist_vraie -1 | INSERTION_ATTENTE choix 1 percue_au_choix 0
+   g4_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 2 dist_vraie 670 | INSERTION_ATTENTE choix 1 percue_au_choix 0
+   g4_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 2 dist_vraie 671 | INSERTION_ATTENTE choix 1 percue_au_choix 0
+   g5_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 2 dist_vraie 895 | INSERTION_ATTENTE choix 1 percue_au_choix 0
+   g5_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 2 dist_vraie 894 | INSERTION_ATTENTE choix 1 percue_au_choix 0
+
+-- MV-P1_TYPE2 : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g4_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 4 dist_vraie 261 | INSERTION_ATTENTE choix 1 percue_au_choix 0
+   g4_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 4 dist_vraie 264 | INSERTION_ATTENTE choix 1 percue_au_choix 0
+   g5_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 4 dist_vraie 574 | INSERTION_ATTENTE choix 1 percue_au_choix 0
+   g5_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 4 dist_vraie 595 | INSERTION_ATTENTE choix 1 percue_au_choix 0
+   g6_r1   fin fenetre : vues 1 connues 1 dist 304 err 0.1 mobile 0 vue_depuis 2 | percue 2 camp 1 homme 1 | verite 1 dist_vraie 304 | INSERTION_ATTENTE choix 1 percue_au_choix 2
+   g6_r2   fin fenetre : vues 2 connues 2 dist 311 err 0.1 mobile 0 vue_depuis 2 | percue 2 camp 2 homme 2 | verite 2 dist_vraie 312 | INSERTION_ATTENTE choix 1 percue_au_choix 2
+   g7_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 4 dist_vraie 277 | INSERTION_ATTENTE choix 1 percue_au_choix 0
+   g7_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 4 dist_vraie 427 | INSERTION_ATTENTE choix 1 percue_au_choix 0
+
+-- MV-P2_TYPE1 : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g4_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 480 | TRAVERSEE choix 1 percue_au_choix 0
+   g4_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 487 | TRAVERSEE choix 1 percue_au_choix 0
+   g5_r1   fin fenetre : vues 3 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 1 camp 0 homme 0 | verite 3 dist_vraie 285 | TRAVERSEE choix 1 percue_au_choix 1
+   g5_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 288 | TRAVERSEE choix 1 percue_au_choix 0
+   g6_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 639 | TRAVERSEE choix 1 percue_au_choix 0
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 643 | TRAVERSEE choix 1 percue_au_choix 0
+   g7_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 461 | TRAVERSEE choix 1 percue_au_choix 0
+   g7_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 1070 | TRAVERSEE choix 1 percue_au_choix 0
+
+-- MV-P2_TYPE2 : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g4_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 708 | TRAVERSEE choix 1 percue_au_choix 0
+   g4_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 719 | TRAVERSEE choix 1 percue_au_choix 0
+   g5_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 369 | TRAVERSEE choix 1 percue_au_choix 0
+   g5_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 368 | TRAVERSEE choix 1 percue_au_choix 0
+   g6_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 637 | TRAVERSEE choix 1 percue_au_choix 0
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 637 | TRAVERSEE choix 1 percue_au_choix 0
+   g7_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 415 | TRAVERSEE choix 1 percue_au_choix 0
+   g7_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 420 | TRAVERSEE choix 1 percue_au_choix 0
+
+-- MV-P4_TYPE1 : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g4_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 560 | ITINERAIRE choix 1 percue_au_choix 0
+   g4_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 498 | ITINERAIRE choix 1 percue_au_choix 0
+   g5_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 238 | ITINERAIRE choix 1 percue_au_choix 0
+   g5_r2   fin fenetre : vues 3 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 1 camp 0 homme 0 | verite 3 dist_vraie 416 | ITINERAIRE choix 1 percue_au_choix 1
+   g6_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 363 | ITINERAIRE choix 1 percue_au_choix 0
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 559 | ITINERAIRE choix 1 percue_au_choix 0
+   g7_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 588 | ITINERAIRE choix 1 percue_au_choix 0
+   g7_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 3 dist_vraie 525 | ITINERAIRE choix 1 percue_au_choix 0
+
+-- MV-P4_TYPE2 : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g4_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 2 dist_vraie 676 | ITINERAIRE choix 1 percue_au_choix 0
+   g4_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 2 dist_vraie 676 | ITINERAIRE choix 1 percue_au_choix 0
+   g5_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 2 dist_vraie 513 | ITINERAIRE choix 1 percue_au_choix 0
+   g5_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 2 dist_vraie 505 | ITINERAIRE choix 1 percue_au_choix 0
+   g6_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 2 dist_vraie 542 | ITINERAIRE choix 1 percue_au_choix 0
+   g6_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 2 dist_vraie 540 | ITINERAIRE choix 1 percue_au_choix 0
+   g7_r1   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 2 dist_vraie 637 | ITINERAIRE choix 1 percue_au_choix 0
+   g7_r2   fin fenetre : vues 0 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 0 camp 0 homme 0 | verite 2 dist_vraie 637 | ITINERAIRE choix 1 percue_au_choix 0
+
+-- MV-POSITIF : 8 episodes, acceptes 8, erreurs 0, fenetres 8
+   g4_r1   fin fenetre : vues 3 connues 3 dist 148 err 0.1 mobile 0 vue_depuis 0 | percue 2 camp 3 homme 3 | verite 3 dist_vraie 148 | TRAVERSEE choix 1 percue_au_choix 2
+   g4_r2   fin fenetre : vues 3 connues 3 dist 148 err 0.1 mobile 0 vue_depuis 0 | percue 2 camp 3 homme 3 | verite 3 dist_vraie 148 | TRAVERSEE choix 1 percue_au_choix 2
+   g5_r1   fin fenetre : vues 2 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 1 camp 0 homme 0 | verite 3 dist_vraie 148 | TRAVERSEE choix 1 percue_au_choix 1
+   g5_r2   fin fenetre : vues 3 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 1 camp 0 homme 0 | verite 3 dist_vraie 147 | TRAVERSEE choix 1 percue_au_choix 1
+   g6_r1   fin fenetre : vues 2 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 1 camp 0 homme 0 | verite 3 dist_vraie 149 | TRAVERSEE choix 1 percue_au_choix 1
+   g6_r2   fin fenetre : vues 3 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 1 camp 0 homme 0 | verite 3 dist_vraie 147 | TRAVERSEE choix 1 percue_au_choix 1
+   g7_r1   fin fenetre : vues 3 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 1 camp 0 homme 0 | verite 3 dist_vraie 151 | TRAVERSEE choix 1 percue_au_choix 1
+   g7_r2   fin fenetre : vues 3 connues 0 dist -1 err -1 mobile -1 vue_depuis -1 | percue 1 camp 0 homme 0 | verite 3 dist_vraie 148 | TRAVERSEE choix 1 percue_au_choix 1
+
+== CRITERES ECRITS AVANT
+   POSITIF  menace_percue > 0 en fin de fenetre : 8/8  ( attendu >= 80 % ) -> OUI
+            dont connue du groupe : 2/8  ( descriptif )
+   NEGATIF  menace_percue = 0 en fin de fenetre : 8/8  ( attendu >= 95 % ) -> OUI
+   NUL      aucune perception ni verite de menace : 8/8  ( attendu 100 % ) -> OUI
+   ORIGINE  pas de fenetre, 0 erreur, decision identique a CHOIX-P2 ( phase, point, options, choix, decideur ) : OUI ( 2 episodes, 8 de reference )
+   GLOBAL   0 erreur SQF : OUI
+
+== VARIANCE DE LA PERCEPTION A 90 S ( part des episodes ou menace_percue > 0 au moment du choix ; attendu 30 a 70 % )
+   MV-P2_TYPE1   1/8  HORS PLAGE : a rapporter a Younes
+   MV-P2_TYPE2   0/8  HORS PLAGE : a rapporter a Younes
+   MV-P1_TYPE1   0/8  HORS PLAGE : a rapporter a Younes
+   MV-P1_TYPE2   2/8  HORS PLAGE : a rapporter a Younes
+   MV-P4_TYPE1   1/8  HORS PLAGE : a rapporter a Younes
+   MV-P4_TYPE2   0/8  HORS PLAGE : a rapporter a Younes
