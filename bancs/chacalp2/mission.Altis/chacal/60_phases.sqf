@@ -830,7 +830,7 @@ if (CHACAL_DEPART >= 3) then {
 // anneau fixe, SANS tirage : ni l alea du monde ni celui de la situation ne bougent.
 if (CHACAL_DEPART == 2) then {
     "CHACAL|AVERT|hors_corpus|depart|2|insertion_non_jouee" call CHACAL_LOG;
-    private _pt = CHACAL_ROUTE getPos [330, CHACAL_ROUTE getDir CHACAL_LZ];
+    private _pt = CHACAL_ROUTE getPos [CHACAL_AVANT + 70, CHACAL_ROUTE getDir CHACAL_LZ];   // 70 m derriere le point d observation, comme a l origine ( 260 + 70 = 330 )
     private _k = 0;
     { if (alive _x) then { _x setPosATL (_pt getPos [10, _k * 36]); _k = _k + 1 } } forEach CHACAL_FS;
     CHACAL_gFS setBehaviour "STEALTH"; CHACAL_gFS setCombatMode "GREEN";

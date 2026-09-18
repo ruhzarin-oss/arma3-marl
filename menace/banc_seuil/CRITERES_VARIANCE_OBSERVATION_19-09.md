@@ -36,3 +36,11 @@ fenetre de 90 s ( fixee par Younes ). 48 jobs melanges sur 12 instances. Lecture
 - c. Observer de plus pres ( 120 ) fait monter la part connue ; avec le balayage repare elle depasse 30 %.
 - d. Risque : a 120 m la part d episodes compromis en phase 2 monte ( le poste a des jumelles de nuit et regarde la route ).
 Toute prediction fausse est rapportee telle quelle.
+
+## Additif du 19/09, 0 h 00 - la fumee a echoue sur UN point, correction et fumee v2 ( ecrit AVANT la fumee v2 )
+Fumee v1 : ORIGINE conforme dans les deux mondes ( monde 4 percue 0 a 207 m, monde 5 percue 1 a 269 m : identique a VS-P2_TYPE2_s1 sur
+bancs/chacal ), 0 erreur SQF, lignes presentes. REGLE ( 120, 1 ) : monde 4 observe depuis 121 m, conforme ; **monde 5 observe depuis 208 m, hors
+de la bande 60-190 m ecrite**. Cause lue dans le RPT : au depart direct le detachement est pose a 330 m de la route quel que soit le levier, il
+devait marcher 210 m au lieu de 70, et il s est enlise ( reflexe de gel, 324 s ). Correction : `patch_mission_observation_v2.py` pose le
+detachement a CHACAL_AVANT + 70 m ( l origine reste 330 m ). Fumee v2 : memes deux jobs, memes attentes, plus : l etape APPROCHE_ROUTE annonce
+une distance de 40 a 110 m dans les deux reglages, et la fenetre s ouvre avant 150 s de mission.
