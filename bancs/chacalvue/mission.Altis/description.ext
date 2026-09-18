@@ -576,6 +576,16 @@ class Params
         title = "Controle de perception : 0 aucun, 1 a 150 m devant accroupi, 2 a 1500 m derriere, 3 a 150 m devant debout, 5 banc ( cible vue et regardee )";
         values[] = {0,1,2,3,5}; texts[] = {"0","1","2","3","5"}; default = 0;
     };
+    class CHACAL_CONTROLE_AZ
+    {
+        title = "Banc de perception, modes 7 et 8 : ecart d azimut entre la cible et l axe de la phase, en degres";
+        values[] = {0,30,60,90,135,180}; texts[] = {"0","30","60","90","135","180"}; default = 0;
+    };
+    class CHACAL_CONTROLE_POSTURE
+    {
+        title = "Banc de perception : posture de la cible, 0 debout, 1 accroupie";
+        values[] = {0,1}; texts[] = {"0","1"}; default = 0;
+    };
     class CHACAL_CONTROLE_DIST
     {
         title = "Banc de perception : distance de la cible, en metres";

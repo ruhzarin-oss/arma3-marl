@@ -166,49 +166,79 @@ CHACAL_fnc_fenetreObservation = {
     // point laisse la menace hors du champ ). Trois azimuts autour de l axe de la phase, le regard tourne toutes les 10 s.
     private _regards = [];
     private _gBanc = grpNull; private _tConnue = -1;   // banc : groupe cible, et instant ou le groupe le connait
+    private _axePhase = -1;
     if (count _secteur > 0) then {
         private _chefF = leader (group (_hommes select 0));
-        private _axe = _chefF getDir _secteur;
+        private _axe = _chefF getDir _secteur; _axePhase = _axe;
         { _regards pushBack (_chefF getPos [(_chefF distance2D _secteur) max 200, _axe + _x]) } forEach [-45, 0, 45];
     };
     { doStop _x; if (_phase == 1) then { _x setUnitPos "MIDDLE" } } forEach _hommes;
-    if ((CHACAL_CONTROLE_PERCEPTION in [1, 5]) && { count _hommes > 0 }) then {
-        // ! BANC DE PERCEPTION ( 18/09 ) : la cible est posee LA OU ILS PEUVENT LA VOIR, et ils la regardent.
+    if ((CHACAL_CONTROLE_PERCEPTION in [1, 5, 7, 8]) && { count _hommes > 0 }) then {
+        // ! BANC, VERSION 3 ( nuit du 18/09 ). 5 = regard centre ; 7 = balayage de la mission ; 8 = balayage repare ; 1 = controle positif.
+        private _banc = CHACAL_CONTROLE_PERCEPTION in [5, 7, 8];
+        private _balaie = CHACAL_CONTROLE_PERCEPTION in [7, 8];
         private _chef = leader (group (_hommes select 0));
         private _oeil = (getPosASL _chef) vectorAdd [0, 0, 1.5];
-        private _az = getDir _chef; private _trouve = false;
-        // ! RECHERCHE FINE ( 18/09 : 3 episodes sur 4 sans ligne de vue a 225-300 m, avec 18 azimuts testes depuis le seul
-        // chef ). 72 azimuts x 5 distances ( +-6 % ) ; on compte les HOMMES qui voient le point et on garde le candidat
-        // que le plus d hommes voient. A egalite le premier gagne : la distance demandee passe donc avant les autres.
-        private _dPose = CHACAL_CONTROLE_DIST; private _nVue = 0; private _nH = count _hommes; private _vueReelle = -1;
+        private _nH = count _hommes; private _haut = if (CHACAL_CONTROLE_POSTURE == 1) then {1.0} else {1.6};
+        if (_axePhase < 0) then { _axePhase = getDir _chef };
+        // les azimuts a essayer : tout le tour ( 72 ) en regard centre ; l axe + l ecart demande, a +-10 deg, en balayage
+        private _azs = [];
+        if (_balaie) then { { _azs pushBack ((_axePhase + CHACAL_CONTROLE_AZ + _x + 720) % 360) } forEach [0, -5, 5, -10, 10] }
+        else { for "_a" from 0 to 355 step 5 do { _azs pushBack _a } };
+        // ! RECHERCHE FINE : on compte les HOMMES qui voient chaque point, et on range les candidats du meilleur au moins bon ;
+        // a egalite l ordre d essai gagne ( distance demandee d abord ).
+        private _cands = []; private _rang = 0;
         {
             private _d = CHACAL_CONTROLE_DIST * _x;
-            for "_a" from 0 to 355 step 5 do {
-                if (_nVue < _nH) then {
-                    private _pC = _chef getPos [_d, _a];
-                    private _cible = (ATLToASL _pC) vectorAdd [0, 0, 1.6];
-                    if (!(surfaceIsWater _pC) && { !(terrainIntersectASL [_oeil, _cible]) }) then {
-                        private _n = { (count (lineIntersectsSurfaces [eyePos _x, _cible, _x, objNull, true, 1, "VIEW", "VIEW"])) == 0 } count _hommes;
-                        if (_n > _nVue) then { _nVue = _n; _az = _a; _dPose = _d };
-                    };
+            {
+                _rang = _rang + 1;
+                private _pC = _chef getPos [_d, _x];
+                private _cible = (ATLToASL _pC) vectorAdd [0, 0, _haut];
+                if (!(surfaceIsWater _pC) && { !(terrainIntersectASL [_oeil, _cible]) }) then {
+                    private _n = { (count (lineIntersectsSurfaces [eyePos _x, _cible, _x, objNull, true, 1, "VIEW", "VIEW"])) == 0 } count _hommes;
+                    if ((_n * 2) >= _nH) then { _cands pushBack [_n, -_rang, _x, _d] };
                 };
-            };
+            } forEach _azs;
         } forEach [1, 0.97, 1.03, 0.94, 1.06];
-        _trouve = (_nVue * 2) >= _nH;
-        if (!_trouve) exitWith {
-            // ! AUCUNE LIGNE DE VUE, MEME APRES 360 CANDIDATS : poser la cible mesurerait le relief, pas la perception.
-            // En mode banc l episode n a plus d objet : on le rend VOID tout de suite au lieu de tourner 300 s a vide.
-            (format ["CHACAL|E|banc_refuse|%1|phase|%2|distance|%3|cause|AUCUNE_LIGNE_DE_VUE|hommes_avec_vue|%4|hommes|%5",
-                round (time * 100) / 100, _phase, CHACAL_CONTROLE_DIST, _nVue, _nH]) call CHACAL_LOG;
-            if (CHACAL_CONTROLE_PERCEPTION == 5) then { CHACAL_ISSUE = "VOID"; CHACAL_CAUSE = "BANC_SANS_LIGNE_DE_VUE"; CHACAL_FIN = true };
+        _cands sort false;
+        if (count _cands == 0) exitWith {
+            // ! AUCUNE LIGNE DE VUE : poser la cible mesurerait le relief, pas la perception. En mode banc on rend l episode tout de suite.
+            (format ["CHACAL|E|banc_refuse|%1|phase|%2|distance|%3|cause|AUCUNE_LIGNE_DE_VUE|hommes_avec_vue|0|hommes|%4|mode|%5|az_consigne|%6",
+                round (time * 100) / 100, _phase, CHACAL_CONTROLE_DIST, _nH, CHACAL_CONTROLE_PERCEPTION, CHACAL_CONTROLE_AZ]) call CHACAL_LOG;
+            if (_banc) then { CHACAL_ISSUE = "VOID"; CHACAL_CAUSE = "BANC_SANS_LIGNE_DE_VUE"; CHACAL_FIN = true };
         };
-        private _p = _chef getPos [_dPose, _az];
-        private _g = createGroup east;
-        { private _u = _g createUnit [_x, _p, [], 3, "NONE"]; _u disableAI "AUTOTARGET"; _u disableAI "TARGET"; _u disableAI "MOVE"; _u setUnitPos "UP" } forEach ["O_Soldier_TL_F", "O_Soldier_F", "O_Soldier_F"];
-        _g setCombatMode "BLUE"; _g setBehaviour "SAFE";
-        // ! LA CIBLE REELLE : createUnit la pose a 3 m pres du point teste. checkVisibility est un AUTRE noyau que
-        // lineIntersectsSurfaces : on journalise les deux, et un desaccord entre eux est une information.
-        _vueReelle = { ([_x, "VIEW", leader _g] checkVisibility [eyePos _x, aimPos (leader _g)]) > 0.5 } count _hommes;
+        // ! LA CIBLE REELLE DOIT ETRE VISIBLE : createUnit la pose a 3 m pres du point teste, et elle peut tomber derriere un buisson
+        // ( 4 episodes sur 33 le 18/09 au soir ). On pose, on mesure checkVisibility vers la cible REELLE, et si personne ne la voit
+        // on la retire et on essaie le candidat suivant, six au plus. Si aucun ne passe, on garde le premier et on l ECRIT ( vis_pose ).
+        private _g = grpNull; private _az = 0; private _dPose = 0; private _nVue = 0; private _visPose = -1; private _essais = 0;
+        private _poser = {
+            params ["_c"];
+            private _gg = createGroup east;
+            private _pp = _chef getPos [_c select 3, _c select 2];
+            {
+                private _u = _gg createUnit [_x, _pp, [], 3, "NONE"]; _u disableAI "AUTOTARGET"; _u disableAI "TARGET"; _u disableAI "MOVE";
+                _u setUnitPos (if (CHACAL_CONTROLE_POSTURE == 1) then {"MIDDLE"} else {"UP"});
+            } forEach ["O_Soldier_TL_F", "O_Soldier_F", "O_Soldier_F"];
+            _gg setCombatMode "BLUE"; _gg setBehaviour "SAFE";
+            _gg
+        };
+        {
+            if (isNull _g && { _essais < 6 }) then {
+                _essais = _essais + 1;
+                private _gg = [_x] call _poser;
+                private _cB = leader _gg;
+                private _v = selectMax (_hommes apply { [_x, "VIEW", _cB] checkVisibility [eyePos _x, aimPos _cB] });
+                if (_v >= 0.1) then { _g = _gg; _az = _x select 2; _dPose = _x select 3; _nVue = _x select 0; _visPose = _v }
+                else { { deleteVehicle _x } forEach (units _gg); deleteGroup _gg };
+            };
+        } forEach _cands;
+        if (isNull _g) then {
+            private _c = _cands select 0;
+            _g = [_c] call _poser; _az = _c select 2; _dPose = _c select 3; _nVue = _c select 0;
+            private _cB = leader _g;
+            _visPose = selectMax (_hommes apply { [_x, "VIEW", _cB] checkVisibility [eyePos _x, aimPos _cB] });
+        };
+        private _vueReelle = { ([_x, "VIEW", leader _g] checkVisibility [eyePos _x, aimPos (leader _g)]) > 0.5 } count _hommes;
         CHACAL_MENACES pushBack [_phase, "BANC_PERCEPTION", _g];
         _gBanc = _g;
         if (CHACAL_CONTROLE_PERCEPTION == 5) then {
@@ -216,14 +246,15 @@ CHACAL_fnc_fenetreObservation = {
             // ! « REGARDEE » DES LA PREMIERE SECONDE : doWatch seul met jusqu a 90 s a pivoter de 24 deg ( fumee du 18/09, monde 5 ),
             // et le banc mesurait ce pivot. Chaque homme est TOURNE vers la cible, puis la fixe.
             { _x setDir (_x getDir _cibleU); _x doWatch _cibleU } forEach _hommes;
-            _regards = [];                            // le banc ne balaie pas
-        } else {
-            _regards = [getPosATL (leader _g)];       // controle POSITIF : la cible est dans le secteur balaye
+            _regards = [];                            // le banc a regard centre ne balaie pas
         };
-        (format ["CHACAL|E|banc_perception|%1|phase|%2|distance|%3|azimut|%4|ligne_de_vue|%5|heure|%6|lune|%7|jumelles|%8|hommes|%9|hommes_avec_vue|%10|vue_reelle|%11|distance_posee|%12",
-            round (time * 100) / 100, _phase, CHACAL_CONTROLE_DIST, round _az, (if (_trouve) then {1} else {0}),
+        if (CHACAL_CONTROLE_PERCEPTION == 1) then { _regards = [getPosATL (leader _g)] };   // controle POSITIF : la cible est dans le secteur balaye
+        // modes 7 et 8 : _regards garde les trois azimuts de la mission ; la cible n est PAS designee aux hommes
+        (format ["CHACAL|E|banc_perception|%1|phase|%2|distance|%3|azimut|%4|ligne_de_vue|1|heure|%5|lune|%6|jumelles|%7|hommes|%8|hommes_avec_vue|%9|vue_reelle|%10|distance_posee|%11|mode|%12|posture|%13|az_consigne|%14|axe|%15|essais|%16|vis_pose|%17|candidats|%18",
+            round (time * 100) / 100, _phase, CHACAL_CONTROLE_DIST, round _az,
             (date select 3) + ((date select 4) / 60), moonIntensity,
-            ((_hommes apply { hmd _x }) joinString ","), count _hommes, _nVue, _vueReelle, round _dPose]) call CHACAL_LOG;
+            ((_hommes apply { hmd _x }) joinString ","), _nH, _nVue, _vueReelle, round _dPose,
+            CHACAL_CONTROLE_PERCEPTION, CHACAL_CONTROLE_POSTURE, CHACAL_CONTROLE_AZ, round _axePhase, _essais, (round (_visPose * 100)) / 100, count _cands]) call CHACAL_LOG;
     };
     if ((CHACAL_CONTROLE_PERCEPTION in [2, 3]) && { count _hommes > 0 }) then {
         private _chef = leader (group (_hommes select 0));
@@ -246,7 +277,11 @@ CHACAL_fnc_fenetreObservation = {
         sleep 1;
         if ((count _regards > 0) && { time >= _tRegard }) then {
             _tRegard = time + 10; _iRegard = (_iRegard + 1) % (count _regards);
-            { _x doWatch (_regards select _iRegard) } forEach (CHACAL_FS select { alive _x });
+            // ! mode 8 : le balayage REPARE tourne les hommes ( setDir ) ; doWatch seul pivote trop lentement pour tenir 10 s par azimut
+            {
+                if (CHACAL_CONTROLE_PERCEPTION == 8) then { _x setDir (_x getDir (_regards select _iRegard)) };
+                _x doWatch (_regards select _iRegard);
+            } forEach (CHACAL_FS select { alive _x });
         };
         if ((CHACAL_SONDE > 0) && { time >= _prochain }) then {
             _prochain = time + (if ((time - _t0) < 120) then {1} else {5});   // 1 s pendant deux minutes : les delais pres du seuil
@@ -274,7 +309,7 @@ CHACAL_fnc_fenetreObservation = {
                 call CHACAL_fnc_perceptionMenace, _visMax, _visMoy]) call CHACAL_LOG;
         };
         // ! BANC : des que le groupe connait la cible, 30 s de plus et on ferme. Meme test que menaces_connues ( chefs, champ 0 ).
-        if ((CHACAL_CONTROLE_PERCEPTION == 5) && { !isNull _gBanc } && { _tConnue < 0 }) then {
+        if ((CHACAL_CONTROLE_PERCEPTION in [5, 7, 8]) && { !isNull _gBanc } && { _tConnue < 0 }) then {
             private _chefsB = call CHACAL_fnc_chefsDetachement;
             if (({ private _t = _x; ({ (_x targetKnowledge _t) select 0 } count _chefsB) > 0 } count ((units _gBanc) select { alive _x })) > 0) then { _tConnue = time };
         };
@@ -288,7 +323,7 @@ CHACAL_fnc_fenetreObservation = {
     (format ["CHACAL|E|observation|%1|phase|%2|fin|duree|%3%4", round (time * 100) / 100, _phase, round (time - _t0),
         call CHACAL_fnc_perceptionMenace]) call CHACAL_LOG;
     // ! BANC : la traversee qui suit n apprend rien au banc. On rend l episode tout de suite ; un refus garde sa cause.
-    if ((CHACAL_CONTROLE_PERCEPTION == 5) && { !CHACAL_FIN }) then { CHACAL_ISSUE = "VOID"; CHACAL_CAUSE = "BANC_TERMINE"; CHACAL_FIN = true };
+    if ((CHACAL_CONTROLE_PERCEPTION in [5, 7, 8]) && { !CHACAL_FIN }) then { CHACAL_ISSUE = "VOID"; CHACAL_CAUSE = "BANC_TERMINE"; CHACAL_FIN = true };
 };
 CHACAL_fnc_decision = {
     params ["_phase", "_point", "_options", "_choix", "_decideur", ["_extra", ""]];
