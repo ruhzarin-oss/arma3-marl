@@ -89,15 +89,15 @@ CHACAL_fnc_menaceNoter = {
 // =====================================================================
 if (CHACAL_MENACE_P1 > 0) then {
     1 call CHACAL_fnc_semerS;
-    private _pres = (CHACAL_MENACE_P1 == 3);
-    if (CHACAL_MENACE_P1 in [1, 3]) then {
+    private _pres = (CHACAL_MENACE_P1 in [3, 4, 5]);
+    if (CHACAL_MENACE_P1 in [1, 3, 4]) then {
         private _d = if (_pres) then { [150, 350] call CHACAL_fnc_bandeS } else { [400, 800] call CHACAL_fnc_bandeS };
         private _p = CHACAL_LZ getPos [_d, 360 call CHACAL_fnc_alS];
         private _g = [["O_Soldier_TL_F", "O_Sharpshooter_F"], _p, 6, 0.6, true] call CHACAL_fnc_creerS;
         [_g, CHACAL_LZ] call CHACAL_fnc_posteS;
         [1, "GUETTEUR", _g, _p, CHACAL_LZ, "POSER"] call CHACAL_fnc_menaceNoter;
     };
-    if (CHACAL_MENACE_P1 in [2, 3]) then {
+    if (CHACAL_MENACE_P1 in [2, 3, 5]) then {
         private _d = if (_pres) then { [150, 350] call CHACAL_fnc_bandeS } else { [250, 600] call CHACAL_fnc_bandeS };
         private _p = CHACAL_LZ getPos [_d, 360 call CHACAL_fnc_alS];
         private _g = [["O_Soldier_SL_F", "O_Soldier_F", "O_Soldier_AR_F", "O_Soldier_F"], _p, ((_d * 0.8) max 200)] call CHACAL_fnc_patrouilleS;
@@ -113,15 +113,15 @@ if (CHACAL_MENACE_P1 > 0) then {
 // =====================================================================
 if (CHACAL_MENACE_P2 > 0) then {
     2 call CHACAL_fnc_semerS;
-    if (CHACAL_MENACE_P2 in [1, 3]) then {
+    if (CHACAL_MENACE_P2 in [1, 3, 4]) then {
         if (isNull CHACAL_VEH_ROUTE) then {
             "CHACAL|AVERT|situation|phase|2|patrouille_route_non_creee" call CHACAL_LOG;
         } else {
             [2, "PATROUILLE_ROUTE", CHACAL_gRoute, getPosATL CHACAL_VEH_ROUTE, CHACAL_ROUTE, "TRAVERSEE", false] call CHACAL_fnc_menaceNoter;
         };
     };
-    if (CHACAL_MENACE_P2 in [2, 3]) then {
-        private _d = if (CHACAL_MENACE_P2 == 3) then { [150, 300] call CHACAL_fnc_bandeS } else { [300, 700] call CHACAL_fnc_bandeS };
+    if (CHACAL_MENACE_P2 in [2, 3, 5]) then {
+        private _d = if (CHACAL_MENACE_P2 in [3, 4, 5]) then { [150, 300] call CHACAL_fnc_bandeS } else { [300, 700] call CHACAL_fnc_bandeS };
         // le poste est sur la ROUTE : on garde le troncon dont la distance a la traversee est la plus proche de _d
         private _cands = (CHACAL_ROUTE nearRoads (_d + 150)) select { abs ((_x distance2D CHACAL_ROUTE) - _d) < 120 };
         private _p = [];
@@ -146,13 +146,13 @@ if (CHACAL_MENACE_P2 > 0) then {
 // =====================================================================
 if (CHACAL_MENACE_P3 > 0) then {
     3 call CHACAL_fnc_semerS;
-    if (CHACAL_MENACE_P3 in [1, 3]) then {
-        private _d = if (CHACAL_MENACE_P3 == 3) then { [100, 250] call CHACAL_fnc_bandeS } else { [250, 500] call CHACAL_fnc_bandeS };
+    if (CHACAL_MENACE_P3 in [1, 3, 4]) then {
+        private _d = if (CHACAL_MENACE_P3 in [3, 4, 5]) then { [100, 250] call CHACAL_fnc_bandeS } else { [250, 500] call CHACAL_fnc_bandeS };
         private _p = CHACAL_OP getPos [_d, 360 call CHACAL_fnc_alS];
         private _g = [["O_Soldier_TL_F", "O_Soldier_F", "O_Soldier_F"], _p, ((_d * 0.7) max 150)] call CHACAL_fnc_patrouilleS;
         [3, "PATROUILLE_CRETE", _g, _p, CHACAL_OP, "CRETE"] call CHACAL_fnc_menaceNoter;
     };
-    if (CHACAL_MENACE_P3 in [2, 3]) then {
+    if (CHACAL_MENACE_P3 in [2, 3, 5]) then {
         private _p = CHACAL_SITE getPos [CHACAL_RAYON - 4, CHACAL_SITE getDir CHACAL_OP];
         private _g = [["O_Soldier_F", "O_Sharpshooter_F"], _p, 3, _skillS, true] call CHACAL_fnc_creerS;
         [_g, CHACAL_OP] call CHACAL_fnc_posteS;
@@ -171,14 +171,14 @@ if (CHACAL_MENACE_P3 > 0) then {
 if (CHACAL_MENACE_P4 > 0) then {
     4 call CHACAL_fnc_semerS;
     private _axe = CHACAL_SITE getDir CHACAL_RALLY;
-    if (CHACAL_MENACE_P4 in [1, 3]) then {
-        private _d = if (CHACAL_MENACE_P4 == 3) then { [250, 400] call CHACAL_fnc_bandeS } else { [350, 650] call CHACAL_fnc_bandeS };
+    if (CHACAL_MENACE_P4 in [1, 3, 4]) then {
+        private _d = if (CHACAL_MENACE_P4 in [3, 4, 5]) then { [250, 400] call CHACAL_fnc_bandeS } else { [350, 650] call CHACAL_fnc_bandeS };
         private _p = CHACAL_SITE getPos [_d, _axe - 40 + (80 call CHACAL_fnc_alS)];
         private _g = [["O_Soldier_TL_F", "O_Soldier_F", "O_Soldier_AR_F"], _p, 200] call CHACAL_fnc_patrouilleS;
         [4, "PATROUILLE_MISE_EN_PLACE", _g, _p, CHACAL_SITE, "SITE"] call CHACAL_fnc_menaceNoter;
     };
-    if (CHACAL_MENACE_P4 in [2, 3]) then {
-        private _d = if (CHACAL_MENACE_P4 == 3) then { [200, 300] call CHACAL_fnc_bandeS } else { [250, 450] call CHACAL_fnc_bandeS };
+    if (CHACAL_MENACE_P4 in [2, 3, 5]) then {
+        private _d = if (CHACAL_MENACE_P4 in [3, 4, 5]) then { [200, 300] call CHACAL_fnc_bandeS } else { [250, 450] call CHACAL_fnc_bandeS };
         private _p = CHACAL_SITE getPos [_d, _axe - 40 + (80 call CHACAL_fnc_alS)];
         private _g = [["O_Soldier_F", "O_Sharpshooter_F"], _p, 4, _skillS, true] call CHACAL_fnc_creerS;
         [_g, CHACAL_RALLY] call CHACAL_fnc_posteS;
@@ -194,14 +194,14 @@ if (CHACAL_MENACE_P4 > 0) then {
 // =====================================================================
 if (CHACAL_MENACE_P5 > 0) then {
     5 call CHACAL_fnc_semerS;
-    if (CHACAL_MENACE_P5 in [1, 3]) then {
+    if (CHACAL_MENACE_P5 in [1, 3, 4]) then {
         private _g = [["O_Soldier_F", "O_Soldier_AR_F"], CHACAL_SITE, 25, _skillS, false] call CHACAL_fnc_creerS;
         _g setBehaviour "SAFE"; _g setCombatMode "YELLOW"; _g allowFleeing 0;
         [_g, CHACAL_SITE, 55] call CHACAL_fnc_garnison;
         CHACAL_EST_SITE append (units _g);
         [5, "RENFORT_GARNISON", _g, CHACAL_SITE, CHACAL_SITE, "SITE"] call CHACAL_fnc_menaceNoter;
     };
-    if (CHACAL_MENACE_P5 in [2, 3]) then {
+    if (CHACAL_MENACE_P5 in [2, 3, 5]) then {
         (format ["CHACAL|E|situation|%1|phase|5|niveau|%2|type|ALARME_AVANT_ASSAUT|hommes|0|reference|SITE|distance|0|azimut|0|centre|[0,0]|graine_situation|%3",
             round (time * 100) / 100, CHACAL_MENACE_P5, CHACAL_SITUATION]) call CHACAL_LOG;
         CHACAL_MENACES pushBack [5, "ALARME_AVANT_ASSAUT", grpNull];
@@ -227,13 +227,13 @@ if (CHACAL_MENACE_P5 > 0) then {
 // =====================================================================
 if (CHACAL_MENACE_P6 > 0) then {
     6 call CHACAL_fnc_semerS;
-    if (CHACAL_MENACE_P6 in [1, 3]) then {
-        private _d = if (CHACAL_MENACE_P6 == 3) then { [300, 500] call CHACAL_fnc_bandeS } else { [500, 900] call CHACAL_fnc_bandeS };
+    if (CHACAL_MENACE_P6 in [1, 3, 4]) then {
+        private _d = if (CHACAL_MENACE_P6 in [3, 4, 5]) then { [300, 500] call CHACAL_fnc_bandeS } else { [500, 900] call CHACAL_fnc_bandeS };
         private _p = CHACAL_SITE getPos [_d, (CHACAL_SITE getDir CHACAL_PZ) - 25 + (50 call CHACAL_fnc_alS)];
         private _g = [["O_Soldier_SL_F", "O_Soldier_F", "O_Soldier_AR_F", "O_Soldier_F"], _p, 200] call CHACAL_fnc_patrouilleS;
         [6, "PATROUILLE_SORTIE", _g, _p, CHACAL_SITE, "SITE"] call CHACAL_fnc_menaceNoter;
     };
-    if (CHACAL_MENACE_P6 in [2, 3]) then {
+    if (CHACAL_MENACE_P6 in [2, 3, 5]) then {
         // tire MAINTENANT, pour que le choix du blesse ne depende pas de l ordre d execution
         private _k = 1 call CHACAL_fnc_alS;
         (format ["CHACAL|E|situation|%1|phase|6|niveau|%2|type|BLESSE_JAMBES|hommes|1|reference|DETACHEMENT|distance|0|azimut|0|centre|[0,0]|graine_situation|%3",

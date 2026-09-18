@@ -518,33 +518,33 @@ class Params
     };
     class CHACAL_MENACE_P1
     {
-        title = "Menaces de la phase 1, autour de la zone de poser : 0 aucune, 1 guetteur, 2 patrouille, 3 les deux plus pres";
-        values[] = {0,1,2,3}; texts[] = {"0","1","2","3"}; default = 0;
+        title = "Menaces de la phase 1, autour de la zone de poser : 0 aucune, 1 guetteur, 2 patrouille, 3 les deux plus pres, 4 type 1 seul mais pres, 5 type 2 seul mais pres";
+        values[] = {0,1,2,3,4,5}; texts[] = {"0","1","2","3","4","5"}; default = 0;
     };
     class CHACAL_MENACE_P2
     {
-        title = "Menaces de la phase 2, sur la route : 0 aucune, 1 patrouille motorisee, 2 poste de controle, 3 les deux plus pres";
-        values[] = {0,1,2,3}; texts[] = {"0","1","2","3"}; default = 0;
+        title = "Menaces de la phase 2, sur la route : 0 aucune, 1 patrouille motorisee, 2 poste de controle, 3 les deux plus pres, 4 type 1 seul mais pres, 5 type 2 seul mais pres";
+        values[] = {0,1,2,3,4,5}; texts[] = {"0","1","2","3","4","5"}; default = 0;
     };
     class CHACAL_MENACE_P3
     {
-        title = "Menaces de la phase 3, a la crete : 0 aucune, 1 patrouille, 2 sentinelles sur le mur, 3 les deux plus pres";
-        values[] = {0,1,2,3}; texts[] = {"0","1","2","3"}; default = 0;
+        title = "Menaces de la phase 3, a la crete : 0 aucune, 1 patrouille, 2 sentinelles sur le mur, 3 les deux plus pres, 4 type 1 seul mais pres, 5 type 2 seul mais pres";
+        values[] = {0,1,2,3,4,5}; texts[] = {"0","1","2","3","4","5"}; default = 0;
     };
     class CHACAL_MENACE_P4
     {
-        title = "Menaces de la phase 4, a la mise en place : 0 aucune, 1 patrouille, 2 poste d ecoute, 3 les deux plus pres";
-        values[] = {0,1,2,3}; texts[] = {"0","1","2","3"}; default = 0;
+        title = "Menaces de la phase 4, a la mise en place : 0 aucune, 1 patrouille, 2 poste d ecoute, 3 les deux plus pres, 4 type 1 seul mais pres, 5 type 2 seul mais pres";
+        values[] = {0,1,2,3,4,5}; texts[] = {"0","1","2","3","4","5"}; default = 0;
     };
     class CHACAL_MENACE_P5
     {
         title = "Menaces de la phase 5, a l assaut : 0 aucune, 1 renfort de garnison, 2 alarme deja donnee, 3 les deux";
-        values[] = {0,1,2,3}; texts[] = {"0","1","2","3"}; default = 0;
+        values[] = {0,1,2,3,4,5}; texts[] = {"0","1","2","3","4","5"}; default = 0;
     };
     class CHACAL_MENACE_P6
     {
         title = "Menaces de la phase 6, a l exfiltration : 0 aucune, 1 patrouille sur la sortie, 2 un blesse aux jambes, 3 les deux";
-        values[] = {0,1,2,3}; texts[] = {"0","1","2","3"}; default = 0;
+        values[] = {0,1,2,3,4,5}; texts[] = {"0","1","2","3","4","5"}; default = 0;
     };
     class CHACAL_P1_ATTENTE
     {

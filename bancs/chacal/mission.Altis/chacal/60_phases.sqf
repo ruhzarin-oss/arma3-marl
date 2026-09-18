@@ -181,6 +181,12 @@ CHACAL_fnc_fenetreObservation = {
             private _cible = (ATLToASL _p) vectorAdd [0, 0, 1.6];
             if (!_trouve && { (count (lineIntersectsSurfaces [_oeil, _cible, _chef, objNull, true, 1, "VIEW", "VIEW"])) == 0 }) then { _az = _x; _trouve = true };
         } forEach [0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320, 340];
+        if (!_trouve) exitWith {
+            // ! AUCUNE LIGNE DE VUE ( mesure du 18/09 : 4 episodes sur 22 posaient la cible derriere un obstacle ) :
+            // on refuse l episode plutot que de mesurer le relief au lieu de la perception.
+            (format ["CHACAL|E|banc_refuse|%1|phase|%2|distance|%3|cause|AUCUNE_LIGNE_DE_VUE", round (time * 100) / 100,
+                _phase, CHACAL_CONTROLE_DIST]) call CHACAL_LOG;
+        };
         private _p = _chef getPos [CHACAL_CONTROLE_DIST, _az];
         private _g = createGroup east;
         { private _u = _g createUnit [_x, _p, [], 3, "NONE"]; _u disableAI "AUTOTARGET"; _u disableAI "TARGET"; _u disableAI "MOVE"; _u setUnitPos "UP" } forEach ["O_Soldier_TL_F", "O_Soldier_F", "O_Soldier_F"];
