@@ -1421,6 +1421,17 @@ if (!CHACAL_FIN && !CHACAL_SAUT && !CHACAL_ABANDON && { CHACAL_BRAS != "NUL" }) 
 // ---------------------------------------------------------------------
 if (!CHACAL_ABANDON && !CHACAL_FIN) then {
 CHACAL_SAUT = false;
+// ! PRIX DU TEMPS : l attente est prise AVANT le debut de la phase, donc elle ne mange aucun plafond. Le seul cout
+// possible est celui du monde qui tourne ( patrouilles, alarme, renfort ) - c est justement ce qu on veut mesurer.
+if (CHACAL_ATTENTE_TEST > 0) then {
+    private _tA = time;
+    (format ["CHACAL|E|attente_test|%1|debut|duree_prevue|%2|vivants|%3|alarme|%4", round (time * 100) / 100,
+        CHACAL_ATTENTE_TEST, count (CHACAL_FS select { alive _x }), (if (CHACAL_ALARME) then {1} else {0})]) call CHACAL_LOG;
+    waitUntil { sleep 2; CHACAL_FIN || ((time - _tA) >= (CHACAL_ATTENTE_TEST * CHACAL_ECHELLE)) };
+    (format ["CHACAL|E|attente_test|%1|fin|duree|%2|vivants|%3|alarme|%4|compromis|%5", round (time * 100) / 100,
+        round (time - _tA), count (CHACAL_FS select { alive _x }), (if (CHACAL_ALARME) then {1} else {0}),
+        (if (CHACAL_COMPROMIS) then {1} else {0})]) call CHACAL_LOG;
+};
 _plafond = 5 call CHACAL_fnc_duree;
 [5, "ASSAUT", _plafond] call CHACAL_fnc_debutPhase;
 

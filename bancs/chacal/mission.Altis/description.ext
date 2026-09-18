@@ -586,4 +586,9 @@ class Params
         title = "Sonde de perception : 1 = une ligne toutes les 5 s pendant la fenetre d observation";
         values[] = {0,1}; texts[] = {"0","1"}; default = 0;
     };
+    class CHACAL_ATTENTE_TEST
+    {
+        title = "Prix du temps : attente imposee avant la phase 5, en secondes (0 = origine)";
+        values[] = {0,300,600,1200}; texts[] = {"0","300","600","1200"}; default = 0;
+    };
 };

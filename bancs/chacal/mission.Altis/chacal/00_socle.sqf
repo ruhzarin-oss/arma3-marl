@@ -137,6 +137,8 @@ CHACAL_ITINERAIRE = ["CHACAL_ITINERAIRE", 0] call BIS_fnc_getParamValue;
 CHACAL_OBSERVATION = ["CHACAL_OBSERVATION", 0] call BIS_fnc_getParamValue;
 CHACAL_CONTROLE_PERCEPTION = ["CHACAL_CONTROLE_PERCEPTION", 0] call BIS_fnc_getParamValue;   // 3 = 150 m devant, DEBOUT
 CHACAL_SONDE = ["CHACAL_SONDE", 0] call BIS_fnc_getParamValue;
+// ! PRIX DU TEMPS ( saisine de Fable, 18/09 ) : attente imposee AVANT la phase 5, hors plafond de phase. 0 = origine.
+CHACAL_ATTENTE_TEST = ["CHACAL_ATTENTE_TEST", 0] call BIS_fnc_getParamValue;
 CHACAL_CONTROLE_DIST = ["CHACAL_CONTROLE_DIST", 150] call BIS_fnc_getParamValue;   // banc de perception : distance de la cible   // 1 : une ligne sonde_perception toutes les 5 s pendant la fenetre   // 1 direct, 2 detour de 350 m
 
 // --- LE TIRAGE EST A NOUS, PAS AU MOTEUR -----------------------------
