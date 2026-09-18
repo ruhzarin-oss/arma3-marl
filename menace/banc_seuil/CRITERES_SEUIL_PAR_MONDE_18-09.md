@@ -37,3 +37,14 @@ vis_max a la premiere sonde et en moyenne sur la fenetre. d* d un monde = milieu
 ## Limites dites d avance
 Un episode par ( monde, distance ) : descriptif. Une heure de nuit, une posture. Les autres sessions peuvent charger la machine
 ( charge archivee par run ). La fermeture anticipee de la fenetre coupe l observation apres la connaissance : voulu.
+
+## Additif du 18/09, ~22 h 05 - la fumee a echoue sur UN point, correction et fumee v2 ( ecrit AVANT la fumee v2 )
+Fumee v1 : tout l instrument passe ( 0 erreur SQF, 112-114 sondes en 120 s, vis presents, fermeture 30 s apres la connaissance,
+fenetre de 601 s a 250 m, VOID BANC_TERMINE ). MAIS le positif du monde 5 a 148 m est connu a 90 s, pas en <= 10 s. La sonde a 1 s
+donne la cause : regard a 24 deg au depart, pivot lent sous doWatch, connaissance a la seconde ou l angle arrive a 3 deg, visibilite
+0,12. Le banc mesurait le PIVOT. Correction : patch_banc_regard.py ( setDir vers la cible avant doWatch, mode banc seulement ).
+Fumee v2 : un job, mondes 4 et 5 a 150 m. Criteres : 0 erreur SQF ; angle_min de la PREMIERE sonde <= 5 deg dans les deux mondes et
+<= 10 deg pendant les 30 premieres secondes ( sinon le setDir ne tient pas et il faut autre chose ) ; monde 4 connue en <= 10 s.
+Le delai du monde 5 est LU, pas juge : regard centre et visibilite basse, il devient une mesure, plus un controle.
+Consequence ecrite d avance : les delais longs de la journee ( 65, 70, 112, 259 s ) sont a relire comme « pivot + perception » ;
+la prediction 2 ( le delai s allonge pres du seuil ) est rejugee sur cette campagne, regard centre.

@@ -213,7 +213,9 @@ CHACAL_fnc_fenetreObservation = {
         _gBanc = _g;
         if (CHACAL_CONTROLE_PERCEPTION == 5) then {
             private _cibleU = leader _g;
-            { _x doWatch _cibleU } forEach _hommes;   // banc : ils fixent la cible, aucune ambiguite de direction
+            // ! « REGARDEE » DES LA PREMIERE SECONDE : doWatch seul met jusqu a 90 s a pivoter de 24 deg ( fumee du 18/09, monde 5 ),
+            // et le banc mesurait ce pivot. Chaque homme est TOURNE vers la cible, puis la fixe.
+            { _x setDir (_x getDir _cibleU); _x doWatch _cibleU } forEach _hommes;
             _regards = [];                            // le banc ne balaie pas
         } else {
             _regards = [getPosATL (leader _g)];       // controle POSITIF : la cible est dans le secteur balaye
