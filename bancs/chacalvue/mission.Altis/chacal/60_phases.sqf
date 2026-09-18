@@ -165,6 +165,7 @@ CHACAL_fnc_fenetreObservation = {
     // ! OBSERVER, C EST BALAYER ( banc du 18/09 : une cible regardee est connue en 6 s jusqu a 150 m ; fixer un seul
     // point laisse la menace hors du champ ). Trois azimuts autour de l axe de la phase, le regard tourne toutes les 10 s.
     private _regards = [];
+    private _gBanc = grpNull; private _tConnue = -1;   // banc : groupe cible, et instant ou le groupe le connait
     if (count _secteur > 0) then {
         private _chefF = leader (group (_hommes select 0));
         private _axe = _chefF getDir _secteur;
@@ -209,6 +210,7 @@ CHACAL_fnc_fenetreObservation = {
         // lineIntersectsSurfaces : on journalise les deux, et un desaccord entre eux est une information.
         _vueReelle = { ([_x, "VIEW", leader _g] checkVisibility [eyePos _x, aimPos (leader _g)]) > 0.5 } count _hommes;
         CHACAL_MENACES pushBack [_phase, "BANC_PERCEPTION", _g];
+        _gBanc = _g;
         if (CHACAL_CONTROLE_PERCEPTION == 5) then {
             private _cibleU = leader _g;
             { _x doWatch _cibleU } forEach _hommes;   // banc : ils fixent la cible, aucune ambiguite de direction
@@ -245,7 +247,19 @@ CHACAL_fnc_fenetreObservation = {
             { _x doWatch (_regards select _iRegard) } forEach (CHACAL_FS select { alive _x });
         };
         if ((CHACAL_SONDE > 0) && { time >= _prochain }) then {
-            _prochain = time + 5;
+            _prochain = time + (if ((time - _t0) < 120) then {1} else {5});   // 1 s pendant deux minutes : les delais pres du seuil
+            // ! LA DEUXIEME VARIABLE : checkVisibility rend une valeur CONTINUE ( 0 a 1 ). On l ecrit telle quelle, max et moyenne
+            // des hommes vers le chef de la cible du banc ; -1 hors banc. Le compte d hommes > 0,5 la jetait.
+            private _visMax = -1; private _visMoy = -1;
+            if (!isNull _gBanc && { alive (leader _gBanc) }) then {
+                private _cB = leader _gBanc;
+                private _vis = (CHACAL_FS select { alive _x }) apply { [_x, "VIEW", _cB] checkVisibility [eyePos _x, aimPos _cB] };
+                if (count _vis > 0) then {
+                    _visMax = (round ((selectMax _vis) * 100)) / 100;
+                    private _somme = 0; { _somme = _somme + _x } forEach _vis;
+                    _visMoy = (round ((_somme / (count _vis)) * 100)) / 100;
+                };
+            };
             private _angles = [];
             {
                 private _t = _x;
@@ -253,11 +267,16 @@ CHACAL_fnc_fenetreObservation = {
                 { private _r = abs ((((_x getDir _t) - (getDir _x) + 540) % 360) - 180); if (_r < _a) then { _a = _r } } forEach (CHACAL_FS select { alive _x });
                 _angles pushBack (round _a);
             } forEach (call CHACAL_fnc_unitesMenace);
-            (format ["CHACAL|E|sonde_perception|%1|phase|%2|depuis|%3|angle_min|%4%5", round (time * 100) / 100, _phase,
+            (format ["CHACAL|E|sonde_perception|%1|phase|%2|depuis|%3|angle_min|%4%5|vis_max|%6|vis_moy|%7", round (time * 100) / 100, _phase,
                 round (time - _t0), (if (count _angles > 0) then { selectMin _angles } else { -1 }),
-                call CHACAL_fnc_perceptionMenace]) call CHACAL_LOG;
+                call CHACAL_fnc_perceptionMenace, _visMax, _visMoy]) call CHACAL_LOG;
         };
-        CHACAL_FIN || ((time - _t0) >= (CHACAL_OBSERVATION * CHACAL_ECHELLE))
+        // ! BANC : des que le groupe connait la cible, 30 s de plus et on ferme. Meme test que menaces_connues ( chefs, champ 0 ).
+        if ((CHACAL_CONTROLE_PERCEPTION == 5) && { !isNull _gBanc } && { _tConnue < 0 }) then {
+            private _chefsB = call CHACAL_fnc_chefsDetachement;
+            if (({ private _t = _x; ({ (_x targetKnowledge _t) select 0 } count _chefsB) > 0 } count ((units _gBanc) select { alive _x })) > 0) then { _tConnue = time };
+        };
+        CHACAL_FIN || ((time - _t0) >= (CHACAL_OBSERVATION * CHACAL_ECHELLE)) || ((_tConnue >= 0) && { (time - _tConnue) >= 30 })
     };
     // ! RENDRE LA MAIN ( faute du 17/09 : sans ceci, les trois elements de la phase 4 ne repartent jamais et les huit
     // episodes finissent au plafond, 55 min au lieu de 5 ).
@@ -266,6 +285,8 @@ CHACAL_fnc_fenetreObservation = {
     } forEach _hommes;
     (format ["CHACAL|E|observation|%1|phase|%2|fin|duree|%3%4", round (time * 100) / 100, _phase, round (time - _t0),
         call CHACAL_fnc_perceptionMenace]) call CHACAL_LOG;
+    // ! BANC : la traversee qui suit n apprend rien au banc. On rend l episode tout de suite ; un refus garde sa cause.
+    if ((CHACAL_CONTROLE_PERCEPTION == 5) && { !CHACAL_FIN }) then { CHACAL_ISSUE = "VOID"; CHACAL_CAUSE = "BANC_TERMINE"; CHACAL_FIN = true };
 };
 CHACAL_fnc_decision = {
     params ["_phase", "_point", "_options", "_choix", "_decideur", ["_extra", ""]];
