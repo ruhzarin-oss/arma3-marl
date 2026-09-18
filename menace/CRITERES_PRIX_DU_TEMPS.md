@@ -41,3 +41,54 @@ temps sont indirects : patrouilles qui tournent, alarme, renfort.
 
 « Si une attente de 20 minutes ne fait pas baisser la réussite de plus de 10 points, alors le temps n'a pas de prix
 mesurable dans ce monde, et aucune règle ne peut y apprendre à l'économiser. »
+
+---
+
+## Amendement 1 — 18/09/2026, après lecture des causes (écrit avant tout nouveau calcul)
+
+**La campagne `PRIX-DU-TEMPS-18-09` (v1) est déclarée NULLE.** Elle n'a pas mesuré le prix du temps, elle a mesuré une
+dérive de l'instrument. Deux fautes, l'une de montage, l'autre de critère.
+
+### a. La faute de montage
+
+Faire attendre un détachement sans lui donner d'ordre ne le laisse pas immobile : l'IA reprend son mouvement
+précédent. Mesuré homme par homme sur les épisodes de la v1 :
+
+| attente | déplacement pendant l'attente | assaut à sa place au début de la phase 5 | issue |
+|---|---|---|---|
+| 0 s | — | 16 / 16 | 62 % de 3 charges |
+| 600 s | 6 à 7 hommes marchent **818 m** | 0 / 16, à **327–672 m** de leur place | **6 %** de 3 charges, 14 abandons `ARTICULATION_ROMPUE` |
+| 1200 s | les mêmes hommes sont **revenus** (0–30 m) | 9 / 16 | 62 % de 3 charges |
+
+Pendant ces attentes : `alarme 0`, `compromis 0`, **10 vivants sur 10** dans 14 cas sur 16. L'ennemi n'y est pour rien.
+Le creux à 600 s n'est pas un coût du temps, c'est la photographie du détachement au bout de sa promenade.
+
+**Correctif (`menace/patch_prix_temps_v2.py`)** : pendant l'attente, chaque homme est figé (`doStop` + `PATH` coupé),
+puis rendu à lui-même (`PATH` + `doFollow`). L'appui déjà fixé par `CHACAL_APPUI_FIXE` n'est pas touché. La **dérive
+maximale** est écrite dans la ligne `attente_test|…|fin|…|derive|N`.
+
+### b. La faute de critère
+
+L'issue primaire de la v1, `exfil_reussie` (au moins 6 exfiltrés), **récompense les épisodes où l'assaut n'a jamais eu
+lieu** : à 600 s elle monte à 88 % précisément parce que le détachement a renoncé et est rentré. Un critère de succès
+doit pouvoir être manqué en renonçant.
+
+**Nouvelle issue primaire : `mission_reussie` = 3 charges posées ET au moins 6 exfiltrés.** Les deux moitiés restent
+lues séparément, à titre descriptif.
+
+### c. Contrôles d'instrument, écrits avant les épisodes
+
+La lecture est **nulle** si l'un de ces trois contrôles échoue — la mesure doit savoir échouer :
+
+1. **Dérive** : `derive` ≤ 30 m dans au moins 95 % des épisodes qui attendent.
+2. **Dispositif** : l'assaut est à sa place au début de la phase 5 dans au moins 80 % des épisodes, **dans chaque bras**.
+3. **Renoncement** : moins de 20 % d'abandons `ARTICULATION_ROMPUE`, **dans chaque bras**.
+
+Le contrôle 2 est le contrôle positif du test : si le bras à 0 s et le bras à 1200 s ne partent pas du même dispositif,
+l'écart mesuré ne porte pas sur le temps.
+
+### d. Ce qui ne change pas
+
+La question, le levier, les 8 mondes, les 48 épisodes, la règle de décision (± 10 points, IC 95 % par
+rééchantillonnage des mondes, graine 20260918), le falsificateur, et ce qu'on en fait. Nouvelle campagne :
+`PRIX-DU-TEMPS-V2-18-09`.

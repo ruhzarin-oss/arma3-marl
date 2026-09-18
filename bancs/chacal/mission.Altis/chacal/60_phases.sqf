@@ -1425,12 +1425,25 @@ CHACAL_SAUT = false;
 // possible est celui du monde qui tourne ( patrouilles, alarme, renfort ) - c est justement ce qu on veut mesurer.
 if (CHACAL_ATTENTE_TEST > 0) then {
     private _tA = time;
-    (format ["CHACAL|E|attente_test|%1|debut|duree_prevue|%2|vivants|%3|alarme|%4", round (time * 100) / 100,
-        CHACAL_ATTENTE_TEST, count (CHACAL_FS select { alive _x }), (if (CHACAL_ALARME) then {1} else {0})]) call CHACAL_LOG;
+    // ! V2 - ON FIGE PENDANT L ATTENTE. La v1 laissait les hommes sans ordre : ils reprenaient leur mouvement
+    // precedent, marchaient 818 m, puis revenaient. A 600 s l assaut etait a 330-670 m de sa place et la mission
+    // renoncait ( ARTICULATION_ROMPUE ) 14 fois sur 16, alarme 0 et 10 vivants sur 10. Une attente doit couter le
+    // temps du monde qui tourne, pas la dislocation du detachement.
+    // L appui deja fige par CHACAL_APPUI_FIXE n est pas touche : lui rendre PATH le ferait partir, et seulement
+    // dans les bras qui attendent.
+    private _fige = (CHACAL_FS select { alive _x }) select { !(CHACAL_APPUI_FIXE == 1 && { group _x == CHACAL_gAppui }) };
+    private _avant = _fige apply { [_x, getPosATL _x] };
+    { doStop _x; _x disableAI "PATH" } forEach _fige;
+    (format ["CHACAL|E|attente_test|%1|debut|duree_prevue|%2|vivants|%3|alarme|%4|figes|%5", round (time * 100) / 100,
+        CHACAL_ATTENTE_TEST, count (CHACAL_FS select { alive _x }), (if (CHACAL_ALARME) then {1} else {0}),
+        count _fige]) call CHACAL_LOG;
     waitUntil { sleep 2; CHACAL_FIN || ((time - _tA) >= (CHACAL_ATTENTE_TEST * CHACAL_ECHELLE)) };
-    (format ["CHACAL|E|attente_test|%1|fin|duree|%2|vivants|%3|alarme|%4|compromis|%5", round (time * 100) / 100,
+    private _derive = 0;
+    { _x params ["_u", "_p"]; if (alive _u) then { _derive = _derive max (_u distance2D _p) } } forEach _avant;
+    { if (alive _x) then { _x enableAI "PATH"; _x doFollow (leader (group _x)) } } forEach _fige;
+    (format ["CHACAL|E|attente_test|%1|fin|duree|%2|vivants|%3|alarme|%4|compromis|%5|derive|%6", round (time * 100) / 100,
         round (time - _tA), count (CHACAL_FS select { alive _x }), (if (CHACAL_ALARME) then {1} else {0}),
-        (if (CHACAL_COMPROMIS) then {1} else {0})]) call CHACAL_LOG;
+        (if (CHACAL_COMPROMIS) then {1} else {0}), round _derive]) call CHACAL_LOG;
 };
 _plafond = 5 call CHACAL_fnc_duree;
 [5, "ASSAUT", _plafond] call CHACAL_fnc_debutPhase;
