@@ -162,8 +162,16 @@ CHACAL_fnc_fenetreObservation = {
     private _secteur = [_phase] call CHACAL_fnc_secteurPhase;
     // ! OBSERVER, C EST SCRUTER UN SECTEUR ( controles du 17/09 : la menace posee a 150 m devant n etait connue que
     // 2 fois sur 8 ; les hommes s arretaient mais gardaient leur cap ). On les fait regarder le point de la phase.
-    { doStop _x; if (_phase == 1) then { _x setUnitPos "MIDDLE" }; if (count _secteur > 0) then { _x doWatch _secteur } } forEach _hommes;
-    if ((CHACAL_CONTROLE_PERCEPTION == 5) && { count _hommes > 0 }) then {
+    // ! OBSERVER, C EST BALAYER ( banc du 18/09 : une cible regardee est connue en 6 s jusqu a 150 m ; fixer un seul
+    // point laisse la menace hors du champ ). Trois azimuts autour de l axe de la phase, le regard tourne toutes les 10 s.
+    private _regards = [];
+    if (count _secteur > 0) then {
+        private _chefF = leader (group (_hommes select 0));
+        private _axe = _chefF getDir _secteur;
+        { _regards pushBack (_chefF getPos [(_chefF distance2D _secteur) max 200, _axe + _x]) } forEach [-45, 0, 45];
+    };
+    { doStop _x; if (_phase == 1) then { _x setUnitPos "MIDDLE" } } forEach _hommes;
+    if ((CHACAL_CONTROLE_PERCEPTION in [1, 5]) && { count _hommes > 0 }) then {
         // ! BANC DE PERCEPTION ( 18/09 ) : la cible est posee LA OU ILS PEUVENT LA VOIR, et ils la regardent.
         private _chef = leader (group (_hommes select 0));
         private _oeil = (getPosASL _chef) vectorAdd [0, 0, 1.5];
@@ -178,14 +186,19 @@ CHACAL_fnc_fenetreObservation = {
         { private _u = _g createUnit [_x, _p, [], 3, "NONE"]; _u disableAI "AUTOTARGET"; _u disableAI "TARGET"; _u disableAI "MOVE"; _u setUnitPos "UP" } forEach ["O_Soldier_TL_F", "O_Soldier_F", "O_Soldier_F"];
         _g setCombatMode "BLUE"; _g setBehaviour "SAFE";
         CHACAL_MENACES pushBack [_phase, "BANC_PERCEPTION", _g];
-        private _cibleU = leader _g;
-        { _x doWatch _cibleU } forEach _hommes;   // ils REGARDENT la cible : plus d ambiguite de direction
+        if (CHACAL_CONTROLE_PERCEPTION == 5) then {
+            private _cibleU = leader _g;
+            { _x doWatch _cibleU } forEach _hommes;   // banc : ils fixent la cible, aucune ambiguite de direction
+            _regards = [];                            // le banc ne balaie pas
+        } else {
+            _regards = [getPosATL (leader _g)];       // controle POSITIF : la cible est dans le secteur balaye
+        };
         (format ["CHACAL|E|banc_perception|%1|phase|%2|distance|%3|azimut|%4|ligne_de_vue|%5|heure|%6|lune|%7|jumelles|%8|hommes|%9",
             round (time * 100) / 100, _phase, CHACAL_CONTROLE_DIST, round _az, (if (_trouve) then {1} else {0}),
             (date select 3) + ((date select 4) / 60), moonIntensity,
             ((_hommes apply { hmd _x }) joinString ","), count _hommes]) call CHACAL_LOG;
     };
-    if ((CHACAL_CONTROLE_PERCEPTION > 0) && { CHACAL_CONTROLE_PERCEPTION != 5 } && { count _hommes > 0 }) then {
+    if ((CHACAL_CONTROLE_PERCEPTION in [2, 3]) && { count _hommes > 0 }) then {
         private _chef = leader (group (_hommes select 0));
         private _p = if (CHACAL_CONTROLE_PERCEPTION == 2) then { _chef getPos [1500, (getDir _chef) + 180] } else { _chef getPos [150, getDir _chef] };
         private _g = createGroup east;
@@ -201,9 +214,13 @@ CHACAL_fnc_fenetreObservation = {
     };
     (format ["CHACAL|E|observation|%1|phase|%2|debut|duree_prevue|%3%4", round (time * 100) / 100, _phase, CHACAL_OBSERVATION,
         call CHACAL_fnc_perceptionMenace]) call CHACAL_LOG;
-    private _prochain = time;
+    private _prochain = time; private _tRegard = 0; private _iRegard = -1;
     waitUntil {
         sleep 1;
+        if ((count _regards > 0) && { time >= _tRegard }) then {
+            _tRegard = time + 10; _iRegard = (_iRegard + 1) % (count _regards);
+            { _x doWatch (_regards select _iRegard) } forEach (CHACAL_FS select { alive _x });
+        };
         if ((CHACAL_SONDE > 0) && { time >= _prochain }) then {
             _prochain = time + 5;
             private _angles = [];
@@ -214,7 +231,7 @@ CHACAL_fnc_fenetreObservation = {
                 _angles pushBack (round _a);
             } forEach (call CHACAL_fnc_unitesMenace);
             (format ["CHACAL|E|sonde_perception|%1|phase|%2|depuis|%3|angle_min|%4%5", round (time * 100) / 100, _phase,
-                round (time - _t0), (if (count _angles > 0) then { _angles call BIS_fnc_lowest } else { -1 }),
+                round (time - _t0), (if (count _angles > 0) then { selectMin _angles } else { -1 }),
                 call CHACAL_fnc_perceptionMenace]) call CHACAL_LOG;
         };
         CHACAL_FIN || ((time - _t0) >= (CHACAL_OBSERVATION * CHACAL_ECHELLE))
