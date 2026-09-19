@@ -9,8 +9,8 @@ INST=$(lit instance 3); PLAFOND=$(lit plafond_s 16000)
 # LAMBS est indispensable : sans lui la porte lambs_actif refuse l'episode (mesure du 07/09, run 1125).
 MODS=$(lit mods '!Workshop\@CBA_A3;C:\hmt_mods\@LAMBS_Danger')
 PROFIL=/mnt/c/Users/Younes/hmtech$INST; PORT=$((2402 + 10*INST))
-# ! COPIE DU BANC ( fumee de patch_banc_vue_fine, 18/09 ) : config serveur A PART, server_oracle.cfg, refaite a chaque
-# lancement depuis le server.cfg de l instance. Le server.cfg partage n est JAMAIS ecrit par ce lanceur.
+# ! COPIE DU BANC : config serveur A PART ( server_oracle.cfg ), refaite a chaque lancement depuis le server.cfg de l instance.
+# Le server.cfg partage n est JAMAIS ecrit par ce lanceur.
 SRC_CFG="$PROFIL/server.cfg"; CFG="$PROFIL/server_oracle.cfg"
 [ -f "$SRC_CFG" ] || { echo "profil hmtech$INST sans server.cfg"; exit 1; }
 cp "$SRC_CFG" "$CFG"; sed -i 's/template = "CHACAL.Altis";/template = "CHACALORACLE.Altis";/' "$CFG"
@@ -25,7 +25,7 @@ ARMA='C:\Program Files (x86)\Steam\steamapps\common\Arma 3\arma3server_x64.exe'
 # mission a chaque lancement, avec les valeurs du corpus par defaut. Rien n'est laisse au hasard.
 PAL=$(lit palier 0); DEPART=$(lit depart 1); IMMORTEL=$(lit immortel 0); JOUR=$(lit jour 0)
 ECHELLE=$(lit echelle 100); DTCS=$(lit dtcs 100)
-PLACEUR=$(lit placeur 0); BANC_APPUI=$(lit banc_appui 0); ABLATION=$(lit ablation 0); SOCLE=$(lit socle 0); AZIMUT=$(lit azimut 0); GEOMETRIE=$(lit geometrie 0); OBS=$(lit obs 1); AZIMUT_VAL=$(lit azimut_val 0); EXFIL=$(lit exfil 0); TACTIQUE=$(lit tactique 0); ORACLE=$(lit oracle 0); MG_ASSAUT=$(lit mg_assaut 0); DELAI_PORTEUR=$(lit delai_porteur 45); APPUI_FIXE=$(lit appui_fixe 0); FEU_AVANT=$(lit feu_avant 0); APPUI_FEU=$(lit appui_feu 0); EFFECTIF=$(lit effectif 10); ACCESSIBLE=$(lit accessible 0); TENIR=$(lit tenir 0); HMG=$(lit hmg -1); ASSAUT_X=$(lit assaut_x 100); PARTAGE=$(lit partage 0); QRF_N=$(lit qrf_n -1); QRF_DELAI=$(lit qrf_delai -1); QRF_DIST=$(lit qrf_dist -1); ACC=$(lit acc 1); SITUATION=$(lit situation 0); MENACE_P1=$(lit menace_p1 0); MENACE_P2=$(lit menace_p2 0); MENACE_P3=$(lit menace_p3 0); MENACE_P4=$(lit menace_p4 0); MENACE_P5=$(lit menace_p5 0); MENACE_P6=$(lit menace_p6 0); P1_ATTENTE=$(lit p1_attente 0); TRAVERSEE=$(lit traversee 0); OBS_DUREE=$(lit obs_duree 0); ITINERAIRE=$(lit itineraire 0); OBSERVATION=$(lit observation 0); CONTROLE_PERCEPTION=$(lit controle_perception 0); SONDE=$(lit sonde 0); ORACLE_CMD=$(lit oracle_cmd 0); PORTEE_SON=$(lit portee_son 600); ORACLE_B=$(lit oracle_b 6); ORACLE_NU=$(lit oracle_nu 15); ORACLE_EPS=$(lit oracle_eps 15); ORACLE_DELTA=$(lit oracle_delta 60); ; ; ATTENTE_TEST=$(lit attente_test 0); CONTROLE_DIST=$(lit controle_dist 150); DELAI_MODE=$(lit delai_mode 0); F_LEN=$(lit f_len 0)   # -1 = valeur du palier ; 100 = plafond inchange
+PLACEUR=$(lit placeur 0); BANC_APPUI=$(lit banc_appui 0); ABLATION=$(lit ablation 0); SOCLE=$(lit socle 0); AZIMUT=$(lit azimut 0); GEOMETRIE=$(lit geometrie 0); OBS=$(lit obs 1); AZIMUT_VAL=$(lit azimut_val 0); EXFIL=$(lit exfil 0); TACTIQUE=$(lit tactique 0); ORACLE=$(lit oracle 0); MG_ASSAUT=$(lit mg_assaut 0); DELAI_PORTEUR=$(lit delai_porteur 45); APPUI_FIXE=$(lit appui_fixe 0); FEU_AVANT=$(lit feu_avant 0); APPUI_FEU=$(lit appui_feu 0); EFFECTIF=$(lit effectif 10); ACCESSIBLE=$(lit accessible 0); TENIR=$(lit tenir 0); HMG=$(lit hmg -1); ASSAUT_X=$(lit assaut_x 100); PARTAGE=$(lit partage 0); QRF_N=$(lit qrf_n -1); QRF_DELAI=$(lit qrf_delai -1); QRF_DIST=$(lit qrf_dist -1); ACC=$(lit acc 1); SITUATION=$(lit situation 0); MENACE_P1=$(lit menace_p1 0); MENACE_P2=$(lit menace_p2 0); MENACE_P3=$(lit menace_p3 0); MENACE_P4=$(lit menace_p4 0); MENACE_P5=$(lit menace_p5 0); MENACE_P6=$(lit menace_p6 0); P1_ATTENTE=$(lit p1_attente 0); TRAVERSEE=$(lit traversee 0); OBS_DUREE=$(lit obs_duree 0); ITINERAIRE=$(lit itineraire 0); OBSERVATION=$(lit observation 0); CONTROLE_PERCEPTION=$(lit controle_perception 0); SONDE=$(lit sonde 0); ATTENTE_TEST=$(lit attente_test 0); CONTROLE_DIST=$(lit controle_dist 150); DELAI_MODE=$(lit delai_mode 0); F_LEN=$(lit f_len 0)   # -1 = valeur du palier ; 100 = plafond inchange
 ARRET=$(lit arret 6)                            # VIGNETTE : derniere phase jouee ; 6 = mission complete
 BRAS_NOM=$(lit bras PLAN)                       # PLAN (le plan en six phases) ou NUL (le temoin)
 case "$BRAS_NOM" in
@@ -49,9 +49,13 @@ ecrire_param PLACEUR "$PLACEUR"; ecrire_param BANC_APPUI "$BANC_APPUI"; ecrire_p
 ecrire_param PARTAGE "$PARTAGE"; ecrire_param QRF_N "$QRF_N"; ecrire_param QRF_DELAI "$QRF_DELAI"; ecrire_param QRF_DIST "$QRF_DIST"; ecrire_param ACC "$ACC"
 ecrire_param SITUATION "$SITUATION"; ecrire_param MENACE_P1 "$MENACE_P1"; ecrire_param MENACE_P2 "$MENACE_P2"; ecrire_param MENACE_P3 "$MENACE_P3"; ecrire_param MENACE_P4 "$MENACE_P4"; ecrire_param MENACE_P5 "$MENACE_P5"; ecrire_param MENACE_P6 "$MENACE_P6"; ecrire_param P1_ATTENTE "$P1_ATTENTE"; ecrire_param TRAVERSEE "$TRAVERSEE"; ecrire_param OBS_DUREE "$OBS_DUREE"; ecrire_param ITINERAIRE "$ITINERAIRE"
 # menace visible ( 17/09 ) : fenetre d observation et controle de perception, ecrits a chaque lancement
-# banc de perception, version 3 : ecart d azimut ( modes 7 et 8 ) et posture de la cible, ecrits a CHAQUE lancement, 0 par defaut
-ecrire_param CONTROLE_PAS "$(lit controle_pas 10)"; ecrire_param CONTROLE_AZ "$(lit controle_az 0)"; ecrire_param CONTROLE_POSTURE "$(lit controle_posture 0)"
-ecrire_param OBSERVATION "$OBSERVATION"; ecrire_param CONTROLE_PERCEPTION "$CONTROLE_PERCEPTION"; ecrire_param SONDE "$SONDE"; ecrire_param ORACLE_CMD "$ORACLE_CMD"; ecrire_param PORTEE_SON "$PORTEE_SON"; ecrire_param ORACLE_B "$ORACLE_B"; ecrire_param ORACLE_NU "$ORACLE_NU"; ecrire_param ORACLE_EPS "$ORACLE_EPS"; ecrire_param ORACLE_DELTA "$ORACLE_DELTA"; ecrire_param AVANT "$AVANT"; ecrire_param BALAYAGE "$BALAYAGE"; ecrire_param ATTENTE_TEST "$ATTENTE_TEST"; ecrire_param CONTROLE_DIST "$CONTROLE_DIST"
+# fenetre d observation : point d observation de la route et balayage, ecrits a CHAQUE lancement ( origine : 260 et 0 )
+ecrire_param AVANT "$(lit avant 260)"
+ecrire_param ORACLE_CMD "$(lit oracle_cmd 0)"; ecrire_param ORACLE_B "$(lit oracle_b 6)"
+ecrire_param ORACLE_NU "$(lit oracle_nu 15)"; ecrire_param ORACLE_EPS "$(lit oracle_eps 15)"
+ecrire_param ORACLE_DELTA "$(lit oracle_delta 60)"
+ecrire_param PORTEE_SON "$(lit portee_son 600)"; ecrire_param BALAYAGE "$(lit balayage 0)"
+ecrire_param OBSERVATION "$OBSERVATION"; ecrire_param CONTROLE_PERCEPTION "$CONTROLE_PERCEPTION"; ecrire_param SONDE "$SONDE"; ecrire_param ATTENTE_TEST "$ATTENTE_TEST"; ecrire_param CONTROLE_DIST "$CONTROLE_DIST"
 # boucle EvoGP ( 17/09 ) : mode du delai et formule en codes ; ecrits a CHAQUE lancement, 0 par defaut
 ecrire_param DELAI_MODE "$DELAI_MODE"; ecrire_param F_LEN "$F_LEN"
 for k in $(seq 0 31); do ecrire_param F$k "$(lit f$k 0)"; done

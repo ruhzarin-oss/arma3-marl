@@ -104,6 +104,6 @@ remplacer(f"{B}/mission.Altis/description.ext",
  '    class CHACAL_PORTEE_SON\n    {\n        title = "Perception : portee du moteur entendu, en metres";\n'
  '        values[] = {0,300,600,900}; texts[] = {"0","300","600","900"}; default = 600;\n    };\n'
  '    class CHACAL_ORACLE_CMD\n')
-remplacer(f"{B}/lancer.sh", 'ORACLE_CMD=$(lit oracle_cmd 0)', 'ORACLE_CMD=$(lit oracle_cmd 0); PORTEE_SON=$(lit portee_son 600)')
-remplacer(f"{B}/lancer.sh", 'ecrire_param ORACLE_CMD "$ORACLE_CMD"', 'ecrire_param ORACLE_CMD "$ORACLE_CMD"; ecrire_param PORTEE_SON "$PORTEE_SON"')
+remplacer(f"{B}/lancer.sh", 'ecrire_param ORACLE_DELTA "$(lit oracle_delta 60)"',
+ 'ecrire_param ORACLE_DELTA "$(lit oracle_delta 60)"\necrire_param PORTEE_SON "$(lit portee_son 600)"')
 print("patch perception v1 applique : menace_mobile_vue et moteur_entendu")

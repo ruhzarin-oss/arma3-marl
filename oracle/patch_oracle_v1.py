@@ -50,8 +50,11 @@ remplacer(f"{B}/mission.Altis/description.ext",
  '        values[] = {30,60,120}; texts[] = {"30","60","120"}; default = 60;\n    };\n'
  '    class CHACAL_SONDE\n')
 
-remplacer(f"{B}/lancer.sh", 'SONDE=$(lit sonde 0)',
- 'SONDE=$(lit sonde 0); ORACLE_CMD=$(lit oracle_cmd 0); ORACLE_B=$(lit oracle_b 6); ORACLE_NU=$(lit oracle_nu 15); ORACLE_EPS=$(lit oracle_eps 15); ORACLE_DELTA=$(lit oracle_delta 60)')
-remplacer(f"{B}/lancer.sh", 'ecrire_param SONDE "$SONDE"',
- 'ecrire_param SONDE "$SONDE"; ecrire_param ORACLE_CMD "$ORACLE_CMD"; ecrire_param ORACLE_B "$ORACLE_B"; ecrire_param ORACLE_NU "$ORACLE_NU"; ecrire_param ORACLE_EPS "$ORACLE_EPS"; ecrire_param ORACLE_DELTA "$ORACLE_DELTA"')
+# ! le lanceur de la copie ecrit ses parametres SANS variable intermediaire ( style de chacalp2 ) : une variable
+# vide inseree par sed avait produit « ; ; » et casse le lanceur le 19/09, deux jobs perdus en 14 secondes.
+remplacer(f"{B}/lancer.sh", 'ecrire_param AVANT "$(lit avant 260)"',
+ 'ecrire_param AVANT "$(lit avant 260)"\n'
+ 'ecrire_param ORACLE_CMD "$(lit oracle_cmd 0)"; ecrire_param ORACLE_B "$(lit oracle_b 6)"\n'
+ 'ecrire_param ORACLE_NU "$(lit oracle_nu 15)"; ecrire_param ORACLE_EPS "$(lit oracle_eps 15)"\n'
+ 'ecrire_param ORACLE_DELTA "$(lit oracle_delta 60)"')
 print("patch oracle v1 applique sur bancs/chacaloracle")
