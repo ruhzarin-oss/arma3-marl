@@ -46,6 +46,7 @@ private _n = count CHACAL_O_CASES;
 private _poids = [1, 2, 3, 1.5, 1, 1, 1, 0.5];
 private _sp = 0; { _sp = _sp + _x } forEach _poids;
 CHACAL_O_B = _poids apply { _x / _sp };
+CHACAL_O_PRIOR = +CHACAL_O_B;   // la doctrine, gardee a part : c est vers elle que revient le doute
 // les cases que la patrouille de route peut atteindre, et le troncon de route le plus proche de chacune
 CHACAL_O_RTE = CHACAL_O_CASES apply {
     private _r = (_x select 1) nearRoads 400;
@@ -121,7 +122,10 @@ CHACAL_O_fnc_croire = {
     for "_i" from 0 to (_n - 1) do { _bp set [_i, (_bp select _i) * (_l select _i)]; _s = _s + (_bp select _i) };
     if (_s <= 0) then { for "_i" from 0 to (_n - 1) do { _bp set [_i, 1 / _n] }; _s = 1 };
     private _nu = CHACAL_ORACLE_NU / 100;
-    for "_i" from 0 to (_n - 1) do { _bp set [_i, ((1 - _nu) * ((_bp select _i) / _s)) + (_nu / _n)] };
+    // ! V2.1 - LE DOUTE REVIENT A LA DOCTRINE, PAS A L UNIFORME. Fumee v2 : sans detection, la marche supposee
+    // poussait la croyance vers l avant ( route 27 % -> 17 %, puis montee, puis crete ) et le commandant quittait
+    // la route avant meme que le detachement l atteigne. Un chef qui doute revient a ce qu il sait : le passage oblige.
+    for "_i" from 0 to (_n - 1) do { _bp set [_i, ((1 - _nu) * ((_bp select _i) / _s)) + (_nu * (CHACAL_O_PRIOR select _i))] };
     CHACAL_O_B = _bp;
     _vu
 };
@@ -152,6 +156,10 @@ CHACAL_O_fnc_agir = {
             private _w = CHACAL_gRoute addWaypoint [_a, 15];  _w setWaypointType "MOVE";  _w setWaypointSpeed "NORMAL";
             private _w2 = CHACAL_gRoute addWaypoint [_b2, 15]; _w2 setWaypointType "MOVE"; _w2 setWaypointSpeed "LIMITED";
             (CHACAL_gRoute addWaypoint [_a, 15]) setWaypointType "CYCLE";
+            // ! V2.1 - DESIGNER LE POINT A SUIVRE. Fumee du 19/09 : apres le remplacement des points de passage, la
+            // patrouille est restee a 923, 927 puis 930 m de sa cible - elle suivait encore son ancien parcours. Arma
+            // ne remet pas a zero l indice du point courant quand on les efface : il faut le lui donner.
+            CHACAL_gRoute setCurrentWaypoint _w;
             CHACAL_O_BUDGET = CHACAL_O_BUDGET - 1;
             CHACAL_O_CIBLE = _cibleR;
             _action = format ["PATROUILLE_%1", (CHACAL_O_CASES select _cibleR) select 0];
@@ -178,11 +186,12 @@ CHACAL_O_fnc_agir = {
         private _action = [_cible] call CHACAL_O_fnc_agir;
         private _dPat = if ((CHACAL_O_CIBLE >= 0) && { !isNull CHACAL_gRoute } && { !isNull (leader CHACAL_gRoute) }) then {
             round ((leader CHACAL_gRoute) distance2D (CHACAL_O_RTE select CHACAL_O_CIBLE)) } else { -1 };
-        (format ["CHACAL|O|decision|%1|action|%2|case|%3|p|%4|vu|%5|budget|%6|croyance|%7|cible_patrouille|%8|patrouille_a|%9",
+        (format ["CHACAL|O|decision|%1|action|%2|case|%3|p|%4|vu|%5|budget|%6|croyance|%7|cible_patrouille|%8|patrouille_a|%9|vitesse_patrouille|%10",
             round (time * 100) / 100, _action, (CHACAL_O_CASES select _cible) select 0,
             round ((_b select _cible) * 100) / 100, (if (_vu >= 0) then { (CHACAL_O_CASES select _vu) select 0 } else { "RIEN" }),
             CHACAL_O_BUDGET, str (_b apply { round (_x * 100) }),
-            (if (CHACAL_O_CIBLE >= 0) then { (CHACAL_O_CASES select CHACAL_O_CIBLE) select 0 } else { "AUCUNE" }), _dPat]) call CHACAL_LOG;
+            (if (CHACAL_O_CIBLE >= 0) then { (CHACAL_O_CASES select CHACAL_O_CIBLE) select 0 } else { "AUCUNE" }), _dPat,
+            (if (!isNull CHACAL_VEH_ROUTE) then { round (speed CHACAL_VEH_ROUTE) } else { -1 })]) call CHACAL_LOG;
         sleep (CHACAL_ORACLE_DELTA * CHACAL_ECHELLE);
     };
 };
