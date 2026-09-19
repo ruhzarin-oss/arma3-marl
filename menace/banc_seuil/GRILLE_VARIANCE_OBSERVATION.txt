@@ -1,0 +1,10 @@
+ avant balayage   n ( lus )   percue > 0   connue ( niv. 2 )   phase 2 abimee   observe depuis ( m )   reglage joue   porte globale   porte intra-monde
+   260        0   14 ( 16 )         29%                0%              0%    260 -  323            conforme     ECHEC           OK
+   260        1   15 ( 16 )         47%                0%              7%    260 -  323            conforme     OK              OK
+   180        0   14 ( 16 )         29%                0%              7%    182 -  260            conforme     ECHEC           OK
+   180        1   15 ( 16 )         40%                0%             20%    182 -  260            conforme     OK              OK
+   120        0   15 ( 16 )         40%                0%             20%    118 -  200            conforme     OK              OK
+   120        1   16 ( 16 )         44%                0%             31%    119 -  200            conforme     OK              OK
+
+ REGLE ECRITE D AVANCE : admissible = deux portes OK et phase 2 abimee <= 25 % ; on retient la part CONNUE la plus proche de 50 %, a egalite le plus proche de l origine
+ -> admissibles : [(260, 1), (180, 1), (120, 0)] ; RETENU : avant = 260 m, balayage = 1 ( percue 47%, connue 0%, phase 2 abimee 7% )

@@ -1,0 +1,11 @@
+BALAYAGE-LENT-19-09 : 4 episodes lus, 2 valides, 2 refus ( aucune ligne de vue ), 2 cibles masquees, 0 en vol, 0 erreur(s) SQF
+
+monde ecl. mode post az   consigne vraie  hommes essais vis_pose vis_moy angle1  vue   connue   etat
+   6  nuit   8    0    0     200     -1      -     -        -    None   None     -   jamais   fini ( exclu : refus, cible masquee, fenetre inachevee )
+   7  nuit   8    0    0     200    201      9     1        1    0.05      4   1 s   jamais   fini
+   8  nuit   8    0   45     200     -1      -     -        -    None   None     -   jamais   fini ( exclu : refus, cible masquee, fenetre inachevee )
+   9  nuit   8    0   45     200    197      6     1     0.97    0.23     65   1 s   jamais   fini
+
+== PARTS CONNUES PAR CASE ( episodes valides ; « en 90 s » = la fenetre de la mission )
+   nuit   8    debout      0 deg     175-225 m   1    0/1      0/1 = 0%        -       [7]                           
+   nuit   8    debout      45 deg    175-225 m   1    0/1      0/1 = 0%        -       [9]                           

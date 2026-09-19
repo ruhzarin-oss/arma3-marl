@@ -1,0 +1,90 @@
+=== VARIANCE-OBS-a260-b0-19-09
+== VARIANCE-OBS-a260-b0-19-09 : 16 episodes, 14 acceptes, 0 erreurs SQF, 0 sans ligne de decision
+
+ bras            niveau  type                 n   distance posee   PERCUE > 0   dont connue ( niveau 2 )
+ VO-P2_TYPE2_a260b0_m11s1 5     POSTE_DE_CONTROLE    2    183- 252 m         0% HORS PLAGE       0%
+ VO-P2_TYPE2_a260b0_m11s2 5     POSTE_DE_CONTROLE    2    183- 252 m         0% HORS PLAGE       0%
+ VO-P2_TYPE2_a260b0_m4s1 5     POSTE_DE_CONTROLE    2    207- 269 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a260b0_m4s2 5     POSTE_DE_CONTROLE    2    203- 269 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a260b0_m6s1 5     POSTE_DE_CONTROLE    2    175- 241 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a260b0_m6s2 5     POSTE_DE_CONTROLE    1    179- 179 m         0% HORS PLAGE       0%
+ VO-P2_TYPE2_a260b0_m8s1 5     POSTE_DE_CONTROLE    1    159- 159 m       100% HORS PLAGE       0%
+ VO-P2_TYPE2_a260b0_m8s2 5     POSTE_DE_CONTROLE    2    215- 299 m         0% HORS PLAGE       0%
+   intra-monde g11   : 0 percues sur 2 episodes ( placements [183, 183] m )  ( constant )
+   intra-monde g12   : 0 percues sur 2 episodes ( placements [252, 252] m )  ( constant )
+   intra-monde g4    : 0 percues sur 2 episodes ( placements [203, 207] m )  ( constant )
+=== VARIANCE-OBS-a260-b1-19-09
+== VARIANCE-OBS-a260-b1-19-09 : 16 episodes, 15 acceptes, 0 erreurs SQF, 0 sans ligne de decision
+
+ bras            niveau  type                 n   distance posee   PERCUE > 0   dont connue ( niveau 2 )
+ VO-P2_TYPE2_a260b1_m11s1 5     POSTE_DE_CONTROLE    2    183- 252 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a260b1_m11s2 5     POSTE_DE_CONTROLE    2    183- 252 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a260b1_m4s1 5     POSTE_DE_CONTROLE    2    207- 269 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a260b1_m4s2 5     POSTE_DE_CONTROLE    2    203- 269 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a260b1_m6s1 5     POSTE_DE_CONTROLE    2    175- 241 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a260b1_m6s2 5     POSTE_DE_CONTROLE    2    179- 234 m         0% HORS PLAGE       0%
+ VO-P2_TYPE2_a260b1_m8s1 5     POSTE_DE_CONTROLE    1    159- 159 m       100% HORS PLAGE       0%
+ VO-P2_TYPE2_a260b1_m8s2 5     POSTE_DE_CONTROLE    2    215- 299 m        50% DANS 30-70       0%
+   intra-monde g11   : 2 percues sur 2 episodes ( placements [183, 183] m )  ( constant )
+   intra-monde g12   : 0 percues sur 2 episodes ( placements [252, 252] m )  ( constant )
+   intra-monde g4    : 0 percues sur 2 episodes ( placements [203, 207] m )  ( constant )
+=== VARIANCE-OBS-a180-b0-19-09
+== VARIANCE-OBS-a180-b0-19-09 : 16 episodes, 14 acceptes, 0 erreurs SQF, 0 sans ligne de decision
+
+ bras            niveau  type                 n   distance posee   PERCUE > 0   dont connue ( niveau 2 )
+ VO-P2_TYPE2_a180b0_m11s1 5     POSTE_DE_CONTROLE    2    183- 252 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a180b0_m11s2 5     POSTE_DE_CONTROLE    2    183- 252 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a180b0_m4s1 5     POSTE_DE_CONTROLE    2    207- 269 m         0% HORS PLAGE       0%
+ VO-P2_TYPE2_a180b0_m4s2 5     POSTE_DE_CONTROLE    2    203- 269 m         0% HORS PLAGE       0%
+ VO-P2_TYPE2_a180b0_m6s1 5     POSTE_DE_CONTROLE    2    175- 241 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a180b0_m6s2 5     POSTE_DE_CONTROLE    2    179- 234 m         0% HORS PLAGE       0%
+ VO-P2_TYPE2_a180b0_m8s1 5     POSTE_DE_CONTROLE    1    159- 159 m       100% HORS PLAGE       0%
+ VO-P2_TYPE2_a180b0_m8s2 5     POSTE_DE_CONTROLE    1    299- 299 m         0% HORS PLAGE       0%
+   intra-monde g11   : 2 percues sur 2 episodes ( placements [183, 183] m )  ( constant )
+   intra-monde g12   : 0 percues sur 2 episodes ( placements [252, 252] m )  ( constant )
+   intra-monde g4    : 0 percues sur 2 episodes ( placements [203, 207] m )  ( constant )
+=== VARIANCE-OBS-a180-b1-19-09
+== VARIANCE-OBS-a180-b1-19-09 : 16 episodes, 15 acceptes, 0 erreurs SQF, 0 sans ligne de decision
+
+ bras            niveau  type                 n   distance posee   PERCUE > 0   dont connue ( niveau 2 )
+ VO-P2_TYPE2_a180b1_m11s1 5     POSTE_DE_CONTROLE    2    183- 252 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a180b1_m11s2 5     POSTE_DE_CONTROLE    2    183- 252 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a180b1_m4s1 5     POSTE_DE_CONTROLE    2    207- 269 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a180b1_m4s2 5     POSTE_DE_CONTROLE    2    203- 269 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a180b1_m6s1 5     POSTE_DE_CONTROLE    2    175- 241 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a180b1_m6s2 5     POSTE_DE_CONTROLE    2    179- 234 m         0% HORS PLAGE       0%
+ VO-P2_TYPE2_a180b1_m8s1 5     POSTE_DE_CONTROLE    1    159- 159 m       100% HORS PLAGE       0%
+ VO-P2_TYPE2_a180b1_m8s2 5     POSTE_DE_CONTROLE    2    215- 299 m         0% HORS PLAGE       0%
+   intra-monde g11   : 2 percues sur 2 episodes ( placements [183, 183] m )  ( constant )
+   intra-monde g12   : 0 percues sur 2 episodes ( placements [252, 252] m )  ( constant )
+   intra-monde g4    : 0 percues sur 2 episodes ( placements [203, 207] m )  ( constant )
+=== VARIANCE-OBS-a120-b0-19-09
+== VARIANCE-OBS-a120-b0-19-09 : 16 episodes, 15 acceptes, 0 erreurs SQF, 0 sans ligne de decision
+
+ bras            niveau  type                 n   distance posee   PERCUE > 0   dont connue ( niveau 2 )
+ VO-P2_TYPE2_a120b0_m11s1 5     POSTE_DE_CONTROLE    2    183- 252 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a120b0_m11s2 5     POSTE_DE_CONTROLE    2    183- 252 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a120b0_m4s1 5     POSTE_DE_CONTROLE    2    207- 269 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a120b0_m4s2 5     POSTE_DE_CONTROLE    2    203- 269 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a120b0_m6s1 5     POSTE_DE_CONTROLE    2    175- 241 m         0% HORS PLAGE       0%
+ VO-P2_TYPE2_a120b0_m6s2 5     POSTE_DE_CONTROLE    2    179- 234 m         0% HORS PLAGE       0%
+ VO-P2_TYPE2_a120b0_m8s1 5     POSTE_DE_CONTROLE    2    159- 215 m       100% HORS PLAGE       0%
+ VO-P2_TYPE2_a120b0_m8s2 5     POSTE_DE_CONTROLE    1    299- 299 m         0% HORS PLAGE       0%
+   intra-monde g11   : 2 percues sur 2 episodes ( placements [183, 183] m )  ( constant )
+   intra-monde g12   : 0 percues sur 2 episodes ( placements [252, 252] m )  ( constant )
+   intra-monde g4    : 0 percues sur 2 episodes ( placements [203, 207] m )  ( constant )
+=== VARIANCE-OBS-a120-b1-19-09
+== VARIANCE-OBS-a120-b1-19-09 : 16 episodes, 16 acceptes, 0 erreurs SQF, 0 sans ligne de decision
+
+ bras            niveau  type                 n   distance posee   PERCUE > 0   dont connue ( niveau 2 )
+ VO-P2_TYPE2_a120b1_m11s1 5     POSTE_DE_CONTROLE    2    183- 252 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a120b1_m11s2 5     POSTE_DE_CONTROLE    2    183- 252 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a120b1_m4s1 5     POSTE_DE_CONTROLE    2    207- 269 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a120b1_m4s2 5     POSTE_DE_CONTROLE    2    203- 269 m        50% DANS 30-70       0%
+ VO-P2_TYPE2_a120b1_m6s1 5     POSTE_DE_CONTROLE    2    175- 241 m         0% HORS PLAGE       0%
+ VO-P2_TYPE2_a120b1_m6s2 5     POSTE_DE_CONTROLE    2    179- 234 m         0% HORS PLAGE       0%
+ VO-P2_TYPE2_a120b1_m8s1 5     POSTE_DE_CONTROLE    2    159- 215 m       100% HORS PLAGE       0%
+ VO-P2_TYPE2_a120b1_m8s2 5     POSTE_DE_CONTROLE    2    215- 299 m        50% DANS 30-70       0%
+   intra-monde g11   : 2 percues sur 2 episodes ( placements [183, 183] m )  ( constant )
+   intra-monde g12   : 0 percues sur 2 episodes ( placements [252, 252] m )  ( constant )
+   intra-monde g4    : 0 percues sur 2 episodes ( placements [203, 207] m )  ( constant )
