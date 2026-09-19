@@ -77,3 +77,9 @@ compte rendu. Predictions de la grille : a ( origine ~25 % percue, 0 % connue ) 
 « connue », mais il SUFFIT a ouvrir la porte, ce que je n avais pas prevu ; c ( observer de pres fait monter la part connue au-dela de 30 % ) FAUSSE : 0 % partout ;
 d ( observer de pres abime la phase 2 ) TENUE : 0-7 % a 260 m, 9-20 % a 180 m, 23-31 % a 120 m.
 Consequence pour la lecture de P2 : la menace n est jamais CONNUE du groupe au moment du choix ; ce qui varie est le canal geometrique ( `menaces_vues` ).
+
+## Additif du 19/09, 2 h 35 - la fumee a echoue sur UN point, correction et fumee v2 ( ecrit AVANT la fumee v2 )
+Fumee v1 : bras POSTE conforme sur tous les points. Bras PATROUILLE ( niveau 4 ) : **aucune menace posee**, avertissement
+`situation|phase|2|patrouille_route_non_creee`. Cause : `30_opfor.sqf` ligne 194 ne cree le vehicule de route au palier leger que si
+`CHACAL_MENACE_P2 in [1, 3]` ; le niveau 4, ajoute par 16e4b32 dans `35_menaces.sqf`, y a ete oublie. Le meme defaut existe dans `bancs/chacal`
+( signale, non touche ). Correction sur la copie : `in [1, 3, 4]` ( `patch_patrouille_niveau4.py` ). Fumee v2 : memes deux jobs, memes attentes.
