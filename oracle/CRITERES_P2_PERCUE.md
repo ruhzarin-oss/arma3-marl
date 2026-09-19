@@ -49,3 +49,38 @@ dispositif », pas comme « inexistant ».
 
 « Si la modulation par la perception n'est pas établie alors que celle par le type l'est, la règle mesurée le 19/09
 n'est pas apprenable par l'agent avec cette perception, et il faut un canal qui sépare mieux que 82 / 100. »
+
+---
+
+## Amendement 1 — 19/09/2026, écrit AVANT qu'un seul épisode soit fini
+
+Relecture demandée par Younes (« sans erreur et sans oubli ») pendant que les deux premiers épisodes étaient en vol,
+aucun `resultat.json` écrit. Cinq corrections, aucune ne dépend d'une issue observée.
+
+1. **Le canal principal est `moteur_depuis_fenetre`, pas `moteur_entendu`.** Les critères de confirmation
+   (`CRITERES_CONFIRMATION_900.md`) désignent `moteur_depuis_fenetre` comme canal retenu ; le texte ci-dessus
+   contredisait ce choix. `moteur_entendu` est lu à titre de **contrôle de sensibilité** seulement (les deux ont donné
+   82 % en confirmation).
+2. **La puissance était mal calculée.** Le groupe « entendu » n'est pas d'environ 30 épisodes mais d'environ **52**
+   (82 % des 64 épisodes de patrouille) ; le groupe « non entendu » en compte ~76. La modulation par la perception
+   est une modulation par le type légèrement diluée : **une modulation de moins de ~40 points ne sera pas établie.**
+3. **« Retrouver le verdict » est défini.** Le rappel par le type sert à vérifier que le monde n'a pas changé, pas à
+   rétablir une significativité. Il **réussit** si l'estimation est négative **et** si son IC 95 % contient la valeur
+   du verdict, −0,369. Il **échoue** — lecture principale nulle — si l'estimation est positive ou si l'IC exclut −0,369.
+4. **La couverture par monde est définie.** La modulation par la perception se calcule monde par monde : écart
+   (attendre − tout de suite) quand un moteur a été entendu, moins le même écart quand il ne l'a pas été. Un monde
+   n'entre que si ses **quatre cases** (entendu ou non × option) ont au moins un épisode. **Six mondes au minimum**,
+   sinon lecture nulle faute de couverture. Bootstrap sur les mondes retenus, graine 20260919, 10 000 tirages.
+5. **L'issue secondaire convenue le 19/09 est ajoutée** (choix de Younes : « la une et deux ») : la **durée de la
+   phase 2**, descriptive, par (bras, option) et par (perception, option). Elle ne décide de rien ; elle dit ce que
+   l'attente coûte en temps quand elle achète, ou n'achète pas, de la discrétion.
+
+Ajouts de contrôle au lecteur `oracle/lire_p2_percue.py`, écrit et commité en même temps que cet amendement :
+- **Q7** : chaque épisode accepté porte `moteur_depuis_fenetre` dans sa ligne de décision ;
+- **Q8** : la perception reproduit sa confirmation — sensibilité ≥ 65 % en patrouille, **zéro** faux positif en
+  poste. Sinon le canal a changé de comportement et la lecture principale ne vaut pas ;
+- les runs sont lus sur les dossiers du **19 et du 20/09** : la campagne peut franchir minuit.
+
+Limite dite d'avance : les graines de situation 1 à 4 sont celles de la grille qui a servi à choisir la portée de
+900 m. Ce choix portait sur le **taux** du canal, pas sur l'issue de la mission ; il ne biaise donc pas la modulation,
+mais une réplication sur graines neuves restera souhaitable si le résultat est positif.
