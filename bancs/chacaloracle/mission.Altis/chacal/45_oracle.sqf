@@ -1,0 +1,158 @@
+// =====================================================================
+// CHACAL - L ORACLE COMMANDANT, version 1 ( plan a139c63, niveau 1 ).
+//
+// POURQUOI. Mesure du 19/09 : le detachement n est JAMAIS detecte dans 92 % des episodes, la phase 2
+// reussit dans 85 %, et vingt minutes d attente ne changent rien. L adversaire est un decor : une
+// garnison statique, une patrouille qui fait la navette entre deux points fixes. Sans quelqu un en face
+// pour faire payer, aucun choix ne depend de la situation - et c est ce que six campagnes ont mesure.
+//
+// CE QU IL A LE DROIT DE SAVOIR. Uniquement ce que son camp sait vraiment :
+//   - targetKnowledge de SES groupes sur nos hommes : le champ 0 ( connu ) et le champ 6 ( position CRUE ) ;
+//   - son propre etat : alarme, pertes ;
+//   - le temps.
+// INTERDIT, et verifie par le controle de non-triche : lire la position vraie d un homme de l ouest, lire
+// la verite theta, ou devoiler nos hommes a l ennemi par commande. Ce fichier ne lit QUE la position CRUE
+// que le moteur a donnee au camp est, avec son erreur. Si un jour quelqu un remplace ( _kn select 6 ) par getPos, l Oracle devient un mur et la mesure
+// ne vaut plus rien.
+// =====================================================================
+if (CHACAL_ORACLE_CMD <= 0) exitWith {};
+
+CHACAL_O_BUDGET = CHACAL_ORACLE_B;
+CHACAL_O_CIBLE = -1;
+
+// --- les cases : le couloir d approche, du poser au site, puis l exfiltration ---
+private _mid = {
+    params ["_a", "_b", "_t"];
+    [(_a select 0) + (((_b select 0) - (_a select 0)) * _t), (_a select 1) + (((_b select 1) - (_a select 1)) * _t), 0]
+};
+private _lz = CHACAL_LZ; private _rt = CHACAL_ROUTE; private _op = CHACAL_OP; private _st = CHACAL_SITE;
+private _ra = if (count CHACAL_RALLY > 1) then { CHACAL_RALLY } else { _lz };
+CHACAL_O_CASES = [
+    ["POSER",   _lz],
+    ["APPROCHE_ROUTE", [_lz, _rt, 0.5] call _mid],
+    ["ROUTE",   _rt],
+    ["MONTEE",  [_rt, _op, 0.5] call _mid],
+    ["CRETE",   _op],
+    ["ABORDS",  [_op, _st, 0.6] call _mid],
+    ["SITE",    _st],
+    ["EXFIL",   _ra]
+];
+private _n = count CHACAL_O_CASES;
+CHACAL_O_B = [];
+for "_i" from 0 to (_n - 1) do { CHACAL_O_B pushBack (1 / _n) };   // il ne sait rien : loi uniforme
+
+// --- probabilite de detecter a la distance _d : CALIBREE sur le banc de seuil du 19/09 ---
+// de nuit, accroupi : sur dans les 125 m ; debout et designe : jusqu a ~250 m ; rare au-dela de 450 m.
+CHACAL_O_fnc_pd = {
+    params ["_d"];
+    if (_d < 125) exitWith { 0.90 };
+    if (_d < 250) exitWith { 0.35 };
+    if (_d < 450) exitWith { 0.08 };
+    0.01
+};
+
+// --- les yeux du camp est : les groupes qu il commande vraiment ---
+CHACAL_O_fnc_yeux = {
+    private _y = [];
+    { if (!isNull _x) then { { if (alive _x) then { _y pushBack _x } } forEach (units _x) } } forEach
+        ((CHACAL_GROUPES_EST + [CHACAL_gRoute]) select { !isNull _x });
+    { if (alive _x && { !(_x in _y) }) then { _y pushBack _x } } forEach CHACAL_EST_SITE;
+    _y
+};
+
+CHACAL_O_fnc_caseLaPlusProche = {
+    params ["_p"];
+    private _d = CHACAL_O_CASES apply { (_x select 1) distance2D _p };
+    _d find (selectMin _d)
+};
+
+// --- un tour de croyance : on avance, puis on corrige par ce qu on a vu ET par ce qu on n a pas vu ---
+CHACAL_O_fnc_croire = {
+    private _n = count CHACAL_O_CASES;
+    // 1. la marche : un detachement d infanterie progresse vers l objectif
+    private _bp = [];
+    for "_i" from 0 to (_n - 1) do {
+        private _v = 0.70 * (CHACAL_O_B select _i);
+        if (_i > 0) then { _v = _v + (0.30 * (CHACAL_O_B select (_i - 1))) } else { _v = _v + (0.30 * (CHACAL_O_B select _i)) };
+        _bp pushBack _v;
+    };
+    // 2. ce que ses groupes savent : position CRUE, jamais la vraie
+    private _vu = -1; private _fraicheur = 1e9;
+    {
+        private _g = _x;
+        {
+            private _kn = _g targetKnowledge _x;                 // [ connu, connu_individu, vu_a, danger_a, camp, erreur, position CRUE ]
+            if ((_kn select 0) > 0.3) then {
+                private _age = time - (_kn select 2);
+                if (_age < _fraicheur) then { _fraicheur = _age; _vu = [(_kn select 6)] call CHACAL_O_fnc_caseLaPlusProche };
+            };
+        } forEach CHACAL_FS;                                      // on parcourt la liste, on ne lit QUE sa connaissance
+    } forEach ((CHACAL_GROUPES_EST + [CHACAL_gRoute]) select { !isNull _x });
+    // 3. ce qu il n a pas vu : une case regardee et vide devient moins probable
+    private _yeux = call CHACAL_O_fnc_yeux;
+    private _l = [];
+    for "_i" from 0 to (_n - 1) do {
+        private _p = (CHACAL_O_CASES select _i) select 1;
+        private _q = 1;
+        { _q = _q * (1 - ([_x distance2D _p] call CHACAL_O_fnc_pd)) } forEach _yeux;
+        _l pushBack _q;
+    };
+    if (_vu >= 0 && { _fraicheur < 120 }) then {
+        for "_i" from 0 to (_n - 1) do { _l set [_i, (if (_i == _vu) then { 5 } else { 0.2 }) ] };
+    };
+    // 4. normaliser, puis douter ( un vrai chef se trompe )
+    private _s = 0;
+    for "_i" from 0 to (_n - 1) do { _bp set [_i, (_bp select _i) * (_l select _i)]; _s = _s + (_bp select _i) };
+    if (_s <= 0) then { for "_i" from 0 to (_n - 1) do { _bp set [_i, 1 / _n] }; _s = 1 };
+    private _nu = CHACAL_ORACLE_NU / 100;
+    for "_i" from 0 to (_n - 1) do { _bp set [_i, ((1 - _nu) * ((_bp select _i) / _s)) + (_nu / _n)] };
+    CHACAL_O_B = _bp;
+    _vu
+};
+
+// --- agir : reorienter les postes ( gratuit ), deplacer la patrouille de route ( 1 point ) ---
+CHACAL_O_fnc_agir = {
+    params ["_cible"];
+    private _p = (CHACAL_O_CASES select _cible) select 1;
+    private _action = "REGARD";
+    // les postes fixes tournent leur regard vers la case la plus probable
+    { if (alive _x && { !(vehicle _x isKindOf "LandVehicle") }) then { _x doWatch _p } } forEach
+        (CHACAL_EST_SITE select { alive _x });
+    // la patrouille de route se porte vers elle, si le budget le permet et si la case a change
+    if (CHACAL_O_BUDGET > 0 && { _cible != CHACAL_O_CIBLE } && { !isNull CHACAL_gRoute }
+        && { ({ alive _x } count (units CHACAL_gRoute)) > 0 }) then {
+        private _r = _p nearRoads 400;
+        private _dest = if (count _r > 0) then { getPosATL (_r select 0) } else { _p };
+        while { (count (waypoints CHACAL_gRoute)) > 0 } do { deleteWaypoint ((waypoints CHACAL_gRoute) select 0) };
+        private _w = CHACAL_gRoute addWaypoint [_dest, 20];
+        _w setWaypointType "MOVE"; _w setWaypointSpeed "NORMAL";
+        private _w2 = CHACAL_gRoute addWaypoint [CHACAL_ROUTE_A, 20];
+        _w2 setWaypointType "MOVE"; _w2 setWaypointSpeed "LIMITED";
+        (CHACAL_gRoute addWaypoint [CHACAL_ROUTE_A, 20]) setWaypointType "CYCLE";
+        CHACAL_O_BUDGET = CHACAL_O_BUDGET - 1;
+        CHACAL_O_CIBLE = _cible;
+        _action = "PATROUILLE";
+    };
+    _action
+};
+
+// --- la boucle de commandement ---
+[] spawn {
+    waitUntil { sleep 2; CHACAL_FIN || { !isNil "CHACAL_TPHASE" } };
+    while { !CHACAL_FIN } do {
+        private _vu = call CHACAL_O_fnc_croire;
+        private _b = +CHACAL_O_B;
+        private _cible = _b find (selectMax _b);
+        // il se trompe parfois : sans ca, la situation est deterministe et n apprend rien
+        if ((random 1) < (CHACAL_ORACLE_EPS / 100)) then {
+            private _c = +_b; _c set [_cible, -1];
+            _cible = _c find (selectMax _c);
+        };
+        private _action = [_cible] call CHACAL_O_fnc_agir;
+        (format ["CHACAL|O|decision|%1|action|%2|case|%3|p|%4|vu|%5|budget|%6|croyance|%7",
+            round (time * 100) / 100, _action, (CHACAL_O_CASES select _cible) select 0,
+            round ((_b select _cible) * 100) / 100, (if (_vu >= 0) then { (CHACAL_O_CASES select _vu) select 0 } else { "RIEN" }),
+            CHACAL_O_BUDGET, str (_b apply { round (_x * 100) })]) call CHACAL_LOG;
+        sleep (CHACAL_ORACLE_DELTA * CHACAL_ECHELLE);
+    };
+};
