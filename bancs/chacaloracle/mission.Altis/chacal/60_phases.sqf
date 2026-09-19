@@ -168,15 +168,16 @@ CHACAL_fnc_perceptionMenace = {
         if ((_v != _x) && { isEngineOn _v }) then {
             _moteurAllume = 1;
             { private _d = _x distance2D _v; if ((_dMoteur < 0) || { _d < _dMoteur }) then { _dMoteur = _d } } forEach _hommes;
-            if ((_dMoteur >= 0) && { _dMoteur < CHACAL_PORTEE_SON }) then { _moteur = 1 };
+            if ((_dMoteur >= 0) && { _dMoteur < CHACAL_PORTEE_SON }) then { _moteur = 1; CHACAL_MOTEUR_FENETRE = 1 };
             if (({ [_x, _v, 1200, 70] call CHACAL_fnc_voit } count _hommes) > 0) then { _vueVeh = 1 };
         };
     } forEach _menaces;
     private _vDist = -1;
     { private _t = _x; { private _dd = _x distance2D _t; if ((_vDist < 0) || { _dd < _vDist }) then { _vDist = _dd } } forEach _hommes } forEach _menaces;
-    format ["|menace_percue|%1|menaces_vues|%2|menaces_connues|%3|menaces_camp|%4|menaces_homme|%5|distance_menace|%6|erreur_position|%7|menace_mobile|%8|vue_depuis|%9|vehicule_connu|%10|menace_mobile_vue|%11|moteur_entendu|%12|distance_moteur|%13|moteur_allume|%14|vue_vehicule|%15|n_vues_menace|%16|verite_menaces|%17|verite_distance_menace|%18|azimut_chef|%19",
+    format ["|menace_percue|%1|menaces_vues|%2|menaces_connues|%3|menaces_camp|%4|menaces_homme|%5|distance_menace|%6|erreur_position|%7|menace_mobile|%8|vue_depuis|%9|vehicule_connu|%10|menace_mobile_vue|%11|moteur_entendu|%12|distance_moteur|%13|moteur_allume|%14|vue_vehicule|%15|n_vues_menace|%16|moteur_depuis_fenetre|%17|verite_menaces|%18|verite_distance_menace|%19|azimut_chef|%20",
         _percue, _vues, _connues, _camp, _homme, round _dMin, (round (_err * 10)) / 10, _mobile, _vueDepuis, _veh,
         _mobileVue, _moteur, round _dMoteur, _moteurAllume, _vueVeh, _nVues,
+        (missionNamespace getVariable ["CHACAL_MOTEUR_FENETRE", 0]),
         count _menaces, round _vDist, (if (count _chefs > 0) then { round (getDir (_chefs select 0)) } else { -1 })]
 };
 CHACAL_fnc_secteurPhase = {
@@ -254,6 +255,7 @@ CHACAL_fnc_fenetreObservation = {
     };
     (format ["CHACAL|E|observation|%1|phase|%2|debut|duree_prevue|%3%4", round (time * 100) / 100, _phase, CHACAL_OBSERVATION,
         call CHACAL_fnc_perceptionMenace]) call CHACAL_LOG;
+    CHACAL_MOTEUR_FENETRE = 0;   // la memoire du son commence avec la fenetre
     if (CHACAL_SONDE_PERCEPTION == 1) then {
         [_phase] spawn {
             params ["_ph"];
