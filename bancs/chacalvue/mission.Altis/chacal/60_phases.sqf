@@ -173,9 +173,9 @@ CHACAL_fnc_fenetreObservation = {
         { _regards pushBack (_chefF getPos [(_chefF distance2D _secteur) max 200, _axe + _x]) } forEach [-45, 0, 45];
     };
     { doStop _x; if (_phase == 1) then { _x setUnitPos "MIDDLE" } } forEach _hommes;
-    if ((CHACAL_CONTROLE_PERCEPTION in [1, 5, 7, 8]) && { count _hommes > 0 }) then {
+    if ((CHACAL_CONTROLE_PERCEPTION in [1, 5, 7, 8, 9]) && { count _hommes > 0 }) then {
         // ! BANC, VERSION 3 ( nuit du 18/09 ). 5 = regard centre ; 7 = balayage de la mission ; 8 = balayage repare ; 1 = controle positif.
-        private _banc = CHACAL_CONTROLE_PERCEPTION in [5, 7, 8];
+        private _banc = CHACAL_CONTROLE_PERCEPTION in [5, 7, 8, 9];
         private _balaie = CHACAL_CONTROLE_PERCEPTION in [7, 8];
         private _chef = leader (group (_hommes select 0));
         private _oeil = (getPosASL _chef) vectorAdd [0, 0, 1.5];
@@ -248,6 +248,13 @@ CHACAL_fnc_fenetreObservation = {
             { _x setDir (_x getDir _cibleU); _x doWatch _cibleU } forEach _hommes;
             _regards = [];                            // le banc a regard centre ne balaie pas
         };
+        if (CHACAL_CONTROLE_PERCEPTION == 9) then {
+            // ! mode 9 : meme regard centre que le mode 5, mais sur la POSITION de la cible, jamais sur l objet. Si designer l unite au moteur
+            // suffit a la faire connaitre, le mode 5 le cache et le mode 9 le montre.
+            private _posCible = getPosATL (leader _g);
+            { _x setDir (_x getDir _posCible); _x doWatch _posCible } forEach _hommes;
+            _regards = [];
+        };
         if (CHACAL_CONTROLE_PERCEPTION == 1) then { _regards = [getPosATL (leader _g)] };   // controle POSITIF : la cible est dans le secteur balaye
         // modes 7 et 8 : _regards garde les trois azimuts de la mission ; la cible n est PAS designee aux hommes
         (format ["CHACAL|E|banc_perception|%1|phase|%2|distance|%3|azimut|%4|ligne_de_vue|1|heure|%5|lune|%6|jumelles|%7|hommes|%8|hommes_avec_vue|%9|vue_reelle|%10|distance_posee|%11|mode|%12|posture|%13|az_consigne|%14|axe|%15|essais|%16|vis_pose|%17|candidats|%18",
@@ -309,7 +316,7 @@ CHACAL_fnc_fenetreObservation = {
                 call CHACAL_fnc_perceptionMenace, _visMax, _visMoy]) call CHACAL_LOG;
         };
         // ! BANC : des que le groupe connait la cible, 30 s de plus et on ferme. Meme test que menaces_connues ( chefs, champ 0 ).
-        if ((CHACAL_CONTROLE_PERCEPTION in [5, 7, 8]) && { !isNull _gBanc } && { _tConnue < 0 }) then {
+        if ((CHACAL_CONTROLE_PERCEPTION in [5, 7, 8, 9]) && { !isNull _gBanc } && { _tConnue < 0 }) then {
             private _chefsB = call CHACAL_fnc_chefsDetachement;
             if (({ private _t = _x; ({ (_x targetKnowledge _t) select 0 } count _chefsB) > 0 } count ((units _gBanc) select { alive _x })) > 0) then { _tConnue = time };
         };
@@ -323,7 +330,7 @@ CHACAL_fnc_fenetreObservation = {
     (format ["CHACAL|E|observation|%1|phase|%2|fin|duree|%3%4", round (time * 100) / 100, _phase, round (time - _t0),
         call CHACAL_fnc_perceptionMenace]) call CHACAL_LOG;
     // ! BANC : la traversee qui suit n apprend rien au banc. On rend l episode tout de suite ; un refus garde sa cause.
-    if ((CHACAL_CONTROLE_PERCEPTION in [5, 7, 8]) && { !CHACAL_FIN }) then { CHACAL_ISSUE = "VOID"; CHACAL_CAUSE = "BANC_TERMINE"; CHACAL_FIN = true };
+    if ((CHACAL_CONTROLE_PERCEPTION in [5, 7, 8, 9]) && { !CHACAL_FIN }) then { CHACAL_ISSUE = "VOID"; CHACAL_CAUSE = "BANC_TERMINE"; CHACAL_FIN = true };
 };
 CHACAL_fnc_decision = {
     params ["_phase", "_point", "_options", "_choix", "_decideur", ["_extra", ""]];

@@ -2,7 +2,9 @@
 les parts connues par case. Validite ecrite dans les criteres de chaque campagne :
   ligne de vue = 1, pas de refus, 0 erreur SQF, vis_moy > 0,01 ( cible reelle non masquee ), un « jamais » seulement si la fenetre est
   allee au bout ; en regard centre ( mode 5 ) l angle de la premiere sonde doit etre <= 5 deg.
-Usage : python3 lire_banc_v3.py CAMPAGNE [CAMPAGNE ...] [--detail] [--md] [--fenetre 90]"""
+Usage : python3 lire_banc_v3.py CAMPAGNE [CAMPAGNE ...] [--detail] [--md] [--fenetre 90] [--sans-regle-masque]
+--sans-regle-masque : seconde lecture, qui garde les episodes a vis_moy <= 0,01 ( une cible ACCROUPIE a naturellement une visibilite quasi nulle et
+reste connue en quelques secondes ; exclure ces episodes retire surtout des « jamais » de nuit : les deux lectures sont donc donnees )."""
 import glob, json, os, re, statistics, sys
 H = "/mnt/data/hmt"
 args = [a for a in sys.argv[1:] if not a.startswith("--")]
@@ -47,8 +49,8 @@ for jf in sorted(glob.glob(f"{H}/runs/2026-09-1[89]_*/job.json")):
         if e.get("ligne_de_vue") != 1 and not e["refuse"]: pourquoi.append("pas de ligne banc")
         if e["erreurs"]: pourquoi.append("erreur SQF")
         if not e.get("sondes"): pourquoi.append("pas de sonde")
-        elif (e.get("vis_moy") or 0) <= 0.01: pourquoi.append("cible masquee")
-        if e.get("sondes") and e["mode"] == 5 and (e.get("angle1") is None or e["angle1"] > 5): pourquoi.append("regard non centre")
+        elif (e.get("vis_moy") or 0) <= 0.01 and "--sans-regle-masque" not in sys.argv: pourquoi.append("cible masquee")   # seconde lecture : sans cette regle
+        if e.get("sondes") and e["mode"] in (5, 9) and (e.get("angle1") is None or e["angle1"] > 5): pourquoi.append("regard non centre")
         if e.get("sondes") and e.get("connue") is None and e.get("duree", 0) < e["obs"] - 10: pourquoi.append("fenetre inachevee")
         e["valide"] = not pourquoi; e["pourquoi"] = ", ".join(pourquoi)
         E.append(e)

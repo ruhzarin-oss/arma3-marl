@@ -7,14 +7,14 @@ g = json.load(open(f"{H}/queue/faits/2026-09-18_VS_P2_TYPE2_s1.json")); g = {k: 
 assert g["observation"] == 90 and g["depart"] == 2 and g["arret"] == 2 and g["vignette"] == 1
 INST = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13]; NOM = {4: "PATROUILLE", 5: "POSTE"}
 if "--fumee" in sys.argv:
-    CAMP = "FUMEE-P2-TYPES-19-09"; CAS = [(2, 4, [4, 5], 1), (1, 5, [4, 5], 1)]
+    CAMP = "FUMEE-P2-TYPES-V2-19-09"; CAS = [(2, 4, [4, 5], 1), (1, 5, [4, 5], 1)]
 else:
     CAMP = "CHOIX-P2-TYPES-19-09"; CAS = [(o, b, m, s) for o in (1, 2) for b in (4, 5) for m in ([4, 5], [6, 7], [8, 9], [11, 12]) for s in (1, 2, 3, 4)]
     random.Random(1929).shuffle(CAS)
 L = []
 for k, (o, b, m, s) in enumerate(CAS):
     nom = f"{NOM[b]}-traversee{o}-g{m[0]}g{m[1]}-s{s}"
-    L.append((f"2026-09-19_P2N_{k:03d}_{nom}.json", dict(g, banc="chacalp2", campagne=CAMP, version=f"P2-{nom}", traversee=o, menace_p2=b, graines=m, situation=s, repetitions=1,
+    L.append((f"2026-09-19_P2N_{("F2_" if "--fumee" in sys.argv else "C")}{k:03d}_{nom}.json", dict(g, banc="chacalp2", campagne=CAMP, version=f"P2-{nom}", traversee=o, menace_p2=b, graines=m, situation=s, repetitions=1,
               avant=AVANT, balayage=BAL, instance=INST[k % 12], note=f"{CAMP} : option {o}, bras {NOM[b]} ( niveau {b} ), mondes {m}, situation {s}, observation depuis {AVANT} m, balayage {BAL}.")))
 poser = "--poser" in sys.argv
 os.makedirs(f"{H}/queue_preparation", exist_ok=True); t0 = time.time() - (12000 if "--fumee" in sys.argv else 6000)
