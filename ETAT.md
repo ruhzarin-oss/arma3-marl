@@ -1,4 +1,4 @@
-# ETAT — 2026-09-17 23:15
+# ETAT — 2026-09-19 04:58
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,18 +9,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-15T15:42:36+02:00 ok=True  conteneurs=20 ;
-- GPU : 869 MiB, 24576 MiB, 0 %
+- GPU : 755 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.5T libres sur 3.6T
-- serveurs Arma : 0 · residus : aucun
+- serveurs Arma : 11 · residus : aucun
 
 ## File
 
-- en cours : 2026-09-17_SONDE_3_debout_jour.json
-- en attente : rien
+- en cours : 2026-09-19_P2N_C027_POSTE-traversee1-g4g5-s3.json, 2026-09-19_P2N_C028_POSTE-traversee2-g8g9-s1.json, 2026-09-19_P2N_C029_POSTE-traversee2-g6g7-s4.json, 2026-09-19_P2N_C030_PATROUILLE-traversee2-g11g12-s4.json, 2026-09-19_P2N_C031_POSTE-traversee1-g8g9-s1.json, 2026-09-19_P2N_C032_POSTE-traversee1-g8g9-s3.json, 2026-09-19_P2N_C033_PATROUILLE-traversee1-g11g12-s2.json, 2026-09-19_P2N_C040_POSTE-traversee2-g11g12-s1.json, 2026-09-19_P2N_C046_POSTE-traversee2-g11g12-s4.json, 2026-09-19_P2N_C048_POSTE-traversee1-g11g12-s2.json, 2026-09-19_P2N_C051_PATROUILLE-traversee1-g4g5-s2.json, 2026-09-19_P2N_C055_POSTE-traversee2-g6g7-s2.json
+- en attente : 2026-09-19_BANC3_LENT_mode7_az0_pas30_m11.json, 2026-09-19_BANC3_LENT_mode7_az0_pas30_m4.json, 2026-09-19_BANC3_LENT_mode7_az0_pas30_m6.json, 2026-09-19_BANC3_LENT_mode7_az0_pas30_m8.json, 2026-09-19_BANC3_LENT_mode8_az0_pas10_m11.json, 2026-09-19_BANC3_LENT_mode8_az0_pas10_m4.json, 2026-09-19_BANC3_LENT_mode8_az0_pas10_m6.json, 2026-09-19_BANC3_LENT_mode8_az0_pas10_m8.json, 2026-09-19_BANC3_LENT_mode8_az0_pas30_m11.json, 2026-09-19_BANC3_LENT_mode8_az0_pas30_m4.json, 2026-09-19_BANC3_LENT_mode8_az0_pas30_m6.json, 2026-09-19_BANC3_LENT_mode8_az0_pas30_m8.json, 2026-09-19_BANC3_LENT_mode8_az45_pas10_m11.json, 2026-09-19_BANC3_LENT_mode8_az45_pas10_m4.json, 2026-09-19_BANC3_LENT_mode8_az45_pas10_m6.json, 2026-09-19_BANC3_LENT_mode8_az45_pas10_m8.json, 2026-09-19_BANC3_LENT_mode8_az45_pas30_m11.json, 2026-09-19_BANC3_LENT_mode8_az45_pas30_m4.json, 2026-09-19_BANC3_LENT_mode8_az45_pas30_m6.json, 2026-09-19_BANC3_LENT_mode8_az45_pas30_m8.json, 2026-09-19_P2N_C037_PATROUILLE-traversee1-g8g9-s3.json, 2026-09-19_P2N_C039_PATROUILLE-traversee2-g8g9-s1.json, 2026-09-19_P2N_C041_POSTE-traversee2-g4g5-s1.json, 2026-09-19_P2N_C042_PATROUILLE-traversee2-g11g12-s2.json, 2026-09-19_P2N_C043_POSTE-traversee2-g6g7-s3.json, 2026-09-19_P2N_C044_POSTE-traversee2-g6g7-s1.json, 2026-09-19_P2N_C045_PATROUILLE-traversee1-g8g9-s4.json, 2026-09-19_P2N_C047_POSTE-traversee1-g4g5-s1.json, 2026-09-19_P2N_C049_PATROUILLE-traversee2-g8g9-s3.json, 2026-09-19_P2N_C050_POSTE-traversee1-g8g9-s4.json, 2026-09-19_P2N_C052_PATROUILLE-traversee2-g4g5-s1.json, 2026-09-19_P2N_C053_PATROUILLE-traversee1-g11g12-s4.json, 2026-09-19_P2N_C054_PATROUILLE-traversee1-g6g7-s1.json, 2026-09-19_P2N_C056_POSTE-traversee2-g8g9-s4.json, 2026-09-19_P2N_C057_POSTE-traversee2-g4g5-s3.json, 2026-09-19_P2N_C059_PATROUILLE-traversee2-g6g7-s1.json, 2026-09-19_P2N_C060_PATROUILLE-traversee2-g6g7-s4.json, 2026-09-19_P2N_C061_POSTE-traversee1-g6g7-s2.json, 2026-09-19_P2N_C062_PATROUILLE-traversee2-g4g5-s3.json, 2026-09-19_P2N_C063_PATROUILLE-traversee1-g4g5-s4.json
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 426 / 496
+- runs aboutis : 707 / 788
 
 ## Portes ouvertes
 
@@ -68,6 +68,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Infrastructure de mesure : sentinelle de pont, harnais de banc, deploiement SQF depuis git | 2026-09-04 | n/a | trois outils en service ; une panne trouvee et non reparee : la couche bronze du lac est un lien mort | PASSE |  | infra-sentinelle-harnais.md |
 | Controle positif de la connaissance dans Arma | 2026-08-02 | 1 | knowsAbout 4,00 avec un camarade qui voit, 0,00 seul ; 0,00 a 50 m de flanc contre 2,00 a 300 m de face | PASSE |  | knowsabout-de-camp.md |
 | ? | ? | ? | ? | ? |  | l-allure-du-repli-rapide-tend-a-mieux-exfiltrer-sans-dependre-de-la-menace.md |
+| ? | ? | ? | ? | ? |  | la-connaissance-de-nuit-porte-a-150-m-et-arrive-en-6-secondes.md |
 | ? | ? | ? | ? | ? |  | la-couture-est-ouverte.md |
 | ? | ? | ? | ? | ? |  | la-porte-nest-pas-une-decision.md |
 | ? | ? | ? | ? | ? |  | la-situation-pese-sur-cinq-phases-la-phase-4-est-vide.md |
@@ -107,6 +108,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Quatre valeurs de configuration lues directement sur Arma 3 | 2026-09-03 | n/a | rayon 1,688 m ; sensitivity 6,0 ; sensitivityEar 0,125 ; audible 0,05 ; indirectHitRange 0,0 | PASSE | loi-auditive-forme | valeurs-configfile-arma.md |
 | ? | ? | ? | ? | ? |  | victoire-bout-en-bout-47-pourcent.md |
 | La vignette d'assaut DISCRIMINE, replique sur deux mondes : la mitrailleuse servie interdit la pose | 2026-09-09 | 7 et 9, cinq repetitions par niveau | AVEC une piece servie, 0 charge posee sur 8 episodes acceptes (graines 7 et 9 confondues), 5 survivants aux 8. SANS piece, une charge au moins dans 6 episodes sur 9 : graine 7 -> 2,3,2,1 (moyenne 2,0/3, survivants 7,7,7,5) ; graine 9 -> 0,3,2,0,0 (moyenne 1,0/3, survivants 5,6,8,5,5). Duree d'un episode 92 a 859 s, contre ~55 min pour une mission complete | PASSE | chacal-portes, monde-fixe-episode-libre, compromission-charniere | vignette-discrimine-mitrailleuse.md |
+| ? | ? | ? | ? | ? |  | vingt-minutes-d-attente-ne-se-paient-pas-de-facon-mesurable.md |
 
 ## Remplaces
 
@@ -119,18 +121,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
-| 2026-09-17_223329_chacal_i4 | chacal | COMPLET | g4:ACCEPTE g5:ACCEPTE | 2545 |
-| 2026-09-17_223257_chacal_i3 | chacal | COMPLET | g4:ACCEPTE g5:ACCEPTE | 1604 |
-| 2026-09-17_223226_chacal_i2 | chacal | COMPLET | g4:ACCEPTE g5:ACCEPTE | 1584 |
-| 2026-09-17_223155_chacal_i1 | chacal | COMPLET | g4:ACCEPTE g5:ACCEPTE | 1545 |
-| 2026-09-17_173400_chacal_i6 | chacal | COMPLET | g6_r1:ACCEPTE g6_r2:ACCEPTE g7_r1:ACCEPTE g7_r2:ACCEPTE | 12701 |
-| 2026-09-17_172743_chacal_i5 | chacal | COMPLET | g6_r1:ACCEPTE g6_r2:ACCEPTE g7_r1:ACCEPTE g7_r2:ACCEPTE | 1985 |
-| 2026-09-17_172302_chacal_i7 | chacal | COMPLET | g6_r1:ACCEPTE g6_r2:ACCEPTE g7_r1:ACCEPTE g7_r2:ACCEPTE | 12701 |
-| 2026-09-17_172025_chacal_i4 | chacal | COMPLET | g6_r1:ACCEPTE g6_r2:ACCEPTE g7_r1:ACCEPTE g7_r2:ACCEPTE | 1986 |
-| 2026-09-17_171343_chacal_i2 | chacal | COMPLET | g6_r1:ACCEPTE g6_r2:ACCEPTE g7_r1:ACCEPTE g7_r2:ACCEPTE | 5156 |
-| 2026-09-17_171039_chacal_i3 | chacal | COMPLET | g6_r1:ACCEPTE g6_r2:ACCEPTE g7_r1:ACCEPTE g7_r2:ACCEPTE | 3645 |
-| 2026-09-17_165338_chacal_i1 | chacal | COMPLET | g6_r1:ACCEPTE g6_r2:ACCEPTE g7_r1:ACCEPTE g7_r2:ACCEPTE | 3421 |
-| 2026-09-17_165307_chacal_i13 | chacal | COMPLET | g6_r1:ACCEPTE g6_r2:ACCEPTE g7_r1:ACCEPTE g7_r2:ACCEPTE | 3482 |
-| 2026-09-17_165235_chacal_i12 | chacal | COMPLET | g6_r1:ACCEPTE g6_r2:ACCEPTE g7_r1:ACCEPTE g7_r2:ACCEPTE | 5018 |
-| 2026-09-17_165204_chacal_i11 | chacal | COMPLET | g4_r1:ACCEPTE g4_r2:ACCEPTE g5_r1:ACCEPTE g5_r2:ACCEPTE | 13506 |
-| 2026-09-17_165132_chacal_i10 | chacal | COMPLET | g4_r1:ACCEPTE g4_r2:ACCEPTE g5_r1:ACCEPTE g5_r2:ACCEPTE | 13529 |
+| 2026-09-19_045517_chacalp2_i3 | chacalp2 | EN COURS |  |  |
+| 2026-09-19_044955_chacalp2_i13 | chacalp2 | EN COURS |  |  |
+| 2026-09-19_044930_chacalp2_i10 | chacalp2 | COMPLET | g8:ACCEPTE g9:ACCEPTE | 524 |
+| 2026-09-19_044743_chacalp2_i5 | chacalp2 | EN COURS |  |  |
+| 2026-09-19_044718_chacalp2_i7 | chacalp2 | EN COURS |  |  |
+| 2026-09-19_044533_chacalp2_i2 | chacalp2 | EN COURS |  |  |
+| 2026-09-19_044521_chacalp2_i4 | chacalp2 | EN COURS |  |  |
+| 2026-09-19_044513_chacalp2_i12 | chacalp2 | EN COURS |  |  |
+| 2026-09-19_043805_chacalp2_i11 | chacalp2 | EN COURS |  |  |
+| 2026-09-19_043633_chacalp2_i1 | chacalp2 | EN COURS |  |  |
+| 2026-09-19_043618_chacalp2_i6 | chacalp2 | EN COURS |  |  |
+| 2026-09-19_043338_chacalp2_i3 | chacalp2 | COMPLET | g4:ACCEPTE g5:ACCEPTE | 1242 |
+| 2026-09-19_042732_chacalp2_i12 | chacalp2 | COMPLET | g8:ACCEPTE g9:ACCEPTE | 996 |
+| 2026-09-19_042557_chacalp2_i8 | chacalp2 | EN COURS |  |  |
+| 2026-09-19_042535_chacalp2_i13 | chacalp2 | COMPLET | g11:ACCEPTE g12:ACCEPTE | 1406 |
