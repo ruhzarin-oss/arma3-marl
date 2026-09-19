@@ -50,7 +50,7 @@ ecrire_param PARTAGE "$PARTAGE"; ecrire_param QRF_N "$QRF_N"; ecrire_param QRF_D
 ecrire_param SITUATION "$SITUATION"; ecrire_param MENACE_P1 "$MENACE_P1"; ecrire_param MENACE_P2 "$MENACE_P2"; ecrire_param MENACE_P3 "$MENACE_P3"; ecrire_param MENACE_P4 "$MENACE_P4"; ecrire_param MENACE_P5 "$MENACE_P5"; ecrire_param MENACE_P6 "$MENACE_P6"; ecrire_param P1_ATTENTE "$P1_ATTENTE"; ecrire_param TRAVERSEE "$TRAVERSEE"; ecrire_param OBS_DUREE "$OBS_DUREE"; ecrire_param ITINERAIRE "$ITINERAIRE"
 # menace visible ( 17/09 ) : fenetre d observation et controle de perception, ecrits a chaque lancement
 # banc de perception, version 3 : ecart d azimut ( modes 7 et 8 ) et posture de la cible, ecrits a CHAQUE lancement, 0 par defaut
-ecrire_param CONTROLE_AZ "$(lit controle_az 0)"; ecrire_param CONTROLE_POSTURE "$(lit controle_posture 0)"
+ecrire_param CONTROLE_PAS "$(lit controle_pas 10)"; ecrire_param CONTROLE_AZ "$(lit controle_az 0)"; ecrire_param CONTROLE_POSTURE "$(lit controle_posture 0)"
 ecrire_param OBSERVATION "$OBSERVATION"; ecrire_param CONTROLE_PERCEPTION "$CONTROLE_PERCEPTION"; ecrire_param SONDE "$SONDE"; ecrire_param ATTENTE_TEST "$ATTENTE_TEST"; ecrire_param CONTROLE_DIST "$CONTROLE_DIST"
 # boucle EvoGP ( 17/09 ) : mode du delai et formule en codes ; ecrits a CHAQUE lancement, 0 par defaut
 ecrire_param DELAI_MODE "$DELAI_MODE"; ecrire_param F_LEN "$F_LEN"

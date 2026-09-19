@@ -257,11 +257,11 @@ CHACAL_fnc_fenetreObservation = {
         };
         if (CHACAL_CONTROLE_PERCEPTION == 1) then { _regards = [getPosATL (leader _g)] };   // controle POSITIF : la cible est dans le secteur balaye
         // modes 7 et 8 : _regards garde les trois azimuts de la mission ; la cible n est PAS designee aux hommes
-        (format ["CHACAL|E|banc_perception|%1|phase|%2|distance|%3|azimut|%4|ligne_de_vue|1|heure|%5|lune|%6|jumelles|%7|hommes|%8|hommes_avec_vue|%9|vue_reelle|%10|distance_posee|%11|mode|%12|posture|%13|az_consigne|%14|axe|%15|essais|%16|vis_pose|%17|candidats|%18",
+        (format ["CHACAL|E|banc_perception|%1|phase|%2|distance|%3|azimut|%4|ligne_de_vue|1|heure|%5|lune|%6|jumelles|%7|hommes|%8|hommes_avec_vue|%9|vue_reelle|%10|distance_posee|%11|mode|%12|posture|%13|az_consigne|%14|axe|%15|essais|%16|vis_pose|%17|candidats|%18|pas|%19",
             round (time * 100) / 100, _phase, CHACAL_CONTROLE_DIST, round _az,
             (date select 3) + ((date select 4) / 60), moonIntensity,
             ((_hommes apply { hmd _x }) joinString ","), _nH, _nVue, _vueReelle, round _dPose,
-            CHACAL_CONTROLE_PERCEPTION, CHACAL_CONTROLE_POSTURE, CHACAL_CONTROLE_AZ, round _axePhase, _essais, (round (_visPose * 100)) / 100, count _cands]) call CHACAL_LOG;
+            CHACAL_CONTROLE_PERCEPTION, CHACAL_CONTROLE_POSTURE, CHACAL_CONTROLE_AZ, round _axePhase, _essais, (round (_visPose * 100)) / 100, count _cands, CHACAL_CONTROLE_PAS]) call CHACAL_LOG;
     };
     if ((CHACAL_CONTROLE_PERCEPTION in [2, 3]) && { count _hommes > 0 }) then {
         private _chef = leader (group (_hommes select 0));
@@ -283,7 +283,7 @@ CHACAL_fnc_fenetreObservation = {
     waitUntil {
         sleep 1;
         if ((count _regards > 0) && { time >= _tRegard }) then {
-            _tRegard = time + 10; _iRegard = (_iRegard + 1) % (count _regards);
+            _tRegard = time + CHACAL_CONTROLE_PAS; _iRegard = (_iRegard + 1) % (count _regards);   // levier : duree du regard par azimut ( origine 10 s )
             // ! mode 8 : le balayage REPARE tourne les hommes ( setDir ) ; doWatch seul pivote trop lentement pour tenir 10 s par azimut
             {
                 if (CHACAL_CONTROLE_PERCEPTION == 8) then { _x setDir (_x getDir (_regards select _iRegard)) };
