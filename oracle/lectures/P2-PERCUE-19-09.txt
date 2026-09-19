@@ -1,0 +1,42 @@
+== LECTURE P2-PERCUE-19-09 : 128 episodes trouves, 122 acceptes ( mondes lus : [4, 5, 6, 7, 8, 9, 11, 12] )
+   PASSE   Q1 episodes acceptes >= 90 % des prevus : 122 acceptes ( prevus 128 )
+   PASSE   Q2 zero erreur SQF : 0 erreurs
+   PASSE   Q3 une decision TRAVERSEE par episode, choix et choix joue conformes au job : 0 non conforme(s)
+   PASSE   Q4 chaque case ( monde, bras, option ) a au moins 3 episodes : 32 / 32
+   PASSE   Q5 le type pose est celui du bras, et lui seul : 0 au mauvais type
+   PASSE   Q6 le reglage joue est celui du job : 0 ecart(s)
+   PASSE   Q7 moteur_depuis_fenetre present dans chaque decision : 0 absent(s)
+   PASSE   Q8 la perception reproduit sa confirmation ( >= 65 % en patrouille, 0 faux positif en poste ) : sensibilite 87%, faux positifs 0
+
+== 1. RAPPEL PAR LE TYPE ( controle : le monde a-t-il change ? )
+      PATROUILLE  TOUT_DE_SUITE 0.875   ATTENDRE 0.875   ecart +0.000  IC [-0.156 ; +0.125]
+      POSTE       TOUT_DE_SUITE 0.844   ATTENDRE 0.906   ecart +0.062  IC [-0.125 ; +0.344]
+      modulation par le type : -0.062  IC [-0.406 ; +0.219]   ( verdict 843118c : -0.369 )
+      RAPPEL : REUSSI
+
+== 2. LECTURE PRINCIPALE : par la perception moteur_depuis_fenetre
+      mondes couverts ( quatre cases pleines ) : [4, 5, 6, 7, 8, 9, 11, 12]
+      entendu     : ecart ( attendre - tout de suite ) -0.031  IC [-0.188 ; +0.094]
+      non entendu : ecart ( attendre - tout de suite ) +0.101  IC [-0.087 ; +0.382]
+      MODULATION par moteur_depuis_fenetre : -0.132  IC [-0.438 ; +0.111]
+      par monde : 4:-0.50  5:+0.00  6:+0.25  7:-0.06  8:+0.25  9:-1.00  11:+0.00  12:+0.00
+
+== CRITERE ECRIT D AVANCE
+   NON APPRENABLE a la precision du dispositif : la dependance existe, la perception ne la porte pas assez
+
+== 3. CONTROLE DE SENSIBILITE : par moteur_entendu ( drapeau instantane )
+      mondes couverts ( quatre cases pleines ) : [4, 5, 6, 7, 8, 9, 11, 12]
+      entendu     : ecart ( attendre - tout de suite ) -0.031  IC [-0.188 ; +0.094]
+      non entendu : ecart ( attendre - tout de suite ) +0.101  IC [-0.087 ; +0.382]
+      MODULATION par moteur_entendu : -0.132  IC [-0.438 ; +0.111]
+      par monde : 4:-0.50  5:+0.00  6:+0.25  7:-0.06  8:+0.25  9:-1.00  11:+0.00  12:+0.00
+
+== 4. DESCRIPTIF : phase_discrete et duree de la phase 2
+   entendu     TOUT_DE_SUITE n =  28 : phase_discrete 0.893 ; duree mediane 518 s
+   entendu     ATTENDRE      n =  26 : phase_discrete 0.846 ; duree mediane 680 s
+   non entendu TOUT_DE_SUITE n =  33 : phase_discrete 0.848 ; duree mediane 449 s
+   non entendu ATTENDRE      n =  35 : phase_discrete 0.914 ; duree mediane 756 s
+   PATROUILLE  TOUT_DE_SUITE n =  31 : duree mediane de la phase 2 487 s
+   PATROUILLE  ATTENDRE      n =  31 : duree mediane de la phase 2 721 s
+   POSTE       TOUT_DE_SUITE n =  30 : duree mediane de la phase 2 455 s
+   POSTE       ATTENDRE      n =  30 : duree mediane de la phase 2 732 s

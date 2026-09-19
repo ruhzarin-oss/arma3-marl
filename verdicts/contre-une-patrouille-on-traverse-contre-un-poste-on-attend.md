@@ -2,7 +2,7 @@
 
 *19/09/2026. Campagne `CHOIX-P2-TYPES-19-09`, 144 épisodes joués, 134 acceptés, 0 erreur SQF. Critères
 pré-enregistrés : `menace/banc_seuil/CRITERES_P2_TYPES_19-09.md` (écrits par Fable avant le lancement). Lecture
-unique : `menace/banc_seuil/lire_p2_types.py --sans-monde 11`. Statut : **ÉTABLI**.*
+unique : `menace/banc_seuil/lire_p2_types.py --sans-monde 11`. Statut : **OUVERT — non répliqué le 19/09 au soir, voir la fin**.*
 
 ## Ce qui est mesuré
 
@@ -69,3 +69,37 @@ pourrait porter la même inversion que le type — mais avec 12 et 15 épisodes,
 « Si la modulation n'est pas établie, le type de menace ne change pas la meilleure option, et le choix de la phase 2
 ne sert pas encore à apprendre à décider selon la situation. » **Falsificateur non franchi : la modulation est
 établie.** Le choix de la phase 2 sert.
+
+---
+
+## Réplication du 19/09 au soir — NON RÉPLIQUÉ
+
+Campagne `P2-PERCUE-19-09` (critères `oracle/CRITERES_P2_PERCUE.md` + amendement 1, lecteur testé avant commit) :
+même dispositif, mêmes mondes, mêmes graines de situation 1 à 4, 128 épisodes, 122 acceptés, 0 erreur SQF, les huit
+portes passées **sans retirer aucun monde**. Le rappel par le type, qui devait vérifier que le monde n'avait pas
+changé, donne :
+
+| | ce matin (`CHOIX-P2-TYPES`) | ce soir (`P2-PERCUE`) |
+|---|---|---|
+| patrouille : tout de suite / attendre | 0,936 / **0,714** | 0,875 / **0,875** |
+| poste : tout de suite / attendre | 0,781 / 0,929 | 0,844 / 0,906 |
+| modulation par le type | **−0,369** [−0,640 ; −0,126] | **−0,062** [−0,406 ; +0,219] |
+
+**La modulation ne se reproduit pas.** Le rappel est déclaré « réussi » par le critère de l'amendement 1 (estimation
+négative, IC contenant −0,369) — mais ce critère était trop lâche : un IC aussi large contient aussi zéro. Il est lu ici
+pour ce qu'il est : **compatible avec le verdict du matin, et tout aussi compatible avec l'absence d'effet**.
+
+Ce qui a été écarté, gratuitement, sur les épisodes joués :
+- **la charge de la machine** : 10 à 11 serveurs en vol au lancement dans les deux campagnes (moyennes 9,5 et 9,3) ;
+- **le comportement pendant l'attente** : identique (18 traversées aveugles, 11 à 12 fenêtres observées) ;
+- **le monde 11**, retiré ce matin et gardé ce soir : sans lui, la modulation du soir vaut −0,15, toujours loin de −0,37.
+
+Ce qui a changé : l'issue du même comportement. Patrouille + attendre : compromis 0,27 → 0,13, alarme 0,12 → 0,03.
+
+**Lecture la plus probable : l'effet du matin était surestimé.** C'était le premier résultat « significatif » sur sept
+choix testés ; un premier succès sélectionné parmi plusieurs est gonflé en moyenne. Une mise en commun des deux
+campagnes (NON pré-enregistrée, donnée pour information seulement) donnerait environ −0,24 [−0,44 ; −0,05] : un effet
+peut-être réel, deux fois plus petit qu'annoncé, et en tout cas non établi par une réplication.
+
+**Statut : ÉTABLI → OUVERT.** Aucune règle ne doit être tirée de ce verdict tant qu'une réplication pré-enregistrée
+et suffisamment puissante ne l'a pas tranché.
