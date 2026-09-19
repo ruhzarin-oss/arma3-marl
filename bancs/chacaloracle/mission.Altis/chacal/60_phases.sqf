@@ -89,6 +89,7 @@ CHACAL_fnc_chefsDetachement = {
 CHACAL_fnc_suiviMenaces = {
     while { !CHACAL_FIN } do {
         private _chefs = call CHACAL_fnc_chefsDetachement;
+        private _hommesS = CHACAL_FS select { alive _x };
         {
             private _t = _x; private _crue = [];
             { private _k = _x targetKnowledge _t; if (_k select 0) exitWith { _crue = _k select 6 } } forEach _chefs;
@@ -97,6 +98,14 @@ CHACAL_fnc_suiviMenaces = {
                 _h pushBack [time, _crue];
                 if (count _h > 6) then { _h deleteAt 0 };
                 _t setVariable ["chacal_crue", _h];
+            };
+            // ! LE MEME SUIVI, MAIS PAR L OEIL. Le canal connaissance est mort ( 0 sur 118 ) : sans ce second
+            // suivi, menace_mobile vaut -1 partout et la regle etablie le 19/09 reste injouable.
+            if (({ [_x, _t, 800, 70] call CHACAL_fnc_voit } count _hommesS) > 0) then {
+                private _hv = _t getVariable ["chacal_vue", []];
+                _hv pushBack [time, getPosATL _t];
+                if (count _hv > 6) then { _hv deleteAt 0 };
+                _t setVariable ["chacal_vue", _hv];
             };
         } forEach (call CHACAL_fnc_unitesMenace);
         sleep 5;
@@ -139,10 +148,30 @@ CHACAL_fnc_perceptionMenace = {
     if ((!isNil "CHACAL_VEH_ROUTE") && { !isNull CHACAL_VEH_ROUTE } && { ({ (_x select 1) == "PATROUILLE_ROUTE" } count CHACAL_MENACES) > 0 }) then {
         if (({ (_x targetKnowledge CHACAL_VEH_ROUTE) select 0 } count _chefs) > 0) then { _veh = 1 };
     };
+    // ! MOBILITE VUE : la menace a-t-elle bouge entre deux regards de l oeil ? -1 si l oeil ne l a pas vue deux fois.
+    private _mobileVue = -1;
+    {
+        private _hv = (_x getVariable ["chacal_vue", []]) select { (time - (_x select 0)) <= 40 };
+        if (count _hv >= 2) then {
+            private _d = ((_hv select 0) select 1) distance2D ((_hv select ((count _hv) - 1)) select 1);
+            if (_d > 10) exitWith { _mobileVue = 1 };
+            if (_mobileVue < 0) then { _mobileVue = 0 };
+        };
+    } forEach _menaces;
+    // ! LE MOTEUR : un blinde s entend de nuit bien plus loin qu un homme ne se voit, et seul le bras PATROUILLE
+    // en a un. Approximation assumee, a valider par le controle : jamais 1 sur un poste a pied.
+    private _moteur = 0;
+    {
+        private _v = vehicle _x;
+        if ((_v != _x) && { isEngineOn _v }) then {
+            { if ((_x distance2D _v) < CHACAL_PORTEE_SON) exitWith { _moteur = 1 } } forEach _hommes;
+        };
+    } forEach _menaces;
     private _vDist = -1;
     { private _t = _x; { private _dd = _x distance2D _t; if ((_vDist < 0) || { _dd < _vDist }) then { _vDist = _dd } } forEach _hommes } forEach _menaces;
-    format ["|menace_percue|%1|menaces_vues|%2|menaces_connues|%3|menaces_camp|%4|menaces_homme|%5|distance_menace|%6|erreur_position|%7|menace_mobile|%8|vue_depuis|%9|vehicule_connu|%10|verite_menaces|%11|verite_distance_menace|%12|azimut_chef|%13",
+    format ["|menace_percue|%1|menaces_vues|%2|menaces_connues|%3|menaces_camp|%4|menaces_homme|%5|distance_menace|%6|erreur_position|%7|menace_mobile|%8|vue_depuis|%9|vehicule_connu|%10|menace_mobile_vue|%11|moteur_entendu|%12|verite_menaces|%13|verite_distance_menace|%14|azimut_chef|%15",
         _percue, _vues, _connues, _camp, _homme, round _dMin, (round (_err * 10)) / 10, _mobile, _vueDepuis, _veh,
+        _mobileVue, _moteur,
         count _menaces, round _vDist, (if (count _chefs > 0) then { round (getDir (_chefs select 0)) } else { -1 })]
 };
 CHACAL_fnc_secteurPhase = {
@@ -220,12 +249,18 @@ CHACAL_fnc_fenetreObservation = {
     };
     (format ["CHACAL|E|observation|%1|phase|%2|debut|duree_prevue|%3%4", round (time * 100) / 100, _phase, CHACAL_OBSERVATION,
         call CHACAL_fnc_perceptionMenace]) call CHACAL_LOG;
+    (format ["CHACAL|E|reglage_observation|%1|phase|%2|avant|%3|balayage|%4|distance_secteur|%5|azimuts|%6", round (time * 100) / 100, _phase,
+        CHACAL_AVANT, CHACAL_BALAYAGE, (if (count _secteur > 0) then { round (((_hommes select 0) distance2D _secteur)) } else { -1 }), count _regards]) call CHACAL_LOG;
     private _prochain = time; private _tRegard = 0; private _iRegard = -1;
     waitUntil {
         sleep 1;
         if ((count _regards > 0) && { time >= _tRegard }) then {
             _tRegard = time + 10; _iRegard = (_iRegard + 1) % (count _regards);
-            { _x doWatch (_regards select _iRegard) } forEach (CHACAL_FS select { alive _x });
+            // ! levier CHACAL_BALAYAGE : 1 = chaque changement d azimut TOURNE les hommes ( setDir ) avant le doWatch ; 0 = origine
+            {
+                if (CHACAL_BALAYAGE == 1) then { _x setDir (_x getDir (_regards select _iRegard)) };
+                _x doWatch (_regards select _iRegard);
+            } forEach (CHACAL_FS select { alive _x });
         };
         if ((CHACAL_SONDE > 0) && { time >= _prochain }) then {
             _prochain = time + 5;
@@ -824,7 +859,7 @@ if (CHACAL_DEPART >= 3) then {
 // anneau fixe, SANS tirage : ni l alea du monde ni celui de la situation ne bougent.
 if (CHACAL_DEPART == 2) then {
     "CHACAL|AVERT|hors_corpus|depart|2|insertion_non_jouee" call CHACAL_LOG;
-    private _pt = CHACAL_ROUTE getPos [330, CHACAL_ROUTE getDir CHACAL_LZ];
+    private _pt = CHACAL_ROUTE getPos [CHACAL_AVANT + 70, CHACAL_ROUTE getDir CHACAL_LZ];   // 70 m derriere le point d observation, comme a l origine ( 260 + 70 = 330 )
     private _k = 0;
     { if (alive _x) then { _x setPosATL (_pt getPos [10, _k * 36]); _k = _k + 1 } } forEach CHACAL_FS;
     CHACAL_gFS setBehaviour "STEALTH"; CHACAL_gFS setCombatMode "GREEN";
@@ -987,7 +1022,7 @@ _plafond = 2 call CHACAL_fnc_duree;
 [2, "APPROCHE", _plafond] call CHACAL_fnc_debutPhase;
 
 private _fr = CHACAL_ROUTE;
-private _avant = _fr getPos [260, _fr getDir CHACAL_LZ];
+private _avant = _fr getPos [CHACAL_AVANT, _fr getDir CHACAL_LZ];   // levier : d ou l on observe la route ( origine 260 m )
 
 // DEUX JAMBES, et c est de la tactique : loin de l objectif on marche, a moins
 // de 1,5 km on se traine. Ramper sur 4 km n est pas de la furtivite.

@@ -191,7 +191,7 @@ if (["O_MRAP_02_hmg_F"] call CHACAL_fnc_has) then {
     // ! Au palier 4 la route etait vide et la regle de traversee prenait TOUJOURS la branche
     // PATROUILLE_ABSENTE ( 16/09 ). La situation de phase 2 ( niveaux 1 et 3 ) rend le blinde present ;
     // au niveau 0 le palier 4 reste strictement ce qu il etait.
-    if (CHACAL_LEGER && { !(CHACAL_MENACE_P2 in [1, 3]) }) exitWith {};
+    if (CHACAL_LEGER && { !(CHACAL_MENACE_P2 in [1, 3, 4]) }) exitWith {};   // 4 = patrouille seule, posee pres ( oubliee par 16e4b32 )
     CHACAL_gRoute = createGroup east;
     CHACAL_VEH_ROUTE = createVehicle ["O_MRAP_02_hmg_F", CHACAL_ROUTE_A, [], 0, "NONE"];
     // TRANCHE : l equipage d un vehicule de patrouille a des jumelles, c est

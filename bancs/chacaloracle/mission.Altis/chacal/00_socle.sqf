@@ -138,6 +138,7 @@ CHACAL_OBSERVATION = ["CHACAL_OBSERVATION", 0] call BIS_fnc_getParamValue;
 CHACAL_CONTROLE_PERCEPTION = ["CHACAL_CONTROLE_PERCEPTION", 0] call BIS_fnc_getParamValue;   // 3 = 150 m devant, DEBOUT
 CHACAL_SONDE = ["CHACAL_SONDE", 0] call BIS_fnc_getParamValue;
 // ! L ORACLE COMMANDANT ( plan a139c63 ). 0 = temoin, le decor d aujourd hui. 1 = il cherche.
+CHACAL_PORTEE_SON = ["CHACAL_PORTEE_SON", 600] call BIS_fnc_getParamValue;   // portee du moteur entendu, en metres
 CHACAL_ORACLE_CMD   = ["CHACAL_ORACLE_CMD", 0] call BIS_fnc_getParamValue;
 CHACAL_ORACLE_B     = ["CHACAL_ORACLE_B", 6] call BIS_fnc_getParamValue;      // budget : nombre de deplacements de patrouille
 CHACAL_ORACLE_NU    = ["CHACAL_ORACLE_NU", 15] call BIS_fnc_getParamValue;    // doute, en pourcent : il se trompe
@@ -145,6 +146,8 @@ CHACAL_ORACLE_EPS   = ["CHACAL_ORACLE_EPS", 15] call BIS_fnc_getParamValue;   //
 CHACAL_ORACLE_DELTA = ["CHACAL_ORACLE_DELTA", 60] call BIS_fnc_getParamValue; // periode de decision, en secondes
 // ! PRIX DU TEMPS ( saisine de Fable, 18/09 ) : attente imposee AVANT la phase 5, hors plafond de phase. 0 = origine.
 CHACAL_ATTENTE_TEST = ["CHACAL_ATTENTE_TEST", 0] call BIS_fnc_getParamValue;
+CHACAL_AVANT = ["CHACAL_AVANT", 260] call BIS_fnc_getParamValue;   // phase 2 : d ou l on observe la route ( origine 260 m )
+CHACAL_BALAYAGE = ["CHACAL_BALAYAGE", 0] call BIS_fnc_getParamValue;   // fenetre : 0 balayage d origine, 1 balayage repare
 CHACAL_CONTROLE_DIST = ["CHACAL_CONTROLE_DIST", 150] call BIS_fnc_getParamValue;   // banc de perception : distance de la cible   // 1 : une ligne sonde_perception toutes les 5 s pendant la fenetre   // 1 direct, 2 detour de 350 m
 
 // --- LE TIRAGE EST A NOUS, PAS AU MOTEUR -----------------------------

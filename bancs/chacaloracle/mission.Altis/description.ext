@@ -576,10 +576,25 @@ class Params
         title = "Controle de perception : 0 aucun, 1 a 150 m devant accroupi, 2 a 1500 m derriere, 3 a 150 m devant debout, 5 banc ( cible vue et regardee )";
         values[] = {0,1,2,3,5}; texts[] = {"0","1","2","3","5"}; default = 0;
     };
+    class CHACAL_AVANT
+    {
+        title = "Phase 2 : distance du point d observation avant la route, en metres ( origine 260 )";
+        values[] = {260,180,120,80}; texts[] = {"260","180","120","80"}; default = 260;
+    };
+    class CHACAL_BALAYAGE
+    {
+        title = "Fenetre d observation : 0 balayage d origine ( doWatch ), 1 balayage repare ( setDir puis doWatch )";
+        values[] = {0,1}; texts[] = {"0","1"}; default = 0;
+    };
     class CHACAL_CONTROLE_DIST
     {
         title = "Banc de perception : distance de la cible, en metres";
         values[] = {50,100,150,300,600}; texts[] = {"50","100","150","300","600"}; default = 150;
+    };
+    class CHACAL_PORTEE_SON
+    {
+        title = "Perception : portee du moteur entendu, en metres";
+        values[] = {0,300,600,900}; texts[] = {"0","300","600","900"}; default = 600;
     };
     class CHACAL_ORACLE_CMD
     {
