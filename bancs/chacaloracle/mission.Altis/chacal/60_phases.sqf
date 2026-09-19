@@ -150,8 +150,10 @@ CHACAL_fnc_perceptionMenace = {
     };
     // ! MOBILITE VUE : la menace a-t-elle bouge entre deux regards de l oeil ? -1 si l oeil ne l a pas vue deux fois.
     private _mobileVue = -1;
+    private _nVues = 0;
     {
         private _hv = (_x getVariable ["chacal_vue", []]) select { (time - (_x select 0)) <= 40 };
+        _nVues = _nVues max (count _hv);
         if (count _hv >= 2) then {
             private _d = ((_hv select 0) select 1) distance2D ((_hv select ((count _hv) - 1)) select 1);
             if (_d > 10) exitWith { _mobileVue = 1 };
@@ -160,18 +162,21 @@ CHACAL_fnc_perceptionMenace = {
     } forEach _menaces;
     // ! LE MOTEUR : un blinde s entend de nuit bien plus loin qu un homme ne se voit, et seul le bras PATROUILLE
     // en a un. Approximation assumee, a valider par le controle : jamais 1 sur un poste a pied.
-    private _moteur = 0;
+    private _moteur = 0; private _dMoteur = -1; private _moteurAllume = 0; private _vueVeh = 0;
     {
         private _v = vehicle _x;
         if ((_v != _x) && { isEngineOn _v }) then {
-            { if ((_x distance2D _v) < CHACAL_PORTEE_SON) exitWith { _moteur = 1 } } forEach _hommes;
+            _moteurAllume = 1;
+            { private _d = _x distance2D _v; if ((_dMoteur < 0) || { _d < _dMoteur }) then { _dMoteur = _d } } forEach _hommes;
+            if ((_dMoteur >= 0) && { _dMoteur < CHACAL_PORTEE_SON }) then { _moteur = 1 };
+            if (({ [_x, _v, 1200, 70] call CHACAL_fnc_voit } count _hommes) > 0) then { _vueVeh = 1 };
         };
     } forEach _menaces;
     private _vDist = -1;
     { private _t = _x; { private _dd = _x distance2D _t; if ((_vDist < 0) || { _dd < _vDist }) then { _vDist = _dd } } forEach _hommes } forEach _menaces;
-    format ["|menace_percue|%1|menaces_vues|%2|menaces_connues|%3|menaces_camp|%4|menaces_homme|%5|distance_menace|%6|erreur_position|%7|menace_mobile|%8|vue_depuis|%9|vehicule_connu|%10|menace_mobile_vue|%11|moteur_entendu|%12|verite_menaces|%13|verite_distance_menace|%14|azimut_chef|%15",
+    format ["|menace_percue|%1|menaces_vues|%2|menaces_connues|%3|menaces_camp|%4|menaces_homme|%5|distance_menace|%6|erreur_position|%7|menace_mobile|%8|vue_depuis|%9|vehicule_connu|%10|menace_mobile_vue|%11|moteur_entendu|%12|distance_moteur|%13|moteur_allume|%14|vue_vehicule|%15|n_vues_menace|%16|verite_menaces|%17|verite_distance_menace|%18|azimut_chef|%19",
         _percue, _vues, _connues, _camp, _homme, round _dMin, (round (_err * 10)) / 10, _mobile, _vueDepuis, _veh,
-        _mobileVue, _moteur,
+        _mobileVue, _moteur, round _dMoteur, _moteurAllume, _vueVeh, _nVues,
         count _menaces, round _vDist, (if (count _chefs > 0) then { round (getDir (_chefs select 0)) } else { -1 })]
 };
 CHACAL_fnc_secteurPhase = {
@@ -249,6 +254,17 @@ CHACAL_fnc_fenetreObservation = {
     };
     (format ["CHACAL|E|observation|%1|phase|%2|debut|duree_prevue|%3%4", round (time * 100) / 100, _phase, CHACAL_OBSERVATION,
         call CHACAL_fnc_perceptionMenace]) call CHACAL_LOG;
+    if (CHACAL_SONDE_PERCEPTION == 1) then {
+        [_phase] spawn {
+            params ["_ph"];
+            private _t0 = time;
+            while { !CHACAL_FIN && { (time - _t0) < (600 * CHACAL_ECHELLE) } } do {
+                (format ["CHACAL|E|sonde_decision|%1|phase|%2|depuis|%3%4", round (time * 100) / 100, _ph,
+                    round (time - _t0), call CHACAL_fnc_perceptionMenace]) call CHACAL_LOG;
+                sleep (10 * CHACAL_ECHELLE);
+            };
+        };
+    };
     (format ["CHACAL|E|reglage_observation|%1|phase|%2|avant|%3|balayage|%4|distance_secteur|%5|azimuts|%6", round (time * 100) / 100, _phase,
         CHACAL_AVANT, CHACAL_BALAYAGE, (if (count _secteur > 0) then { round (((_hommes select 0) distance2D _secteur)) } else { -1 }), count _regards]) call CHACAL_LOG;
     private _prochain = time; private _tRegard = 0; private _iRegard = -1;

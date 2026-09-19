@@ -591,6 +591,11 @@ class Params
         title = "Banc de perception : distance de la cible, en metres";
         values[] = {50,100,150,300,600}; texts[] = {"50","100","150","300","600"}; default = 150;
     };
+    class CHACAL_SONDE_PERCEPTION
+    {
+        title = "Sonde de decision : 1 = une ligne toutes les 10 s pendant la fenetre";
+        values[] = {0,1}; texts[] = {"0","1"}; default = 0;
+    };
     class CHACAL_PORTEE_SON
     {
         title = "Perception : portee du moteur entendu, en metres";

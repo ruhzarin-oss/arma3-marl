@@ -139,6 +139,8 @@ CHACAL_CONTROLE_PERCEPTION = ["CHACAL_CONTROLE_PERCEPTION", 0] call BIS_fnc_getP
 CHACAL_SONDE = ["CHACAL_SONDE", 0] call BIS_fnc_getParamValue;
 // ! L ORACLE COMMANDANT ( plan a139c63 ). 0 = temoin, le decor d aujourd hui. 1 = il cherche.
 CHACAL_PORTEE_SON = ["CHACAL_PORTEE_SON", 600] call BIS_fnc_getParamValue;   // portee du moteur entendu, en metres
+// ! 1 = une ligne sonde_decision toutes les 10 s pendant la fenetre : n importe quelle duree de fenetre se relit apres coup
+CHACAL_SONDE_PERCEPTION = ["CHACAL_SONDE_PERCEPTION", 0] call BIS_fnc_getParamValue;   // portee du moteur entendu, en metres
 CHACAL_ORACLE_CMD   = ["CHACAL_ORACLE_CMD", 0] call BIS_fnc_getParamValue;
 CHACAL_ORACLE_B     = ["CHACAL_ORACLE_B", 6] call BIS_fnc_getParamValue;      // budget : nombre de deplacements de patrouille
 CHACAL_ORACLE_NU    = ["CHACAL_ORACLE_NU", 15] call BIS_fnc_getParamValue;    // doute, en pourcent : il se trompe

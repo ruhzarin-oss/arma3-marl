@@ -12,7 +12,7 @@ CHAMPS = {
     "tenir": "CHACAL_TENIR", "appui_feu": "CHACAL_APPUI_FEU", "oracle": "CHACAL_ORACLE",
     "tactique": "CHACAL_TACTIQUE", "ablation": "CHACAL_ABLATION", "placeur": "CHACAL_PLACEUR",
     "azimut": "CHACAL_AZIMUT", "obs": "CHACAL_OBS", "hmg": "CHACAL_HMG",
-    "p1_attente": "CHACAL_P1_ATTENTE", "traversee": "CHACAL_TRAVERSEE", "obs_duree": "CHACAL_OBS_DUREE", "itineraire": "CHACAL_ITINERAIRE", "observation": "CHACAL_OBSERVATION", "controle_perception": "CHACAL_CONTROLE_PERCEPTION", "sonde": "CHACAL_SONDE", "oracle_cmd": "CHACAL_ORACLE_CMD", "portee_son": "CHACAL_PORTEE_SON", "oracle_b": "CHACAL_ORACLE_B", "oracle_nu": "CHACAL_ORACLE_NU", "oracle_eps": "CHACAL_ORACLE_EPS", "oracle_delta": "CHACAL_ORACLE_DELTA", "attente_test": "CHACAL_ATTENTE_TEST", "controle_dist": "CHACAL_CONTROLE_DIST", "exfil": "CHACAL_EXFIL", "delai_mode": "CHACAL_DELAI_MODE", "f_len": "CHACAL_F_LEN",
+    "p1_attente": "CHACAL_P1_ATTENTE", "traversee": "CHACAL_TRAVERSEE", "obs_duree": "CHACAL_OBS_DUREE", "itineraire": "CHACAL_ITINERAIRE", "observation": "CHACAL_OBSERVATION", "controle_perception": "CHACAL_CONTROLE_PERCEPTION", "sonde": "CHACAL_SONDE", "oracle_cmd": "CHACAL_ORACLE_CMD", "portee_son": "CHACAL_PORTEE_SON", "sonde_perception": "CHACAL_SONDE_PERCEPTION", "oracle_b": "CHACAL_ORACLE_B", "oracle_nu": "CHACAL_ORACLE_NU", "oracle_eps": "CHACAL_ORACLE_EPS", "oracle_delta": "CHACAL_ORACLE_DELTA", "attente_test": "CHACAL_ATTENTE_TEST", "controle_dist": "CHACAL_CONTROLE_DIST", "exfil": "CHACAL_EXFIL", "delai_mode": "CHACAL_DELAI_MODE", "f_len": "CHACAL_F_LEN",
 }
 
 def declarees(ext):
