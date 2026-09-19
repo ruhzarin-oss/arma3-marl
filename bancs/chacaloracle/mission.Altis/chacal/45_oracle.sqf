@@ -78,15 +78,20 @@ CHACAL_O_fnc_croire = {
     };
     // 2. ce que ses groupes savent : position CRUE, jamais la vraie
     private _vu = -1; private _fraicheur = 1e9;
+    // ! targetKnowledge se demande a un HOMME, pas a un groupe ( « Type Group, expected Object » ), et son
+    // premier champ est un BOOLEEN. C est ainsi que 60_phases.sqf l interroge deja, par les chefs.
     {
-        private _g = _x;
-        {
-            private _kn = _g targetKnowledge _x;                 // [ connu, connu_individu, vu_a, danger_a, camp, erreur, position CRUE ]
-            if ((_kn select 0) > 0.3) then {
-                private _age = time - (_kn select 2);
-                if (_age < _fraicheur) then { _fraicheur = _age; _vu = [(_kn select 6)] call CHACAL_O_fnc_caseLaPlusProche };
-            };
-        } forEach CHACAL_FS;                                      // on parcourt la liste, on ne lit QUE sa connaissance
+        private _chef = leader _x;
+        if (!isNull _chef && { alive _chef }) then {
+            {
+                private _kn = _chef targetKnowledge _x;          // [ connu, connu_individu, vu_a, danger_a, camp, erreur, position CRUE ]
+                if (_kn select 0) then {
+                    private _age = time - (_kn select 2);
+                    if (_age < 0) then { _age = 1e9 };
+                    if (_age < _fraicheur) then { _fraicheur = _age; _vu = [(_kn select 6)] call CHACAL_O_fnc_caseLaPlusProche };
+                };
+            } forEach CHACAL_FS;                                  // on parcourt la liste, on ne lit QUE sa connaissance
+        };
     } forEach ((CHACAL_GROUPES_EST + [CHACAL_gRoute]) select { !isNull _x });
     // 3. ce qu il n a pas vu : une case regardee et vide devient moins probable
     private _yeux = call CHACAL_O_fnc_yeux;
