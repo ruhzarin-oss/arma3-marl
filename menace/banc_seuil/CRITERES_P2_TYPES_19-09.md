@@ -58,4 +58,22 @@ le reglage inscrit ci-dessous, et il est a rejouer sur `bancs/chacal` si Younes 
 `tag:decision` sont remplaces par les portes Q3, Q5 et Q6 du lecteur. Machine partagee avec le banc de perception ( charge archivee par run ).
 
 ## Reglage retenu par la regle de variance ( inscrit avant la pose des jobs )
-A REMPLIR : avant = ... m, balayage = ... ; parts percue / connue de la grille ; ou « AUCUN REGLAGE ADMISSIBLE : la campagne ne part pas ».
+**RETENU : avant = 260 m ( le point d observation D ORIGINE ), balayage = 1 ( balayage REPARE ).** Inscrit le 19/09 a 2 h 15, avant la fumee et avant
+tout episode de P2. Lecture de la grille a ce moment ( 42 jobs sur 48, `lire_grille_observation.py`, portes de `menace/lire_variance.py` inchangees ) :
+
+| avant | balayage | n acceptes ( lus ) | percue > 0 | connue | phase 2 abimee | porte globale | porte intra-monde |
+|---|---|---|---|---|---|---|---|
+| 260 | 0 ( origine ) | 14 ( 16 ) | 29 % | 0 % | 0 % | ECHEC | OK |
+| **260** | **1** | 14 ( 15 ) | **50 %** | 0 % | 7 % | OK | OK |
+| 180 | 0 | 11 ( 13 ) | 36 % | 0 % | 9 % | OK | OK |
+| 180 | 1 | 15 ( 16 ) | 40 % | 0 % | 20 % | OK | OK |
+| 120 | 0 | 13 ( 14 ) | 38 % | 0 % | 23 % | OK | OK |
+| 120 | 1 | 16 ( 16 ) | 44 % | 0 % | 31 % -> ECARTE par le garde-fou | OK | OK |
+
+Admissibles : ( 260, 1 ), ( 180, 0 ), ( 180, 1 ), ( 120, 0 ). La part CONNUE vaut 0 % partout ( egalite ) : le departage ecrit d avance retient le plus proche de
+l origine, donc 260 m puis, l origine exacte echouant la porte globale ( 29 %, ses 16 episodes sont lus ), le balayage repare. La decision ne peut plus changer :
+( 260, 1 ) finira entre 44 % et 56 % de percue et a 19 % au plus de phases abimees, quel que soit son dernier episode. La grille complete est recopiee dans le
+compte rendu. Predictions de la grille : a ( origine ~25 % percue, 0 % connue ) TENUE ; b ( le balayage repare seul ne suffit pas, connue < 15 % ) TENUE pour
+« connue », mais il SUFFIT a ouvrir la porte, ce que je n avais pas prevu ; c ( observer de pres fait monter la part connue au-dela de 30 % ) FAUSSE : 0 % partout ;
+d ( observer de pres abime la phase 2 ) TENUE : 0-7 % a 260 m, 9-20 % a 180 m, 23-31 % a 120 m.
+Consequence pour la lecture de P2 : la menace n est jamais CONNUE du groupe au moment du choix ; ce qui varie est le canal geometrique ( `menaces_vues` ).
