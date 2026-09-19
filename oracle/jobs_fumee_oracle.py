@@ -14,7 +14,7 @@ L = []
 for rang, niveau in enumerate((0, 1)):
     j = dict(g, banc="chacaloracle", campagne="FUMEE-ORACLE-19-09", graines=[4, 5], repetitions=1,
              situation=1, oracle_cmd=niveau, oracle_b=6, oracle_nu=15, oracle_eps=15, oracle_delta=60,
-             instance=[10, 11] select rang, version=f"FUMEE-ORACLE-n{niveau}",
+             instance=[10, 11][rang], version=f"FUMEE-ORACLE-n{niveau}",
              note=f"Fumee de l Oracle commandant, niveau {niveau} ( {'temoin' if niveau == 0 else 'il cherche'} ).")
     L.append((f"2026-09-19_FUMEE_ORACLE_n{niveau}.json", j))
 poser = "--poser" in sys.argv
