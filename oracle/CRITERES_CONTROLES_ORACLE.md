@@ -93,3 +93,30 @@ Les épisodes déjà joués dont la case d'arrivée est `SITE` ou `ABORDS` **ne 
 version défectueuse du contrôle. Quatre jobs de non-triche sont reposés pour les remplacer, avec des mondes et des
 situations que la campagne n'a pas encore joués, de sorte qu'aucun ne soit un rejeu à l'identique — l'erreur du
 remplacement d'`ORACLE-P2-19-09`.
+
+## Amendement 2 — 20/09 16 h 40, écrit avant toute lecture : la mission modifiée pendant que les serveurs tournaient
+
+La lecture s'est refusée sur C2, C3 et C6 : **16 épisodes acceptés sur 32**. La cause n'est ni le banc ni l'Oracle,
+c'est moi. J'ai corrigé la case d'arrivée (amendement 1) **alors que douze serveurs jouaient**. Au lancement de
+l'épisode suivant, le banc n'a pas pu remplacer le dossier de mission — un serveur Arma le tenait ouvert :
+
+```
+mv: cannot move '.../MPMissions/CHACALORACLE.Altis' ... : Permission denied
+DEPLOIEMENT NON PROUVE : la mission jouee differe du depot
+```
+
+Le banc a **refusé de jouer une mission qu'il ne pouvait pas prouver**, et a tué l'épisode : c'est exactement ce
+qu'il doit faire. La signature est nette dans l'inventaire : dans chaque job de deux graines, la **première** a un
+résultat et la **seconde** n'en a aucun — la bascule a eu lieu entre les deux. Un résidu `CHACALORACLE.Altis.neuf`
+est resté dans le dossier déployé ; il a été supprimé, serveurs éteints.
+
+**Règle de conduite, désormais :** on ne modifie jamais la mission d'un banc pendant qu'une campagne vole. Une
+correction attend la file vide, ou bien on arrête la campagne d'abord.
+
+**Ce qui est reposé :** uniquement les (bras, monde, situation) sans épisode valide, graine par graine, 11 jobs et
+22 épisodes. Deux graines déjà valides (12 en situation 1) sont rejouées faute de pouvoir poser un job à une seule
+graine — le banc les refuse.
+
+**Règle de lecture, écrite avant tout effet :** on lit le **premier épisode ACCEPTÉ** de chaque (bras, monde,
+situation). « Accepté », et non « premier tout court » : c'est précisément l'erreur qui a rendu le remplacement
+d'`ORACLE-P2-19-09` sans effet, un exemplaire refusé bloquant le rejeu valide de la même case.

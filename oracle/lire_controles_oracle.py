@@ -45,16 +45,25 @@ for jf in sorted(glob.glob(f"{H}/runs/2026-09-2*/job.json")):
         e["dec"] = dec
         E.append(e)
 
-A = [e for e in E if e["verdict"] == "ACCEPTE"]
-P = [e for e in A if e["ctrl"] == 1]
+A0 = [e for e in E if e["verdict"] == "ACCEPTE"]
 # ! AMENDEMENT 1 : la version defectueuse du controle envoyait TOUJOURS sur le SITE, ou nos hommes etaient vus
 # aussitot ; la fenetre se fermait et le controle ne pouvait plus echouer. Ces episodes ne sont pas lus.
+Av = [e for e in A0 if e["ctrl"] != 3 or (e["tp_avant"] and e["tp_avant"].get("vers") not in ("SITE", "ABORDS"))]
+ecartes = len(A0) - len(Av)
+# ! AMENDEMENT 2 : on lit le PREMIER episode ACCEPTE de chaque ( bras, monde, situation ). « Accepte », et non
+# « premier tout court » : c est l erreur qui a rendu le remplacement d ORACLE-P2-19-09 sans effet, un exemplaire
+# refuse bloquant le rejeu valide de la meme case.
+vus = set(); A = []
+for e in sorted(Av, key=lambda x: x.get("quand") or ""):
+    cle = (e["ctrl"], e["monde"], e["situation"])
+    if cle in vus: continue
+    vus.add(cle); A.append(e)
+doublons = len(Av) - len(A)
+P = [e for e in A if e["ctrl"] == 1]
 N = [e for e in A if e["ctrl"] == 3]
-Nv = [e for e in N if e["tp_avant"] and e["tp_avant"].get("vers") not in ("SITE", "ABORDS")]
-ecartes = len(N) - len(Nv); N = Nv
 PREVUS = 32
 print(f"== CONTROLES DE L ORACLE : {len(E)} episodes, {len(A)} acceptes ( positif {len(P)}, non-triche {len(N)} )")
-print(f"   {ecartes} episode(s) de non-triche ecarte(s) : case d arrivee SITE ou ABORDS ( version defectueuse du controle )")
+print(f"   {ecartes} episode(s) ecarte(s) : case d arrivee SITE ou ABORDS ( version defectueuse du controle ) ; {doublons} doublon(s) de rejeu")
 
 
 def fenetre_de(e):
