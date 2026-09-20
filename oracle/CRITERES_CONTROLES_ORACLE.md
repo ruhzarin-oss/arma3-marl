@@ -120,3 +120,39 @@ graine — le banc les refuse.
 **Règle de lecture, écrite avant tout effet :** on lit le **premier épisode ACCEPTÉ** de chaque (bras, monde,
 situation). « Accepté », et non « premier tout court » : c'est précisément l'erreur qui a rendu le remplacement
 d'`ORACLE-P2-19-09` sans effet, un exemplaire refusé bloquant le rejeu valide de la même case.
+
+## Résultat — 20/09 17 h 10 : les huit portes passent, **les deux contrôles échouent**, et les deux sont des défauts d'instrument
+
+31 épisodes acceptés sur 32, zéro erreur SQF, les huit portes de qualité passent, y compris C6 (15/15 épisodes
+offrent une vraie fenêtre). La mesure a donc bien eu lieu — et elle refuse les deux contrôles.
+
+### CP — interception 3/16 = 0,188. ÉCHOUE au critère écrit.
+
+**Mais le contrôle n'a pas tenu l'adversaire en place.** La patrouille est posée à 247-398 m (porte C4 passée), puis
+elle **repart aussitôt** : ses distances à sa propre cible, décision après décision, passent de ~800 m à 1 000,
+2 000, jusqu'à 4 000 m. Elle ne confronte pas, elle passe. Le téléport déplace le véhicule sans lui retirer ses
+points de passage.
+
+Ce que le contrôle mesure réellement, et qui n'est pas rien : **une patrouille motorisée qui passe à 300 m de dix
+hommes debout, de jour, ne les prend pas 13 fois sur 16.** Ce n'est pas la question posée. `CP est NON CONCLUANT` :
+on ne peut pas encore dire si le canal de punition est bouché.
+
+### CN — 4 violations sur 15. ÉCHOUE au critère écrit.
+
+Décomposition : **zéro violation sur la croyance** ; les quatre violations viennent toutes de la seconde clause,
+« la patrouille prend pour cible la case d'arrivée », et toutes sur la même case, `CRETE`.
+
+**Contre-épreuve sur données indépendantes** (les 62 épisodes Oracle d'`ORACLE-P2-19-09`, sans aucun téléport, même
+fenêtre de 5 décisions après t = 175 s) : la patrouille vise `CRETE` dans **24 épisodes sur 62, soit 38,7 %**. Avec
+téléport : 4 sur 15, soit 26,7 % — **moins souvent que par hasard**.
+
+La clause est donc **réfutée comme instrument** : elle se déclenche quatre fois sur dix sur rien. Elle n'aurait
+jamais dû être écrite sans modèle nul. `CN est NON CONCLUANT` : la croyance, elle, n'a jamais suivi le corps
+(0/15), mais je ne m'autorise pas à conclure « il ne triche pas » en retirant après coup la clause qui échoue.
+
+### Ce qu'il faut réparer avant de rejouer
+
+1. **CP** : après le téléport, effacer les points de passage de la patrouille et lui ordonner de rester et
+   d'observer, pour qu'elle confronte au lieu de passer.
+2. **CN** : remplacer le seuil de la clause « cible » par une **comparaison au taux sans téléport**, ou ne garder
+   que la croyance — mais alors l'écrire avant, et le confirmer sur des épisodes neufs.

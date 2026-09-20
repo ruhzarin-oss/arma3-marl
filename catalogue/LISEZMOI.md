@@ -1,9 +1,9 @@
 # Catalogue des episodes CHACAL
 
-Genere par `outils/catalogue.py` le 2026-09-20 16:24. **Ne pas editer a la main** : il est
+Genere par `outils/catalogue.py` le 2026-09-20 17:03. **Ne pas editer a la main** : il est
 regenere apres chaque run (file3.sh) et chaque nuit (sauver.sh).
 
-- **3831 episodes**, lus depuis 4275 journaux (31 sans ligne FINI ignores).
+- **3852 episodes**, lus depuis 4297 journaux (31 sans ligne FINI ignores).
 - Un episode = une ligne ; `episodes.csv` pour un tableur, `episodes.jsonl` pour un programme.
 - Le journal complet de chaque episode est dans la colonne `source` ; ses tables (etat de chaque homme
   toutes les ~2 s, perception, evenements, phases) sont a cote, dans `extrait/`.
@@ -326,17 +326,28 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 | CONTROLE-PARTAGE-16-09 | SEPT_UN_QRF | 2 | 2 |
 | CONTROLE-PARTAGE-16-09 | TEMOIN | 2 | 1 |
 | CONTROLES-ORACLE-20-09 | CTRL-NONTRICHE-s1-g11g12 | 2 | 0 |
+| CONTROLES-ORACLE-20-09 | CTRL-NONTRICHE-s1-g11g12-B | 1 | 0 |
+| CONTROLES-ORACLE-20-09 | CTRL-NONTRICHE-s1-g4g5-B | 2 | 0 |
 | CONTROLES-ORACLE-20-09 | CTRL-NONTRICHE-s1-g6g7 | 2 | 0 |
+| CONTROLES-ORACLE-20-09 | CTRL-NONTRICHE-s1-g6g7-B | 2 | 0 |
+| CONTROLES-ORACLE-20-09 | CTRL-NONTRICHE-s1-g8g9-B | 2 | 0 |
 | CONTROLES-ORACLE-20-09 | CTRL-NONTRICHE-s2-g11g12 | 1 | 0 |
+| CONTROLES-ORACLE-20-09 | CTRL-NONTRICHE-s2-g4g5-B | 2 | 0 |
 | CONTROLES-ORACLE-20-09 | CTRL-NONTRICHE-s2-g6g7 | 2 | 0 |
+| CONTROLES-ORACLE-20-09 | CTRL-NONTRICHE-s2-g6g8-B | 2 | 0 |
+| CONTROLES-ORACLE-20-09 | CTRL-NONTRICHE-s2-g9g12-B | 2 | 0 |
 | CONTROLES-ORACLE-20-09 | CTRL-POSITIF-s1-g11g12 | 2 | 0 |
 | CONTROLES-ORACLE-20-09 | CTRL-POSITIF-s1-g4g5 | 1 | 0 |
+| CONTROLES-ORACLE-20-09 | CTRL-POSITIF-s1-g5g7-B | 2 | 0 |
 | CONTROLES-ORACLE-20-09 | CTRL-POSITIF-s1-g6g7 | 1 | 0 |
 | CONTROLES-ORACLE-20-09 | CTRL-POSITIF-s1-g8g9 | 1 | 0 |
+| CONTROLES-ORACLE-20-09 | CTRL-POSITIF-s1-g9g12-B | 2 | 0 |
 | CONTROLES-ORACLE-20-09 | CTRL-POSITIF-s2-g11g12 | 1 | 0 |
 | CONTROLES-ORACLE-20-09 | CTRL-POSITIF-s2-g4g5 | 1 | 0 |
+| CONTROLES-ORACLE-20-09 | CTRL-POSITIF-s2-g5g7-B | 2 | 0 |
 | CONTROLES-ORACLE-20-09 | CTRL-POSITIF-s2-g6g7 | 1 | 0 |
 | CONTROLES-ORACLE-20-09 | CTRL-POSITIF-s2-g8g9 | 1 | 0 |
+| CONTROLES-ORACLE-20-09 | CTRL-POSITIF-s2-g9g12-B | 2 | 0 |
 | DELAI-PORTEUR-14-09 | DELAI180-g11-m1 | 12 | 8 |
 | DELAI-PORTEUR-14-09 | DELAI180-g11-m2 | 12 | 9 |
 | DELAI-PORTEUR-14-09 | DELAI180-g12-m1 | 12 | 8 |
