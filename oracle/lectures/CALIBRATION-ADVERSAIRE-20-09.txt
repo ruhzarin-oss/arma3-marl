@@ -1,0 +1,14 @@
+CALIBRATION de l adversaire sur ORACLE-P2-19-09 : 122 episodes lus ( Oracle 61, temoin 61 )
+
+issue                                  Oracle   temoin    ecart   IC 95 % apparie par monde
+compromis en phase 2                    0.279    0.082   +0.197   [+0.056 ; +0.327]  <<<
+alarme donnee                           0.066    0.033   +0.033   [-0.031 ; +0.109]
+au moins un homme perdu                 0.180    0.066   +0.115   [+0.026 ; +0.198]  <<<
+pris AVANT la decision                  0.082    0.016   +0.066   [+0.000 ; +0.156]
+phase discrete ( issue primaire )       0.721    0.918   -0.197   [-0.327 ; -0.056]  <<<
+
+detail Oracle : ordres de patrouille par episode 3.1 ; budget restant a la fin 2.9 sur 6
+issues Oracle : {'COMPROMIS': 17, 'ATTEINT': 43, 'ENLISE': 1}
+issues temoin : {'ATTEINT': 56, 'COMPROMIS': 5}
+
+par monde ( compromis Oracle / temoin ) : {4: (0.12, 0.12), 5: (0.0, 0.0), 6: (0.38, 0.0), 7: (0.62, 0.17), 8: (0.5, 0.12), 9: (0.2, 0.0), 11: (0.38, 0.12), 12: (0.0, 0.12)}
