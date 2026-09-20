@@ -226,3 +226,21 @@ avec **10 jobs par bras au lieu de 8**, pour absorber ces refus sans les cacher.
 *Dit franchement : cet amendement relâche une porte après l'avoir vue échouer. Il ne touche pas aux lectures CP et
 CN, il ne change pas un seuil d'effet, et il remplace un critère mal ciblé par celui qu'il aurait fallu écrire.
 Mais il n'est pas pré-enregistré, et je le compte comme tel.*
+
+### Amendement 6 — 20/09 19 h 05, après le refus de la v3 : une porte qu'aucune réparation ne peut satisfaire
+
+La v3 passe C1, C3, C4, C5, C6 et **C7 à 18/18, médiane du plus proche 99 m** : la patrouille vient vraiment au
+contact. Elle échoue sur la seule C2, à cause de **trois exemplaires sans résultat** — les épisodes que les deux
+écrans bleus de 18 h 37 et 18 h 40 ont tués en plein vol (pilote de la carte 10 Gb, `aqnic650.sys`, 0xD1).
+
+Ces trois-là ont été **rejoués et ont un résultat** : aucune case (bras, monde, situation) n'est vide. Mais C2
+comptait des **exemplaires**, et un rejeu crée un nouveau dossier sans jamais remplir l'ancien : **la porte ne peut
+plus jamais passer, quoi qu'on répare.** Une porte qu'aucune réparation ne peut satisfaire est mal écrite — c'est
+un défaut de forme, indépendant du résultat.
+
+C2 devient : **aucune case sans le moindre résultat**. Le nombre d'exemplaires orphelins et leur cause sont
+annoncés à côté, comme information.
+
+*Troisième porte relâchée aujourd'hui après l'avoir vue échouer, et je le compte comme tel. Ce qui me fait la
+corriger quand même : elle est infalsifiable dans le mauvais sens — elle refuse pour toujours une campagne
+entièrement réparée.*

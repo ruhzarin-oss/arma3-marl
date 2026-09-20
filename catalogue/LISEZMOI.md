@@ -1,9 +1,9 @@
 # Catalogue des episodes CHACAL
 
-Genere par `outils/catalogue.py` le 2026-09-20 17:54. **Ne pas editer a la main** : il est
+Genere par `outils/catalogue.py` le 2026-09-20 19:33. **Ne pas editer a la main** : il est
 regenere apres chaque run (file3.sh) et chaque nuit (sauver.sh).
 
-- **3881 episodes**, lus depuis 4329 journaux (31 sans ligne FINI ignores).
+- **3927 episodes**, lus depuis 4379 journaux (32 sans ligne FINI ignores).
 - Un episode = une ligne ; `episodes.csv` pour un tableur, `episodes.jsonl` pour un programme.
 - Le journal complet de chaque episode est dans la colonne `source` ; ses tables (etat de chaque homme
   toutes les ~2 s, perception, evenements, phases) sont a cote, dans `extrait/`.
@@ -364,6 +364,30 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 | CONTROLES-ORACLE-V2-20-09 | CTRLV2-POSITIF-s2-g4g5 | 2 | 0 |
 | CONTROLES-ORACLE-V2-20-09 | CTRLV2-POSITIF-s2-g6g7 | 2 | 0 |
 | CONTROLES-ORACLE-V2-20-09 | CTRLV2-POSITIF-s2-g8g9 | 1 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-NONTRICHE-s1-g11g12 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-NONTRICHE-s1-g4g5 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-NONTRICHE-s1-g6g7 | 3 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-NONTRICHE-s1-g8g9 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-NONTRICHE-s2-g11g12 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-NONTRICHE-s2-g4g5 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-NONTRICHE-s2-g6g7 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-NONTRICHE-s2-g8g9 | 1 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-NONTRICHE-s3-g11g12 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-NONTRICHE-s3-g4g5 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-NONTRICHE-s3-g6g7 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-NONTRICHE-s3-g8g9 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-POSITIF-s1-g11g12 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-POSITIF-s1-g4g5 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-POSITIF-s1-g6g7 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-POSITIF-s1-g8g9 | 1 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-POSITIF-s2-g11g12 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-POSITIF-s2-g4g5 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-POSITIF-s2-g6g7 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-POSITIF-s2-g8g9 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-POSITIF-s3-g11g12 | 1 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-POSITIF-s3-g4g5 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-POSITIF-s3-g6g7 | 2 | 0 |
+| CONTROLES-ORACLE-V3-20-09 | CTRLV3-POSITIF-s3-g8g9 | 2 | 0 |
 | DELAI-PORTEUR-14-09 | DELAI180-g11-m1 | 12 | 8 |
 | DELAI-PORTEUR-14-09 | DELAI180-g11-m2 | 12 | 9 |
 | DELAI-PORTEUR-14-09 | DELAI180-g12-m1 | 12 | 8 |

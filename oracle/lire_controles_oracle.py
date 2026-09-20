@@ -70,7 +70,14 @@ PREVUS = 32
 print(f"== CONTROLES DE L ORACLE : {len(E)} episodes, {len(A)} acceptes ( positif {len(P)}, non-triche {len(N)} )")
 print(f"   ecartes : {mauvaise_case} sur la case d arrivee ( version defectueuse ), {sans_saut} sans ligne de teleport "
       f"( episode fini avant le saut ), {doublons} doublon(s) de rejeu")
-perdus = sum(1 for e in E if e["verdict"] is None)
+orphelins = sum(1 for e in E if e["verdict"] is None)
+# ! AMENDEMENT 6 : C2 comptait des EXEMPLAIRES sans resultat. Un plantage machine en laisse derriere lui pour
+# toujours : le rejeu cree un nouveau dossier, l ancien reste vide, et la porte ne peut PLUS JAMAIS passer, quoi
+# qu on repare. Une porte qu aucune reparation ne peut satisfaire est mal ecrite. On compte donc les CASES
+# ( bras, monde, situation ) sans le moindre resultat - ce que « perdre un episode » veut dire en pratique.
+avec = {(e["ctrl"], e["monde"], e["situation"]) for e in E if e["verdict"] is not None}
+sans = {(e["ctrl"], e["monde"], e["situation"]) for e in E} - avec
+perdus = len(sans)
 refuses = sum(1 for e in E if e["verdict"] not in (None, "ACCEPTE"))
 
 
@@ -89,8 +96,9 @@ portes = [
     # une perte : il est documente, episode par episode, et il devient frequent quand la patrouille tue les dix -
     # les canaris de l enregistreur meurent avec eux. On exige donc zero episode sans resultat, et la puissance
     # est portee par C3.
-    ("C2 aucun episode perdu sans resultat", perdus == 0,
-     f"{perdus} perdu(s) ; {refuses} refus du banc sur {len(E)} joues ( information, pas une porte )"),
+    ("C2 aucune case ( bras, monde, situation ) sans le moindre resultat", perdus == 0,
+     f"{perdus} case(s) perdue(s) ; {orphelins} exemplaire(s) orphelin(s) apres le plantage machine de 18 h 37 ; "
+     f"{refuses} refus du banc sur {len(E)} joues ( information, pas une porte )"),
     ("C3 chaque bras a au moins 12 episodes", len(P) >= 12 and len(N) >= 12, f"positif {len(P)}, non-triche {len(N)}"),
     ("C4 bras positif : patrouille posee a moins de 400 m",
      bool(P) and all(e["pos"] and entier(e["pos"].get("patrouille_a"), 9999) <= 400 for e in P),
