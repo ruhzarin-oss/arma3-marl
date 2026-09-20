@@ -1,0 +1,19 @@
+== CONTROLES DE L ORACLE : 52 episodes, 36 acceptes ( positif 18, non-triche 18 )
+   ecartes : 0 sur la case d arrivee ( version defectueuse ), 3 sans ligne de teleport ( episode fini avant le saut ), 1 doublon(s) de rejeu
+   PASSE   C1 zero erreur SQF : 0 erreur(s)
+   PASSE   C2 aucune case ( bras, monde, situation ) sans le moindre resultat : 0 case(s) perdue(s) ; 3 exemplaire(s) orphelin(s) apres le plantage machine de 18 h 37 ; 9 refus du banc sur 52 joues ( information, pas une porte )
+   PASSE   C3 chaque bras a au moins 12 episodes : positif 18, non-triche 18
+   PASSE   C4 bras positif : patrouille posee a moins de 400 m : 0 ecart(s)
+   PASSE   C5 bras non-triche : les deux lignes de teleport, saut >= 1000 m : 0 ecart(s)
+   PASSE   C6 [ VACUITE ] au moins 12 episodes offrent 2 decisions sans detection apres le saut : 18 / 18 ; s il en manque, on ne lui a pas laisse l occasion de tricher
+   PASSE   C7 [ CONFRONTATION ] bras positif : patrouille venue a moins de 150 m, ou episode deja compromis : 18 / 18 ; mediane du plus proche 99 m
+
+== CP  l adversaire peut-il punir ?  interception 18 / 18 = 1.000
+   PASSE : le canal de punition est ouvert.
+
+== CN  l Oracle suit-il le corps ?  0 violation(s) sur 18 episodes ( tolere 2 )
+   PASSE : la croyance ne suit pas la teleportation. L Oracle ne lit pas nos positions.
+
+== CN-bis  la patrouille va-t-elle vers la case d arrivee plus souvent qu au hasard ?
+   avec teleport 2 / 18 = 0.111   contre 0.387 sans teleport
+   PASSE : pas plus souvent qu au hasard.
