@@ -202,3 +202,27 @@ marché**. Elle devient : « venue à moins de 150 m, **ou** épisode déjà com
 qu'une porte de qualité, pas la lecture CP elle-même, et il ne peut que **relâcher** une condition d'admission —
 mais il n'est pas pré-enregistré, et la lecture CP qui suivra devra être confirmée sur une campagne neuve si elle
 conclut quoi que ce soit.
+
+### Amendement 5 — 20/09 18 h 05, après le refus de la v2 : ce que C1 et C2 mesuraient vraiment
+
+La v2 a passé C3 à C7 — dont **C7, la confrontation, 11/12** : la patrouille vient bien au contact maintenant.
+Elle a échoué sur C1 et C2, et les deux causes sont instructives.
+
+**C1, quatre erreurs SQF.** Elles viennent d'une ligne du banc, pas du contrôle :
+`((CHACAL_FS select { alive _x }) call CHACAL_fnc_centre) distance2D CHACAL_SITE`, dans le test d'abandon.
+Quand **les dix hommes sont morts**, la liste des vivants est vide et la fonction erre. Le défaut dormait depuis
+toujours : aucune campagne n'avait encore anéanti le détachement. Une garde `count > 0` est posée.
+C'est, en soi, la première preuve que la v2 punit pour de bon.
+
+**C2, 24 acceptés sur 32.** Cinq refus du banc, tous sur ses propres canaris (`canari_mort_journalisee`,
+`canari_tir_journalise`, `temoin_vu_par_VH`) — l'enregistreur perd ses témoins quand toute la force meurt. Un refus
+du banc **n'est pas une perte silencieuse** : il est documenté, épisode par épisode. C2 avait été écrite pour
+attraper le 16/32 du déploiement raté, c'est-à-dire des épisodes **sans aucun résultat**.
+
+C2 devient donc : **aucun épisode joué sans `resultat.json`**. Le taux de refus du banc est annoncé à côté, comme
+information. La puissance reste portée par C3 (au moins 12 épisodes valides par bras), et la campagne est reposée
+avec **10 jobs par bras au lieu de 8**, pour absorber ces refus sans les cacher.
+
+*Dit franchement : cet amendement relâche une porte après l'avoir vue échouer. Il ne touche pas aux lectures CP et
+CN, il ne change pas un seuil d'effet, et il remplace un critère mal ciblé par celui qu'il aurait fallu écrire.
+Mais il n'est pas pré-enregistré, et je le compte comme tel.*

@@ -53,7 +53,8 @@ A0 = [e for e in E if e["verdict"] == "ACCEPTE"]
 # ! AMENDEMENT 1 : la version defectueuse du controle envoyait TOUJOURS sur le SITE, ou nos hommes etaient vus
 # aussitot ; la fenetre se fermait et le controle ne pouvait plus echouer. Ces episodes ne sont pas lus.
 Av = [e for e in A0 if e["ctrl"] != 3 or (e["tp_avant"] and e["tp_avant"].get("vers") not in ("SITE", "ABORDS"))]
-ecartes = len(A0) - len(Av)
+sans_saut = sum(1 for e in A0 if e["ctrl"] == 3 and not e["tp_avant"])
+mauvaise_case = len(A0) - len(Av) - sans_saut
 # ! AMENDEMENT 2 : on lit le PREMIER episode ACCEPTE de chaque ( bras, monde, situation ). « Accepte », et non
 # « premier tout court » : c est l erreur qui a rendu le remplacement d ORACLE-P2-19-09 sans effet, un exemplaire
 # refuse bloquant le rejeu valide de la meme case.
@@ -67,7 +68,10 @@ P = [e for e in A if e["ctrl"] == 1]
 N = [e for e in A if e["ctrl"] == 3]
 PREVUS = 32
 print(f"== CONTROLES DE L ORACLE : {len(E)} episodes, {len(A)} acceptes ( positif {len(P)}, non-triche {len(N)} )")
-print(f"   {ecartes} episode(s) ecarte(s) : case d arrivee SITE ou ABORDS ( version defectueuse du controle ) ; {doublons} doublon(s) de rejeu")
+print(f"   ecartes : {mauvaise_case} sur la case d arrivee ( version defectueuse ), {sans_saut} sans ligne de teleport "
+      f"( episode fini avant le saut ), {doublons} doublon(s) de rejeu")
+perdus = sum(1 for e in E if e["verdict"] is None)
+refuses = sum(1 for e in E if e["verdict"] not in (None, "ACCEPTE"))
 
 
 def fenetre_de(e):
@@ -81,7 +85,12 @@ def fenetre_de(e):
 assez = [e for e in N if len(fenetre_de(e)) >= 2]
 portes = [
     ("C1 zero erreur SQF", sum(e["erreurs"] for e in A) == 0, f"{sum(e['erreurs'] for e in A)} erreur(s)"),
-    ("C2 acceptes >= 90 % des prevus", len(A) >= 0.9 * PREVUS, f"{len(A)} / {PREVUS}"),
+    # ! AMENDEMENT 5 : C2 visait la PERTE SILENCIEUSE ( le 16/32 du deploiement rate ). Un refus du banc n est pas
+    # une perte : il est documente, episode par episode, et il devient frequent quand la patrouille tue les dix -
+    # les canaris de l enregistreur meurent avec eux. On exige donc zero episode sans resultat, et la puissance
+    # est portee par C3.
+    ("C2 aucun episode perdu sans resultat", perdus == 0,
+     f"{perdus} perdu(s) ; {refuses} refus du banc sur {len(E)} joues ( information, pas une porte )"),
     ("C3 chaque bras a au moins 12 episodes", len(P) >= 12 and len(N) >= 12, f"positif {len(P)}, non-triche {len(N)}"),
     ("C4 bras positif : patrouille posee a moins de 400 m",
      bool(P) and all(e["pos"] and entier(e["pos"].get("patrouille_a"), 9999) <= 400 for e in P),

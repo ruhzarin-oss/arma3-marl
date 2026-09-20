@@ -1125,7 +1125,10 @@ if (!CHACAL_SAUT && { !(CHACAL_DEPART == 2 && CHACAL_ARRET == 2) }) then {
 // jamais arrive, echec par construction. Le corpus enseignait " detecte, donc
 // charge " - la decision la plus importante de la mission n avait qu une
 // reponse, toujours la meme.
-if (CHACAL_TENIR == 0 && CHACAL_COMPROMIS && { ((CHACAL_FS select { alive _x }) call CHACAL_fnc_centre) distance2D CHACAL_SITE > 1200 }) then {
+// ! 20/09 : quand la patrouille tue les dix, la liste des vivants est VIDE et CHACAL_fnc_centre erre.
+// Le defaut dormait depuis toujours : aucune campagne n avait encore aneanti le detachement.
+if (CHACAL_TENIR == 0 && CHACAL_COMPROMIS && { count (CHACAL_FS select { alive _x }) > 0 }
+    && { ((CHACAL_FS select { alive _x }) call CHACAL_fnc_centre) distance2D CHACAL_SITE > 1200 }) then {
     CHACAL_ABANDON = true; CHACAL_SAUT = false;
     CHACAL_CAUSE_ABANDON = "COMPROMIS_LOIN";
     (format ["CHACAL|E|abandon|%1|distance|%2", round (time * 100) / 100,
