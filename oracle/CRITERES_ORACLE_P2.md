@@ -82,3 +82,29 @@ rejoués en entier**, donc certains épisodes existent deux fois. La scène éta
 exacte : le garder surpondérerait sa case. **On ne lit que le premier épisode de chaque (monde, niveau, option,
 situation)**, et le lecteur annonce combien de doublons il a écartés. Aucun effet n'avait été lu quand cette règle a
 été écrite.
+
+## Amendement 2 — 20/09, écrit avant toute lecture d'effet : l'intention de traiter
+
+**Le dispositif d'origine supposait que le détachement arrive toujours jusqu'à la décision.** Avec un adversaire qui
+chasse, c'est faux : six épisodes acceptés n'ont aucune ligne de décision, tous terminés en `ABANDON |
+COMPROMIS_LOIN` — le détachement est compromis **avant** d'avoir à choisir, en 69 secondes dans un cas.
+
+Les quatre portes Q3, Q4, Q6 et Q7 échouaient toutes sur ces six mêmes épisodes, et la lecture s'est refusée. C'est
+la porte qui a bien fonctionné ; c'est le dispositif qui était mal pensé.
+
+**La règle corrigée, et c'est l'analyse standard :** un épisode compromis avant la décision garde l'option que la
+pièce lui avait assignée, et compte comme un **échec** (`phase_discrete = 0`). L'option n'agit qu'au moment du choix,
+donc avant elle les deux bras sont identiques : inclure ces épisodes ne casse pas le tirage au sort, alors que les
+écarter le casserait — on jetterait précisément les épisodes où l'adversaire a le mieux réussi.
+
+Q3 devient : « une décision conforme, **ou** une compromission documentée avant la décision ». Q6 et Q7 ne
+s'appliquent qu'aux épisodes qui ont atteint la décision.
+
+**Ce que je dois dire honnêtement :** j'ai écrit cette règle **après** avoir vu que ces pertes se concentrent du côté
+de l'Oracle (5 sur 61 contre 1 sur 59 chez le témoin), même si je n'ai lu aucun effet. Cette connaissance pousse dans
+le sens « l'Oracle punit ». La lecture qui suit est donc **amendée, pas pré-enregistrée** : si elle conclut que
+l'Oracle est utile, il faudra le confirmer sur une campagne neuve dont les critères incluent l'intention de traiter
+dès le départ — comme on l'a fait pour la portée de 900 m.
+
+**Remplacement :** deux cases du monde 9 restaient sous le seuil de trois épisodes après les refus du banc et la
+coupure de la station. Les cinq jobs correspondants sont reposés tels quels avant la lecture.
