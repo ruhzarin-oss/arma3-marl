@@ -1,4 +1,4 @@
-# ETAT — 2026-09-19 04:58
+# ETAT — 2026-09-19 23:44
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -9,18 +9,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 ## Machine
 
 - dernier boot : 2026-09-15T15:42:36+02:00 ok=True  conteneurs=20 ;
-- GPU : 755 MiB, 24576 MiB, 0 %
+- GPU : 613 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.5T libres sur 3.6T
-- serveurs Arma : 11 · residus : aucun
+- serveurs Arma : 6 · residus : aucun
 
 ## File
 
-- en cours : 2026-09-19_P2N_C027_POSTE-traversee1-g4g5-s3.json, 2026-09-19_P2N_C028_POSTE-traversee2-g8g9-s1.json, 2026-09-19_P2N_C029_POSTE-traversee2-g6g7-s4.json, 2026-09-19_P2N_C030_PATROUILLE-traversee2-g11g12-s4.json, 2026-09-19_P2N_C031_POSTE-traversee1-g8g9-s1.json, 2026-09-19_P2N_C032_POSTE-traversee1-g8g9-s3.json, 2026-09-19_P2N_C033_PATROUILLE-traversee1-g11g12-s2.json, 2026-09-19_P2N_C040_POSTE-traversee2-g11g12-s1.json, 2026-09-19_P2N_C046_POSTE-traversee2-g11g12-s4.json, 2026-09-19_P2N_C048_POSTE-traversee1-g11g12-s2.json, 2026-09-19_P2N_C051_PATROUILLE-traversee1-g4g5-s2.json, 2026-09-19_P2N_C055_POSTE-traversee2-g6g7-s2.json
-- en attente : 2026-09-19_BANC3_LENT_mode7_az0_pas30_m11.json, 2026-09-19_BANC3_LENT_mode7_az0_pas30_m4.json, 2026-09-19_BANC3_LENT_mode7_az0_pas30_m6.json, 2026-09-19_BANC3_LENT_mode7_az0_pas30_m8.json, 2026-09-19_BANC3_LENT_mode8_az0_pas10_m11.json, 2026-09-19_BANC3_LENT_mode8_az0_pas10_m4.json, 2026-09-19_BANC3_LENT_mode8_az0_pas10_m6.json, 2026-09-19_BANC3_LENT_mode8_az0_pas10_m8.json, 2026-09-19_BANC3_LENT_mode8_az0_pas30_m11.json, 2026-09-19_BANC3_LENT_mode8_az0_pas30_m4.json, 2026-09-19_BANC3_LENT_mode8_az0_pas30_m6.json, 2026-09-19_BANC3_LENT_mode8_az0_pas30_m8.json, 2026-09-19_BANC3_LENT_mode8_az45_pas10_m11.json, 2026-09-19_BANC3_LENT_mode8_az45_pas10_m4.json, 2026-09-19_BANC3_LENT_mode8_az45_pas10_m6.json, 2026-09-19_BANC3_LENT_mode8_az45_pas10_m8.json, 2026-09-19_BANC3_LENT_mode8_az45_pas30_m11.json, 2026-09-19_BANC3_LENT_mode8_az45_pas30_m4.json, 2026-09-19_BANC3_LENT_mode8_az45_pas30_m6.json, 2026-09-19_BANC3_LENT_mode8_az45_pas30_m8.json, 2026-09-19_P2N_C037_PATROUILLE-traversee1-g8g9-s3.json, 2026-09-19_P2N_C039_PATROUILLE-traversee2-g8g9-s1.json, 2026-09-19_P2N_C041_POSTE-traversee2-g4g5-s1.json, 2026-09-19_P2N_C042_PATROUILLE-traversee2-g11g12-s2.json, 2026-09-19_P2N_C043_POSTE-traversee2-g6g7-s3.json, 2026-09-19_P2N_C044_POSTE-traversee2-g6g7-s1.json, 2026-09-19_P2N_C045_PATROUILLE-traversee1-g8g9-s4.json, 2026-09-19_P2N_C047_POSTE-traversee1-g4g5-s1.json, 2026-09-19_P2N_C049_PATROUILLE-traversee2-g8g9-s3.json, 2026-09-19_P2N_C050_POSTE-traversee1-g8g9-s4.json, 2026-09-19_P2N_C052_PATROUILLE-traversee2-g4g5-s1.json, 2026-09-19_P2N_C053_PATROUILLE-traversee1-g11g12-s4.json, 2026-09-19_P2N_C054_PATROUILLE-traversee1-g6g7-s1.json, 2026-09-19_P2N_C056_POSTE-traversee2-g8g9-s4.json, 2026-09-19_P2N_C057_POSTE-traversee2-g4g5-s3.json, 2026-09-19_P2N_C059_PATROUILLE-traversee2-g6g7-s1.json, 2026-09-19_P2N_C060_PATROUILLE-traversee2-g6g7-s4.json, 2026-09-19_P2N_C061_POSTE-traversee1-g6g7-s2.json, 2026-09-19_P2N_C062_PATROUILLE-traversee2-g4g5-s3.json, 2026-09-19_P2N_C063_PATROUILLE-traversee1-g4g5-s4.json
+- en cours : 2026-09-19_OP2_n0_t1_s1_g6g7.json, 2026-09-19_OP2_n0_t1_s2_g4g5.json, 2026-09-19_OP2_n0_t2_s3_g6g7.json, 2026-09-19_OP2_n1_t1_s1_g4g5.json, 2026-09-19_OP2_n1_t1_s1_g8g9.json, 2026-09-19_OP2_n1_t1_s2_g11g12.json, 2026-09-19_OP2_n1_t2_s1_g8g9.json
+- en attente : 2026-09-19_OP2_n0_t1_s1_g11g12.json
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 707 / 788
+- runs aboutis : 939 / 1020
 
 ## Portes ouvertes
 
@@ -54,6 +54,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Controle positif spatial du modele du monde | 2026-08-27 | n/a | prix(vers l'ennemi) - prix(a l'oppose) = +0,00000, part positive 50,5 % sur 16 797 cas | ECHEC |  | champ-spatial.md |
 | La compromission est la charniere : huit episodes avec ennemis, zero charge ; quatre sans ennemi, douze charges | 2026-09-09 | 5, 6, 7, 8 | 8 episodes du bras PLAN au palier 0 : 8 compromissions, 0 charge posee sur 24 ; 4 episodes au palier 9 (monde vide) : 0 compromission, 12 charges sur 12 et 4 SUCCES | PASSE | chacal-portes, monde-fixe-episode-libre | compromission-charniere.md |
 | ? | ? | ? | ? | ? |  | cone-60-degres-refute.md |
+| ? | ? | ? | ? | ? |  | contre-une-patrouille-on-traverse-contre-un-poste-on-attend.md |
 | Courbe de toucher, niveau et forme, nuit N1 | 2026-09-04 | n/a | rapport a l'ancienne courbe x0,75 a 25 m et x1,91 a 150 m ; replication 0,402 contre 0,383 a 100 m | ECHEC |  | courbe-2607.md |
 | Courbe de toucher remesuree a HitPart, instrument reproductible | 2026-09-04 | 2 repetitions independantes de la meme condition | 18 conditions, ~17 000 balles ; 100 m debout 0,402 IC95 [0,371 ; 0,435] n=902, puis 0,383 IC95 [0,335 ; 0,434] n=368 | PASSE | courbe-2607 | courbe-toucher-hitpart.md |
 | Degat par impact re-derive sur l'acte de mort | 2026-09-04 | n/a | 0,175 par impact ; mediane 4,0 impacts jusqu'a la neutralisation, n=83 ; l'ancien 0,233 venait d'un capteur qui sur-comptait | PASSE | courbe-toucher-hitpart | degat-par-impact.md |
@@ -121,18 +122,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
-| 2026-09-19_045517_chacalp2_i3 | chacalp2 | EN COURS |  |  |
-| 2026-09-19_044955_chacalp2_i13 | chacalp2 | EN COURS |  |  |
-| 2026-09-19_044930_chacalp2_i10 | chacalp2 | COMPLET | g8:ACCEPTE g9:ACCEPTE | 524 |
-| 2026-09-19_044743_chacalp2_i5 | chacalp2 | EN COURS |  |  |
-| 2026-09-19_044718_chacalp2_i7 | chacalp2 | EN COURS |  |  |
-| 2026-09-19_044533_chacalp2_i2 | chacalp2 | EN COURS |  |  |
-| 2026-09-19_044521_chacalp2_i4 | chacalp2 | EN COURS |  |  |
-| 2026-09-19_044513_chacalp2_i12 | chacalp2 | EN COURS |  |  |
-| 2026-09-19_043805_chacalp2_i11 | chacalp2 | EN COURS |  |  |
-| 2026-09-19_043633_chacalp2_i1 | chacalp2 | EN COURS |  |  |
-| 2026-09-19_043618_chacalp2_i6 | chacalp2 | EN COURS |  |  |
-| 2026-09-19_043338_chacalp2_i3 | chacalp2 | COMPLET | g4:ACCEPTE g5:ACCEPTE | 1242 |
-| 2026-09-19_042732_chacalp2_i12 | chacalp2 | COMPLET | g8:ACCEPTE g9:ACCEPTE | 996 |
-| 2026-09-19_042557_chacalp2_i8 | chacalp2 | EN COURS |  |  |
-| 2026-09-19_042535_chacalp2_i13 | chacalp2 | COMPLET | g11:ACCEPTE g12:ACCEPTE | 1406 |
+| 2026-09-19_234038_chacaloracle_i3 | chacaloracle | EN COURS |  |  |
+| 2026-09-19_233834_chacaloracle_i1 | chacaloracle | EN COURS |  |  |
+| 2026-09-19_233731_chacaloracle_i7 | chacaloracle | EN COURS |  |  |
+| 2026-09-19_233051_chacaloracle_i11 | chacaloracle | COMPLET | g8:ACCEPTE g9:ACCEPTE | 813 |
+| 2026-09-19_232948_chacaloracle_i8 | chacaloracle | COMPLET | g6:ACCEPTE g7:ACCEPTE | 671 |
+| 2026-09-19_232438_chacaloracle_i5 | chacaloracle | EN COURS |  |  |
+| 2026-09-19_232034_chacaloracle_i13 | chacaloracle | COMPLET | g4:ACCEPTE g5:ACCEPTE | 1348 |
+| 2026-09-19_231900_chacaloracle_i10 | chacaloracle | COMPLET | g11:ACCEPTE g12:ACCEPTE | 1347 |
+| 2026-09-19_231755_chacaloracle_i6 | chacaloracle | COMPLET | g11:ACCEPTE g12:ACCEPTE | 1512 |
+| 2026-09-19_231606_chacaloracle_i12 | chacaloracle | EN COURS |  |  |
+| 2026-09-19_231448_chacaloracle_i4 | chacaloracle | EN COURS |  |  |
+| 2026-09-19_230705_chacaloracle_i3 | chacaloracle | COMPLET | g11:ACCEPTE g12:ACCEPTE | 1963 |
+| 2026-09-19_230542_chacaloracle_i2 | chacaloracle | COMPLET | g6:ACCEPTE g7:ACCEPTE | 2126 |
+| 2026-09-19_230326_chacaloracle_i11 | chacaloracle | COMPLET | g11:ACCEPTE g12:ACCEPTE | 1594 |
+| 2026-09-19_230051_chacaloracle_i7 | chacaloracle | COMPLET | g6:ACCEPTE g7:ACCEPTE | 2147 |

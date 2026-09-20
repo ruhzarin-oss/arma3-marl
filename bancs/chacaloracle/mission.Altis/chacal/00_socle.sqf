@@ -143,6 +143,7 @@ CHACAL_PORTEE_SON = ["CHACAL_PORTEE_SON", 600] call BIS_fnc_getParamValue;   // 
 CHACAL_SONDE_PERCEPTION = ["CHACAL_SONDE_PERCEPTION", 0] call BIS_fnc_getParamValue;   // portee du moteur entendu, en metres
 CHACAL_ORACLE_CMD   = ["CHACAL_ORACLE_CMD", 0] call BIS_fnc_getParamValue;
 CHACAL_ORACLE_B     = ["CHACAL_ORACLE_B", 6] call BIS_fnc_getParamValue;      // budget : nombre de deplacements de patrouille
+CHACAL_ORACLE_CTRL  = ["CHACAL_ORACLE_CTRL", 0] call BIS_fnc_getParamValue;   // controle de l Oracle : 0 aucun, 1 positif, 3 non-triche
 CHACAL_ORACLE_NU    = ["CHACAL_ORACLE_NU", 15] call BIS_fnc_getParamValue;    // doute, en pourcent : il se trompe
 CHACAL_ORACLE_EPS   = ["CHACAL_ORACLE_EPS", 15] call BIS_fnc_getParamValue;   // erreur volontaire, en pourcent
 CHACAL_ORACLE_DELTA = ["CHACAL_ORACLE_DELTA", 60] call BIS_fnc_getParamValue; // periode de decision, en secondes

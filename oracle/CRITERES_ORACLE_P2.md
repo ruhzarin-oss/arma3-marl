@@ -108,3 +108,35 @@ dès le départ — comme on l'a fait pour la portée de 900 m.
 
 **Remplacement :** deux cases du monde 9 restaient sous le seuil de trois épisodes après les refus du banc et la
 coupure de la station. Les cinq jobs correspondants sont reposés tels quels avant la lecture.
+
+## Amendement 3 — 20/09 : la campagne est CLOSE et ne sera pas lue
+
+La lecture amendée (intention de traiter) a été lancée une fois, comme prévu, sur 120 épisodes acceptés. Q1, Q2, Q3,
+Q5, Q6, Q7, QO1 et QO2 passent. **Q4 échoue : 30 cases sur 32 ont au moins trois épisodes.** Les deux manquantes sont
+`(monde 9, témoin, tout de suite)` avec 2 et `(monde 9, Oracle, attendre)` avec 1.
+
+**Pourquoi les cinq jobs de remplacement n'ont rien rempli**, et c'est ma faute de conception :
+
+1. L'amendement 1 ne lit que le **premier** épisode de chaque (monde, niveau, option, situation). Un remplacement
+   rejoue une combinaison qui a déjà un premier exemplaire — donc il est écarté comme doublon, même quand le premier
+   exemplaire était refusé par le banc. Reposer les jobs « tels quels » ne pouvait pas marcher.
+2. Les refus du monde 9 ne sont pas du hasard : `canari_tir_journalise` échoue trois fois sur la même case, et
+   `temoin_vu_par_VG` / `VH` une fois. Ce sont des **contrôles d'instrument du banc**, et ils échouent de façon
+   reproductible sur cette graine.
+
+**Décision : on ne l'amende pas une quatrième fois.** Trois amendements sur un jeu de données déjà regardé, c'est
+déjà trop de liberté d'analyse ; retirer maintenant le monde 9 — le seul qui bloque — serait un choix pris en
+connaissance des données. La règle écrite d'avance dit « aucun effet n'est lu » : elle est appliquée.
+
+**Ce que la campagne laisse quand même**, et qui ne dépend d'aucun effet mesuré :
+- l'Oracle **chasse vraiment** : 61 épisodes sur 61 avec au moins un ordre de patrouille, budget dépensé, zéro erreur
+  SQF, zéro ligne d'Oracle chez le témoin ;
+- il **attrape avant la décision** : six épisodes finissent en `ABANDON | COMPROMIS_LOIN` sans ligne de décision,
+  cinq côté Oracle contre un côté témoin. C'est ce qui a cassé le dispositif, et c'est le signe le plus clair que
+  l'adversaire pèse ;
+- le banc refuse environ 10 % des épisodes, et ces refus **se concentrent** : une campagne future doit prévoir plus
+  de trois épisodes par case, ou une règle de remplacement qui ne soit pas un rejeu à l'identique.
+
+**La suite, et dans cet ordre :** les contrôles dus depuis le plan § 7 (`oracle/CRITERES_CONTROLES_ORACLE.md`,
+campagne `CONTROLES-ORACLE-20-09`, ≈ 1 h) — l'adversaire sait-il punir, et l'Oracle est-il honnête — **avant** de
+payer une campagne neuve de 4 h dont les critères incluront l'intention de traiter dès le départ.

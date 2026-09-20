@@ -54,6 +54,7 @@ ecrire_param AVANT "$(lit avant 260)"
 ecrire_param ORACLE_CMD "$(lit oracle_cmd 0)"; ecrire_param ORACLE_B "$(lit oracle_b 6)"
 ecrire_param ORACLE_NU "$(lit oracle_nu 15)"; ecrire_param ORACLE_EPS "$(lit oracle_eps 15)"
 ecrire_param ORACLE_DELTA "$(lit oracle_delta 60)"
+ecrire_param ORACLE_CTRL "$(lit oracle_ctrl 0)"
 ecrire_param PORTEE_SON "$(lit portee_son 600)"; ecrire_param SONDE_PERCEPTION "$(lit sonde_perception 0)"; ecrire_param BALAYAGE "$(lit balayage 0)"
 ecrire_param OBSERVATION "$OBSERVATION"; ecrire_param CONTROLE_PERCEPTION "$CONTROLE_PERCEPTION"; ecrire_param SONDE "$SONDE"; ecrire_param ATTENTE_TEST "$ATTENTE_TEST"; ecrire_param CONTROLE_DIST "$CONTROLE_DIST"
 # boucle EvoGP ( 17/09 ) : mode du delai et formule en codes ; ecrits a CHAQUE lancement, 0 par defaut

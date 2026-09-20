@@ -31,6 +31,7 @@ if (CHACAL_ISSUE == "VOID") exitWith {
 // ! L Oracle est monte APRES le detachement ( il lui faut la liste pour interroger sa propre connaissance )
 // et AVANT l enregistreur, pour que ses lignes soient capturees comme les notres.
 call compile preprocessFileLineNumbers "chacal\45_oracle.sqf";
+call compile preprocessFileLineNumbers "chacal\46_controles_oracle.sqf";
 call compile preprocessFileLineNumbers "chacal\50_capture.sqf";
 call compile preprocessFileLineNumbers "chacal\70_verdict.sqf";
 call compile preprocessFileLineNumbers "chacal\60_phases.sqf";
