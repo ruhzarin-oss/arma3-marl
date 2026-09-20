@@ -74,3 +74,11 @@ En contrepartie, **les premiers épisodes à Oracle 1 sont surveillés en direct
 - ou la patrouille **ne se rapproche pas** de sa cible après un ordre (`patrouille_a` qui ne baisse pas, ou
   `vitesse_patrouille` nulle sur deux décisions de suite) — c'était exactement le défaut de la v2.
 Les épisodes déjà joués avant une suspension ne sont pas lus avec la campagne.
+
+## Amendement 1 — 20/09, écrit avant toute lecture d'effet : les doublons du rejeu
+
+La station est tombée le 20/09 vers 00 h 35, à 117 épisodes sur 128. Six jobs interrompus ont été **remis en file et
+rejoués en entier**, donc certains épisodes existent deux fois. La scène étant déterministe, un doublon est une copie
+exacte : le garder surpondérerait sa case. **On ne lit que le premier épisode de chaque (monde, niveau, option,
+situation)**, et le lecteur annonce combien de doublons il a écartés. Aucun effet n'avait été lu quand cette règle a
+été écrite.

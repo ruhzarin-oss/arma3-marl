@@ -44,10 +44,21 @@ for jf in sorted(glob.glob(f"{H}/runs/2026-09-19_*/job.json") + glob.glob(f"{H}/
                  discrete=int(fin is not None and fin.group(4) == "0" and fin.group(5) == "0" and fin.group(3) == "10"),
                  compromis=int(fin.group(4)) if fin else None,
                  avant_joue=entier(reg.group(1)) if reg else None, balayage_joue=entier(reg.group(2)) if reg else None)
+        e["situation"] = j.get("situation"); e["quand"] = os.path.basename(os.path.dirname(jf))
         E.append(e)
+# ! LE REJEU DE LA NUIT. La station est tombee le 20/09 vers 00 h 35 ; six jobs interrompus ont ete REMIS EN FILE et
+# rejoues EN ENTIER, donc certains episodes existent deux fois. La scene etant deterministe, un doublon est une copie
+# exacte : le garder surpondererait sa case. On ne lit que le PREMIER episode de chaque
+# ( monde, niveau, option, situation ). Regle ecrite avant toute lecture d effet.
+vus = set(); D = []
+for e in sorted(E, key=lambda x: x.get("quand") or ""):
+    cle = (e["monde"], e["niveau"], e["option"], e.get("situation"))
+    if cle in vus: continue
+    vus.add(cle); D.append(e)
+doublons = len(E) - len(D); E = D
 prevus = 2 * 2 * 8 * 4
 A = [e for e in E if e["verdict"] == "ACCEPTE" and e["monde"] in MONDES]
-print(f"== LECTURE {CAMPAGNE} : {len(E)} episodes, {len(A)} acceptes ( mondes {MONDES} )")
+print(f"== LECTURE {CAMPAGNE} : {len(E)} episodes apres retrait de {doublons} doublon(s) de rejeu, {len(A)} acceptes ( mondes {MONDES} )")
 cases = {(w, n, o): [e for e in A if e["monde"] == w and e["niveau"] == n and e["option"] == o] for w in MONDES for n in NIVEAUX for o in OPTIONS}
 O1 = [e for e in A if e["niveau"] == 1]; O0 = [e for e in A if e["niveau"] == 0]
 portes = [
