@@ -1,9 +1,9 @@
 # Catalogue des episodes CHACAL
 
-Genere par `outils/catalogue.py` le 2026-09-20 19:33. **Ne pas editer a la main** : il est
+Genere par `outils/catalogue.py` le 2026-09-21 00:05. **Ne pas editer a la main** : il est
 regenere apres chaque run (file3.sh) et chaque nuit (sauver.sh).
 
-- **3927 episodes**, lus depuis 4379 journaux (32 sans ligne FINI ignores).
+- **4051 episodes**, lus depuis 4508 journaux (32 sans ligne FINI ignores).
 - Un episode = une ligne ; `episodes.csv` pour un tableur, `episodes.jsonl` pour un programme.
 - Le journal complet de chaque episode est dans la colonne `source` ; ses tables (etat de chaque homme
   toutes les ~2 s, perception, evenements, phases) sont a cote, dans `extrait/`.
@@ -101,6 +101,71 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 | BANC3-19-09 | BANC3-BAL8_az45_m6 | 2 | 0 |
 | BANC3-19-09 | BANC3-BAL8_az90_m4 | 1 | 0 |
 | BANC3-19-09 | BANC3-BAL8_az90_m6 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s1-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s1-g4g5 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s1-g6g7 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s1-g8g9 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s2-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s2-g4g5 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s2-g6g7 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s2-g8g9 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s3-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s3-g4g5 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s3-g6g7 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s3-g8g9 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s4-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s4-g4g5 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s4-g6g7 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-F-s4-g8g9 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s1-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s1-g4g5 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s1-g6g7 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s1-g8g9 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s2-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s2-g4g5 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s2-g6g7 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s2-g8g9 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s3-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s3-g4g5 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s3-g6g7 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s3-g8g9 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s4-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s4-g4g5 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s4-g6g7 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-N-s4-g8g9 | 1 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s1-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s1-g4g5 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s1-g6g7 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s1-g8g9 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s2-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s2-g4g5 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s2-g6g7 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s2-g8g9 | 1 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s3-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s3-g4g5 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s3-g6g7 | 1 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s3-g6g7-B | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s3-g8g9 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s4-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s4-g4g5 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s4-g6g7 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-R-s4-g8g9 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s1-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s1-g4g5 | 1 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s1-g6g7 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s1-g8g9 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s2-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s2-g4g5 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s2-g6g7 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s2-g8g9 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s3-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s3-g4g5 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s3-g6g7 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s3-g8g9 | 1 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s4-g11g12 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s4-g4g5 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s4-g6g7 | 2 | 0 |
+| CALIBRATION-ADVERSAIRE-20-09 | CAL-T-s4-g8g9 | 1 | 0 |
 | CHOIX-P1-17-09 | P1-MENACE-p1_attente1-g11g12 | 7 | 0 |
 | CHOIX-P1-17-09 | P1-MENACE-p1_attente1-g4g5 | 6 | 0 |
 | CHOIX-P1-17-09 | P1-MENACE-p1_attente1-g6g7 | 4 | 0 |

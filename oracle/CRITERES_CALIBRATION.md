@@ -72,3 +72,63 @@ compromet 38 à 62 % des épisodes. **La prise de l'adversaire est une propriét
 **Cette campagne mesure, elle n'exclut rien.** Le seuil d'admissibilité sera pré-enregistré dans la campagne
 suivante et **validé sur des mondes neufs** : un critère taillé sur les huit mondes qui l'ont inspiré ne prouve
 rien tant qu'il n'a pas trié des mondes qu'il n'a jamais vus.
+
+## Résultat — 21/09 00 h 15 : le contrôle négatif passe, la calibration de δ ne conclut pas
+
+Six portes passées après réparation de l'unique case vide (bras R, monde 6, situation 3 — une réparation, pas un
+amendement : K2 compte des cases précisément pour ça). 122 épisodes lus, 30 à 31 par bras, zéro erreur SQF.
+
+### L1 — contrôle négatif : **PASSE**, et deux fois
+
+- **Mécaniquement : 0 ordre de patrouille sur 31 épisodes** du bras N. L'Oracle monté sans budget délibère (2 à 9
+  décisions par épisode) mais ne touche jamais au monde. Vérification exacte, pas statistique.
+- **Sur l'issue :** réussite N 0,839 contre T 0,742, écart +0,097 IC [−0,062 ; +0,250], contient zéro.
+
+C'est le deuxième des cinq contrôles du plan § 7 qui est soldé.
+
+### L2 — calibration de δ : **NON CONCLUANTE**, et la faute est dans mon dispositif
+
+| bras | réussite | compromis | ordres | IC de l'écart au témoin |
+|---|---|---|---|---|
+| T témoin | 0,742 | 0,258 | 0,0 | — |
+| N négatif | 0,839 | 0,161 | 0,0 | [−0,062 ; +0,250] |
+| R δ = 60 s | 0,733 | 0,267 | 3,0 | [−0,281 ; +0,188] |
+| F δ = 30 s | 0,733 | 0,267 | 3,6 | [−0,250 ; +0,188] |
+
+Le falsificateur écrit d'avance est **franchi** : F ne gagne pas 5 points de compromission sur R, il en gagne
+**zéro**. Mais je ne conclus pas « la période n'est pas le levier », parce que **le bras de référence ne se
+reproduit pas lui-même** : R devrait retrouver les +0,197 mesurés hier sur ORACLE-P2, et il donne **+0,009**.
+Un contrôle positif implicite qui échoue interdit de lire le reste (règle 16).
+
+**La cause, et c'est une faute de conception :** j'ai **confondu l'option avec la situation** — situations 1 et 2
+en *traverser*, 3 et 4 en *attendre*. Les quatre bras partagent le même mélange, donc ils restent comparables
+entre eux ; mais ce mélange est **chargé en cases où le monde punit déjà tout seul** :
+
+| | (1, s1) | (1, s2) | (2, s3) | (2, s4) |
+|---|---|---|---|---|
+| témoin de la calibration | 0,125 | 0,125 | 0,250 | **0,571** |
+
+Le témoin compromet **0,258 ici contre 0,082 sur ORACLE-P2**. Il ne reste presque plus de place au-dessus pour que
+l'Oracle ajoute quoi que ce soit — le plafond que je croyais avoir cassé s'est reformé par le bas, à cause du
+mélange que j'ai choisi. Et avec 30 épisodes par bras, l'IC vaut ±0,23 : il contient à la fois zéro **et** les
++0,20 d'hier. **Cette campagne ne sait pas les distinguer.**
+
+**À refaire ainsi :** option **fixée** (traverser seule), quatre situations, quatre bras, 8 mondes — même coût,
+plus de confusion, et la variance du choix en moins.
+
+### L3 — l'admissibilité d'un monde : **mesurée, et elle prédit**
+
+| cases atteignables par la route | mondes | compromission | patrouille au plus près |
+|---|---|---|---|
+| **7** | 7, 8, 9, 11 | 0,56 · 0,25 · 0,50 · 0,38 — **moyenne 0,42** | 27 · 20 · 199 · 24 m |
+| **4 ou 5** | 4, 5, 6, 12 | 0,12 · 0,12 · 0,12 · 0,25 — **moyenne 0,15** | 145 · 193 · 615 · 6 m |
+
+Et les cases hors route le sont franchement : la CRÊTE du monde 5 est à **1 865 m** de la route la plus proche,
+les ABORDS à 1 899 m. Voilà pourquoi la patrouille n'y approchait jamais à moins de 530 m.
+
+**`cases_routieres`, journalisé à la mise en place avant que rien ne bouge, prédit la prise de l'adversaire.**
+Aucune exclusion n'est faite ici : le seuil sera pré-enregistré dans la campagne suivante et **validé sur des
+mondes neufs**.
+
+*Note d'instrument : l'affichage de L3 par le lecteur était cassé (les guillemets de l'array SQF étaient retirés
+avant `literal_eval`). Réparé et relu ; c'est un descriptif, aucun effet n'en dépend.*

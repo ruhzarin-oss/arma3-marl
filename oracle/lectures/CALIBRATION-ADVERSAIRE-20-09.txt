@@ -1,14 +1,42 @@
-CALIBRATION de l adversaire sur ORACLE-P2-19-09 : 122 episodes lus ( Oracle 61, temoin 61 )
+== CALIBRATION DE L ADVERSAIRE : 130 episodes joues, 122 lus ( T 31, N 31, R 30, F 30 )
+   PASSE   K1 zero erreur SQF : 0 erreur(s)
+   PASSE   K2 aucune case sans le moindre resultat : 0 case(s) vide(s) sur 128
+   PASSE   K3 au moins 24 episodes valides par bras : T:31 N:31 R:30 F:30
+   PASSE   K4 ligne de carte presente a Oracle monte : 0 absente(s) sur 91
+   PASSE   K5 [ NEGATIF, MECANIQUE ] bras N : zero ordre de patrouille : 0 ordre(s) sur 31 episodes
+   PASSE   K6 periode jouee conforme au job : 0 ecart(s)
 
-issue                                  Oracle   temoin    ecart   IC 95 % apparie par monde
-compromis en phase 2                    0.279    0.082   +0.197   [+0.056 ; +0.327]  <<<
-alarme donnee                           0.066    0.033   +0.033   [-0.031 ; +0.109]
-au moins un homme perdu                 0.180    0.066   +0.115   [+0.026 ; +0.198]  <<<
-pris AVANT la decision                  0.082    0.016   +0.066   [+0.000 ; +0.156]
-phase discrete ( issue primaire )       0.721    0.918   -0.197   [-0.327 ; -0.056]  <<<
+== L1  controle negatif : l Oracle sans budget agit-il quand meme ?
+   reussite N 0.839   T 0.742   ecart +0.097  IC [-0.062 ; +0.250]
+   PASSE : indiscernable du temoin.
 
-detail Oracle : ordres de patrouille par episode 3.1 ; budget restant a la fin 2.9 sur 6
-issues Oracle : {'COMPROMIS': 17, 'ATTEINT': 43, 'ENLISE': 1}
-issues temoin : {'ATTEINT': 56, 'COMPROMIS': 5}
+== L2  calibration de la periode de decision
+   bras  reussite  compromis  ordres  periode  IC de l ecart au temoin
+   T        0.742      0.258     0.0      nan       —
+   N        0.839      0.161     0.0       60  [-0.062 ; +0.250]
+   R        0.733      0.267     3.0       60  [-0.281 ; +0.188]
+   F        0.733      0.267     3.6       30  [-0.250 ; +0.188]
 
-par monde ( compromis Oracle / temoin ) : {4: (0.12, 0.12), 5: (0.0, 0.0), 6: (0.38, 0.0), 7: (0.62, 0.17), 8: (0.5, 0.12), 9: (0.2, 0.0), 11: (0.38, 0.12), 12: (0.0, 0.12)}
+   regle ecrite d avance : le delta dont la reussite est la plus proche de 0,50, borne haute de son IC < 0,85
+   R 0.733   F 0.733   -> retenu : R ( delta 60 s )
+   falsificateur : F doit gagner >= 5 points de compromission sur R -> +0.000 FRANCHI : la periode n est PAS le levier, chercher ailleurs.
+
+== L3  admissibilite des mondes ( mesuree, aucune exclusion ici )
+   monde  cases_rte  dist_max_a_la_route  compr_R+F  dpat_min
+       4       None                 None       0.12       145
+       5       None                 None       0.12       193
+       6       None                 None       0.12       615
+       7       None                 None       0.50        27
+       8       None                 None       0.25        20
+       9       None                 None       0.50       199
+      11       None                 None       0.38        24
+      12       None                 None       0.25         6
+monde  cases_rte   compr  dpat_min  cases HORS route ( nom : distance a la route la plus proche )
+    4          5    0.12       145  POSER:1691, ABORDS:1968, SITE:1989
+    5          4    0.12       193  POSER:1880, CRETE:1865, ABORDS:1899, EXFIL:1900
+    6          5    0.12       615  POSER:1925, APPROCHE_ROUTE:1914, EXFIL:1974
+    7          7    0.56        27  MONTEE:1981
+    8          7    0.25        20  POSER:1989
+    9          7    0.50       199  POSER:1998
+   11          7    0.38        24  MONTEE:1925
+   12          5    0.25         6  POSER:1955, APPROCHE_ROUTE:1580, MONTEE:1632
