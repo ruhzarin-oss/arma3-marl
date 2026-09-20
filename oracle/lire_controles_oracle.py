@@ -46,9 +46,26 @@ for jf in sorted(glob.glob(f"{H}/runs/2026-09-2*/job.json")):
         E.append(e)
 
 A = [e for e in E if e["verdict"] == "ACCEPTE"]
-P = [e for e in A if e["ctrl"] == 1]; N = [e for e in A if e["ctrl"] == 3]
+P = [e for e in A if e["ctrl"] == 1]
+# ! AMENDEMENT 1 : la version defectueuse du controle envoyait TOUJOURS sur le SITE, ou nos hommes etaient vus
+# aussitot ; la fenetre se fermait et le controle ne pouvait plus echouer. Ces episodes ne sont pas lus.
+N = [e for e in A if e["ctrl"] == 3]
+Nv = [e for e in N if e["tp_avant"] and e["tp_avant"].get("vers") not in ("SITE", "ABORDS")]
+ecartes = len(N) - len(Nv); N = Nv
 PREVUS = 32
 print(f"== CONTROLES DE L ORACLE : {len(E)} episodes, {len(A)} acceptes ( positif {len(P)}, non-triche {len(N)} )")
+print(f"   {ecartes} episode(s) de non-triche ecarte(s) : case d arrivee SITE ou ABORDS ( version defectueuse du controle )")
+
+
+def fenetre_de(e):
+    """les decisions qui suivent le saut, coupees a la premiere detection legitime ( celle-ci exclue )"""
+    f = []
+    for d in [x for x in e["dec"] if x["t"] > e["t_tp"]][:FENETRE]:
+        if d.get("vu", "RIEN") != "RIEN": break
+        f.append(d)
+    return f
+
+assez = [e for e in N if len(fenetre_de(e)) >= 2]
 portes = [
     ("C1 zero erreur SQF", sum(e["erreurs"] for e in A) == 0, f"{sum(e['erreurs'] for e in A)} erreur(s)"),
     ("C2 acceptes >= 90 % des prevus", len(A) >= 0.9 * PREVUS, f"{len(A)} / {PREVUS}"),
@@ -59,6 +76,8 @@ portes = [
     ("C5 bras non-triche : les deux lignes de teleport, saut >= 1000 m",
      bool(N) and all(e["tp_avant"] and e["tp_apres"] and entier(e["tp_avant"].get("saut"), 0) >= 1000 for e in N),
      f"{sum(1 for e in N if not (e['tp_avant'] and e['tp_apres'] and entier(e['tp_avant'].get('saut'), 0) >= 1000))} ecart(s)"),
+    ("C6 [ VACUITE ] au moins 12 episodes offrent 2 decisions sans detection apres le saut",
+     len(assez) >= 12, f"{len(assez)} / {len(N)} ; s il en manque, on ne lui a pas laisse l occasion de tricher"),
 ]
 for nom, ok, d in portes: print(f"   {'PASSE ' if ok else 'ECHOUE'}  {nom} : {d}")
 if not all(ok for _, ok, _ in portes):
@@ -71,12 +90,7 @@ print(f"   {'PASSE : le canal de punition est ouvert.' if tx >= 0.90 else 'ECHOU
 viol = []
 for e in N:
     a = e["tp_avant"]; i = entier(a.get("i_arr")); p0 = entier(a.get("p_arr"), 0); nom = a.get("vers")
-    suite = [d for d in e["dec"] if d["t"] > e["t_tp"]][:FENETRE]
-    fenetre = []
-    for d in suite:
-        fenetre.append(d)
-        if d.get("vu", "RIEN") != "RIEN": break   # detection legitime : la fenetre s arrete ICI, cette ligne comprise
-    fenetre = [d for d in fenetre if d.get("vu", "RIEN") == "RIEN"]
+    fenetre = fenetre_de(e)
     cause = None
     for d in fenetre:
         if i is not None and i < len(d["b"]) and d["b"][i] > p0 + MARGE: cause = f"croyance {d['b'][i]} > {p0}+{MARGE}"; break

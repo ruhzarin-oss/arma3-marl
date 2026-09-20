@@ -73,3 +73,23 @@ fenêtre s'arrête à la première détection.*
 Ils ne disent rien de l'utilité de l'Oracle, ni de l'effet du choix de traversée. Ils disent seulement si
 l'instrument peut punir et s'il est honnête. Les trois autres contrôles du plan § 7 (négatif, jouabilité,
 calibration du budget) restent dus.
+
+## Amendement 1 — 20/09 16 h 05, écrit avant toute lecture : la case d'arrivée, et la porte de vacuité
+
+La fumée des quatre premiers épisodes (zéro erreur SQF, les deux lignes de contrôle présentes, saut de 2 762 m,
+patrouille posée à 297 m) a montré un **défaut du contrôle de non-triche, pas de l'Oracle** : la case la plus
+lointaine est toujours le `SITE`, c'est-à-dire la garnison. Nos hommes y étaient vus en quelques secondes, la fenêtre
+d'observation se fermait aussitôt, et **le contrôle ne pouvait plus échouer**. Un contrôle qui ne sait pas échouer
+ne mesure rien (règle 16).
+
+Deux corrections, écrites avant d'avoir lu la moindre croyance :
+
+1. **La case d'arrivée exclut `ABORDS` et `SITE`.** On saute vers la case la plus lointaine parmi les six autres.
+2. **Porte C6, de vacuité :** au moins 12 épisodes de non-triche doivent offrir une fenêtre d'au moins **deux
+   décisions sans détection** après le saut. En dessous, la lecture CN est refusée pour vacuité — on ne conclura pas
+   « il ne triche pas » parce qu'on ne lui a pas laissé l'occasion de tricher.
+
+Les épisodes déjà joués dont la case d'arrivée est `SITE` ou `ABORDS` **ne sont pas lus** : ils appartiennent à la
+version défectueuse du contrôle. Quatre jobs de non-triche sont reposés pour les remplacer, avec des mondes et des
+situations que la campagne n'a pas encore joués, de sorte qu'aucun ne soit un rejeu à l'identique — l'erreur du
+remplacement d'`ORACLE-P2-19-09`.

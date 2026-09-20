@@ -29,7 +29,12 @@ if (CHACAL_ORACLE_CTRL == 3) then {
         private _pA = getPosATL _chef;
         // la case d ou l on part, et la case la plus LOINTAINE : le saut doit etre gros pour etre lisible
         private _dep = [_pA] call CHACAL_O_fnc_caseLaPlusProche;
+        // ! LA CASE D ARRIVEE EXCLUT LE SITE ET SES ABORDS. Fumee du 20/09 a 15 h 55 : la case la plus lointaine
+        // etait TOUJOURS le SITE, c est a dire la garnison elle-meme. Nos hommes y etaient vus en quelques secondes,
+        // la fenetre d observation du controle se fermait aussitot, et le controle ne pouvait plus echouer.
+        // Un controle qui ne peut pas echouer ne mesure rien ( regle 16 ).
         private _d = CHACAL_O_CASES apply { (_x select 1) distance2D _pA };
+        { if (_forEachIndex in [5, 6]) then { _d set [_forEachIndex, -1] } } forEach _d;
         private _arr = _d find (selectMax _d);
         private _pB = (CHACAL_O_CASES select _arr) select 1;
         private _saut = round (_pA distance2D _pB);
