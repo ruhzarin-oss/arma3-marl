@@ -53,6 +53,22 @@ CHACAL_O_RTE = CHACAL_O_CASES apply {
     if (count _r > 0) then { getPosATL (_r select 0) } else { [] }
 };
 
+// ! 20/09 : POURQUOI CERTAINS MONDES NE DONNENT AUCUNE PRISE. Calibration cd3a22f : monde 5, la patrouille
+// n approche jamais a moins de 530 m et la CRETE n est jamais visee ; monde 12, elle n a que deux cases
+// atteignables et ne depense que 1,6 ordre. Ailleurs, elle arrive a 5-35 m et compromet 38 a 62 % des episodes.
+// La prise de l adversaire est donc une propriete de la ROUTE, pas du hasard. On la journalise a la mise en place,
+// avant que quoi que ce soit bouge : nombre de cases atteignables a 400 m, et distance de chaque case a sa route
+// la plus proche dans un rayon de 2 km ( -1 si aucune ). Cela rend l admissibilite d un monde MESURABLE.
+private _carte = [];
+{
+    private _pc = _x select 1;
+    private _r2 = _pc nearRoads 2000;
+    private _d2 = if (count _r2 > 0) then { round (_pc distance2D (getPosATL (_r2 select 0))) } else { -1 };
+    _carte pushBack [(_x select 0), (if (count (CHACAL_O_RTE select _forEachIndex) > 0) then {1} else {0}), _d2];
+} forEach CHACAL_O_CASES;
+(format ["CHACAL|O|carte|%1|cases_routieres|%2|detail|%3", round (time * 100) / 100,
+    count (CHACAL_O_RTE select { count _x > 0 }), str _carte]) call CHACAL_LOG;
+
 // --- probabilite de detecter a la distance _d : CALIBREE sur le banc de seuil du 19/09 ---
 // de nuit, accroupi : sur dans les 125 m ; debout et designe : jusqu a ~250 m ; rare au-dela de 450 m.
 CHACAL_O_fnc_pd = {
