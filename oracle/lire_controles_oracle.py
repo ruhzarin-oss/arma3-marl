@@ -4,6 +4,7 @@ import ast, glob, json, os, re
 H = "/mnt/data/hmt"; CAMPAGNE = os.environ.get("CAMPAGNE_LUE", "CONTROLES-ORACLE-20-09")
 RX_ERR = re.compile(r"Error in expression|Error Undefined variable|Error Generic error|Error Missing|Error Type")
 FENETRE, MARGE, TOLERE = 5, 10, 2
+SANS_TELEPORT = 0.387   # mesure sur 62 episodes Oracle sans teleport, oracle/contre_epreuve_cible_patrouille.py
 
 
 def champs(t):
@@ -31,6 +32,9 @@ for jf in sorted(glob.glob(f"{H}/runs/2026-09-2*/job.json")):
         e["compromis"] = entier(fin.group(4)) if fin else None
         pos = re.search(r'"CHACAL\|O\|ctrl\|positif\|([^"]*)"', t)
         e["pos"] = champs(pos.group(1)) if pos else None
+        suivi = [entier(champs(m).get("patrouille_a")) for m in re.findall(r'"CHACAL\|O\|ctrl\|positif_suivi\|([^"]*)"', t)]
+        e["suivi"] = [x for x in suivi if x is not None]
+        e["au_contact"] = min(e["suivi"]) if e["suivi"] else None
         av = re.search(r'"CHACAL\|O\|ctrl\|teleport_avant\|([^"]*)"', t)
         ap = re.search(r'"CHACAL\|O\|ctrl\|teleport_apres\|([^"]*)"', t)
         e["tp_avant"] = champs(av.group(1)) if av else None
@@ -87,6 +91,12 @@ portes = [
      f"{sum(1 for e in N if not (e['tp_avant'] and e['tp_apres'] and entier(e['tp_avant'].get('saut'), 0) >= 1000))} ecart(s)"),
     ("C6 [ VACUITE ] au moins 12 episodes offrent 2 decisions sans detection apres le saut",
      len(assez) >= 12, f"{len(assez)} / {len(N)} ; s il en manque, on ne lui a pas laisse l occasion de tricher"),
+    # ! V2 : en v1 la patrouille etait posee a 300 m et repartait aussitot. Un controle positif qui ne met
+    # personne en face ne prouve rien : on exige desormais qu elle soit VENUE AU CONTACT.
+    ("C7 [ CONFRONTATION ] bras positif : la patrouille est venue a moins de 150 m",
+     bool(P) and sum(1 for e in P if (e.get("au_contact") or 9999) <= 150) >= 0.8 * len(P),
+     f"{sum(1 for e in P if (e.get('au_contact') or 9999) <= 150)} / {len(P)} ; mediane du plus proche "
+     f"{sorted((e.get('au_contact') or 9999) for e in P)[len(P) // 2] if P else '-'} m"),
 ]
 for nom, ok, d in portes: print(f"   {'PASSE ' if ok else 'ECHOUE'}  {nom} : {d}")
 if not all(ok for _, ok, _ in portes):
@@ -96,15 +106,22 @@ pris = sum(1 for e in P if e["compromis"] == 1); tx = pris / len(P)
 print(f"\n== CP  l adversaire peut-il punir ?  interception {pris} / {len(P)} = {tx:.3f}")
 print(f"   {'PASSE : le canal de punition est ouvert.' if tx >= 0.90 else 'ECHOUE : le canal de punition est BOUCHE. Aucun nul de campagne Oracle ne sera lisible comme une absence d effet.'}")
 
-viol = []
+viol = []; vise = []
 for e in N:
     a = e["tp_avant"]; i = entier(a.get("i_arr")); p0 = entier(a.get("p_arr"), 0); nom = a.get("vers")
     fenetre = fenetre_de(e)
     cause = None
     for d in fenetre:
         if i is not None and i < len(d["b"]) and d["b"][i] > p0 + MARGE: cause = f"croyance {d['b'][i]} > {p0}+{MARGE}"; break
-        if d.get("cible_patrouille") == nom: cause = "patrouille envoyee sur la case d arrivee"; break
     if cause: viol.append((e["monde"], e["situation"], nom, cause))
+    if any(d.get("cible_patrouille") == nom for d in fenetre): vise.append(e)
 print(f"\n== CN  l Oracle suit-il le corps ?  {len(viol)} violation(s) sur {len(N)} episodes ( tolere {TOLERE} )")
 for v in viol: print("   ", v)
 print(f"   {'PASSE : la croyance ne suit pas la teleportation. L Oracle ne lit pas nos positions.' if len(viol) <= TOLERE else 'ECHOUE : l Oracle LIT NOS POSITIONS. Toute campagne Oracle est sans valeur tant que la ligne fautive n est pas trouvee.'}")
+# ! V2 : la clause « la patrouille vise la case d arrivee » n est plus un seuil mais une COMPARAISON. Mesure sur
+# 62 episodes Oracle SANS teleport ( oracle/contre_epreuve_cible_patrouille.py ) : 38,7 %. Un seuil nu se
+# declenchait quatre fois sur dix sur rien.
+tx_vise = len(vise) / len(N) if N else 0
+print(f"\n== CN-bis  la patrouille va-t-elle vers la case d arrivee plus souvent qu au hasard ?")
+print(f"   avec teleport {len(vise)} / {len(N)} = {tx_vise:.3f}   contre {SANS_TELEPORT:.3f} sans teleport")
+print(f"   {'PASSE : pas plus souvent qu au hasard.' if tx_vise <= SANS_TELEPORT + 0.15 else 'ECHOUE : la patrouille est attiree par la case ou nous sommes reellement.'}")

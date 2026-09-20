@@ -73,8 +73,27 @@ if (CHACAL_ORACLE_CTRL == 1) then {
         CHACAL_VEH_ROUTE setPosATL _p;
         private _dist = round ((getPosATL _chef) distance2D _p);
         { _x setUnitPos "UP" } forEach _vivants;
+        // ! V2 - LA PATROUILLE DOIT CONFRONTER, PAS PASSER. En v1 on posait le vehicule a 300 m et il repartait
+        // aussitot sur ses anciens points de passage : ses distances a sa cible passaient de 800 m a 4 000 m, et
+        // l interception tombait a 3 sur 16. Un controle positif qui ne met personne en face ne prouve rien.
+        private _gp = group CHACAL_VEH_ROUTE;
+        while { count (waypoints _gp) > 0 } do { deleteWaypoint ((waypoints _gp) select 0) };
+        _gp setBehaviour "COMBAT"; _gp setCombatMode "RED"; _gp setSpeedMode "FULL";
         (format ["CHACAL|O|ctrl|positif|%1|patrouille_a|%2|hommes|%3|route|%4",
             round (time * 100) / 100, _dist, count _vivants,
             (if (count _rs > 0) then {1} else {0})]) call CHACAL_LOG;
+        // on la tient sur eux pendant trois minutes, et on journalise la distance : le controle doit pouvoir
+        // montrer qu il a bien mis l adversaire au contact avant de conclure quoi que ce soit.
+        for "_k" from 1 to 12 do {
+            if (CHACAL_FIN) exitWith {};
+            private _vs = CHACAL_FS select { alive _x };
+            if (count _vs == 0 || { !alive CHACAL_VEH_ROUTE }) exitWith {};
+            _gp move (getPosATL (_vs select 0));
+            (format ["CHACAL|O|ctrl|positif_suivi|%1|patrouille_a|%2|vivants|%3",
+                round (time * 100) / 100,
+                round ((getPosATL CHACAL_VEH_ROUTE) distance2D (getPosATL (_vs select 0))),
+                count _vs]) call CHACAL_LOG;
+            sleep (15 * CHACAL_ECHELLE);
+        };
     };
 };

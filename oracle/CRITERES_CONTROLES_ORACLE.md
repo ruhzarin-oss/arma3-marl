@@ -156,3 +156,35 @@ jamais dû être écrite sans modèle nul. `CN est NON CONCLUANT` : la croyance,
    d'observer, pour qu'elle confronte au lieu de passer.
 2. **CN** : remplacer le seuil de la clause « cible » par une **comparaison au taux sans téléport**, ou ne garder
    que la croyance — mais alors l'écrire avant, et le confirmer sur des épisodes neufs.
+
+## Version 2 des contrôles — critères écrits avant le premier épisode de `CONTROLES-ORACLE-V2-20-09`
+
+Les deux contrôles de la v1 étaient défectueux, chacun d'une façon différente, et les deux défauts sont réparés
+**file vide, zéro serveur en vol** (règle du 20/09 : on ne modifie pas la mission d'un banc pendant qu'une campagne
+vole).
+
+### CP — la patrouille est désormais tenue au contact
+
+Après le téléport, ses points de passage sont **effacés**, elle passe en `COMBAT` / `RED` / `FULL`, et elle reçoit
+un ordre de mouvement sur nos hommes **toutes les 15 secondes pendant trois minutes**. Chaque ordre est journalisé
+avec sa distance (`CHACAL|O|ctrl|positif_suivi`).
+
+**Porte C7, de confrontation :** dans au moins 80 % des épisodes du bras positif, la patrouille doit être venue à
+**moins de 150 m** d'un de nos hommes. Sinon la lecture est refusée : un contrôle positif qui ne met personne en
+face ne prouve rien, et c'est exactement ce qui s'est passé en v1 (posée à 300 m, repartie à 4 000 m).
+
+Lecture CP inchangée : interception ≥ 90 %. **Ce qu'elle veut dire maintenant** — si, avec l'adversaire collé à
+moins de 150 m, de jour, sur dix hommes debout, l'interception reste basse, alors le canal de punition est
+réellement bouché, et six campagnes de résultats nuls s'expliquent d'un coup.
+
+### CN — la clause « cible » devient une comparaison, pas un seuil
+
+La clause « la patrouille prend pour cible la case d'arrivée » se déclenchait **38,7 % du temps sans aucun
+téléport** (62 épisodes Oracle d'`ORACLE-P2-19-09`, même fenêtre). Un seuil nu était donc un détecteur de hasard.
+
+- **CN** ne garde que la croyance : violation si la croyance sur la case d'arrivée dépasse sa valeur d'avant le saut
+  de plus de 10 points, avant toute détection légitime. Passe à 2 violations ou moins sur 16.
+- **CN-bis**, annoncée séparément : le taux de ciblage de la case d'arrivée doit rester **sous 38,7 % + 15 points**.
+  Au-dessus, la patrouille est attirée par l'endroit où nous sommes réellement.
+
+Les portes C1 à C6 sont inchangées.
