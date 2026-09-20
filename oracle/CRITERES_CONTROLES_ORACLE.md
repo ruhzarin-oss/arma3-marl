@@ -188,3 +188,17 @@ téléport** (62 épisodes Oracle d'`ORACLE-P2-19-09`, même fenêtre). Un seuil
   Au-dessus, la patrouille est attirée par l'endroit où nous sommes réellement.
 
 Les portes C1 à C6 sont inchangées.
+
+### Amendement 4 — 20/09 17 h 40, écrit **après avoir vu cinq épisodes en vol**, avant toute lecture
+
+La v2 confronte : la patrouille descend de 148 m à 18 m, de 397 m à 91 m. Mais deux des cinq épisodes regardés
+finissent `COMPROMIS` à 163 s et 245 s **alors que la patrouille était encore à 240-290 m** — elle n'a pas eu le
+temps d'arriver parce que le contrôle avait déjà réussi.
+
+La porte C7 telle qu'écrite (« venue à moins de 150 m ») **refuserait donc les épisodes où le contrôle a le mieux
+marché**. Elle devient : « venue à moins de 150 m, **ou** épisode déjà compromis ».
+
+**Honnêtement :** j'ai vu l'issue `COMPROMIS` de ces cinq épisodes avant d'écrire cet amendement. Il ne touche
+qu'une porte de qualité, pas la lecture CP elle-même, et il ne peut que **relâcher** une condition d'admission —
+mais il n'est pas pré-enregistré, et la lecture CP qui suivra devra être confirmée sur une campagne neuve si elle
+conclut quoi que ce soit.

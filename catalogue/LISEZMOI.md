@@ -1,9 +1,9 @@
 # Catalogue des episodes CHACAL
 
-Genere par `outils/catalogue.py` le 2026-09-20 17:03. **Ne pas editer a la main** : il est
+Genere par `outils/catalogue.py` le 2026-09-20 17:35. **Ne pas editer a la main** : il est
 regenere apres chaque run (file3.sh) et chaque nuit (sauver.sh).
 
-- **3852 episodes**, lus depuis 4297 journaux (31 sans ligne FINI ignores).
+- **3877 episodes**, lus depuis 4324 journaux (31 sans ligne FINI ignores).
 - Un episode = une ligne ; `episodes.csv` pour un tableur, `episodes.jsonl` pour un programme.
 - Le journal complet de chaque episode est dans la colonne `source` ; ses tables (etat de chaque homme
   toutes les ~2 s, perception, evenements, phases) sont a cote, dans `extrait/`.
@@ -348,6 +348,20 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 | CONTROLES-ORACLE-20-09 | CTRL-POSITIF-s2-g6g7 | 1 | 0 |
 | CONTROLES-ORACLE-20-09 | CTRL-POSITIF-s2-g8g9 | 1 | 0 |
 | CONTROLES-ORACLE-20-09 | CTRL-POSITIF-s2-g9g12-B | 2 | 0 |
+| CONTROLES-ORACLE-V2-20-09 | CTRLV2-NONTRICHE-s1-g11g12 | 2 | 0 |
+| CONTROLES-ORACLE-V2-20-09 | CTRLV2-NONTRICHE-s1-g6g7 | 2 | 0 |
+| CONTROLES-ORACLE-V2-20-09 | CTRLV2-NONTRICHE-s1-g8g9 | 1 | 0 |
+| CONTROLES-ORACLE-V2-20-09 | CTRLV2-NONTRICHE-s2-g11g12 | 2 | 0 |
+| CONTROLES-ORACLE-V2-20-09 | CTRLV2-NONTRICHE-s2-g4g5 | 2 | 0 |
+| CONTROLES-ORACLE-V2-20-09 | CTRLV2-NONTRICHE-s2-g6g7 | 1 | 0 |
+| CONTROLES-ORACLE-V2-20-09 | CTRLV2-POSITIF-s1-g11g12 | 2 | 0 |
+| CONTROLES-ORACLE-V2-20-09 | CTRLV2-POSITIF-s1-g4g5 | 2 | 0 |
+| CONTROLES-ORACLE-V2-20-09 | CTRLV2-POSITIF-s1-g6g7 | 2 | 0 |
+| CONTROLES-ORACLE-V2-20-09 | CTRLV2-POSITIF-s1-g8g9 | 2 | 0 |
+| CONTROLES-ORACLE-V2-20-09 | CTRLV2-POSITIF-s2-g11g12 | 2 | 0 |
+| CONTROLES-ORACLE-V2-20-09 | CTRLV2-POSITIF-s2-g4g5 | 2 | 0 |
+| CONTROLES-ORACLE-V2-20-09 | CTRLV2-POSITIF-s2-g6g7 | 2 | 0 |
+| CONTROLES-ORACLE-V2-20-09 | CTRLV2-POSITIF-s2-g8g9 | 1 | 0 |
 | DELAI-PORTEUR-14-09 | DELAI180-g11-m1 | 12 | 8 |
 | DELAI-PORTEUR-14-09 | DELAI180-g11-m2 | 12 | 9 |
 | DELAI-PORTEUR-14-09 | DELAI180-g12-m1 | 12 | 8 |

@@ -93,9 +93,12 @@ portes = [
      len(assez) >= 12, f"{len(assez)} / {len(N)} ; s il en manque, on ne lui a pas laisse l occasion de tricher"),
     # ! V2 : en v1 la patrouille etait posee a 300 m et repartait aussitot. Un controle positif qui ne met
     # personne en face ne prouve rien : on exige desormais qu elle soit VENUE AU CONTACT.
-    ("C7 [ CONFRONTATION ] bras positif : la patrouille est venue a moins de 150 m",
-     bool(P) and sum(1 for e in P if (e.get("au_contact") or 9999) <= 150) >= 0.8 * len(P),
-     f"{sum(1 for e in P if (e.get('au_contact') or 9999) <= 150)} / {len(P)} ; mediane du plus proche "
+    # ! AMENDEMENT 4 : « venue a moins de 150 m OU episode deja compromis ». Ecrit apres avoir vu cinq episodes
+    # en vol, dont deux finissent COMPROMIS a 163 et 245 s alors que la patrouille etait encore a 240-290 m : la
+    # porte telle qu ecrite penalisait exactement les episodes ou le controle a le mieux marche.
+    ("C7 [ CONFRONTATION ] bras positif : patrouille venue a moins de 150 m, ou episode deja compromis",
+     bool(P) and sum(1 for e in P if (e.get("au_contact") or 9999) <= 150 or e.get("compromis") == 1) >= 0.8 * len(P),
+     f"{sum(1 for e in P if (e.get('au_contact') or 9999) <= 150 or e.get('compromis') == 1)} / {len(P)} ; mediane du plus proche "
      f"{sorted((e.get('au_contact') or 9999) for e in P)[len(P) // 2] if P else '-'} m"),
 ]
 for nom, ok, d in portes: print(f"   {'PASSE ' if ok else 'ECHOUE'}  {nom} : {d}")
