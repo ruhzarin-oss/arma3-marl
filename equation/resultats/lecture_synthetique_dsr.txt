@@ -1,0 +1,23 @@
+== TEST A, banc synthetique : une ligne par ( algo, formule, n )
+algo     form    n  reps  declare  retrouvee  accord  vraies  leurres  niveau_seul  gain_vrai/ideal  duree_s
+dsr      F0    200   20     1/20       -       nan     nan    1.60      0.35     +0.000/+0.000     64.2
+dsr      F0    500   20     0/20       -       nan     nan    1.10      0.70     +0.000/+0.000     58.5
+dsr      F0   1000   20     0/20       -       nan     nan    1.10      0.75     +0.000/+0.000     55.5
+dsr      F1    200   20     2/20      0/20   0.668    0.65    1.30      0.35     +0.055/+0.160     50.7
+dsr      F1    500   20    15/20     12/20   0.836    0.62    0.90      0.30     +0.118/+0.160     51.6
+dsr      F1   1000   20    19/20     17/20   0.840    0.72    0.80      0.45     +0.120/+0.160     53.5
+dsr      F2    200   20     0/20      0/20   0.565    0.85    1.15      0.35     +0.014/+0.215     52.3
+dsr      F2    500   20     1/20      0/20   0.573    0.78    1.10      0.25     +0.018/+0.216     54.0
+dsr      F2   1000   20     6/20      0/20   0.597    0.72    1.00      0.40     +0.031/+0.215     61.1
+dsr      F3    200   20    10/20      8/20   0.853    0.85    1.05      0.15     +0.118/+0.185     65.6
+dsr      F3    500   20    15/20     15/20   0.864    0.95    0.65      0.15     +0.125/+0.185     85.8
+dsr      F3   1000   20    20/20     20/20   0.884    0.90    0.60      0.10     +0.135/+0.185     78.0
+
+== CRITERES ECRITS AVANT
+   dsr : F1/F2/F3 retrouvees >= 18/20 a n = 500 : F1 NON, F2 NON, F3 NON ; F0 declarees <= 1/20 : n=200 OUI, n=500 OUI, n=1000 OUI  ->  NON RETENU
+
+== EXEMPLES DE FORMULES APPRISES ( rep 0, n = 1000 )
+   dsr F0 : min2,0.25,neg,mul,min2,0.25,alarme,max2,distance,min2,-0.25,leurre_uniforme
+   dsr F1 : neg,add,min2,distance,neg,sub,neg,leurre_binaire,min2,gt2,mul,max2,add,distance,gt2,-1.0,-0.25,leurre_binaire,0.5,0.25,1.0,-0.5
+   dsr F2 : neg,mul,sub,neg,min2,neg,0.5,min2,-0.25,add,min2,1.0,mul,mul,defenseurs_connus,leurre_uniforme,defenseurs_connus,alarme,moment,leurre_distance
+   dsr F3 : min2,mul,neg,0.5,add,leurre_distance,neg,max2,moment,neg,leurre_uniforme,neg,add,0.25,neg,alarme

@@ -194,3 +194,29 @@ recherche de PySR était terminée ; c'est la mise en forme qui a fait tomber l'
 - **Charge** : pour rester à 2 processus, `dsr_100k`, qui avait démarré à la place de `pysr` (15 essais écrits), est arrêté et reprendra
   après `pysr`, sans rien recalculer.
 - Critères, réglages et prédictions de l'amendement 2 : inchangés.
+
+## Lecture de l'amendement 2 — PySR et DSR (21/09/2026, lectures uniques : `pysr` à 14 h 45, `dsr` à 19 h 00)
+
+240 essais chacun, 0 plantage après l'amendement 3, mêmes critères, même lecteur (`lire_banc.py`). Sorties complètes :
+`equation/resultats/lecture_synthetique_pysr.txt` et `lecture_synthetique_dsr.txt`.
+
+| retrouvée à n = 500 (critère ≥ 18/20) | F1 | F2 | F3 | F0 déclarée (≤ 1/20 à chaque n) | verdict |
+|---|---|---|---|---|---|
+| `pysr` | 12/20 | **0/20** | 13/20 | 1, 0, 0 | **NON RETENU** |
+| `dsr` (20 000 expressions) | 12/20 | **0/20** | 15/20 | 1, 0, 0 | **NON RETENU** |
+| rappel `evogp` | 14/20 | 7/20 | 15/20 | 0 partout | non retenu |
+| rappel `l1` | 19/20 | 0/20 | 19/20 | 0 partout | non retenu |
+
+À n = 1000 : `pysr` 18 / **1** / 20 ; `dsr` 17 / **0** / 20 ; `evogp` 19 / 19 / 20. **La croix F2 (distance × moment) n'est retrouvée que par
+EvoGP.** Leurres par formule à n = 500 : `pysr` 0,05 à 0,65, `dsr` 0,65 à 1,10, `evogp` 1,25 à 1,35. Durée par essai : `pysr` ~23 s,
+`dsr` ~55 à 85 s (CPU, 1 thread), `evogp` ~2 s (GPU).
+
+**Sort des prédictions écrites avant** : « `pysr` fait au moins aussi bien qu'`evogp` à n = 500 » — **FAUSSE** sur le score (moins bien sur
+les trois formules, et F2 jamais) ; « avec des formules plus courtes et moins de leurres » — tenue (`0.596 − distance`, `alarme − distance`).
+« `dsr` à 20 000 expressions ne retrouve pas F2 et F3 18 fois sur 20 » — tenue ; ses formules sont longues et prennent des leurres.
+`dsr_100k` (n = 500, descriptif) : lu à part quand ses 80 essais sont écrits.
+
+**Ce que ça dit** : à coût comparable, ni PySR ni DSR ne trouvent une interaction entre deux variables ; PySR est sobre et ne ment pas
+(aucune fausse règle, presque aucun leurre) mais il est aveugle à la croix. Pour chercher une règle de décision où deux perceptions se
+croisent, EvoGP sur GPU reste l'outil, à n ≥ 1000. L'indice de fumée « PySR retrouve F2 » était une répétition chanceuse : une fumée ne
+compte jamais comme un résultat.

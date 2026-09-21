@@ -1,0 +1,23 @@
+== TEST A, banc synthetique : une ligne par ( algo, formule, n )
+algo     form    n  reps  declare  retrouvee  accord  vraies  leurres  niveau_seul  gain_vrai/ideal  duree_s
+pysr     F0    200   20     1/20       -       nan     nan    1.10      0.30     +0.000/+0.000     29.0
+pysr     F0    500   20     0/20       -       nan     nan    0.85      0.45     +0.000/+0.000     25.4
+pysr     F0   1000   20     0/20       -       nan     nan    1.15      0.30     +0.000/+0.000     27.9
+pysr     F1    200   20     3/20      0/20   0.694    0.40    0.45      0.10     +0.062/+0.160     21.7
+pysr     F1    500   20    15/20     12/20   0.818    0.55    0.05      0.00     +0.113/+0.160     22.8
+pysr     F1   1000   20    18/20     18/20   0.861    0.55    0.00      0.00     +0.126/+0.160     26.5
+pysr     F2    200   20     2/20      0/20   0.565    0.42    0.90      0.25     +0.015/+0.215     23.8
+pysr     F2    500   20     4/20      0/20   0.656    0.78    0.65      0.20     +0.057/+0.216     20.8
+pysr     F2   1000   20    11/20      1/20   0.753    0.82    0.25      0.05     +0.102/+0.215     24.4
+pysr     F3    200   20     9/20      9/20   0.867    0.80    0.05      0.00     +0.127/+0.185     20.3
+pysr     F3    500   20    13/20     13/20   0.876    0.82    0.05      0.05     +0.132/+0.185     23.0
+pysr     F3   1000   20    20/20     20/20   0.886    0.90    0.00      0.00     +0.137/+0.185     26.3
+
+== CRITERES ECRITS AVANT
+   pysr : F1/F2/F3 retrouvees >= 18/20 a n = 500 : F1 NON, F2 NON, F3 NON ; F0 declarees <= 1/20 : n=200 OUI, n=500 OUI, n=1000 OUI  ->  NON RETENU
+
+== EXEMPLES DE FORMULES APPRISES ( rep 0, n = 1000 )
+   pysr F0 : alarme * -0.15200423
+   pysr F1 : 0.59649765 - distance
+   pysr F2 : neg((greater(0.5137652, moment) - moment) * (0.5137652 - greater(0.50197613, distance)))
+   pysr F3 : alarme - distance
