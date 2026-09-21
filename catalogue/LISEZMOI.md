@@ -1,6 +1,6 @@
 # Catalogue des episodes CHACAL
 
-Genere par `outils/catalogue.py` le 2026-09-21 00:05. **Ne pas editer a la main** : il est
+Genere par `outils/catalogue.py` le 2026-09-21 05:02. **Ne pas editer a la main** : il est
 regenere apres chaque run (file3.sh) et chaque nuit (sauver.sh).
 
 - **4051 episodes**, lus depuis 4508 journaux (32 sans ligne FINI ignores).
