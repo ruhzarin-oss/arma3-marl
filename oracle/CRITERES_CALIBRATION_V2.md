@@ -69,3 +69,31 @@ Sur les 8 mondes connus, 7 cases atteignables donnaient 0,42 de compromission, 4
 
 *Avec 8 mondes, aucune prétention statistique n'est faite sur L3 : c'est une prédiction directionnelle, écrite
 d'avance, qui peut échouer.*
+
+## Mondes neufs retenus et prédictions — écrit le 21/09 après le test de validité, **avant le premier épisode**
+
+Les 12 graines testées (13 à 24) sont toutes valides : acceptées, non VOID, fin de phase 2 atteinte, ligne de carte
+présente. La règle retient les 8 premières : **13, 14, 15, 16, 17, 18, 19, 20**. Aucune issue n'a été lue.
+
+Leur carte, lue à la mise en place :
+
+| graine | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 |
+|---|---|---|---|---|---|---|---|---|
+| cases atteignables | 8 | 7 | 8 | 8 | 6 | **5** | 8 | 7 |
+| classe | haute | haute | haute | haute | haute | **basse** | haute | haute |
+
+**Conséquence que je dois annoncer maintenant, pas après :** la classe basse ne compte qu'**un seul** monde neuf
+(18). La règle écrite d'avance exige au moins 2 mondes par classe : **la validation L3 sera donc déclarée non
+évaluable.** Je ne change pas la sélection pour autant — la modifier maintenant, même sur la carte seule, serait un
+amendement, et la question de la période (L2) n'en dépend pas.
+
+Ce que ce tirage apprend déjà : **les mondes sans prise sont rares.** Parmi les graines 13 à 24, une seule sur douze
+tombe à 5 cases ou moins ; parmi les 8 mondes historiques, c'était quatre sur huit. Le jeu de mondes sur lequel
+toutes les campagnes précédentes ont tourné était anormalement pauvre en routes — c'est une des raisons pour
+lesquelles l'adversaire y pesait si peu.
+
+**Prédiction descriptive, écrite ici pour pouvoir échouer, sans valeur de test :** parmi les 8 mondes neufs, le
+monde **18** aura l'**apport de l'Oracle le plus faible**.
+
+Pour valider vraiment le critère de la route, il faudra un **échantillon stratifié** : chercher des mondes à basse
+prise au-delà de la graine 24, et en réunir au moins quatre.

@@ -1,9 +1,9 @@
 # Catalogue des episodes CHACAL
 
-Genere par `outils/catalogue.py` le 2026-09-21 05:02. **Ne pas editer a la main** : il est
+Genere par `outils/catalogue.py` le 2026-09-21 08:25. **Ne pas editer a la main** : il est
 regenere apres chaque run (file3.sh) et chaque nuit (sauver.sh).
 
-- **4051 episodes**, lus depuis 4508 journaux (32 sans ligne FINI ignores).
+- **4063 episodes**, lus depuis 4520 journaux (32 sans ligne FINI ignores).
 - Un episode = une ligne ; `episodes.csv` pour un tableur, `episodes.jsonl` pour un programme.
 - Le journal complet de chaque episode est dans la colonne `source` ; ses tables (etat de chaque homme
   toutes les ~2 s, perception, evenements, phases) sont a cote, dans `extrait/`.
@@ -925,6 +925,12 @@ dossier partage (incident du 11/09). `copies` compte les exemplaires identiques 
 | TOURNOI-TACTIQUES-12-09 | B2 | 18 | 11 |
 | TOURNOI-TACTIQUES-12-09 | B5 | 10 | 2 |
 | TOURNOI-TACTIQUES-12-09 | REF | 10 | 1 |
+| VALIDITE-GRAINES-21-09 | VAL-g13g14 | 2 | 0 |
+| VALIDITE-GRAINES-21-09 | VAL-g15g16 | 2 | 0 |
+| VALIDITE-GRAINES-21-09 | VAL-g17g18 | 2 | 0 |
+| VALIDITE-GRAINES-21-09 | VAL-g19g20 | 2 | 0 |
+| VALIDITE-GRAINES-21-09 | VAL-g21g22 | 2 | 0 |
+| VALIDITE-GRAINES-21-09 | VAL-g23g24 | 2 | 0 |
 | VARIANCE-OBS-a120-b0-19-09 | VO-P2_TYPE2_a120b0_m11s1 | 2 | 0 |
 | VARIANCE-OBS-a120-b0-19-09 | VO-P2_TYPE2_a120b0_m11s2 | 2 | 0 |
 | VARIANCE-OBS-a120-b0-19-09 | VO-P2_TYPE2_a120b0_m4s1 | 2 | 0 |
