@@ -97,3 +97,56 @@ monde **18** aura l'**apport de l'Oracle le plus faible**.
 
 Pour valider vraiment le critère de la route, il faudra un **échantillon stratifié** : chercher des mondes à basse
 prise au-delà de la graine 24, et en réunir au moins quatre.
+
+## Résultat — 21/09 11 h 55 : instrument propre, **effet de l'Oracle non reproduit**, période non lue
+
+192 épisodes joués, 186 lus (T 64, R 61, F 61). **Les six portes de qualité passent** : zéro erreur SQF, aucune
+case vide, carte présente dans les 122 épisodes à Oracle monté, option *traverser* jouée partout, période conforme.
+La campagne est techniquement la plus propre qu'on ait jouée.
+
+**K7, la porte de sensibilité, échoue** : R compromet **+0,094** de plus que T, IC [−0,109 ; +0,312]. Le point est
+à un cheveu des 10 points exigés, mais l'intervalle contient zéro. **Conformément à la règle écrite d'avance, la
+période δ n'est pas lue.** Les chiffres de F sont affichés par le lecteur ; ils ne sont pas interprétés.
+
+### Ce que ça dit de l'Oracle
+
+Trois estimations de son apport naturel (compromission, bras δ 60 s contre témoin) :
+
+| campagne | écart | IC 95 % | remarque |
+|---|---|---|---|
+| ORACLE-P2 (lue en calibration) | **+0,197** | [+0,056 ; +0,327] | la première, et la plus haute |
+| calibration v1 | +0,009 | — | mélange option/situation confondu |
+| **calibration v2** | **+0,094** | [−0,109 ; +0,312] | propre, 16 mondes |
+
+**La première estimation était la plus forte, les suivantes plus faibles** — exactement le motif du « premier choix
+dépendant » du 19/09 : un premier succès sélectionné est surestimé. Le bras Oracle, lui, est stable (réussite
+0,721 dans ORACLE-P2 comme ici) ; c'est l'écart au témoin qui fond.
+
+**Lecture honnête :** à son réglage normal, l'Oracle ajoute **de l'ordre de 10 points** de compromission — probable
+mais modeste, et **trop petit pour être vu de façon fiable avec 60 épisodes par bras**. La calibration cd3a22f
+(« la réussite tombe de 92 % à 72 % ») retenait l'estimation la plus favorable ; elle ne doit plus être citée seule.
+
+Et le contrôle positif, lui, reste acquis : **amené au contact, l'adversaire prend 18 fois sur 18.** Ce qui manque à
+l'Oracle n'est donc pas la capacité de punir, c'est de **trouver** le détachement — son camp le perçoit rarement.
+Le levier le plus probable est ce que l'adversaire **voit**, pas la fréquence à laquelle il décide.
+
+### L3 — non évaluable, comme annoncé ; la prédiction du monde 18 **échoue**
+
+Un seul monde neuf à basse prise (18) : la validation est non évaluable. La prédiction descriptive — *le monde 18
+aura l'apport le plus faible des huit neufs* — **échoue** : 18 est à −0,250, mais le monde 19 est à **−0,750** et le
+15 à −0,250.
+
+### ⛔ Je retire « la route prédit la prise »
+
+Hier j'ai présenté comme un résultat qui tient : 7 cases atteignables → 0,42 de compromission, 4-5 cases → 0,15.
+**Recalculé à l'identique sur les mêmes huit mondes connus, avec les données d'aujourd'hui, le sens s'inverse** :
+
+| | compromission R+F, haute prise | basse prise |
+|---|---|---|
+| calibration v1 (20/09) | 0,393 | 0,156 |
+| **calibration v2 (21/09)** | **0,296** | **0,375** |
+
+Même le témoin saute de 0,312 à 0,062 dans la classe basse d'un jour à l'autre. **Avec une quinzaine d'épisodes par
+classe, un taux par classe de mondes est du bruit.** Le fait géométrique reste vrai — la CRÊTE du monde 5 est à
+1 865 m de toute route — mais son lien avec la punition **n'est pas établi**. La ligne `cases_routieres` reste
+utile comme instrument ; elle n'est plus un critère d'admissibilité.

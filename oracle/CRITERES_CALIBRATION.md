@@ -132,3 +132,7 @@ mondes neufs**.
 
 *Note d'instrument : l'affichage de L3 par le lecteur était cassé (les guillemets de l'array SQF étaient retirés
 avant `literal_eval`). Réparé et relu ; c'est un descriptif, aucun effet n'en dépend.*
+
+> **⛔ 21/09 — retrait.** Le tableau L3 ci-dessus (« la route prédit la prise », 0,42 contre 0,15) **ne se reproduit
+> pas** : recalculé à l'identique sur les mêmes mondes le lendemain, il s'inverse (0,296 contre 0,375). Voir
+> `CRITERES_CALIBRATION_V2.md`, résultat du 21/09.

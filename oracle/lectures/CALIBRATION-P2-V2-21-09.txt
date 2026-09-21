@@ -1,0 +1,44 @@
+== CALIBRATION P2 v2 : 192 episodes joues, 186 lus ( T 64, R 61, F 61 )
+   mondes [4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20] ; neufs [13, 14, 15, 16, 17, 18, 19, 20]
+   PASSE   K1 zero erreur SQF : 0 erreur(s)
+   PASSE   K2 aucune case sans resultat : 0 vide(s) sur 192 : []
+   PASSE   K3 au moins 48 episodes valides par bras : T:64 R:61 F:61
+   PASSE   K4 ligne de carte a Oracle monte : 0 absente(s) sur 122
+   PASSE   K5 option jouee = traverser : options des jobs [1] ; 0 choix joue(s) non conforme(s)
+   PASSE   K6 periode conforme au job : 0 ecart(s)
+   ECHOUE  K7 [ SENSIBILITE ] R compromet >= 10 points de plus que T, IC hors de zero : ecart +0.094 IC [-0.109 ; +0.312]
+
+== L2  la periode de decision
+   bras  reussite  compromis  ordres
+   T        0.812      0.188     0.0
+   R        0.721      0.279     3.1
+   F        0.836      0.164     3.5
+   K7 A ECHOUE : le bras de reference ne se reproduit pas. La campagne n a pas la sensibilite voulue ; delta N EST PAS LU.
+
+== L3  la route predit-elle la prise ? ( apport de l Oracle = compromission R+F moins T, par monde )
+
+   mondes CONNUS ( ont inspire le critere, pas un test )
+     monde  4  cases_rte    5  apport +0.125
+     monde  5  cases_rte    4  apport +0.750
+     monde  6  cases_rte    5  apport +0.250
+     monde  7  cases_rte    7  apport +0.375
+     monde  8  cases_rte    7  apport -0.750
+     monde  9  cases_rte    7  apport +0.000
+     monde 11  cases_rte    7  apport +0.125
+     monde 12  cases_rte    5  apport +0.125
+     apport moyen : haute prise -0.062 ( 4 mondes ), basse prise +0.312 ( 4 ), difference -0.375  ( reference )
+
+   mondes NEUFS ( la validation )
+     monde 13  cases_rte    8  apport +0.125
+     monde 14  cases_rte    7  apport +0.429
+     monde 15  cases_rte    8  apport -0.250
+     monde 16  cases_rte    8  apport +0.125
+     monde 17  cases_rte    6  apport +0.000
+     monde 18  cases_rte    5  apport -0.250
+     monde 19  cases_rte    8  apport -0.750
+     monde 20  cases_rte    7  apport +0.000
+     haute prise 7 monde(s), basse prise 1 : NON EVALUABLE ( moins de 2 mondes dans une classe )
+CALIBRATION-ADVERSAIRE-20-09   haute prise ( 7 cases )    compromission R+F 0.393 ( n 28 )   T 0.200 ( n 15 )
+CALIBRATION-ADVERSAIRE-20-09   basse prise ( 4-5 cases )  compromission R+F 0.156 ( n 32 )   T 0.312 ( n 16 )
+CALIBRATION-P2-V2-21-09        haute prise ( 7 cases )    compromission R+F 0.296 ( n 27 )   T 0.312 ( n 16 )
+CALIBRATION-P2-V2-21-09        basse prise ( 4-5 cases )  compromission R+F 0.375 ( n 32 )   T 0.062 ( n 16 )

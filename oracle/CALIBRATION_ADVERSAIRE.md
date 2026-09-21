@@ -33,3 +33,5 @@ le taux de réussite de 92 % à 72 %. Trois écarts sur cinq excluent zéro.
 
 Rien sur l'utilité de l'Oracle pour l'agent, rien sur le choix de traversée, et rien qui puisse servir de résultat :
 c'est une mesure d'instrument, faite pour régler la manette avant de payer une campagne.
+
+> **21/09 — à ne plus citer seul.** Cette estimation (+0,197) était la plus haute de trois ; les deux suivantes donnent +0,009 (dispositif confondu) et +0,094 IC [−0,109 ; +0,312]. Voir `CRITERES_CALIBRATION_V2.md`.
