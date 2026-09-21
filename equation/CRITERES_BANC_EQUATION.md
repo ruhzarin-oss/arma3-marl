@@ -147,3 +147,32 @@ test A pour L1 et l'arbre sont calculés mais **pas lus** (lecture unique à la 
   plus d'occasions d'apprendre le bruit. La fumée (graines décalées, une répétition) a montré des formules longues
   qui prennent des leurres. Les deux variantes sont jugées chacune sur les mêmes critères.
 - **Correctif de fumée** : le texte de la formule vient de `to_infix`, car `to_sympy_expr` d'EvoGP refuse un « > » dans un produit.
+
+## Amendement 2 — ajout de PySR et de DSR (21/09/2026, vers 11 h 30, avant tout calcul PySR ou DSR)
+
+Younes : « ajoute PySR et DSR au banc synthétique et lance le test, go ». Le banc annonçait ces deux algorithmes « après la fin des
+campagnes P3 et P6 » ; ils n'avaient jamais été installés ni joués (vérifié dans le dépôt le 21/09). Les résultats du test A pour les cinq
+premiers algorithmes sont déjà lus (verdict d2d4807) ; rien n'en est retouché.
+
+| algo | réglages |
+|---|---|
+| `pysr` | PySR 2.5.0 (SymbolicRegression.jl), **CPU, 1 thread**, mode série déterministe ; fonctions +, −, ×, min, max, neg, > (`greater`) ; 30 itérations, 8 populations de 30, 300 cycles par itération, taille 25 au plus, parcimonie 0,001, perte quadratique sur ψ, sélection `best` ; graine = graine du banc |
+| `dsr` | Deep Symbolic Optimization (dso-org, master du 21/09), **CPU, 1 thread**, TensorFlow 1.14 ; réseau récurrent + gradient de politique à risque (ε = 0,05, réglages par défaut) ; jetons add, sub, mul, neg et **trois jetons ajoutés** min2, max2, gt2 (x > y) ; constantes fixes {−1 ; −0,5 ; −0,25 ; 0,25 ; 0,5 ; 1}, pas de jeton `const` ; 25 jetons au plus ; **20 000 expressions** par lots de 500 ; graine = graine du banc |
+| `dsr_100k` | variante déclarée avant tout calcul : mêmes réglages, **100 000 expressions**. Jouée **à n = 500 seulement** : elle ne peut donc pas être « RETENUE » (le critère demande F0 à chaque n) ; elle dit seulement si le budget change le résultat de `dsr` |
+
+- **Pourquoi des jetons ajoutés à DSR** : dans le code de DSO, `min` et `max` sont déclarés d'arité 1 (défaut amont, inutilisables) et il
+  n'existe aucun jeton de comparaison. Sans eux DSR n'aurait pas le jeu de fonctions des autres algorithmes.
+- **Budgets fixés par parité de coût, pas par résultat** : la fumée (graines décalées, F1 et F2, n = 500, une répétition) n'a servi qu'à la
+  durée et au bon fonctionnement : PySR 26 s par essai (plus ~95 s de compilation Julia, une fois par processus), DSR 61 à 66 s, à comparer
+  aux 43 s de gplearn. Les réglages ci-dessus étaient écrits avant la fumée et n'ont pas été retouchés après.
+- **Environnements séparés**, sans droits administrateur : `/mnt/data/hmt/pysr/env` (Python 3.12, Julia tiré par juliapkg) et
+  `/mnt/data/hmt/dsr/env` (Python 3.7, TensorFlow 1.14, numpy 1.19.5, numba 0.53.1). Correctif d'installation de DSR : le Python 3.7 de
+  conda passe `--sysroot=/` à l'éditeur de liens, qui cherche `/lib64/libc.so.6`, absent d'Ubuntu ; `LDSHARED` est redéfini sans ce sysroot.
+- **Charge** : la règle du banc, **2 processus à 1 thread**, en priorité basse (`nice 19`). Processus 1 : `pysr` (240 essais, ~1 h 45) puis
+  `dsr_100k` à n = 500 (80 essais, ~7 h). Processus 2 : `dsr` (240 essais, ~4 h). Aucun GPU. Rien n'est écrit dans `bancs/`, `outils/` ni la file.
+- **Critères** : les mêmes (RETENU si F1, F2 et F3 retrouvées ≥ 18/20 à n = 500 et F0 déclarée ≤ 1/20 à chaque n). Lecture unique par
+  `lire_banc.py`, quand les 240 essais d'un algorithme sont écrits. Le test B (Arma) n'est pas rejoué : il n'a montré de gain pour aucun
+  algorithme, faute de perception qui varie.
+- **Prédiction écrite avant** : `pysr` fait au moins aussi bien qu'`evogp` à n = 500 avec des formules plus courtes et moins de leurres ;
+  `dsr` à 20 000 expressions ne retrouve pas F2 et F3 18 fois sur 20 (budget trop court pour un gradient de politique) ; `dsr_100k` fait
+  mieux que `dsr` sans atteindre 18/20. Toute prédiction fausse est rapportée telle quelle.

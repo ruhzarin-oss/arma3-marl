@@ -133,7 +133,69 @@ def evogp_p01(X, a, Y, noms, graine):
     return evogp(X, a, Y, noms, graine, parcimonie=0.01)
 
 
-ALGOS = {"l1": l1, "arbre": arbre, "gplearn": gplearn, "evogp": evogp, "evogp_p01": evogp_p01}
+def pysr(X, a, Y, noms, graine):
+    """Regression symbolique PySR ( SymbolicRegression.jl, CPU, 1 thread ) sur psi ; regle = formule > 0. Amendement 2 des criteres :
+    memes fonctions que gplearn et EvoGP ( + - * min max neg > ), parcimonie 0,001, taille 25 au plus, mode serie deterministe."""
+    from pysr import PySRRegressor
+    psi = pseudo_issue(a, Y)
+    m = PySRRegressor(niterations=PYSR_ITERATIONS, populations=8, population_size=30, ncycles_per_iteration=300, maxsize=25,
+                      binary_operators=["+", "-", "*", "min", "max", "greater"], unary_operators=["neg"],
+                      parsimony=0.001, elementwise_loss="L2DistLoss()", model_selection="best",
+                      parallelism="serial", deterministic=True, random_state=int(graine % (2 ** 31 - 1)),
+                      progress=False, verbosity=0, temp_equation_file=True)
+    m.fit(X, psi, variable_names=list(noms))
+    texte = str(m.get_best()["equation"])
+    variables = [n for n in noms if re.search(r"\b" + re.escape(n) + r"\b", texte)]
+    return Regle(lambda Xn, m=m: np.asarray(m.predict(Xn)).reshape(-1) > 0, variables, texte)
+
+
+PYSR_ITERATIONS = 30      # fixe par l amendement 2 apres la fumee de DUREE ( graines decalees ), avant tout calcul du banc
+
+
+def dsr(X, a, Y, noms, graine):
+    """Deep Symbolic Regression ( dso-org : reseau recurrent + gradient de politique, CPU, TensorFlow 1.14 ) sur psi ; regle = formule > 0.
+    Amendement 2 : memes fonctions que les autres. Les jetons « min » et « max » de DSO sont declares d arite 1 ( defaut amont : inutilisables ) et DSO n a
+    pas de comparaison : on ajoute trois jetons binaires min2, max2 et gt2 ( x > y ). Constantes fixes d EvoGP, pas de jeton « const » ( optimisation interne
+    trop lente ), expressions de 25 jetons au plus, budget DSR_ECHANTILLONS expressions par lots de 500."""
+    import os, warnings
+    warnings.filterwarnings("ignore")
+    os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
+    from dso import DeepSymbolicRegressor
+    from dso.functions import function_map
+    from dso.library import Token
+    if "gt2" not in function_map:
+        function_map["min2"] = Token(np.minimum, "min2", arity=2, complexity=1)
+        function_map["max2"] = Token(np.maximum, "max2", arity=2, complexity=1)
+        function_map["gt2"] = Token(lambda x, y: np.greater(x, y).astype(np.float32), "gt2", arity=2, complexity=1)
+    psi = pseudo_issue(a, Y)
+    config = {"task": {"task_type": "regression", "function_set": ["add", "sub", "mul", "neg", "min2", "max2", "gt2", -1.0, -0.5, -0.25, 0.25, 0.5, 1.0],
+                       "metric": "inv_nrmse", "metric_params": [1.0], "threshold": 1e-12, "protected": False},
+              "training": {"n_samples": DSR_ECHANTILLONS, "batch_size": 500, "n_cores_batch": 1, "verbose": False, "early_stopping": False},
+              "prior": {"length": {"min_": 1, "max_": 25, "on": True}},
+              "experiment": {"seed": int(graine % (2 ** 31 - 1)), "logdir": None},
+              "logging": {"save_summary": False, "save_all_iterations": False, "save_positional_entropy": False, "save_pareto_front": False, "save_cache": False, "hof": None}}
+    m = DeepSymbolicRegressor(config)
+    m.fit(X, psi)
+    expr = ",".join(str(t) for t in m.program_.traversal)          # notation prefixe : sympy ne connait pas min2, max2, gt2
+    num = sorted({int(k) for k in re.findall(r"\bx(\d+)\b", expr)}, reverse=True)
+    variables = [noms[k - 1] for k in sorted(num) if 1 <= k <= len(noms)]
+    for k in num:
+        if 1 <= k <= len(noms): expr = re.sub(rf"\bx{k}\b", noms[k - 1], expr)
+    return Regle(lambda Xn, m=m: np.asarray(m.predict(Xn)).reshape(-1) > 0, variables, expr)
+
+
+DSR_ECHANTILLONS = 20000  # fixe par l amendement 2 apres la fumee de DUREE, avant tout calcul du banc
+
+
+def dsr_100k(X, a, Y, noms, graine):
+    """DSR avec un budget cinq fois plus grand ( 100 000 expressions ), variante declaree avant tout calcul ( amendement 2 ) : sensibilite au budget."""
+    global DSR_ECHANTILLONS
+    ancien, DSR_ECHANTILLONS = DSR_ECHANTILLONS, 100000
+    try: return dsr(X, a, Y, noms, graine)
+    finally: DSR_ECHANTILLONS = ancien
+
+
+ALGOS = {"l1": l1, "arbre": arbre, "gplearn": gplearn, "evogp": evogp, "evogp_p01": evogp_p01, "pysr": pysr, "dsr": dsr, "dsr_100k": dsr_100k}
 
 
 def ecarts_croises(algo, X, a, Y, noms, plis, graine):
