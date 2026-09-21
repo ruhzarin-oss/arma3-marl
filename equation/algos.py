@@ -133,10 +133,31 @@ def evogp_p01(X, a, Y, noms, graine):
     return evogp(X, a, Y, noms, graine, parcimonie=0.01)
 
 
+def _pysr_export_tolerant():
+    """Amendement 3 : l export d une formule vers sympy peut planter ( sympy, « pop from an empty set », sur certaines expressions imbriquees de min, max et
+    greater ) et il faisait tomber tout l ajustement. On le rend tolerant : en cas d echec la colonne sympy recoit un symbole neutre. La recherche, la perte, le
+    score et la selection de PySR ne passent pas par sympy et ne sont pas touches."""
+    import sympy, pysr.export_sympy as es, pysr.export as ex
+    if getattr(es, "_tolerant", False): return
+    origine = es.pysr2sympy
+    def sur(*args, **kw):
+        try: return origine(*args, **kw)
+        except Exception: return sympy.Symbol("export_sympy_impossible")
+    es.pysr2sympy = sur; ex.pysr2sympy = sur; es._tolerant = True
+
+
+def _pysr_evaluer(texte, X, noms):
+    """Evalue la formule de PySR ( sa chaine, en notation infixe ) sans passer par sympy. Controle d equivalence avec model.predict : amendement 3."""
+    env = {"min": np.minimum, "max": np.maximum, "neg": np.negative, "greater": lambda x, y: np.greater(x, y).astype(float), "__builtins__": {}}
+    env.update({n: X[:, k] for k, n in enumerate(noms)})
+    return np.broadcast_to(np.asarray(eval(texte, env), dtype=float), (len(X),))
+
+
 def pysr(X, a, Y, noms, graine):
     """Regression symbolique PySR ( SymbolicRegression.jl, CPU, 1 thread ) sur psi ; regle = formule > 0. Amendement 2 des criteres :
     memes fonctions que gplearn et EvoGP ( + - * min max neg > ), parcimonie 0,001, taille 25 au plus, mode serie deterministe."""
     from pysr import PySRRegressor
+    _pysr_export_tolerant()
     psi = pseudo_issue(a, Y)
     m = PySRRegressor(niterations=PYSR_ITERATIONS, populations=8, population_size=30, ncycles_per_iteration=300, maxsize=25,
                       binary_operators=["+", "-", "*", "min", "max", "greater"], unary_operators=["neg"],
@@ -146,7 +167,7 @@ def pysr(X, a, Y, noms, graine):
     m.fit(X, psi, variable_names=list(noms))
     texte = str(m.get_best()["equation"])
     variables = [n for n in noms if re.search(r"\b" + re.escape(n) + r"\b", texte)]
-    return Regle(lambda Xn, m=m: np.asarray(m.predict(Xn)).reshape(-1) > 0, variables, texte)
+    return Regle(lambda Xn, texte=texte, noms=list(noms): _pysr_evaluer(texte, Xn, noms) > 0, variables, texte)
 
 
 PYSR_ITERATIONS = 30      # fixe par l amendement 2 apres la fumee de DUREE ( graines decalees ), avant tout calcul du banc

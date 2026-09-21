@@ -176,3 +176,21 @@ premiers algorithmes sont déjà lus (verdict d2d4807) ; rien n'en est retouché
 - **Prédiction écrite avant** : `pysr` fait au moins aussi bien qu'`evogp` à n = 500 avec des formules plus courtes et moins de leurres ;
   `dsr` à 20 000 expressions ne retrouve pas F2 et F3 18 fois sur 20 (budget trop court pour un gradient de politique) ; `dsr_100k` fait
   mieux que `dsr` sans atteindre 18/20. Toute prédiction fausse est rapportée telle quelle.
+
+## Amendement 3 — PySR : un plantage de l'export sympy, et sa réparation (21/09/2026, vers 13 h 10, AVANT toute lecture de `pysr`)
+
+`pysr` s'est arrêté au 132ᵉ essai (F2, n = 200, répétition 11) sur `KeyError: 'pop from an empty set'`, levée par **sympy** pendant l'export
+de la table des formules (`pysr2sympy` → `parse_expr(evaluate=False)`), sur une expression imbriquée de `min`, `max` et `greater`. La
+recherche de PySR était terminée ; c'est la mise en forme qui a fait tomber l'ajustement. Aucun résultat de `pysr` n'a été lu.
+
+- **Réparation, sans toucher à la recherche, à la perte, au score ni à la sélection** (qui ne passent pas par sympy) :
+  1. l'export sympy devient tolérant : en cas d'échec, la colonne reçoit un symbole neutre au lieu de lever une exception ;
+  2. la règle ne prédit plus par `model.predict` (qui passe par la forme sympy) mais par un **évaluateur direct de la chaîne de la formule**
+     (`min`, `max`, `neg`, `greater`, +, −, ×), donc aussi pour une formule que sympy ne sait pas relire.
+- **Contrôle d'équivalence, joué avant de reprendre** (`controle_equivalence.py`, graines décalées, F1, F2, F3 à n = 500) : sur les
+  **36 formules** des trois fronts, `model.predict` et l'évaluateur direct donnent un écart maximal de **6,7·10⁻¹⁶** et **0 désaccord de
+  règle sur 720 000 prédictions**. Les 131 essais déjà écrits (chemin `model.predict`) et les suivants (évaluateur direct) mesurent donc la
+  même chose ; ils sont gardés, le banc reprend au 132ᵉ (il est reprenable par construction).
+- **Charge** : pour rester à 2 processus, `dsr_100k`, qui avait démarré à la place de `pysr` (15 essais écrits), est arrêté et reprendra
+  après `pysr`, sans rien recalculer.
+- Critères, réglages et prédictions de l'amendement 2 : inchangés.
