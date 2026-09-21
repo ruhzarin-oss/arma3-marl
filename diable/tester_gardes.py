@@ -74,5 +74,39 @@ verifie("aucune proposition ne rejoue une situation deja jouee", all(Gen.cle(p["
         f"{len(props)} propositions")
 verifie("diversite : deux propositions different d au moins 3 armes",
         all(Gen.distance(a["situation"], b["situation"]) >= C.DISTANCE_MIN_DIVERSITE for i, a in enumerate(props) for b in props[i + 1:]))
+print("== 10. l imagination boguee du 21/09 ( reseaux arretes sur la justesse ) doit etre INTERCEPTEE")
+from sklearn.neural_network import MLPClassifier
+Eh = Dn.utilisables(Dn.episodes(lambda c: not str(c).startswith("DIABLE")))
+
+
+class MondeBogue(M.Monde):
+    """La v1, reconstruite telle qu elle etait : 10 MLPClassifier, early_stopping=True."""
+    def apprendre(self, E):
+        X = M.encoder([{k: e[k] for k in C.ARMES} for e in E], [e["graine"] for e in E], [e["option"] for e in E])
+        Y = np.array([e["compromis"] for e in E]); self.taux = float(Y.mean()); self.reseaux = []
+        for s in range(10):
+            idx = np.random.default_rng(C.GRAINE + s).integers(0, len(Y), len(Y))
+            self.reseaux.append(MLPClassifier(hidden_layer_sizes=(64, 32), alpha=1e-3, early_stopping=True, validation_fraction=0.2,
+                                              max_iter=500, random_state=C.GRAINE + s).fit(X[idx], Y[idx]))
+        return self
+
+    def predire(self, situations, graines, options):
+        X = M.encoder(situations, graines, options)
+        P = np.array([m.predict_proba(X)[:, 1] for m in self.reseaux]); return P.mean(0), P.std(0)
+
+
+ok_b, raisons_b, m_b = G.imagination_saine(MondeBogue().apprendre(Eh), Eh)
+verifie("la v1 boguee est interceptee", not ok_b, " ; ".join(raisons_b)[:200])
+ok_c, raisons_c, m_c = G.imagination_saine(M.Monde().apprendre(Eh), Eh)
+verifie("l imagination corrigee passe", ok_c, f"predit {m_c['prediction_moyenne']:.3f} pour {m_c['taux_reel']:.3f}, ecart-type {m_c['ecart_type']:.3f}")
+
+
+class MondeFige(M.Monde):
+    def predire(self, situations, graines, options):
+        return np.full(len(situations), self.taux), np.zeros(len(situations))
+
+
+ok_f, raisons_f, _ = G.imagination_saine(MondeFige().apprendre(Eh), Eh)
+verifie("une imagination qui predit le taux de base partout est interceptee ( figee )", not ok_f, " ; ".join(raisons_f)[:160])
 print(f"\n{sum(ok_total)} / {len(ok_total)} garde-fous testes contre leur incident : "
       f"{'TOUS PASSENT' if all(ok_total) else 'AU MOINS UN ECHOUE'}")

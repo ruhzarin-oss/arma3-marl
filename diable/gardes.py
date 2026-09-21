@@ -107,3 +107,27 @@ def cases_vides(E, propositions):
     exemplaires ( 20/09 : une porte qui comptait des exemplaires ne pouvait plus jamais passer apres un plantage )."""
     pleines = {(e["candidat"], e["option_imposee"]) for e in E if e["verdict"] == "ACCEPTE" and e["fin"] and e["erreurs"] == 0}
     return [(k, o) for k in range(len(propositions)) for o in (1, 2) if (k, o) not in pleines]
+
+
+# ---------------- la sante de l imagination ----------------
+def imagination_saine(monde, E):
+    """21/09 : l imagination v1 predisait 0,335 partout pour un taux reel de 0,162 - des reseaux figes a mi-chemin
+    entre leur sortie de depart ( 0,5 ) et le vrai taux. Trois signatures, verifiees sur ses PROPRES episodes
+    d apprentissage avant qu elle ait le droit d imaginer quoi que ce soit :
+      1. calibree  : sa prediction moyenne tombe sur le taux reel ;
+      2. vivante   : ses predictions varient d une situation a l autre ;
+      3. utile     : sur ses propres donnees, elle fait mieux que la constante.
+    Un echec veut dire un defaut de code, pas un monde difficile : la boucle s ARRETE, et la signature est ecrite."""
+    import numpy as np
+    mu, _ = monde.predire([{k: e[k] for k in C.ARMES} for e in E], [e["graine"] for e in E], [e["option"] for e in E])
+    Y = np.array([e["compromis"] for e in E], dtype=float)
+    m = dict(prediction_moyenne=float(mu.mean()), taux_reel=float(Y.mean()), ecart_type=float(mu.std()),
+             brier=float(np.mean((mu - Y) ** 2)), brier_constante=float(np.mean((Y.mean() - Y) ** 2)))
+    raisons = []
+    if abs(m["prediction_moyenne"] - m["taux_reel"]) > C.TOLERANCE_CALIBRATION:
+        raisons.append(f"imagination DECALIBREE : predit {m['prediction_moyenne']:.3f} en moyenne pour un taux reel de {m['taux_reel']:.3f}")
+    if m["ecart_type"] < C.ECART_MIN_PREDICTIONS:
+        raisons.append(f"imagination FIGEE : ecart-type des predictions {m['ecart_type']:.4f}, elle predit la meme chose partout")
+    if m["brier"] >= m["brier_constante"]:
+        raisons.append(f"imagination INUTILE : Brier {m['brier']:.4f} sur ses propres donnees, pas mieux que la constante ( {m['brier_constante']:.4f} )")
+    return not raisons, raisons, m

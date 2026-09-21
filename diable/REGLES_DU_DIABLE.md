@@ -101,3 +101,22 @@ itérations 1 et 2 avec l'imagination *d'avant* chacune, elle bat la constante l
 **Conséquences :** les deux mesures d'imagination des itérations 1 et 2 sont **nulles** (faites avec le modèle
 bogué) ; le compteur « imagination pire que la constante » est remis à zéro. Le piège entrevu à l'itération 2
 reste valable : il vient des épisodes observés, pas du modèle.
+
+## Amendement 2 — 21/09 18 h 05 : un garde-fou de plus, contre une imagination cassée
+
+Le bogue de l'amendement 1 avait une signature nette : l'imagination prédisait **presque la même valeur partout**
+(0,341 à 0,347), et cette valeur, **0,335 ≈ (0,5 + 0,162) / 2**, trahissait des réseaux figés à mi-chemin entre
+leur sortie de départ et le vrai taux. Younes : « c'est pour apprendre et intercepter ».
+
+Avant d'imaginer quoi que ce soit, et avant de juger une itération, l'imagination est examinée **sur ses propres
+épisodes d'apprentissage** :
+
+1. **calibrée** — sa prédiction moyenne est à moins de 0,03 du taux réel ;
+2. **vivante** — l'écart-type de ses prédictions dépasse 0,005 (sinon elle prédit la même chose partout) ;
+3. **utile** — son Brier sur ses propres données est meilleur que celui de la constante.
+
+Un échec est un **défaut de code**, pas un monde difficile : la boucle **s'arrête** et écrit la signature.
+
+**Testé contre l'incident réel** (`diable/tester_gardes.py`, test 10) : la v1 reconstruite telle qu'elle était est
+interceptée (décalibrée, 0,335 pour 0,162, et inutile) ; l'imagination corrigée passe (0,162 pour 0,162, écart-type
+0,084) ; une imagination qui prédirait le taux de base partout est interceptée (figée). **17 garde-fous sur 17.**

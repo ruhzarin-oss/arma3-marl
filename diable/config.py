@@ -56,3 +56,7 @@ DEFAUTS = {"situation": 0, "menace_p2": 0, "jour": 0, "portee_son": 600, "avant"
 CATEGORIELLES = ["situation", "menace_p2", "palier", "hmg", "qrf_n", "qrf_delai"]
 NUMERIQUES = ["portee_son", "avant", "observation", "oracle_b", "oracle_delta", "effectif"]
 BINAIRES = ["jour", "balayage", "oracle_cmd"]
+
+# --- sante de l imagination ( amendement 2, 21/09 : le bogue des reseaux arretes trop tot ) ---
+TOLERANCE_CALIBRATION = 0.03       # |prediction moyenne - taux reel| sur ses propres episodes d apprentissage
+ECART_MIN_PREDICTIONS = 0.005      # ecart-type minimal des predictions : en dessous, elle predit la meme chose partout

@@ -102,6 +102,10 @@ def etape_repos(etat, a_blanc=False):
     etat["campagne"] = f"{C.PREFIXE_CAMPAGNE}{it:03d}"
     E = historique_propre(etat)
     monde = M.Monde().apprendre(E)
+    saine, raisons, sante = G.imagination_saine(monde, E)          # amendement 2 : intercepter une imagination cassee
+    if not saine:
+        if a_blanc: print("A BLANC - IMAGINATION MALADE :", raisons); return
+        arreter(etat, "avant d imaginer : " + " ; ".join(raisons) + f" ( mesures {sante} )"); return
     regle = A.charger()
     props, bilan = Gen.proposer(monde, regle, E, deja_joue(), etat["a_confirmer"], np.random.default_rng(C.GRAINE + it))
     fautes = [f"candidat {k} : {f}" for k, p in enumerate(props) for f in G.armes_permises(p)]
@@ -117,6 +121,8 @@ def etape_repos(etat, a_blanc=False):
         arreter(etat, f"controle_avant_run a refuse {len(refus)} job(s) : {refus[0]}"); return
     resume = (f"\n## Iteration {it} — {time.strftime('%d/%m %H:%M')}{' ( A BLANC )' if a_blanc else ''}\n"
               f"Regle lue : `{regle}`. Appris sur {len(E)} episodes ( compromission {monde.taux:.3f} ). "
+              f"Imagination saine : predit {sante['prediction_moyenne']:.3f} pour {sante['taux_reel']:.3f}, ecart-type {sante['ecart_type']:.3f}, "
+              f"Brier {sante['brier']:.4f} contre {sante['brier_constante']:.4f}. "
               f"{bilan['imagines']} situations imaginees, {bilan['pieges_imagines']} pieges jouables imagines, regret max {bilan['regret_max']:.3f} ; "
               f"{bilan['valeurs_jamais_essayees']} valeurs d armes jamais essayees, {bilan['reste_a_explorer_apres']} apres ce lot.\n"
               + "\n".join(f"- {p['genre']:<12} {p['situation']} graines {p['graines']}"
@@ -178,6 +184,8 @@ def etape_apprentissage(etat):
         # 1. L IMAGINATION AVAIT-ELLE VU JUSTE ? modele appris SANS cette iteration, juge sur elle
         E_avant = [e for e in historique_propre(etat) if e["campagne"] != etat["campagne"]]
         m = M.Monde().apprendre(E_avant)
+        saine, raisons, sante = G.imagination_saine(m, E_avant)
+        if not saine: arreter(etat, "au moment de juger l imagination : " + " ; ".join(raisons)); return
         mu, _ = m.predire([{k: e[k] for k in C.ARMES} for e in E_it], [e["graine"] for e in E_it], [e["option"] for e in E_it])
         Y = np.array([e["compromis"] for e in E_it])
         b_mod, b_cst = float(np.mean((mu - Y) ** 2)), float(np.mean((m.taux - Y) ** 2))
