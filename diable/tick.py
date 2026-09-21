@@ -1,0 +1,247 @@
+"""UN TOUR DE LA BOUCLE. Lance toutes les 5 minutes par la tache Windows HMT_DIABLE ; chaque tour fait au plus une
+etape de la machine a etats, puis rend la main. L etat vit sur disque : un plantage, un redemarrage ou une coupure
+reprennent exactement la ou on en etait.
+  REPOS -> POSE -> VOL -> LECTURE -> ( REPARATION -> VOL -> LECTURE ) -> APPRENTISSAGE -> REPOS
+  python -m diable.tick            un tour
+  python -m diable.tick --a-blanc  imagine et controle une iteration SANS rien poser
+  python -m diable.tick --etat     affiche l etat"""
+import fcntl, json, os, shutil, sys, time
+import numpy as np
+from scipy.stats import fisher_exact
+from . import config as C, donnees as Dn, gardes as G, monde as M, architecte as A, generateur as Gen
+
+ETAT = f"{C.ETAT_DIR}/etat.json"
+JOURNAL = f"{C.ETAT_DIR}/journal.md"
+
+
+def charger():
+    if os.path.exists(ETAT): return json.load(open(ETAT))
+    return dict(phase="REPOS", iteration=0, campagne=None, propositions=[], jobs=[], empreinte=None, reparations=0,
+                quarantaines_suite=0, sans_piege_suite=0, imagination_pire_suite=0, historique=[], a_confirmer=[],
+                confirmes=[], infirmes=[], arret=None)
+
+
+def sauver(e):
+    os.makedirs(C.ETAT_DIR, exist_ok=True); tmp = ETAT + ".tmp"; json.dump(e, open(tmp, "w"), indent=1); os.replace(tmp, ETAT)
+
+
+def journal(txt):
+    os.makedirs(C.ETAT_DIR, exist_ok=True)
+    with open(JOURNAL, "a") as f: f.write(txt.rstrip() + "\n")
+
+
+def arreter(etat, raison):
+    etat["arret"] = raison; sauver(etat)
+    journal(f"\n**⛔ ARRET {time.strftime('%d/%m %H:%M')} : {raison}**\n"); print("ARRET", raison)
+
+
+def est_diable(c): return str(c or "").startswith(C.PREFIXE_CAMPAGNE)
+
+
+def historique_propre(etat):
+    """Episodes utilisables pour apprendre : l historique admissible + les iterations du diable NON quarantainees."""
+    sales = {h["campagne"] for h in etat["historique"] if h.get("quarantaine")}
+    E = Dn.utilisables(Dn.episodes(lambda c: not (est_diable(c) and c in sales)))
+    return E
+
+
+def deja_joue():
+    return {(Gen.cle({k: e[k] for k in C.ARMES}), e["graine"], e["option_imposee"])
+            for e in Dn.episodes(est_diable) if e["verdict"] is not None}
+
+
+def gabarit():
+    import glob
+    for jf in sorted(glob.glob(f"{C.RUNS}/2026-09-2*/job.json")):
+        j = json.load(open(jf))
+        if j.get("campagne") == "CALIBRATION-P2-V2-21-09" and j.get("oracle_cmd") == 1:
+            return {k: v for k, v in j.items() if k != "note"}
+    raise RuntimeError("gabarit introuvable")
+
+
+def construire_jobs(etat, propositions):
+    g0, jobs, rang = gabarit(), [], 0
+    for k, p in enumerate(propositions):
+        reps = C.REPETITIONS_CONFIRMATION if p["genre"] == "confirmation" else 1
+        for o in (1, 2):
+            for r in range(reps):
+                j = dict(g0)
+                j.update(p["situation"]); j.update(campagne=etat["campagne"], graines=list(p["graines"]), traversee=o,
+                                                   oracle_ctrl=0, echelle=100, depart=2, arret=2,
+                                                   instance=C.INSTANCES[rang % len(C.INSTANCES)],
+                                                   version=f"DIA-{etat['iteration']:03d}-c{k:02d}-o{o}-r{r}",
+                                                   note=f"Diable, iteration {etat['iteration']}, {p['genre']}, candidat {k}, option {o}.")
+                jobs.append(j); rang += 1
+    return jobs
+
+
+def poser_jobs(jobs, a_blanc=False):
+    t0 = time.time() - 10800; poses, refus = [], []
+    for rang, j in enumerate(jobs):
+        nom = f"{time.strftime('%Y-%m-%d')}_{j['version'].replace('-', '_')}.json"
+        prep = f"{C.PREP}/{nom}"; json.dump(j, open(prep, "w"), indent=1, ensure_ascii=True)
+        ok, msg = G.controle_job(prep)
+        if not ok: refus.append((nom, msg)); os.remove(prep); continue
+        if a_blanc: os.remove(prep); poses.append(nom); continue
+        os.utime(prep, (t0 + rang, t0 + rang)); shutil.move(prep, f"{C.QUEUE}/{nom}"); poses.append(nom)
+    return poses, refus
+
+
+def candidat_de(e):
+    try: return int(e["version"].split("-c")[1][:2])
+    except Exception: return None
+
+
+# ------------------------------------------------------------------------------------------------ les etapes
+def etape_repos(etat, a_blanc=False):
+    if not G.file_vide(): print("ATTENTE : la file n est pas vide ( une autre campagne vole ), le diable ne pose rien"); return
+    if not G.depot_propre(): print("ATTENTE : depot non commite ( bancs, outils ou diable )"); return
+    if not a_blanc:
+        etat["iteration"] += 1
+    it = etat["iteration"] if not a_blanc else etat["iteration"] + 1
+    etat["campagne"] = f"{C.PREFIXE_CAMPAGNE}{it:03d}"
+    E = historique_propre(etat)
+    monde = M.Monde().apprendre(E)
+    regle = A.charger()
+    props, bilan = Gen.proposer(monde, regle, E, deja_joue(), etat["a_confirmer"], np.random.default_rng(C.GRAINE + it))
+    fautes = [f"candidat {k} : {f}" for k, p in enumerate(props) for f in G.armes_permises(p)]
+    jobs = construire_jobs(etat, props)
+    n_ep = 2 * len(jobs)
+    fautes += G.budget(etat, n_ep)
+    if fautes:
+        if a_blanc: print("A BLANC - GARDE-FOUS EN ECHEC :", fautes); return
+        arreter(etat, "garde-fou avant le vol : " + " ; ".join(fautes)); return
+    poses, refus = poser_jobs(jobs, a_blanc=a_blanc)
+    if refus:
+        if a_blanc: print("A BLANC - REFUS DU CONTROLE :", refus[:3]); return
+        arreter(etat, f"controle_avant_run a refuse {len(refus)} job(s) : {refus[0]}"); return
+    resume = (f"\n## Iteration {it} — {time.strftime('%d/%m %H:%M')}{' ( A BLANC )' if a_blanc else ''}\n"
+              f"Regle lue : `{regle}`. Appris sur {len(E)} episodes ( compromission {monde.taux:.3f} ). "
+              f"{bilan['imagines']} situations imaginees, {bilan['pieges_imagines']} pieges jouables imagines, regret max {bilan['regret_max']:.3f}.\n"
+              + "\n".join(f"- {p['genre']:<12} {p['situation']} graines {p['graines']}"
+                          + (f" : risque traverser {p['risque_traverser']:.2f}, attendre {p['risque_attendre']:.2f}, regret {p['regret_imagine']:.2f}, "
+                             f"incertitude {p['incertitude']:.2f}, nouveaute {p['nouveaute']:.0f}" if p.get("risque_traverser") is not None else "")
+                          for p in props)
+              + f"\n{len(poses)} jobs, {n_ep} episodes.")
+    if a_blanc: print(resume); print("A BLANC : tous les garde-fous et controles passent, RIEN n a ete pose."); return
+    etat.update(phase="VOL", propositions=props, jobs=poses, empreinte=G.empreinte_mission(), reparations=0,
+                sans_piege_suite=(etat["sans_piege_suite"] + 1) if bilan["pieges_imagines"] == 0 else 0)
+    etat["historique"].append(dict(iteration=it, campagne=etat["campagne"], debut_ts=time.time(), n_jobs=len(poses),
+                                   n_episodes=n_ep, **bilan))
+    sauver(etat); journal(resume); print(f"POSE iteration {it} : {len(poses)} jobs")
+
+
+def etape_vol(etat):
+    if G.empreinte_mission() != etat["empreinte"]:
+        etat["historique"][-1]["mission_modifiee_en_vol"] = True
+        journal("- ⚠️ la mission a change pendant le vol : l iteration sera mise en quarantaine")
+    import glob
+    att = [f for f in glob.glob(f"{C.QUEUE}/*.json") if os.path.basename(f) in etat["jobs"]]
+    vol_tous = len(glob.glob(f"{C.EN_COURS}/*.json"))
+    vol = [f for f in glob.glob(f"{C.EN_COURS}/*.json") if os.path.basename(f) in etat["jobs"]]
+    if att and vol_tous < C.VOL_MAX: print(f"NOURRIR {min(C.VOL_MAX - vol_tous, len(att))}")
+    if not att and not vol: etat["phase"] = "LECTURE"; sauver(etat); print("VOL TERMINE")
+    else: print(f"VOL : {len(vol)} en vol, {len(att)} en attente")
+
+
+def etape_lecture(etat):
+    E = Dn.episodes(lambda c: c == etat["campagne"])
+    for e in E: e["candidat"] = candidat_de(e)
+    q, arret, raisons = G.verifier_apres_vol(E, etat["campagne"])
+    if etat["historique"][-1].get("mission_modifiee_en_vol"): q = True; raisons.append("mission modifiee pendant le vol")
+    if arret: etat["historique"][-1].update(quarantaine=True, raisons=raisons); arreter(etat, "apres le vol : " + " ; ".join(raisons)); return
+    vides = G.cases_vides(E, etat["propositions"])
+    if vides and etat["reparations"] == 0 and not q:
+        etat["reparations"] = 1
+        props = [etat["propositions"][k] for k in sorted({k for k, _ in vides})]
+        jobs = [j for j in construire_jobs(etat, etat["propositions"]) if (candidat_de(j), j["traversee"]) in set(vides)]
+        for j in jobs: j["version"] += "-rep"
+        poses, refus = poser_jobs(jobs)
+        etat["jobs"] += poses; etat["phase"] = "VOL"; sauver(etat)
+        journal(f"- reparation : {len(vides)} case(s) vide(s) rejouee(s), {len(poses)} job(s)"); print(f"REPARATION {len(poses)} jobs"); return
+    etat["historique"][-1].update(quarantaine=q, raisons=raisons, cases_vides=len(vides))
+    etat["quarantaines_suite"] = etat["quarantaines_suite"] + 1 if q else 0
+    if q: journal(f"- **quarantaine** : {' ; '.join(raisons)} — on n apprend rien de cette iteration")
+    if etat["quarantaines_suite"] >= C.ARRET_QUARANTAINES:
+        arreter(etat, f"{etat['quarantaines_suite']} iterations en quarantaine de suite"); return
+    etat["phase"] = "APPRENTISSAGE"; sauver(etat); print("LECTURE FAITE", "( quarantaine )" if q else "")
+
+
+def etape_apprentissage(etat):
+    h = etat["historique"][-1]
+    if not h.get("quarantaine"):
+        E_it = Dn.utilisables(Dn.episodes(lambda c: c == etat["campagne"]))
+        for e in E_it: e["candidat"] = candidat_de(e)
+        # 1. L IMAGINATION AVAIT-ELLE VU JUSTE ? modele appris SANS cette iteration, juge sur elle
+        E_avant = [e for e in historique_propre(etat) if e["campagne"] != etat["campagne"]]
+        m = M.Monde().apprendre(E_avant)
+        mu, _ = m.predire([{k: e[k] for k in C.ARMES} for e in E_it], [e["graine"] for e in E_it], [e["option"] for e in E_it])
+        Y = np.array([e["compromis"] for e in E_it])
+        b_mod, b_cst = float(np.mean((mu - Y) ** 2)), float(np.mean((m.taux - Y) ** 2))
+        h.update(brier_imagination=b_mod, brier_constante=b_cst, n_utilisables=len(E_it))
+        etat["imagination_pire_suite"] = etat["imagination_pire_suite"] + 1 if b_mod >= b_cst else 0
+        # 2. CE QUE CHAQUE CANDIDAT A DONNE : regret observe, mur ou piege jouable
+        regle = A.charger(); murs = 0
+        for k, p in enumerate(etat["propositions"]):
+            Ek = [e for e in E_it if e["candidat"] == k]
+            if not Ek: continue
+            taux = {o: np.mean([e["compromis"] for e in Ek if e["option_imposee"] == o]) if any(e["option_imposee"] == o for e in Ek) else None for o in (1, 2)}
+            if None in taux.values(): continue
+            o_regle = int(np.round(np.mean(A.choix(regle, Ek)))) if regle["type"] != "constante" else regle["option"]
+            regret = taux[o_regle] - min(taux.values()); jouable = 1 - min(taux.values()) >= C.SEUIL_JOUABLE_OBSERVE
+            murs += int(not jouable)
+            p.update(taux_observe={str(o): float(v) for o, v in taux.items()}, regret_observe=float(regret), jouable_observe=bool(jouable), option_regle=o_regle)
+            cle_p = (Gen.cle(p["situation"]), tuple(p["graines"]))
+            if p["genre"] != "confirmation" and regret > C.REGRET_MIN_PIEGE and jouable and \
+               cle_p not in {(Gen.cle(x["situation"]), tuple(x["graines"])) for x in etat["a_confirmer"] + etat["confirmes"] + etat["infirmes"]}:
+                etat["a_confirmer"].append(dict(situation=p["situation"], graines=p["graines"], regret_observe=float(regret), option_regle=o_regle))
+        # 3. LES CONFIRMATIONS : tout ce qui a ete joue de ce piege, cumule ; test exact de Fisher
+        tous = Dn.utilisables(Dn.episodes(est_diable))
+        for p in list(etat["a_confirmer"]):
+            Ep = [e for e in tous if Gen.cle({k: e[k] for k in C.ARMES}) == Gen.cle(p["situation"]) and e["graine"] in p["graines"]]
+            o, a = p["option_regle"], 3 - p["option_regle"]
+            n_o, c_o = sum(1 for e in Ep if e["option_imposee"] == o), sum(e["compromis"] for e in Ep if e["option_imposee"] == o)
+            n_a, c_a = sum(1 for e in Ep if e["option_imposee"] == a), sum(e["compromis"] for e in Ep if e["option_imposee"] == a)
+            if min(n_o, n_a) < 6: continue
+            _, pv = fisher_exact([[c_o, n_o - c_o], [c_a, n_a - c_a]], alternative="greater")
+            if pv < C.ALPHA_CONFIRMATION and (1 - c_a / n_a) >= C.SEUIL_JOUABLE_OBSERVE:
+                etat["a_confirmer"].remove(p); p.update(p_fisher=float(pv), n=[n_o, n_a], compromis=[c_o, c_a]); etat["confirmes"].append(p)
+                journal(f"- 😈 **PIEGE CONFIRME** : {p['situation']} graines {p['graines']} — la regle choisit l option {o}, "
+                        f"compromise {c_o}/{n_o}, contre {c_a}/{n_a} pour l autre ( Fisher p = {pv:.3f} )")
+            elif min(n_o, n_a) >= 12:
+                etat["a_confirmer"].remove(p); p.update(p_fisher=float(pv)); etat["infirmes"].append(p)
+                journal(f"- piege infirme : {p['situation']} ( Fisher p = {pv:.3f} sur {n_o}+{n_a} episodes )")
+        h.update(murs=murs, pieges_confirmes_total=len(etat["confirmes"]))
+        journal(f"- imagination : Brier {b_mod:.4f} contre constante {b_cst:.4f} "
+                f"{'( elle voit mieux que le hasard )' if b_mod < b_cst else '( PAS mieux que la constante )'} ; "
+                f"{murs} mur(s) ; {len(etat['a_confirmer'])} piege(s) a confirmer, {len(etat['confirmes'])} confirme(s)")
+    h["fin_ts"] = time.time(); etat["phase"] = "REPOS"; sauver(etat)
+    if etat["sans_piege_suite"] >= C.ARRET_SANS_PIEGE:
+        arreter(etat, f"le diable n imagine plus aucun piege depuis {etat['sans_piege_suite']} iterations : l equation tient"); return
+    if etat["imagination_pire_suite"] >= C.ARRET_IMAGINATION_PIRE:
+        arreter(etat, f"imagination pas meilleure que la constante {etat['imagination_pire_suite']} fois de suite"); return
+    print(f"APPRENTISSAGE FAIT, iteration {etat['iteration']}")
+
+
+def tour(a_blanc=False):
+    os.makedirs(C.ETAT_DIR, exist_ok=True)
+    verrou = open(f"{C.ETAT_DIR}/tick.lock", "w")
+    try: fcntl.flock(verrou, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError: print("un autre tour est en cours"); return
+    etat = charger()
+    if not G.disque_monte(): print("ATTENTE : /mnt/data absent"); return
+    if a_blanc: etape_repos(dict(etat), a_blanc=True); return
+    if etat.get("arret"): print("ARRETE :", etat["arret"], "- supprimer la cle arret de etat.json pour reprendre"); return
+    if G.stop_demande(): print("STOP demande ( fichier STOP ) : le diable ne pose plus rien") if etat["phase"] == "REPOS" else None
+    ph = etat["phase"]
+    if ph == "REPOS":
+        if G.stop_demande(): return
+        etape_repos(etat)
+    elif ph == "VOL": etape_vol(etat)
+    elif ph == "LECTURE": etape_lecture(etat)
+    elif ph == "APPRENTISSAGE": etape_apprentissage(etat)
+
+
+if __name__ == "__main__":
+    if "--etat" in sys.argv: print(json.dumps({k: v for k, v in charger().items() if k not in ("propositions",)}, indent=1)[:4000])
+    else: tour(a_blanc="--a-blanc" in sys.argv)
