@@ -1,0 +1,14 @@
+== EQUATION DE L ARCHITECTE, PHASE 2 - jeu B : 962 episodes, 16 mondes, compromission 0.127, 22 variables
+   budget EvoGP en validation croisee : population 300000, 300 generations, 5 graines, parcimonies [0.0, 0.0001, 0.001] ; duree 3.5 h
+
+   modele              Brier  log-perte   ecart de Brier a la constante, IC 95 % par monde
+   constante          0.1114     0.3831   —
+   logistique         0.1116     0.3843   +0.0003 [-0.0000 ; +0.0006]  
+   reseau             0.1162     0.4160   +0.0048 [+0.0015 ; +0.0090]  
+   evogp_p0           0.1400     0.5962   +0.0286 [+0.0116 ; +0.0456]  
+   evogp_p0.0001      0.1209     0.4831   +0.0095 [+0.0022 ; +0.0188]  
+   evogp_p0.001       0.1124     0.3884   +0.0010 [-0.0000 ; +0.0021]  
+
+   plafond ( reseau ) : NE bat PAS la constante
+
+   VERDICT ( regle ecrite d avance ) : AUCUNE equation ne bat la constante sur mondes neufs. Le reseau non plus : rien de previsible dans ces variables.

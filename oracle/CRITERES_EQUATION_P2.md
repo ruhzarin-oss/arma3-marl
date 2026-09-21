@@ -120,3 +120,15 @@ sur « rien ». Elle est indifférente entre traverser et attendre dans 100 % de
   c'est exactement la même cible.
 
 Le modèle du monde (jeu B, variables de contexte) est lu séparément quand son calcul finit.
+
+## Lecture secondaire — jeu B ( perception + contexte ), 21/09 20 h 35
+
+Même verdict que le jeu A : **aucune équation ne bat la constante sur des mondes neufs, le réseau non plus**
+(constante 0,1114 ; logistique 0,1116 ; réseau 0,1162, pire ; EvoGP 0,1124 à 0,1400). Savoir si l'Oracle est monté,
+s'il fait jour, quel type de menace, ne permet pas de prédire la compromission **d'un monde jamais vu**.
+
+Comparaison avec l'imagination de l'Oracle autonome, qui, elle, bat la constante sur ses itérations : la différence
+tient à ce qu'on lui demande. L'imagination est jugée sur des **situations neuves dans des mondes connus** (elle sait
+qu'un monde est dur ou facile, par sa graine) ; le jeu B est jugé sur des **mondes neufs**. Une part de ce que voit
+l'imagination est donc la **personnalité de chaque monde**, qui ne se transporte pas. Il n'y a pas, dans ces
+données, de loi générale à faire tourner sur GPU comme un monde de poche.
