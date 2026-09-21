@@ -80,3 +80,43 @@ IC 95 % de l'écart à la constante par **10 000 rééchantillonnages des mondes
 Les épisodes viennent surtout d'un monde qui punissait peu (16 % de compromission) ; l'effet de l'option a été
 mesuré nul ou non répliqué plusieurs fois. **La réponse la plus probable est une équation plate.** Elle est écrite
 pour pouvoir le dire proprement.
+
+## Résultat — 21/09 16 h 40 : **l'équation est plate, et même le réseau ne voit rien**
+
+Lecture unique, jeu A, 962 épisodes, 16 mondes laissés de côté tour à tour. Brier sur mondes jamais vus :
+
+| modèle | Brier | écart à la constante | IC 95 % par monde |
+|---|---|---|---|
+| **constante** | **0,1114** | — | — |
+| logistique (avec interactions option × perception) | 0,1117 | +0,0003 | [+0,0000 ; +0,0007] |
+| **réseau de neurones** (le plafond) | 0,1150 | **+0,0036** | [+0,0011 ; +0,0062] — **pire** |
+| EvoGP, sans parcimonie | 0,1229 | +0,0116 | [+0,0039 ; +0,0197] — pire |
+| EvoGP, parcimonie 10⁻⁴ | 0,1161 | +0,0048 | [+0,0015 ; +0,0076] — pire |
+| EvoGP, parcimonie 10⁻³ | 0,1124 | +0,0010 | [−0,0000 ; +0,0021] |
+
+**Verdict, selon la règle écrite d'avance : aucune équation ne bat la constante sur des mondes neufs — et le réseau
+non plus.** Tout ce qui cherche une forme plus riche fait pire : il apprend le bruit de ses propres mondes.
+
+**La formule finale** — parcimonie choisie par la validation croisée, puis 1 000 000 de programmes × 600
+générations × 10 graines — est :
+
+> **P(compromis) = 0,10**
+
+Une constante. EvoGP poussé **360 fois** plus loin que la dernière fois, avec toutes les fonctions permises, converge
+sur « rien ». Elle est indifférente entre traverser et attendre dans 100 % des épisodes.
+
+### Ce que ça veut dire
+
+- **Ce n'est pas un manque d'effort de l'algorithme** : à ce budget, et avec un réseau qui n'impose aucune forme,
+  s'il y avait une structure dans ces variables on l'aurait vue. C'est le premier falsificateur écrit d'avance qui
+  est franchi : **l'Architecte n'a aucune règle apprenable à partir de ce qu'il perçoit, dans le monde tel qu'il a
+  été joué.**
+- Un indice le disait dès la construction de la table : dans ces 962 épisodes, la **distance de la menace n'est
+  jamais connue** au moment du choix — la variable est constante. L'Architecte décide aveugle.
+- **Pour le duel :** c'est la confirmation que c'est à l'Oracle de **créer** la structure que l'équation apprendra.
+  Le diable, qui explore en ce moment même, cherche précisément des situations où une option vaut mieux que
+  l'autre ; tant qu'il n'en trouve pas, aucune règle n'a rien à apprendre.
+- La règle que lit le diable reste « traverser » : une équation indifférente départage par défaut vers traverser,
+  c'est exactement la même cible.
+
+Le modèle du monde (jeu B, variables de contexte) est lu séparément quand son calcul finit.
