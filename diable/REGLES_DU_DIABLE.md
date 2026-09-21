@@ -80,3 +80,24 @@ retirant la clé `arret` de `etat.json`. Un fichier `STOP` dans `/mnt/data/hmt/d
   cherche où traverser tue alors qu'attendre sauve. C'est une vraie cible, pas encore la vraie.
 - Avec 2 épisodes par option et par situation au premier passage, un piège entrevu n'est qu'une rumeur : seul le
   cumul des confirmations le rend réel.
+
+## Amendement 1 — 21/09 17 h 45 : l'imagination était boguée, pas ignorante
+
+Aux itérations 1 et 2, l'imagination a fait **pire que la constante** (Brier 0,186 contre 0,168, puis 0,186 contre
+0,153). Diagnostic : elle prédisait **0,335 de compromission sur ses propres situations d'apprentissage, pour un
+taux réel de 0,162**. Ce n'était pas l'inconnu — c'était un **bogue** : les réseaux `MLPClassifier` avec
+`early_stopping=True` s'arrêtent sur la *justesse* de validation, qui plafonne immédiatement quand 84 % des cas sont
+négatifs ; ils s'arrêtaient avant d'être calibrés.
+
+**Correction :** l'imagination devient un ensemble de 10 **régressions logistiques L2** avec les interactions arme ×
+option, chacune apprise sur un tirage des épisodes. Calibrée par construction ; une valeur rare a un coefficient
+rabattu vers zéro, donc une prédiction ramenée au taux de base. C'est aussi la forme que le point 1 a trouvée la
+moins mauvaise.
+
+**Vérifié avant d'installer**, sur une copie : prédiction moyenne 0,162 pour 0,162 réel ; et rejouée sur les
+itérations 1 et 2 avec l'imagination *d'avant* chacune, elle bat la constante les deux fois (0,158 contre 0,168 ;
+0,140 contre 0,153).
+
+**Conséquences :** les deux mesures d'imagination des itérations 1 et 2 sont **nulles** (faites avec le modèle
+bogué) ; le compteur « imagination pire que la constante » est remis à zéro. Le piège entrevu à l'itération 2
+reste valable : il vient des épisodes observés, pas du modèle.
