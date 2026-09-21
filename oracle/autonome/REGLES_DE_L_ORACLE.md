@@ -1,17 +1,19 @@
-# Les règles du diable — écrites avant la première itération
+# Les règles de l'Oracle autonome — écrites avant la première itération
+
+*Renommé le 21/09 au soir, à la demande de Younes : « change le diable, appelle-le Oracle ». Jusque-là la boucle s'appelait « le diable » ; ses itérations 1 à 4 portent le préfixe `DIABLE-I`, les suivantes `ORACLE-I`. Les citations ci-dessous gardent le mot d'origine.*
 
 *21/09/2026. Younes : « l'Oracle a tous les droits, il peut absolument tout faire, sans foi ni loi, pour casser
 l'Architecte — c'est le diable » ; « je veux quelque chose d'autonome qui imagine des choses ». Ce fichier fixe ce
-que la boucle fait seule, ce qu'elle mesure, et quand elle s'arrête. Les seuils sont dans `diable/config.py` ; on ne
+que la boucle fait seule, ce qu'elle mesure, et quand elle s'arrête. Les seuils sont dans `oracle/autonome/config.py` ; on ne
 les change pas sans amender ce fichier.*
 
 ## Ce que fait la boucle, seule
 
-Toutes les 5 minutes, la tâche Windows `HMT_DIABLE` fait **un tour** : au plus une étape d'une machine à états dont
-l'état vit sur disque (`/mnt/data/hmt/diable/etat.json`) — un plantage ou un redémarrage reprend où on en était.
+Toutes les 5 minutes, la tâche Windows `HMT_ORACLE` fait **un tour** : au plus une étape d'une machine à états dont
+l'état vit sur disque (`/mnt/data/hmt/oracle_autonome/etat.json`) — un plantage ou un redémarrage reprend où on en était.
 
 1. **Imaginer.** Le diable apprend son modèle du monde (10 réseaux) sur tous les épisodes de phase 2 utilisables,
-   lit la règle de l'Architecte (`diable/architecte.json`), imagine **20 000 situations** parmi ses armes, et
+   lit la règle de l'Architecte (`oracle_autonome/architecte.json`), imagine **20 000 situations** parmi ses armes, et
    choisit **8 pièges** (là où l'option choisie par la règle est la plus dangereuse alors qu'une autre reste sûre),
    **4 explorations** et jusqu'à **2 confirmations** de pièges déjà entrevus. Les places de pièges restées vides
    reviennent à l'exploration.
@@ -53,7 +55,7 @@ Budget : **64 épisodes au plus par itération**, 20 itérations par 24 h, 50 au
 | cases, pas exemplaires | après le vol | 20/09 : une porte qui ne pouvait plus jamais passer après un plantage |
 
 **Quarantaine** : l'itération est gardée mais on n'en apprend rien. **Arrêt** : il faut un humain ; on reprend en
-retirant la clé `arret` de `etat.json`. Un fichier `STOP` dans `/mnt/data/hmt/diable/` empêche toute nouvelle pose.
+retirant la clé `arret` de `etat.json`. Un fichier `STOP` dans `/mnt/data/hmt/oracle_autonome/` empêche toute nouvelle pose.
 
 ## Ce qu'elle mesure
 
@@ -117,6 +119,6 @@ Avant d'imaginer quoi que ce soit, et avant de juger une itération, l'imaginati
 
 Un échec est un **défaut de code**, pas un monde difficile : la boucle **s'arrête** et écrit la signature.
 
-**Testé contre l'incident réel** (`diable/tester_gardes.py`, test 10) : la v1 reconstruite telle qu'elle était est
+**Testé contre l'incident réel** (`oracle/autonome/tester_gardes.py`, test 10) : la v1 reconstruite telle qu'elle était est
 interceptée (décalibrée, 0,335 pour 0,162, et inutile) ; l'imagination corrigée passe (0,162 pour 0,162, écart-type
 0,084) ; une imagination qui prédirait le taux de base partout est interceptée (figée). **17 garde-fous sur 17.**

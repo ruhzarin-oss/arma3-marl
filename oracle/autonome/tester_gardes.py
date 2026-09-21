@@ -1,5 +1,5 @@
 """Chaque garde-fou est teste CONTRE L INCIDENT REEL qu il doit attraper. Un garde-fou qui ne sait pas echouer ne
-protege de rien ( regle 16 ).  python -m diable.tester_gardes"""
+protege de rien ( regle 16 ).  python -m oracle.autonome.tester_gardes"""
 import numpy as np
 from . import config as C, donnees as Dn, gardes as G, generateur as Gen, monde as M, architecte as A
 
@@ -76,7 +76,7 @@ verifie("diversite : deux propositions different d au moins 3 armes",
         all(Gen.distance(a["situation"], b["situation"]) >= C.DISTANCE_MIN_DIVERSITE for i, a in enumerate(props) for b in props[i + 1:]))
 print("== 10. l imagination boguee du 21/09 ( reseaux arretes sur la justesse ) doit etre INTERCEPTEE")
 from sklearn.neural_network import MLPClassifier
-Eh = Dn.utilisables(Dn.episodes(lambda c: not str(c).startswith("DIABLE")))
+Eh = Dn.utilisables(Dn.episodes(lambda c: not str(c).startswith(C.PREFIXES_HISTORIQUES)))
 
 
 class MondeBogue(M.Monde):
@@ -108,5 +108,11 @@ class MondeFige(M.Monde):
 
 ok_f, raisons_f, _ = G.imagination_saine(MondeFige().apprendre(Eh), Eh)
 verifie("une imagination qui predit le taux de base partout est interceptee ( figee )", not ok_f, " ; ".join(raisons_f)[:160])
+print("== 11. l epreuve des motifs est prospective et ne conclut pas trop tot")
+from . import motifs as Mo
+cle = ("menace_p2", 5, "attendre_sauve")
+verifie("pas de verdict sous 20 episodes par option", Mo.epreuve(cle, dict(n_t=10, c_t=9, n_a=10, c_a=0))[0] == "en attente")
+verifie("un vrai ecart dans le sens predit est confirme", Mo.epreuve(cle, dict(n_t=40, c_t=20, n_a=40, c_a=5))[0] == "CONFIRME")
+verifie("un ecart dans le SENS CONTRAIRE n est pas confirme", Mo.epreuve(cle, dict(n_t=40, c_t=5, n_a=40, c_a=20))[0] == "non confirme")
 print(f"\n{sum(ok_total)} / {len(ok_total)} garde-fous testes contre leur incident : "
       f"{'TOUS PASSENT' if all(ok_total) else 'AU MOINS UN ECHOUE'}")

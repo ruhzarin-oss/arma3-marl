@@ -1,14 +1,14 @@
-"""UN TOUR DE LA BOUCLE. Lance toutes les 5 minutes par la tache Windows HMT_DIABLE ; chaque tour fait au plus une
+"""UN TOUR DE LA BOUCLE DE L ORACLE. Lance toutes les 5 minutes par la tache Windows HMT_ORACLE ; chaque tour fait au plus une
 etape de la machine a etats, puis rend la main. L etat vit sur disque : un plantage, un redemarrage ou une coupure
 reprennent exactement la ou on en etait.
   REPOS -> POSE -> VOL -> LECTURE -> ( REPARATION -> VOL -> LECTURE ) -> APPRENTISSAGE -> REPOS
-  python -m diable.tick            un tour
-  python -m diable.tick --a-blanc  imagine et controle une iteration SANS rien poser
-  python -m diable.tick --etat     affiche l etat"""
+  python -m oracle.autonome.tick            un tour
+  python -m oracle.autonome.tick --a-blanc  imagine et controle une iteration SANS rien poser
+  python -m oracle.autonome.tick --etat     affiche l etat"""
 import fcntl, json, os, shutil, sys, time
 import numpy as np
 from scipy.stats import fisher_exact
-from . import config as C, donnees as Dn, gardes as G, monde as M, architecte as A, generateur as Gen
+from . import config as C, donnees as Dn, gardes as G, monde as M, architecte as A, generateur as Gen, motifs as Mo
 
 ETAT = f"{C.ETAT_DIR}/etat.json"
 JOURNAL = f"{C.ETAT_DIR}/journal.md"
@@ -35,19 +35,19 @@ def arreter(etat, raison):
     journal(f"\n**⛔ ARRET {time.strftime('%d/%m %H:%M')} : {raison}**\n"); print("ARRET", raison)
 
 
-def est_diable(c): return str(c or "").startswith(C.PREFIXE_CAMPAGNE)
+def est_oracle(c): return str(c or "").startswith(C.PREFIXES_HISTORIQUES)
 
 
 def historique_propre(etat):
-    """Episodes utilisables pour apprendre : l historique admissible + les iterations du diable NON quarantainees."""
+    """Episodes utilisables pour apprendre : l historique admissible + les iterations de l Oracle NON quarantainees."""
     sales = {h["campagne"] for h in etat["historique"] if h.get("quarantaine")}
-    E = Dn.utilisables(Dn.episodes(lambda c: not (est_diable(c) and c in sales)))
+    E = Dn.utilisables(Dn.episodes(lambda c: not (est_oracle(c) and c in sales)))
     return E
 
 
 def deja_joue():
     return {(Gen.cle({k: e[k] for k in C.ARMES}), e["graine"], e["option_imposee"])
-            for e in Dn.episodes(est_diable) if e["verdict"] is not None}
+            for e in Dn.episodes(est_oracle) if e["verdict"] is not None}
 
 
 def gabarit():
@@ -69,8 +69,8 @@ def construire_jobs(etat, propositions):
                 j.update(p["situation"]); j.update(campagne=etat["campagne"], graines=list(p["graines"]), traversee=o,
                                                    oracle_ctrl=0, echelle=100, depart=2, arret=2,
                                                    instance=C.INSTANCES[rang % len(C.INSTANCES)],
-                                                   version=f"DIA-{etat['iteration']:03d}-c{k:02d}-o{o}-r{r}",
-                                                   note=f"Diable, iteration {etat['iteration']}, {p['genre']}, candidat {k}, option {o}.")
+                                                   version=f"ORA-{etat['iteration']:03d}-c{k:02d}-o{o}-r{r}",
+                                                   note=f"Oracle autonome, iteration {etat['iteration']}, {p['genre']}, candidat {k}, option {o}.")
                 jobs.append(j); rang += 1
     return jobs
 
@@ -94,8 +94,8 @@ def candidat_de(e):
 
 # ------------------------------------------------------------------------------------------------ les etapes
 def etape_repos(etat, a_blanc=False):
-    if not G.file_vide(): print("ATTENTE : la file n est pas vide ( une autre campagne vole ), le diable ne pose rien"); return
-    if not G.depot_propre(): print("ATTENTE : depot non commite ( bancs, outils ou diable )"); return
+    if not G.file_vide(): print("ATTENTE : la file n est pas vide ( une autre campagne vole ), l Oracle ne pose rien"); return
+    if not G.depot_propre(): print("ATTENTE : depot non commite ( bancs, outils ou oracle/autonome )"); return
     if not a_blanc:
         etat["iteration"] += 1
     it = etat["iteration"] if not a_blanc else etat["iteration"] + 1
@@ -207,7 +207,7 @@ def etape_apprentissage(etat):
                cle_p not in {(Gen.cle(x["situation"]), tuple(x["graines"])) for x in etat["a_confirmer"] + etat["confirmes"] + etat["infirmes"]}:
                 etat["a_confirmer"].append(dict(situation=p["situation"], graines=p["graines"], regret_observe=float(regret), option_regle=o_regle))
         # 3. LES CONFIRMATIONS : tout ce qui a ete joue de ce piege, cumule ; test exact de Fisher
-        tous = Dn.utilisables(Dn.episodes(est_diable))
+        tous = Dn.utilisables(Dn.episodes(est_oracle))
         for p in list(etat["a_confirmer"]):
             Ep = [e for e in tous if Gen.cle({k: e[k] for k in C.ARMES}) == Gen.cle(p["situation"]) and e["graine"] in p["graines"]]
             o, a = p["option_regle"], 3 - p["option_regle"]
@@ -217,18 +217,35 @@ def etape_apprentissage(etat):
             _, pv = fisher_exact([[c_o, n_o - c_o], [c_a, n_a - c_a]], alternative="greater")
             if pv < C.ALPHA_CONFIRMATION and (1 - c_a / n_a) >= C.SEUIL_JOUABLE_OBSERVE:
                 etat["a_confirmer"].remove(p); p.update(p_fisher=float(pv), n=[n_o, n_a], compromis=[c_o, c_a]); etat["confirmes"].append(p)
-                journal(f"- 😈 **PIEGE CONFIRME** : {p['situation']} graines {p['graines']} — la regle choisit l option {o}, "
+                journal(f"- 🔮 **PIEGE CONFIRME** : {p['situation']} graines {p['graines']} — la regle choisit l option {o}, "
                         f"compromise {c_o}/{n_o}, contre {c_a}/{n_a} pour l autre ( Fisher p = {pv:.3f} )")
             elif min(n_o, n_a) >= 12:
                 etat["a_confirmer"].remove(p); p.update(p_fisher=float(pv)); etat["infirmes"].append(p)
                 journal(f"- piege infirme : {p['situation']} ( Fisher p = {pv:.3f} sur {n_o}+{n_a} episodes )")
-        h.update(murs=murs, pieges_confirmes_total=len(etat["confirmes"]))
+        # 4. LES MOTIFS ( Younes, 21/09 : « ce que je veux c est reperer les patterns » ) : ceux que l imagination a
+        # appris SANS cette iteration, mis a l epreuve SUR elle - un test prospectif, cumule d une iteration a l autre.
+        mot = Mo.motifs_du_modele(m)
+        for mo in mot: mo["compte"] = Mo.compter(mo, E_it)
+        fj = f"{C.ETAT_DIR}/motifs.jsonl"
+        with open(fj, "a") as f: f.write(json.dumps(dict(iteration=etat["iteration"], motifs=mot)) + "\n")
+        cum = Mo.cumuler([json.loads(l) for l in open(fj)])
+        lignes = []
+        for cle, c in sorted(cum.items(), key=lambda kv: -kv[1]["vu"])[:6]:
+            verdict, pv = Mo.epreuve(cle, c)
+            if verdict == "CONFIRME" and list(cle) not in etat.setdefault("motifs_confirmes", []):
+                etat["motifs_confirmes"].append(list(cle))
+                journal(f"- 🔎 **MOTIF CONFIRME** : quand {cle[0]} = {cle[1]}, {'attendre SAUVE' if cle[2] == 'attendre_sauve' else 'attendre COUTE'} "
+                        f"( prospectif : traverser {c['c_t']}/{c['n_t']}, attendre {c['c_a']}/{c['n_a']}, Fisher p = {pv:.3f} )")
+            lignes.append(f"{cle[0]}={cle[1]} {'attendre sauve' if cle[2] == 'attendre_sauve' else 'attendre coute'} "
+                          f"[vu {c['vu']} fois ; traverser {c['c_t']}/{c['n_t']}, attendre {c['c_a']}/{c['n_a']} ; {verdict}]")
+        journal("- motifs appris puis eprouves sur cette iteration : " + " | ".join(lignes))
+        h.update(murs=murs, pieges_confirmes_total=len(etat["confirmes"]), motifs_confirmes_total=len(etat.get("motifs_confirmes", [])))
         journal(f"- imagination : Brier {b_mod:.4f} contre constante {b_cst:.4f} "
                 f"{'( elle voit mieux que le hasard )' if b_mod < b_cst else '( PAS mieux que la constante )'} ; "
                 f"{murs} mur(s) ; {len(etat['a_confirmer'])} piege(s) a confirmer, {len(etat['confirmes'])} confirme(s)")
     h["fin_ts"] = time.time(); etat["phase"] = "REPOS"; sauver(etat)
     if etat["sans_piege_suite"] >= C.ARRET_SANS_PIEGE:
-        arreter(etat, f"le diable n imagine plus aucun piege depuis {etat['sans_piege_suite']} iterations : l equation tient"); return
+        arreter(etat, f"l Oracle n imagine plus aucun piege depuis {etat['sans_piege_suite']} iterations : l equation tient"); return
     if etat["imagination_pire_suite"] >= C.ARRET_IMAGINATION_PIRE:
         arreter(etat, f"imagination pas meilleure que la constante {etat['imagination_pire_suite']} fois de suite"); return
     print(f"APPRENTISSAGE FAIT, iteration {etat['iteration']}")
@@ -243,7 +260,7 @@ def tour(a_blanc=False):
     if not G.disque_monte(): print("ATTENTE : /mnt/data absent"); return
     if a_blanc: etape_repos(dict(etat), a_blanc=True); return
     if etat.get("arret"): print("ARRETE :", etat["arret"], "- supprimer la cle arret de etat.json pour reprendre"); return
-    if G.stop_demande(): print("STOP demande ( fichier STOP ) : le diable ne pose plus rien") if etat["phase"] == "REPOS" else None
+    if G.stop_demande(): print("STOP demande ( fichier STOP ) : l Oracle ne pose plus rien") if etat["phase"] == "REPOS" else None
     ph = etat["phase"]
     if ph == "REPOS":
         if G.stop_demande(): return

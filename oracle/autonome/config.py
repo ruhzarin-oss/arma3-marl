@@ -1,12 +1,14 @@
-"""Constantes du diable : chemins, budget, seuils, et l espace des armes. Tout seuil ici est cite dans
-REGLES_DU_DIABLE.md ; on ne le change pas sans amender ce fichier."""
+"""Constantes de l Oracle autonome : chemins, budget, seuils, et l espace des armes. Tout seuil ici est cite dans
+REGLES_DE_L_ORACLE.md ; on ne le change pas sans amender ce fichier."""
 H = "/mnt/data/hmt"
 DEPOT = f"{H}/depot"
-ETAT_DIR = f"{H}/diable"
+ETAT_DIR = f"{H}/oracle_autonome"
 MISSION = f"{DEPOT}/bancs/chacaloracle"
 QUEUE, EN_COURS, PREP, RUNS = f"{H}/queue", f"{H}/queue/en_cours", f"{H}/queue_preparation", f"{H}/runs"
 CONTROLE = f"{DEPOT}/outils/controle_avant_run.sh"
-PREFIXE_CAMPAGNE = "DIABLE-I"
+PREFIXE_CAMPAGNE = "ORACLE-I"
+# les iterations 1 a 4 ont ete jouees sous l ancien nom : on les relit toutes
+PREFIXES_HISTORIQUES = ("DIABLE-I", "ORACLE-I")
 GRAINE = 20260921
 
 # --- budget ---
@@ -31,7 +33,7 @@ ARRET_QUARANTAINES = 2             # iterations quarantainees de suite -> arret
 ARRET_SANS_PIEGE = 3               # iterations sans piege imagine de suite -> arret, l equation tient
 ARRET_IMAGINATION_PIRE = 5         # imagination pire que la constante 5 fois de suite -> arret
 
-# --- l espace des armes ( phase 2, depart a la route ) : valeurs permises par description.ext ---
+# --- l espace des armes de l Oracle ( phase 2, depart a la route ) : valeurs permises par description.ext ---
 GRAINES = [4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]   # mondes valides ( test du 21/09 )
 ARMES = {
     "situation":    list(range(1, 17)),

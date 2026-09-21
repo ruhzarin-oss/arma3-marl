@@ -1,4 +1,4 @@
-"""Le diable imagine : il tire des milliers de situations, predit pour chacune le risque sous chaque option et ce
+"""L Oracle imagine : il tire des milliers de situations, predit pour chacune le risque sous chaque option et ce
 que la regle de l Architecte y choisirait, et garde celles ou la regle se trompe alors qu une autre option reste
 sure ( exploitation ), celles qu il ne connait pas ( exploration ), et les pieges a confirmer."""
 import numpy as np
@@ -64,7 +64,7 @@ def proposer(monde, regle, E_hist, deja_joue, a_confirmer, rng):
         else:
             s = {k: int(rng.choice(v)) for k, v in C.ARMES.items()}
             cands.append((s, tuple(int(x) for x in rng.choice(C.GRAINES, 2, replace=False))))
-    # le diable reprend aussi ses meilleurs pieges passes, legerement mutes
+    # l Oracle reprend aussi ses meilleurs pieges passes, legerement mutes
     for p in a_confirmer[:50]:
         for _ in range(20):
             s = dict(p["situation"])

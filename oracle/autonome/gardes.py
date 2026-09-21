@@ -31,7 +31,7 @@ def empreinte_mission():
 
 
 def depot_propre():
-    r = subprocess.run(["git", "-C", C.DEPOT, "status", "--porcelain", "bancs/chacaloracle", "outils", "diable"],
+    r = subprocess.run(["git", "-C", C.DEPOT, "status", "--porcelain", "bancs/chacaloracle", "outils", "oracle/autonome"],
                        capture_output=True, text=True)
     return r.returncode == 0 and not r.stdout.strip()
 

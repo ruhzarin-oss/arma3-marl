@@ -1,4 +1,4 @@
-"""L imagination du diable : un modele du monde qui predit la compromission d une situation sous chaque option.
+"""L imagination de l Oracle : un modele du monde qui predit la compromission d une situation sous chaque option.
 Ensemble de 10 modeles appris chacun sur un tirage des episodes : leur moyenne est le risque imagine, leur
 desaccord l incertitude ( la curiosite ).
 

@@ -1,9 +1,9 @@
-"""Pourquoi l imagination du diable fait-elle pire que la constante ? Hypothese : pour une valeur d arme rare ou
+"""Pourquoi l imagination de l Oracle fait-elle pire que la constante ? Hypothese : pour une valeur d arme rare ou
 jamais vue, les poids du reseau n ont presque pas ete entraines ; leurs decalages aleatoires, moyennes en
 probabilite autour d un taux bas ( 16 % ), tirent la prediction VERS LE HAUT ( la sigmoide est convexe ici )."""
 import numpy as np
-from diable import config as C, donnees as Dn, monde as M
-E = Dn.utilisables(Dn.episodes(lambda c: not str(c).startswith("DIABLE")))
+from oracle.autonome import config as C, donnees as Dn, monde as M
+E = Dn.utilisables(Dn.episodes(lambda c: not str(c).startswith(("DIABLE-I", "ORACLE-I"))))
 m = M.Monde().apprendre(E)
 sit = [{k: e[k] for k in C.ARMES} for e in E]
 mu, _ = m.predire(sit, [e["graine"] for e in E], [e["option"] for e in E])
@@ -21,5 +21,5 @@ for titre, choisir in (("valeur FREQUENTE ( >= 200 episodes )", lambda k: [v for
         k = ks[rng.integers(len(ks))]; s2 = dict(s); s2[k] = int(rng.choice(choisir(k)))
         p, _ = m.predire([s2], [g], [1]); preds.append(p[0])
     print(f"   une arme changee vers une {titre:<38} : prediction moyenne {np.mean(preds):.3f} ( n {len(preds)} )" if preds else f"   {titre} : aucune")
-E_d = Dn.utilisables(Dn.episodes(lambda c: str(c).startswith("DIABLE")))
-print(f"episodes du diable joues : {len(E_d)}, compromission reelle {np.mean([e['compromis'] for e in E_d]):.3f}")
+E_d = Dn.utilisables(Dn.episodes(lambda c: str(c).startswith(("DIABLE-I", "ORACLE-I"))))
+print(f"episodes de l Oracle joues : {len(E_d)}, compromission reelle {np.mean([e['compromis'] for e in E_d]):.3f}")

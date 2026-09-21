@@ -1,4 +1,4 @@
-"""La regle de l Architecte, telle que le diable la LIT. Interchangeable : fichier ETAT_DIR/architecte.json.
+"""La regle de l Architecte, telle que l Oracle la LIT. Interchangeable : fichier ETAT_DIR/architecte.json.
   {"type": "constante", "option": 1}
   {"type": "formule", "formule": "...", "noms": [...]}  - formule EvoGP sur la perception a la decision, P(compromis)
 La regle choisit, pour une perception donnee, l option dont la compromission predite est la plus faible."""

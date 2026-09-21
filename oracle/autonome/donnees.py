@@ -1,5 +1,5 @@
-"""Lecture des episodes de phase 2 : les armes du diable ( lues dans le job ), la perception de l Architecte a la
-decision, l option jouee, et l issue. Utilise pour l historique ET pour les iterations du diable."""
+"""Lecture des episodes de phase 2 : les armes de l Oracle ( lues dans le job ), la perception de l Architecte a la
+decision, l option jouee, et l issue. Utilise pour l historique ET pour les iterations de l Oracle."""
 import glob, json, os, re
 from . import config as C
 
@@ -21,7 +21,7 @@ def num(x, d=None):
 
 
 def admissible(j):
-    """Un episode de phase 2 comparable a ce que joue le diable."""
+    """Un episode de phase 2 comparable a ce que joue l Oracle."""
     return (bool(j.get("menace_p2")) and int(j.get("depart", 0)) == 2 and int(j.get("arret", 0)) == 2
             and int(j.get("oracle_ctrl") or 0) == 0 and int(j.get("echelle", 100)) == 100
             and str(j.get("banc", "")).startswith("chacal"))
