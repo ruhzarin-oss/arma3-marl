@@ -117,7 +117,8 @@ def etape_repos(etat, a_blanc=False):
         arreter(etat, f"controle_avant_run a refuse {len(refus)} job(s) : {refus[0]}"); return
     resume = (f"\n## Iteration {it} — {time.strftime('%d/%m %H:%M')}{' ( A BLANC )' if a_blanc else ''}\n"
               f"Regle lue : `{regle}`. Appris sur {len(E)} episodes ( compromission {monde.taux:.3f} ). "
-              f"{bilan['imagines']} situations imaginees, {bilan['pieges_imagines']} pieges jouables imagines, regret max {bilan['regret_max']:.3f}.\n"
+              f"{bilan['imagines']} situations imaginees, {bilan['pieges_imagines']} pieges jouables imagines, regret max {bilan['regret_max']:.3f} ; "
+              f"{bilan['valeurs_jamais_essayees']} valeurs d armes jamais essayees, {bilan['reste_a_explorer_apres']} apres ce lot.\n"
               + "\n".join(f"- {p['genre']:<12} {p['situation']} graines {p['graines']}"
                           + (f" : risque traverser {p['risque_traverser']:.2f}, attendre {p['risque_attendre']:.2f}, regret {p['regret_imagine']:.2f}, "
                              f"incertitude {p['incertitude']:.2f}, nouveaute {p['nouveaute']:.0f}" if p.get("risque_traverser") is not None else "")
@@ -125,7 +126,9 @@ def etape_repos(etat, a_blanc=False):
               + f"\n{len(poses)} jobs, {n_ep} episodes.")
     if a_blanc: print(resume); print("A BLANC : tous les garde-fous et controles passent, RIEN n a ete pose."); return
     etat.update(phase="VOL", propositions=props, jobs=poses, empreinte=G.empreinte_mission(), reparations=0,
-                sans_piege_suite=(etat["sans_piege_suite"] + 1) if bilan["pieges_imagines"] == 0 else 0)
+                # « l equation tient » ne se compte que lorsqu il ne reste plus rien a explorer : tant que des armes n ont
+                # jamais ete essayees, l absence de piege imagine dit seulement que l imagination ne sait pas
+                sans_piege_suite=(etat["sans_piege_suite"] + 1) if (bilan["pieges_imagines"] == 0 and bilan["valeurs_jamais_essayees"] == 0) else 0)
     etat["historique"].append(dict(iteration=it, campagne=etat["campagne"], debut_ts=time.time(), n_jobs=len(poses),
                                    n_episodes=n_ep, **bilan))
     sauver(etat); journal(resume); print(f"POSE iteration {it} : {len(poses)} jobs")

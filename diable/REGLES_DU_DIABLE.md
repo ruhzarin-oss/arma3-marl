@@ -13,7 +13,11 @@ l'état vit sur disque (`/mnt/data/hmt/diable/etat.json`) — un plantage ou un 
 1. **Imaginer.** Le diable apprend son modèle du monde (10 réseaux) sur tous les épisodes de phase 2 utilisables,
    lit la règle de l'Architecte (`diable/architecte.json`), imagine **20 000 situations** parmi ses armes, et
    choisit **8 pièges** (là où l'option choisie par la règle est la plus dangereuse alors qu'une autre reste sûre),
-   **4 explorations** (là où il ne connaît rien) et jusqu'à **2 confirmations** de pièges déjà entrevus.
+   **4 explorations** et jusqu'à **2 confirmations** de pièges déjà entrevus. Les places de pièges restées vides
+   reviennent à l'exploration.
+   **L'exploration est locale** : une situation déjà jouée dont on change **1 à 3 armes**, choisies pour couvrir le
+   plus de valeurs **jamais essayées**. Changer toutes les armes à la fois rendrait tout effet inattribuable — c'est
+   ce que la répétition à blanc du 21/09 a montré avant la première itération.
 2. **Poser.** Chaque situation est jouée **sous les deux options** — c'est ce qui permet de juger la règle après
    coup, et de vérifier qu'un choix gagnant existait.
 3. **Voler.** La tâche nourrit la ferme jusqu'à 12 serveurs.
@@ -62,7 +66,8 @@ retirant la clé `arret` de `etat.json`. Un fichier `STOP` dans `/mnt/data/hmt/d
 ## Quand elle s'arrête d'elle-même
 
 - 2 itérations de suite en quarantaine ;
-- 3 itérations de suite sans aucun piège jouable imaginé — **l'équation tient** ;
+- 3 itérations de suite sans aucun piège jouable imaginé **alors que toutes les valeurs d'armes ont été essayées** —
+  **l'équation tient**. Tant qu'il reste de l'inconnu, l'absence de piège imaginé dit seulement que l'imagination ne sait pas ;
 - 5 itérations de suite où l'imagination ne fait pas mieux que la constante — le diable n'apprend rien ;
 - un déploiement non prouvé ;
 - 50 itérations.

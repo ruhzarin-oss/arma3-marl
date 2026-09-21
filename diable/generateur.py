@@ -39,11 +39,31 @@ def evaluer(monde, p_choix, cands):
 
 def proposer(monde, regle, E_hist, deja_joue, a_confirmer, rng):
     p_choix = modele_du_choix(regle, E_hist)
+    joues = [dict(zip(C.ARMES, c)) for c in set(monde.configs)] or [dict(C.DEFAUTS)]
+    jamais = [(k, v) for k in C.ARMES for v in C.ARMES[k] if (k, v) not in monde.vu]
+    g_jamais = [g for g in C.GRAINES if ("graine", g) not in monde.vu]
+
+    def locale(n_max):
+        """Une situation deja jouee dont on change 1 a n_max armes - de preference vers des valeurs jamais essayees."""
+        s = {k: (v if v in C.ARMES[k] else int(rng.choice(C.ARMES[k]))) for k, v in joues[rng.integers(len(joues))].items()}
+        for _ in range(int(rng.integers(1, n_max + 1))):
+            if jamais and rng.random() < 0.7:
+                k, v = jamais[rng.integers(len(jamais))]; s[k] = int(v)
+            else:
+                k = list(C.ARMES)[rng.integers(len(C.ARMES))]; s[k] = int(rng.choice(C.ARMES[k]))
+        pool = g_jamais if (g_jamais and rng.random() < 0.3) else C.GRAINES
+        g0 = int(rng.choice(pool)); g1 = int(rng.choice([g for g in C.GRAINES if g != g0]))
+        return s, (g0, g1)
+
+    # ! 21/09, repetition a blanc : des candidats tires entierement au hasard changeaient TOUTES les armes a la fois
+    # vers des valeurs jamais vues. Rien n y serait attribuable. Moitie locale ( 1 a 4 armes changees a partir d une
+    # situation jouee, la ou l imagination est fiable ), moitie libre ( la ou elle ne l est pas ).
     cands = []
-    for _ in range(C.CANDIDATS_IMAGINES):
-        s = {k: int(rng.choice(v)) for k, v in C.ARMES.items()}
-        g = tuple(int(x) for x in rng.choice(C.GRAINES, 2, replace=False))
-        cands.append((s, g))
+    for i in range(C.CANDIDATS_IMAGINES):
+        if i % 2 == 0: cands.append(locale(4))
+        else:
+            s = {k: int(rng.choice(v)) for k, v in C.ARMES.items()}
+            cands.append((s, tuple(int(x) for x in rng.choice(C.GRAINES, 2, replace=False))))
     # le diable reprend aussi ses meilleurs pieges passes, legerement mutes
     for p in a_confirmer[:50]:
         for _ in range(20):
@@ -68,9 +88,31 @@ def proposer(monde, regle, E_hist, deja_joue, a_confirmer, rng):
                                 risque_attendre=float(r[i, 1]), incertitude=float(sd[i]), p_regle_attend=float(p2[i]),
                                 regret_imagine=float(regret[i]), nouveaute=float(nouv[i])))
     prendre(np.argsort(-score), C.K_EXPLOIT, "exploitation", jouable & (regret >= C.REGRET_MIN_PIEGE))
-    prendre(np.argsort(-(nouv + sd)), C.K_EXPLORE, "exploration", np.ones(len(cands), bool))
+    # EXPLORATION LOCALE ET COUVRANTE : 1 a 3 armes changees a partir d une situation jouee, et l on choisit
+    # gloutonnement celles qui couvrent le plus de valeurs JAMAIS essayees, pas encore couvertes dans ce lot.
+    # Les places d exploitation restees vides lui reviennent : la ferme ne tourne pas a vide.
+    n_explore = C.K_EXPLORE + (C.K_EXPLOIT - len([c for c in choisis if c["genre"] == "exploitation"]))
+    locaux = [locale(3) for _ in range(4000)]
+    locaux = [(s, g) for s, g in locaux if not any((cle(s), gi, o) in deja_joue for gi in g for o in (1, 2))]
+    rl, sdl, p2l, regl = evaluer(monde, p_choix, locaux) if locaux else (None, None, None, None)
+    couvert = set()
+    for _ in range(n_explore):
+        meilleur, mi = -1.0, None
+        for i, (s, g) in enumerate(locaux):
+            if any(distance(s, c["situation"]) < C.DISTANCE_MIN_DIVERSITE for c in choisis): continue
+            neuf = {(k, s[k]) for k in C.ARMES if (k, s[k]) not in monde.vu} | {("graine", x) for x in g if ("graine", x) not in monde.vu}
+            val = len(neuf - couvert) + float(sdl[i])
+            if val > meilleur: meilleur, mi = val, i
+        if mi is None: break
+        s, g = locaux[mi]
+        couvert |= {(k, s[k]) for k in C.ARMES if (k, s[k]) not in monde.vu} | {("graine", x) for x in g if ("graine", x) not in monde.vu}
+        choisis.append(dict(genre="exploration", situation=s, graines=list(g), risque_traverser=float(rl[mi, 0]),
+                            risque_attendre=float(rl[mi, 1]), incertitude=float(sdl[mi]), p_regle_attend=float(p2l[mi]),
+                            regret_imagine=float(regl[mi]), nouveaute=float(monde.nouveaute(s, g))))
     for p in a_confirmer[:C.K_CONFIRME]:
         choisis.append(dict(genre="confirmation", situation=p["situation"], graines=list(p["graines"]),
                             regret_observe=p.get("regret_observe"), regret_imagine=None))
     n_pieges = int((jouable & (regret >= C.REGRET_MIN_PIEGE)).sum())
-    return choisis, dict(imagines=len(cands), pieges_imagines=n_pieges, regret_max=float(regret.max()) if len(regret) else 0.0)
+    reste = len(set(jamais) - couvert) + len(set(("graine", g) for g in g_jamais) - couvert)
+    return choisis, dict(imagines=len(cands), pieges_imagines=n_pieges, regret_max=float(regret.max()) if len(regret) else 0.0,
+                         valeurs_jamais_essayees=len(jamais) + len(g_jamais), reste_a_explorer_apres=reste)
