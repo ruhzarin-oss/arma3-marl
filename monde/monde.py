@@ -43,6 +43,7 @@ class Monde:
         self.convois = []; self.n_convoi = 0
         self.conducteur_libre = {h.id: 0 for h in self.habitants if h.role == "convoyeur"}
         self.cerveau = G.CerveauLLM() if cerveau == "llm" else None
+        self.marchand = None               # pose par monde/apprenti.py : le reseau qui apprend a expedier
         self.memoire_gouv = ""
         self.epidemie_jour = epidemie_jour
         # --- les comptes : tout ce qui entre, sort, se cree ou se detruit ---
@@ -52,6 +53,7 @@ class Monde:
         self.biens_depart = self.biens_totaux()
         self.stats_jour = {}
         self.ecole = S.Ecole(self, eleve) if eleve is not None else None
+        self.chocs = []                 # secheresses : [{ debut, jours, lieux, facteur }] - le rendement des fermes baisse
         self.routes_coupees = set()     # lieux que plus aucun convoi ne peut atteindre ni quitter ( controle positif, E1 )
 
     # ------------------------------------------------------------------ le temps
@@ -208,7 +210,7 @@ class Monde:
         for lid, ouvriers in present.items():
             e = self.entreprises[lid]
             heures = len(ouvriers) * C.MINUTES_PAR_PAS / 60.0 * e.activite
-            f = heures
+            f = heures * self.facteur_choc(e.lieu)      # une secheresse coupe le RENDEMENT, pas les heures payees
             for b, q in e.intrants.items():          # les intrants limitent la production
                 dispo = self.reseau.stock if b == "electricite" else e.stocks[b]
                 f = min(f, dispo / q if q > 0 else f)
@@ -296,19 +298,11 @@ class Monde:
                             self.transferer(e, m, q * m.prix[b], "achat intrant")
                             self.transferer(e, self.gouv, q * m.prix[b] * self.gouv.tva, "tva")
                     else: m.demande[b] += q
-        # le commerce entre marches : un bien part la ou son prix couvre le transport et la marge
+        # le commerce entre marches. La decision - quel bien part d ou vers ou, en quelle quantite - est REMPLACABLE :
+        # `self.marchand` prend la main quand il est pose ( un reseau, par exemple ), sinon c est la regle ci-dessous.
         if 7 <= h < 15:
-            for a in self.marches.values():
-                for b in ("nourriture", "carburant", "remedes", "outils", "fer", "zinc", "petrole"):
-                    garde = self.reserve_marche(a, b)
-                    surplus = a.stocks[b] - garde
-                    if surplus < 10: continue
-                    cible = max((x for x in self.marches.values() if x is not a), key=lambda x: x.prix[b] - a.prix[b])
-                    km = self.carte.km_route(a.lieu, cible.lieu)
-                    cout_u = 2 * km * C.CARBURANT_PAR_KM * a.prix["carburant"] / C.CAPACITE_CAMION
-                    if cible.prix[b] * (1 - cible.marge) - a.prix[b] > cout_u + 0.05 * a.prix[b]:
-                        q = min(surplus, C.CAPACITE_CAMION)
-                        if self.lancer_convoi(a.lieu, cible.lieu, {b: q}, a, "commerce", a): a.stocks[b] -= q
+            if self.marchand is not None: self.marchand(self, h)
+            else: self.commerce_regle(h)
         # les commandes publiques
         for cmd in list(self.gouv.commandes):
             b, q, dest = cmd["bien"], cmd["quantite"], cmd["destination"]
@@ -336,6 +330,27 @@ class Monde:
                 gain = surplus * C.PRIX_MONDE["nourriture"] * 0.8
                 m.stocks["nourriture"] -= surplus; self.flux["exporte"]["nourriture"] += surplus
                 m.caisse += gain; self.ext["entree"] += gain; m.offre["nourriture"] += 0
+
+    def facteur_choc(self, lieu):
+        """Le rendement d un lieu un jour donne : 1, sauf secheresse en cours."""
+        for c in self.chocs:
+            if c["debut"] <= self.jour < c["debut"] + c["jours"] and lieu.id in c["lieux"]: return c["facteur"]
+        return 1.0
+
+    def commerce_regle(self, h):
+        """La regle d origine : un bien part vers le marche ou son prix couvre le transport et la marge. C est le temoin
+        que tout marchand appris doit battre."""
+        for a in self.marches.values():
+            for b in C.BIENS_COMMERCE:
+                garde = self.reserve_marche(a, b)
+                surplus = a.stocks[b] - garde
+                if surplus < 10: continue
+                cible = max((x for x in self.marches.values() if x is not a), key=lambda x: x.prix[b] - a.prix[b])
+                km = self.carte.km_route(a.lieu, cible.lieu)
+                cout_u = 2 * km * C.CARBURANT_PAR_KM * a.prix["carburant"] / C.CAPACITE_CAMION
+                if cible.prix[b] * (1 - cible.marge) - a.prix[b] > cout_u + 0.05 * a.prix[b]:
+                    q = min(surplus, C.CAPACITE_CAMION)
+                    if self.lancer_convoi(a.lieu, cible.lieu, {b: q}, a, "commerce", a): a.stocks[b] -= q
 
     def arrivees(self):
         for c in [c for c in self.convois if c.arrivee <= self.pas]:

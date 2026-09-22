@@ -80,3 +80,6 @@ PROPENSION_DEPENSE = 0.05            # part de l epargne au-dela d une semaine d
 OUVRIERS_PAR_SITE = {"raffinerie": 14, "centrale": 3, "fonderie": 6, "pharmacie": 5}   # 14 + 9 + 12 + 5 = 40
 MARGE_ELECTRICITE = 1.3              # le tarif de l electricite suit le cout du carburant des centrales ( 12 unites par unite )
 STOCK_CIBLE = 250.0                  # stock moyen par marche au-dela duquel une entreprise ralentit
+
+# les biens qui circulent entre marches ( decision du marchand : regle ou reseau appris )
+BIENS_COMMERCE = ("nourriture", "carburant", "remedes", "outils", "fer", "zinc", "petrole")
