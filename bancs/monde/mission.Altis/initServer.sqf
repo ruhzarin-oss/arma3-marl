@@ -16,6 +16,7 @@ MONDE_LOG = { diag_log ("MONDE|" + _this) };
 MONDE_PORT = ["MONDE_PORT", 2350] call BIS_fnc_getParamValue;
 MONDE_ACC = ["MONDE_ACCELERATION", 4] call BIS_fnc_getParamValue;
 MONDE_CORPS = createHashMap;            // id de l habitant -> son corps
+MONDE_CAMIONS = createHashMap;          // id de convoi -> [ vehicule, chauffeur, groupe, arrivee, depart_t, km, pos ]
 MONDE_DEST = createHashMap;             // id -> destination courante
 MONDE_LOTS = 0; MONDE_ERREURS = 0;
 
@@ -38,6 +39,19 @@ MONDE_fnc_point = {
     private _m = _b select (_cle mod (count _b));
     private _pts = _m buildingPos -1;
     _pts select (_cle mod (count _pts))
+};
+
+// un point SUR LA ROUTE le plus proche d un lieu : c est par la que roule un camion ( point 7 )
+MONDE_fnc_pointRoute = {
+    params ["_centre", "_rayon", ["_rang", 0]];
+    private _c = [_centre select 0, _centre select 1, 0];
+    private _r = _c nearRoads _rayon;
+    if (count _r == 0) then { _r = _c nearRoads (_rayon * 4) };
+    if (count _r == 0) exitWith { _c };
+    private _m = [_r, [], { _c distance _x }, "ASCEND"] call BIS_fnc_sortBy;
+    // le RANG evite que deux camions de la meme ville naissent au meme metre de route : mesure du 22/09, six camions
+    // crees vivants puis detruits en une seconde, par paires, meme a trente metres d ecart.
+    getPosATL (_m select (_rang mod (count _m)))
 };
 
 MONDE_fnc_executer = {
@@ -121,6 +135,35 @@ MONDE_fnc_executer = {
                 MONDE_DEST getOrDefault [_id, []], round ((getPosATL _u) distance (MONDE_DEST getOrDefault [_id, getPosATL _u])),
                 speed _u, animationState _u, unitReady _u, behaviour _u, isAgent teamMember _u]) call MONDE_LOG;
         };
+        // ["camion", id, [x,y] depart, [x,y] arrivee] : un convoi qui ROULE, par les routes d Altis ( point 7 )
+        case "camion": {
+            _o params ["", "_id", "_depart", "_arrivee"];
+            if (_id in MONDE_CAMIONS) exitWith {};
+            private _p0 = [_depart, 200, _id * 7] call MONDE_fnc_pointRoute;
+            private _p1 = [_arrivee, 200, _id * 3] call MONDE_fnc_pointRoute;
+            // 22/09 : le van « C_Van_01_box_F » vient d Apex et n existe pas sur ce serveur - les six premiers camions
+            // sont nes morts, sans la moindre erreur. On prend un vehicule du jeu de base, et on le dit si ca rate.
+            // rayon 30 m : deux camions partis de la meme ville naissaient au meme metre de route et s y detruisaient
+            private _v = createVehicle ["C_Offroad_01_F", _p0, [], 10, "NONE"];
+            if (isNull _v) exitWith { (format ["camion_impossible|%1|%2", _id, _p0]) call MONDE_LOG;
+                ["camion", _id, "impossible", 0, 0] call MONDE_fnc_envoyer };
+            private _g = createGroup [civilian, true];
+            private _u = _g createUnit ["C_man_1", _p0, [], 0, "CAN_COLLIDE"];
+            _u moveInDriver _v;
+            _g setBehaviour "CARELESS"; _g setCombatMode "BLUE"; _g setSpeedMode "FULL";
+            private _wp = _g addWaypoint [_p1, 0];
+            _wp setWaypointType "MOVE"; _wp setWaypointBehaviour "CARELESS"; _wp setWaypointSpeed "FULL";
+            _u doMove _p1;
+            MONDE_CAMIONS set [_id, [_v, _u, _g, _p1, diag_tickTime, 0, getPosATL _v]];
+            (format ["camion_cree|%1|type|%2|vivant|%3|pos|%4|vers|%5|chauffeur|%6|dans|%7", _id, typeOf _v, alive _v,
+                getPosATL _v, _p1, alive _u, !isNull objectParent _u]) call MONDE_LOG;
+        };
+        case "rappeler_camion": {
+            private _id = _o select 1;
+            private _c = MONDE_CAMIONS getOrDefault [_id, []];
+            if (count _c > 0) then { deleteVehicle (_c select 0); deleteVehicle (_c select 1); deleteGroup (_c select 2) };
+            MONDE_CAMIONS deleteAt _id;
+        };
         case "temps": { setTimeMultiplier (_o select 1) };
         case "date": { setDate (_o select 1) };
         default { (format ["ordre_inconnu|%1", _t]) call MONDE_LOG };
@@ -149,6 +192,28 @@ addMissionEventHandler ["EachFrame", {
         private _p = getPosATL _y;
         _corps pushBack [_x, round (_p select 0), round (_p select 1), (if (alive _y) then {1} else {0}), round (speed _y)];
     } forEach MONDE_CORPS;
+    // les camions : distance vraiment parcourue, arrivee, abandon
+    {
+        _y params ["_v", "_u", "_g", "_p1", "_t0", "_km", "_pos"];
+        if (isNull _v || !alive _v) then {
+            (format ["camion_perdu|%1|nul|%2|vivant|%3|chauffeur_nul|%4", _x, isNull _v, alive _v, isNull _u]) call MONDE_LOG;
+            ["camion", _x, "perdu", round (_km / 100) / 10, round ((diag_tickTime - _t0) / 6) / 10] call MONDE_fnc_envoyer;
+            MONDE_CAMIONS deleteAt _x;
+        } else {
+            private _p = getPosATL _v;
+            _y set [5, _km + (_p distance _pos)];
+            _y set [6, _p];
+            if ((_p distance _p1) < 80) then {
+                ["camion", _x, "arrive", round ((_y select 5) / 100) / 10, round ((diag_tickTime - _t0) / 6) / 10] call MONDE_fnc_envoyer;
+                deleteVehicle _v; deleteVehicle _u; deleteGroup _g; MONDE_CAMIONS deleteAt _x;
+            } else {
+                if (diag_tickTime - _t0 > 1800) then {
+                    ["camion", _x, "abandon", round ((_y select 5) / 100) / 10, round ((diag_tickTime - _t0) / 6) / 10] call MONDE_fnc_envoyer;
+                    deleteVehicle _v; deleteVehicle _u; deleteGroup _g; MONDE_CAMIONS deleteAt _x;
+                };
+            };
+        };
+    } forEach MONDE_CAMIONS;
     private _n = count _corps; private _i = 0;
     ["etat", round (time * 100) / 100, date, round (dayTime * 10000) / 10000, round diag_fps, _n] call MONDE_fnc_envoyer;
     while { _i < _n } do {

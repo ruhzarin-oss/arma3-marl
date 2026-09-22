@@ -32,6 +32,7 @@ class Lieu:
 class Carte:
     def __init__(self, fichier=os.path.join(ICI, "donnees", "altis_lieux.json")):
         brut = json.load(open(fichier))
+        self.routes = self._routes_mesurees()
         self.lieux = {}
         for l in brut:
             t = {"NameCityCapital": "capitale", "NameCity": "ville", "NameVillage": "village"}.get(l["type"])
@@ -47,6 +48,14 @@ class Carte:
     def de_type(self, *types):
         return [l for l in self.lieux.values() if l.type in types]
 
+    @staticmethod
+    def _routes_mesurees():
+        """Les trajets que des camions ont vraiment faits dans Arma, s ils ont ete mesures."""
+        chemin = os.path.join(ICI, "donnees", "routes_altis.json")
+        try:
+            with open(chemin) as f: return json.load(f)
+        except Exception: return {}
+
     def habitables(self):
         return self.de_type("capitale", "ville", "village")
 
@@ -54,5 +63,9 @@ class Carte:
         return min(self.de_type(*types), key=lambda x: lieu.distance(x))
 
     def km_route(self, a, b):
-        # la route n est pas droite : facteur 1,3 sur la distance a vol d oiseau ( a remplacer par le reseau routier d Arma, E2 )
+        """La longueur de route entre deux lieux. Quand un camion a REELLEMENT fait le trajet dans Arma ( point 7,
+        `monde/routes.py` ), c est sa mesure qui fait foi ; sinon le vol d oiseau multiplie par 1,3, qui s est revele
+        bon a 5-13 % pres sur les trois capitales."""
+        mesure = self.routes.get(f"{a.id}-{b.id}") or self.routes.get(f"{b.id}-{a.id}")
+        if mesure and mesure.get("etat") == "arrive": return float(mesure["km_reels"])
         return 1.3 * a.distance(b) / 1000.0

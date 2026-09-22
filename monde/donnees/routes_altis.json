@@ -1,38 +1,38 @@
 {
  "Athira-Pyrgos": {
-  "etat": "perdu",
-  "km_reels": 0.0,
-  "minutes": 0.0,
+  "etat": "arrive",
+  "km_reels": 8.0,
+  "minutes": 5.1,
   "km_estimes": 8.72460847646914
  },
- "Athira-Kavala": {
-  "etat": "perdu",
-  "km_reels": 0.0,
-  "minutes": 0.0,
-  "km_estimes": 15.59720381868762
- },
- "Pyrgos-Kavala": {
-  "etat": "perdu",
-  "km_reels": 0.0,
-  "minutes": 0.0,
-  "km_estimes": 17.324546547464035
- },
  "Pyrgos-Athira": {
-  "etat": "perdu",
-  "km_reels": 0.0,
-  "minutes": 0.0,
+  "etat": "arrive",
+  "km_reels": 8.3,
+  "minutes": 5.3,
   "km_estimes": 8.72460847646914
  },
  "Kavala-Athira": {
-  "etat": "perdu",
-  "km_reels": 0.0,
-  "minutes": 0.0,
+  "etat": "arrive",
+  "km_reels": 13.6,
+  "minutes": 9.8,
+  "km_estimes": 15.59720381868762
+ },
+ "Athira-Kavala": {
+  "etat": "arrive",
+  "km_reels": 14.1,
+  "minutes": 10.2,
   "km_estimes": 15.59720381868762
  },
  "Kavala-Pyrgos": {
-  "etat": "perdu",
-  "km_reels": 0.0,
-  "minutes": 0.0,
+  "etat": "arrive",
+  "km_reels": 19.0,
+  "minutes": 13.0,
+  "km_estimes": 17.324546547464035
+ },
+ "Pyrgos-Kavala": {
+  "etat": "arrive",
+  "km_reels": 20.1,
+  "minutes": 15.5,
   "km_estimes": 17.324546547464035
  }
 }
