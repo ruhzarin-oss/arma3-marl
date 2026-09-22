@@ -95,7 +95,7 @@ def main():
     incarnes = {}                       # id -> ( lieu, poste ) ou le corps se trouve
     arma = {"minutes": 0.0, "fps": None, "horloge": False, "par_ile": {}}   # l horloge n est crue qu apres l accuse du lot « date »
                                                              # ( sinon un cerveau relance rattraperait l ancienne heure )
-    vus = {}                            # id -> ( instant du dernier rapport d Arma, [id, x, y, vivant, vitesse] )
+    vus = {}                            # ( ile, id ) -> ( instant du dernier rapport, [id, x, y, vivant, vitesse] )
     purges = set()
     sortis = {}                         # id -> instant de desincarnation ( Arma le rapporte encore une seconde ou deux )
     anomalies = {"doublon": 0, "ecart_corps": 0, "orphelins_purges": 0}
@@ -110,7 +110,7 @@ def main():
         for i, h in voulus.items():
             ou = (h.lieu.id, h.poste, ile_de(h.lieu))
             if i not in incarnes:
-                classe, camp = classe_de(h); purges.discard(i)
+                classe, camp = classe_de(h); purges.discard((ile_de(h.lieu), i))
                 ordres.append(["incarner", i, classe, camp, [round(h.lieu.pos[0]), round(h.lieu.pos[1])], rayon(h.lieu), cle(h), ile_de(h.lieu)])
                 incarnes[i] = ou
             elif incarnes[i] != ou:
@@ -143,6 +143,7 @@ def main():
     ordres = synchroniser(); poster(ordres)
     noter(type="depart", incarnes=len(incarnes), ordres=len(ordres))
     dernier_log = 0
+    dernier_controle = time.time()
     dernier_jour = w.jour
 
     def garder():
@@ -159,10 +160,12 @@ def main():
                 arma["minutes"] = minutes_arma(m[2], m[3]); arma["fps"] = m[4]
                 arma["n"] = sum(arma["par_ile"].values())
             elif m[0] == "corps":
-                for c in m[1]: vus[c[0]] = (time.time(), c)
+                for c in m[1]: vus[(ile_msg, c[0])] = (time.time(), c)
             elif m[0] == "mort":
                 noter(type="mort_dans_arma", habitant=m[1])
             elif m[0] == "bonjour":
+                arma["par_ile"].pop("inconnue", None)      # il vient de se nommer : son compte anonyme n a plus lieu d etre
+                for k in [k for k in vus if k[0] == "inconnue"]: vus.pop(k, None)
                 noter(type="bonjour", ile=m[1], detail=m[2:])
             elif m[0] in ("recu", "pret"):
                 noter(type=m[0], detail=m[1:])
@@ -177,13 +180,21 @@ def main():
                     noter(type="repeuplement", incarnes=len(incarnes), ordres=len(o))
         # la reconciliation : un corps qu Arma rapporte et que le cerveau ne connait pas ( cerveau redemarre, ordre perdu )
         # est desincarne - le cerveau fait foi
-        recents = {i for i, (t, _) in vus.items() if time.time() - t < 5}
-        # un corps tout juste desincarne est encore dans les rapports en vol : ce n est pas un orphelin
-        orphelins = [i for i in recents if i not in incarnes and i not in purges
-                     and time.time() - sortis.get(i, 0) > 10]
+        recents = {k for k, (t, _) in vus.items() if time.time() - t < 5}
+        # Un corps est orphelin s il est inconnu du cerveau, OU s il se trouve sur une ile ou son habitant n est pas.
+        # C est ce second cas qui interdit le doublon : le meme homme avec un corps sur Altis ET sur Malden.
+        # un rapport arrive AVANT que le serveur se nomme ne dit pas ou est le corps : on ne purge jamais sur sa foi
+        # ( 23/09 : 123 corps supprimes d un coup pour cette raison )
+        orphelins = [(ile, i) for ile, i in recents
+                     if ile != "inconnue" and (i not in incarnes or incarnes[i][2] != ile)
+                     and (ile, i) not in purges and time.time() - sortis.get(i, 0) > 10]
+        for ile, i in orphelins:
+            try: pont.envoyer([["desincarner", i]], ile)
+            except ConnectionError: continue
+            purges.add((ile, i))
         if orphelins:
-            pont.envoyer([["desincarner", i] for i in orphelins]); purges.update(orphelins)   # partout : un orphelin n a pas d ile connue
-            anomalies["orphelins_purges"] += len(orphelins); noter(type="purge", ids=orphelins)
+            anomalies["orphelins_purges"] += len(orphelins)
+            noter(type="purge", corps=[[ile, i] for ile, i in orphelins][:50], total=len(orphelins))
         # le cerveau rattrape l horloge d Arma, un pas de 10 minutes a la fois
         while arma["minutes"] >= (w.minutes - C.DATE_DEPART[3] * 60 - C.DATE_DEPART[4]) + C.MINUTES_PAR_PAS:
             t_pas = time.time()
@@ -192,6 +203,18 @@ def main():
                 noter(type="pas_long", heure=round(w.heure, 2), secondes=round(time.time() - t_pas, 1))
             ordres = synchroniser()
             if ordres: poster(ordres)
+        # une ile videe ( serveur redemarre, purge malheureuse ) est REPEUPLEE : le cerveau oublie ce qu il croyait
+        # y avoir, et la synchronisation suivante recree les corps
+        if time.time() - dernier_controle > 30:
+            dernier_controle = time.time()
+            for ile, n_ile in arma["par_ile"].items():
+                if ile == "inconnue": continue
+                crus = [k for k, v in incarnes.items() if v[2] == ile]
+                if crus and n_ile == 0:
+                    for k in crus: del incarnes[k]
+                    noter(type="repeuplement_ile", ile=ile, corps=len(crus))
+                    o = synchroniser()
+                    if o: poster(o)
         if w.jour != dernier_jour:            # un instantane par jour du monde
             dernier_jour = w.jour; garder()
         if time.time() - dernier_log > 60:
@@ -199,7 +222,8 @@ def main():
             n_arma = arma.get("n")
             if n_arma is not None and n_arma != len(incarnes): anomalies["ecart_corps"] += 1
             noter(type="bilan", heure_cerveau=round(w.heure, 2), jour=w.jour, minutes_arma=round(arma["minutes"], 1),
-                  incarnes=len(incarnes), corps_arma=n_arma, deplacements=deplacements[0], en_marche=sum(1 for i in recents if vus[i][1][4] > 0), fps=arma["fps"], lots=pont.envoyes, lus=pont.lus,
+                  incarnes=len(incarnes), corps_arma=n_arma, corps_rapportes=len(vus), par_ile=dict(arma["par_ile"]),
+                  deplacements=deplacements[0], en_marche=sum(1 for k in recents if vus[k][1][4] > 0), fps=arma["fps"], lots=pont.envoyes, lus=pont.lus,
                   illisibles=pont.illisibles, anomalies=dict(anomalies))
             print(f"{time.strftime('%H:%M:%S')} cerveau jour {w.jour} {w.heure:5.2f} h | Arma {arma['minutes'] / 60 + 6:5.2f} h | "
                   f"incarnes {len(incarnes)} corps {n_arma} | {arma['fps']} images/s | lots {pont.envoyes} | anomalies {anomalies}", flush=True)
