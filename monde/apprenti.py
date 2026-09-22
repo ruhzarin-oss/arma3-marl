@@ -159,11 +159,14 @@ def main():
     p.add_argument("--jours", type=int, default=20)
     p.add_argument("--generations", type=int, default=12)
     p.add_argument("--procs", type=int, default=8)
+    p.add_argument("--ecole", type=int, default=8, help="nombre de mondes d ecole")
+    p.add_argument("--confirmer", action="store_true", help="passer aussi la troisieme serie de mondes")
     p.add_argument("--sortie", default="/mnt/data/hmt/monde/apprenti")
     a = p.parse_args()
     os.makedirs(a.sortie, exist_ok=True)
-    ecole = list(range(1, 9))            # les mondes de l ecole
-    examen = list(range(101, 111))       # les mondes jamais vus
+    ecole = list(range(1, 1 + a.ecole))          # les mondes de l ecole
+    examen = list(range(101, 111))               # les mondes jamais vus
+    confirmation = list(range(201, 211))         # une troisieme serie, pour un eleve qui passe a la deuxieme tentative
     t0 = time.time()
     if a.mesure or not a.apprendre:
         print(resume("regle", mesurer(examen, None, a.jours, a.procs)), flush=True)
@@ -178,12 +181,24 @@ def main():
     aveugle = mesurer(examen, marchand_aveugle, a.jours, a.procs)
     appris = mesurer(examen, Politique(theta), a.jours, a.procs)
     gagnes = sum(1 for r, s in zip(regle, appris) if s["note"] > r["note"])
+    conf = {}
+    if a.confirmer:
+        cr = mesurer(confirmation, None, a.jours, a.procs)
+        cv = mesurer(confirmation, marchand_aveugle, a.jours, a.procs)
+        ca = mesurer(confirmation, Politique(theta), a.jours, a.procs)
+        conf = {"regle": cr, "aveugle": cv, "appris": ca,
+                "gagnes": sum(1 for r, s in zip(cr, ca) if s["note"] > r["note"])}
+        print(resume("CONF regle", cr), flush=True)
+        print(resume("CONF aveugle", cv), flush=True)
+        print(resume("CONF appris", ca), flush=True)
+        print(f"confirmation : mondes gagnes {conf['gagnes']}/{len(confirmation)}", flush=True)
     print(resume("regle ( examen )", regle), flush=True)
     print(resume("aveugle ( examen )", aveugle), flush=True)
     print(resume("appris ( examen )", appris), flush=True)
     print(f"mondes gagnes {gagnes}/{len(examen)} | {time.time() - t0:.0f} s", flush=True)
     with open(os.path.join(a.sortie, "examen.json"), "w") as f:
-        json.dump({"regle": regle, "aveugle": aveugle, "appris": appris, "gagnes": gagnes, "note_ecole": note}, f, indent=1)
+        json.dump({"regle": regle, "aveugle": aveugle, "appris": appris, "gagnes": gagnes, "note_ecole": note,
+                   "confirmation": conf}, f, indent=1)
     return 0
 
 
