@@ -59,3 +59,11 @@ Dans les situations que l'Oracle choisit, **attendre compromet-il moins que trav
 
 Estimation de la moyenne de d et IC 95 % (bootstrap par paire, puis par monde), signes par monde, sous-groupes
 (poste proche, patrouille proche) — affichés seulement **après** la décision, pour comprendre, pas pour décider.
+
+## Amendement ( 22/09, 14 h 10 ) — les paires suivantes viennent du banc multiple
+
+A partir de la paire 11, les episodes de confirmation sont joues comme cellules du banc multiple ( multiplexeur de
+l Oracle, REGLES_DE_L_ORACLE.md amendement 5 ) : meme code de mission, memes portes, plus la porte de pouls. L hypothese,
+le test, le seuil, N = 480 et le regard unique ne changent pas. A la lecture unique, l ecart par paire sera DECRIT
+separement pour les paires du banc seul et celles du banc multiple ( champ `banc_joue` du job ) ; cette description ne
+change pas la decision.

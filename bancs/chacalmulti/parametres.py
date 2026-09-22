@@ -28,7 +28,8 @@ COMMUNS = [("palier", "PALIER", 0), ("depart", "DEPART", 1), ("immortel", "IMMOR
            ("controle_perception", "CONTROLE_PERCEPTION", 0), ("sonde", "SONDE", 0), ("attente_test", "ATTENTE_TEST", 0),
            ("controle_dist", "CONTROLE_DIST", 150), ("delai_mode", "DELAI_MODE", 0), ("f_len", "F_LEN", 0)]
 PAR_CELLULE = ["GRAINE", "GRAINE_HAUT", "SITUATION", "MENACE_P2", "TRAVERSEE", "PALIER", "EFFECTIF", "AVANT",
-               "OBSERVATION", "QRF_N", "ORACLE_CMD", "ORACLE_CTRL", "ORACLE_B", "ORACLE_NU", "ORACLE_EPS", "ORACLE_DELTA"]
+               "OBSERVATION", "QRF_N", "QRF_DELAI", "HMG", "PORTEE_SON", "BALAYAGE", "ORACLE_CMD", "ORACLE_CTRL", "ORACLE_B",
+               "ORACLE_NU", "ORACLE_EPS", "ORACLE_DELTA"]
 KMAX = 8
 
 P = {}
@@ -49,7 +50,7 @@ for k in range(1, KMAX + 1):
 for k, c in enumerate(cellules, start=1):
     if "graine" not in c: sys.exit(f"cellule {k} sans graine")
     for cle, v in c.items():
-        if cle in ("note", "role", "attendu"): continue
+        if cle in ("note", "role", "attendu", "origine", "version"): continue
         if cle.upper() not in PAR_CELLULE: sys.exit(f"cellule {k} : {cle} n est pas surchargeable par cellule")
         P[f"MULTI_C{k}_{cle.upper()}"] = int(v)
     P[f"MULTI_C{k}_GRAINE_HAUT"] = 0     # la graine de la cellule est ecrite ENTIERE dans GRAINE

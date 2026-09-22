@@ -70,3 +70,12 @@ ARCHITECTE_EVOGP_FINAL = dict(pop=1000000, gen=400, graines=5, parc=1e-3)    # l
 
 # --- confirmation de « toujours attendre » ( CONFIRMATION_ATTENDRE.md, 019f54e ) : un seul regard, a 480 paires ---
 CONFIRMATION_ATTENDRE = True       # suspend l adoption automatique de l Architecte ( regards repetes )
+
+# --- le multiplexeur ( 22/09, Younes : « lance les vraies choses maintenant » ) : les jobs de l Oracle sont joues sur le banc
+# multiple ( multi/CRITERES_MULTI.md ), plusieurs cellules par serveur ; voir multiplexeur.py
+MULTIPLEXE = True
+K_SERVICE = 3                      # cellules de l Oracle par episode : 3 mondes A au plus tiennent a 3 km les uns des autres
+MULTI_ESPACEMENT = 3000            # m entre emprises de deux cellules ( avis de Fable )
+MULTI_TMAX = 1500                  # s apres le depart commun : au-dela, la cellule est censuree
+POULS_BANDE_MIN = 0.95             # part des intervalles du pouls dans [1,8 ; 2,5] s ( amendement 3 ) ; sinon cellule refusee
+MONDES_B = [0, 1, 2, 10, 25, 26, 27, 28, 29, 30, 31]   # tenus hors de tout ( poche/CRITERES_POCHE.md ) : jamais temoins

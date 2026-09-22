@@ -169,3 +169,16 @@ refusée. Un candidat qui plante est écarté sans arrêter la boucle.
 Le premier apprentissage réel (22/09 10 h 48) avait écarté EvoGP dans plusieurs mondes à cause du défaut 1 ; son
 verdict (« aucun candidat ne bat toujours traverser ») reste valable pour la logistique et les règles constantes, et
 il est refait en entier.
+
+## Amendement 5 — le multiplexeur ( 22/09, 14 h 10 ; Younes : « pas besoin de test de 3 heures, lance les vraies choses » )
+
+Les jobs de l Oracle ne vont plus a la ferme : ils sont poses dans `queue/multiplexes/`, et `multiplexeur.py` les joue sur
+le banc multiple ( `bancs/chacalmulti`, une cellule = le banc seul renomme, `multi/CRITERES_MULTI.md` ). Cellule = ( job,
+graine ) ; au plus 3 cellules de l Oracle par episode ( 3 mondes A au plus tiennent a 3 km ), meme heure du jour ( elle est
+globale a l ile ) ; un temoin negatif ( palier 9, monde hors A et hors B ) un episode sur deux ( controle C1 de Fable ).
+Les resultats reviennent en runs virtuels `runs/<date>_<version>_multi/` au format que lisent `donnees.py` et
+`lire_confirmation.py`, inchanges. **Trois portes s ajoutent a celles du banc seul** : une cellule est REFUSEE si son
+POULS decroche ( moins de 95 % des intervalles dans [1,8 ; 2,5] s : l ordonnanceur SQF est sature ), si l episode porte
+une erreur SQF, ou si le journal croise y a vu une connaissance ennemie entre cellules. Le seuil d acceptation de 0,75
+( quarantaine ) s applique tel quel : un multiple qui refuse trop de cellules met l iteration en quarantaine.
+Pas de balayage de charge prealable ( ordre de Younes ) : chaque episode porte sa propre porte de pouls.

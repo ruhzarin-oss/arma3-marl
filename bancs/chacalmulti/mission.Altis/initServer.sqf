@@ -175,7 +175,8 @@ if ((MULTI_SONDE == 1) && { count MULTI_SONDE_SITES > 0 }) then {
             private _cible = leader _gc;
             sleep 1;
             private _vis = 0;
-            { _vis = _vis max ([objNull, "VIEW", _cible] checkVisibility [eyePos _x, eyePos _cible]) } forEach _obs;
+            // ! l observateur est IGNORE par le rayon : sa propre tete le bouchait ( 5 cycles sur 5 refuses, 22/09 13 h 55 )
+            { _vis = _vis max ([_x, "VIEW", _cible] checkVisibility [eyePos _x, eyePos _cible]) } forEach _obs;
             { _x setDir (_x getDir _cible); _x doWatch _cible } forEach _obs;
             private _d = round ((_obs select 0) distance2D _cible);
             private _t0 = time;

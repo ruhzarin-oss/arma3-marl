@@ -20,7 +20,8 @@ ORDRE = ["00_socle", "10_monde", "20_decor", "30_opfor", "35_menaces", "40_blufo
          "46_controles_oracle", "50_capture", "70_verdict", "60_phases"]
 # Parametres que chaque cellule peut surcharger ; tous les autres sont communs a l'episode ( ceux du banc seul ).
 PAR_CELLULE = ["GRAINE", "GRAINE_HAUT", "SITUATION", "MENACE_P2", "TRAVERSEE", "PALIER", "EFFECTIF", "AVANT",
-               "OBSERVATION", "QRF_N", "ORACLE_CMD", "ORACLE_CTRL", "ORACLE_B", "ORACLE_NU", "ORACLE_EPS", "ORACLE_DELTA"]
+               "OBSERVATION", "QRF_N", "QRF_DELAI", "HMG", "PORTEE_SON", "BALAYAGE", "ORACLE_CMD", "ORACLE_CTRL", "ORACLE_B",
+               "ORACLE_NU", "ORACLE_EPS", "ORACLE_DELTA"]
 SENTINELLE = -999999
 
 

@@ -8,7 +8,7 @@ reprennent exactement la ou on en etait.
 import fcntl, json, os, shutil, subprocess, sys, time
 import numpy as np
 from scipy.stats import fisher_exact
-from . import config as C, donnees as Dn, gardes as G, monde as M, architecte as A, generateur as Gen, motifs as Mo
+from . import config as C, donnees as Dn, gardes as G, monde as M, architecte as A, generateur as Gen, motifs as Mo, multiplexeur as Mx
 
 ETAT = f"{C.ETAT_DIR}/etat.json"
 JOURNAL = f"{C.ETAT_DIR}/journal.md"
@@ -83,7 +83,11 @@ def poser_jobs(jobs, a_blanc=False):
         ok, msg = G.controle_job(prep)
         if not ok: refus.append((nom, msg)); os.remove(prep); continue
         if a_blanc: os.remove(prep); poses.append(nom); continue
-        os.utime(prep, (t0 + rang, t0 + rang)); shutil.move(prep, f"{C.QUEUE}/{nom}"); poses.append(nom)
+        # le multiplexeur ( 22/09 ) : les jobs vont dans queue/multiplexes/, jamais directement a la ferme
+        dest = Mx.MUX if C.MULTIPLEXE else C.QUEUE
+        os.makedirs(dest, exist_ok=True)
+        os.utime(prep, (t0 + rang, t0 + rang)); shutil.move(prep, f"{dest}/{nom}"); poses.append(nom)
+    if C.MULTIPLEXE and poses and not a_blanc: Mx.empaqueter()
     return poses, refus
 
 
@@ -196,9 +200,12 @@ def etape_vol(etat):
     att = [f for f in glob.glob(f"{C.QUEUE}/*.json") if os.path.basename(f) in etat["jobs"]]
     vol_tous = len(glob.glob(f"{C.EN_COURS}/*.json"))
     vol = [f for f in glob.glob(f"{C.EN_COURS}/*.json") if os.path.basename(f) in etat["jobs"]]
-    if att and vol_tous < C.VOL_MAX: print(f"NOURRIR {min(C.VOL_MAX - vol_tous, len(att))}")
-    if not att and not vol: etat["phase"] = "LECTURE"; sauver(etat); print("VOL TERMINE")
-    else: print(f"VOL : {len(vol)} en vol, {len(att)} en attente")
+    mux = Mx.en_vol(etat["jobs"]) if C.MULTIPLEXE else []
+    att_mux = glob.glob(f"{C.QUEUE}/*MUX_*.json")
+    a_nourrir = len(att) + len(att_mux)
+    if a_nourrir and vol_tous < C.VOL_MAX: print(f"NOURRIR {min(C.VOL_MAX - vol_tous, a_nourrir)}")
+    if not att and not vol and not mux: etat["phase"] = "LECTURE"; sauver(etat); print("VOL TERMINE")
+    else: print(f"VOL : {len(vol)} en vol, {len(att)} en attente, {len(mux)} dans le multiplexeur ( {len(att_mux)} jobs multiples en attente )")
 
 
 def etape_lecture(etat):
@@ -315,6 +322,11 @@ def tour(a_blanc=False):
     if a_blanc: etape_repos(dict(etat), a_blanc=True); return
     if etat.get("arret"): print("ARRETE :", etat["arret"], "- supprimer la cle arret de etat.json pour reprendre"); return
     if G.stop_demande(): print("STOP demande ( fichier STOP ) : l Oracle ne pose plus rien") if etat["phase"] == "REPOS" else None
+    if C.MULTIPLEXE:
+        n = Mx.depaqueter()
+        if n: journal(f"- multiplexeur : {n} cellule(s) rendue(s) a la boucle")
+        p = Mx.empaqueter()
+        if p: journal(f"- multiplexeur : {len(p)} job(s) multiple(s) pose(s)")
     ph = etat["phase"]
     if ph == "REPOS":
         if G.stop_demande(): return

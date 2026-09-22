@@ -109,3 +109,12 @@ mission reste ordonnancée, ligne pour ligne. **La porte de cadence porte désor
 boucle ordonnancée `sleep 2` qui ne fait rien d'autre qu'écrire l'heure ; son retard est exactement celui que subit la
 logique de mission. Porte : ≥ 95 % des intervalles du pouls dans [1,8 ; 2,5] s (ou ≥ valeur à K = 1 − 2 points si
 K = 1 échoue). Le balayage C3 est rejoué en entier (v2), mêmes épisodes, même ordre ; lecture unique à la fin.
+
+## Amendement 4 — service ( 22/09, 14 h 10 )
+
+Balayage C3 arrete sur ordre de Younes (« on sait deja que ca fonctionne, lance les vraies choses »). Mesure faite avant
+l arret, banc v3 : a K = 1, pouls 2,02 s, 100 % dans la bande ; 0 erreur. Le banc passe en service derriere le
+multiplexeur de l Oracle ( oracle/autonome/multiplexeur.py ) : au plus 3 cellules de l Oracle + 1 temoin negatif par
+episode, et CHAQUE cellule doit passer sa porte de pouls ( >= 95 % dans [1,8 ; 2,5] s ), sinon elle est refusee. K\* n est
+donc pas mesure d avance : il se lit dans les refus de pouls des episodes de service. Sonde : l observateur est ignore
+par le rayon de visibilite ( sa tete bouchait le rayon : 5 cycles sur 5 refuses a 13 h 55 ).

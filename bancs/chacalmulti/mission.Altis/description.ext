@@ -741,6 +741,34 @@ class Params
         texts[]  = {"-999999"};
         default = -999999;
     };
+    class MULTI_C1_QRF_DELAI
+    {
+        title = "Cellule 1 : QRF_DELAI ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C1_HMG
+    {
+        title = "Cellule 1 : HMG ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C1_PORTEE_SON
+    {
+        title = "Cellule 1 : PORTEE_SON ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C1_BALAYAGE
+    {
+        title = "Cellule 1 : BALAYAGE ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
     class MULTI_C1_ORACLE_CMD
     {
         title = "Cellule 1 : ORACLE_CMD ( -999999 = valeur commune )";
@@ -849,6 +877,34 @@ class Params
     class MULTI_C2_QRF_N
     {
         title = "Cellule 2 : QRF_N ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C2_QRF_DELAI
+    {
+        title = "Cellule 2 : QRF_DELAI ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C2_HMG
+    {
+        title = "Cellule 2 : HMG ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C2_PORTEE_SON
+    {
+        title = "Cellule 2 : PORTEE_SON ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C2_BALAYAGE
+    {
+        title = "Cellule 2 : BALAYAGE ( -999999 = valeur commune )";
         values[] = {-999999};
         texts[]  = {"-999999"};
         default = -999999;
@@ -965,6 +1021,34 @@ class Params
         texts[]  = {"-999999"};
         default = -999999;
     };
+    class MULTI_C3_QRF_DELAI
+    {
+        title = "Cellule 3 : QRF_DELAI ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C3_HMG
+    {
+        title = "Cellule 3 : HMG ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C3_PORTEE_SON
+    {
+        title = "Cellule 3 : PORTEE_SON ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C3_BALAYAGE
+    {
+        title = "Cellule 3 : BALAYAGE ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
     class MULTI_C3_ORACLE_CMD
     {
         title = "Cellule 3 : ORACLE_CMD ( -999999 = valeur commune )";
@@ -1073,6 +1157,34 @@ class Params
     class MULTI_C4_QRF_N
     {
         title = "Cellule 4 : QRF_N ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C4_QRF_DELAI
+    {
+        title = "Cellule 4 : QRF_DELAI ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C4_HMG
+    {
+        title = "Cellule 4 : HMG ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C4_PORTEE_SON
+    {
+        title = "Cellule 4 : PORTEE_SON ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C4_BALAYAGE
+    {
+        title = "Cellule 4 : BALAYAGE ( -999999 = valeur commune )";
         values[] = {-999999};
         texts[]  = {"-999999"};
         default = -999999;
@@ -1189,6 +1301,34 @@ class Params
         texts[]  = {"-999999"};
         default = -999999;
     };
+    class MULTI_C5_QRF_DELAI
+    {
+        title = "Cellule 5 : QRF_DELAI ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C5_HMG
+    {
+        title = "Cellule 5 : HMG ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C5_PORTEE_SON
+    {
+        title = "Cellule 5 : PORTEE_SON ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C5_BALAYAGE
+    {
+        title = "Cellule 5 : BALAYAGE ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
     class MULTI_C5_ORACLE_CMD
     {
         title = "Cellule 5 : ORACLE_CMD ( -999999 = valeur commune )";
@@ -1297,6 +1437,34 @@ class Params
     class MULTI_C6_QRF_N
     {
         title = "Cellule 6 : QRF_N ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C6_QRF_DELAI
+    {
+        title = "Cellule 6 : QRF_DELAI ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C6_HMG
+    {
+        title = "Cellule 6 : HMG ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C6_PORTEE_SON
+    {
+        title = "Cellule 6 : PORTEE_SON ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C6_BALAYAGE
+    {
+        title = "Cellule 6 : BALAYAGE ( -999999 = valeur commune )";
         values[] = {-999999};
         texts[]  = {"-999999"};
         default = -999999;
@@ -1413,6 +1581,34 @@ class Params
         texts[]  = {"-999999"};
         default = -999999;
     };
+    class MULTI_C7_QRF_DELAI
+    {
+        title = "Cellule 7 : QRF_DELAI ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C7_HMG
+    {
+        title = "Cellule 7 : HMG ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C7_PORTEE_SON
+    {
+        title = "Cellule 7 : PORTEE_SON ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C7_BALAYAGE
+    {
+        title = "Cellule 7 : BALAYAGE ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
     class MULTI_C7_ORACLE_CMD
     {
         title = "Cellule 7 : ORACLE_CMD ( -999999 = valeur commune )";
@@ -1521,6 +1717,34 @@ class Params
     class MULTI_C8_QRF_N
     {
         title = "Cellule 8 : QRF_N ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C8_QRF_DELAI
+    {
+        title = "Cellule 8 : QRF_DELAI ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C8_HMG
+    {
+        title = "Cellule 8 : HMG ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C8_PORTEE_SON
+    {
+        title = "Cellule 8 : PORTEE_SON ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C8_BALAYAGE
+    {
+        title = "Cellule 8 : BALAYAGE ( -999999 = valeur commune )";
         values[] = {-999999};
         texts[]  = {"-999999"};
         default = -999999;
