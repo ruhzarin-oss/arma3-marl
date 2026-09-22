@@ -22,19 +22,25 @@ PENSION_JOUR = 20     # retraite versee par l Etat
 class Habitant:
     __slots__ = ("id", "nom", "role", "classe", "age", "menage", "domicile", "travail", "horaire", "equipe",
                  "lieu", "etat", "jours_etat", "gravite", "remede", "vivant", "faim", "heures_jour", "amendes",
-                 "incarne", "eleve", "poste")
+                 "incarne", "eleve", "poste", "decalage")
 
     def __init__(self, id, role, classe, age):
         self.id, self.role, self.classe, self.age = id, role, classe, age
         self.nom = f"H{id:03d}"
         self.menage = None; self.domicile = None; self.travail = None; self.horaire = None; self.equipe = 0
+        self.decalage = 0.0          # son quart d heure a lui : tout le monde ne part pas a la meme minute
         self.lieu = None; self.poste = "maison"     # ou il est DANS son lieu : maison, travail, hopital
         self.etat = "S"; self.jours_etat = 0.0; self.gravite = 0.0; self.remede = False; self.vivant = True
         self.faim = 0.0; self.heures_jour = 0.0; self.amendes = 0
         self.incarne = False; self.eleve = False
 
     def au_travail(self, heure):
-        """Vrai si l horaire de cet habitant le met au travail a cette heure du monde."""
+        """Vrai si l horaire de cet habitant le met au travail a cette heure du monde.
+
+        Le DECALAGE personnel ( +/- 30 min ) n est pas une coquetterie : mesure du 22/09, 765 corps qui partent a la
+        meme minute font tomber la pire image du serveur a 3 par seconde, contre 29 au repos. Les departs etales
+        coutent le meme travail, reparti."""
+        heure = heure - self.decalage / 60.0
         if self.horaire is None or not self.vivant or self.etat == "I" and self.gravite > 0.5: return False
         if self.horaire == "garde":        # trois equipes de 8 h : 6-14, 14-22, 22-6
             debut = (6, 14, 22)[self.equipe % 3]
@@ -91,7 +97,9 @@ def generer(carte, rng):
             m.membres.append(h); h.menage = m; h.domicile = m.domicile
             if h.role == "enfant":      # un enfant va a l ecole de la capitale de son marche
                 h.travail = h.domicile.marche
-    for h in H: h.lieu = h.domicile
+    for h in H:
+        h.lieu = h.domicile
+        h.decalage = float(rng.integers(-30, 31))
     # epargne de depart selon la classe
     for m in M:
         m.caisse = sum({"aisee": 3000.0, "moyenne": 800.0, "populaire": 250.0}[x.classe] for x in m.adultes())
