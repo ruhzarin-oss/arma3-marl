@@ -19,7 +19,7 @@ MC6_MAXCAR = 850;
 MC6_CHRONO = [0, 0];
 MC6_DTV = 2;                                   // la perception se rejoue moins vite que la position
 
-MC6_TOUS = { (allUnits + allDeadMen) select { (_x call MULTI_fnc_cellule) == 6 } };
+MC6_TOUS = { (allUnits + allDeadMen) select { private _c = _x getVariable ["multi_c", -1]; if (_c < 0) then { _c = _x call MULTI_fnc_cellule }; _c == 6 } };
 MC6_fnc_side = {
     private _s = _this;
     if (_s == east) exitWith {0};
@@ -161,8 +161,11 @@ MC6_EH_FRAME = addMissionEventHandler ["EachFrame", {
 "CHACAL|OK|emetteur|1" call MC6_LOG;
 
 // ======================= 3. LES TROIS VUES =======================
-[] spawn {
-    while { !MC6_FIN } do {
+MC6_T_VUES = time - (6 * 0.37);
+MC6_EH_VUES = addMissionEventHandler ["EachFrame", {
+    if (MC6_FIN || { MC6_CAP_VERSION != 1 } || { (time - MC6_T_VUES) < MC6_DTV }) exitWith {};
+    MC6_T_VUES = time;
+    call {
         private _tr = round (time * 100) / 100;
         private _vivants = (call MC6_TOUS) select { alive _x };
         private _bl = _vivants select { side _x == west };
@@ -220,10 +223,12 @@ MC6_EH_FRAME = addMissionEventHandler ["EachFrame", {
         } forEach _bl;
         (format ["CHACAL|VG|%1|%2|ouest|%3", _tr, MC6_PHASE, str _vg]) call MC6_LOG;
 
-        sleep MC6_DTV;
     };
-};
+}];
 "CHACAL|OK|vues|1" call MC6_LOG;
+// MULTI : le POULS de la cellule - une boucle ordonnancee de 2 s qui ne fait rien d'autre que dire quand elle
+// tourne. Son retard est celui de toute la logique de mission de la cellule : c'est la porte de cadence.
+[] spawn { while { !MC6_FIN } do { sleep 2; (format ["CHACAL|C|pouls|%1", round (time * 100) / 100]) call MC6_LOG } };
 
 // ======================= 4. LES MORTS =======================
 MC6_EH_MORT = addMissionEventHandler ["EntityKilled", {
@@ -252,6 +257,7 @@ MC6_fnc_arreterCapture = {
     if (MC6_CAP_VERSION == 0) exitWith {};
     MC6_CAP_VERSION = 0;
     removeMissionEventHandler ["EachFrame", MC6_EH_FRAME];
+    removeMissionEventHandler ["EachFrame", MC6_EH_VUES];
     removeMissionEventHandler ["EntityKilled", MC6_EH_MORT];
     { _x removeAllEventHandlers "Fired" } forEach ((call MC6_TOUS) + (vehicles select { (_x getVariable ["multi_c", -1]) == 6 }));
     (format ["CHACAL|OK|capture_arretee|ticks|%1|t|%2", MC6_TICK, round (time * 100) / 100]) call MC6_LOG;

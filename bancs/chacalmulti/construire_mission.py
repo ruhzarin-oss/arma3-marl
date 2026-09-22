@@ -54,7 +54,7 @@ def cellule(k, fichier, t):
                       1, fichier)
     if fichier == "50_capture":
         t = remplacer(t, f"{p}TOUS = {{ allUnits + allDeadMen }};",
-                      f"{p}TOUS = {{ (allUnits + allDeadMen) select {{ (_x call MULTI_fnc_cellule) == {k} }} }};", 1, fichier)
+                      f"{p}TOUS = {{ (allUnits + allDeadMen) select {{ private _c = _x getVariable [\"multi_c\", -1]; if (_c < 0) then {{ _c = _x call MULTI_fnc_cellule }}; _c == {k} }} }};", 1, fichier)
         t = remplacer(t, f"{{ if (count (crew _x) > 0) then {{ _x call {p}fnc_identifierVehicule }} }} forEach vehicles;",
                       f"{{ if ((count (crew _x) > 0) && {{ ((crew _x select 0) call MULTI_fnc_cellule) == {k} }}) then {{ _x setVariable [\"multi_c\", {k}]; _x call {p}fnc_identifierVehicule }} }} forEach vehicles;",
                       1, fichier)
@@ -63,6 +63,25 @@ def cellule(k, fichier, t):
         t = remplacer(t, 'params ["_vic", "_tueur", ["_instig", objNull]];',
                       f'params ["_vic", "_tueur", ["_instig", objNull]];\n    if ((_vic call MULTI_fnc_cellule) != {k}) exitWith {{}};   // MULTI : une mort d une autre cellule ne s ecrit pas ici',
                       1, fichier)
+        # ! L'ORDONNANCEUR SQF EST LE GOULOT, PAS LE PROCESSEUR ( balayage C3 v1, 22/09, 13 h 38 ). A K = 5 : 29 images/s,
+        # fil principal occupe a 36 %, mais chaque boucle de 2 s des cellules tournait toutes les 3,6 a 4,2 s - le budget
+        # de l'ordonnanceur ( 3 ms par image ) est partage par toutes les cellules. La boucle des trois vues est un
+        # INSTRUMENT : elle ne commande rien. Elle devient non ordonnancee, contenu identique, a pas fixe ; la logique de
+        # mission garde seule l'ordonnanceur. Ses tours sont decales d'une cellule a l'autre pour ne pas s'empiler.
+        debut_vues = f"[] spawn {{\n    while {{ !{p}FIN }} do {{\n        private _tr = round (time * 100) / 100;"
+        fin_vues = f"        sleep {p}DTV;\n    }};\n}};\n\"CHACAL|OK|vues|1\" call {p}LOG;"
+        t = remplacer(t, debut_vues,
+                      f"{p}T_VUES = time - ({k} * 0.37);\n{p}EH_VUES = addMissionEventHandler [\"EachFrame\", {{\n"
+                      f"    if ({p}FIN || {{ {p}CAP_VERSION != 1 }} || {{ (time - {p}T_VUES) < {p}DTV }}) exitWith {{}};\n"
+                      f"    {p}T_VUES = time;\n    call {{\n        private _tr = round (time * 100) / 100;", 1, fichier)
+        t = remplacer(t, fin_vues,
+                      f"    }};\n}}];\n\"CHACAL|OK|vues|1\" call {p}LOG;\n"
+                      f"// MULTI : le POULS de la cellule - une boucle ordonnancee de 2 s qui ne fait rien d'autre que dire quand elle\n"
+                      f"// tourne. Son retard est celui de toute la logique de mission de la cellule : c'est la porte de cadence.\n"
+                      f"[] spawn {{ while {{ !{p}FIN }} do {{ sleep 2; (format [\"CHACAL|C|pouls|%1\", round (time * 100) / 100]) call {p}LOG }} }};",
+                      1, fichier)
+        t = remplacer(t, f'removeMissionEventHandler ["EachFrame", {p}EH_FRAME];',
+                      f'removeMissionEventHandler ["EachFrame", {p}EH_FRAME];\n    removeMissionEventHandler ["EachFrame", {p}EH_VUES];', 1, fichier)
         t = remplacer(t, f'{{ _x removeAllEventHandlers "Fired" }} forEach ((call {p}TOUS) + vehicles);',
                       f'{{ _x removeAllEventHandlers "Fired" }} forEach ((call {p}TOUS) + (vehicles select {{ (_x getVariable ["multi_c", -1]) == {k} }}));',
                       1, fichier)
