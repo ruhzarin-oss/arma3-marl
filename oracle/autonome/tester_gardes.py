@@ -114,5 +114,33 @@ cle = ("menace_p2", 5, "attendre_sauve")
 verifie("pas de verdict sous 20 episodes par option", Mo.epreuve(cle, dict(n_t=10, c_t=9, n_a=10, c_a=0))[0] == "en attente")
 verifie("un vrai ecart dans le sens predit est confirme", Mo.epreuve(cle, dict(n_t=40, c_t=20, n_a=40, c_a=5))[0] == "CONFIRME")
 verifie("un ecart dans le SENS CONTRAIRE n est pas confirme", Mo.epreuve(cle, dict(n_t=40, c_t=5, n_a=40, c_a=20))[0] == "non confirme")
+print("== 12. la moitie Architecte : elle doit SAVOIR REUSSIR et SAVOIR ECHOUER ( regle 16 )")
+import copy
+from . import architecte_apprend as AA
+base = [e for e in Dn.utilisables(Dn.episodes(lambda c: str(c).startswith(C.PREFIXES_HISTORIQUES)))
+        if e.get("atteint_decision") and (e.get("p_compromis") or 0) == 0]
+rng = np.random.default_rng(7)
+def monde_synthetique(effet):
+    E = copy.deepcopy(base)
+    for e in E:
+        poste = (e.get("p_moteur_entendu") or 0) == 0 and (e.get("p_n_vues_menace") or 0) > 0
+        p = (0.60 if e["option_imposee"] == 1 else 0.15) if (effet and poste) else 0.20
+        e["compromis"] = int(rng.random() < p)
+    return E
+r1 = AA.apprendre(monde_synthetique(True), {"type": "constante", "option": 1}, candidats=("logistique",))
+verifie("un effet PERCEPTIBLE est trouve et la regle est adoptee", r1["adoptee"] and r1["meilleur"] == "logistique",
+        f"meilleur {r1['meilleur']}, {r1['candidats'][r1['meilleur']]['valeur']:.3f} contre {r1['valeur_courante']:.3f}")
+if r1["regle"]:
+    Es = monde_synthetique(True); Es = AA.jeu(Es); c = A.choix(r1["regle"], Es)
+    poste = np.array([(e.get("p_moteur_entendu") or 0) == 0 and (e.get("p_n_vues_menace") or 0) > 0 for e in Es])
+    # ailleurs les deux options sont EQUIVALENTES dans ce monde de test : la regle a le droit d y etre indifferente
+    verifie("la regle adoptee attend face au poste percu", np.mean(c[poste] == 2) > 0.8,
+            f"attend {np.mean(c[poste] == 2):.0%} des fois face au poste ( ailleurs {np.mean(c[~poste] == 2):.0%}, options equivalentes )")
+r0 = AA.apprendre(monde_synthetique(False), {"type": "constante", "option": 1}, candidats=("logistique",))
+verifie("sans effet, AUCUNE regle n est adoptee", not r0["adoptee"], f"meilleur {r0['meilleur']} IC {r0['candidats'][r0['meilleur']]['ic']}")
+try:
+    A.colonne(base[:3], "moteur_allume"); verifie("une variable de verite est refusee a l Architecte", False)
+except ValueError:
+    verifie("une variable de verite est refusee a l Architecte", True)
 print(f"\n{sum(ok_total)} / {len(ok_total)} garde-fous testes contre leur incident : "
       f"{'TOUS PASSENT' if all(ok_total) else 'AU MOINS UN ECHOUE'}")

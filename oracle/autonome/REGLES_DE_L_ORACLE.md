@@ -122,3 +122,35 @@ Un échec est un **défaut de code**, pas un monde difficile : la boucle **s'arr
 **Testé contre l'incident réel** (`oracle/autonome/tester_gardes.py`, test 10) : la v1 reconstruite telle qu'elle était est
 interceptée (décalibrée, 0,335 pour 0,162, et inutile) ; l'imagination corrigée passe (0,162 pour 0,162, écart-type
 0,084) ; une imagination qui prédirait le taux de base partout est interceptée (figée). **17 garde-fous sur 17.**
+
+## Amendement 3 — 22/09 : la moitié Architecte du duel
+
+Jusqu'ici le duel ne tournait que dans un sens : l'Oracle attaquait une règle figée, « toujours traverser ». Le premier
+motif confirmé (face à un poste proche, attendre sauve) est précisément un piège contre elle. **L'Architecte apprend
+désormais en retour.**
+
+**Ce qu'il perçoit suffit.** Au moment de choisir, sur 1 557 épisodes : face à une patrouille proche il entend un
+moteur 77 % du temps, face à un poste proche **jamais** (0 %), et il voit la menace 2,2 fois en moyenne contre 0,7.
+« Menace vue, aucun moteur » veut dire poste.
+
+**Comment il apprend** (`oracle/autonome/architecte_apprend.py`), toutes les 2 itérations de l'Oracle, en arrière-plan :
+
+- sur tous les épisodes de phase 2 où le choix comptait, **pièges de l'Oracle compris**, dans les campagnes où les
+  deux options ont été imposées ;
+- **uniquement ce qu'il perçoit à la décision** — toute variable de vérité est refusée par le code ;
+- candidats : toujours traverser, toujours attendre, une logistique avec interactions option × perception, une
+  formule EvoGP (300 000 × 200 générations × 3 graines dans la validation, 1 000 000 × 400 × 5 pour l'installée) ;
+- **valeur d'une règle** = la compromission qu'on aurait en la suivant, estimée sans biais par pondération inverse de
+  la probabilité de l'option imposée ;
+- chaque candidat est jugé sur **un monde qu'il n'a jamais vu**, les 20 mondes à tour de rôle.
+
+**Il ne change de règle que si la nouvelle bat l'ancienne sur des mondes neufs, IC 95 % de l'écart entièrement sous
+zéro.** Sinon il garde la sienne, et le journal dit pourquoi. Quand il change, l'Oracle lit la nouvelle règle au tour
+suivant et en cherche les failles : c'est là que la surprise mutuelle commence.
+
+**Garde-fous testés** (tests 12, 24/24) : sur un monde de synthèse où attendre sauve face au poste perçu, il adopte une
+règle qui attend 97 % du temps face au poste ; sur un monde sans effet, il n'adopte rien ; une variable de vérité est
+refusée. Un candidat qui plante est écarté sans arrêter la boucle.
+
+**Première fumée sur les vraies données** (EvoGP minuscule, sans valeur de verdict) : « toujours attendre » ferait
+3,3 points de mieux que « toujours traverser », IC [−7,3 ; +1,0] — pas encore assez pour qu'il change.

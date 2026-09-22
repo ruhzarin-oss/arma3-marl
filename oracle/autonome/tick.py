@@ -5,7 +5,7 @@ reprennent exactement la ou on en etait.
   python -m oracle.autonome.tick            un tour
   python -m oracle.autonome.tick --a-blanc  imagine et controle une iteration SANS rien poser
   python -m oracle.autonome.tick --etat     affiche l etat"""
-import fcntl, json, os, shutil, sys, time
+import fcntl, json, os, shutil, subprocess, sys, time
 import numpy as np
 from scipy.stats import fisher_exact
 from . import config as C, donnees as Dn, gardes as G, monde as M, architecte as A, generateur as Gen, motifs as Mo
@@ -92,10 +92,53 @@ def candidat_de(e):
     except Exception: return None
 
 
+# ------------------------------------------------------------------------------------------------ la moitie Architecte
+def architecte_en_cours():
+    f = f"{C.ETAT_DIR}/architecte.pid"
+    if not os.path.exists(f): return False
+    try: os.kill(int(open(f).read().strip()), 0); return True
+    except Exception: return False
+
+
+def lancer_architecte(etat):
+    """L Architecte reapprend EN ARRIERE-PLAN ( EvoGP sur la 3090, environ une heure ) : un tour ne dure que quelques
+    secondes, on ne l y enferme pas. Son resultat est lu au debut d un tour de repos suivant."""
+    if architecte_en_cours(): journal("- l Architecte reapprend deja : pas de second lancement"); return
+    log = open(f"{C.ETAT_DIR}/architecte.log", "a")
+    p = subprocess.Popen([sys.executable, "-m", "oracle.autonome.architecte_apprend"], cwd=C.DEPOT, stdout=log, stderr=log,
+                         start_new_session=True)
+    open(f"{C.ETAT_DIR}/architecte.pid", "w").write(str(p.pid))
+    journal(f"- 🏛️ l Architecte se remet a apprendre sur tous les episodes, pieges de l Oracle compris ( processus {p.pid} )")
+
+
+def appliquer_architecte(etat):
+    """Si l Architecte a fini d apprendre : il ne change de regle que si la nouvelle bat l ancienne sur des mondes neufs."""
+    f = f"{C.ETAT_DIR}/architecte_resultat.json"
+    if not os.path.exists(f): return
+    try: r = json.load(open(f))
+    except Exception: return
+    if not r.get("fini") or r.get("id") in etat.setdefault("architecte_vus", []): return
+    etat["architecte_vus"].append(r["id"])
+    with open(f"{C.ETAT_DIR}/architecte_historique.jsonl", "a") as h: h.write(json.dumps(r) + "\n")
+    cands = " | ".join(f"{k} {v['valeur']:.3f} ( ecart {v['ecart_a_la_courante']:+.3f} [{v['ic'][0]:+.3f} ; {v['ic'][1]:+.3f}] )"
+                       for k, v in r["candidats"].items())
+    if r["adoptee"]:
+        tmp = f"{C.ETAT_DIR}/architecte.json.tmp"; json.dump(r["regle"], open(tmp, "w"), indent=1)
+        os.replace(tmp, f"{C.ETAT_DIR}/architecte.json")
+        journal(f"\n**🏛️ L ARCHITECTE CHANGE DE REGLE** ( {time.strftime('%d/%m %H:%M')} ) : « {r['texte']} ». "
+                f"Compromission si on la suit, sur mondes neufs : {r['candidats'][r['meilleur']]['valeur']:.3f} contre "
+                f"{r['valeur_courante']:.3f} pour « {r['courante']} ». L Oracle chasse desormais les failles de CETTE regle.\n"
+                f"- candidats : {cands}")
+    else:
+        journal(f"- l Architecte garde sa regle « {r['courante']} » : aucun candidat ne la bat sur des mondes neufs. {cands}")
+    sauver(etat)
+
+
 # ------------------------------------------------------------------------------------------------ les etapes
 def etape_repos(etat, a_blanc=False):
     if not G.file_vide(): print("ATTENTE : la file n est pas vide ( une autre campagne vole ), l Oracle ne pose rien"); return
     if not G.depot_propre(): print("ATTENTE : depot non commite ( bancs, outils ou oracle/autonome )"); return
+    if not a_blanc: appliquer_architecte(etat)            # la regle a attaquer est celle que l Architecte vient d adopter
     if not a_blanc:
         etat["iteration"] += 1
     it = etat["iteration"] if not a_blanc else etat["iteration"] + 1
@@ -243,6 +286,7 @@ def etape_apprentissage(etat):
         journal(f"- imagination : Brier {b_mod:.4f} contre constante {b_cst:.4f} "
                 f"{'( elle voit mieux que le hasard )' if b_mod < b_cst else '( PAS mieux que la constante )'} ; "
                 f"{murs} mur(s) ; {len(etat['a_confirmer'])} piege(s) a confirmer, {len(etat['confirmes'])} confirme(s)")
+    if etat["iteration"] % C.ARCHITECTE_TOUS_LES == 0: lancer_architecte(etat)
     h["fin_ts"] = time.time(); etat["phase"] = "REPOS"; sauver(etat)
     if etat["sans_piege_suite"] >= C.ARRET_SANS_PIEGE:
         arreter(etat, f"l Oracle n imagine plus aucun piege depuis {etat['sans_piege_suite']} iterations : l equation tient"); return

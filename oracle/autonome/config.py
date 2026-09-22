@@ -62,3 +62,8 @@ BINAIRES = ["jour", "balayage", "oracle_cmd"]
 # --- sante de l imagination ( amendement 2, 21/09 : le bogue des reseaux arretes trop tot ) ---
 TOLERANCE_CALIBRATION = 0.03       # |prediction moyenne - taux reel| sur ses propres episodes d apprentissage
 ECART_MIN_PREDICTIONS = 0.005      # ecart-type minimal des predictions : en dessous, elle predit la meme chose partout
+
+# --- la moitie Architecte ( 22/09 ) : il reapprend sa regle toutes les N iterations de l Oracle ---
+ARCHITECTE_TOUS_LES = 2
+ARCHITECTE_EVOGP_CV = dict(pop=300000, gen=200, graines=3, parc=1e-3)        # dans la validation par monde
+ARCHITECTE_EVOGP_FINAL = dict(pop=1000000, gen=400, graines=5, parc=1e-3)    # la formule installee
