@@ -1,6 +1,6 @@
 """Les portes de l etape E1 ( plans/plan-monde-complet.md ) : chacune doit savoir echouer.
    python -m monde.tests"""
-import copy, os, pickle, sys, tempfile
+import copy, os, pickle, sys, tempfile, zlib
 from . import monde as W, ecole as S, gouvernement as G, config as C, agents as A
 
 
@@ -105,9 +105,46 @@ def test_demographie():
                 f"conservation relative {relatif:.1e}")
 
 
+def test_desobeissance():
+    """Point 8 : une loi doit pouvoir etre enfreinte. Une taxe legere est payee ; une taxe lourde se contourne, et
+    l Etat encaisse moins que ce qu il a decrete. Une quarantaine est violee par une part de la population."""
+    def gele(tva):                      # le gouvernement est GELE : on ne mesure que la desobeissance, pas ses decisions
+        w = W.Monde(); w.gouverner = lambda: None; w.gouv.tva = tva
+        return jours(w, 12)
+    leger, lourd = gele(0.10), gele(0.45)
+    part = lourd.tva_fraudee / max(1e-9, lourd.tva_fraudee + lourd.tva_percue)
+    q = W.Monde(); q.gouv.lois["quarantaine"] = ["Pyrgos"]; jours(q, 3)
+    dehors = sum(1 for h in q.habitants if h.vivant and h.domicile.id == "Pyrgos" and h.lieu is h.travail
+                 and h.travail is not None)
+    ok = leger.tva_fraudee == 0.0 and part > 0.2 and dehors > 0
+    return ok, (f"tva 10 % : {leger.tva_fraudee:.0f} drachme fraudee ; tva 45 % : {part:.0%} des montants echappent "
+                f"a l Etat ; quarantaine : {dehors} habitants sortent quand meme")
+
+
+def test_hopital():
+    """Point 9 : un malade grave doit QUITTER sa maison pour l hopital de sa capitale, et y trouver des soignants.
+    Le test regarde le monde ( le poste ) et la bulle ( la cle du batiment ), les deux moities du chemin."""
+    from . import incarner as I
+    w = jours(W.Monde(), 3)
+    malade = next(h for h in w.habitants if h.vivant and h.role != "enfant")
+    malade.etat, malade.gravite = "I", 0.9
+    # les soignants tournent en trois equipes : on cherche une heure ou l une d elles est de garde
+    soignant = None
+    for heure in (7.0, 10.0, 15.0, 18.0, 23.0, 3.0):
+        w.deplacer(heure)
+        soignant = next((h for h in w.habitants if h.vivant and h.role in I.SOIGNANTS and h.poste == "travail"
+                         and h.lieu is malade.lieu), None)      # un soignant DE LA MEME ville : l hopital est local
+        if soignant is not None: break
+    ok = (malade.poste == "hopital" and malade.lieu is malade.domicile.marche
+          and soignant is not None and I.cle(malade) == I.cle(soignant)
+          and I.cle(malade) != zlib.crc32(f"maison-{malade.menage.id}".encode()) % 997)
+    return ok, (f"le malade va a l hopital de {malade.lieu.id} ( batiment {I.cle(malade)} ) ; "
+                f"un soignant y travaille : {soignant is not None and I.cle(soignant) == I.cle(malade)}")
+
+
 TESTS = [test_conservation, test_conservation_sait_echouer, test_negatif_sans_perturbation, test_positif_route_coupee,
          test_reproductible, test_gouvernement_borne, test_ecole, test_menages_decident, test_reprise_identique,
-         test_demographie]
+         test_demographie, test_desobeissance, test_hopital]
 
 if __name__ == "__main__":
     ok = 0

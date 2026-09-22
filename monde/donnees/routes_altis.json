@@ -1,0 +1,38 @@
+{
+ "Athira-Pyrgos": {
+  "etat": "perdu",
+  "km_reels": 0.0,
+  "minutes": 0.0,
+  "km_estimes": 8.72460847646914
+ },
+ "Athira-Kavala": {
+  "etat": "perdu",
+  "km_reels": 0.0,
+  "minutes": 0.0,
+  "km_estimes": 15.59720381868762
+ },
+ "Pyrgos-Kavala": {
+  "etat": "perdu",
+  "km_reels": 0.0,
+  "minutes": 0.0,
+  "km_estimes": 17.324546547464035
+ },
+ "Pyrgos-Athira": {
+  "etat": "perdu",
+  "km_reels": 0.0,
+  "minutes": 0.0,
+  "km_estimes": 8.72460847646914
+ },
+ "Kavala-Athira": {
+  "etat": "perdu",
+  "km_reels": 0.0,
+  "minutes": 0.0,
+  "km_estimes": 15.59720381868762
+ },
+ "Kavala-Pyrgos": {
+  "etat": "perdu",
+  "km_reels": 0.0,
+  "minutes": 0.0,
+  "km_estimes": 17.324546547464035
+ }
+}

@@ -90,3 +90,10 @@ AGE_RETRAITE = 65
 NAISSANCES_PAR_MENAGE_AN = 0.09      # un menage avec un adulte de moins de 45 ans
 MORTALITE_AN = ((40, 0.001), (60, 0.004), (75, 0.02), (85, 0.06), (200, 0.15))   # age limite -> risque annuel
 JOURS_PAR_AN = 365
+
+# --- desobeissance ( point 8 ) : une loi peut etre enfreinte, sinon gouverner ne coute rien ---
+TVA_TOLEREE = 0.12                   # au-dela, la fraude commence
+FRAUDE_PENTE = 2.0                   # part des achats qui echappe a la TVA, par point de taxe au-dessus du seuil
+FRAUDE_MAX = 0.7
+QUARANTAINE_VIOLEE = 0.2             # part des habitants qui sortent quand meme
+ABSENCE_FAIM = 1.5                   # au-dela de cette faim accumulee, on ne va plus travailler

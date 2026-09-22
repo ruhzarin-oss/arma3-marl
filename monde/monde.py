@@ -55,6 +55,7 @@ class Monde:
         self.biens_depart = self.biens_totaux()
         self.stats_jour = {}
         self.ecole = S.Ecole(self, eleve) if eleve is not None else None
+        self.tva_percue = 0.0; self.tva_fraudee = 0.0     # point 8 : ce que l Etat encaisse, et ce qui lui echappe
         self.apprentissage = True       # faux pendant une qualification : l agent agit, il n apprend plus
         self.chocs = []                 # secheresses : [{ debut, jours, lieux, facteur }] - le rendement des fermes baisse
         self.routes_coupees = set()     # lieux que plus aucun convoi ne peut atteindre ni quitter ( controle positif, E1 )
@@ -242,7 +243,10 @@ class Monde:
         for p in self.habitants:
             if not p.vivant: continue
             if p.etat == "I" and p.gravite > 0.3: p.lieu, p.poste = p.domicile.marche, "hopital"; continue
-            if p.au_travail(h) and p.travail is not None and p.domicile.id not in q and p.travail.id not in q:
+            enferme = (p.domicile.id in q or p.travail is not None and p.travail.id in q) \
+                and self.rng.random() > C.QUARANTAINE_VIOLEE        # point 8 : une part de la population sort quand meme
+            epuise = p.faim > C.ABSENCE_FAIM                        # on ne va pas travailler le ventre vide depuis deux jours
+            if p.au_travail(h) and p.travail is not None and not enferme and not epuise:
                 p.lieu, p.poste = p.travail, "travail"
                 if C.ROLES[p.role][2]: p.heures_jour += C.MINUTES_PAR_PAS / 60.0     # le fonctionnaire est paye a l heure
             else: p.lieu, p.poste = p.domicile, "maison"
@@ -378,6 +382,12 @@ class Monde:
                 m.stocks["nourriture"] -= surplus; self.flux["exporte"]["nourriture"] += surplus
                 m.caisse += gain; self.ext["entree"] += gain; m.offre["nourriture"] += 0
 
+    def part_fraudeuse(self):
+        """Point 8 : la part des achats qui echappe a la TVA. Nulle sous le seuil tolere, elle monte ensuite.
+        Sans elle, un gouvernement pouvait taxer a 90 % sans que personne ne bronche."""
+        exces = max(0.0, self.gouv.tva - C.TVA_TOLEREE)
+        return min(C.FRAUDE_MAX, C.FRAUDE_PENTE * exces)
+
     def facteur_choc(self, lieu):
         """Le rendement d un lieu un jour donne : 1, sauf secheresse en cours."""
         for c in self.chocs:
@@ -489,9 +499,12 @@ class Monde:
             q = min(voulu, m.stocks["nourriture"], mg.caisse / prix if prix > 0 else 0)
             if q <= 0: continue
             m.stocks["nourriture"] -= q; mg.garde_manger += q
+            fraude = self.rng.random() < self.part_fraudeuse()      # point 8 : une taxe trop lourde se contourne
             if self.doctrine is not None: self.menagiers[mg.id].depense += q * m.prix["nourriture"] * (1 + self.gouv.tva)   # noqa
             self.transferer(mg, m, q * m.prix["nourriture"], "nourriture")
-            self.transferer(mg, self.gouv, q * m.prix["nourriture"] * self.gouv.tva, "tva")
+            du = q * m.prix["nourriture"] * self.gouv.tva
+            if fraude: self.tva_fraudee += du
+            else: self.tva_percue += self.transferer(mg, self.gouv, du, "tva")
             # au-dela d une semaine de nourriture en epargne, le menage depense : biens manufactures et carburant
             reserve = 7 * ration * len(vivants) * prix
             budget = max(0.0, mg.caisse - reserve) * C.PROPENSION_DEPENSE

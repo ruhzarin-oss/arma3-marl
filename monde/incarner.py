@@ -19,11 +19,16 @@ def classe_de(h):
     return CIVILS[h.id % len(CIVILS)], "civ"
 
 
+SOIGNANTS = ("medecin", "infirmier")
+
+
 def cle(h):
     """Le batiment, selon le POSTE et non la ville ( a Kavala, on vit et on travaille dans le meme lieu ) : la maison est
-    propre au menage ; le travail est commun a tous ceux du meme role ; l hopital est commun a tous les malades du lieu."""
+    propre au menage ; le travail est commun a tous ceux du meme role ; l hopital est commun a tous les malades du lieu.
+    Point 9 : les soignants travaillent A L HOPITAL - sinon les malades y allaient seuls, sans personne pour les voir."""
+    if h.poste == "hopital" or (h.poste == "travail" and h.role in SOIGNANTS):
+        return zlib.crc32(f"hopital-{h.lieu.id}".encode()) % 997
     if h.poste == "travail": return zlib.crc32(f"travail-{h.lieu.id}-{h.role}".encode()) % 997
-    if h.poste == "hopital": return zlib.crc32(f"hopital-{h.lieu.id}".encode()) % 997
     return zlib.crc32(f"maison-{h.menage.id}".encode()) % 997
 
 
@@ -132,6 +137,14 @@ def main():
             elif m[0] in ("recu", "pret"):
                 noter(type=m[0], detail=m[1:])
                 if m[0] == "recu" and m[1] >= lot_date: arma["horloge"] = True
+                if m[0] == "pret":
+                    # « pret » ne sort qu au demarrage d une mission : Arma a redemarre, il n a plus un seul corps.
+                    # Le cerveau oublie ce qu il croyait incarne et repeuple, au lieu de parler a des morts.
+                    incarnes.clear(); purges.clear(); vus.clear(); arma["horloge"] = False
+                    lot_date = pont.envoyer([["date", date_du_monde(w)], ["temps", C.ACCELERATION]])[0]
+                    o = synchroniser()
+                    if o: pont.envoyer(o)
+                    noter(type="repeuplement", incarnes=len(incarnes), ordres=len(o))
         # la reconciliation : un corps qu Arma rapporte et que le cerveau ne connait pas ( cerveau redemarre, ordre perdu )
         # est desincarne - le cerveau fait foi
         recents = {i for i, (t, _) in vus.items() if time.time() - t < 5}
