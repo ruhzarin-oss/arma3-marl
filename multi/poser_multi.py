@@ -9,7 +9,7 @@ quoi = sys.argv[1]
 if quoi == "fumee":
     pos = lambda w: {"graine": w, "oracle_ctrl": 1, "menace_p2": 1, "oracle_cmd": 1, "situation": 1, "traversee": 1, "role": "positif"}
     neg = lambda w: {"graine": w, "palier": 9, "menace_p2": 0, "oracle_cmd": 0, "situation": 1, "traversee": 1, "role": "negatif"}
-    job = dict(base, instance=1, graines=[1, 2], episodes={"1": [pos(8), neg(120)], "2": [pos(120), neg(8)]},
+    job = dict(base, instance=2, graines=[1, 2], episodes={"1": [pos(8), neg(120)], "2": [pos(120), neg(8)]},
                note="Episode multiple, etape 1 : fumee K = 2, controle positif et negatif, mondes echanges ( multi/CRITERES_MULTI.md ).")
     nom = "MULTI-FUMEE"
 elif quoi == "charge":
