@@ -17,7 +17,7 @@ elif quoi == "charge":
     def cellules(k, ep):
         return [{"graine": MONDES[i], "menace_p2": P2[i], "traversee": 1 + ((i + ep) % 2), "situation": ep, "oracle_cmd": 1, "role": f"charge_k{k}"} for i in range(k)]
     ordre = [1, 5, 5, 5, 1, 1, 3, 3, 3, 2, 2, 2]
-    job = dict(base, instance=1, graines=list(range(1, len(ordre) + 1)),
+    job = dict(base, instance=2, graines=list(range(1, len(ordre) + 1)),
                episodes={str(e): cellules(k, e) for e, k in enumerate(ordre, start=1)},
                note="Episode multiple, etape 2 : charge C3, K dans {1,2,3,5}, 3 episodes chacun, un serveur a la fois ( multi/CRITERES_MULTI.md ).")
     nom = "MULTI-CHARGE"
