@@ -327,13 +327,20 @@ def tour(a_blanc=False):
         if n: journal(f"- multiplexeur : {n} cellule(s) rendue(s) a la boucle")
         p = Mx.empaqueter()
         if p: journal(f"- multiplexeur : {len(p)} job(s) multiple(s) pose(s)")
-    ph = etat["phase"]
-    if ph == "REPOS":
-        if G.stop_demande(): return
-        etape_repos(etat)
-    elif ph == "VOL": etape_vol(etat)
-    elif ph == "LECTURE": etape_lecture(etat)
-    elif ph == "APPRENTISSAGE": etape_apprentissage(etat)
+    # ! LES ETAPES S ENCHAINENT DANS LE MEME TOUR ( 22/09, Younes : « pourquoi y a plus rien ? » ) : une etape par tour
+    # laissait la ferme vide ~15 min entre deux iterations ( lecture, apprentissage, pose : trois tours de 5 min ). Seul le
+    # VOL attend : on enchaine jusqu a lui, puis on le lit une fois pour nourrir la ferme tout de suite.
+    for _ in range(6):
+        ph = etat["phase"]
+        if ph == "REPOS":
+            if G.stop_demande(): return
+            etape_repos(etat)
+        elif ph == "VOL": etape_vol(etat)
+        elif ph == "LECTURE": etape_lecture(etat)
+        elif ph == "APPRENTISSAGE": etape_apprentissage(etat)
+        suivant = charger()
+        if suivant.get("arret") or suivant["phase"] == ph: break
+        etat = suivant
 
 
 if __name__ == "__main__":
