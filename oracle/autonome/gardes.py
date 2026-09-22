@@ -63,7 +63,9 @@ def runs_de(campagne):
     out = []
     for jf in glob.glob(f"{C.RUNS}/2026-*/job.json"):
         try:
-            if json.load(open(jf)).get("campagne") == campagne: out.append(os.path.dirname(jf))
+            j = json.load(open(jf))
+            # un job multiple n est pas un run d episodes : ses cellules reviennent en runs virtuels ( amendement 6 )
+            if j.get("campagne") == campagne and j.get("banc") != "chacalmulti": out.append(os.path.dirname(jf))
         except Exception: pass
     return out
 
@@ -78,7 +80,7 @@ def signature_seconde_graine(campagne):
     # meme incident, vu dans l inventaire : la premiere graine du job a un resultat, la seconde aucun
     n = 0
     for r in runs_de(campagne):
-        gs = sorted(glob.glob(f"{r}/g*/"))
+        gs = [x for x in sorted(glob.glob(f"{r}/g*/")) if not os.path.exists(x + "ARRET_MANUEL")]
         if len(gs) >= 2 and os.path.exists(gs[0] + "resultat.json") and not os.path.exists(gs[-1] + "resultat.json"): n += 1
     return n
 

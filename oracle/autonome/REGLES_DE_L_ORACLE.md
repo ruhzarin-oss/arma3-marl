@@ -182,3 +182,15 @@ POULS decroche ( moins de 95 % des intervalles dans [1,8 ; 2,5] s : l ordonnance
 une erreur SQF, ou si le journal croise y a vu une connaissance ennemie entre cellules. Le seuil d acceptation de 0,75
 ( quarantaine ) s applique tel quel : un multiple qui refuse trop de cellules met l iteration en quarantaine.
 Pas de balayage de charge prealable ( ordre de Younes ) : chaque episode porte sa propre porte de pouls.
+
+## Amendement 6 — l arret du 22/09 a 12 h 40 n est pas une panne ( 22/09, 15 h 10 )
+
+La boucle s est arretee a 15 h 02 sur deux garde-fous : « 4 jobs dont la seconde graine n a aucun resultat » et
+« acceptation 0,67 < 0,75 ». Diagnostic : 14 episodes du banc seul de l iteration 12 ont ete COUPES a 12 h 41 par l arret
+qu a demande Younes pour tester l episode multiple ( journal du 22/09 12 h 41 ) - pas de ligne FINI, pas de resultat ; et
+4 runs de calibration du banc multiple ( fumee, charge ) portaient par erreur le nom de campagne ORACLE-I012 ( herite du
+job de base de `multi/poser_multi.py` ). Les cellules du multiple rendues a la boucle sont acceptees a 25/32 = 0,78.
+Correction : les 14 episodes coupes sont marques `ARRET_MANUEL` ( fichier dans leur dossier g* ) ; `donnees.py` ne les lit
+plus et `gardes.py` ne les compte plus dans la signature ; leurs cases sont rejouees par la reparation. Les jobs du banc
+multiple ne sont ni des episodes ( `admissible` ) ni des runs de campagne ( `runs_de` ). Les 5 runs de calibration sont
+renommes `MULTI-CALIBRATION-22-09`. Les 4 refus ordinaires ( canari, rien apres FINI ) restent comptes.

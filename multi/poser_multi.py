@@ -4,7 +4,7 @@ H = "/mnt/data/hmt"
 base = json.load(open(sorted(glob.glob(f"{H}/queue_suspendue/*.json"))[0]))
 for k in ("graines", "situation", "menace_p2", "traversee", "version", "note", "oracle_ctrl", "instance", "azimut_val"):
     base.pop(k, None)
-base.update({"banc": "chacalmulti", "repetitions": 1, "plafond_s": 5400, "multi_tmax": 1500, "multi_sonde": 1, "multi_espacement": 3000})
+base.update({"campagne": "MULTI-CALIBRATION-22-09", "banc": "chacalmulti", "repetitions": 1, "plafond_s": 5400, "multi_tmax": 1500, "multi_sonde": 1, "multi_espacement": 3000})
 quoi = sys.argv[1]
 if quoi == "fumee":
     pos = lambda w: {"graine": w, "oracle_ctrl": 1, "menace_p2": 1, "oracle_cmd": 1, "situation": 1, "traversee": 1, "role": "positif"}

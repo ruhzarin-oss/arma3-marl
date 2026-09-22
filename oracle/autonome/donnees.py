@@ -22,6 +22,7 @@ def num(x, d=None):
 
 def admissible(j):
     """Un episode de phase 2 comparable a ce que joue l Oracle."""
+    if j.get("banc") == "chacalmulti": return False   # un job multiple n est pas un episode : ses cellules reviennent en runs virtuels
     return (bool(j.get("menace_p2")) and int(j.get("depart", 0)) == 2 and int(j.get("arret", 0)) == 2
             and int(j.get("oracle_ctrl") or 0) == 0 and int(j.get("echelle", 100)) == 100
             and str(j.get("banc", "")).startswith("chacal"))
@@ -59,6 +60,9 @@ def episodes(filtre_campagne=None, admissibles_seulement=True):
         if filtre_campagne and not filtre_campagne(j.get("campagne", "")): continue
         if admissibles_seulement and not admissible(j): continue
         for d in sorted(glob.glob(os.path.dirname(jf) + "/g*/")):
+            # ! amendement 6 ( 22/09 ) : un episode coupe par un arret DECIDE ( ordre de Younes, trace dans le journal )
+            # n est pas un episode ; il est marque ARRET_MANUEL et sa case est rejouee par la reparation
+            if os.path.exists(d + "ARRET_MANUEL"): continue
             out.append(lire_episode(jf, d, j))
     return out
 
