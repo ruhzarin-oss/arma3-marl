@@ -159,3 +159,33 @@ contrôle négatif (30 jours sans famine, carburant dans la bande), contrôle po
 Tenue sur 120 jours : 499 vivants, carburant 5-8, caisse de l'État stable. Défauts connus : la mine n'est pas rentable
 (salaires), la nourriture reste au prix plancher (surproduction agricole), l'élève à mémoire simple régresse à 0,25 quand
 ses notes s'accumulent (plancher que l'élève Qwen doit battre).
+
+## 12. État au 22/09, 20 h — étape E2 (le pont et la bulle) en service
+
+**Le pont est en Rust** (`depot/pont_rust`, extension `monde_x64.dll`, arma-rs) : le cerveau Python est le serveur TCP,
+l'extension est le client et se reconnecte seule. Les ordres sont **poussés** dans la mission par `ExtensionCallback`,
+sans attente et sans fichier — le pont par fichier de Windows coûtait 0,5 s par échange.
+
+**Mesures du premier vol** (bulle Kavala, serveur instance 9, mission `MONDE.Altis`) :
+
+| ce qui est mesuré | résultat |
+|---|---|
+| horloge | 901 s réelles = 60,1 min du monde, soit **×4,00** : une journée du monde en 6 h réelles |
+| corps | 49 puis 68 corps dans Arma = habitants incarnés par le cerveau, **0 doublon**, 0 écart |
+| pont | 0 message perdu, 0 erreur SQF, ~1 s pour incarner 49 habitants |
+| serveur | ~28 images/s avec 49 à 68 corps |
+| reconnexion | cerveau relancé : le pont se reconnecte seul, 19 corps orphelins purgés par réconciliation |
+
+**Deux défauts trouvés et corrigés** :
+
+1. **La bulle comparait des villes.** Les 49 habitants de Kavala y vivent *et* y travaillent : aucun changement de lieu,
+   donc aucun déplacement. Chaque habitant porte désormais un **poste** explicite (maison, travail, hôpital), posé par
+   le cœur ; un changement de poste devient un ordre `aller`. Les 7 portes d'E1 restent vertes.
+2. **`moveTo` seul ne déplace pas un agent d'Arma.** Contrôle positif à quatre méthodes (`monde/essai_aller.py`,
+   3 corps chacune, 90 s) : agent + `moveTo` = **0,0 m** ; agent + `setDestination` puis `moveTo` = 226-265 m ;
+   unité en groupe + `doMove` = 97-120 m ; groupe + `move` = 83-130 m. La mission pose maintenant une destination avant
+   `moveTo`. Les civils restent des agents : un groupe par habitant heurterait la limite de 288 groupes par camp.
+   Après correction : 8 ordres `aller` à 7 h 10, **4 corps en marche** mesurés.
+
+**Porte E2** — identité conservée, aucun doublon, pouls tenu : franchie sur la bulle de Kavala. Reste à tenir un cycle
+complet de 24 h du monde (6 h réelles) avec Qwen au gouvernement et à l'école, cycle lancé le 22/09 à 20 h 10.
