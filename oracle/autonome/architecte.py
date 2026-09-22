@@ -8,10 +8,22 @@ import json, os
 import numpy as np
 from . import config as C
 
-FONCTIONS = {"tanh": np.tanh, "exp": lambda x: np.exp(np.clip(x, -30, 30)), "abs": np.abs, "neg": np.negative,
-             "min": np.minimum, "max": np.maximum,
-             "loose_div": lambda a, b: np.where(np.abs(b) > 1e-9, a / np.where(np.abs(b) > 1e-9, b, 1), 1.0),
-             "loose_log": lambda x: np.log(np.maximum(np.abs(x), 1e-9)), "log": lambda x: np.log(np.maximum(np.abs(x), 1e-9))}
+# ! 22/09 : les fonctions d EvoGP, TELLES QU IL LES CALCULE ( evogp/cuda/defs.h et forward.cu, en float32, DELTA = 1e-9 ).
+# La v1 relisait l affichage d EvoGP ( « a max b », moins typographique, constantes arrondies a 2 decimales ) :
+# 114 formules sur 400 seulement se relisaient a l identique. Les formules sont desormais traduites depuis l ARBRE.
+_D = np.float32(1e-9)
+def _f(x): return np.asarray(x, dtype=np.float32)
+def _cmp(o): return lambda a, b: np.where(o(_f(a), _f(b)), np.float32(1), np.float32(-1))   # forward.cu : +1 ou -1, PAS 1 ou 0
+FONCTIONS = {"tanh": np.tanh, "sin": np.sin, "cos": np.cos, "tan": np.tan, "sinh": np.sinh, "cosh": np.cosh, "exp": np.exp,
+             "abs": np.abs, "neg": np.negative, "max": np.maximum, "min": np.minimum,
+             "div": lambda a, b: np.where(_f(b) == 0, np.float32(np.nan), _f(a) / np.where(_f(b) == 0, np.float32(1), _f(b))),
+             "loose_div": lambda a, b: _f(a) / np.where(np.abs(_f(b)) <= _D, np.copysign(_D, _f(b)), _f(b)),
+             "log_": lambda x: np.log(_f(x)), "loose_log": lambda x: np.log(np.maximum(np.abs(_f(x)), _D)),
+             "inv": lambda x: np.float32(1) / _f(x), "loose_inv": lambda x: np.float32(1) / np.where(np.abs(_f(x)) <= _D, np.copysign(_D, _f(x)), _f(x)),
+             "sqrt_": lambda x: np.sqrt(_f(x)), "loose_sqrt": lambda x: np.sqrt(np.abs(_f(x))),
+             "pow_": lambda a, b: np.power(_f(a), _f(b)), "loose_pow": lambda a, b: np.power(np.abs(_f(a)), _f(b)),
+             "lt": _cmp(np.less), "gt": _cmp(np.greater), "le": _cmp(np.less_equal), "ge": _cmp(np.greater_equal),
+             "si": lambda a, b, c: np.where(_f(a) > 0, _f(b), _f(c))}
 # ce que l Architecte percoit a la decision - et RIEN d autre ( 21/09 : verite_*, moteur_allume, erreur_position interdits )
 PERMISES = ["alarme", "depuis_alarme", "vivants", "defenseurs_connus", "vehicule_vu", "vehicule_connu", "menace_percue",
             "menaces_vues", "menaces_connues", "menaces_camp", "menaces_homme", "distance_menace", "menace_mobile", "vue_depuis",
@@ -44,8 +56,9 @@ def choix(regle, E):
         def evaluer(att):
             env = dict(FONCTIONS)
             for n in regle["noms"]:
-                env[n] = np.full(len(E), att, dtype=float) if n == "attendre" else colonne(E, n)
-            return np.asarray(eval(regle["formule"], {"__builtins__": {}}, env), dtype=float) * np.ones(len(E))
+                env[n] = np.full(len(E), att, dtype=np.float32) if n == "attendre" else colonne(E, n).astype(np.float32)
+            with np.errstate(all="ignore"):
+                return np.nan_to_num(np.asarray(eval(regle["formule"], {"__builtins__": {}}, env), dtype=float) * np.ones(len(E)), nan=0.5)
         p1, p2 = evaluer(0.0), evaluer(1.0)
         c = np.where(p2 < p1 - 1e-9, 2, 1)
     else:
@@ -59,4 +72,4 @@ def texte(regle):
     if regle["type"] == "lineaire":
         termes = " ".join(f"{g:+.2f}·{n}" for n, g in sorted(regle["g"].items(), key=lambda kv: -abs(kv[1])) if abs(g) >= 0.05)
         return f"attendre si {regle['g0']:+.2f} {termes} < 0   ( variables centrees-reduites )"
-    return f"P(compromis) = {regle['formule']}   ; attendre si P(attendre) < P(traverser)"
+    return f"P(compromis) = {regle.get('affichage', regle['formule'])}   ; attendre si P(attendre) < P(traverser)"

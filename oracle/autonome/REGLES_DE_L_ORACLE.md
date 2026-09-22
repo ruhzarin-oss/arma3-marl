@@ -154,3 +154,18 @@ refusée. Un candidat qui plante est écarté sans arrêter la boucle.
 
 **Première fumée sur les vraies données** (EvoGP minuscule, sans valeur de verdict) : « toujours attendre » ferait
 3,3 points de mieux que « toujours traverser », IC [−7,3 ; +1,0] — pas encore assez pour qu'il change.
+
+## Amendement 4 — 22/09 : deux défauts de la moitié Architecte, trouvés par ses tests avant tout verdict
+
+1. **EvoGP était mal relu.** Son affichage écrit `max`/`min` au milieu de l'expression, un moins typographique, des
+   constantes arrondies à deux décimales — et surtout ses comparaisons rendent **+1 ou −1**, pas 1 ou 0
+   (`evogp/cuda/forward.cu`). Seules 114 formules sur 400 se relisaient à l'identique. Les formules sont désormais
+   traduites depuis l'**arbre** lui-même, et chaque traduction est **vérifiée** contre le calcul d'EvoGP (99 % des
+   points identiques exigés, sinon le candidat est écarté). Test 13 : **400 sur 400**.
+2. **Il pouvait adopter une règle sans effet.** Choisir le meilleur de plusieurs candidats puis le juger sur les
+   mêmes données surestime le gagnant. Correction de Bonferroni : l'IC est pris au niveau 1 − 0,05/k. Mesuré
+   (test 12) : **1 fausse adoption sur 20 mondes sans effet**, **5 adoptions justes sur 5 mondes avec effet**.
+
+Le premier apprentissage réel (22/09 10 h 48) avait écarté EvoGP dans plusieurs mondes à cause du défaut 1 ; son
+verdict (« aucun candidat ne bat toujours traverser ») reste valable pour la logistique et les règles constantes, et
+il est refait en entier.

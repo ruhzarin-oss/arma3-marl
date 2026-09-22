@@ -136,11 +136,25 @@ if r1["regle"]:
     # ailleurs les deux options sont EQUIVALENTES dans ce monde de test : la regle a le droit d y etre indifferente
     verifie("la regle adoptee attend face au poste percu", np.mean(c[poste] == 2) > 0.8,
             f"attend {np.mean(c[poste] == 2):.0%} des fois face au poste ( ailleurs {np.mean(c[~poste] == 2):.0%}, options equivalentes )")
-r0 = AA.apprendre(monde_synthetique(False), {"type": "constante", "option": 1}, candidats=("logistique",))
-verifie("sans effet, AUCUNE regle n est adoptee", not r0["adoptee"], f"meilleur {r0['meilleur']} IC {r0['candidats'][r0['meilleur']]['ic']}")
+# le taux de FAUSSES adoptions, mesure sur 20 mondes sans effet, et la PUISSANCE sur 5 mondes avec effet
+fausses = sum(AA.apprendre(monde_synthetique(False), {"type": "constante", "option": 1}, candidats=("logistique",))["adoptee"] for _ in range(20))
+verifie("sans effet, au plus 1 fausse adoption sur 20 mondes", fausses <= 1, f"{fausses} / 20")
+vraies = sum(AA.apprendre(monde_synthetique(True), {"type": "constante", "option": 1}, candidats=("logistique",))["adoptee"] for _ in range(5))
+verifie("avec effet, adoptee dans au moins 4 mondes sur 5", vraies >= 4, f"{vraies} / 5")
 try:
     A.colonne(base[:3], "moteur_allume"); verifie("une variable de verite est refusee a l Architecte", False)
 except ValueError:
     verifie("une variable de verite est refusee a l Architecte", True)
+print("== 13. une formule d EvoGP est relue EXACTEMENT ( 22/09 : 114 sur 400 seulement par l affichage d EvoGP )")
+import torch
+from evogp.tree import Forest, GenerateDescriptor
+d = GenerateDescriptor(max_tree_len=48, input_len=4, output_len=1,
+                       using_funcs=["+", "-", "*", "loose_div", "min", "max", "neg", ">", "<", "tanh", "abs"],
+                       max_layer_cnt=5, const_samples=[-1.0, -0.5, -0.1, 0.0, 0.1, 0.5, 1.0])
+torch.manual_seed(0); foret = Forest.random_generate(pop_size=400, descriptor=d)
+Xt = np.random.default_rng(0).normal(size=(200, 4)).astype(np.float32)
+fid = [AA.verifier_traduction(foret[i], AA.vers_python(foret[i], [f"v{j}" for j in range(4)]), Xt, [f"v{j}" for j in range(4)]) for i in range(400)]
+verifie("au moins 398 formules sur 400 relues identiques sur 99 % des points", sum(f >= 0.99 for f in fid) >= 398,
+        f"{sum(f >= 0.99 for f in fid)} / 400 ; fidelite moyenne {np.mean(fid):.4f}")
 print(f"\n{sum(ok_total)} / {len(ok_total)} garde-fous testes contre leur incident : "
       f"{'TOUS PASSENT' if all(ok_total) else 'AU MOINS UN ECHOUE'}")
