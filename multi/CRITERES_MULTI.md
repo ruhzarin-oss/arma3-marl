@@ -92,3 +92,20 @@ positif écrit encore après son verdict. Dans le banc seul le serveur est arrê
 FINI, une cellule n'écrit plus que des lignes OK et AVERT** (celles que le lecteur du banc seul tolère). L'épisode 2 de
 la fumée v2 tourne avec l'ancien code ; la réparation est vérifiée par le premier épisode du balayage C3 (K = 1) : si la
 porte « rien après FINI » y échoue, ou si une erreur SQF apparaît, le balayage s'arrête.
+
+## Amendement 3 — balayage C3 v1 interrompu à l'épisode 2 (K = 5), 22/09 13 h 45
+
+Épisode 1 (K = 1, monde 8) : accepté, toutes portes vertes (la réparation de l'amendement 2 tient), mais court (compromis
+à 95 s) ; journal VC 2,43 s de médiane, 71 % dans la bande. Épisode 2 (K = 5, 314 unités, cellules à 3,6-8 km) :
+**29 images/s — aucune baisse —, fil principal du serveur occupé à 36 % seulement**, 0 erreur, sonde connue en 3,0 s ;
+mais **chaque boucle de 2 s des cellules tourne toutes les 3,4 à 4,2 s** (2 à 6 % dans la bande). Le goulot n'est pas le
+processeur : c'est le budget fixe de l'ordonnanceur SQF (3 ms par image), partagé par toutes les cellules — le piège que
+Fable avait nommé. Le balayage v1 est arrêté après cet épisode (données gardées, run 2026-09-22_133241).
+
+Réparation (bench v3) : les instruments qui ne commandent rien sortent de l'ordonnanceur. La boucle des trois vues de
+l'enregistreur devient non ordonnancée (contenu identique, pas fixe de 2 s, tours décalés entre cellules) ; le journal
+croisé est amorti à l'image (4 groupes par image) ; les lieux de la sonde sont choisis avant le départ. La logique de
+mission reste ordonnancée, ligne pour ligne. **La porte de cadence porte désormais sur le POULS de chaque cellule** : une
+boucle ordonnancée `sleep 2` qui ne fait rien d'autre qu'écrire l'heure ; son retard est exactement celui que subit la
+logique de mission. Porte : ≥ 95 % des intervalles du pouls dans [1,8 ; 2,5] s (ou ≥ valeur à K = 1 − 2 points si
+K = 1 échoue). Le balayage C3 est rejoué en entier (v2), mêmes épisodes, même ordre ; lecture unique à la fin.

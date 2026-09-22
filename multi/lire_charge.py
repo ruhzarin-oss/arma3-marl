@@ -27,7 +27,8 @@ for g in sorted(glob.glob(f"{R}/g*/resultat.json"), key=lambda p: int(re.search(
         P["cellules"] += 1; P["acceptees"] += c.get("verdict") == "ACCEPTE"
         if c.get("verdict") == "ACCEPTE" and c.get("compromis") is not None: P["compromis"].append(int(c["compromis"]))
         if c.get("duree_phase2") is not None: P["duree"].append(c["duree_phase2"])
-        tv = [float(x) for x in re.findall(r'CHACAL\|VC\|([0-9.]+)\|\d+\|est_sur_ouest', open(f"{R}/g{e}/c{k}/serveur.rpt", errors="ignore").read())]
+        # porte de cadence ( amendement 3 ) : le POULS de la cellule, boucle ordonnancee de 2 s qui ne fait rien d'autre
+        tv = [float(x) for x in re.findall(r'CHACAL\|C\|pouls\|([0-9.]+)', open(f"{R}/g{e}/c{k}/serveur.rpt", errors="ignore").read())]
         P["iv"] += [b - a for a, b in zip(tv, tv[1:])]
 
 def q(v, p): v = sorted(v); return v[min(len(v) - 1, int(p * len(v)))] if v else None
@@ -55,7 +56,7 @@ for K in sorted(parK):
     comp = (sum(P["compromis"]) / len(P["compromis"])) if P["compromis"] else None
     print(f"\nK={K} : {P['episodes']} episodes, {P['cellules']} cellules, {P['acceptees']} acceptees, {P['censurees']} censurees")
     print(f"   fps mediane {fm and round(fm, 1)}  p5 {f5 and round(f5, 1)}  ( {len(P['fps'])} mesures de 2 s, toutes cellules actives )")
-    print(f"   sonde : mediane {sm}  ( {len(P['sonde'])} connues sur {P['sonde_cycles']} cycles ) ; cadence dans [1,8 ; 2,5] : {cad and round(cad, 3)}")
+    print(f"   sonde : mediane {sm}  ( {len(P['sonde'])} connues sur {P['sonde_cycles']} cycles ) ; pouls dans [1,8 ; 2,5] : {cad and round(cad, 3)}")
     print(f"   erreurs SQF {P['sqf']} ; connaissance ennemie croisee {P['croise']} ; controle du journal croise vu {P['controle']} fois")
     print(f"   RAPPORTE : compromission {comp and round(comp, 3)} ( n = {len(P['compromis'])} ) ; duree de phase 2 mediane {st.median(P['duree']) if P['duree'] else None} s")
     print("   portes : " + " ".join(f"{k}={'OK' if v else 'NON'}" for k, v in portes.items()) + f"  ->  {'PASSE' if passe[K] else 'ECHOUE'}")

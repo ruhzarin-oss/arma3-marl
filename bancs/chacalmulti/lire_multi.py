@@ -90,6 +90,9 @@ for k in range(1, K + 1):
     tv = [float(x) for x in re.findall(r'CHACAL\|VC\|([0-9.]+)\|\d+\|est_sur_ouest', "".join(flux.get(k, [])))]
     iv = [b - a for a, b in zip(tv, tv[1:])]
     txt = "".join(flux.get(k, []))
+    # le POULS : une boucle ordonnancee de 2 s qui ne fait rien ; son retard est celui de la logique de mission
+    tp = [float(x) for x in re.findall(r'CHACAL\|C\|pouls\|([0-9.]+)', txt)]
+    ip = [b - a for a, b in zip(tp, tp[1:])]
     p2d = re.search(r"CHACAL\|PH\|2\|APPROCHE\|debut\|([0-9.]+)", txt)
     p2f = re.search(r"CHACAL\|PH\|2\|APPROCHE\|fin\|([0-9.]+)\|([A-Z_]+)", txt)
     dec = re.search(r"CHACAL\|E\|choix_joue\|([0-9.]+)\|point\|TRAVERSEE\|choix\|(\d)\|detail\|([A-Z_]+)", txt)
@@ -105,6 +108,8 @@ for k in range(1, K + 1):
         "monde_ecart_m": conf, "erreurs_sqf": erreurs.get(k, 0),
         "cadence_mediane": round(st.median(iv), 2) if iv else None,
         "cadence_dans_bande": round(sum(1.8 <= x <= 2.5 for x in iv) / len(iv), 3) if iv else None,
+        "pouls_mediane": round(st.median(ip), 2) if ip else None,
+        "pouls_dans_bande": round(sum(1.8 <= x <= 2.5 for x in ip) / len(ip), 3) if ip else None, "pouls_n": len(ip),
         "lignes": len(flux.get(k, [])),
     }
     json.dump(r, open(os.path.join(d, "resultat.json"), "w"), indent=1, ensure_ascii=False)
