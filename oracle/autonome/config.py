@@ -67,3 +67,6 @@ ECART_MIN_PREDICTIONS = 0.005      # ecart-type minimal des predictions : en des
 ARCHITECTE_TOUS_LES = 2
 ARCHITECTE_EVOGP_CV = dict(pop=300000, gen=200, graines=3, parc=1e-3)        # dans la validation par monde
 ARCHITECTE_EVOGP_FINAL = dict(pop=1000000, gen=400, graines=5, parc=1e-3)    # la formule installee
+
+# --- confirmation de « toujours attendre » ( CONFIRMATION_ATTENDRE.md, 019f54e ) : un seul regard, a 480 paires ---
+CONFIRMATION_ATTENDRE = True       # suspend l adoption automatique de l Architecte ( regards repetes )

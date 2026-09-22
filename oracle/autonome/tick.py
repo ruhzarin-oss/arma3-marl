@@ -103,6 +103,8 @@ def architecte_en_cours():
 def lancer_architecte(etat):
     """L Architecte reapprend EN ARRIERE-PLAN ( EvoGP sur la 3090, environ une heure ) : un tour ne dure que quelques
     secondes, on ne l y enferme pas. Son resultat est lu au debut d un tour de repos suivant."""
+    if C.CONFIRMATION_ATTENDRE:
+        journal("- l Architecte ne reapprend pas : confirmation de « toujours attendre » en cours, un seul regard a 480 paires"); return
     if architecte_en_cours(): journal("- l Architecte reapprend deja : pas de second lancement"); return
     log = open(f"{C.ETAT_DIR}/architecte.log", "a")
     p = subprocess.Popen([sys.executable, "-m", "oracle.autonome.architecte_apprend"], cwd=C.DEPOT, stdout=log, stderr=log,
@@ -122,6 +124,9 @@ def appliquer_architecte(etat):
     with open(f"{C.ETAT_DIR}/architecte_historique.jsonl", "a") as h: h.write(json.dumps(r) + "\n")
     cands = " | ".join(f"{k} {v['valeur']:.3f} ( ecart {v['ecart_a_la_courante']:+.3f} [{v['ic'][0]:+.3f} ; {v['ic'][1]:+.3f}] )"
                        for k, v in r["candidats"].items())
+    if C.CONFIRMATION_ATTENDRE:
+        journal(f"- resultat de l Architecte ( {r['id']} ) MIS DE COTE, jamais installe : confirmation en cours ( un seul regard ). {cands}")
+        sauver(etat); return
     if r["adoptee"]:
         tmp = f"{C.ETAT_DIR}/architecte.json.tmp"; json.dump(r["regle"], open(tmp, "w"), indent=1)
         os.replace(tmp, f"{C.ETAT_DIR}/architecte.json")
@@ -286,6 +291,11 @@ def etape_apprentissage(etat):
         journal(f"- imagination : Brier {b_mod:.4f} contre constante {b_cst:.4f} "
                 f"{'( elle voit mieux que le hasard )' if b_mod < b_cst else '( PAS mieux que la constante )'} ; "
                 f"{murs} mur(s) ; {len(etat['a_confirmer'])} piege(s) a confirmer, {len(etat['confirmes'])} confirme(s)")
+    if C.CONFIRMATION_ATTENDRE:
+        try:
+            from .lire_confirmation import paires, N as N_CONF
+            journal(f"- paires de confirmation de « toujours attendre » : {len(paires())} / {N_CONF} ( le compte seulement )")
+        except Exception as ex: journal(f"- compte des paires de confirmation impossible : {str(ex)[:80]}")
     if etat["iteration"] % C.ARCHITECTE_TOUS_LES == 0: lancer_architecte(etat)
     h["fin_ts"] = time.time(); etat["phase"] = "REPOS"; sauver(etat)
     if etat["sans_piege_suite"] >= C.ARRET_SANS_PIEGE:
