@@ -16,8 +16,9 @@ AFFECTATION = {
 CAPITALE_GOUVERNEMENT = "Kavala"
 
 # point 13 : les iles du pays. Chaque ile a sa geographie ; un habitant passe de l une a l autre par la mer.
-ILES = {"Altis": "altis_lieux.json", "Malden": "malden_lieux.json"}
-PORTS = {"Altis": "KavalaPier", "Malden": "V_LePort"}          # d ou l on embarque
+ILES = {"Altis": "altis_lieux.json", "Malden": "malden_lieux.json", "Stratis": "stratis_lieux.json",
+        "Tanoa": "tanoa_lieux.json", "Enoch": "enoch_lieux.json", "Sara": "sara_lieux.json"}
+PORTS = {"Altis": "KavalaPier"}     # les autres iles trouvent leur port toutes seules : la ville la plus proche de la mer
 VITESSE_MER_KMH = 25.0                                          # un cargo cotier
 
 
@@ -41,9 +42,11 @@ class Carte:
         self.routes = self._routes_mesurees()
         self.lieux = {}
         self.iles = list(iles)
+        marines = {}                      # les lieux marins de chaque ile : ils designent la cote
         for ile in self.iles:
             chemin = fichier if (fichier and ile == self.iles[0]) else os.path.join(ICI, "donnees", ILES[ile])
             for l in json.load(open(chemin)):
+                if l["type"] == "NameMarine": marines.setdefault(ile, []).append(tuple(l["pos"]))
                 t = {"NameCityCapital": "capitale", "NameCity": "ville", "NameVillage": "village"}.get(l["type"])
                 if t is None: t = AFFECTATION.get(l["id"])
                 if t is None: continue                   # caps, iles, collines : pas de role dans la v1
@@ -60,7 +63,15 @@ class Carte:
         for ile in self.iles:
             nom = PORTS.get(ile)
             cle = nom if ile == self.iles[0] else f"{ile}:{nom}"
-            if cle in self.lieux: self.ports[ile] = self.lieux[cle]
+            if cle in self.lieux:
+                self.ports[ile] = self.lieux[cle]; continue
+            # pas de port nomme : on prend la ville habitee la plus proche de la mer, d apres les lieux marins de l ile
+            cotes = marines.get(ile, [])
+            villes = [l for l in self.lieux.values() if l.ile == ile and l.type in ("capitale", "ville", "village")]
+            if cotes and villes:
+                self.ports[ile] = min(villes, key=lambda v: min(math.dist(v.pos, c) for c in cotes))
+            elif villes:
+                self.ports[ile] = villes[0]
 
     def de_type(self, *types):
         return [l for l in self.lieux.values() if l.type in types]

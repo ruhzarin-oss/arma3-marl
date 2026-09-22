@@ -1,0 +1,770 @@
+[
+ {
+  "id": "Bielawa",
+  "type": "NameVillage",
+  "pos": [
+   1573.0,
+   9677.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Lukow",
+  "type": "NameVillage",
+  "pos": [
+   3530.0,
+   11967.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Gliniska",
+  "type": "NameVillage",
+  "pos": [
+   4993.0,
+   9922.0
+  ],
+  "rayon": [
+   1000.0,
+   1000.0
+  ]
+ },
+ {
+  "id": "Brena",
+  "type": "NameCity",
+  "pos": [
+   6618.0,
+   11211.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Tarnow",
+  "type": "NameCity",
+  "pos": [
+   9328.0,
+   10905.0
+  ],
+  "rayon": [
+   1000.0,
+   1000.0
+  ]
+ },
+ {
+  "id": "Sitnik",
+  "type": "NameVillage",
+  "pos": [
+   11502.0,
+   9573.0
+  ],
+  "rayon": [
+   500.0,
+   500.0
+  ]
+ },
+ {
+  "id": "Borek",
+  "type": "NameVillage",
+  "pos": [
+   9807.0,
+   8495.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Zapadlisko",
+  "type": "NameVillage",
+  "pos": [
+   8058.0,
+   8712.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Nidek",
+  "type": "NameVillage",
+  "pos": [
+   6129.0,
+   8013.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Topolin",
+  "type": "NameCity",
+  "pos": [
+   1859.0,
+   7331.0
+  ],
+  "rayon": [
+   1000.0,
+   1000.0
+  ]
+ },
+ {
+  "id": "Adamow",
+  "type": "NameVillage",
+  "pos": [
+   3076.0,
+   6851.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Muratyn",
+  "type": "NameVillage",
+  "pos": [
+   4568.0,
+   6384.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Radunin",
+  "type": "NameCity",
+  "pos": [
+   7298.0,
+   6492.0
+  ],
+  "rayon": [
+   1000.0,
+   1000.0
+  ]
+ },
+ {
+  "id": "Lembork",
+  "type": "NameVillage",
+  "pos": [
+   8680.0,
+   6636.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Gieraltow",
+  "type": "NameVillage",
+  "pos": [
+   11240.0,
+   4380.0
+  ],
+  "rayon": [
+   1000.0,
+   1000.0
+  ]
+ },
+ {
+  "id": "Nadbor",
+  "type": "NameCity",
+  "pos": [
+   6110.0,
+   3983.0
+  ],
+  "rayon": [
+   1000.0,
+   1000.0
+  ]
+ },
+ {
+  "id": "Zalesie",
+  "type": "NameVillage",
+  "pos": [
+   896.0,
+   5536.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Huta",
+  "type": "NameVillage",
+  "pos": [
+   5141.0,
+   5473.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Radacz",
+  "type": "NameVillage",
+  "pos": [
+   4008.0,
+   7940.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Olszanka",
+  "type": "NameVillage",
+  "pos": [
+   4819.0,
+   7674.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Lipina",
+  "type": "NameVillage",
+  "pos": [
+   5942.0,
+   6820.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Kolembrody",
+  "type": "NameVillage",
+  "pos": [
+   8417.0,
+   11982.0
+  ],
+  "rayon": [
+   1000.0,
+   1000.0
+  ]
+ },
+ {
+  "id": "Karlin",
+  "type": "NameVillage",
+  "pos": [
+   10073.0,
+   6957.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Sobotka",
+  "type": "NameVillage",
+  "pos": [
+   6257.0,
+   10253.0
+  ],
+  "rayon": [
+   750.0,
+   750.0
+  ]
+ },
+ {
+  "id": "Roztoka",
+  "type": "NameVillage",
+  "pos": [
+   7695.0,
+   5317.0
+  ],
+  "rayon": [
+   500.0,
+   500.0
+  ]
+ },
+ {
+  "id": "Polana",
+  "type": "NameVillage",
+  "pos": [
+   3280.0,
+   2132.0
+  ],
+  "rayon": [
+   500.0,
+   500.0
+  ]
+ },
+ {
+  "id": "Dolnik",
+  "type": "NameVillage",
+  "pos": [
+   11312.0,
+   656.0
+  ],
+  "rayon": [
+   600.0,
+   600.0
+  ]
+ },
+ {
+  "id": "Sowa",
+  "type": "Hill",
+  "pos": [
+   11663.0,
+   12064.0
+  ],
+  "rayon": [
+   213.0,
+   160.0
+  ]
+ },
+ {
+  "id": "Krsnik",
+  "type": "Hill",
+  "pos": [
+   7875.0,
+   10081.0
+  ],
+  "rayon": [
+   170.0,
+   128.0
+  ]
+ },
+ {
+  "id": "Dambog",
+  "type": "Hill",
+  "pos": [
+   577.0,
+   1125.0
+  ],
+  "rayon": [
+   56.0,
+   42.0
+  ]
+ },
+ {
+  "id": "Skala",
+  "type": "Hill",
+  "pos": [
+   2999.0,
+   1956.0
+  ],
+  "rayon": [
+   109.0,
+   82.0
+  ]
+ },
+ {
+  "id": "Swarog",
+  "type": "Hill",
+  "pos": [
+   4855.0,
+   2224.0
+  ],
+  "rayon": [
+   109.0,
+   82.0
+  ]
+ },
+ {
+  "id": "Rodzanica",
+  "type": "Hill",
+  "pos": [
+   8882.0,
+   2042.0
+  ],
+  "rayon": [
+   276.0,
+   200.0
+  ]
+ },
+ {
+  "id": "quarry",
+  "type": "NameLocal",
+  "pos": [
+   1182.0,
+   8870.0
+  ],
+  "rayon": [
+   220.0,
+   160.0
+  ]
+ },
+ {
+  "id": "farm",
+  "type": "NameLocal",
+  "pos": [
+   2029.0,
+   9430.0
+  ],
+  "rayon": [
+   220.0,
+   159.0
+  ]
+ },
+ {
+  "id": "farm1",
+  "type": "NameLocal",
+  "pos": [
+   1296.0,
+   8032.0
+  ],
+  "rayon": [
+   220.0,
+   160.0
+  ]
+ },
+ {
+  "id": "ind1",
+  "type": "NameLocal",
+  "pos": [
+   1668.0,
+   7589.0
+  ],
+  "rayon": [
+   220.0,
+   159.0
+  ]
+ },
+ {
+  "id": "farm2",
+  "type": "NameLocal",
+  "pos": [
+   5145.0,
+   10483.0
+  ],
+  "rayon": [
+   200.0,
+   159.0
+  ]
+ },
+ {
+  "id": "mil1",
+  "type": "NameLocal",
+  "pos": [
+   7919.0,
+   9715.0
+  ],
+  "rayon": [
+   180.0,
+   130.0
+  ]
+ },
+ {
+  "id": "mil2",
+  "type": "NameLocal",
+  "pos": [
+   8144.0,
+   10928.0
+  ],
+  "rayon": [
+   180.0,
+   130.0
+  ]
+ },
+ {
+  "id": "ind2",
+  "type": "NameLocal",
+  "pos": [
+   11155.0,
+   11456.0
+  ],
+  "rayon": [
+   200.0,
+   170.0
+  ]
+ },
+ {
+  "id": "Bagno",
+  "type": "NameLocal",
+  "pos": [
+   11823.0,
+   11135.0
+  ],
+  "rayon": [
+   400.0,
+   300.0
+  ]
+ },
+ {
+  "id": "ind4",
+  "type": "NameLocal",
+  "pos": [
+   11377.0,
+   9397.0
+  ],
+  "rayon": [
+   200.0,
+   170.0
+  ]
+ },
+ {
+  "id": "ind3",
+  "type": "NameLocal",
+  "pos": [
+   11016.0,
+   9002.0
+  ],
+  "rayon": [
+   200.0,
+   170.0
+  ]
+ },
+ {
+  "id": "powerplant",
+  "type": "NameLocal",
+  "pos": [
+   11512.0,
+   7062.0
+  ],
+  "rayon": [
+   400.0,
+   300.0
+  ]
+ },
+ {
+  "id": "Wrzeszcz",
+  "type": "NameLocal",
+  "pos": [
+   9043.0,
+   4438.0
+  ],
+  "rayon": [
+   500.0,
+   300.0
+  ]
+ },
+ {
+  "id": "drewniki",
+  "type": "NameLocal",
+  "pos": [
+   5835.0,
+   5093.0
+  ],
+  "rayon": [
+   344.0,
+   250.0
+  ]
+ },
+ {
+  "id": "kulno",
+  "type": "NameLocal",
+  "pos": [
+   11150.0,
+   2392.0
+  ],
+  "rayon": [
+   400.0,
+   300.0
+  ]
+ },
+ {
+  "id": "Airfield",
+  "type": "NameLocal",
+  "pos": [
+   3990.0,
+   10256.0
+  ],
+  "rayon": [
+   300.0,
+   170.0
+  ]
+ },
+ {
+  "id": "Hrud",
+  "type": "NameLocal",
+  "pos": [
+   6453.0,
+   9371.0
+  ],
+  "rayon": [
+   120.0,
+   90.0
+  ]
+ },
+ {
+  "id": "Jantar",
+  "type": "NameMarine",
+  "pos": [
+   3532.0,
+   8955.0
+  ],
+  "rayon": [
+   600.0,
+   600.0
+  ]
+ },
+ {
+  "id": "Grabinskie",
+  "type": "NameMarine",
+  "pos": [
+   11249.0,
+   10993.0
+  ],
+  "rayon": [
+   1000.0,
+   800.0
+  ]
+ },
+ {
+  "id": "Wolisko",
+  "type": "NameMarine",
+  "pos": [
+   12368.0,
+   10884.0
+  ],
+  "rayon": [
+   600.0,
+   600.0
+  ]
+ },
+ {
+  "id": "Sitnickie",
+  "type": "NameMarine",
+  "pos": [
+   11412.0,
+   10440.0
+  ],
+  "rayon": [
+   1000.0,
+   800.0
+  ]
+ },
+ {
+  "id": "Grabin",
+  "type": "NameVillage",
+  "pos": [
+   10666.0,
+   11026.0
+  ],
+  "rayon": [
+   1000.0,
+   1000.0
+  ]
+ },
+ {
+  "id": "Branzow_castle",
+  "type": "NameLocal",
+  "pos": [
+   1073.0,
+   11419.0
+  ],
+  "rayon": [
+   73.0,
+   55.0
+  ]
+ },
+ {
+  "id": "Piorun",
+  "type": "Hill",
+  "pos": [
+   646.0,
+   12159.0
+  ],
+  "rayon": [
+   80.0,
+   53.0
+  ]
+ },
+ {
+  "id": "sawmill",
+  "type": "NameLocal",
+  "pos": [
+   1663.0,
+   3705.0
+  ],
+  "rayon": [
+   33.0,
+   22.0
+  ]
+ },
+ {
+  "id": "Jezurow",
+  "type": "NameLocal",
+  "pos": [
+   2098.0,
+   2356.0
+  ],
+  "rayon": [
+   88.0,
+   58.0
+  ]
+ },
+ {
+  "id": "Tymbark",
+  "type": "NameLocal",
+  "pos": [
+   2902.0,
+   1221.0
+  ],
+  "rayon": [
+   214.0,
+   141.0
+  ]
+ },
+ {
+  "id": "Hedrykow",
+  "type": "NameLocal",
+  "pos": [
+   4513.0,
+   4796.0
+  ],
+  "rayon": [
+   171.0,
+   113.0
+  ]
+ },
+ {
+  "id": "mil4",
+  "type": "NameLocal",
+  "pos": [
+   9902.0,
+   3888.0
+  ],
+  "rayon": [
+   171.0,
+   113.0
+  ]
+ },
+ {
+  "id": "Widok",
+  "type": "NameLocal",
+  "pos": [
+   10239.0,
+   2144.0
+  ],
+  "rayon": [
+   334.0,
+   221.0
+  ]
+ },
+ {
+  "id": "Kopa",
+  "type": "Hill",
+  "pos": [
+   5519.0,
+   8768.0
+  ],
+  "rayon": [
+   119.0,
+   78.0
+  ]
+ }
+]

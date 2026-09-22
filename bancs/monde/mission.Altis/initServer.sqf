@@ -164,6 +164,28 @@ MONDE_fnc_executer = {
             if (count _c > 0) then { deleteVehicle (_c select 0); deleteVehicle (_c select 1); deleteGroup (_c select 2) };
             MONDE_CAMIONS deleteAt _id;
         };
+        // ["lieux"] : la carte se raconte elle-meme. Le monde apprend la geographie de n importe quelle ile, y compris
+        // une carte moddee dont la configuration n a jamais ete recoltee ( Sahrani, CUP ).
+        case "lieux": {
+            private _cfg = configFile >> "CfgWorlds" >> worldName >> "Names";
+            private _tout = [];
+            for "_i" from 0 to ((count _cfg) - 1) do {
+                private _e = _cfg select _i;
+                if (isClass _e) then {
+                    private _p = getArray (_e >> "position");
+                    if (count _p > 1) then {
+                        _tout pushBack [configName _e, getText (_e >> "type"), round (_p select 0), round (_p select 1),
+                                        round (getNumber (_e >> "radiusA")), round (getNumber (_e >> "radiusB"))];
+                    };
+                };
+            };
+            private _n = count _tout; private _i = 0;
+            while { _i < _n } do {
+                ["lieux", worldName, _n, _tout select [_i, 30]] call MONDE_fnc_envoyer;
+                _i = _i + 30;
+            };
+            (format ["lieux|%1|%2", worldName, _n]) call MONDE_LOG;
+        };
         case "temps": { setTimeMultiplier (_o select 1) };
         case "date": { setDate (_o select 1) };
         default { (format ["ordre_inconnu|%1", _t]) call MONDE_LOG };

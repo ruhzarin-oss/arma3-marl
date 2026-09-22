@@ -144,6 +144,8 @@ def main():
     noter(type="depart", incarnes=len(incarnes), ordres=len(ordres))
     dernier_log = 0
     dernier_controle = time.time()
+    reference = a.iles.split(",")[0]     # l ile qui donne l heure : celle du premier lieu du monde
+    recalees = {}
     dernier_jour = w.jour
 
     def garder():
@@ -157,7 +159,14 @@ def main():
             if m[0] == "etat":
                 arma["par_ile"][ile_msg] = m[5]        # chaque serveur compte SES corps ; le pays est la somme
                 if not arma["horloge"]: continue
-                arma["minutes"] = minutes_arma(m[2], m[3]); arma["fps"] = m[4]
+                minutes = minutes_arma(m[2], m[3])
+                if ile_msg == reference:               # UNE seule ile donne l heure du pays
+                    arma["minutes"] = minutes; arma["fps"] = m[4]
+                elif abs(minutes - arma["minutes"]) > 15 and time.time() - recalees.get(ile_msg, 0) > 60:
+                    # une ile arrivee en retard garde sa propre heure : on la remet a celle du monde
+                    recalees[ile_msg] = time.time()
+                    pont.envoyer([["date", date_du_monde(w)], ["temps", C.ACCELERATION]], ile_msg)
+                    noter(type="horloge_recalee", ile=ile_msg, ecart_min=round(minutes - arma["minutes"], 1))
                 arma["n"] = sum(arma["par_ile"].values())
             elif m[0] == "corps":
                 for c in m[1]: vus[(ile_msg, c[0])] = (time.time(), c)

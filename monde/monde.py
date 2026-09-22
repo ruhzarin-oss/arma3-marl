@@ -9,11 +9,12 @@ CATEGORIES_PUBLIQUES = ("hopitaux", "armee", "reserve", "population")
 
 
 class Monde:
-    def __init__(self, graine=C.GRAINE, cerveau="regles", epidemie_jour=2, journal=None, eleve=None, iles=("Altis",)):
+    def __init__(self, graine=C.GRAINE, cerveau="regles", epidemie_jour=2, journal=None, eleve=None, iles=("Altis",),
+                 echelle=1.0):
         self.rng = np.random.default_rng(graine)
         self.graine = graine
         self.carte = K.Carte(iles=tuple(iles))
-        self.habitants, self.menages = P.generer(self.carte, self.rng)
+        self.habitants, self.menages = P.generer(self.carte, self.rng, echelle)
         self.pas = 0
         self.journal_fichier = journal
         self.evenements = []
@@ -34,7 +35,8 @@ class Monde:
         self.reseau = E.Reseau()
         self.gouv = G.Gouvernement()
         self.gouv.membres = [h for h in self.habitants if h.role in ("chef_gouvernement", "ministre")]
-        for k, h in enumerate([h for h in self.habitants if h.role == "ministre"]): h.nom += "-" + C.MINISTERES[k]
+        for k, h in enumerate([h for h in self.habitants if h.role == "ministre"]):
+            h.nom += "-" + C.MINISTERES[k % len(C.MINISTERES)]      # un pays plus grand a plusieurs ministres par portefeuille
         self.publics = {c: {b: 0.0 for b in C.BIENS} for c in CATEGORIES_PUBLIQUES}
         self.publics["hopitaux"]["remedes"] = 30.0
         self.publics["armee"]["carburant"] = 150.0
@@ -232,6 +234,8 @@ class Monde:
                           and h.id not in self.sejours and h.lieu is not None and h.lieu.ile == self.carte.iles[0]), None)
             if libre is None: continue
             self.embarquer(libre, cible, sejour_jours=2.0)
+
+    def demographie(self):
         """Point 5 : on naît, on vieillit, on part a la retraite, on meurt de vieillesse. Une fois par jour du monde.
         Le pays cesse d etre une photographie de 500 personnes figees."""
         for h in self.habitants:

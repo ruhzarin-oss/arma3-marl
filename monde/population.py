@@ -60,11 +60,12 @@ class Menage:
         return [h for h in self.membres if h.role not in ("enfant",) and h.vivant]
 
 
-def generer(carte, rng):
-    """Cree les 500 habitants et leurs menages, deterministe a graine fixee."""
+def generer(carte, rng, echelle=1.0):
+    """Cree la population et ses menages, deterministe a graine fixee. `echelle` multiplie chaque metier : le pays
+    garde ses proportions, il change de taille."""
     H = []
     for role, (n, classe, _) in C.ROLES.items():
-        for _ in range(n):
+        for _ in range(max(1, int(round(n * echelle)))):
             age = int(rng.integers(6, 18)) if role == "enfant" else int(rng.integers(65, 86)) if role == "retraite" \
                 else int(rng.integers(20, 65))
             H.append(Habitant(len(H), role, classe, age))

@@ -1,0 +1,494 @@
+[
+ {
+  "id": "Agia_Marina",
+  "type": "NameCityCapital",
+  "pos": [
+   2915.0,
+   6165.0
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "Marina_Bay",
+  "type": "NameMarine",
+  "pos": [
+   2648.0,
+   5990.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Spartan",
+  "type": "NameLocal",
+  "pos": [
+   2615.0,
+   597.0
+  ],
+  "rayon": [
+   40.0,
+   30.0
+  ]
+ },
+ {
+  "id": "Village1",
+  "type": "NameLocal",
+  "pos": [
+   2719.0,
+   1712.0
+  ],
+  "rayon": [
+   97.0,
+   72.0
+  ]
+ },
+ {
+  "id": "LZ_Connor",
+  "type": "NameLocal",
+  "pos": [
+   2979.0,
+   1860.0
+  ],
+  "rayon": [
+   121.0,
+   90.0
+  ]
+ },
+ {
+  "id": "TrypitiBay",
+  "type": "NameMarine",
+  "pos": [
+   2251.0,
+   1121.0
+  ],
+  "rayon": [
+   295.0,
+   221.0
+  ]
+ },
+ {
+  "id": "Girna",
+  "type": "NameCity",
+  "pos": [
+   1935.0,
+   2723.0
+  ],
+  "rayon": [
+   77.0,
+   58.0
+  ]
+ },
+ {
+  "id": "village2",
+  "type": "NameLocal",
+  "pos": [
+   3027.0,
+   2184.0
+  ],
+  "rayon": [
+   121.0,
+   90.0
+  ]
+ },
+ {
+  "id": "CampMaxwell",
+  "type": "NameVillage",
+  "pos": [
+   3253.0,
+   2984.0
+  ],
+  "rayon": [
+   121.0,
+   90.0
+  ]
+ },
+ {
+  "id": "AirStation",
+  "type": "NameVillage",
+  "pos": [
+   4279.0,
+   3856.0
+  ],
+  "rayon": [
+   151.0,
+   113.0
+  ]
+ },
+ {
+  "id": "Old_Outpost",
+  "type": "NameLocal",
+  "pos": [
+   4319.0,
+   4398.0
+  ],
+  "rayon": [
+   121.0,
+   90.0
+  ]
+ },
+ {
+  "id": "SniperSchool",
+  "type": "NameVillage",
+  "pos": [
+   6402.0,
+   5427.0
+  ],
+  "rayon": [
+   62.0,
+   46.0
+  ]
+ },
+ {
+  "id": "Xiros",
+  "type": "NameLocal",
+  "pos": [
+   3712.0,
+   7940.0
+  ],
+  "rayon": [
+   236.0,
+   177.0
+  ]
+ },
+ {
+  "id": "Pythos",
+  "type": "NameLocal",
+  "pos": [
+   7055.0,
+   5954.0
+  ],
+  "rayon": [
+   236.0,
+   177.0
+  ]
+ },
+ {
+  "id": "CampTempest1",
+  "type": "NameVillage",
+  "pos": [
+   1942.0,
+   3557.0
+  ],
+  "rayon": [
+   121.0,
+   90.0
+  ]
+ },
+ {
+  "id": "Airfield1",
+  "type": "NameLocal",
+  "pos": [
+   1697.0,
+   5554.0
+  ],
+  "rayon": [
+   295.0,
+   221.0
+  ]
+ },
+ {
+  "id": "NatoBase1",
+  "type": "NameCity",
+  "pos": [
+   1987.0,
+   5626.0
+  ],
+  "rayon": [
+   369.0,
+   276.0
+  ]
+ },
+ {
+  "id": "farm2",
+  "type": "NameLocal",
+  "pos": [
+   4450.0,
+   6845.0
+  ],
+  "rayon": [
+   236.0,
+   177.0
+  ]
+ },
+ {
+  "id": "CampRogain",
+  "type": "NameVillage",
+  "pos": [
+   4886.0,
+   5948.0
+  ],
+  "rayon": [
+   97.0,
+   72.0
+  ]
+ },
+ {
+  "id": "hill1",
+  "type": "Hill",
+  "pos": [
+   3446.0,
+   2909.0
+  ],
+  "rayon": [
+   214.0,
+   160.0
+  ]
+ },
+ {
+  "id": "hill2",
+  "type": "Hill",
+  "pos": [
+   2936.0,
+   1827.0
+  ],
+  "rayon": [
+   70.0,
+   52.0
+  ]
+ },
+ {
+  "id": "hill4",
+  "type": "Hill",
+  "pos": [
+   4105.0,
+   4590.0
+  ],
+  "rayon": [
+   267.0,
+   200.0
+  ]
+ },
+ {
+  "id": "hill5",
+  "type": "Hill",
+  "pos": [
+   4818.0,
+   4355.0
+  ],
+  "rayon": [
+   70.0,
+   52.0
+  ]
+ },
+ {
+  "id": "hill6",
+  "type": "Hill",
+  "pos": [
+   5224.0,
+   5020.0
+  ],
+  "rayon": [
+   137.0,
+   102.0
+  ]
+ },
+ {
+  "id": "hill7",
+  "type": "Hill",
+  "pos": [
+   3751.0,
+   4888.0
+  ],
+  "rayon": [
+   171.0,
+   128.0
+  ]
+ },
+ {
+  "id": "hill8",
+  "type": "Hill",
+  "pos": [
+   4321.0,
+   5740.0
+  ],
+  "rayon": [
+   109.0,
+   82.0
+  ]
+ },
+ {
+  "id": "hill9",
+  "type": "Hill",
+  "pos": [
+   5034.0,
+   5917.0
+  ],
+  "rayon": [
+   36.0,
+   27.0
+  ]
+ },
+ {
+  "id": "hill10",
+  "type": "Hill",
+  "pos": [
+   4429.0,
+   6561.0
+  ],
+  "rayon": [
+   171.0,
+   128.0
+  ]
+ },
+ {
+  "id": "hill12",
+  "type": "Hill",
+  "pos": [
+   3999.0,
+   7028.0
+  ],
+  "rayon": [
+   171.0,
+   128.0
+  ]
+ },
+ {
+  "id": "Strogos_Bay",
+  "type": "NameMarine",
+  "pos": [
+   2024.0,
+   1790.0
+  ],
+  "rayon": [
+   236.0,
+   177.0
+  ]
+ },
+ {
+  "id": "Girna_Bay",
+  "type": "NameMarine",
+  "pos": [
+   1845.0,
+   2656.0
+  ],
+  "rayon": [
+   295.0,
+   221.0
+  ]
+ },
+ {
+  "id": "Kyfi_Bay",
+  "type": "NameMarine",
+  "pos": [
+   1790.0,
+   3512.0
+  ],
+  "rayon": [
+   39.0,
+   26.0
+  ]
+ },
+ {
+  "id": "Nisi_Bay",
+  "type": "NameMarine",
+  "pos": [
+   1784.0,
+   4134.0
+  ],
+  "rayon": [
+   295.0,
+   221.0
+  ]
+ },
+ {
+  "id": "Tsoukalia",
+  "type": "NameLocal",
+  "pos": [
+   4206.0,
+   2715.0
+  ],
+  "rayon": [
+   121.0,
+   90.0
+  ]
+ },
+ {
+  "id": "KeirosBay",
+  "type": "NameMarine",
+  "pos": [
+   6157.0,
+   4349.0
+  ],
+  "rayon": [
+   721.0,
+   539.0
+  ]
+ },
+ {
+  "id": "Kamino_Coast",
+  "type": "NameLocal",
+  "pos": [
+   5691.0,
+   6124.0
+  ],
+  "rayon": [
+   902.0,
+   674.0
+  ]
+ },
+ {
+  "id": "Limeri_Bay",
+  "type": "NameMarine",
+  "pos": [
+   5440.0,
+   3687.0
+  ],
+  "rayon": [
+   721.0,
+   539.0
+  ]
+ },
+ {
+  "id": "TsoukalaBay",
+  "type": "NameMarine",
+  "pos": [
+   4241.0,
+   2498.0
+  ],
+  "rayon": [
+   92.0,
+   64.0
+  ]
+ },
+ {
+  "id": "LZBaldy",
+  "type": "NameLocal",
+  "pos": [
+   4604.0,
+   5284.0
+  ],
+  "rayon": [
+   147.0,
+   110.0
+  ]
+ },
+ {
+  "id": "MilRange",
+  "type": "NameLocal",
+  "pos": [
+   3338.0,
+   5744.0
+  ],
+  "rayon": [
+   255.0,
+   199.0
+  ]
+ },
+ {
+  "id": "Kamino_Bay",
+  "type": "NameMarine",
+  "pos": [
+   6544.0,
+   4863.0
+  ],
+  "rayon": [
+   89.0,
+   90.0
+  ]
+ }
+]
