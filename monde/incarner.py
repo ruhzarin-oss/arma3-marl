@@ -19,10 +19,12 @@ def classe_de(h):
     return CIVILS[h.id % len(CIVILS)], "civ"
 
 
-def cle(h, lieu):
-    """Le batiment : le domicile est propre au menage ; un lieu de travail est commun a tous ceux du meme role."""
-    if lieu is h.domicile: return zlib.crc32(f"maison-{h.menage.id}".encode()) % 997
-    return zlib.crc32(f"travail-{lieu.id}-{h.role}".encode()) % 997
+def cle(h):
+    """Le batiment, selon le POSTE et non la ville ( a Kavala, on vit et on travaille dans le meme lieu ) : la maison est
+    propre au menage ; le travail est commun a tous ceux du meme role ; l hopital est commun a tous les malades du lieu."""
+    if h.poste == "travail": return zlib.crc32(f"travail-{h.lieu.id}-{h.role}".encode()) % 997
+    if h.poste == "hopital": return zlib.crc32(f"hopital-{h.lieu.id}".encode()) % 997
+    return zlib.crc32(f"maison-{h.menage.id}".encode()) % 997
 
 
 def rayon(lieu): return max(150.0, min(450.0, float(lieu.rayon[0] or 300)))
@@ -50,11 +52,14 @@ def main():
     print(f"en attente d Arma sur le port {a.port}", flush=True)
     if not pont.attendre(600): print("Arma ne s est pas connecte"); return 2
     t0 = time.time()
-    pont.envoyer([["date", [2035, 6, 15, 6, 0]], ["temps", C.ACCELERATION]])
-    incarnes = {}                       # id -> lieu ou le corps se trouve
-    arma = {"minutes": 0.0, "fps": None}
-    corps_vus = {}
-    anomalies = {"doublon": 0, "ecart_corps": 0}
+    lot_date = pont.envoyer([["date", [2035, 6, 15, 6, 0]], ["temps", C.ACCELERATION]])[0]
+    incarnes = {}                       # id -> ( lieu, poste ) ou le corps se trouve
+    arma = {"minutes": 0.0, "fps": None, "horloge": False}   # l horloge n est crue qu apres l accuse du lot « date »
+                                                             # ( sinon un cerveau relance rattraperait l ancienne heure )
+    vus = {}                            # id -> ( instant du dernier rapport d Arma, [id, x, y, vivant, vitesse] )
+    purges = set()
+    anomalies = {"doublon": 0, "ecart_corps": 0, "orphelins_purges": 0}
+    deplacements = [0]
 
     def synchroniser():
         ordres = []
@@ -63,15 +68,17 @@ def main():
             if i not in voulus:
                 ordres.append(["desincarner", i]); del incarnes[i]
         for i, h in voulus.items():
+            ou = (h.lieu.id, h.poste)
             if i not in incarnes:
-                classe, camp = classe_de(h)
-                ordres.append(["incarner", i, classe, camp, [round(h.lieu.pos[0]), round(h.lieu.pos[1])], rayon(h.lieu), cle(h, h.lieu)])
-                incarnes[i] = h.lieu.id
-            elif incarnes[i] != h.lieu.id:
-                # dans le regard, un changement de lieu du cerveau ( maison -> travail ) devient un deplacement du corps
-                cible = h.lieu
-                ordres.append(["aller", i, [round(cible.pos[0]), round(cible.pos[1])], rayon(cible), cle(h, cible)])
-                incarnes[i] = h.lieu.id
+                classe, camp = classe_de(h); purges.discard(i)
+                ordres.append(["incarner", i, classe, camp, [round(h.lieu.pos[0]), round(h.lieu.pos[1])], rayon(h.lieu), cle(h)])
+                incarnes[i] = ou
+            elif incarnes[i] != ou:
+                # dans le regard, un changement de poste du cerveau ( maison -> travail, meme dans une seule ville )
+                # devient un deplacement du corps
+                ordres.append(["aller", i, [round(h.lieu.pos[0]), round(h.lieu.pos[1])], rayon(h.lieu), cle(h)])
+                incarnes[i] = ou
+                deplacements[0] += 1
         return ordres
 
     # le premier lot : tout ce que le regard contient a 6 h
@@ -82,13 +89,22 @@ def main():
         for m in pont.messages(0.5):
             if not m: continue
             if m[0] == "etat":
+                if not arma["horloge"]: continue
                 arma["minutes"] = minutes_arma(m[2], m[3]); arma["fps"] = m[4]; arma["n"] = m[5]
             elif m[0] == "corps":
-                for c in m[1]: corps_vus[c[0]] = c
+                for c in m[1]: vus[c[0]] = (time.time(), c)
             elif m[0] == "mort":
                 noter(type="mort_dans_arma", habitant=m[1])
             elif m[0] in ("recu", "pret"):
                 noter(type=m[0], detail=m[1:])
+                if m[0] == "recu" and m[1] >= lot_date: arma["horloge"] = True
+        # la reconciliation : un corps qu Arma rapporte et que le cerveau ne connait pas ( cerveau redemarre, ordre perdu )
+        # est desincarne - le cerveau fait foi
+        recents = {i for i, (t, _) in vus.items() if time.time() - t < 5}
+        orphelins = [i for i in recents if i not in incarnes and i not in purges]
+        if orphelins:
+            pont.envoyer([["desincarner", i] for i in orphelins]); purges.update(orphelins)
+            anomalies["orphelins_purges"] += len(orphelins); noter(type="purge", ids=orphelins)
         # le cerveau rattrape l horloge d Arma, un pas de 10 minutes a la fois
         while arma["minutes"] >= (w.minutes - C.DATE_DEPART[3] * 60 - C.DATE_DEPART[4]) + C.MINUTES_PAR_PAS:
             w.pas_suivant()
@@ -99,7 +115,7 @@ def main():
             n_arma = arma.get("n")
             if n_arma is not None and n_arma != len(incarnes): anomalies["ecart_corps"] += 1
             noter(type="bilan", heure_cerveau=round(w.heure, 2), jour=w.jour, minutes_arma=round(arma["minutes"], 1),
-                  incarnes=len(incarnes), corps_arma=n_arma, fps=arma["fps"], lots=pont.envoyes, lus=pont.lus,
+                  incarnes=len(incarnes), corps_arma=n_arma, deplacements=deplacements[0], en_marche=sum(1 for i in recents if vus[i][1][4] > 0), fps=arma["fps"], lots=pont.envoyes, lus=pont.lus,
                   illisibles=pont.illisibles, anomalies=dict(anomalies))
             print(f"{time.strftime('%H:%M:%S')} cerveau jour {w.jour} {w.heure:5.2f} h | Arma {arma['minutes'] / 60 + 6:5.2f} h | "
                   f"incarnes {len(incarnes)} corps {n_arma} | {arma['fps']} images/s | lots {pont.envoyes} | anomalies {anomalies}", flush=True)

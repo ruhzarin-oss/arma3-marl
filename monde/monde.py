@@ -192,11 +192,11 @@ class Monde:
         q = set(self.gouv.lois["quarantaine"])
         for p in self.habitants:
             if not p.vivant: continue
-            if p.etat == "I" and p.gravite > 0.3: p.lieu = p.domicile.marche; continue       # a l hopital
+            if p.etat == "I" and p.gravite > 0.3: p.lieu, p.poste = p.domicile.marche, "hopital"; continue
             if p.au_travail(h) and p.travail is not None and p.domicile.id not in q and p.travail.id not in q:
-                p.lieu = p.travail
+                p.lieu, p.poste = p.travail, "travail"
                 if C.ROLES[p.role][2]: p.heures_jour += C.MINUTES_PAR_PAS / 60.0     # le fonctionnaire est paye a l heure
-            else: p.lieu = p.domicile
+            else: p.lieu, p.poste = p.domicile, "maison"
 
     # --- 2. la production ---
     def produire(self, h):

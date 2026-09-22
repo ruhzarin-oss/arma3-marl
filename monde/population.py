@@ -22,13 +22,13 @@ PENSION_JOUR = 20     # retraite versee par l Etat
 class Habitant:
     __slots__ = ("id", "nom", "role", "classe", "age", "menage", "domicile", "travail", "horaire", "equipe",
                  "lieu", "etat", "jours_etat", "gravite", "remede", "vivant", "faim", "heures_jour", "amendes",
-                 "incarne", "eleve")
+                 "incarne", "eleve", "poste")
 
     def __init__(self, id, role, classe, age):
         self.id, self.role, self.classe, self.age = id, role, classe, age
         self.nom = f"H{id:03d}"
         self.menage = None; self.domicile = None; self.travail = None; self.horaire = None; self.equipe = 0
-        self.lieu = None
+        self.lieu = None; self.poste = "maison"     # ou il est DANS son lieu : maison, travail, hopital
         self.etat = "S"; self.jours_etat = 0.0; self.gravite = 0.0; self.remede = False; self.vivant = True
         self.faim = 0.0; self.heures_jour = 0.0; self.amendes = 0
         self.incarne = False; self.eleve = False
