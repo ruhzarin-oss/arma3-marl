@@ -226,6 +226,8 @@ private _r = "monde" callExtension ["connecter", ["127.0.0.1", MONDE_PORT]];
 (format ["connecter|%1|port|%2", _r, MONDE_PORT]) call MONDE_LOG;
 [] spawn {
     waitUntil { sleep 1; (("monde" callExtension ["etat", []]) select 0) find "connecte=1" == 0 };
+    // point 13 : chaque serveur dit QUELLE ILE il fait tourner - le cerveau range ses corps par ile
+    ["bonjour", worldName, MONDE_PORT, count allUnits] call MONDE_fnc_envoyer;
     ["pret", productVersion select 2, date, MONDE_ACC] call MONDE_fnc_envoyer;
     "pret" call MONDE_LOG;
     while { true } do { sleep 30; (format ["pont|%1|lots|%2|erreurs|%3|corps|%4", ("monde" callExtension ["etat", []]) select 0, MONDE_LOTS, MONDE_ERREURS, count MONDE_CORPS]) call MONDE_LOG };

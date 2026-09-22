@@ -35,6 +35,9 @@ def cle(h):
 def rayon(lieu): return max(150.0, min(450.0, float(lieu.rayon[0] or 300)))
 
 
+def ile_de(lieu): return getattr(lieu, "ile", "Altis")     # point 13 : chaque lieu appartient a une ile
+
+
 DEPART = datetime.datetime(*C.DATE_DEPART)
 
 
@@ -134,6 +137,8 @@ def main():
                 for c in m[1]: vus[c[0]] = (time.time(), c)
             elif m[0] == "mort":
                 noter(type="mort_dans_arma", habitant=m[1])
+            elif m[0] == "bonjour":
+                noter(type="bonjour", ile=m[1], detail=m[2:])
             elif m[0] in ("recu", "pret"):
                 noter(type=m[0], detail=m[1:])
                 if m[0] == "recu" and m[1] >= lot_date: arma["horloge"] = True
