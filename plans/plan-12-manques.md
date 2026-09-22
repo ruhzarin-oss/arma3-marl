@@ -49,3 +49,22 @@ jours** (`HORIZON = 3` dans `monde/agents.py`).
 **La porte, désormais** : un agent formé doit battre **la règle** (médiane et ≥ 7 mondes sur 10) **et le témoin au
 hasard** sur la faim médiane. Cette exigence vaut pour les douze points, pas seulement pour le premier — c'est la
 deuxième fois de la soirée qu'un témoin bête bat un élève (voir l'apprenti marchand).
+
+## Point 13 — un monde sur plusieurs îles, décidé par Younes le 22/09 à 23 h 10
+
+« Il faudra créer ce monde sur Apex, Sahrani, Stratis et Malden ; on va les faire communiquer entre eux par le pont,
+ils pourront se déplacer d'une map à l'autre. »
+
+**Ce que l'architecture permet déjà.** Le cerveau est le serveur TCP, chaque Arma est un client : rien n'interdit
+plusieurs serveurs. Il manque trois choses :
+1. **Chaque serveur se nomme** en se connectant (`["bonjour", "Altis", port]`), et le pont range ses corps par île.
+2. **Le voyage** : un habitant qui part est désincarné ici, sa ligne de vie continue dans le cœur, et il est incarné
+   là-bas à son arrivée — le bateau ou l'avion devient un délai et un coût, pas une téléportation.
+3. **Une géographie par île** (`donnees/<ile>_lieux.json`) : villes, fermes, mines, ports de chaque carte.
+
+**Cartes réellement installées sur la station** (vérifié le 22/09) : Altis et Stratis (jeu de base), **Malden**
+(dossier Argo), **Tanoa** (Expansion/Apex), **Livonia** (Enoch/Contact). **Sahrani n'est pas là** : il faudrait les
+mods CUP Terrains, à installer et à signer pour un serveur.
+
+**Porte** : un habitant part d'Altis, arrive à Malden, et le pays le retrouve avec la même identité, la même
+mémoire et le même argent ; aucun doublon sur les deux serveurs pendant la traversée.
