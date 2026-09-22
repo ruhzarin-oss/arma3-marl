@@ -20,7 +20,8 @@ if (MC7_ORACLE_CTRL == 3) then {
         (format ["CHACAL|O|ctrl|erreur|%1|cause|NON_TRICHE_SANS_ORACLE", round (time * 100) / 100]) call MC7_LOG;
     };
     [] spawn {
-        waitUntil { sleep 2; MC7_FIN || { !isNil "MC7_TPHASE" } };
+        waitUntil { sleep 1; !isNil "MULTI_DEPART" };   // MULTI : l horloge part au depart commun
+    waitUntil { sleep 2; MC7_FIN || { !isNil "MC7_TPHASE" } };
         sleep (150 * MC7_ECHELLE);
         if (MC7_FIN) exitWith {};
         private _vivants = MC7_FS select { alive _x };
@@ -59,7 +60,8 @@ if (MC7_ORACLE_CTRL == 3) then {
 // --- 1 : POSITIF. On amene la patrouille sur eux, de jour, a decouvert. Elle doit les prendre. ---
 if (MC7_ORACLE_CTRL == 1) then {
     [] spawn {
-        waitUntil { sleep 2; MC7_FIN || { !isNil "MC7_TPHASE" } };
+        waitUntil { sleep 1; !isNil "MULTI_DEPART" };   // MULTI : l horloge part au depart commun
+    waitUntil { sleep 2; MC7_FIN || { !isNil "MC7_TPHASE" } };
         sleep (30 * MC7_ECHELLE);
         if (MC7_FIN) exitWith {};
         private _vivants = MC7_FS select { alive _x };

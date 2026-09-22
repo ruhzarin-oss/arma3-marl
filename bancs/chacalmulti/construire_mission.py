@@ -61,15 +61,20 @@ def cellule(k, fichier, t):
         t = remplacer(t, f'{{ _x removeAllEventHandlers "Fired" }} forEach ((call {p}TOUS) + vehicles);',
                       f'{{ _x removeAllEventHandlers "Fired" }} forEach ((call {p}TOUS) + (vehicles select {{ (_x getVariable ["multi_c", -1]) == {k} }}));',
                       1, fichier)
+    # ! LES HORLOGES PARTENT AU DEPART COMMUN, PAS AU MONTAGE ( fumee du 22/09, 13 h 08 ). Dans le banc seul, l'Oracle,
+    # le controle positif, le canari et la machine a phases partent au chargement de la mission, a quelques secondes
+    # les uns des autres. Dans le multiple, la cellule 1 est montee jusqu'a une minute et demie avant la derniere : son
+    # Oracle aurait decide trois fois avant que son detachement ne bouge, et son controle positif aurait frappe des
+    # l'ouverture de la phase. Chaque horloge attend donc MULTI_DEPART, qui joue le role du chargement du banc seul.
+    ATTENTE = 'waitUntil { sleep 1; !isNil "MULTI_DEPART" };   // MULTI : l horloge part au depart commun'
     if fichier == "60_phases":
-        t = remplacer(t, f'sleep 3;\nif ({p}ISSUE == "VOID") exitWith {{ {p}FIN = true }};',
-                      f'sleep 3;\nif ({p}ISSUE == "VOID") exitWith {{ {p}FIN = true }};\n'
-                      f'waitUntil {{ sleep 1; !isNil "MULTI_DEPART" }};   // MULTI : toutes les cellules commencent ensemble',
-                      1, fichier)
+        t = remplacer(t, f'[] spawn {{\nsleep 3;\nif ({p}ISSUE == "VOID") exitWith {{ {p}FIN = true }};',
+                      f'[] spawn {{\n{ATTENTE}\nsleep 3;\nif ({p}ISSUE == "VOID") exitWith {{ {p}FIN = true }};', 1, fichier)
+    if fichier in ("45_oracle", "46_controles_oracle"):
+        w = f'waitUntil {{ sleep 2; {p}FIN || {{ !isNil "{p}TPHASE" }} }};'
+        t = remplacer(t, w, f"{ATTENTE}\n    {w}", 1 if fichier == "45_oracle" else 2, fichier)
     if fichier == "70_verdict":
-        t = remplacer(t, "[] spawn {\n    sleep 20;",
-                      '[] spawn {\n    waitUntil { sleep 1; !isNil "MULTI_DEPART" };   // MULTI : les emprises de toutes les cellules sont connues\n    sleep 20;',
-                      1, fichier)
+        t = remplacer(t, "[] spawn {\n    sleep 20;", "[] spawn {\n    " + ATTENTE + "\n    sleep 20;", 1, fichier)
         # le canari tire trois coups : il ne doit pas etre pose a portee d'une autre cellule
         t = remplacer(t, "if (surfaceIsWater _c0) then { continue };",
                       f"if (surfaceIsWater _c0 || {{ !([_c0, {k}] call MULTI_fnc_loin) }}) then {{ continue }};", 1, fichier)

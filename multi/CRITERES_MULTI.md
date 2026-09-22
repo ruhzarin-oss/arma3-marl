@@ -60,3 +60,23 @@ Portes par K (sur les images mesurées pendant que les K cellules sont TOUTES ac
 **K\* = le plus grand K qui passe.** K\* ≥ 3 → on continue (C2, C1…) ; K\* = 2 → gain ≤ ×2, on le dit ; K\* = 1 → abandon
 du multiple (reste la coupe de l'approche). Lecture UNIQUE après le dernier épisode de K = 2 ; aucun épisode rejoué pour
 changer une porte. Le taux de compromission par K est RAPPORTÉ, jamais gardé (C4).
+
+## Amendement 1 — après l'épisode 1 de la fumée v1 (13 h 08-13 h 20), avant toute mesure C3
+
+La fumée v1 (commit 49687b1) a tourné sans erreur SQF, deux cellules montées à 10,9 km, le positif compromis 0,5 s
+après la pose de la patrouille (`ENNEMI_VU_EN_COMBAT`). Elle a montré trois défauts ; la v1 devient une fumée de
+diagnostic, la fumée qui compte est la v2, rejouée en entier.
+
+1. **Horloges** : l'Oracle, le contrôle positif et la machine à phases partaient au MONTAGE de la cellule. Dans le
+   multiple, la cellule 1 est montée jusqu'à ~1 min 30 avant la dernière : son Oracle aurait décidé 3 fois avant que
+   son détachement ne bouge. Réparé : toutes les horloges attendent `MULTI_DEPART`, qui joue le rôle du chargement du
+   banc seul (Oracle à t0, phase 2 à t0 + 8 s, contrôle à t0 + 30 s, canari à t0 + 20 s, comme dans le banc seul).
+2. **Sonde** : un observateur seul, qui pivotait par `doWatch`, n'a rien connu en 45 s (2 cycles sur 2). Refaite comme le
+   banc de seuil du 18/09 : dix hommes du détachement TOURNÉS vers la cible avant de la regarder (patch 2786e65), cible
+   posée au point testé, visibilité RÉELLE mesurée (`checkVisibility` < 0,3 → cycle refusé, compté à part), 60 s.
+3. **FPS** : 27,5 à 28,2 images/s à K = 1 sur machine vide avec 25 unités, et 28 dans le banc seul sous la ferme pleine :
+   le serveur plafonne vers 28, quelle que soit la charge. La porte absolue « médiane ≥ 30 » est inatteignable par le
+   banc seul lui-même. Elle devient : **médiane(K) ≥ médiane(K = 1) − 3 et 5e centile ≥ 20** (le plancher de Fable reste).
+4. **Canari des positifs** : un positif compromis finit sa phase ~30 s après le départ, avant la fin du cycle du canari
+   (~85 s) ; ses portes « canari » échouent par construction. Pour les cellules positives, toutes les portes sauf celles
+   du canari sont exigées ; les cellules négatives gardent toutes leurs portes. (Écrit après avoir vu l'épisode 1.)

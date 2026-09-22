@@ -20,7 +20,8 @@ if (MC5_ORACLE_CTRL == 3) then {
         (format ["CHACAL|O|ctrl|erreur|%1|cause|NON_TRICHE_SANS_ORACLE", round (time * 100) / 100]) call MC5_LOG;
     };
     [] spawn {
-        waitUntil { sleep 2; MC5_FIN || { !isNil "MC5_TPHASE" } };
+        waitUntil { sleep 1; !isNil "MULTI_DEPART" };   // MULTI : l horloge part au depart commun
+    waitUntil { sleep 2; MC5_FIN || { !isNil "MC5_TPHASE" } };
         sleep (150 * MC5_ECHELLE);
         if (MC5_FIN) exitWith {};
         private _vivants = MC5_FS select { alive _x };
@@ -59,7 +60,8 @@ if (MC5_ORACLE_CTRL == 3) then {
 // --- 1 : POSITIF. On amene la patrouille sur eux, de jour, a decouvert. Elle doit les prendre. ---
 if (MC5_ORACLE_CTRL == 1) then {
     [] spawn {
-        waitUntil { sleep 2; MC5_FIN || { !isNil "MC5_TPHASE" } };
+        waitUntil { sleep 1; !isNil "MULTI_DEPART" };   // MULTI : l horloge part au depart commun
+    waitUntil { sleep 2; MC5_FIN || { !isNil "MC5_TPHASE" } };
         sleep (30 * MC5_ECHELLE);
         if (MC5_FIN) exitWith {};
         private _vivants = MC5_FS select { alive _x };

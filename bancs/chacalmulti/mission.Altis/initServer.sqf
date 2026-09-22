@@ -76,7 +76,7 @@ MULTI_DEPART = true;
 [] spawn {
     while { !MULTI_FINI } do {
         private _t = round (time * 100) / 100;
-        private _chefs = 0; private _ennemis = []; private _amis = []; private _ctrl = 0;
+        private _chefs = 0; private _ennemis = []; private _amis = []; private _ctrl = 0; private _sonde = [];
         {
             private _l = leader _x;
             if (!isNull _l && { alive _l }) then {
@@ -89,8 +89,14 @@ MULTI_DEPART = true;
                         if (!isNull _o) then {
                             private _co = _o call MULTI_fnc_cellule;
                             if (_co >= 1 && { _co != _c }) then {
-                                if ((_c == 100) && { _co == 101 }) then { _ctrl = _ctrl + 1 } else {
-                                    private _e = [_c, _co, round (_l distance2D _o)];
+                                private _e = [_c, _co, round (_l distance2D _o)];
+                                if ((_c >= 100) || { _co >= 100 }) then {
+                                    // la sonde : son observateur connaissant sa cible est le controle positif ; la sonde
+                                    // connue d'une cellule, ou l'inverse, est un croisement a part ; le reste est interne
+                                    if ((_c == 100) && { _co == 101 }) then { _ctrl = _ctrl + 1 } else {
+                                        if ((_c < 100) || { _co < 100 }) then { _sonde pushBack _e };
+                                    };
+                                } else {
                                     if ((_x select 2) != _sl) then { _ennemis pushBack _e } else { _amis pushBack _e };
                                 };
                             };
@@ -99,8 +105,8 @@ MULTI_DEPART = true;
                 };
             };
         } forEach allGroups;
-        (format ["E|croise|%1|chefs|%2|ennemis|%3|amis|%4|controle_sonde|%5|detail_ennemis|%6|detail_amis|%7", _t, _chefs,
-            count _ennemis, count _amis, _ctrl, str (_ennemis select [0, 6]), str (_amis select [0, 6])]) call MULTI_LOG;
+        (format ["E|croise|%1|chefs|%2|ennemis|%3|amis|%4|controle_sonde|%5|detail_ennemis|%6|detail_amis|%7|sonde_croisee|%8", _t, _chefs,
+            count _ennemis, count _amis, _ctrl, str (_ennemis select [0, 6]), str (_amis select [0, 6]), count _sonde]) call MULTI_LOG;
         sleep 2;
     };
 };
@@ -134,26 +140,45 @@ if (MULTI_SONDE == 1) then {
                 (format ["E|sonde|%1|cycle|%2|introuvable|%3", round (time * 100) / 100, _n, _essais]) call MULTI_LOG;
                 sleep 60;
             } else {
+                // ! LA SONDE EST LE BANC DE SEUIL DU 18/09, PAS UN HOMME SEUL ( fumee du 22/09 : un observateur seul, qui
+                // pivotait par doWatch, n'a rien connu en 45 s, 2 cycles sur 2 ). Dix hommes du detachement ; chacun est
+                // TOURNE vers la cible avant de la regarder ( doWatch seul pivote en jusqu'a 90 s, patch 2786e65 ) ; la
+                // cible est posee au point teste, et sa visibilite REELLE est mesuree ( createUnit decale de 3 m ).
                 private _go = [west, 100] call MULTI_fnc_groupe;
-                private _o = _go createUnit ["B_recon_TL_F", _p, [], 0, "CAN_COLLIDE"];
-                _o setSkill ["spotDistance", 0.75]; _o setSkill ["spotTime", 0.8];
-                if ((hmd _o) == "") then { _o linkItem "NVGoggles" };
-                _o allowDamage false; _go setBehaviour "STEALTH"; _go setCombatMode "GREEN"; doStop _o;
+                private _obs = [];
+                {
+                    private _u = _go createUnit [_x, _p getPos [3, _forEachIndex * 36], [], 0, "CAN_COLLIDE"];
+                    _u setSkill ["spotDistance", 0.75]; _u setSkill ["spotTime", 0.8];
+                    if ((hmd _u) == "") then { _u linkItem "NVGoggles" };
+                    _u allowDamage false; doStop _u; _obs pushBack _u;
+                } forEach ["B_recon_TL_F", "B_recon_M_F", "B_recon_M_F", "B_recon_exp_F", "B_recon_exp_F", "B_recon_medic_F", "B_recon_LAT_F", "B_recon_F", "B_recon_F", "B_recon_TL_F"];
+                _go selectLeader (_obs select 0);
+                _go setBehaviour "STEALTH"; _go setCombatMode "GREEN";
                 sleep 5;
                 private _gc = [east, 101] call MULTI_fnc_groupe;
-                { private _u = _gc createUnit [_x, _q, [], 3, "NONE"]; _u disableAI "AUTOTARGET"; _u disableAI "TARGET"; _u disableAI "MOVE"; _u setUnitPos "UP"; _u allowDamage false } forEach ["O_Soldier_TL_F", "O_Soldier_F", "O_Soldier_F"];
+                {
+                    private _u = _gc createUnit [_x, _q getPos [2, _forEachIndex * 120], [], 0, "CAN_COLLIDE"];
+                    _u disableAI "AUTOTARGET"; _u disableAI "TARGET"; _u disableAI "MOVE"; _u setUnitPos "UP"; _u allowDamage false;
+                } forEach ["O_Soldier_TL_F", "O_Soldier_F", "O_Soldier_F"];
                 _gc setCombatMode "BLUE"; _gc setBehaviour "SAFE";
                 private _cible = leader _gc;
-                _o doWatch _cible;
-                private _d = round (_o distance2D _cible);
-                MULTI_SONDE_ACTIVE = [_o, _cible, time, _n, _d];
+                sleep 1;
+                private _vis = 0;
+                { _vis = _vis max ([objNull, "VIEW", _cible] checkVisibility [eyePos _x, eyePos _cible]) } forEach _obs;
+                { _x setDir (_x getDir _cible); _x doWatch _cible } forEach _obs;
+                private _d = round ((_obs select 0) distance2D _cible);
                 private _t0 = time;
-                waitUntil { sleep 1; (count MULTI_SONDE_ACTIVE == 0) || { (time - _t0) > 45 } || MULTI_FINI };
-                if (count MULTI_SONDE_ACTIVE > 0) then {
-                    MULTI_SONDE_ACTIVE = [];
-                    (format ["E|sonde|%1|cycle|%2|connue|0|delai|-1|distance|%3|fps|%4", round (time * 100) / 100, _n, _d, round diag_fps]) call MULTI_LOG;
+                if (_vis < 0.3) then {
+                    (format ["E|sonde|%1|cycle|%2|connue|-1|delai|-1|distance|%3|visibilite|%4|refus|CIBLE_MASQUEE", round (time * 100) / 100, _n, _d, round (_vis * 100) / 100]) call MULTI_LOG;
+                } else {
+                    MULTI_SONDE_ACTIVE = [leader _go, _cible, time, _n, _d];
+                    waitUntil { sleep 1; (count MULTI_SONDE_ACTIVE == 0) || { (time - _t0) > 60 } || MULTI_FINI };
+                    if (count MULTI_SONDE_ACTIVE > 0) then {
+                        MULTI_SONDE_ACTIVE = [];
+                        (format ["E|sonde|%1|cycle|%2|connue|0|delai|-1|distance|%3|visibilite|%4|fps|%5", round (time * 100) / 100, _n, _d, round (_vis * 100) / 100, round diag_fps]) call MULTI_LOG;
+                    };
+                    sleep 4;   // le journal croise doit avoir le temps de voir la connaissance
                 };
-                sleep 4;   // le journal croise doit avoir le temps de voir la connaissance
                 { deleteVehicle _x } forEach (units _go + units _gc);
                 deleteGroup _go; deleteGroup _gc;
                 sleep 10;

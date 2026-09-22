@@ -842,9 +842,9 @@ MC5_fnc_compromettre = {
 
 // =====================================================================
 [] spawn {
+waitUntil { sleep 1; !isNil "MULTI_DEPART" };   // MULTI : l horloge part au depart commun
 sleep 3;
 if (MC5_ISSUE == "VOID") exitWith { MC5_FIN = true };
-waitUntil { sleep 1; !isNil "MULTI_DEPART" };   // MULTI : toutes les cellules commencent ensemble
 
 // L ORDRE INITIAL. Ce que le detachement sait LEGITIMEMENT avant de partir :
 // site, crete candidate, route, base de reserve, depose, point de secours,

@@ -12,7 +12,7 @@
 // =====================================================================
 
 [] spawn {
-    waitUntil { sleep 1; !isNil "MULTI_DEPART" };   // MULTI : les emprises de toutes les cellules sont connues
+    waitUntil { sleep 1; !isNil "MULTI_DEPART" };   // MULTI : l horloge part au depart commun
     sleep 20;
     // Le COUPLE se cherche ensemble, avec le MEME critere que la mesure qu il
     // certifie. Poser le canari sur un replat puis le temoin a 40 m donnait

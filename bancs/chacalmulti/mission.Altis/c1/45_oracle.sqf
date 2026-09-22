@@ -186,6 +186,7 @@ MC1_O_fnc_agir = {
 
 // --- la boucle de commandement ---
 [] spawn {
+    waitUntil { sleep 1; !isNil "MULTI_DEPART" };   // MULTI : l horloge part au depart commun
     waitUntil { sleep 2; MC1_FIN || { !isNil "MC1_TPHASE" } };
     while { !MC1_FIN } do {
         private _vu = call MC1_O_fnc_croire;

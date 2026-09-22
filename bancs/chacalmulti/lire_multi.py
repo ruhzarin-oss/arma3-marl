@@ -122,9 +122,12 @@ def resume_fps(v):
             "min": round(x[0], 1), "unites_max": max(f["unites"] for f in v)}
 fps_tous = resume_fps([f for f in fps if f["actives"] == K])
 fps_total = resume_fps(fps)
-sonde = [(int(a), float(b)) for a, b in re.findall(r"MULTI\|E\|sonde\|[0-9.]+\|cycle\|\d+\|connue\|(\d)\|delai\|(-?[0-9.]+)", m0)]
+sonde = [(int(a), float(b)) for a, b in re.findall(r"MULTI\|E\|sonde\|[0-9.]+\|cycle\|\d+\|connue\|(-?\d)\|delai\|(-?[0-9.]+)", m0)]
+masquees = sum(1 for c, d in sonde if c < 0)
+sonde = [(c, d) for c, d in sonde if c >= 0]
 delais = [d for c, d in sonde if c == 1]
 cro = [(int(a), int(b), int(c), int(d)) for a, b, c, d in re.findall(r"MULTI\|E\|croise\|[0-9.]+\|chefs\|(\d+)\|ennemis\|(\d+)\|amis\|(\d+)\|controle_sonde\|(\d+)", m0)]
+sonde_croisee = sum(int(x) for x in re.findall(r"MULTI\|E\|croise\|[^\"]*\|sonde_croisee\|(\d+)", m0))
 det_enn = re.findall(r"MULTI\|E\|croise\|([0-9.]+)\|chefs\|\d+\|ennemis\|[1-9]\d*\|amis\|\d+\|controle_sonde\|\d+\|detail_ennemis\|(\[[^|]*\])", m0)
 esp = [(int(a), int(b), int(c)) for a, b, c in re.findall(r"MULTI\|E\|espacement\|(\d+)\|(\d+)\|metres\|(\d+)", m0)]
 cens = [int(x) for x in re.findall(r"MULTI\|E\|censure\|[0-9.]+\|cellule\|(\d+)", m0)]
@@ -133,10 +136,10 @@ montees = re.findall(r"MULTI\|OK\|cellule\|(\d+)\|montee\|(\d)\|duree_reelle\|([
 multi = {
     "fini": bool(fini), "k": K, "censurees": cens,
     "fps_toutes_actives": fps_tous, "fps_sur_l_episode": fps_total,
-    "sonde": {"cycles": len(sonde), "connues": len(delais), "delai_median": round(st.median(delais), 2) if delais else None,
+    "sonde": {"cycles": len(sonde), "masquees": masquees, "connues": len(delais), "delai_median": round(st.median(delais), 2) if delais else None,
               "delais": sorted(round(d, 1) for d in delais)},
     "croise": {"echantillons": len(cro), "ennemis": sum(c[1] for c in cro), "amis": sum(c[2] for c in cro),
-               "controle_sonde_vu": sum(1 for c in cro if c[3] > 0), "detail_ennemis": det_enn[:5]},
+               "controle_sonde_vu": sum(1 for c in cro if c[3] > 0), "sonde_croisee": sonde_croisee, "detail_ennemis": det_enn[:5]},
     "espacement_min": min((e[2] for e in esp), default=None), "espacements": esp,
     "montee": [(int(a), int(b), float(c)) for a, b, c in montees],
     "erreurs_sqf": erreurs, "exemples_erreurs": lignes_err[:4],
