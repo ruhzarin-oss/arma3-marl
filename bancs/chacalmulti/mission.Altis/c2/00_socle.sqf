@@ -7,7 +7,8 @@
 // =====================================================================
 
 MC2_VERSION = 1;
-MC2_LOG = { diag_log ("M|2|" + _this) };            // le RPT survit a ce qui tue le pont
+MC2_MUET = false;
+MC2_LOG = { if (!MC2_MUET || { (_this find "CHACAL|OK|") == 0 } || { (_this find "CHACAL|AVERT|") == 0 }) then { diag_log ("M|2|" + _this) } };            // le RPT survit a ce qui tue le pont
 
 // --- parametres de l episode ( reecrits par le harnais dans server.cfg ) ---
 MC2_GRAINE  = (["MC2_GRAINE", 0] call MULTI_fnc_param)

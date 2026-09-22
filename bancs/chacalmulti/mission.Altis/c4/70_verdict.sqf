@@ -208,6 +208,7 @@
         (if (MC4_ALARME) then {1} else {0}), (if (MC4_COMPROMIS) then {1} else {0}), _lat,
         (if (MC4_ABANDON) then {1} else {0}), (if (MC4_INSERTION_FORCEE) then {1} else {0}),
         (if (MC4_LAMBS) then {1} else {0}), MC4_TICK, round time, MC4_PALIER, MC4_TENIR, MC4_ARRET, MC4_DEPART, MC4_EFFECTIF, MC4_APPUI_FEU, MC4_ACCESSIBLE, MC4_FEU_AVANT, MC4_MG_ASSAUT, MC4_DELAI_PORTEUR, MC4_APPUI_FIXE, MC4_ORACLE, MC4_SOCLE, MC4_TACTIQUE, MC4_RELANCES_SOCLE, MC4_FUMIGENES, MC4_ZONES, MC4_ABLATION, MC4_BANC_APPUI, MC4_TIRS_BANC, MC4_PLACEUR, MC4_COUV, MC4_EXFIL, MC4_AZIMUT, MC4_AZIMUT_CHOISI, MC4_SANS_JAMBES, MC4_OBS]) call MC4_LOG;
+    MC4_MUET = true;   // MULTI : la cellule se tait, comme un serveur arrete
 
     // L ECHELLE raccourcit les plafonds mais PAS le monde : ni la vitesse de
     // marche, ni la periode des rondes, ni les 6 km de route. Une nuit a 25 %

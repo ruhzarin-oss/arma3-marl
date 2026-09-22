@@ -208,6 +208,7 @@
         (if (MC3_ALARME) then {1} else {0}), (if (MC3_COMPROMIS) then {1} else {0}), _lat,
         (if (MC3_ABANDON) then {1} else {0}), (if (MC3_INSERTION_FORCEE) then {1} else {0}),
         (if (MC3_LAMBS) then {1} else {0}), MC3_TICK, round time, MC3_PALIER, MC3_TENIR, MC3_ARRET, MC3_DEPART, MC3_EFFECTIF, MC3_APPUI_FEU, MC3_ACCESSIBLE, MC3_FEU_AVANT, MC3_MG_ASSAUT, MC3_DELAI_PORTEUR, MC3_APPUI_FIXE, MC3_ORACLE, MC3_SOCLE, MC3_TACTIQUE, MC3_RELANCES_SOCLE, MC3_FUMIGENES, MC3_ZONES, MC3_ABLATION, MC3_BANC_APPUI, MC3_TIRS_BANC, MC3_PLACEUR, MC3_COUV, MC3_EXFIL, MC3_AZIMUT, MC3_AZIMUT_CHOISI, MC3_SANS_JAMBES, MC3_OBS]) call MC3_LOG;
+    MC3_MUET = true;   // MULTI : la cellule se tait, comme un serveur arrete
 
     // L ECHELLE raccourcit les plafonds mais PAS le monde : ni la vitesse de
     // marche, ni la periode des rondes, ni les 6 km de route. Une nuit a 25 %

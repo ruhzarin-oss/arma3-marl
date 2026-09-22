@@ -36,7 +36,12 @@ def cellule(k, fichier, t):
     t = t.replace("CHACAL_", f"MC{k}_")
     p = f"MC{k}_"
     if fichier == "00_socle":
-        t = remplacer(t, f"{p}LOG = {{ diag_log _this }};", f'{p}LOG = {{ diag_log ("M|{k}|" + _this) }};', 1, fichier)
+        # ! UNE CELLULE FINIE SE TAIT ( fumee v2, 22/09 ) : dans le banc seul, le serveur est arrete sur la ligne FINI ;
+        # ici il tourne pour les autres cellules, et le canari d'un positif fini ecrivait encore - porte « rien apres FINI »
+        # en echec. Apres FINI, seules passent les lignes OK et AVERT, celles que le lecteur du banc seul tolere.
+        t = remplacer(t, f"{p}LOG = {{ diag_log _this }};",
+                      f'{p}MUET = false;\n{p}LOG = {{ if (!{p}MUET || {{ (_this find "CHACAL|OK|") == 0 }} || {{ (_this find "CHACAL|AVERT|") == 0 }}) then {{ diag_log ("M|{k}|" + _this) }} }};',
+                      1, fichier)
         n = t.count("call BIS_fnc_getParamValue")
         if n < 60: raise SystemExit(f"RETOUCHE REFUSEE 00_socle : {n} lectures de parametres, >= 60 attendues")
         t = t.replace("call BIS_fnc_getParamValue", "call MULTI_fnc_param")
@@ -75,6 +80,7 @@ def cellule(k, fichier, t):
         t = remplacer(t, w, f"{ATTENTE}\n    {w}", 1 if fichier == "45_oracle" else 2, fichier)
     if fichier == "70_verdict":
         t = remplacer(t, "[] spawn {\n    sleep 20;", "[] spawn {\n    " + ATTENTE + "\n    sleep 20;", 1, fichier)
+        t = remplacer(t, f"{p}SANS_JAMBES, {p}OBS]) call {p}LOG;", f"{p}SANS_JAMBES, {p}OBS]) call {p}LOG;\n    {p}MUET = true;   // MULTI : la cellule se tait, comme un serveur arrete", 1, fichier)
         # le canari tire trois coups : il ne doit pas etre pose a portee d'une autre cellule
         t = remplacer(t, "if (surfaceIsWater _c0) then { continue };",
                       f"if (surfaceIsWater _c0 || {{ !([_c0, {k}] call MULTI_fnc_loin) }}) then {{ continue }};", 1, fichier)

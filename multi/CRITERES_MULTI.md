@@ -80,3 +80,15 @@ diagnostic, la fumée qui compte est la v2, rejouée en entier.
 4. **Canari des positifs** : un positif compromis finit sa phase ~30 s après le départ, avant la fin du cycle du canari
    (~85 s) ; ses portes « canari » échouent par construction. Pour les cellules positives, toutes les portes sauf celles
    du canari sont exigées ; les cellules négatives gardent toutes leurs portes. (Écrit après avoir vu l'épisode 1.)
+
+## Amendement 2 — après l'épisode 1 de la fumée v2 (13 h 16-13 h 23), avant toute mesure C3
+
+Épisode 1 v2 : 0 erreur SQF ; négatif ACCEPTÉ, non compromis, monde conforme (écart 0 m), cadence médiane 2,02 s
+(100 % dans la bande) ; positif compromis (`ENNEMI_VU_EN_COMBAT`, 26 s après l'ouverture de la phase) ; sonde connue
+7 fois sur 7, délai médian 3,5 s (2,7 à 4,6), dans la bande du banc de référence ; 15 cycles refusés pour cible
+masquée ; journal croisé : 0 ennemi, 0 ami, contrôle positif vu 10 fois ; FPS 28,2 (K = 2, les deux actives).
+Un défaut : la porte « rien après FINI » du positif échoue — le serveur tourne pour l'autre cellule, et le canari du
+positif écrit encore après son verdict. Dans le banc seul le serveur est arrêté sur FINI. Réparé : **après sa ligne
+FINI, une cellule n'écrit plus que des lignes OK et AVERT** (celles que le lecteur du banc seul tolère). L'épisode 2 de
+la fumée v2 tourne avec l'ancien code ; la réparation est vérifiée par le premier épisode du balayage C3 (K = 1) : si la
+porte « rien après FINI » y échoue, ou si une erreur SQF apparaît, le balayage s'arrête.

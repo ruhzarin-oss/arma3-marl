@@ -208,6 +208,7 @@
         (if (MC8_ALARME) then {1} else {0}), (if (MC8_COMPROMIS) then {1} else {0}), _lat,
         (if (MC8_ABANDON) then {1} else {0}), (if (MC8_INSERTION_FORCEE) then {1} else {0}),
         (if (MC8_LAMBS) then {1} else {0}), MC8_TICK, round time, MC8_PALIER, MC8_TENIR, MC8_ARRET, MC8_DEPART, MC8_EFFECTIF, MC8_APPUI_FEU, MC8_ACCESSIBLE, MC8_FEU_AVANT, MC8_MG_ASSAUT, MC8_DELAI_PORTEUR, MC8_APPUI_FIXE, MC8_ORACLE, MC8_SOCLE, MC8_TACTIQUE, MC8_RELANCES_SOCLE, MC8_FUMIGENES, MC8_ZONES, MC8_ABLATION, MC8_BANC_APPUI, MC8_TIRS_BANC, MC8_PLACEUR, MC8_COUV, MC8_EXFIL, MC8_AZIMUT, MC8_AZIMUT_CHOISI, MC8_SANS_JAMBES, MC8_OBS]) call MC8_LOG;
+    MC8_MUET = true;   // MULTI : la cellule se tait, comme un serveur arrete
 
     // L ECHELLE raccourcit les plafonds mais PAS le monde : ni la vitesse de
     // marche, ni la periode des rondes, ni les 6 km de route. Une nuit a 25 %

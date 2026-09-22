@@ -7,7 +7,8 @@
 // =====================================================================
 
 MC4_VERSION = 1;
-MC4_LOG = { diag_log ("M|4|" + _this) };            // le RPT survit a ce qui tue le pont
+MC4_MUET = false;
+MC4_LOG = { if (!MC4_MUET || { (_this find "CHACAL|OK|") == 0 } || { (_this find "CHACAL|AVERT|") == 0 }) then { diag_log ("M|4|" + _this) } };            // le RPT survit a ce qui tue le pont
 
 // --- parametres de l episode ( reecrits par le harnais dans server.cfg ) ---
 MC4_GRAINE  = (["MC4_GRAINE", 0] call MULTI_fnc_param)
