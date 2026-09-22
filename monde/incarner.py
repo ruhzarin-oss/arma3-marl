@@ -1,0 +1,111 @@
+"""Etape E2 : la bulle. Le cerveau fait vivre le pays ; les habitants presents dans les lieux regardes deviennent des
+corps dans Arma, les autres restent des donnees. Le cerveau avance au rythme de l horloge d Arma ( acceleree x4 : une
+journee du monde en 6 heures reelles ) : un pas de 10 minutes du monde chaque fois qu Arma les a vecues.
+   python -m monde.incarner --regard Kavala --duree 3600 --port 2350 --sortie /mnt/data/hmt/monde/e2
+Portes ( ecrites dans plans/plan-monde-complet.md, E2 ) : un habitant n a jamais deux corps ; les corps rapportes par
+Arma sont exactement les habitants incarnes par le cerveau ; un habitant desincarne puis reincarne garde son identite."""
+import argparse, json, os, time, zlib
+from . import monde as W, ecole as S, pont as PT, config as C
+
+CLASSES = {
+    "soldat": ("I_Soldier_F", "ind"), "officier": ("I_officer_F", "ind"), "policier": ("B_GEN_Soldier_F", "ind"),
+}
+CIVILS = ["C_man_1", "C_man_polo_1_F", "C_man_polo_2_F", "C_man_polo_3_F", "C_man_polo_4_F", "C_man_polo_5_F",
+          "C_man_polo_6_F", "C_man_shorts_1_F", "C_man_w_worker_F", "C_scientist_F"]
+
+
+def classe_de(h):
+    if h.role in CLASSES: return CLASSES[h.role]
+    return CIVILS[h.id % len(CIVILS)], "civ"
+
+
+def cle(h, lieu):
+    """Le batiment : le domicile est propre au menage ; un lieu de travail est commun a tous ceux du meme role."""
+    if lieu is h.domicile: return zlib.crc32(f"maison-{h.menage.id}".encode()) % 997
+    return zlib.crc32(f"travail-{lieu.id}-{h.role}".encode()) % 997
+
+
+def rayon(lieu): return max(150.0, min(450.0, float(lieu.rayon[0] or 300)))
+
+
+def minutes_arma(date, daytime):
+    """Minutes du monde ecoulees depuis le depart ( 15/06 a 6 h ), lues sur l horloge d Arma - meme origine que le cerveau."""
+    return (int(date[2]) - C.DATE_DEPART[2]) * 1440 + float(daytime) * 60.0 - (C.DATE_DEPART[3] * 60 + C.DATE_DEPART[4])
+
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--port", type=int, default=2350)
+    p.add_argument("--regard", default="Kavala")
+    p.add_argument("--duree", type=float, default=3600.0, help="secondes reelles")
+    p.add_argument("--sortie", default="/mnt/data/hmt/monde/e2")
+    a = p.parse_args()
+    os.makedirs(a.sortie, exist_ok=True)
+    regard = set(a.regard.split(","))
+    w = W.Monde(eleve=S.EleveMemoire(), journal=os.path.join(a.sortie, "journal_monde.jsonl"))
+    pont = PT.Pont(a.port)
+    trace = open(os.path.join(a.sortie, "trace_e2.jsonl"), "a")
+    def noter(**d):
+        d["t"] = round(time.time(), 2); trace.write(json.dumps(d, ensure_ascii=False) + "\n"); trace.flush()
+    print(f"en attente d Arma sur le port {a.port}", flush=True)
+    if not pont.attendre(600): print("Arma ne s est pas connecte"); return 2
+    t0 = time.time()
+    pont.envoyer([["date", [2035, 6, 15, 6, 0]], ["temps", C.ACCELERATION]])
+    incarnes = {}                       # id -> lieu ou le corps se trouve
+    arma = {"minutes": 0.0, "fps": None}
+    corps_vus = {}
+    anomalies = {"doublon": 0, "ecart_corps": 0}
+
+    def synchroniser():
+        ordres = []
+        voulus = {h.id: h for h in w.habitants if h.vivant and h.lieu is not None and h.lieu.id in regard}
+        for i in list(incarnes):
+            if i not in voulus:
+                ordres.append(["desincarner", i]); del incarnes[i]
+        for i, h in voulus.items():
+            if i not in incarnes:
+                classe, camp = classe_de(h)
+                ordres.append(["incarner", i, classe, camp, [round(h.lieu.pos[0]), round(h.lieu.pos[1])], rayon(h.lieu), cle(h, h.lieu)])
+                incarnes[i] = h.lieu.id
+            elif incarnes[i] != h.lieu.id:
+                # dans le regard, un changement de lieu du cerveau ( maison -> travail ) devient un deplacement du corps
+                cible = h.lieu
+                ordres.append(["aller", i, [round(cible.pos[0]), round(cible.pos[1])], rayon(cible), cle(h, cible)])
+                incarnes[i] = h.lieu.id
+        return ordres
+
+    # le premier lot : tout ce que le regard contient a 6 h
+    ordres = synchroniser(); pont.envoyer(ordres)
+    noter(type="depart", incarnes=len(incarnes), ordres=len(ordres))
+    dernier_log = 0
+    while time.time() - t0 < a.duree:
+        for m in pont.messages(0.5):
+            if not m: continue
+            if m[0] == "etat":
+                arma["minutes"] = minutes_arma(m[2], m[3]); arma["fps"] = m[4]; arma["n"] = m[5]
+            elif m[0] == "corps":
+                for c in m[1]: corps_vus[c[0]] = c
+            elif m[0] == "mort":
+                noter(type="mort_dans_arma", habitant=m[1])
+            elif m[0] in ("recu", "pret"):
+                noter(type=m[0], detail=m[1:])
+        # le cerveau rattrape l horloge d Arma, un pas de 10 minutes a la fois
+        while arma["minutes"] >= (w.minutes - C.DATE_DEPART[3] * 60 - C.DATE_DEPART[4]) + C.MINUTES_PAR_PAS:
+            w.pas_suivant()
+            ordres = synchroniser()
+            if ordres: pont.envoyer(ordres)
+        if time.time() - dernier_log > 60:
+            dernier_log = time.time()
+            n_arma = arma.get("n")
+            if n_arma is not None and n_arma != len(incarnes): anomalies["ecart_corps"] += 1
+            noter(type="bilan", heure_cerveau=round(w.heure, 2), jour=w.jour, minutes_arma=round(arma["minutes"], 1),
+                  incarnes=len(incarnes), corps_arma=n_arma, fps=arma["fps"], lots=pont.envoyes, lus=pont.lus,
+                  illisibles=pont.illisibles, anomalies=dict(anomalies))
+            print(f"{time.strftime('%H:%M:%S')} cerveau jour {w.jour} {w.heure:5.2f} h | Arma {arma['minutes'] / 60 + 6:5.2f} h | "
+                  f"incarnes {len(incarnes)} corps {n_arma} | {arma['fps']} images/s | lots {pont.envoyes} | anomalies {anomalies}", flush=True)
+    noter(type="fin", anomalies=anomalies, incarnes=len(incarnes))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

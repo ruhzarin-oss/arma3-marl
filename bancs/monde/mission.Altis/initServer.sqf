@@ -1,0 +1,119 @@
+// =====================================================================
+// MONDE - le CORPS du pays. Le cerveau ( Python, paquet monde/ du depot ) decide ; cette mission execute ses ordres
+// et lui rapporte ce qu elle voit. Rien ici ne decide de la vie d un habitant.
+//
+// Le pont : l extension Rust `monde_x64.dll` ( pont_rust/ ). Les ordres arrivent POUSSES par ExtensionCallback, en
+// lots au format tableau simple : [n, [[ordre, args...], ...]]. Les rapports repartent par callExtension "envoyer".
+//
+// Ordres :
+//   ["incarner", id, classe, camp, [x, y], rayon, cle]   un habitant devient un corps, dans un batiment du lieu
+//   ["desincarner", id]                                    le corps disparait ; l habitant redevient une donnee
+//   ["aller", id, [x, y], rayon, cle]                      le corps va au lieu ( batiment choisi par la cle )
+//   ["temps", acceleration] ; ["date", [a, m, j, h, mi]]   l horloge du monde
+// Rapports : ["pret", ...] au demarrage ; ["recu", n] par lot ; ["etat", ...] toutes les 2 s ; ["mort", id, ...].
+// =====================================================================
+MONDE_LOG = { diag_log ("MONDE|" + _this) };
+MONDE_PORT = ["MONDE_PORT", 2350] call BIS_fnc_getParamValue;
+MONDE_ACC = ["MONDE_ACCELERATION", 4] call BIS_fnc_getParamValue;
+MONDE_CORPS = createHashMap;            // id de l habitant -> son corps
+MONDE_DEST = createHashMap;             // id -> destination courante
+MONDE_LOTS = 0; MONDE_ERREURS = 0;
+
+setDate [2035, 6, 15, 6, 0];
+setTimeMultiplier MONDE_ACC;
+0 setOvercast 0.1; 0 setFog 0; 0 setRain 0; forceWeatherChange;
+
+MONDE_fnc_envoyer = {
+    private _r = "monde" callExtension ["envoyer", [str _this]];
+    if ((_r select 0) != "ok") then { MONDE_ERREURS = MONDE_ERREURS + 1 };
+};
+
+// un point de chute DETERMINISTE dans un lieu : le batiment n ( cle ) parmi ceux du rayon, trie par coordonnees
+MONDE_fnc_point = {
+    params ["_centre", "_rayon", "_cle"];
+    private _c = [_centre select 0, _centre select 1, 0];
+    private _b = (nearestObjects [_c, ["House"], _rayon]) select { count (_x buildingPos -1) > 0 };
+    if (count _b == 0) exitWith { _c getPos [5 + (_cle mod 40), (_cle * 37) mod 360] };
+    _b = [_b, [], { (round ((getPosATL _x) select 0)) * 100000 + round ((getPosATL _x) select 1) }, "ASCEND"] call BIS_fnc_sortBy;
+    private _m = _b select (_cle mod (count _b));
+    private _pts = _m buildingPos -1;
+    _pts select (_cle mod (count _pts))
+};
+
+MONDE_fnc_executer = {
+    params ["_o"];
+    private _t = _o select 0;
+    switch (_t) do {
+        case "incarner": {
+            _o params ["", "_id", "_classe", "_camp", "_centre", "_rayon", "_cle"];
+            if (_id in MONDE_CORPS) exitWith {};                      // jamais deux corps pour un habitant
+            private _p = [_centre, _rayon, _cle] call MONDE_fnc_point;
+            private _u = objNull;
+            if (_camp == "civ") then {
+                _u = createAgent [_classe, _p, [], 0, "CAN_COLLIDE"];   // un civil : agent leger, sans groupe
+            } else {
+                private _g = createGroup [independent, true];
+                _u = _g createUnit [_classe, _p, [], 0, "CAN_COLLIDE"];
+                _g setBehaviour "SAFE"; _g setCombatMode "BLUE";
+            };
+            _u setPosATL _p;
+            _u setVariable ["monde_id", _id];
+            _u addEventHandler ["Killed", { params ["_u"]; ["mort", _u getVariable ["monde_id", -1], round (time * 100) / 100] call MONDE_fnc_envoyer }];
+            MONDE_CORPS set [_id, _u];
+        };
+        case "desincarner": {
+            private _id = _o select 1;
+            private _u = MONDE_CORPS getOrDefault [_id, objNull];
+            if (!isNull _u) then { private _g = group _u; deleteVehicle _u; if (!isNull _g && { count units _g == 0 }) then { deleteGroup _g } };
+            MONDE_CORPS deleteAt _id; MONDE_DEST deleteAt _id;
+        };
+        case "aller": {
+            _o params ["", "_id", "_centre", "_rayon", "_cle"];
+            private _u = MONDE_CORPS getOrDefault [_id, objNull];
+            if (isNull _u) exitWith {};
+            private _p = [_centre, _rayon, _cle] call MONDE_fnc_point;
+            if (isAgent teamMember _u) then { _u moveTo _p } else { _u doMove _p };
+            MONDE_DEST set [_id, _p];
+        };
+        case "temps": { setTimeMultiplier (_o select 1) };
+        case "date": { setDate (_o select 1) };
+        default { (format ["ordre_inconnu|%1", _t]) call MONDE_LOG };
+    };
+};
+
+addMissionEventHandler ["ExtensionCallback", {
+    params ["_nom", "_fonction", "_donnees"];
+    if (_nom != "monde") exitWith {};
+    private _lot = parseSimpleArray _donnees;
+    if (count _lot < 2) exitWith { (format ["lot_illisible|%1", _donnees select [0, 120]]) call MONDE_LOG };
+    { [_x] call MONDE_fnc_executer } forEach (_lot select 1);
+    MONDE_LOTS = MONDE_LOTS + 1;
+    ["recu", _lot select 0, count (_lot select 1), count MONDE_CORPS] call MONDE_fnc_envoyer;
+}];
+
+// les rapports : toutes les 2 s reelles, par paquets de 100 corps ( contexte non ordonnance : jamais en retard )
+MONDE_T = diag_tickTime;
+addMissionEventHandler ["EachFrame", {
+    if (diag_tickTime - MONDE_T < 2) exitWith {};
+    MONDE_T = diag_tickTime;
+    private _corps = [];
+    {
+        private _p = getPosATL _y;
+        _corps pushBack [_x, round (_p select 0), round (_p select 1), (if (alive _y) then {1} else {0}), round (speed _y)];
+    } forEach MONDE_CORPS;
+    private _n = count _corps; private _i = 0;
+    ["etat", round (time * 100) / 100, date, round (dayTime * 10000) / 10000, round diag_fps, _n] call MONDE_fnc_envoyer;
+    while { _i < _n } do {
+        ["corps", _corps select [_i, 100]] call MONDE_fnc_envoyer;
+        _i = _i + 100;
+    };
+}];
+
+private _r = "monde" callExtension ["connecter", ["127.0.0.1", MONDE_PORT]];
+(format ["connecter|%1|port|%2", _r, MONDE_PORT]) call MONDE_LOG;
+[] spawn {
+    waitUntil { sleep 1; (("monde" callExtension ["etat", []]) select 0) find "connecte=1" == 0 };
+    ["pret", productVersion select 2, date, MONDE_ACC] call MONDE_fnc_envoyer;
+    "pret" call MONDE_LOG;
+    while { true } do { sleep 30; (format ["pont|%1|lots|%2|erreurs|%3|corps|%4", ("monde" callExtension ["etat", []]) select 0, MONDE_LOTS, MONDE_ERREURS, count MONDE_CORPS]) call MONDE_LOG };
+};

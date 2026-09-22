@@ -1,0 +1,16 @@
+[package]
+name = "monde"
+version = "0.1.0"
+edition = "2021"
+description = "Pont TCP entre le cerveau du monde ( Python ) et un serveur Arma 3 : ordres pousses par ExtensionCallback, rapports par callExtension."
+
+[lib]
+name = "monde"
+crate-type = ["cdylib"]
+
+[dependencies]
+arma-rs = "1"
+
+[profile.release]
+opt-level = 3
+lto = true

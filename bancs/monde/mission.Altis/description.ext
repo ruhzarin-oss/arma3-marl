@@ -1,0 +1,22 @@
+author = "Harmattan";
+onLoadName = "MONDE";
+onLoadMission = "Altis, 2035. Cinq cents habitants, une economie, un gouvernement. Le corps du monde : le cerveau est ailleurs.";
+respawn = 0;
+disabledAI = 1;
+enableDebugConsole = 1;
+briefing = 0;
+debriefing = 0;
+class Header { gameType = "Coop"; minPlayers = 1; maxPlayers = 1; };
+class Params
+{
+    class MONDE_PORT
+    {
+        title = "Port TCP du cerveau du monde";
+        values[] = {2350}; texts[] = {"2350"}; default = 2350;
+    };
+    class MONDE_ACCELERATION
+    {
+        title = "Acceleration de l horloge du monde";
+        values[] = {1, 4}; texts[] = {"1", "4"}; default = 4;
+    };
+};
