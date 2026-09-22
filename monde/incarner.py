@@ -41,10 +41,14 @@ def main():
     p.add_argument("--regard", default="Kavala")
     p.add_argument("--duree", type=float, default=3600.0, help="secondes reelles")
     p.add_argument("--sortie", default="/mnt/data/hmt/monde/e2")
+    p.add_argument("--cerveau", default="llm", choices=["llm", "regles"], help="qui gouverne : Qwen ou le catalogue")
+    p.add_argument("--eleve", default="llm", choices=["llm", "memoire", "sans_memoire"], help="qui va a l ecole")
     a = p.parse_args()
     os.makedirs(a.sortie, exist_ok=True)
     regard = set(a.regard.split(","))
-    w = W.Monde(eleve=S.EleveMemoire(), journal=os.path.join(a.sortie, "journal_monde.jsonl"))
+    eleve = {"llm": S.EleveLLM, "memoire": S.EleveMemoire, "sans_memoire": S.EleveSansMemoire}[a.eleve]()
+    w = W.Monde(cerveau=a.cerveau, eleve=eleve, journal=os.path.join(a.sortie, "journal_monde.jsonl"))
+    print(f"gouvernement : {a.cerveau} | eleve : {eleve.nom}", flush=True)
     pont = PT.Pont(a.port)
     trace = open(os.path.join(a.sortie, "trace_e2.jsonl"), "a")
     def noter(**d):
@@ -58,6 +62,7 @@ def main():
                                                              # ( sinon un cerveau relance rattraperait l ancienne heure )
     vus = {}                            # id -> ( instant du dernier rapport d Arma, [id, x, y, vivant, vitesse] )
     purges = set()
+    sortis = {}                         # id -> instant de desincarnation ( Arma le rapporte encore une seconde ou deux )
     anomalies = {"doublon": 0, "ecart_corps": 0, "orphelins_purges": 0}
     deplacements = [0]
 
@@ -66,7 +71,7 @@ def main():
         voulus = {h.id: h for h in w.habitants if h.vivant and h.lieu is not None and h.lieu.id in regard}
         for i in list(incarnes):
             if i not in voulus:
-                ordres.append(["desincarner", i]); del incarnes[i]
+                ordres.append(["desincarner", i]); del incarnes[i]; sortis[i] = time.time()
         for i, h in voulus.items():
             ou = (h.lieu.id, h.poste)
             if i not in incarnes:
@@ -101,13 +106,18 @@ def main():
         # la reconciliation : un corps qu Arma rapporte et que le cerveau ne connait pas ( cerveau redemarre, ordre perdu )
         # est desincarne - le cerveau fait foi
         recents = {i for i, (t, _) in vus.items() if time.time() - t < 5}
-        orphelins = [i for i in recents if i not in incarnes and i not in purges]
+        # un corps tout juste desincarne est encore dans les rapports en vol : ce n est pas un orphelin
+        orphelins = [i for i in recents if i not in incarnes and i not in purges
+                     and time.time() - sortis.get(i, 0) > 10]
         if orphelins:
             pont.envoyer([["desincarner", i] for i in orphelins]); purges.update(orphelins)
             anomalies["orphelins_purges"] += len(orphelins); noter(type="purge", ids=orphelins)
         # le cerveau rattrape l horloge d Arma, un pas de 10 minutes a la fois
         while arma["minutes"] >= (w.minutes - C.DATE_DEPART[3] * 60 - C.DATE_DEPART[4]) + C.MINUTES_PAR_PAS:
+            t_pas = time.time()
             w.pas_suivant()
+            if time.time() - t_pas > 2.0:      # un pas long = le LLM a parle ( gouvernement, lecon, exercice )
+                noter(type="pas_long", heure=round(w.heure, 2), secondes=round(time.time() - t_pas, 1))
             ordres = synchroniser()
             if ordres: pont.envoyer(ordres)
         if time.time() - dernier_log > 60:
