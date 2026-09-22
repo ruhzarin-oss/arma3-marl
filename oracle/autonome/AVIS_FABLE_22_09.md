@@ -63,3 +63,19 @@ vers une constante ou sur-ajustera. Le diagnostic est vrai mais secondaire. **Ce
 
 > « L'Oracle a fait sa part. La moitié Architecte échoue parce que sa porte d'adoption est plus aveugle que l'effet
 > qu'elle cherche, et parce qu'elle se compare au mauvais adversaire. »
+
+## Résultat de l'étape 0 — 22/09, 4 minutes de processeur, seuils de Fable appliqués tels qu'écrits
+
+| diagnostic | mesure | seuil écrit d'avance | verdict |
+|---|---|---|---|
+| **0a plafond en vérité** | « attendre ssi poste proche » − « toujours attendre » : **−0,013** [−0,032 ; +0,003] | ≤ −0,02 pour poursuivre la perception | **la perception n'est PAS le goulot** |
+| **0b signes par monde** | hors poste perçu, traverser gagne dans **7 mondes sur 18** ; face au poste perçu, attendre sauve dans 4 sur 10 (écart moyen −0,002) | ≥ 13/20 pour garder C2 | **C2 abandonnée, cible = C1 « toujours attendre »** |
+| **0c paires** | 304 paires, ρ = 0,377, erreur appariée/non appariée **0,789** ; écart moyen attendre − traverser **−0,069** | < 0,85 | **test apparié adopté** |
+| **0d fuite** | aucune perception déséquilibrée entre options (tous |écart standardisé| < 0,05) ; le code journalise la décision AVANT l'attente | bloquant si déséquilibre | **pas de fuite** |
+| **0e cécité de la porte** | effet réaliste injecté 20 fois : **adopté 3 fois sur 20** | Fable prédisait < 30 % | **la porte actuelle est aveugle, confirmé** |
+
+**Ce que ça dit.** Attendre aide **en général** (≈ 3 à 7 points), pas spécifiquement face au poste : même en
+connaissant la vérité, distinguer le poste ne rapporte rien de plus que d'attendre partout. La meilleure règle lisible
+de l'Architecte est, à ce stade, **une constante : « toujours attendre »** — le scénario que Fable annonçait : si
+attendre ne coûte rien, l'équation est une constante par construction, et la vraie question devient celle de
+l'Oracle : **peut-il trouver où attendre perd ?** Sinon, c'est au monde qu'il faut une horloge.

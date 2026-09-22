@@ -1,0 +1,67 @@
+== ETAPE 0 DE FABLE : 1672 episodes utilisables ; population de l Architecte 1149 ; dont episodes de l Oracle 599
+
+0a. LE PLAFOND - si l Architecte connaissait la VERITE ( poste proche ), vaudrait-il mieux que « toujours attendre » ?
+   toute la population ( 1149 episodes, compromission brute 0.240 )
+      toujours traverser                               valeur 0.257   ecart a « toujours attendre » +0.034 [-0.009 ; +0.073]
+      toujours attendre                                valeur 0.224   ecart a « toujours attendre » +0.000 [+0.000 ; +0.000]
+      PLAFOND : attendre ssi poste proche ( verite )   valeur 0.211   ecart a « toujours attendre » -0.013 [-0.032 ; +0.003]
+      C2 : attendre ssi menace vue et aucun moteur     valeur 0.241   ecart a « toujours attendre » +0.018 [-0.008 ; +0.049]
+   episodes de l Oracle seulement ( 599 episodes, compromission brute 0.346 )
+      toujours traverser                               valeur 0.381   ecart a « toujours attendre » +0.071 [-0.008 ; +0.141]
+      toujours attendre                                valeur 0.310   ecart a « toujours attendre » +0.000 [+0.000 ; +0.000]
+      PLAFOND : attendre ssi poste proche ( verite )   valeur 0.307   ecart a « toujours attendre » -0.003 [-0.029 ; +0.029]
+      C2 : attendre ssi menace vue et aucun moteur     valeur 0.354   ecart a « toujours attendre » +0.044 [-0.014 ; +0.115]
+   -> seuil ecrit d avance : poursuivre la perception seulement si V(plafond) - V(toujours attendre) <= -0,02 : -0.013 -> la perception n est PAS le goulot : cible = toujours attendre
+
+0b. MONDE PAR MONDE - effet d attendre ( attendre - traverser, Hajek ) dans et hors « poste percu »
+   950 episodes avec perception etendue, 230 en « poste percu » ( 24% )
+   face au poste percu : attendre sauve dans 4 mondes sur 10 evaluables ( ecart moyen -0.002 )
+   hors poste percu    : TRAVERSER gagne dans 7 mondes sur 18 evaluables ( ecart moyen -0.025 )
+   -> seuil ecrit d avance : poursuivre C2 si traverser gagne hors poste dans >= 13 mondes sur 20 : NON, la cible est « toujours attendre » ( C1 )
+
+0c. LA FORCE DES PAIRES - meme situation de l Oracle, jouee sous les deux options
+   304 paires ; correlation intra-paire rho = 0.377 ; erreur appariee / non appariee = 0.789
+   -> seuil ecrit d avance : adopter le test apparie si le rapport < 0,85 : OUI
+   ( ecart moyen attendre - traverser sur les paires : -0.069 )
+
+0d. LA FUITE - les perceptions a la decision sont-elles EQUILIBREES entre les options ? ( options tirees au sort :
+    tout desequilibre voudrait dire que la perception est mesuree APRES le choix )
+   n_vues_menace          traverser     1.60   attendre     1.48   ecart standardise -0.050  z -0.8  
+   menaces_vues           traverser     0.51   attendre     0.50   ecart standardise -0.014  z -0.2  
+   moteur_entendu         traverser     0.34   attendre     0.34   ecart standardise -0.012  z -0.2  
+   moteur_depuis_fenetre  traverser     0.39   attendre     0.37   ecart standardise -0.024  z -0.4  
+   menace_percue          traverser     0.23   attendre     0.23   ecart standardise -0.005  z -0.1  
+   distance_moteur        traverser   346.60   attendre   341.47   ecart standardise -0.012  z -0.2  
+   vehicule_vu            traverser     0.05   attendre     0.04   ecart standardise -0.018  z -0.3  
+   menaces_connues        traverser     0.06   attendre     0.06   ecart standardise +0.017  z +0.3  
+   distance_menace        traverser     3.25   attendre     2.78   ecart standardise -0.016  z -0.2  
+   alarme                 traverser     0.01   attendre     0.01   ecart standardise +0.025  z +0.4  
+   depuis_alarme          traverser    -0.16   attendre    -0.49   ecart standardise -0.030  z -0.5  
+   vue_depuis             traverser     0.00   attendre    -0.55   ecart standardise -0.048  z -0.7  
+   -> BLOQUANT si une perception est desequilibree : aucune - pas de fuite visible dans les donnees
+
+0e. LA CECITE DE LA PORTE ACTUELLE - effet realiste injecte ( attendre retire 8 points de compromission face au
+    poste percu ), dans les VRAIES donnees, 20 fois ; combien de fois la porte actuelle l adopte-t-elle ?
+   injection  1 : rien  ( meilleur toujours_attendre, IC [-0.087, 0.004] )
+   injection  2 : rien  ( meilleur toujours_attendre, IC [-0.1, 0.011] )
+   injection  3 : rien  ( meilleur toujours_attendre, IC [-0.094, 0.001] )
+   injection  4 : rien  ( meilleur toujours_attendre, IC [-0.09, 0.002] )
+   injection  5 : rien  ( meilleur toujours_attendre, IC [-0.092, 0.006] )
+   injection  6 : rien  ( meilleur toujours_attendre, IC [-0.089, 0.007] )
+   injection  7 : rien  ( meilleur toujours_attendre, IC [-0.096, 0.001] )
+   injection  8 : rien  ( meilleur toujours_attendre, IC [-0.085, 0.01] )
+   injection  9 : ADOPTE toujours_attendre  ( meilleur toujours_attendre, IC [-0.093, -0.005] )
+   injection 10 : ADOPTE toujours_attendre  ( meilleur toujours_attendre, IC [-0.09, -0.0] )
+   injection 11 : rien  ( meilleur toujours_attendre, IC [-0.091, 0.006] )
+   injection 12 : rien  ( meilleur toujours_attendre, IC [-0.087, 0.009] )
+   injection 13 : rien  ( meilleur toujours_attendre, IC [-0.094, 0.007] )
+   injection 14 : rien  ( meilleur toujours_attendre, IC [-0.098, 0.007] )
+   injection 15 : rien  ( meilleur toujours_attendre, IC [-0.101, 0.007] )
+   injection 16 : rien  ( meilleur toujours_attendre, IC [-0.102, 0.006] )
+   injection 17 : rien  ( meilleur toujours_attendre, IC [-0.085, 0.0] )
+   injection 18 : ADOPTE toujours_attendre  ( meilleur toujours_attendre, IC [-0.097, -0.002] )
+   injection 19 : rien  ( meilleur toujours_attendre, IC [-0.09, 0.004] )
+   injection 20 : rien  ( meilleur toujours_attendre, IC [-0.101, 0.004] )
+   -> la porte actuelle voit un effet realiste dans 3 cas sur 20 ; Fable predit moins de 30 % ( <= 6 )
+
+duree 4 min
