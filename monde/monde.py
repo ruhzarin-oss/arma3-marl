@@ -180,7 +180,51 @@ class Monde:
             if m.stocks[b] > 2 * cible or recette < 0.95 * cout: e.activite = max(0.1, e.activite - 0.25)
             elif m.stocks[b] < cible and recette > 1.05 * cout: e.activite = min(1.0, e.activite + 0.25)
 
+    def demographie(self):
+        """Point 5 : on naît, on vieillit, on part a la retraite, on meurt de vieillesse. Une fois par jour du monde.
+        Le pays cesse d etre une photographie de 500 personnes figees."""
+        for h in self.habitants:
+            if not h.vivant: continue
+            h.age += 1.0 / C.JOURS_PAR_AN
+            # la mort naturelle, par tranche d age
+            risque = next(r for limite, r in C.MORTALITE_AN if h.age < limite)
+            if self.rng.random() < risque / C.JOURS_PAR_AN:
+                h.vivant = False; h.lieu = None
+                self.noter("mort_naturelle", habitant=h.id, age=round(h.age, 1), role=h.role)
+                continue
+            # la retraite : il quitte son poste, son salaire devient une pension
+            if h.age >= C.AGE_RETRAITE and h.role not in ("retraite", "enfant"):
+                self.noter("retraite", habitant=h.id, age=round(h.age, 1), ancien_role=h.role)
+                h.role, h.travail, h.horaire = "retraite", None, None
+            # l enfant qui grandit : il prend un metier la ou il en manque le plus dans sa region
+            elif h.role == "enfant" and h.age >= C.AGE_TRAVAIL:
+                self.embaucher(h)
+        # les naissances : un menage avec un adulte jeune, un nouveau-ne qui consomme et qui ira a l ecole
+        for mg in list(self.menages):
+            adultes = [x for x in mg.membres if x.vivant and x.role != "enfant" and x.age < 45]
+            if not adultes: continue
+            if self.rng.random() < C.NAISSANCES_PAR_MENAGE_AN / C.JOURS_PAR_AN:
+                b = P.Habitant(max(h.id for h in self.habitants) + 1, "enfant", adultes[0].classe, 0)
+                b.menage, b.domicile, b.lieu = mg, mg.domicile, mg.domicile
+                b.horaire, b.travail = "ecole", mg.domicile.marche
+                mg.membres.append(b); self.habitants.append(b)
+                self.noter("naissance", habitant=b.id, menage=mg.id, lieu=mg.domicile.id)
+
+    def embaucher(self, h):
+        """Le premier marche du travail : le jeune prend le metier le plus depeuple de sa region, parmi les metiers
+        libres ( un medecin ou un officier demande une qualification : ils ne s improvisent pas )."""
+        libres = ("paysan", "mineur", "ouvrier", "convoyeur", "marchand", "petrolier", "soldat")
+        vivants = [x for x in self.habitants if x.vivant and x.role in libres]
+        manque = {r: sum(1 for x in vivants if x.role == r) / max(1, C.ROLES[r][0]) for r in libres}
+        role = min(manque, key=manque.get)
+        postes = [x for x in self.habitants if x.vivant and x.role == role and x.travail is not None]
+        h.role, h.classe = role, C.ROLES[role][1]
+        h.horaire = P.TRAVAIL[role][1]
+        h.travail = min((x.travail for x in postes), key=lambda l: l.distance(h.domicile)) if postes else h.domicile
+        self.noter("entree_vie_active", habitant=h.id, role=role, lieu=getattr(h.travail, "id", None))
+
     def aube(self):
+        self.demographie()
         self.regler_activite()
         for m in self.marches.values(): m.ajuster_prix()
         self.reseau.tarif = max(0.5, C.MARGE_ELECTRICITE * (self.prix_moyen("carburant") + P.SALAIRE_HORAIRE["ouvrier"]) / 12.0)   # cout complet d une heure de centrale
@@ -249,7 +293,7 @@ class Monde:
     # --- 3. les convois ---
     def conducteur(self, capitale):
         for p in self.habitants:
-            if p.role == "convoyeur" and p.vivant and p.travail is capitale and self.conducteur_libre[p.id] <= self.pas \
+            if p.role == "convoyeur" and p.vivant and p.travail is capitale and self.conducteur_libre.get(p.id, 0) <= self.pas \
                     and p.au_travail(self.heure):
                 return p
         return None

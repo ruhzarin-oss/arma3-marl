@@ -87,8 +87,27 @@ def test_reprise_identique():
     return meme, f"3 jours d affilee contre 2 + reprise + 1 : {'identiques' if meme else 'DIFFERENTS'}"
 
 
+def test_demographie():
+    """Point 5 : sur une annee du monde, le pays doit vivre - naissances, retraites, morts de vieillesse - sans
+    s effondrer ni exploser. Une population qui ne bouge pas d un habitant serait une photographie, pas un pays."""
+    w = jours(W.Monde(), 365)
+    vivants = [h for h in w.habitants if h.vivant]
+    nes = len(w.habitants) - 500
+    retraites = sum(1 for h in vivants if h.role == "retraite")
+    enfants = sum(1 for h in vivants if h.role == "enfant")
+    d_arg, d_b = w.verifier_conservation()
+    # sur 365 jours, le seuil absolu de 1e-6 ne mesure plus la conservation mais l accumulation de la virgule
+    # flottante ( 4e-7 sur 1,37 million de drachmes, soit 3e-13 en relatif ) : le critere devient relatif.
+    relatif = abs(d_arg) / max(1.0, w.argent_total())
+    ok = (400 <= len(vivants) <= 600 and nes > 0 and retraites > 0 and enfants > 0
+          and relatif < 1e-9 and max(abs(v) for v in d_b.values()) < 1e-3)
+    return ok, (f"apres un an : {len(vivants)} vivants, {nes} nes, {retraites} retraites, {enfants} enfants ; "
+                f"conservation relative {relatif:.1e}")
+
+
 TESTS = [test_conservation, test_conservation_sait_echouer, test_negatif_sans_perturbation, test_positif_route_coupee,
-         test_reproductible, test_gouvernement_borne, test_ecole, test_menages_decident, test_reprise_identique]
+         test_reproductible, test_gouvernement_borne, test_ecole, test_menages_decident, test_reprise_identique,
+         test_demographie]
 
 if __name__ == "__main__":
     ok = 0

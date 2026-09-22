@@ -83,3 +83,10 @@ STOCK_CIBLE = 250.0                  # stock moyen par marche au-dela duquel une
 
 # les biens qui circulent entre marches ( decision du marchand : regle ou reseau appris )
 BIENS_COMMERCE = ("nourriture", "carburant", "remedes", "outils", "fer", "zinc", "petrole")
+
+# --- demographie ( point 5 des douze manques ) : un pays ou l on nait, ou l on vieillit, ou l on part a la retraite ---
+AGE_TRAVAIL = 16                     # l enfant qui l atteint entre dans la vie active
+AGE_RETRAITE = 65
+NAISSANCES_PAR_MENAGE_AN = 0.09      # un menage avec un adulte de moins de 45 ans
+MORTALITE_AN = ((40, 0.001), (60, 0.004), (75, 0.02), (85, 0.06), (200, 0.15))   # age limite -> risque annuel
+JOURS_PAR_AN = 365
