@@ -1,0 +1,78 @@
+"""Les portes de l etape E1 ( plans/plan-monde-complet.md ) : chacune doit savoir echouer.
+   python -m monde.tests"""
+import copy, sys
+from . import monde as W, ecole as S, gouvernement as G, config as C
+
+
+def jours(w, n):
+    for _ in range(n * C.PAS_PAR_JOUR): w.pas_suivant()
+    return w
+
+
+def test_conservation():
+    w = jours(W.Monde(), 30)
+    d_arg, d_b = w.verifier_conservation()
+    pire = max(abs(v) for v in d_b.values())
+    return abs(d_arg) < 1e-6 and pire < 1e-6, f"ecart argent {d_arg:.2e}, pire ecart de bien {pire:.2e}"
+
+
+def test_conservation_sait_echouer():
+    """Le controle de conservation doit VOIR un bien cree de rien."""
+    w = jours(W.Monde(), 2)
+    w.marches["Kavala"].stocks["nourriture"] += 7.0          # creation sans cause
+    d_arg, d_b = w.verifier_conservation()
+    return abs(d_b["nourriture"] - 7.0) < 1e-6, f"ecart vu {d_b['nourriture']:.3f} pour 7 crees"
+
+
+def test_negatif_sans_perturbation():
+    w = jours(W.Monde(), 30)
+    faim = w.stats_jour.get("menages_sans_nourriture", 0) / len(w.menages)
+    pc = w.prix_moyen("carburant") / C.PRIX_MONDE["carburant"]
+    return faim <= 0.05 and 0.3 <= pc <= 3.0 and sum(1 for h in w.habitants if h.vivant) >= 490, \
+        f"faim {faim:.1%}, carburant {pc:.2f} fois le prix mondial, vivants {sum(1 for h in w.habitants if h.vivant)}"
+
+
+def test_positif_route_coupee():
+    """Couper Pyrgos ( plus aucun convoi n y entre ni n en sort ) doit se VOIR : prix ou faim a Pyrgos, pas ailleurs."""
+    temoin = jours(W.Monde(), 12)
+    w = W.Monde(); jours(w, 2); w.routes_coupees.add("Pyrgos"); jours(w, 10)
+    menages_p = [m for m in w.menages if m.domicile.marche.id == "Pyrgos"]
+    faim_p = sum(1 for m in menages_p if m.garde_manger < 0.5 * len(m.membres)) / max(1, len(menages_p))
+    dp = w.marches["Pyrgos"].prix["carburant"] / temoin.marches["Pyrgos"].prix["carburant"]
+    dn = w.marches["Pyrgos"].prix["nourriture"] / temoin.marches["Pyrgos"].prix["nourriture"]
+    return (dp >= 2 or dn >= 2 or faim_p >= 0.3), f"Pyrgos coupee : carburant x{dp:.2f}, nourriture x{dn:.2f}, menages a court {faim_p:.0%}"
+
+
+def test_reproductible():
+    a, b = jours(W.Monde(graine=11), 5), jours(W.Monde(graine=11), 5)
+    return a.resume_jour() == b.resume_jour() and a.argent_total() == b.argent_total(), "meme graine, meme monde apres 5 jours"
+
+
+def test_gouvernement_borne():
+    w = W.Monde()
+    essais = [({"type": "fixer_impot", "nom": "tva", "valeur": 0.9}, False), ({"type": "raser_kavala"}, False),
+              ({"type": "acheter", "bien": "remedes", "quantite": 1e9}, False), ({"type": "quarantaine", "lieu": "Atlantide"}, False),
+              ({"type": "fixer_impot", "nom": "tva", "valeur": 0.1}, True), ({"type": "couvre_feu", "debut": 22, "fin": 5}, True)]
+    res = [w.gouv.appliquer(a, w)[0] == attendu for a, attendu in essais]
+    return all(res), f"{sum(res)}/{len(res)} decisions traitees comme attendu ( hors catalogue et hors bornes refusees )"
+
+
+def test_ecole():
+    """L epreuve doit separer un eleve qui apprend d un eleve qui n apprend rien."""
+    wa = jours(W.Monde(eleve=S.EleveMemoire()), 3)
+    wb = jours(W.Monde(eleve=S.EleveSansMemoire()), 3)
+    a, b = wa.ecole.bulletin[0]["score"], wb.ecole.bulletin[0]["score"]
+    return a > b and b == 0, f"eleve a memoire {a:.2f}, eleve sans memoire {b:.2f}"
+
+
+TESTS = [test_conservation, test_conservation_sait_echouer, test_negatif_sans_perturbation, test_positif_route_coupee,
+         test_reproductible, test_gouvernement_borne, test_ecole]
+
+if __name__ == "__main__":
+    ok = 0
+    for t in TESTS:
+        r, msg = t()
+        ok += r
+        print(f"{'PASSE' if r else 'ECHOUE':7s} {t.__name__:32s} {msg}")
+    print(f"{ok} / {len(TESTS)} portes de l etape E1")
+    sys.exit(0 if ok == len(TESTS) else 1)

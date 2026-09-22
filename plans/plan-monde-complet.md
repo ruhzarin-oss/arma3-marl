@@ -135,3 +135,27 @@ Le monde ne se remet jamais à zéro. Chaque agent garde sa mémoire. Une expér
 8. **La qualification** : qu'est-ce qu'un agent « formé » dans ce rôle ?
 9. **L'horloge** : quelle accélération du monde (×12, ×60, ×120) ?
 10. **Fable** : faut-il lui soumettre ce plan avant la construction ?
+
+## 10. Décisions de Younes (22/09, 17 h 15) et interprétation retenue
+
+- Île : **Altis**. Taille : **500 habitants** pour commencer.
+- **Tout dans la première version** : économie réelle, **vrai gouvernement**, armée, maladies et remèdes, minerais, pétrole,
+  échéances, jour et nuit.
+- **Aucun ennemi pour l'instant** : l'armée vit en temps de paix (garde, patrouilles, logistique).
+- **Un agent qui va à l'école et apprend son monde** : l'élève (enfant de Kavala), formé par le cycle instruction →
+  exercice → débrief → observation → qualification.
+- **Cycle complet de 6 heures** : interprété comme une journée entière du monde en 6 heures réelles (accélération ×4).
+  À confirmer par Younes.
+
+## 11. État au 22/09 soir — étape E1 (le cœur, hors Arma) construite
+
+Paquet `monde/` du dépôt : `config`, `carte` (127 lieux d'Altis extraits de la configuration du jeu), `population`
+(500 habitants, 366 ménages, rôles, classes, horaires), `economie` (entreprises, 3 marchés régionaux, convois, réseau
+électrique), `gouvernement` (catalogue d'actions bornées ; cerveau par règles ou Qwen 14B par Ollama), `ecole`
+(enseignant tiré du monde réel, élèves témoin / mémoire / Qwen avec mémoire bge-m3), `monde` (le pas de 10 minutes),
+`tests`, `lancer`. **Portes E1 : 7/7** — conservation exacte de l'argent et des biens (et le contrôle la voit échouer),
+contrôle négatif (30 jours sans famine, carburant dans la bande), contrôle positif (Pyrgos coupée : nourriture ×23,
+100 % des ménages à court), reproductibilité, gouvernement borné (6/6), école (mémoire 0,62 contre témoin 0,00).
+Tenue sur 120 jours : 499 vivants, carburant 5-8, caisse de l'État stable. Défauts connus : la mine n'est pas rentable
+(salaires), la nourriture reste au prix plancher (surproduction agricole), l'élève à mémoire simple régresse à 0,25 quand
+ses notes s'accumulent (plancher que l'élève Qwen doit battre).
