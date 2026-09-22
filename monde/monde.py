@@ -40,6 +40,10 @@ class Monde:
         self.publics["armee"]["carburant"] = 150.0
         self.publics["reserve"]["or"] = 20.0
         self.depot_armee = self.carte.lieux["storage01"]
+        # point 6 : chaque base tient SON carburant. Un depot national ne pouvait jamais etre coupe de quoi que ce soit.
+        self.garnisons = {b.id: {"carburant": 0.0} for b in self.carte.de_type("base")}
+        for b in self.carte.de_type("base"):        # cinq jours d autonomie : une base n est ni a sec ni intarissable
+            self.garnisons[b.id]["carburant"] = 5 * self.besoin_patrouille(b)
         self.convois = []; self.n_convoi = 0
         self.conducteur_libre = {h.id: 0 for h in self.habitants if h.role == "convoyeur"}
         self.cerveau = G.CerveauLLM() if cerveau == "llm" else None
@@ -91,6 +95,7 @@ class Monde:
             for b in C.BIENS: t[b] += m.stocks[b]
         for p in self.publics.values():
             for b in C.BIENS: t[b] += p[b]
+        for g in self.garnisons.values(): t["carburant"] += g["carburant"]
         for c in self.convois:
             for b, q in c.cargaison.items(): t[b] += q
         t["nourriture"] += sum(m.garde_manger for m in self.menages)
@@ -154,6 +159,7 @@ class Monde:
         if self.minutes % (24 * 60) == 19 * 60: self.achats()
         if self.minutes % (24 * 60) == 20 * 60: self.repas()
         if self.minutes % (24 * 60) in (8 * 60, 20 * 60): self.patrouilles()
+        if self.minutes % (24 * 60) == 7 * 60: self.ravitailler_bases()
         if self.ecole is not None:
             mm = self.minutes % (24 * 60)
             if mm == 8 * 60: self.ecole.instruction()
@@ -412,6 +418,9 @@ class Monde:
     def arrivees(self):
         for c in [c for c in self.convois if c.arrivee <= self.pas]:
             self.convois.remove(c)
+            if c.motif == "ravitaillement_base":
+                for b, q in c.cargaison.items(): self.garnisons[c.destination.id][b] += q
+                continue
             if c.motif == "vente":
                 m = self.marches[c.destination.id]
                 for b, q in c.cargaison.items():
@@ -595,11 +604,31 @@ class Monde:
         for base in self.carte.de_type("base"):
             ville = self.carte.plus_proche(base, ("ville", "capitale"))
             carb = 2 * self.carte.km_route(base, ville) * C.CARBURANT_PAR_KM * 3      # un vehicule blinde brule 3 fois plus
-            if self.publics["armee"]["carburant"] >= carb:
-                self.publics["armee"]["carburant"] -= carb; self.flux["brule"]["carburant"] += carb
+            g = self.garnisons[base.id]
+            if g["carburant"] >= carb:
+                g["carburant"] -= carb; self.flux["brule"]["carburant"] += carb
                 self.noter("patrouille", base=base.id, vers=ville.id, carburant=round(carb, 2))
             else:
                 self.noter("patrouille_annulee", base=base.id, cause="carburant")
+
+    def besoin_patrouille(self, base):
+        """Ce qu une base brule par jour : deux patrouilles vers la ville la plus proche."""
+        ville = self.carte.plus_proche(base, ("ville", "capitale"))
+        return 2 * (2 * self.carte.km_route(base, ville) * C.CARBURANT_PAR_KM * 3)
+
+    def ravitailler_bases(self):
+        """Point 6 : le depot national alimente les garnisons par CONVOI. Une route coupee assoiffe donc une base,
+        et le delai se calcule : ce qu elle a en stock divise par ce qu elle brule."""
+        for base in self.carte.de_type("base"):
+            g = self.garnisons[base.id]
+            besoin = self.besoin_patrouille(base)
+            if g["carburant"] >= 3 * besoin: continue
+            q = min(C.CAPACITE_CAMION, self.publics["armee"]["carburant"], 5 * besoin - g["carburant"])
+            if q < 1: continue
+            if self.lancer_convoi(self.depot_armee, base, {"carburant": q}, self.gouv, "ravitaillement_base",
+                                  self.marches[self.depot_armee.marche.id]):
+                self.publics["armee"]["carburant"] -= q
+                self.noter("ravitaillement_base", base=base.id, carburant=round(q, 1))
 
     # ------------------------------------------------------------------ le gouvernement
     def sitrep(self):
@@ -616,6 +645,7 @@ class Monde:
             "stocks_publics": {"remedes": round(self.publics["hopitaux"]["remedes"]), "or": round(self.publics["reserve"]["or"], 1),
                                "nourriture_population": round(self.publics["population"]["nourriture"])},
             "armee": {"carburant_depot": round(self.publics["armee"]["carburant"]),
+                      "garnisons": {k: round(v["carburant"], 1) for k, v in self.garnisons.items()},
                       "patrouilles_annulees_hier": sum(1 for e in self.evenements[-400:] if e["type"] == "patrouille_annulee")},
             "finances": {"caisse": round(self.gouv.caisse), "impot_revenu": self.gouv.impot_revenu, "tva": self.gouv.tva,
                          "facteur_salaire_public": self.gouv.facteur_salaire_public},

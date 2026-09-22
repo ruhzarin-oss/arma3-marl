@@ -142,9 +142,30 @@ def test_hopital():
                 f"un soignant y travaille : {soignant is not None and I.cle(soignant) == I.cle(malade)}")
 
 
+def test_armee_coupee():
+    """Point 6 : couper la route d une base doit vider SA garnison dans le delai calcule - stock divise par ce qu elle
+    brule - pendant que les autres bases continuent de patrouiller."""
+    w = W.Monde()
+    base = w.carte.de_type("base")[0]
+    besoin = w.besoin_patrouille(base)
+    attendu = w.garnisons[base.id]["carburant"] / besoin          # en jours, calcule AVANT de jouer
+    w.routes_coupees.add(base.id)
+    premier = None
+    for j in range(12):
+        jours(w, 1)
+        annulees = [e for e in w.evenements[-600:] if e["type"] == "patrouille_annulee" and e.get("base") == base.id]
+        if annulees and premier is None: premier = w.jour
+    autres = [b for b in w.carte.de_type("base") if b.id != base.id]
+    vivantes = sum(1 for b in autres if w.garnisons[b.id]["carburant"] > 0)
+    ok = premier is not None and abs(premier - attendu) <= 1.5 and vivantes == len(autres)
+    return ok, (f"{base.id} coupee : a sec au jour {premier}, calcul {attendu:.1f} ; "
+                f"{vivantes}/{len(autres)} autres bases encore ravitaillees")
+
+
 TESTS = [test_conservation, test_conservation_sait_echouer, test_negatif_sans_perturbation, test_positif_route_coupee,
          test_reproductible, test_gouvernement_borne, test_ecole, test_menages_decident, test_reprise_identique,
-         test_demographie, test_desobeissance, test_hopital]
+         test_demographie, test_desobeissance, test_hopital,
+         test_armee_coupee]
 
 if __name__ == "__main__":
     ok = 0
