@@ -49,6 +49,7 @@ def empaqueter(a_blanc=False):
     os.makedirs(MUX, exist_ok=True)
     etat = charger_etat()
     D = distances()
+    SITES = {w: v["site"] for w, v in json.load(open(EMPRISES))["mondes"].items()}
     nouveaux = []
     for jf in sorted(glob.glob(f"{MUX}/*.json")):
         nom = os.path.basename(jf); j = json.load(open(jf))
@@ -103,12 +104,17 @@ def empaqueter(a_blanc=False):
                 c = {k: j[k] for k in PAR_CELLULE if k in j and k != "graine"}
                 c.update(graine=g, role="oracle", origine=nom, version=j.get("version"))
                 cells.append(c)
+            # le site attendu de chaque monde ( table du banc seul ) : la mission annule la cellule si le monde tire s en ecarte
+            for c in cells:
+                s = SITES.get(str(c["graine"]))
+                if s: c["site_x"], c["site_y"] = int(round(s[0])), int(round(s[1]))
             eps[str(e_i)] = cells
         mj["graines"] = list(range(1, len(eps) + 1)); mj["episodes"] = eps
         # si le paquet n a qu un episode ( tres petit lot ), on le double d un temoin pour passer la regle des deux episodes
         if len(eps) < 2:
             w = next((x for x in hors_a if x != eps["1"][0]["graine"]), hors_a[0])
-            eps["2"] = [{"graine": w, "palier": 9, "menace_p2": 0, "oracle_cmd": 0, "traversee": 1, "situation": 1, "role": "temoin_negatif"}]
+            eps["2"] = [{"graine": w, "palier": 9, "menace_p2": 0, "oracle_cmd": 0, "traversee": 1, "situation": 1, "role": "temoin_negatif",
+                         "site_x": int(round(SITES[str(w)][0])), "site_y": int(round(SITES[str(w)][1]))}]
             mj["graines"] = [1, 2]
         nom_mj = f"{time.strftime('%Y-%m-%d')}_{mj['version'].replace('-', '_')}.json"
         if a_blanc: poses.append((nom_mj, mj["instance"], {e: [(c["graine"], c.get("role")) for c in v] for e, v in eps.items()})); continue
@@ -177,7 +183,7 @@ def depaqueter():
                 rendus += 1
                 # un job d origine est fini quand toutes ses graines sont rendues
                 if all(etat["cellules"].get(f"{spec['origine']}|{g}", {}).get("statut") == "rendue" for g in j0["graines"]):
-                    json.dump({"verdict": "COMPLET", "multiplexe": True, "fin": time.strftime("%Y-%m-%dT%H:%M:%S")}, open(f"{vdir}/FIN.json", "w"))
+                    json.dump({"verdict": "COMPLET", "multiplexe": True, "duree_s": 0, "resultats": {}, "fin": time.strftime("%Y-%m-%dT%H:%M:%S")}, open(f"{vdir}/FIN.json", "w"))
                     os.makedirs(f"{C.QUEUE}/faits", exist_ok=True); shutil.move(ori, f"{C.QUEUE}/faits/{spec['origine']}")
         etat["runs_depaquetes"].append(run)
     # un job multiple REFUSE par le controle ne cree aucun run : ses cellules sont rendues refusees, la boucle les reparera
@@ -198,7 +204,7 @@ def depaqueter():
                     json.dump({"verdict": "REFUSE", "cause_refus": "JOB_MULTIPLE_REFUSE_PAR_LE_CONTROLE"}, open(f"{vdir}/g{g}/resultat.json", "w"))
                     etat["cellules"][cle]["statut"] = "rendue"; rendus += 1
                 if all(etat["cellules"].get(f"{ori}|{g}", {}).get("statut") == "rendue" for g in j0["graines"]):
-                    json.dump({"verdict": "ECHEC", "multiplexe": True}, open(f"{vdir}/FIN.json", "w"))
+                    json.dump({"verdict": "ECHEC", "multiplexe": True, "duree_s": 0, "resultats": {}}, open(f"{vdir}/FIN.json", "w"))
                     os.makedirs(f"{C.QUEUE}/faits", exist_ok=True); shutil.move(f"{MUX}/{ori}", f"{C.QUEUE}/faits/{ori}")
         info["refus_traite"] = True
     sauver_etat(etat)

@@ -21,7 +21,7 @@ ORDRE = ["00_socle", "10_monde", "20_decor", "30_opfor", "35_menaces", "40_blufo
 # Parametres que chaque cellule peut surcharger ; tous les autres sont communs a l'episode ( ceux du banc seul ).
 PAR_CELLULE = ["GRAINE", "GRAINE_HAUT", "SITUATION", "MENACE_P2", "TRAVERSEE", "PALIER", "EFFECTIF", "AVANT",
                "OBSERVATION", "QRF_N", "QRF_DELAI", "HMG", "PORTEE_SON", "BALAYAGE", "ORACLE_CMD", "ORACLE_CTRL", "ORACLE_B",
-               "ORACLE_NU", "ORACLE_EPS", "ORACLE_DELTA"]
+               "ORACLE_NU", "ORACLE_EPS", "ORACLE_DELTA", "SITE_X", "SITE_Y"]
 SENTINELLE = -999999
 
 
@@ -133,6 +133,7 @@ def main():
     ajout.append(classe("MULTI_TMAX", 1200, "Censure : secondes apres le depart commun"))
     ajout.append(classe("MULTI_SONDE", 1, "Sonde de connaissance hors cellules"))
     ajout.append(classe("MULTI_ESPACEMENT", 3000, "Distance minimale entre emprises, en metres"))
+    ajout.append(classe("MULTI_ESPACEMENT_MIN", 2000, "Sous cette distance a une autre cellule, la cellule est annulee au montage"))
     for k in range(1, KMAX + 1):
         for x in PAR_CELLULE:
             ajout.append(classe(f"MULTI_C{k}_{x}", SENTINELLE, f"Cellule {k} : {x} ( {SENTINELLE} = valeur commune )"))

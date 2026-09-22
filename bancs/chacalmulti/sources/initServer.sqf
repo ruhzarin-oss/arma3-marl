@@ -14,6 +14,7 @@ MULTI_K = ["MULTI_K", 1] call BIS_fnc_getParamValue;
 MULTI_TMAX = ["MULTI_TMAX", 1200] call BIS_fnc_getParamValue;
 MULTI_SONDE = ["MULTI_SONDE", 1] call BIS_fnc_getParamValue;
 MULTI_ESPACEMENT = ["MULTI_ESPACEMENT", 3000] call BIS_fnc_getParamValue;
+MULTI_ESPACEMENT_MIN = ["MULTI_ESPACEMENT_MIN", 2000] call BIS_fnc_getParamValue;   // sous ce seuil, une cellule est annulee au montage
 MULTI_FINI = false;
 (format ["OK|debut|%1|version|%2|k|%3|tmax|%4|sonde|%5|espacement|%6|moteur|%7",
     round (diag_tickTime * 100) / 100, MULTI_VERSION, MULTI_K, MULTI_TMAX, MULTI_SONDE, MULTI_ESPACEMENT, productVersion select 2]) call MULTI_LOG;

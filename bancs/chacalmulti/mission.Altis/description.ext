@@ -671,6 +671,13 @@ class Params
         texts[]  = {"3000"};
         default = 3000;
     };
+    class MULTI_ESPACEMENT_MIN
+    {
+        title = "Sous cette distance a une autre cellule, la cellule est annulee au montage";
+        values[] = {2000};
+        texts[]  = {"2000"};
+        default = 2000;
+    };
     class MULTI_C1_GRAINE
     {
         title = "Cellule 1 : GRAINE ( -999999 = valeur commune )";
@@ -807,6 +814,20 @@ class Params
     class MULTI_C1_ORACLE_DELTA
     {
         title = "Cellule 1 : ORACLE_DELTA ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C1_SITE_X
+    {
+        title = "Cellule 1 : SITE_X ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C1_SITE_Y
+    {
+        title = "Cellule 1 : SITE_Y ( -999999 = valeur commune )";
         values[] = {-999999};
         texts[]  = {"-999999"};
         default = -999999;
@@ -951,6 +972,20 @@ class Params
         texts[]  = {"-999999"};
         default = -999999;
     };
+    class MULTI_C2_SITE_X
+    {
+        title = "Cellule 2 : SITE_X ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C2_SITE_Y
+    {
+        title = "Cellule 2 : SITE_Y ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
     class MULTI_C3_GRAINE
     {
         title = "Cellule 3 : GRAINE ( -999999 = valeur commune )";
@@ -1087,6 +1122,20 @@ class Params
     class MULTI_C3_ORACLE_DELTA
     {
         title = "Cellule 3 : ORACLE_DELTA ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C3_SITE_X
+    {
+        title = "Cellule 3 : SITE_X ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C3_SITE_Y
+    {
+        title = "Cellule 3 : SITE_Y ( -999999 = valeur commune )";
         values[] = {-999999};
         texts[]  = {"-999999"};
         default = -999999;
@@ -1231,6 +1280,20 @@ class Params
         texts[]  = {"-999999"};
         default = -999999;
     };
+    class MULTI_C4_SITE_X
+    {
+        title = "Cellule 4 : SITE_X ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C4_SITE_Y
+    {
+        title = "Cellule 4 : SITE_Y ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
     class MULTI_C5_GRAINE
     {
         title = "Cellule 5 : GRAINE ( -999999 = valeur commune )";
@@ -1367,6 +1430,20 @@ class Params
     class MULTI_C5_ORACLE_DELTA
     {
         title = "Cellule 5 : ORACLE_DELTA ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C5_SITE_X
+    {
+        title = "Cellule 5 : SITE_X ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C5_SITE_Y
+    {
+        title = "Cellule 5 : SITE_Y ( -999999 = valeur commune )";
         values[] = {-999999};
         texts[]  = {"-999999"};
         default = -999999;
@@ -1511,6 +1588,20 @@ class Params
         texts[]  = {"-999999"};
         default = -999999;
     };
+    class MULTI_C6_SITE_X
+    {
+        title = "Cellule 6 : SITE_X ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C6_SITE_Y
+    {
+        title = "Cellule 6 : SITE_Y ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
     class MULTI_C7_GRAINE
     {
         title = "Cellule 7 : GRAINE ( -999999 = valeur commune )";
@@ -1651,6 +1742,20 @@ class Params
         texts[]  = {"-999999"};
         default = -999999;
     };
+    class MULTI_C7_SITE_X
+    {
+        title = "Cellule 7 : SITE_X ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C7_SITE_Y
+    {
+        title = "Cellule 7 : SITE_Y ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
     class MULTI_C8_GRAINE
     {
         title = "Cellule 8 : GRAINE ( -999999 = valeur commune )";
@@ -1787,6 +1892,20 @@ class Params
     class MULTI_C8_ORACLE_DELTA
     {
         title = "Cellule 8 : ORACLE_DELTA ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C8_SITE_X
+    {
+        title = "Cellule 8 : SITE_X ( -999999 = valeur commune )";
+        values[] = {-999999};
+        texts[]  = {"-999999"};
+        default = -999999;
+    };
+    class MULTI_C8_SITE_Y
+    {
+        title = "Cellule 8 : SITE_Y ( -999999 = valeur commune )";
         values[] = {-999999};
         texts[]  = {"-999999"};
         default = -999999;

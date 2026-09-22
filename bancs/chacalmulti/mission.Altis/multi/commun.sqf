@@ -49,7 +49,7 @@ MULTI_fnc_segment = {
     };
     _r
 };
-MULTI_fnc_enregistrerEmprise = {
+MULTI_fnc_pointsEmprise = {
     params ["_k"];
     private _v = { missionNamespace getVariable [format ["MC%1_%2", _k, _this], []] };
     private _pts = [];
@@ -58,7 +58,11 @@ MULTI_fnc_enregistrerEmprise = {
     _pts append (["OP" call _v, "SITE" call _v] call MULTI_fnc_segment);
     _pts append (["SITE" call _v, "RALLY" call _v] call MULTI_fnc_segment);
     { if (count _x > 1) then { _pts pushBack _x } } forEach ["QRF_BASE" call _v, "ROUTE_A" call _v, "ROUTE_B" call _v, "PZ" call _v];
-    MULTI_EMPRISES pushBack [_k, _pts];
+    _pts
+};
+MULTI_fnc_enregistrerEmprise = {
+    params ["_k"];
+    MULTI_EMPRISES pushBack [_k, [_k] call MULTI_fnc_pointsEmprise];
 };
 // vrai si _p est a MULTI_ESPACEMENT au moins de toute emprise d'une AUTRE cellule que _k ( _k = 0 : de toutes )
 MULTI_fnc_loin = {
@@ -90,6 +94,26 @@ MULTI_fnc_monter = {
     "00_socle" call _f;
     "10_monde" call _f;
     if (("ISSUE" call _v) == "VOID") exitWith { call _void };
+    // ! LE MONDE TIRE DOIT ETRE CELUI DU BANC SEUL, ET LOIN DES AUTRES ( service du 22/09, 14 h 12 ) : 2 cellules sur 25
+    // ont tire un autre monde que leur graine ( sites a 11 et 13 km de la table ), et l une est tombee a 117 m d une autre
+    // cellule. La cellule est annulee AVANT de creer la moindre unite : rien ne peut plus toucher ses voisines.
+    private _sx = [format ["MULTI_C%1_SITE_X", _k], -999999] call BIS_fnc_getParamValue;
+    private _sy = [format ["MULTI_C%1_SITE_Y", _k], -999999] call BIS_fnc_getParamValue;
+    private _site = "SITE" call _v;
+    if ((_sx != -999999) && { (_site distance2D [_sx, _sy, 0]) > 5 }) exitWith {
+        missionNamespace setVariable [format ["MC%1_ISSUE", _k], "VOID"];
+        missionNamespace setVariable [format ["MC%1_CAUSE", _k], "MONDE_NON_CONFORME"];
+        (format ["CHACAL|AVERT|monde_non_conforme|site|%1|attendu|%2|ecart|%3", _site, [_sx, _sy], round (_site distance2D [_sx, _sy, 0])]) call ("LOG" call _v);
+        call _void
+    };
+    private _ecart = 1e9;
+    { _ecart = _ecart min ([[_k] call MULTI_fnc_pointsEmprise, _x select 1] call MULTI_fnc_ecartMin) } forEach MULTI_EMPRISES;
+    if (_ecart < MULTI_ESPACEMENT_MIN) exitWith {
+        missionNamespace setVariable [format ["MC%1_ISSUE", _k], "VOID"];
+        missionNamespace setVariable [format ["MC%1_CAUSE", _k], "CELLULE_TROP_PROCHE"];
+        (format ["CHACAL|AVERT|cellule_trop_proche|metres|%1|minimum|%2", round _ecart, MULTI_ESPACEMENT_MIN]) call ("LOG" call _v);
+        call _void
+    };
     "20_decor" call _f;
     if (("ISSUE" call _v) == "VOID") exitWith { call _void };
     "30_opfor" call _f;

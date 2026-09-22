@@ -29,7 +29,7 @@ COMMUNS = [("palier", "PALIER", 0), ("depart", "DEPART", 1), ("immortel", "IMMOR
            ("controle_dist", "CONTROLE_DIST", 150), ("delai_mode", "DELAI_MODE", 0), ("f_len", "F_LEN", 0)]
 PAR_CELLULE = ["GRAINE", "GRAINE_HAUT", "SITUATION", "MENACE_P2", "TRAVERSEE", "PALIER", "EFFECTIF", "AVANT",
                "OBSERVATION", "QRF_N", "QRF_DELAI", "HMG", "PORTEE_SON", "BALAYAGE", "ORACLE_CMD", "ORACLE_CTRL", "ORACLE_B",
-               "ORACLE_NU", "ORACLE_EPS", "ORACLE_DELTA"]
+               "ORACLE_NU", "ORACLE_EPS", "ORACLE_DELTA", "SITE_X", "SITE_Y"]
 KMAX = 8
 
 P = {}
@@ -45,6 +45,7 @@ P["MULTI_K"] = len(cellules)
 P["MULTI_TMAX"] = int(j.get("multi_tmax", 1200))
 P["MULTI_SONDE"] = int(j.get("multi_sonde", 1))
 P["MULTI_ESPACEMENT"] = int(j.get("multi_espacement", 3000))
+P["MULTI_ESPACEMENT_MIN"] = int(j.get("multi_espacement_min", 2000))
 for k in range(1, KMAX + 1):
     for x in PAR_CELLULE: P[f"MULTI_C{k}_{x}"] = -999999
 for k, c in enumerate(cellules, start=1):
