@@ -8,6 +8,7 @@ Il est jugé contre la regle d origine ( `Monde.commerce_regle` ) sur des mondes
    python -m monde.apprenti --apprendre       # apprentissage par strategie d evolution, puis examen
 La porte et le falsificateur sont ecrits d avance dans plans/porte-apprenti-marchand.md."""
 import argparse, json, math, os, time
+from multiprocessing import Pool
 import numpy as np
 from . import config as C, monde as W
 
@@ -20,12 +21,15 @@ N_POIDS = N_ENTREES * N_CACHE + N_CACHE + N_CACHE * 2 + 2
 
 # --------------------------------------------------------------------------- le monde d examen
 def monde_epreuve(graine, jours_max=20):
-    """Un monde avec sa secheresse : trois villages d une region privee des deux tiers de leur recolte, une semaine."""
+    """Un monde avec sa secheresse. VERSION 2 du 22/09 : la premiere epreuve ( recolte a 20-45 %, 7 jours ) ne separait
+    pas ses temoins - regle 50,22 / aucun commerce 49,73 / commerce aveugle 50,39, moins d un point d ecart, faim au
+    plancher. Son propre falsificateur l a annulee. Ici la region touchee perd presque toute sa recolte pendant douze
+    jours : la nourriture existe ailleurs, et c est au marchand de l y amener."""
     w = W.Monde(graine=graine)
     rng = np.random.default_rng(graine)
-    region = rng.choice([m for m in w.marches])          # la capitale touchee
-    lieux = {l.id for l in w.carte.lieux.values() if getattr(l.marche, "id", None) == region}
-    w.chocs = [{"debut": int(rng.integers(3, 8)), "jours": 7, "lieux": lieux, "facteur": float(rng.uniform(0.2, 0.45))}]
+    touchees = list(rng.choice(sorted(w.marches), size=2, replace=False))    # DEUX capitales sur trois
+    lieux = {l.id for l in w.carte.lieux.values() if getattr(l.marche, "id", None) in touchees}
+    w.chocs = [{"debut": int(rng.integers(2, 5)), "jours": 12, "lieux": lieux, "facteur": float(rng.uniform(0.02, 0.12))}]
     return w
 
 
@@ -39,10 +43,12 @@ def jouer(graine, politique=None, jours=20):
         for _ in range(C.PAS_PAR_JOUR): w.pas_suivant()
         faim += w.stats_jour.get("menages_sans_nourriture", 0) / len(w.menages)
     d_arg, d_b = w.verifier_conservation()
-    return {"faim": faim / jours, "argent": w.argent_total() - argent0,
-            "morts": sum(1 for h in w.habitants if not h.vivant) - morts0,
+    morts = sum(1 for h in w.habitants if not h.vivant) - morts0
+    # la note, version 2 : le pays est juge sur ses HABITANTS. L argent avait ete retire apres la mesure des temoins du
+    # 22/09 : il vient des exportations au port et ne depend presque pas du marchand - il noyait le signal.
+    return {"faim": faim / jours, "argent": w.argent_total() - argent0, "morts": morts,
             "conservation": max(abs(d_arg), max(abs(v) for v in d_b.values())),
-            "note": -100.0 * (faim / jours) + (w.argent_total() - argent0) / 1000.0}
+            "note": -100.0 * (faim / jours) - 5.0 * morts}
 
 
 # --------------------------------------------------------------------------- les temoins
@@ -106,8 +112,12 @@ def caracteristiques(w, a, x, b, surplus, h):
 
 
 # --------------------------------------------------------------------------- mesurer, apprendre, examiner
-def mesurer(graines, politique=None, jours=20):
-    return [jouer(g, politique, jours) for g in graines]
+def _un(args): return jouer(*args)
+
+
+def mesurer(graines, politique=None, jours=20, procs=1):
+    if procs <= 1: return [jouer(g, politique, jours) for g in graines]
+    with Pool(procs) as p: return p.map(_un, [(g, politique, jours) for g in graines])
 
 
 def resume(nom, rs):
@@ -117,15 +127,20 @@ def resume(nom, rs):
             f"conservation {max(r['conservation'] for r in rs):.1e}")
 
 
-def apprendre(graines, generations=12, enfants=16, sigma=0.3, jours=20, journal=None):
+def apprendre(graines, generations=12, enfants=16, sigma=0.3, jours=20, journal=None, procs=8):
     """Strategie d evolution simple : on garde le meilleur, on tire ses enfants autour de lui. Le monde n est pas
     derivable ; on n a pas besoin qu il le soit."""
     rng = np.random.default_rng(7)
     theta = rng.normal(0, 0.3, N_POIDS)
-    meilleur = float(np.median([r["note"] for r in mesurer(graines, Politique(theta), jours)]))
+    meilleur = float(np.median([r["note"] for r in mesurer(graines, Politique(theta), jours, procs)]))
+    print({"generation": -1, "note_depart": round(meilleur, 2)}, flush=True)
     for g in range(generations):
         enfants_theta = [theta + sigma * rng.normal(0, 1, N_POIDS) for _ in range(enfants)]
-        notes = [float(np.median([r["note"] for r in mesurer(graines, Politique(t), jours)])) for t in enfants_theta]
+        # tous les ( enfant, monde ) en une seule fournee : c est la ferme de coeurs de la station qui travaille
+        taches = [(gr, Politique(t), jours) for t in enfants_theta for gr in graines]
+        with Pool(procs) as p: plat = p.map(_un, taches)
+        notes = [float(np.median([r["note"] for r in plat[i * len(graines):(i + 1) * len(graines)]]))
+                 for i in range(len(enfants_theta))]
         k = int(np.argmax(notes))
         if notes[k] > meilleur:
             theta, meilleur = enfants_theta[k], notes[k]
@@ -143,6 +158,7 @@ def main():
     p.add_argument("--apprendre", action="store_true")
     p.add_argument("--jours", type=int, default=20)
     p.add_argument("--generations", type=int, default=12)
+    p.add_argument("--procs", type=int, default=8)
     p.add_argument("--sortie", default="/mnt/data/hmt/monde/apprenti")
     a = p.parse_args()
     os.makedirs(a.sortie, exist_ok=True)
@@ -150,22 +166,24 @@ def main():
     examen = list(range(101, 111))       # les mondes jamais vus
     t0 = time.time()
     if a.mesure or not a.apprendre:
-        print(resume("regle", mesurer(examen, None, a.jours)), flush=True)
-        print(resume("aucun commerce", mesurer(examen, marchand_muet, a.jours)), flush=True)
-        print(resume("commerce aveugle", mesurer(examen, marchand_aveugle, a.jours)), flush=True)
+        print(resume("regle", mesurer(examen, None, a.jours, a.procs)), flush=True)
+        print(resume("aucun commerce", mesurer(examen, marchand_muet, a.jours, a.procs)), flush=True)
+        print(resume("commerce aveugle", mesurer(examen, marchand_aveugle, a.jours, a.procs)), flush=True)
         print(f"{time.time() - t0:.0f} s", flush=True)
         return 0
     with open(os.path.join(a.sortie, "apprentissage.jsonl"), "a") as j:
-        theta, note = apprendre(ecole, generations=a.generations, jours=a.jours, journal=j)
+        theta, note = apprendre(ecole, generations=a.generations, jours=a.jours, journal=j, procs=a.procs)
     np.save(os.path.join(a.sortie, "marchand.npy"), theta)
-    regle = mesurer(examen, None, a.jours)
-    appris = mesurer(examen, Politique(theta), a.jours)
+    regle = mesurer(examen, None, a.jours, a.procs)
+    aveugle = mesurer(examen, marchand_aveugle, a.jours, a.procs)
+    appris = mesurer(examen, Politique(theta), a.jours, a.procs)
     gagnes = sum(1 for r, s in zip(regle, appris) if s["note"] > r["note"])
     print(resume("regle ( examen )", regle), flush=True)
+    print(resume("aveugle ( examen )", aveugle), flush=True)
     print(resume("appris ( examen )", appris), flush=True)
     print(f"mondes gagnes {gagnes}/{len(examen)} | {time.time() - t0:.0f} s", flush=True)
     with open(os.path.join(a.sortie, "examen.json"), "w") as f:
-        json.dump({"regle": regle, "appris": appris, "gagnes": gagnes, "note_ecole": note}, f, indent=1)
+        json.dump({"regle": regle, "aveugle": aveugle, "appris": appris, "gagnes": gagnes, "note_ecole": note}, f, indent=1)
     return 0
 
 
