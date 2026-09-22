@@ -61,6 +61,8 @@ class Monde:
         self.ecole = S.Ecole(self, eleve) if eleve is not None else None
         self.tva_percue = 0.0; self.tva_fraudee = 0.0     # point 8 : ce que l Etat encaisse, et ce qui lui echappe
         self.apprentissage = True       # faux pendant une qualification : l agent agit, il n apprend plus
+        self.voyages = []               # point 13 : ceux qui sont EN MER entre deux iles
+        self.sejours = {}               # id -> pas de fin : ceux qui sont sur l autre ile, en visite
         self.chocs = []                 # secheresses : [{ debut, jours, lieux, facteur }] - le rendement des fermes baisse
         self.routes_coupees = set()     # lieux que plus aucun convoi ne peut atteindre ni quitter ( controle positif, E1 )
 
@@ -160,6 +162,7 @@ class Monde:
         if self.minutes % (24 * 60) == 20 * 60: self.repas()
         if self.minutes % (24 * 60) in (8 * 60, 20 * 60): self.patrouilles()
         if self.minutes % (24 * 60) == 7 * 60: self.ravitailler_bases()
+        self.debarquer()
         if self.ecole is not None:
             mm = self.minutes % (24 * 60)
             if mm == 8 * 60: self.ecole.instruction()
@@ -186,6 +189,35 @@ class Monde:
             cible = self.reserve_marche(m, b) * 2 if b == "nourriture" else C.STOCK_CIBLE
             if m.stocks[b] > 2 * cible or recette < 0.95 * cout: e.activite = max(0.1, e.activite - 0.25)
             elif m.stocks[b] < cible and recette > 1.05 * cout: e.activite = min(1.0, e.activite + 0.25)
+
+    # --- point 13 : le voyage entre iles -------------------------------------------------------------------
+    def embarquer(self, h, cible, demenage=False, sejour_jours=0.0):
+        """Un habitant quitte son ile. Pendant la traversee il n est nulle part : aucun corps, ni ici ni la-bas.
+        C est la condition pour qu il n existe jamais en double."""
+        km = self.carte.km_mer(h.lieu if h.lieu is not None else h.domicile, cible)
+        minutes = 60.0 * km / K.VITESSE_MER_KMH
+        pas = self.pas + max(1, int(minutes / C.MINUTES_PAR_PAS))
+        self.voyages.append({"habitant": h, "arrivee": pas, "cible": cible, "demenage": demenage,
+                             "sejour": sejour_jours})
+        h.lieu, h.poste = None, "voyage"
+        self.noter("embarquement", habitant=h.id, vers=cible.id, ile=cible.ile, km=round(km, 1),
+                   heures=round(minutes / 60.0, 1))
+        return pas
+
+    def debarquer(self):
+        for v in [v for v in self.voyages if v["arrivee"] <= self.pas]:
+            self.voyages.remove(v)
+            h, cible = v["habitant"], v["cible"]
+            if not h.vivant: continue
+            h.lieu, h.poste = cible, "maison"
+            if v["demenage"]:
+                h.domicile = cible
+                if h.menage is not None: h.menage.domicile = cible
+                h.travail = cible
+            elif v["sejour"] > 0:
+                # il est en visite : il reste sur place le temps prevu, puis reprend le bateau
+                self.sejours[h.id] = self.pas + int(v["sejour"] * C.PAS_PAR_JOUR)
+            self.noter("debarquement", habitant=h.id, lieu=cible.id, ile=cible.ile)
 
     def demographie(self):
         """Point 5 : on naît, on vieillit, on part a la retraite, on meurt de vieillesse. Une fois par jour du monde.
@@ -248,6 +280,12 @@ class Monde:
         q = set(self.gouv.lois["quarantaine"])
         for p in self.habitants:
             if not p.vivant: continue
+            if p.poste == "voyage": continue            # il est en mer : ni maison, ni travail, ni corps
+            if p.id in self.sejours:                    # en visite sur l autre ile : il y reste, puis il rentre
+                if self.pas < self.sejours[p.id]: continue
+                del self.sejours[p.id]
+                self.embarquer(p, p.domicile)
+                continue
             if p.etat == "I" and p.gravite > 0.3: p.lieu, p.poste = p.domicile.marche, "hopital"; continue
             enferme = (p.domicile.id in q or p.travail is not None and p.travail.id in q) \
                 and self.rng.random() > C.QUARANTAINE_VIOLEE        # point 8 : une part de la population sort quand meme
@@ -562,7 +600,7 @@ class Monde:
     def contagion(self):
         groupes = {}
         for p in self.habitants:
-            if p.vivant: groupes.setdefault(p.lieu.id, []).append(p)
+            if p.vivant and p.lieu is not None: groupes.setdefault(p.lieu.id, []).append(p)   # celui qui est en mer ne contamine personne
         for gens in groupes.values():
             n_i = sum(1 for p in gens if p.etat == "I")
             if n_i == 0: continue

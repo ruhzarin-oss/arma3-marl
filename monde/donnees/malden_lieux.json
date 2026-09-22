@@ -1,0 +1,1466 @@
+[
+ {
+  "id": "Airport",
+  "type": "NameVillage",
+  "pos": [
+   8172.589844,
+   10113.540039
+  ],
+  "rayon": [
+   119.790001,
+   60.459999
+  ]
+ },
+ {
+  "id": "Chapoi",
+  "type": "NameCity",
+  "pos": [
+   5835.549805,
+   3529.719971
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "LaPessagne",
+  "type": "NameCity",
+  "pos": [
+   3115.530029,
+   6330.819824
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "LaTrinite",
+  "type": "NameCityCapital",
+  "pos": [
+   7263.75,
+   7931.259766
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "Larche",
+  "type": "NameCity",
+  "pos": [
+   6012.540039,
+   8627.259766
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "H_DentsduMidi",
+  "type": "Hill",
+  "pos": [
+   6196.569824,
+   4803.410156
+  ],
+  "rayon": [
+   239.199997,
+   147.610001
+  ]
+ },
+ {
+  "id": "H_Eperon",
+  "type": "Hill",
+  "pos": [
+   4365.910156,
+   6055.290039
+  ],
+  "rayon": [
+   241.139999,
+   153.289993
+  ]
+ },
+ {
+  "id": "H_Isaro",
+  "type": "Hill",
+  "pos": [
+   5050.859863,
+   8155.47998
+  ],
+  "rayon": [
+   299.0,
+   184.509995
+  ]
+ },
+ {
+  "id": "H_LeRoi",
+  "type": "Hill",
+  "pos": [
+   8188.029785,
+   7522.290039
+  ],
+  "rayon": [
+   129.25,
+   81.839996
+  ]
+ },
+ {
+  "id": "H_MontChauve",
+  "type": "Hill",
+  "pos": [
+   5161.189941,
+   9371.780273
+  ],
+  "rayon": [
+   274.190002,
+   176.910004
+  ]
+ },
+ {
+  "id": "H_Monte",
+  "type": "Hill",
+  "pos": [
+   8066.839844,
+   3456.77002
+  ],
+  "rayon": [
+   186.139999,
+   117.940002
+  ]
+ },
+ {
+  "id": "H_PicdeFeas",
+  "type": "Hill",
+  "pos": [
+   4356.060059,
+   6779.330078
+  ],
+  "rayon": [
+   299.0,
+   184.509995
+  ]
+ },
+ {
+  "id": "L_Arette",
+  "type": "NameLocal",
+  "pos": [
+   1601.5,
+   4632.0
+  ],
+  "rayon": [
+   154.330002,
+   98.110001
+  ]
+ },
+ {
+  "id": "L_Blanches",
+  "type": "NameLocal",
+  "pos": [
+   5010.879883,
+   3979.47998
+  ],
+  "rayon": [
+   154.330002,
+   98.110001
+  ]
+ },
+ {
+  "id": "L_Bosquet",
+  "type": "NameLocal",
+  "pos": [
+   7895.359863,
+   9089.929688
+  ],
+  "rayon": [
+   470.980011,
+   299.399994
+  ]
+ },
+ {
+  "id": "L_CanconHarbor",
+  "type": "NameLocal",
+  "pos": [
+   5740.279785,
+   2335.040039
+  ],
+  "rayon": [
+   373.76001,
+   230.639999
+  ]
+ },
+ {
+  "id": "L_Corton",
+  "type": "NameLocal",
+  "pos": [
+   3832.199951,
+   4921.47998
+  ],
+  "rayon": [
+   583.98999,
+   360.380005
+  ]
+ },
+ {
+  "id": "L_Dorres",
+  "type": "NameLocal",
+  "pos": [
+   5175.970215,
+   4760.279785
+  ],
+  "rayon": [
+   543.919983,
+   345.769989
+  ]
+ },
+ {
+  "id": "L_Faro",
+  "type": "NameLocal",
+  "pos": [
+   1131.369995,
+   625.849976
+  ],
+  "rayon": [
+   574.859985,
+   360.119995
+  ]
+ },
+ {
+  "id": "L_Feas",
+  "type": "NameLocal",
+  "pos": [
+   4240.97998,
+   6880.220215
+  ],
+  "rayon": [
+   299.0,
+   184.509995
+  ]
+ },
+ {
+  "id": "L_GoisseHarbor",
+  "type": "NameLocal",
+  "pos": [
+   2976.929932,
+   8569.969727
+  ],
+  "rayon": [
+   467.190002,
+   288.299988
+  ]
+ },
+ {
+  "id": "L_Guran",
+  "type": "NameLocal",
+  "pos": [
+   6488.089844,
+   6056.819824
+  ],
+  "rayon": [
+   467.190002,
+   288.299988
+  ]
+ },
+ {
+  "id": "L_Harbor",
+  "type": "NameLocal",
+  "pos": [
+   9234.360352,
+   3805.719971
+  ],
+  "rayon": [
+   146.229996,
+   94.349998
+  ]
+ },
+ {
+  "id": "L_LaRiviereH",
+  "type": "NameLocal",
+  "pos": [
+   3492.360107,
+   3176.530029
+  ],
+  "rayon": [
+   222.789993,
+   141.630005
+  ]
+ },
+ {
+  "id": "L_Lavalle",
+  "type": "NameLocal",
+  "pos": [
+   5060.390137,
+   7381.330078
+  ],
+  "rayon": [
+   467.190002,
+   288.299988
+  ]
+ },
+ {
+  "id": "L_LePortHarbor",
+  "type": "NameLocal",
+  "pos": [
+   8536.429688,
+   3820.5
+  ],
+  "rayon": [
+   239.199997,
+   147.610001
+  ]
+ },
+ {
+  "id": "L_LolisseHarbor",
+  "type": "NameLocal",
+  "pos": [
+   5510.25,
+   11708.910156
+  ],
+  "rayon": [
+   467.190002,
+   288.299988
+  ]
+ },
+ {
+  "id": "L_MilitaryBase1",
+  "type": "NameLocal",
+  "pos": [
+   7600.990234,
+   10609.669922
+  ],
+  "rayon": [
+   373.76001,
+   230.639999
+  ]
+ },
+ {
+  "id": "L_Moray",
+  "type": "NameVillage",
+  "pos": [
+   883.140015,
+   11987.740234
+  ],
+  "rayon": [
+   538.080017,
+   332.040009
+  ]
+ },
+ {
+  "id": "L_Pegsus",
+  "type": "NameLocal",
+  "pos": [
+   752.169983,
+   12238.379883
+  ],
+  "rayon": [
+   210.649994,
+   127.870003
+  ]
+ },
+ {
+  "id": "L_SaintJean",
+  "type": "NameLocal",
+  "pos": [
+   4498.560059,
+   8149.649902
+  ],
+  "rayon": [
+   299.0,
+   184.509995
+  ]
+ },
+ {
+  "id": "L_SaintMartin",
+  "type": "NameLocal",
+  "pos": [
+   4365.0,
+   2803.080078
+  ],
+  "rayon": [
+   191.360001,
+   118.089996
+  ]
+ },
+ {
+  "id": "L_lumbermill",
+  "type": "NameLocal",
+  "pos": [
+   7766.669922,
+   7482.640137
+  ],
+  "rayon": [
+   128.820007,
+   81.889999
+  ]
+ },
+ {
+  "id": "L_militarybase",
+  "type": "NameLocal",
+  "pos": [
+   9710.389648,
+   3901.629883
+  ],
+  "rayon": [
+   729.98999,
+   450.470001
+  ]
+ },
+ {
+  "id": "L_powerplant",
+  "type": "NameLocal",
+  "pos": [
+   7796.410156,
+   3293.580078
+  ],
+  "rayon": [
+   299.0,
+   184.509995
+  ]
+ },
+ {
+  "id": "L_radiostation",
+  "type": "NameLocal",
+  "pos": [
+   7000.129883,
+   10085.259766
+  ],
+  "rayon": [
+   373.76001,
+   230.639999
+  ]
+ },
+ {
+  "id": "M_BaiCancon",
+  "type": "NameMarine",
+  "pos": [
+   5578.77002,
+   1888.540039
+  ],
+  "rayon": [
+   700.789978,
+   432.450012
+  ]
+ },
+ {
+  "id": "M_BaiNan",
+  "type": "NameMarine",
+  "pos": [
+   6904.100098,
+   2831.419922
+  ],
+  "rayon": [
+   700.789978,
+   432.450012
+  ]
+ },
+ {
+  "id": "M_BaieduPorto",
+  "type": "NameMarine",
+  "pos": [
+   7516.720215,
+   3156.669922
+  ],
+  "rayon": [
+   700.789978,
+   432.450012
+  ]
+ },
+ {
+  "id": "M_GolfeAzur",
+  "type": "NameMarine",
+  "pos": [
+   3226.709961,
+   2583.689941
+  ],
+  "rayon": [
+   171.910004,
+   105.800003
+  ]
+ },
+ {
+  "id": "M_GolfeVert",
+  "type": "NameMarine",
+  "pos": [
+   7724.100098,
+   5451.470215
+  ],
+  "rayon": [
+   571.590027,
+   352.720001
+  ]
+ },
+ {
+  "id": "M_LesSables",
+  "type": "NameMarine",
+  "pos": [
+   7174.75,
+   11776.339844
+  ],
+  "rayon": [
+   583.98999,
+   360.380005
+  ]
+ },
+ {
+  "id": "VB_01",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   3458.47998,
+   5551.75
+  ],
+  "rayon": [
+   394.440002,
+   249.740005
+  ]
+ },
+ {
+  "id": "VB_02",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   2869.219971,
+   5196.850098
+  ],
+  "rayon": [
+   493.049988,
+   312.179993
+  ]
+ },
+ {
+  "id": "VB_05",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   6637.109863,
+   5438.379883
+  ],
+  "rayon": [
+   493.049988,
+   312.179993
+  ]
+ },
+ {
+  "id": "VB_06",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   7029.259766,
+   5733.350098
+  ],
+  "rayon": [
+   493.049988,
+   312.179993
+  ]
+ },
+ {
+  "id": "VB_08",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   6987.299805,
+   8374.959961
+  ],
+  "rayon": [
+   394.440002,
+   249.740005
+  ]
+ },
+ {
+  "id": "VB_09",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   6558.089844,
+   9526.290039
+  ],
+  "rayon": [
+   394.440002,
+   249.740005
+  ]
+ },
+ {
+  "id": "VB_18",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   5357.72998,
+   3165.919922
+  ],
+  "rayon": [
+   315.549988,
+   199.800003
+  ]
+ },
+ {
+  "id": "V_Arudy",
+  "type": "NameVillage",
+  "pos": [
+   5537.25,
+   6983.240234
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "V_Cancon",
+  "type": "NameVillage",
+  "pos": [
+   5404.27002,
+   2796.070068
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "V_Dourdan",
+  "type": "NameVillage",
+  "pos": [
+   7035.720215,
+   7108.350098
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "V_Goisse",
+  "type": "NameVillage",
+  "pos": [
+   3584.879883,
+   8520.040039
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "V_Houdan",
+  "type": "NameVillage",
+  "pos": [
+   7121.47998,
+   6074.549805
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "V_LaRiviere",
+  "type": "NameVillage",
+  "pos": [
+   3731.47998,
+   3257.959961
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "V_LePort",
+  "type": "NameVillage",
+  "pos": [
+   8192.55957,
+   3117.110107
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "V_Lolisse",
+  "type": "NameVillage",
+  "pos": [
+   5567.410156,
+   11187.469727
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "V_SaintLouis",
+  "type": "NameVillage",
+  "pos": [
+   7143.060059,
+   8968.490234
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "V_SainteMarie",
+  "type": "NameVillage",
+  "pos": [
+   5546.52002,
+   4232.859863
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "V_Vigny",
+  "type": "NameVillage",
+  "pos": [
+   3068.5,
+   6835.060059
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "viewpoint4",
+  "type": "ViewPoint",
+  "pos": [
+   8122.470215,
+   7732.109863
+  ],
+  "rayon": [
+   58.400002,
+   37.130001
+  ]
+ },
+ {
+  "id": "viewpoint_01",
+  "type": "ViewPoint",
+  "pos": [
+   5429.720215,
+   8438.19043
+  ],
+  "rayon": [
+   239.199997,
+   147.610001
+  ]
+ },
+ {
+  "id": "viewpoint_03",
+  "type": "ViewPoint",
+  "pos": [
+   3171.02002,
+   6902.660156
+  ],
+  "rayon": [
+   76.239998,
+   48.310001
+  ]
+ },
+ {
+  "id": "vineyard_01",
+  "type": "VegetationVineyard",
+  "pos": [
+   5675.859863,
+   3200.47998
+  ],
+  "rayon": [
+   153.089996,
+   94.470001
+  ]
+ },
+ {
+  "id": "vineyard_02",
+  "type": "VegetationVineyard",
+  "pos": [
+   5673.439941,
+   2970.080078
+  ],
+  "rayon": [
+   153.089996,
+   94.470001
+  ]
+ },
+ {
+  "id": "vineyard_03",
+  "type": "VegetationVineyard",
+  "pos": [
+   5655.629883,
+   3680.699951
+  ],
+  "rayon": [
+   299.0,
+   184.509995
+  ]
+ },
+ {
+  "id": "vineyard_05",
+  "type": "VegetationVineyard",
+  "pos": [
+   5231.410156,
+   3681.77002
+  ],
+  "rayon": [
+   299.0,
+   184.509995
+  ]
+ },
+ {
+  "id": "vineyard_06",
+  "type": "VegetationVineyard",
+  "pos": [
+   5088.080078,
+   4352.459961
+  ],
+  "rayon": [
+   186.139999,
+   117.940002
+  ]
+ },
+ {
+  "id": "vineyard_07",
+  "type": "VegetationVineyard",
+  "pos": [
+   4533.640137,
+   4176.419922
+  ],
+  "rayon": [
+   454.429993,
+   287.940002
+  ]
+ },
+ {
+  "id": "vineyard_08",
+  "type": "VegetationVineyard",
+  "pos": [
+   4425.910156,
+   4204.169922
+  ],
+  "rayon": [
+   454.429993,
+   287.940002
+  ]
+ },
+ {
+  "id": "vineyard_09",
+  "type": "VegetationVineyard",
+  "pos": [
+   3918.199951,
+   4776.240234
+  ],
+  "rayon": [
+   290.839996,
+   184.279999
+  ]
+ },
+ {
+  "id": "vineyard_10",
+  "type": "VegetationVineyard",
+  "pos": [
+   3666.830078,
+   3494.310059
+  ],
+  "rayon": [
+   232.669998,
+   147.419998
+  ]
+ },
+ {
+  "id": "vineyard_11",
+  "type": "VegetationVineyard",
+  "pos": [
+   3827.780029,
+   3151.399902
+  ],
+  "rayon": [
+   186.139999,
+   117.940002
+  ]
+ },
+ {
+  "id": "vineyard_12",
+  "type": "VegetationVineyard",
+  "pos": [
+   3829.129883,
+   3081.199951
+  ],
+  "rayon": [
+   186.139999,
+   117.940002
+  ]
+ },
+ {
+  "id": "vineyard_13",
+  "type": "VegetationVineyard",
+  "pos": [
+   3112.199951,
+   6588.660156
+  ],
+  "rayon": [
+   232.669998,
+   147.419998
+  ]
+ },
+ {
+  "id": "vineyard_15",
+  "type": "VegetationVineyard",
+  "pos": [
+   3254.280029,
+   6635.459961
+  ],
+  "rayon": [
+   232.669998,
+   147.419998
+  ]
+ },
+ {
+  "id": "vineyard_16",
+  "type": "VegetationVineyard",
+  "pos": [
+   3153.159912,
+   6840.220215
+  ],
+  "rayon": [
+   232.669998,
+   147.419998
+  ]
+ },
+ {
+  "id": "vineyard_17",
+  "type": "VegetationVineyard",
+  "pos": [
+   3024.449951,
+   6804.279785
+  ],
+  "rayon": [
+   232.669998,
+   147.419998
+  ]
+ },
+ {
+  "id": "vineyard_18",
+  "type": "VegetationVineyard",
+  "pos": [
+   2975.139893,
+   6831.859863
+  ],
+  "rayon": [
+   232.669998,
+   147.419998
+  ]
+ },
+ {
+  "id": "vineyard_19",
+  "type": "VegetationVineyard",
+  "pos": [
+   6922.640137,
+   3937.929932
+  ],
+  "rayon": [
+   290.839996,
+   184.279999
+  ]
+ },
+ {
+  "id": "vineyard_20",
+  "type": "VegetationVineyard",
+  "pos": [
+   7164.720215,
+   3624.879883
+  ],
+  "rayon": [
+   290.839996,
+   184.279999
+  ]
+ },
+ {
+  "id": "vineyard_21",
+  "type": "VegetationVineyard",
+  "pos": [
+   7402.160156,
+   3688.25
+  ],
+  "rayon": [
+   290.839996,
+   184.279999
+  ]
+ },
+ {
+  "id": "vineyard_22",
+  "type": "VegetationVineyard",
+  "pos": [
+   8112.52002,
+   3697.649902
+  ],
+  "rayon": [
+   290.839996,
+   184.279999
+  ]
+ },
+ {
+  "id": "vineyard_23",
+  "type": "VegetationVineyard",
+  "pos": [
+   8074.910156,
+   3622.439941
+  ],
+  "rayon": [
+   290.839996,
+   184.279999
+  ]
+ },
+ {
+  "id": "vineyard_24",
+  "type": "VegetationVineyard",
+  "pos": [
+   8163.700195,
+   3583.780029
+  ],
+  "rayon": [
+   290.839996,
+   184.279999
+  ]
+ },
+ {
+  "id": "vineyard_25",
+  "type": "VegetationVineyard",
+  "pos": [
+   8355.919922,
+   3501.26001
+  ],
+  "rayon": [
+   290.839996,
+   184.279999
+  ]
+ },
+ {
+  "id": "vineyard_26",
+  "type": "VegetationVineyard",
+  "pos": [
+   8313.089844,
+   3434.399902
+  ],
+  "rayon": [
+   290.839996,
+   184.279999
+  ]
+ },
+ {
+  "id": "vineyard_27",
+  "type": "VegetationVineyard",
+  "pos": [
+   7462.359863,
+   5737.359863
+  ],
+  "rayon": [
+   232.669998,
+   147.419998
+  ]
+ },
+ {
+  "id": "vineyard_28",
+  "type": "VegetationVineyard",
+  "pos": [
+   7335.970215,
+   5934.129883
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_29",
+  "type": "VegetationVineyard",
+  "pos": [
+   7262.160156,
+   5941.620117
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_30",
+  "type": "VegetationVineyard",
+  "pos": [
+   7284.080078,
+   5989.759766
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_31",
+  "type": "VegetationVineyard",
+  "pos": [
+   7327.939941,
+   6024.830078
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_32",
+  "type": "VegetationVineyard",
+  "pos": [
+   7276.060059,
+   6056.609863
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_36",
+  "type": "VegetationVineyard",
+  "pos": [
+   6982.950195,
+   6135.240234
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_38",
+  "type": "VegetationVineyard",
+  "pos": [
+   6933.75,
+   6111.709961
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_39",
+  "type": "VegetationVineyard",
+  "pos": [
+   7197.439941,
+   6221.890137
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_40",
+  "type": "VegetationVineyard",
+  "pos": [
+   7476.75,
+   6344.600098
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_41",
+  "type": "VegetationVineyard",
+  "pos": [
+   7530.77002,
+   6320.0
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_47",
+  "type": "VegetationVineyard",
+  "pos": [
+   7318.439941,
+   7565.850098
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_48",
+  "type": "VegetationVineyard",
+  "pos": [
+   6986.52002,
+   7674.47998
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_50",
+  "type": "VegetationVineyard",
+  "pos": [
+   7529.700195,
+   7687.819824
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_51",
+  "type": "VegetationVineyard",
+  "pos": [
+   7494.700195,
+   7734.359863
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_52",
+  "type": "VegetationVineyard",
+  "pos": [
+   7639.660156,
+   7910.859863
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_53",
+  "type": "VegetationVineyard",
+  "pos": [
+   7547.339844,
+   7777.680176
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_54",
+  "type": "VegetationVineyard",
+  "pos": [
+   7488.52002,
+   7815.660156
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_55",
+  "type": "VegetationVineyard",
+  "pos": [
+   7653.25,
+   7961.680176
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_56",
+  "type": "VegetationVineyard",
+  "pos": [
+   7587.470215,
+   7930.120117
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_57",
+  "type": "VegetationVineyard",
+  "pos": [
+   7564.470215,
+   7984.680176
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_58",
+  "type": "VegetationVineyard",
+  "pos": [
+   6997.5,
+   8034.950195
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_59",
+  "type": "VegetationVineyard",
+  "pos": [
+   7075.589844,
+   8063.299805
+  ],
+  "rayon": [
+   148.910004,
+   94.349998
+  ]
+ },
+ {
+  "id": "vineyard_60",
+  "type": "VegetationVineyard",
+  "pos": [
+   7681.189941,
+   8950.269531
+  ],
+  "rayon": [
+   186.139999,
+   117.940002
+  ]
+ },
+ {
+  "id": "vineyard_61",
+  "type": "VegetationVineyard",
+  "pos": [
+   7324.169922,
+   8930.209961
+  ],
+  "rayon": [
+   186.139999,
+   117.940002
+  ]
+ },
+ {
+  "id": "vineyard_63",
+  "type": "VegetationVineyard",
+  "pos": [
+   7526.080078,
+   9134.129883
+  ],
+  "rayon": [
+   186.139999,
+   117.940002
+  ]
+ },
+ {
+  "id": "vineyard_64",
+  "type": "VegetationVineyard",
+  "pos": [
+   7118.25,
+   9108.05957
+  ],
+  "rayon": [
+   186.139999,
+   117.940002
+  ]
+ },
+ {
+  "id": "vineyard_65",
+  "type": "VegetationVineyard",
+  "pos": [
+   7033.330078,
+   9096.69043
+  ],
+  "rayon": [
+   186.139999,
+   117.940002
+  ]
+ },
+ {
+  "id": "vineyard_66",
+  "type": "VegetationVineyard",
+  "pos": [
+   4574.0,
+   7934.169922
+  ],
+  "rayon": [
+   232.669998,
+   147.419998
+  ]
+ },
+ {
+  "id": "vineyard_67",
+  "type": "VegetationVineyard",
+  "pos": [
+   4613.27002,
+   7822.180176
+  ],
+  "rayon": [
+   232.669998,
+   147.419998
+  ]
+ },
+ {
+  "id": "vineyard_68",
+  "type": "VegetationVineyard",
+  "pos": [
+   4083.050049,
+   6790.0
+  ],
+  "rayon": [
+   116.989998,
+   75.480003
+  ]
+ },
+ {
+  "id": "vineyard_69",
+  "type": "VegetationVineyard",
+  "pos": [
+   4865.029785,
+   3980.27002
+  ],
+  "rayon": [
+   222.789993,
+   141.630005
+  ]
+ },
+ {
+  "id": "vineyard_70",
+  "type": "VegetationVineyard",
+  "pos": [
+   4921.27002,
+   3897.149902
+  ],
+  "rayon": [
+   222.789993,
+   141.630005
+  ]
+ },
+ {
+  "id": "vineyard_71",
+  "type": "VegetationVineyard",
+  "pos": [
+   4986.450195,
+   3883.300049
+  ],
+  "rayon": [
+   222.789993,
+   141.630005
+  ]
+ },
+ {
+  "id": "vineyard_72",
+  "type": "VegetationVineyard",
+  "pos": [
+   5097.279785,
+   3905.300049
+  ],
+  "rayon": [
+   222.789993,
+   141.630005
+  ]
+ }
+]

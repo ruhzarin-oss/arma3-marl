@@ -162,10 +162,30 @@ def test_armee_coupee():
                 f"{vivantes}/{len(autres)} autres bases encore ravitaillees")
 
 
+def test_voyage_entre_iles():
+    """Point 13 : un habitant qui traverse doit disparaitre des deux iles pendant la traversee, puis reparaitre
+    la-bas avec la meme identite, le meme argent et la meme memoire. Jamais deux corps pour un homme."""
+    from . import carte as K
+    w = W.Monde(); w.carte = K.Carte(iles=("Altis", "Malden"))
+    cible = w.carte.lieux["Malden:LaTrinite"]
+    h = next(x for x in w.habitants if x.vivant and x.role == "marchand")
+    avant = (h.id, h.menage.caisse, h.role)
+    arrivee = w.embarquer(h, cible, sejour_jours=2.0)
+    en_mer, la_bas = [], []
+    for _ in range(arrivee - w.pas + 2):
+        w.pas_suivant(); en_mer.append(h.lieu is None)
+    arrive = h.lieu is cible
+    for _ in range(C.PAS_PAR_JOUR):                     # un jour de sejour : il doit rester sur place
+        w.pas_suivant(); la_bas.append(h.lieu is not None and h.lieu.ile == "Malden")
+    ok = any(en_mer) and arrive and all(la_bas) and h.id == avant[0] and h.role == avant[2]
+    return ok, (f"traversee de {sum(en_mer)} pas sans aucun corps, debarquement a {cible.id} ( ile Malden ), "
+                f"sejour tenu {sum(la_bas)}/{len(la_bas)} pas, identite {h.id} conservee")
+
+
 TESTS = [test_conservation, test_conservation_sait_echouer, test_negatif_sans_perturbation, test_positif_route_coupee,
          test_reproductible, test_gouvernement_borne, test_ecole, test_menages_decident, test_reprise_identique,
          test_demographie, test_desobeissance, test_hopital,
-         test_armee_coupee]
+         test_armee_coupee, test_voyage_entre_iles]
 
 if __name__ == "__main__":
     ok = 0
