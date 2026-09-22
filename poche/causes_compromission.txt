@@ -1,0 +1,26 @@
+
+=== option 1 ( traverser ) : 1070 episodes ; attente mediane 0 s ; duree mediane de la phase 2 467 s
+   pas compromis                                  823  ( 76.9% )
+   COUP_RECU | apres la decision                   94  ( 8.8% )
+   ENNEMI_VU_EN_COMBAT | apres la decision         87  ( 8.1% )
+   FEU_PROCHE | apres la decision                  28  ( 2.6% )
+   COUP_RECU | AVANT la decision                   18  ( 1.7% )
+   ENNEMI_VU_EN_COMBAT | AVANT la decision         16  ( 1.5% )
+   FEU_PROCHE | AVANT la decision                   4  ( 0.4% )
+
+=== option 2 ( attendre ) : 609 episodes ; attente mediane 244 s ; duree mediane de la phase 2 694 s
+   pas compromis                                  449  ( 73.7% )
+   ENNEMI_VU_EN_COMBAT | apres la decision         62  ( 10.2% )
+   COUP_RECU | apres la decision                   54  ( 8.9% )
+   FEU_PROCHE | apres la decision                  16  ( 2.6% )
+   ENNEMI_VU_EN_COMBAT | AVANT la decision         15  ( 2.5% )
+   COUP_RECU | AVANT la decision                   11  ( 1.8% )
+   FEU_PROCHE | AVANT la decision                   2  ( 0.3% )
+
+=== delai decision -> compromission ( s ), mediane [ quartiles ] ===
+   option 1 COUP_RECU              n   94      87  [ 38 ; 219 ]
+   option 1 ENNEMI_VU_EN_COMBAT    n   87     270  [ 75 ; 391 ]
+   option 1 FEU_PROCHE             n   28     192  [ 55 ; 318 ]
+   option 2 COUP_RECU              n   54     263  [ 51 ; 340 ]
+   option 2 ENNEMI_VU_EN_COMBAT    n   62     376  [ 164 ; 523 ]
+   option 2 FEU_PROCHE             n   16     422  [ 251 ; 473 ]
