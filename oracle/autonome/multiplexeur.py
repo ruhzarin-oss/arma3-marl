@@ -131,6 +131,13 @@ def _verdict_cellule(res_ep, k, c):
     if m.get("croise", {}).get("ennemis", 0): return "REFUSE", "CONNAISSANCE_CROISEE_ENTRE_CELLULES"
     b = c.get("pouls_dans_bande")
     if b is None or b < C.POULS_BANDE_MIN: return "REFUSE", f"ORDONNANCEUR_SATURE ( pouls dans la bande {b} )"
+    # ! LE MONDE DOIT ETRE CELUI DU BANC SEUL ( service du 22/09, 14 h 12 ) : 2 cellules sur 25 ont tire un autre monde
+    # que leur graine dans le banc seul ( monde 7 : site a 13 km ; monde 15 : a 11 km ), et l une est tombee a 117 m du
+    # temoin. Une cellule dont le site s ecarte de la table de plus de 5 m ne porte plus la graine qu elle annonce.
+    e = c.get("monde_ecart_m")
+    if e is None or e > 5: return "REFUSE", f"MONDE_NON_CONFORME ( ecart du site {e} m )"
+    proches = [x for x in m.get("espacements", []) if k in (x[0], x[1]) and x[2] < C.ESPACEMENT_REFUS]
+    if proches: return "REFUSE", f"CELLULE_TROP_PROCHE ( {proches} )"
     return None, None
 
 

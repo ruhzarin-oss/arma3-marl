@@ -79,3 +79,4 @@ MULTI_ESPACEMENT = 3000            # m entre emprises de deux cellules ( avis de
 MULTI_TMAX = 1500                  # s apres le depart commun : au-dela, la cellule est censuree
 POULS_BANDE_MIN = 0.95             # part des intervalles du pouls dans [1,8 ; 2,5] s ( amendement 3 ) ; sinon cellule refusee
 MONDES_B = [0, 1, 2, 10, 25, 26, 27, 28, 29, 30, 31]   # tenus hors de tout ( poche/CRITERES_POCHE.md ) : jamais temoins
+ESPACEMENT_REFUS = 2000           # m mesures dans la mission : sous ce seuil entre deux cellules, la cellule est refusee
