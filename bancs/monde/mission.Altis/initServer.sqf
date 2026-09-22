@@ -72,8 +72,54 @@ MONDE_fnc_executer = {
             private _u = MONDE_CORPS getOrDefault [_id, objNull];
             if (isNull _u) exitWith {};
             private _p = [_centre, _rayon, _cle] call MONDE_fnc_point;
-            if (isAgent teamMember _u) then { _u moveTo _p } else { _u doMove _p };
+            // mesure du 22/09 ( essai_aller, 4 methodes, 3 corps chacune, 90 s ) : sur un AGENT, `moveTo` seul ne fait
+            // rien du tout ( 0 m ) ; il faut d abord lui poser une destination. Un soldat en groupe obeit a `doMove`.
+            if (isAgent teamMember _u) then { _u setDestination [_p, "LEADER PLANNED", true]; _u moveTo _p }
+            else { _u doMove _p };
             MONDE_DEST set [_id, _p];
+        };
+        // --- essais de deplacement ( controle positif du 22/09 : l ordre « aller » ne bougeait aucun corps ) ---
+        // methode 1 : agent + moveTo   2 : agent + setDestination + moveTo   3 : unite en groupe civil + doMove
+        // methode 4 : unite en groupe civil + move du groupe
+        case "essai_creer": {
+            _o params ["", "_id", "_methode", "_centre", "_rayon", "_cle"];
+            if (_id in MONDE_CORPS) exitWith {};
+            private _p = [_centre, _rayon, _cle] call MONDE_fnc_point;
+            private _u = objNull;
+            if (_methode <= 2) then {
+                _u = createAgent ["C_man_1", _p, [], 0, "CAN_COLLIDE"];
+            } else {
+                private _g = createGroup [civilian, true];
+                _u = _g createUnit ["C_man_1", _p, [], 0, "CAN_COLLIDE"];
+                _g setBehaviour "CARELESS"; _g setSpeedMode "LIMITED";
+            };
+            _u setPosATL _p;
+            _u setVariable ["monde_id", _id];
+            MONDE_CORPS set [_id, _u];
+        };
+        case "essai_aller": {
+            _o params ["", "_id", "_methode", "_centre", "_rayon", "_cle"];
+            private _u = MONDE_CORPS getOrDefault [_id, objNull];
+            if (isNull _u) exitWith {};
+            private _p = [_centre, _rayon, _cle] call MONDE_fnc_point;
+            switch (_methode) do {
+                case 1: { _u moveTo _p };
+                case 2: { _u setDestination [_p, "LEADER PLANNED", true]; _u moveTo _p };
+                case 3: { _u doMove _p };
+                case 4: { (group _u) move _p };
+            };
+            MONDE_DEST set [_id, _p];
+            (format ["essai|%1|methode|%2|agent|%3|simul|%4|anim|%5|de|%6|vers|%7|dist|%8", _id, _methode,
+                isAgent teamMember _u, simulationEnabled _u, animationState _u, getPosATL _u, _p,
+                round ((getPosATL _u) distance _p)]) call MONDE_LOG;
+        };
+        case "diag": {
+            private _id = _o select 1;
+            private _u = MONDE_CORPS getOrDefault [_id, objNull];
+            if (isNull _u) exitWith { (format ["diag|%1|absent", _id]) call MONDE_LOG };
+            (format ["diag|%1|pos|%2|dest|%3|reste|%4|vitesse|%5|anim|%6|pret|%7|comport|%8|agent|%9", _id, getPosATL _u,
+                MONDE_DEST getOrDefault [_id, []], round ((getPosATL _u) distance (MONDE_DEST getOrDefault [_id, getPosATL _u])),
+                speed _u, animationState _u, unitReady _u, behaviour _u, isAgent teamMember _u]) call MONDE_LOG;
         };
         case "temps": { setTimeMultiplier (_o select 1) };
         case "date": { setDate (_o select 1) };
