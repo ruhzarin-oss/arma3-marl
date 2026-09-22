@@ -42,13 +42,25 @@ fn connecter(ctx: Context, hote: String, port: u16) -> String {
     }
     let (tx, rx) = channel::<String>();
     *ENVOI.get_or_init(|| Mutex::new(None)).lock().unwrap() = Some(tx);
-    std::thread::spawn(move || boucle(ctx, hote, port, rx));
+    // le POUSSEUR : un seul fil garde le Context ( il ne se copie pas dans arma-rs 1.13 ) ; les lecteurs successifs,
+    // un par connexion, lui passent les lignes. arma-rs gere lui-meme la file des rappels d Arma.
+    let (vers_arma, lignes) = channel::<String>();
+    std::thread::spawn(move || {
+        for ligne in lignes {
+            if ctx.callback_data("monde", "ordres", ligne).is_ok() {
+                POUSSES.fetch_add(1, Ordering::SeqCst);
+            } else {
+                PERDUS.fetch_add(1, Ordering::SeqCst);
+            }
+        }
+    });
+    std::thread::spawn(move || boucle(vers_arma, hote, port, rx));
     "ok".to_string()
 }
 
 /// La boucle de connexion : se connecte, lance le lecteur, ecrit ce que la mission envoie ; recommence si la
 /// connexion tombe ( le cerveau a redemarre ).
-fn boucle(ctx: Context, hote: String, port: u16, rx: Receiver<String>) {
+fn boucle(vers_arma: Sender<String>, hote: String, port: u16, rx: Receiver<String>) {
     loop {
         match TcpStream::connect((hote.as_str(), port)) {
             Ok(flux) => {
@@ -61,8 +73,8 @@ fn boucle(ctx: Context, hote: String, port: u16, rx: Receiver<String>) {
                         continue;
                     }
                 };
-                let ctx_lecteur = ctx.clone();
-                std::thread::spawn(move || lire(ctx_lecteur, lecture));
+                let pousseur = vers_arma.clone();
+                std::thread::spawn(move || lire(pousseur, lecture));
                 let mut ecrivain = flux;
                 // tant que la connexion vit : chaque texte recu de la mission devient une ligne
                 loop {
@@ -91,9 +103,8 @@ fn boucle(ctx: Context, hote: String, port: u16, rx: Receiver<String>) {
     }
 }
 
-/// Le lecteur : chaque ligne du cerveau est poussee dans la mission. Si la file des rappels d Arma est pleine, on
-/// attend et on reessaie - un ordre n est jamais jete en silence.
-fn lire(ctx: Context, flux: TcpStream) {
+/// Le lecteur : chaque ligne du cerveau part au pousseur, qui la pousse dans la mission.
+fn lire(pousseur: Sender<String>, flux: TcpStream) {
     let lecteur = BufReader::new(flux);
     for ligne in lecteur.lines() {
         let ligne = match ligne {
@@ -104,17 +115,8 @@ fn lire(ctx: Context, flux: TcpStream) {
             continue;
         }
         RECUS.fetch_add(1, Ordering::SeqCst);
-        let mut essais = 0;
-        while ctx.callback_data("monde", "ordres", Some(ligne.clone())).is_err() {
-            essais += 1;
-            if essais > 200 {
-                PERDUS.fetch_add(1, Ordering::SeqCst);
-                break;
-            }
-            std::thread::sleep(Duration::from_millis(5));
-        }
-        if essais <= 200 {
-            POUSSES.fetch_add(1, Ordering::SeqCst);
+        if pousseur.send(ligne).is_err() {
+            PERDUS.fetch_add(1, Ordering::SeqCst);
         }
     }
     CONNECTE.store(false, Ordering::SeqCst);

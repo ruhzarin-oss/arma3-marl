@@ -84,6 +84,8 @@ MONDE_fnc_executer = {
 addMissionEventHandler ["ExtensionCallback", {
     params ["_nom", "_fonction", "_donnees"];
     if (_nom != "monde") exitWith {};
+    // arma-rs transmet une chaine SQF entre guillemets ( guillemets internes doubles ) : on la deballe d abord
+    if ((_donnees select [0, 1]) == """") then { _donnees = (parseSimpleArray ("[" + _donnees + "]")) select 0 };
     private _lot = parseSimpleArray _donnees;
     if (count _lot < 2) exitWith { (format ["lot_illisible|%1", _donnees select [0, 120]]) call MONDE_LOG };
     { [_x] call MONDE_fnc_executer } forEach (_lot select 1);
