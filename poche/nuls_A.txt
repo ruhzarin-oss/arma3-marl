@@ -1,0 +1,11 @@
+mondes A : [4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24] ; 1674 episodes ( paires de confirmation exclues, scellees )
+Brier, un monde laisse de cote ( N1 : moitie des episodes du monde pour apprendre, l autre pour juger ) :
+   N0 constante                           0.1837  ( n 1655 )
+   N1 taux par monde ( moitie-moitie )    0.1678  ( n 833 )
+   N2 imagination de l Oracle             0.1837  ( n 1655 )
+
+plancher provisoire : 306 paires d exploration, variance d une difference appariee 0.286
+   ecart-type d un ecart moyen a  40 paires : 0.085
+   ecart-type d un ecart moyen a  55 paires : 0.072
+   ecart-type d un ecart moyen a 100 paires : 0.053
+   ecart-type d un ecart moyen a 480 paires : 0.024
