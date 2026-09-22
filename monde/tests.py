@@ -1,7 +1,7 @@
 """Les portes de l etape E1 ( plans/plan-monde-complet.md ) : chacune doit savoir echouer.
    python -m monde.tests"""
-import copy, sys
-from . import monde as W, ecole as S, gouvernement as G, config as C
+import copy, os, pickle, sys, tempfile
+from . import monde as W, ecole as S, gouvernement as G, config as C, agents as A
 
 
 def jours(w, n):
@@ -65,8 +65,30 @@ def test_ecole():
     return a > b and b == 0, f"eleve a memoire {a:.2f}, eleve sans memoire {b:.2f}"
 
 
+def test_menages_decident():
+    """Un menage qui decide doit VRAIMENT changer le monde : la meme graine, avec et sans doctrine, doit differer."""
+    a = jours(W.Monde(), 6)
+    b = W.Monde(); b.doctrine = A.Doctrine(epsilon=1.0); jours(b, 6)
+    meme = a.resume_jour() == b.resume_jour()
+    d_arg, d_b = b.verifier_conservation()
+    ok = (not meme) and abs(d_arg) < 1e-6 and max(abs(v) for v in d_b.values()) < 1e-6
+    return ok, f"monde a decisions different du monde a regle : {not meme} ; conservation tenue : {abs(d_arg):.1e}"
+
+
+def test_reprise_identique():
+    """Point 10 : un monde arrete puis repris doit etre le MEME que s il n avait jamais ete arrete."""
+    continu = jours(W.Monde(graine=5), 3)
+    coupe = jours(W.Monde(graine=5), 2)
+    with tempfile.TemporaryDirectory() as d:
+        chemin = os.path.join(d, "instantane.pkl")
+        pickle.dump(coupe, open(chemin, "wb"))
+        repris = jours(pickle.load(open(chemin, "rb")), 1)
+    meme = continu.resume_jour() == repris.resume_jour() and continu.argent_total() == repris.argent_total()
+    return meme, f"3 jours d affilee contre 2 + reprise + 1 : {'identiques' if meme else 'DIFFERENTS'}"
+
+
 TESTS = [test_conservation, test_conservation_sait_echouer, test_negatif_sans_perturbation, test_positif_route_coupee,
-         test_reproductible, test_gouvernement_borne, test_ecole]
+         test_reproductible, test_gouvernement_borne, test_ecole, test_menages_decident, test_reprise_identique]
 
 if __name__ == "__main__":
     ok = 0
@@ -74,5 +96,5 @@ if __name__ == "__main__":
         r, msg = t()
         ok += r
         print(f"{'PASSE' if r else 'ECHOUE':7s} {t.__name__:32s} {msg}")
-    print(f"{ok} / {len(TESTS)} portes de l etape E1")
+    print(f"{ok} / {len(TESTS)} portes du monde ( E1 et douze manques )")
     sys.exit(0 if ok == len(TESTS) else 1)

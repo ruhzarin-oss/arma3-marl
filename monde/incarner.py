@@ -4,8 +4,8 @@ journee du monde en 6 heures reelles ) : un pas de 10 minutes du monde chaque fo
    python -m monde.incarner --regard Kavala --duree 3600 --port 2350 --sortie /mnt/data/hmt/monde/e2
 Portes ( ecrites dans plans/plan-monde-complet.md, E2 ) : un habitant n a jamais deux corps ; les corps rapportes par
 Arma sont exactement les habitants incarnes par le cerveau ; un habitant desincarne puis reincarne garde son identite."""
-import argparse, json, os, time, zlib
-from . import monde as W, ecole as S, pont as PT, config as C
+import argparse, datetime, json, os, pickle, time, zlib
+from . import monde as W, ecole as S, pont as PT, config as C, agents as A
 
 CLASSES = {
     "soldat": ("I_Soldier_F", "ind"), "officier": ("I_officer_F", "ind"), "policier": ("B_GEN_Soldier_F", "ind"),
@@ -30,9 +30,21 @@ def cle(h):
 def rayon(lieu): return max(150.0, min(450.0, float(lieu.rayon[0] or 300)))
 
 
+DEPART = datetime.datetime(*C.DATE_DEPART)
+
+
 def minutes_arma(date, daytime):
-    """Minutes du monde ecoulees depuis le depart ( 15/06 a 6 h ), lues sur l horloge d Arma - meme origine que le cerveau."""
-    return (int(date[2]) - C.DATE_DEPART[2]) * 1440 + float(daytime) * 60.0 - (C.DATE_DEPART[3] * 60 + C.DATE_DEPART[4])
+    """Minutes du monde ecoulees depuis le depart, lues sur l horloge d Arma - meme origine que le cerveau.
+    Passe les changements de mois : un pays qui vit sept jours peut traverser un 30 ou un 31."""
+    jour = datetime.datetime(int(date[0]), int(date[1]), int(date[2]))
+    return (jour - DEPART.replace(hour=0, minute=0)).total_seconds() / 60.0 + float(daytime) * 60.0 \
+        - (C.DATE_DEPART[3] * 60 + C.DATE_DEPART[4])
+
+
+def date_du_monde(w):
+    """La date d Arma qui correspond a l heure du cerveau - c est elle qu on pose en reprenant un instantane."""
+    d = DEPART + datetime.timedelta(minutes=w.minutes - (C.DATE_DEPART[3] * 60 + C.DATE_DEPART[4]))
+    return [d.year, d.month, d.day, d.hour, d.minute]
 
 
 def main():
@@ -41,14 +53,24 @@ def main():
     p.add_argument("--regard", default="Kavala")
     p.add_argument("--duree", type=float, default=3600.0, help="secondes reelles")
     p.add_argument("--sortie", default="/mnt/data/hmt/monde/e2")
+    p.add_argument("--doctrine", default="", help="doctrine des menages a charger ; ils continuent d apprendre en vivant")
+    p.add_argument("--reprendre", action="store_true", help="repartir du dernier instantane du monde ( point 10 )")
     p.add_argument("--cerveau", default="llm", choices=["llm", "regles"], help="qui gouverne : Qwen ou le catalogue")
     p.add_argument("--eleve", default="llm", choices=["llm", "memoire", "sans_memoire"], help="qui va a l ecole")
     a = p.parse_args()
     os.makedirs(a.sortie, exist_ok=True)
     regard = set(a.regard.split(","))
-    eleve = {"llm": S.EleveLLM, "memoire": S.EleveMemoire, "sans_memoire": S.EleveSansMemoire}[a.eleve]()
-    w = W.Monde(cerveau=a.cerveau, eleve=eleve, journal=os.path.join(a.sortie, "journal_monde.jsonl"))
-    print(f"gouvernement : {a.cerveau} | eleve : {eleve.nom}", flush=True)
+    instantane = os.path.join(a.sortie, "instantane.pkl")
+    if a.reprendre and os.path.exists(instantane):
+        w = pickle.load(open(instantane, "rb"))
+        print(f"monde repris : jour {w.jour}, {w.heure:.2f} h, {sum(1 for h in w.habitants if h.vivant)} vivants", flush=True)
+    else:
+        eleve = {"llm": S.EleveLLM, "memoire": S.EleveMemoire, "sans_memoire": S.EleveSansMemoire}[a.eleve]()
+        w = W.Monde(cerveau=a.cerveau, eleve=eleve, journal=os.path.join(a.sortie, "journal_monde.jsonl"))
+        print(f"gouvernement : {a.cerveau} | eleve : {eleve.nom}", flush=True)
+    if a.doctrine:
+        w.doctrine = A.Doctrine.lire(a.doctrine, epsilon=0.05)     # il vit avec ce qu il a appris, et continue d apprendre
+        print(f"doctrine chargee : {w.doctrine.n_lecons} lecons", flush=True)
     pont = PT.Pont(a.port)
     trace = open(os.path.join(a.sortie, "trace_e2.jsonl"), "a")
     def noter(**d):
@@ -56,7 +78,7 @@ def main():
     print(f"en attente d Arma sur le port {a.port}", flush=True)
     if not pont.attendre(600): print("Arma ne s est pas connecte"); return 2
     t0 = time.time()
-    lot_date = pont.envoyer([["date", [2035, 6, 15, 6, 0]], ["temps", C.ACCELERATION]])[0]
+    lot_date = pont.envoyer([["date", date_du_monde(w)], ["temps", C.ACCELERATION]])[0]
     incarnes = {}                       # id -> ( lieu, poste ) ou le corps se trouve
     arma = {"minutes": 0.0, "fps": None, "horloge": False}   # l horloge n est crue qu apres l accuse du lot « date »
                                                              # ( sinon un cerveau relance rattraperait l ancienne heure )
@@ -90,6 +112,13 @@ def main():
     ordres = synchroniser(); pont.envoyer(ordres)
     noter(type="depart", incarnes=len(incarnes), ordres=len(ordres))
     dernier_log = 0
+    dernier_jour = w.jour
+
+    def garder():
+        """L instantane : le monde entier, doctrine comprise. C est ce qui lui permet de durer au-dela d une soiree."""
+        pickle.dump(w, open(instantane + ".tmp", "wb")); os.replace(instantane + ".tmp", instantane)
+        if w.doctrine is not None: w.doctrine.ecrire(os.path.join(a.sortie, "doctrine.json"))
+        noter(type="instantane", jour=w.jour, heure=round(w.heure, 2), vivants=sum(1 for h in w.habitants if h.vivant))
     while time.time() - t0 < a.duree:
         for m in pont.messages(0.5):
             if not m: continue
@@ -120,6 +149,8 @@ def main():
                 noter(type="pas_long", heure=round(w.heure, 2), secondes=round(time.time() - t_pas, 1))
             ordres = synchroniser()
             if ordres: pont.envoyer(ordres)
+        if w.jour != dernier_jour:            # un instantane par jour du monde
+            dernier_jour = w.jour; garder()
         if time.time() - dernier_log > 60:
             dernier_log = time.time()
             n_arma = arma.get("n")
@@ -129,7 +160,8 @@ def main():
                   illisibles=pont.illisibles, anomalies=dict(anomalies))
             print(f"{time.strftime('%H:%M:%S')} cerveau jour {w.jour} {w.heure:5.2f} h | Arma {arma['minutes'] / 60 + 6:5.2f} h | "
                   f"incarnes {len(incarnes)} corps {n_arma} | {arma['fps']} images/s | lots {pont.envoyes} | anomalies {anomalies}", flush=True)
-    noter(type="fin", anomalies=anomalies, incarnes=len(incarnes))
+    garder()
+    noter(type="fin", anomalies=anomalies, incarnes=len(incarnes), jour=w.jour, heure=round(w.heure, 2))
     return 0
 
 
