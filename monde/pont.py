@@ -69,8 +69,12 @@ class Pont:
 
     # ------------------------------------------------------------------ l etat
     def connecte(self, ile=None):
+        """Une ile est connectee quand un serveur l a NOMMEE. Un serveur anonyme ne compte que s il est le seul :
+        sinon le cerveau parlerait a tout le monde a la fois et creerait le meme corps sur deux cartes ( 22/09 )."""
         with self.verrou:
-            return any(ile is None or c.ile == ile or c.ile == "inconnue" for c in self.clients)
+            if ile is None: return bool(self.clients)
+            if any(c.ile == ile for c in self.clients): return True
+            return len(self.clients) == 1 and self.clients[0].ile == "inconnue"
 
     def iles(self):
         with self.verrou: return sorted({c.ile for c in self.clients})
@@ -87,7 +91,9 @@ class Pont:
         with self.verrou:
             if ile is None: return list(self.clients)
             exacts = [c for c in self.clients if c.ile == ile]
-            return exacts or [c for c in self.clients if c.ile == "inconnue"]
+            if exacts: return exacts
+            # un seul serveur, encore anonyme : c est forcement lui. Plusieurs : on n envoie rien plutot que partout.
+            return list(self.clients) if len(self.clients) == 1 and self.clients[0].ile == "inconnue" else []
 
     def envoyer(self, ordres, ile=None):
         """Envoie une liste d ordres a l ile demandee ( ou au seul serveur connecte ). Rend les numeros de lot."""

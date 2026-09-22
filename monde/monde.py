@@ -9,10 +9,10 @@ CATEGORIES_PUBLIQUES = ("hopitaux", "armee", "reserve", "population")
 
 
 class Monde:
-    def __init__(self, graine=C.GRAINE, cerveau="regles", epidemie_jour=2, journal=None, eleve=None):
+    def __init__(self, graine=C.GRAINE, cerveau="regles", epidemie_jour=2, journal=None, eleve=None, iles=("Altis",)):
         self.rng = np.random.default_rng(graine)
         self.graine = graine
-        self.carte = K.Carte()
+        self.carte = K.Carte(iles=tuple(iles))
         self.habitants, self.menages = P.generer(self.carte, self.rng)
         self.pas = 0
         self.journal_fichier = journal
@@ -163,6 +163,7 @@ class Monde:
         if self.minutes % (24 * 60) in (8 * 60, 20 * 60): self.patrouilles()
         if self.minutes % (24 * 60) == 7 * 60: self.ravitailler_bases()
         self.debarquer()
+        if self.minutes % (24 * 60) == 8 * 60: self.commerce_exterieur()
         if self.ecole is not None:
             mm = self.minutes % (24 * 60)
             if mm == 8 * 60: self.ecole.instruction()
@@ -219,7 +220,18 @@ class Monde:
                 self.sejours[h.id] = self.pas + int(v["sejour"] * C.PAS_PAR_JOUR)
             self.noter("debarquement", habitant=h.id, lieu=cible.id, ile=cible.ile)
 
-    def demographie(self):
+    def commerce_exterieur(self):
+        """Point 13 : une raison de traverser. Chaque matin, un marchand disponible part vendre sur l autre ile et y
+        reste deux jours. Sans cela le voyage serait une mecanique sans usage."""
+        autres = [i for i in self.carte.iles if i != self.carte.iles[0]]
+        if not autres: return
+        for ile in autres:
+            cible = next((l for l in self.carte.lieux.values() if l.ile == ile and l.type == "capitale"), None)
+            if cible is None: continue
+            libre = next((h for h in self.habitants if h.vivant and h.role == "marchand" and h.poste != "voyage"
+                          and h.id not in self.sejours and h.lieu is not None and h.lieu.ile == self.carte.iles[0]), None)
+            if libre is None: continue
+            self.embarquer(libre, cible, sejour_jours=2.0)
         """Point 5 : on naît, on vieillit, on part a la retraite, on meurt de vieillesse. Une fois par jour du monde.
         Le pays cesse d etre une photographie de 500 personnes figees."""
         for h in self.habitants:

@@ -230,5 +230,10 @@ private _r = "monde" callExtension ["connecter", ["127.0.0.1", MONDE_PORT]];
     ["bonjour", worldName, MONDE_PORT, count allUnits] call MONDE_fnc_envoyer;
     ["pret", productVersion select 2, date, MONDE_ACC] call MONDE_fnc_envoyer;
     "pret" call MONDE_LOG;
-    while { true } do { sleep 30; (format ["pont|%1|lots|%2|erreurs|%3|corps|%4", ("monde" callExtension ["etat", []]) select 0, MONDE_LOTS, MONDE_ERREURS, count MONDE_CORPS]) call MONDE_LOG };
+    while { true } do {
+        sleep 30;
+        // se representer a chaque tour : si le cerveau a redemarre, il doit savoir QUELLE ile lui parle
+        ["bonjour", worldName, MONDE_PORT, count MONDE_CORPS] call MONDE_fnc_envoyer;
+        (format ["pont|%1|lots|%2|erreurs|%3|corps|%4", ("monde" callExtension ["etat", []]) select 0, MONDE_LOTS, MONDE_ERREURS, count MONDE_CORPS]) call MONDE_LOG;
+    };
 };
