@@ -3,7 +3,7 @@ Invariants verifies par les tests : l argent et les biens se CONSERVENT - rien n
 cause ecrite au journal ( production, consommation, combustion, import, export, mort )."""
 import json, math
 import numpy as np
-from . import config as C, carte as K, population as P, economie as E, gouvernement as G, ecole as S
+from . import config as C, carte as K, population as P, economie as E, gouvernement as G, ecole as S, agents as A
 
 CATEGORIES_PUBLIQUES = ("hopitaux", "armee", "reserve", "population")
 
@@ -44,6 +44,8 @@ class Monde:
         self.conducteur_libre = {h.id: 0 for h in self.habitants if h.role == "convoyeur"}
         self.cerveau = G.CerveauLLM() if cerveau == "llm" else None
         self.marchand = None               # pose par monde/apprenti.py : le reseau qui apprend a expedier
+        self.doctrine = None               # posee par monde/former.py : ce que les menages ont appris ( point 1 )
+        self.menagiers = {}                # la memoire propre de chaque menage
         self.memoire_gouv = ""
         self.epidemie_jour = epidemie_jour
         # --- les comptes : tout ce qui entre, sort, se cree ou se detruit ---
@@ -53,6 +55,7 @@ class Monde:
         self.biens_depart = self.biens_totaux()
         self.stats_jour = {}
         self.ecole = S.Ecole(self, eleve) if eleve is not None else None
+        self.apprentissage = True       # faux pendant une qualification : l agent agit, il n apprend plus
         self.chocs = []                 # secheresses : [{ debut, jours, lieux, facteur }] - le rendement des fermes baisse
         self.routes_coupees = set()     # lieux que plus aucun convoi ne peut atteindre ni quitter ( controle positif, E1 )
 
@@ -423,12 +426,26 @@ class Monde:
             vivants = [p for p in mg.membres if p.vivant]
             if not vivants: continue
             m = self.marches[mg.domicile.marche.id]
-            voulu = max(0.0, ration * len(vivants) * 1.5 - mg.garde_manger)
+            besoin_jour = max(1e-6, ration * len(vivants))
+            if self.doctrine is None:
+                cible = 1.5                                  # la regle d origine : un jour et demi, toujours
+            else:
+                ag = self.menagiers.get(mg.id)
+                if ag is None: ag = self.menagiers[mg.id] = A.Menagier()
+                x = ag.regarder(self, mg, m, besoin_jour)
+                k = self.doctrine.choisir(x, explorer=self.apprentissage)
+                ag.dernier_x, ag.derniere_action = x, k
+                ag.dernier_prix = m.prix["nourriture"] * (1 + self.gouv.tva)
+                ag.depense = 0.0
+                ag.besoin_du_soir = besoin_jour
+                cible = A.CIBLES[k]
+            voulu = max(0.0, besoin_jour * cible - mg.garde_manger)
             m.demande["nourriture"] += voulu
             prix = m.prix["nourriture"] * (1 + self.gouv.tva)
             q = min(voulu, m.stocks["nourriture"], mg.caisse / prix if prix > 0 else 0)
             if q <= 0: continue
             m.stocks["nourriture"] -= q; mg.garde_manger += q
+            if self.doctrine is not None: self.menagiers[mg.id].depense += q * m.prix["nourriture"] * (1 + self.gouv.tva)   # noqa
             self.transferer(mg, m, q * m.prix["nourriture"], "nourriture")
             self.transferer(mg, self.gouv, q * m.prix["nourriture"] * self.gouv.tva, "tva")
             # au-dela d une semaine de nourriture en epargne, le menage depense : biens manufactures et carburant
@@ -441,6 +458,13 @@ class Monde:
                 if qb <= 0: continue
                 m.stocks[b] -= qb; self.flux["consomme"][b] += qb
                 self.transferer(mg, m, qb * m.prix[b], b); self.transferer(mg, self.gouv, qb * m.prix[b] * self.gouv.tva, "tva")
+        if self.doctrine is not None:
+            for mg in self.menages:
+                ag = self.menagiers.get(mg.id)
+                if ag is not None and ag.derniere_action is not None:
+                    ag.poser(ag.dernier_x, ag.derniere_action, ag.depense, getattr(ag, "besoin_du_soir", 1.0))
+                    ag.derniere_action = None
+
         # la ration de l Etat : ce que le gouvernement a achete pour la population est distribue aux menages affames
         stock = self.publics["population"]["nourriture"]
         if stock > 0:
@@ -459,6 +483,12 @@ class Monde:
             mg.garde_manger -= mange; self.flux["consomme"]["nourriture"] += mange
             manque = besoin - mange
             if manque > 1e-6: sans += 1
+            if self.doctrine is not None:                     # la consequence revient a celui qui a choisi, sur trois jours
+                ag = self.menagiers.get(mg.id)
+                if ag is not None:
+                    for x, action, r in ag.journee(manque):
+                        if self.apprentissage: self.doctrine.apprendre(x, action, r)
+                        ag.recompenses.append(r)
             for p in vivants: p.faim = p.faim + manque / len(vivants) if manque > 1e-6 else max(0.0, p.faim - 1)
         self.stats_jour["menages_sans_nourriture"] = sans
 

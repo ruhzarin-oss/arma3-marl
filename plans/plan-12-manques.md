@@ -35,3 +35,17 @@ un seul serveur Arma vivant : celui du monde). Ce fichier est le programme, et c
 
 1 → 2 → 3 → 4 d'abord, parce qu'ils transforment 13 500 décisions de règle en 13 500 décisions d'agents.
 Puis 10 (le monde doit durer pour qu'on apprenne au-delà d'un jour), puis 5, 7, 8, 9, 6, puis 11 et 12.
+
+## Amendement du 22/09, 23 h 45 — la porte du point 1 se durcit d'un témoin
+
+**Premier essai, refusé.** Ménages formés : 17,33 % de jours de faim, 9 mondes sur 10 meilleurs que la règle
+(19,16 %) — la porte écrite était donc franchie. Mais le témoin **choix au hasard** fait 13,08 % de faim et
+0,1 mort contre 0,7. Un élève battu par le hasard n'a rien appris d'utile : **refusé**.
+
+**Cause trouvée.** La note se lisait le soir même : stocker coûtait de l'argent tout de suite et ne rapportait
+rien avant le lendemain. L'élève a donc appris à ne rien stocker. La conséquence remonte désormais sur **trois
+jours** (`HORIZON = 3` dans `monde/agents.py`).
+
+**La porte, désormais** : un agent formé doit battre **la règle** (médiane et ≥ 7 mondes sur 10) **et le témoin au
+hasard** sur la faim médiane. Cette exigence vaut pour les douze points, pas seulement pour le premier — c'est la
+deuxième fois de la soirée qu'un témoin bête bat un élève (voir l'apprenti marchand).
