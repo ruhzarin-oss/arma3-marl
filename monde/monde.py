@@ -21,6 +21,7 @@ class Monde:
         self.table = P.Table(self.carte.par_n)          # les habitants en colonnes ( ce que lit le coeur Rust )
         # le marche dont depend chaque lieu, par numero ( -1 : aucun ) - l index de la population par marche le lit
         self._marche_du_lieu = np.array([l.marche.n if l.marche is not None else -1 for l in self.carte.par_n], np.int64)
+        self._ile_du_lieu = np.array([self.carte.iles.index(l.ile) for l in self.carte.par_n], np.int16)
         self.habitants, self.menages = P.generer(self.carte, self.rng, echelle, self.table)
         self.utiliser_coeur = COEUR is not None
         self._colonnes_fraiches = False                 # vrai quand `deplacer` a rempli la colonne « travaille » ce pas
@@ -222,8 +223,15 @@ class Monde:
 
     # --- point 13 : le voyage entre iles -------------------------------------------------------------------
     def marchand_libre(self, ile):
-        return next((h for h in self.habitants if h.vivant and h.role == "marchand" and h.poste != "voyage"
-                     and h.id not in self.sejours and h.lieu is not None and h.lieu.ile == ile), None)
+        """Le premier marchand ( dans l ordre des habitants ) vivant, a terre, pas en sejour, et sur cette ile."""
+        t, n = self.table, self.table.n
+        lieu = t.lieu[:n]
+        ok = ((t.vivant[:n] == 1) & (t.role[:n] == P.CODE_ROLE["marchand"]) & (t.poste[:n] != P.CODE_POSTE["voyage"])
+              & (lieu >= 0))
+        ok &= self._ile_du_lieu[np.where(lieu >= 0, lieu, 0)] == self.carte.iles.index(ile)
+        for i in np.nonzero(ok)[0]:
+            if int(i) not in self.sejours: return P.Habitant(t, int(i))
+        return None
 
     def embarquer(self, h, cible, demenage=False, sejour_jours=0.0, cargaison=None, marche_origine=None, marche_dest=None):
         """Un habitant quitte son ile. Pendant la traversee il n est nulle part : aucun corps, ni ici ni la-bas.
@@ -275,8 +283,7 @@ class Monde:
         for ile in autres:
             cible = next((l for l in self.carte.lieux.values() if l.ile == ile and l.type == "capitale"), None)
             if cible is None: continue
-            libre = next((h for h in self.habitants if h.vivant and h.role == "marchand" and h.poste != "voyage"
-                          and h.id not in self.sejours and h.lieu is not None and h.lieu.ile == self.carte.iles[0]), None)
+            libre = self.marchand_libre(self.carte.iles[0])
             if libre is None: continue
             self.embarquer(libre, cible, sejour_jours=2.0)
 
@@ -577,12 +584,17 @@ class Monde:
         if getattr(self, "_chauffeurs_pas", None) != self.pas:
             self._chauffeurs_pas, self._chauffeurs = self.pas, {}
         file = self._chauffeurs.get(capitale.id)
+        t = self.table
         if file is None:
-            h = self.heure
-            file = self._chauffeurs[capitale.id] = collections.deque(
-                p for p in self.au_travail_de(capitale, "convoyeur") if p.vivant and p.au_travail(h))
-        while file and self.conducteur_libre.get(file[0].id, 0) > self.pas: file.popleft()
-        return file[0] if file else None
+            ids = np.array(self.ids_au_travail(capitale, "convoyeur"), np.int64)
+            if self._colonnes_fraiches and ids.size:
+                ids = ids[(t.vivant[ids] == 1) & (t.travaille[ids] == 1)]
+            else:
+                h = self.heure
+                ids = np.array([i for i in ids.tolist() if P.Habitant(t, i).vivant and P.Habitant(t, i).au_travail(h)], np.int64)
+            file = self._chauffeurs[capitale.id] = collections.deque(ids.tolist())
+        while file and self.conducteur_libre.get(file[0], 0) > self.pas: file.popleft()
+        return P.Habitant(t, file[0]) if file else None
 
     def lancer_convoi(self, origine, destination, cargaison, payeur, motif, marche_carburant, vendeur=None):
         coupees = self.routes_coupees | getattr(self, "routes_temporaires", set())
@@ -839,7 +851,42 @@ class Monde:
             self.publics["population"]["nourriture"] = stock
 
     def repas(self):
+        """Le repas du soir, EN COLONNES : chaque menage mange ce qu il a, jusqu a son besoin ; ses vivants ont faim s il
+        manque. Le compteur de nourriture consommee est cumule dans l ordre des menages ( cumsum ), comme la boucle.
+        Les menages formes ( doctrine ) gardent la version Python : leur note se lit menage par menage."""
+        if not self.utiliser_coeur or self.doctrine is not None: return self.repas_python()
+        t, n, mt = self.table, self.table.n, self.table.menages
+        M = mt.n
+        vivant = t.vivant[:n] == 1
+        mm = t.menage[:n]
+        membres = np.nonzero(vivant & (mm >= 0))[0]
+        v = np.bincount(mm[membres], minlength=M)
+        besoin = C.NOURRITURE_PAR_JOUR * v
+        gm = mt.garde_manger[:M]
+        mange = np.minimum(besoin, gm)
+        mt.garde_manger[:M] = gm - mange
+        self.flux["consomme"]["nourriture"] = float(np.cumsum(np.concatenate(([self.flux["consomme"]["nourriture"]], mange)))[-1])
+        manque = besoin - mange
+        affame = manque > 1e-6
+        self.stats_jour["menages_sans_nourriture"] = int(affame.sum())
+        region = self._marche_du_lieu[mt.domicile[:M]]
+        dans = region >= 0
+        tot = np.bincount(region[dans], minlength=len(self.carte.par_n))
+        aff = np.bincount(region[dans & affame], minlength=len(self.carte.par_n))
+        self.faim_region = {self.carte.par_n[k].id: int(aff[k]) / int(tot[k]) for k in np.nonzero(tot)[0]}
+        self.nourri_menage = ~affame
+        k = mm[membres]
+        faim = t.faim[membres]
+        t.faim[membres] = np.where(affame[k], faim + manque[k] / np.maximum(v[k], 1), np.maximum(0.0, faim - 1))
+        for nom, noter in (("travailleurs", R.noter_travailleurs), ("entreprises", R.noter_entreprises),
+                           ("marches", R.noter_marches), ("commerce", R.noter_commerce),
+                           ("fraudeurs", R.noter_fraudeurs), ("voyageurs", R.noter_voyageurs)):
+            g = self.agents.get(nom)
+            if g: noter(self, g)
+
+    def repas_python(self):
         sans = 0
+        self.nourri_menage = np.ones(len(self.menages), bool)
         par_region, affames_region = {}, {}
         for mg in self.menages:
             vivants = [p for p in mg.membres if p.vivant]
@@ -915,8 +962,12 @@ class Monde:
                     self.noter("infection", habitant=p.id, lieu=p.lieu.id)
 
     def progression_maladie(self):
-        for p in self.habitants:
-            if not p.vivant or p.etat in ("S", "R"): continue
+        """Seuls les exposes et les malades sont parcourus, dans l ordre des habitants : le cout suit l epidemie, pas la
+        taille du pays, et les tirages ( incubation, letalite ) gardent leur ordre exact."""
+        t, n = self.table, self.table.n
+        concernes = np.nonzero((t.vivant[:n] == 1) & ((t.etat[:n] == P.CODE_ETAT["E"]) | (t.etat[:n] == P.CODE_ETAT["I"])))[0]
+        for i in concernes:
+            p = P.Habitant(t, int(i))
             p.jours_etat += 1.0
             if p.etat == "E" and p.jours_etat >= C.INCUBATION_J:
                 p.etat, p.jours_etat, p.gravite = "I", 0.0, float(self.rng.uniform(0.1, 1.0))
@@ -987,14 +1038,17 @@ class Monde:
 
     # ------------------------------------------------------------------ le gouvernement
     def sitrep(self):
-        vivants = [p for p in self.habitants if p.vivant]
+        t, n, mt = self.table, self.table.n, self.table.menages
+        vivants = t.vivant[:n] == 1
+        etat = t.etat[:n][vivants]
+        nv = int(vivants.sum())
         return {
             "jour": self.jour, "heure": round(self.heure, 1),
-            "population": {"vivants": len(vivants), "morts": 500 - len(vivants),
+            "population": {"vivants": nv, "morts": 500 - nv,
                            "menages_sans_nourriture": self.stats_jour.get("menages_sans_nourriture", 0),
-                           "epargne_mediane": round(float(np.median([m.caisse for m in self.menages])))},
-            "sante": {"infectes": sum(1 for p in vivants if p.etat == "I"), "incubation": sum(1 for p in vivants if p.etat == "E"),
-                      "gueris": sum(1 for p in vivants if p.etat == "R")},
+                           "epargne_mediane": round(float(np.median(mt.caisse[:mt.n])))},
+            "sante": {"infectes": int((etat == P.CODE_ETAT["I"]).sum()), "incubation": int((etat == P.CODE_ETAT["E"]).sum()),
+                      "gueris": int((etat == P.CODE_ETAT["R"]).sum())},
             "marches": {m.lieu.id: {b: {"prix": round(m.prix[b], 2), "stock": round(m.stocks[b])} for b in
                         ("nourriture", "carburant", "remedes", "fer", "outils")} for m in self.marches.values()},
             "stocks_publics": {"remedes": round(self.publics["hopitaux"]["remedes"]), "or": round(self.publics["reserve"]["or"], 1),

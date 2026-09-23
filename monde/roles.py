@@ -140,7 +140,8 @@ def noter_travailleurs(w, g):
     for pid in list(g.memoire):
         p = (w.habitants[pid] if 0 <= pid < len(w.habitants) else None)
         if p is None or not p.vivant: continue
-        r = (1.0 if w.nourri_menage.get(p.menage.id, True) else 0.0) - 2.0 * (pid in w.infectes_du_jour)
+        mid = p.menage.id
+        r = (1.0 if (mid >= len(w.nourri_menage) or w.nourri_menage[mid]) else 0.0) - 2.0 * (pid in w.infectes_du_jour)
         if g.choix.get(pid) == 0 and p.etat == "I" and p.travail is not None:
             r -= w.contagions_lieu.get(p.travail.id, 0) / max(1, contagieux.get(p.travail.id, 1))
         g.noter(pid, r)
