@@ -81,4 +81,6 @@ class Echeancier:
         return sum(len(s) for s in self.seaux.values()) - len(self.annulees)
 
     def ecart(self):
-        return self.n_pose - self.n_servi - self.n_annule - self.en_attente()
+        """Posees - servies - annulees ecartees - presentes dans les seaux ( annulees comprises ). Zero, sinon une
+        echeance a disparu."""
+        return self.n_pose - self.n_servi - self.n_annule - sum(len(s) for s in self.seaux.values())

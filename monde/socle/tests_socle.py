@@ -70,8 +70,8 @@ def test_calendrier():
     except T.LatitudeInconnue: refuse = True
     ok = connues and feries and depart and cale and co <= 19.0 and 11.9 <= ce - le <= 12.4 and refuse
     return ok, (f"Paques 2024-26 justes : {connues} ; 15/06 : lever {lj:.2f} h coucher {cj:.2f} h ( moteur {C.LEVER} / "
-                f"{C.COUCHER} ) ; 13/10 : lever {lo:.2f} h coucher {co:.2f} h, soit {C.COUCHER - co:.1f} h de jour en trop "
-                f"dans le moteur ; equinoxe {ce - le:.2f} h ; ile sans latitude refusee : {refuse}")
+                f"{C.COUCHER} ) ; 13/10 : lever {lo:.2f} h coucher {co:.2f} h, soit {(lo - C.LEVER) + (C.COUCHER - co):.1f} h "
+                f"de jour en trop dans le moteur ; equinoxe {ce - le:.2f} h ; ile sans latitude refusee : {refuse}")
 
 
 # ================================================================== registre et conservation sur le moteur
@@ -267,11 +267,13 @@ def test_echeancier():
     reprise = [e[2] for e in pickle.loads(snap[0]).servir(fin - 1)] == servies[snap[1]:]
     try: ech.poser(0, "terme", 0); passe_refusee = False
     except E.EcheancePassee: passe_refusee = True
-    abime = pickle.loads(snap[0]); abime.seaux.pop(next(k for k, v in abime.seaux.items() if v))
-    ok = completes and ordre and mal_places == 0 and reprise and passe_refusee and ech.ecart() == 0 and abime.ecart() != 0
+    intact = pickle.loads(snap[0]).ecart()
+    abime = pickle.loads(snap[0]); perdu = len(abime.seaux.pop(next(k for k, v in abime.seaux.items() if v)))
+    ok = (completes and ordre and mal_places == 0 and reprise and passe_refusee and ech.ecart() == 0 and intact == 0
+          and abime.ecart() == perdu)
     return ok, (f"{len(servies):,} servies sur {n:,} posees ( {len(annules):,} annulees ), ordre {ordre}, mal placees "
-                f"{mal_places}, reprise exacte {reprise}, passe refuse {passe_refusee}, seau perdu vu ( ecart "
-                f"{abime.ecart()} ) ; {ns:.0f} ns par echeance ( pose, annulations, service )")
+                f"{mal_places}, reprise exacte {reprise}, passe refuse {passe_refusee} ; instantane intact : ecart {intact}, "
+                f"seau de {perdu} perdu : ecart {abime.ecart()} ; {ns:.0f} ns par echeance ( pose, annulations, service )")
 
 
 # ================================================================== objets

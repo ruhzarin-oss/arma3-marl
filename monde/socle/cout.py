@@ -54,7 +54,7 @@ def main():
             return out
         return f
     s1, s9 = octets_par(stocks(1), 100_000), octets_par(stocks(9), 100_000)
-    d9 = octets_par(lambda n: [{b_: 1.0 for b_ in C.BIENS} for _ in range(n)], 100_000)
+    d9 = octets_par(lambda n: [{b_: k + 0.5 for b_ in C.BIENS} for k in range(n)], 100_000)   # 9 flottants distincts, comme en vol
     print(f"stock : {s1:.0f} octets avec 1 bien, {s9:.0f} avec 9 ; dictionnaire E1 des 9 biens {d9:.0f}")
 
     parc = O.Parc(H.Hasard(1)); parc.declarer_modele("berline", "vehicule", 1.5e4, 1300.0, 1.5e5)
@@ -74,7 +74,8 @@ def main():
     t_sous = ns_par_appel(lambda n: [h.sous_flux("cout", 2, k) for k in range(n)], 10_000)
     t_scal = ns_par_appel(lambda n: [g.random() for _ in range(n)], 1_000_000)
     t0 = time.perf_counter(); g.random(10_000_000); t_vec = (time.perf_counter() - t0) / 1e7 * 1e9
-    print(f"hasard : sous-flux {t_sous / 1000:.1f} us a creer ; tirage {t_scal:.0f} ns a l unite, {t_vec:.1f} ns en vecteur")
+    print(f"hasard : sous-flux {t_sous / 1000:.1f} us a creer ; tirage {t_scal:.0f} ns a l unite, {t_vec:.1f} ns en vecteur "
+          f"( tirer une population par vecteur : {t_scal / t_vec:.0f} fois moins cher )")
 
     jl = J.Journal(); jl.declarer("achat", "cout", "compte")
     print(f"journal : compter {ns_par_appel(lambda n: [jl.compter('achat') for _ in range(n)], 1_000_000):.0f} ns")
@@ -92,9 +93,16 @@ def main():
         if fx.caisse >= v: fx.caisse -= v; foyers[y].caisse += v
     t_drift = time.perf_counter() - t0
     apres = reg.argent(); naif1 = sum(f.caisse for f in foyers)
-    print(f"registre : {t_reg * 1000:.0f} ms pour sommer 300 000 caisses ; derive flottante apres 10 millions de "
-          f"paiements ( {t_drift:.0f} s ) : {apres - avant:+.2e} drachmes exacte ( fsum ), {naif1 - naif0:+.2e} en somme naive, "
-          f"sur {avant:,.0f}")
+    print(f"registre : {t_reg * 1000:.0f} ms pour sommer 300 000 caisses ; derive apres 10 millions de paiements ( {t_drift:.0f} s ) : "
+          f"{apres - avant:+.2e} ( fsum ), {naif1 - naif0:+.2e} ( somme naive ), sur {avant:,.0f} dont l ulp vaut {math.ulp(avant):.1e}")
+    # la derive VRAIE, en fractions exactes, sur un echantillon : fsum rend le total arrondi au plus proche, une derive
+    # plus petite qu un ulp du total y est invisible
+    from fractions import Fraction
+    c = [float(x) for x in rng.lognormal(6.5, 1.0, 3000)]; exact0 = sum(Fraction(x) for x in c)
+    for x, y, v in zip(rng.integers(0, 3000, 1_000_000).tolist(), rng.integers(0, 3000, 1_000_000).tolist(),
+                       rng.uniform(0, 50, 1_000_000).tolist()):
+        if c[x] >= v: c[x] -= v; c[y] += v
+    print(f"  derive exacte ( fractions ) : {float(sum(Fraction(x) for x in c) - exact0):+.1e} drachme pour 1 million de paiements")
 
     for socle_ in (False, True):
         w = W.Monde(echelle=100)
