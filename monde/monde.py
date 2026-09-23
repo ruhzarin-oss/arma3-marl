@@ -48,6 +48,8 @@ class Monde:
             self.garnisons[b.id]["carburant"] = 5 * self.besoin_patrouille(b)
         self.convois = []; self.n_convoi = 0
         self.conducteur_libre = {h.id: 0 for h in self.habitants if h.role == "convoyeur"}
+        self._pop_marche = {}; self._par_travail = {}
+        self.indexer()
         self.cerveau = G.CerveauLLM() if cerveau == "llm" else None
         self.marchand = None               # pose par monde/apprenti.py : le reseau qui apprend a expedier
         self.doctrine = None               # posee par monde/former.py : ce que les menages ont appris ( point 1 )
@@ -115,7 +117,7 @@ class Monde:
     def reserve_marche(self, m, b):
         """Ce qu un marche garde pour lui : trois jours de nourriture pour sa population, de quoi faire rouler ses convois."""
         if b == "nourriture":
-            return 3 * C.NOURRITURE_PAR_JOUR * sum(len(x.membres) for x in self.menages if x.domicile.marche is m.lieu)
+            return 3 * C.NOURRITURE_PAR_JOUR * self._pop_marche.get(m.lieu.id, 0)
         if b == "carburant": return 120.0
         return 20.0
 
@@ -268,18 +270,45 @@ class Monde:
     def embaucher(self, h):
         """Le premier marche du travail : le jeune prend le metier le plus depeuple de sa region, parmi les metiers
         libres ( un medecin ou un officier demande une qualification : ils ne s improvisent pas )."""
+        # tout passe par les index du jour : un jeune qui recomptait le pays entier coutait, a 50 000 habitants,
+        # 362 secondes sur les 386 d une journee ( profil du 23/09 ).
         libres = ("paysan", "mineur", "ouvrier", "convoyeur", "marchand", "petrolier", "soldat")
-        vivants = [x for x in self.habitants if x.vivant and x.role in libres]
-        manque = {r: sum(1 for x in vivants if x.role == r) / max(1, C.ROLES[r][0]) for r in libres}
+        manque = {r: self._compte_role.get(r, 0) / max(1, C.ROLES[r][0]) for r in libres}
         role = min(manque, key=manque.get)
-        postes = [x for x in self.habitants if x.vivant and x.role == role and x.travail is not None]
+        lieux = self._lieux_par_role.get(role, set())
         h.role, h.classe = role, C.ROLES[role][1]
         h.horaire = P.TRAVAIL[role][1]
-        h.travail = min((x.travail for x in postes), key=lambda l: l.distance(h.domicile)) if postes else h.domicile
+        h.travail = min(lieux, key=lambda l: l.distance(h.domicile)) if lieux else h.domicile
+        self._compte_role[role] = self._compte_role.get(role, 0) + 1           # il compte des maintenant
+        self._compte_role["enfant"] = max(0, self._compte_role.get("enfant", 1) - 1)
+        self._par_travail.setdefault((h.travail.id, role), []).append(h)
         self.noter("entree_vie_active", habitant=h.id, role=role, lieu=getattr(h.travail, "id", None))
+
+    def indexer(self):
+        """Les index du pays, refaits une fois par jour. Sans eux, chaque marche et chaque entreprise reparcourent
+        toute la population a chaque pas : le cout devient quadratique ( mesure du 23/09 : 42 s par jour a 50 000
+        habitants, 625 s a 200 000 - quinze fois plus cher pour quatre fois plus de monde )."""
+        self._pop_marche = {}
+        for mg in self.menages:
+            if mg.domicile is None or mg.domicile.marche is None: continue
+            k = mg.domicile.marche.id
+            self._pop_marche[k] = self._pop_marche.get(k, 0) + len([p for p in mg.membres if p.vivant])
+        self._par_travail = {}
+        self._compte_role = {}
+        self._lieux_par_role = {}
+        for p in self.habitants:
+            if not p.vivant: continue
+            self._compte_role[p.role] = self._compte_role.get(p.role, 0) + 1
+            if p.travail is not None:
+                self._par_travail.setdefault((p.travail.id, p.role), []).append(p)
+                self._lieux_par_role.setdefault(p.role, set()).add(p.travail)
+
+    def au_travail_de(self, lieu, role):
+        return self._par_travail.get((lieu.id, role), [])
 
     def aube(self):
         self.demographie()
+        self.indexer()
         self.regler_activite()
         for m in self.marches.values(): m.ajuster_prix()
         self.reseau.tarif = max(0.5, C.MARGE_ELECTRICITE * (self.prix_moyen("carburant") + P.SALAIRE_HORAIRE["ouvrier"]) / 12.0)   # cout complet d une heure de centrale
@@ -356,9 +385,9 @@ class Monde:
 
     # --- 3. les convois ---
     def conducteur(self, capitale):
-        for p in self.habitants:
-            if p.role == "convoyeur" and p.vivant and p.travail is capitale and self.conducteur_libre.get(p.id, 0) <= self.pas \
-                    and p.au_travail(self.heure):
+        """Un convoyeur libre de cette capitale. Passe par l index : sans lui, chaque convoi reparcourait le pays."""
+        for p in self.au_travail_de(capitale, "convoyeur"):
+            if p.vivant and self.conducteur_libre.get(p.id, 0) <= self.pas and p.au_travail(self.heure):
                 return p
         return None
 
@@ -435,7 +464,7 @@ class Monde:
                 gain = m.stocks["or"] * C.PRIX_MONDE["or"]
                 self.flux["exporte"]["or"] += m.stocks["or"]; m.stocks["or"] = 0.0
                 m.caisse += gain; self.ext["entree"] += gain
-            besoin = 3 * C.NOURRITURE_PAR_JOUR * sum(len(x.membres) for x in self.menages if x.domicile.marche is m.lieu)
+            besoin = 3 * C.NOURRITURE_PAR_JOUR * self._pop_marche.get(m.lieu.id, 0)
             surplus = m.stocks["nourriture"] - besoin
             if surplus > 50:
                 gain = surplus * C.PRIX_MONDE["nourriture"] * 0.8
@@ -514,7 +543,7 @@ class Monde:
             self.transferer(p.menage, g, brut * g.impot_revenu, "impot sur le revenu")
         # les marchands : la moitie du benefice du marche au-dessus de sa caisse de depart, en salaire
         for m in self.marches.values():
-            marchands = [p for p in self.habitants if p.role == "marchand" and p.travail is m.lieu and p.vivant]
+            marchands = self.au_travail_de(m.lieu, "marchand")
             exces = m.caisse - 20000.0
             if exces > 0 and marchands:
                 for p in marchands:
@@ -523,7 +552,7 @@ class Monde:
         # les fermes cooperatives partagent leur caisse entre leurs paysans
         for e in self.entreprises.values():
             if e.type != "ferme": continue
-            paysans = [p for p in self.habitants if p.role == "paysan" and p.travail is e.lieu and p.vivant]
+            paysans = self.au_travail_de(e.lieu, "paysan")
             if paysans and e.caisse > 0:
                 part = e.caisse / len(paysans)
                 for p in paysans:
