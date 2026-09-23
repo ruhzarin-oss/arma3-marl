@@ -68,20 +68,21 @@ class Pont:
             if c in self.clients: self.clients.remove(c)
 
     # ------------------------------------------------------------------ l etat
-    def connecte(self, ile=None):
+    def connecte(self, ile=None, exact=False):
         """Une ile est connectee quand un serveur l a NOMMEE. Un serveur anonyme ne compte que s il est le seul :
         sinon le cerveau parlerait a tout le monde a la fois et creerait le meme corps sur deux cartes ( 22/09 )."""
         with self.verrou:
             if ile is None: return bool(self.clients)
             if any(c.ile == ile for c in self.clients): return True
+            if exact: return False                    # au demarrage d un monde a plusieurs iles, on veut des NOMS
             return len(self.clients) == 1 and self.clients[0].ile == "inconnue"
 
     def iles(self):
         with self.verrou: return sorted({c.ile for c in self.clients})
 
-    def attendre(self, delai=120, ile=None):
+    def attendre(self, delai=120, ile=None, exact=False):
         t0 = time.time()
-        while not self.connecte(ile):
+        while not self.connecte(ile, exact):
             if time.time() - t0 > delai: return False
             time.sleep(0.2)
         return True

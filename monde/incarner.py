@@ -5,7 +5,7 @@ journee du monde en 6 heures reelles ) : un pas de 10 minutes du monde chaque fo
 Portes ( ecrites dans plans/plan-monde-complet.md, E2 ) : un habitant n a jamais deux corps ; les corps rapportes par
 Arma sont exactement les habitants incarnes par le cerveau ; un habitant desincarne puis reincarne garde son identite."""
 import argparse, datetime, json, os, pickle, time, zlib
-from . import monde as W, ecole as S, pont as PT, config as C, agents as A
+from . import monde as W, ecole as S, pont as PT, config as C, agents as A, roles as R
 
 CLASSES = {
     "soldat": ("I_Soldier_F", "ind"), "officier": ("I_officer_F", "ind"), "policier": ("B_GEN_Soldier_F", "ind"),
@@ -64,6 +64,7 @@ def main():
     p.add_argument("--doctrine", default="", help="doctrine des menages a charger ; ils continuent d apprendre en vivant")
     p.add_argument("--reprendre", action="store_true", help="repartir du dernier instantane du monde ( point 10 )")
     p.add_argument("--iles", default="Altis", help="les iles du monde, separees par des virgules ( point 13 )")
+    p.add_argument("--agents", default="", help="groupes d agents RETENUS a installer ( roles.py ), separes par des virgules")
     p.add_argument("--cerveau", default="llm", choices=["llm", "regles"], help="qui gouverne : Qwen ou le catalogue")
     p.add_argument("--eleve", default="llm", choices=["llm", "memoire", "sans_memoire"], help="qui va a l ecole")
     a = p.parse_args()
@@ -81,18 +82,27 @@ def main():
     if a.doctrine:
         w.doctrine = A.Doctrine.lire(a.doctrine, epsilon=0.05)     # il vit avec ce qu il a appris, et continue d apprendre
         print(f"doctrine chargee : {w.doctrine.n_lecons} lecons", flush=True)
+    dossier_doctrines = os.path.dirname(a.doctrine) if a.doctrine else "/mnt/data/hmt/monde/doctrine"
+    for nom in [n for n in a.agents.split(",") if n]:
+        d = A.Doctrine.lire(os.path.join(dossier_doctrines, f"{nom}.json"), epsilon=0.05)
+        w.agents[nom] = R.groupe(nom, mode="appris", doctrine=d)     # il vit avec ce qu il a appris, et continue
+        print(f"groupe d agents {nom} : {d.n_lecons} lecons", flush=True)
     pont = PT.Pont(a.port)
     trace = open(os.path.join(a.sortie, "trace_e2.jsonl"), "a")
     def noter(**d):
         d["t"] = round(time.time(), 2); trace.write(json.dumps(d, ensure_ascii=False) + "\n"); trace.flush()
     print(f"en attente d Arma sur le port {a.port}", flush=True)
     if not pont.attendre(600): print("Arma ne s est pas connecte"); return 2
-    for ile in a.iles.split(","):            # chaque ile doit s etre NOMMEE avant qu on y envoie un corps
-        if not pont.attendre(420, ile): print(f"l ile {ile} ne s est pas presentee", flush=True)
+    iles_voulues = a.iles.split(",")
+    for ile in iles_voulues:                 # chaque ile doit s etre NOMMEE avant qu on y envoie un corps
+        # 23/09 : avec plusieurs iles, un seul serveur encore anonyme passait pour toutes - le cerveau peuplait
+        # alors un seul serveur, puis purgeait 129 corps. On attend les noms, pas un repli.
+        if not pont.attendre(420, ile, exact=len(iles_voulues) > 1): print(f"l ile {ile} ne s est pas presentee", flush=True)
     print("iles connectees :", pont.iles(), flush=True)
     t0 = time.time()
     lot_date = pont.envoyer([["date", date_du_monde(w)], ["temps", C.ACCELERATION]])[0]
-    incarnes = {}                       # id -> ( lieu, poste ) ou le corps se trouve
+    incarnes = {}                       # id -> ( lieu, poste, ile ) ou le corps se trouve
+    depuis = {}                         # id -> instant de l ordre d incarnation ( on laisse a Arma le temps de repondre )
     arma = {"minutes": 0.0, "fps": None, "horloge": False, "par_ile": {}}   # l horloge n est crue qu apres l accuse du lot « date »
                                                              # ( sinon un cerveau relance rattraperait l ancienne heure )
     vus = {}                            # ( ile, id ) -> ( instant du dernier rapport, [id, x, y, vivant, vitesse] )
@@ -112,7 +122,7 @@ def main():
             if i not in incarnes:
                 classe, camp = classe_de(h); purges.discard((ile_de(h.lieu), i))
                 ordres.append(["incarner", i, classe, camp, [round(h.lieu.pos[0]), round(h.lieu.pos[1])], rayon(h.lieu), cle(h), ile_de(h.lieu)])
-                incarnes[i] = ou
+                incarnes[i] = ou; depuis[i] = time.time()
             elif incarnes[i] != ou:
                 # dans le regard, un changement de poste du cerveau ( maison -> travail, meme dans une seule ville )
                 # devient un deplacement du corps
@@ -152,6 +162,7 @@ def main():
         """L instantane : le monde entier, doctrine comprise. C est ce qui lui permet de durer au-dela d une soiree."""
         pickle.dump(w, open(instantane + ".tmp", "wb")); os.replace(instantane + ".tmp", instantane)
         if w.doctrine is not None: w.doctrine.ecrire(os.path.join(a.sortie, "doctrine.json"))
+        for nom, g in w.agents.items(): g.doctrine.ecrire(os.path.join(a.sortie, f"doctrine_{nom}.json"))
         noter(type="instantane", jour=w.jour, heure=round(w.heure, 2), vivants=sum(1 for h in w.habitants if h.vivant))
     while time.time() - t0 < a.duree:
         for ile_msg, m in pont.messages_iles(0.5):
@@ -216,14 +227,22 @@ def main():
         # y avoir, et la synchronisation suivante recree les corps
         if time.time() - dernier_controle > 30:
             dernier_controle = time.time()
-            for ile, n_ile in arma["par_ile"].items():
+            maintenant = time.time()
+            manquants_total = 0
+            for ile in list(arma["par_ile"]):
                 if ile == "inconnue": continue
-                crus = [k for k, v in incarnes.items() if v[2] == ile]
-                if crus and n_ile == 0:
-                    for k in crus: del incarnes[k]
-                    noter(type="repeuplement_ile", ile=ile, corps=len(crus))
-                    o = synchroniser()
-                    if o: poster(o)
+                # un corps que le cerveau croit sur cette ile, commande il y a plus de 20 s, et que l ile ne rapporte
+                # pas : il n existe pas. On l oublie, et la synchronisation le recree ( corps manquants du 23/09 ).
+                rapportes = {i for (il, i), (t, _) in vus.items() if il == ile and maintenant - t < 10}
+                if not rapportes and arma["par_ile"].get(ile, 0) > 0: continue      # pas de rapport frais : on attend
+                manquants = [k for k, v in incarnes.items()
+                             if v[2] == ile and k not in rapportes and maintenant - depuis.get(k, 0) > 20]
+                for k in manquants: del incarnes[k]
+                manquants_total += len(manquants)
+                if manquants: noter(type="repeuplement", ile=ile, corps=len(manquants))
+            if manquants_total:
+                o = synchroniser()
+                if o: poster(o)
         if w.jour != dernier_jour:            # un instantane par jour du monde
             dernier_jour = w.jour; garder()
         if time.time() - dernier_log > 60:
