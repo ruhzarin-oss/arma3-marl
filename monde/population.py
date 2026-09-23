@@ -23,168 +23,172 @@ PENSION_JOUR = 20     # retraite versee par l Etat
 POSTES = ("maison", "travail", "hopital", "voyage")
 CODE_POSTE = {p: i for i, p in enumerate(POSTES)}
 CODE_HORAIRE = {None: -1, "jour": 0, "bureau": 1, "nuit": 2, "ecole": 3, "marche": 4, "garde": 5}
-CODE_ETAT = {"S": 0, "E": 1, "I": 2, "R": 3}
-CODE_ROLE = {r: i for i, r in enumerate(C.ROLES)}
+HORAIRE_DE_CODE = {c: h for h, c in CODE_HORAIRE.items()}
+ETATS = ("S", "E", "I", "R")
+CODE_ETAT = {e: i for i, e in enumerate(ETATS)}
+ROLES = tuple(C.ROLES)
+CODE_ROLE = {r: i for i, r in enumerate(ROLES)}
+CLASSES = ("aisee", "moyenne", "populaire")
+CODE_CLASSE = {c: i for i, c in enumerate(CLASSES)}
+
+
+def _agrandir(table, champs):
+    """Double la capacite d une table de colonnes : une naissance ne recopie pas le pays a chaque fois."""
+    neuve = table.capacite * 2
+    for nom, (dt, defaut) in champs.items():
+        vieille = getattr(table, nom)
+        t = np.full(neuve, defaut, dt); t[:table.capacite] = vieille
+        setattr(table, nom, t)
+    table.capacite = neuve
 
 
 class Table:
     """Les habitants en COLONNES : un tableau par attribut, une ligne par habitant ( la ligne est son identifiant ).
 
-    C est la forme que le coeur Rust lit sur tous les coeurs a la fois ( monde/essai_coeur.py : x183 sur `deplacer`
-    a un million d habitants ). Deux sortes de colonnes :
-      - celles que Rust ECRIT ( lieu, poste, heures, travaille ) : la colonne fait foi, l habitant la lit ;
-      - celles que Rust LIT ( vivant, etat, gravite, faim, horaire... ) : l habitant garde sa valeur et la recopie
-        dans la colonne a chaque ecriture, pour que Python lise vite et que Rust lise juste."""
+    Il n y a plus d objet par habitant ( 23/09 : ~620 octets l objet contre 72 la ligne ; un milliard d objets aurait
+    demande 675 Go ). Un `Habitant` n est qu une vue sur une ligne, fabriquee a la lecture puis oubliee. Tout ce qui
+    decrit un habitant vit ici ; ce qui n est pas un nombre vit dans un code ( role, classe, etat, horaire, poste )."""
 
     CHAMPS = {"vivant": (np.uint8, 1), "lieu": (np.int32, -1), "poste": (np.uint8, 0), "heures": (np.float64, 0.0),
               "etat": (np.uint8, 0), "gravite": (np.float64, 0.0), "faim": (np.float64, 0.0),
               "horaire": (np.int8, -1), "equipe": (np.int32, 0), "decalage": (np.float64, 0.0),
               "travail": (np.int32, -1), "domicile": (np.int32, -1), "hopital": (np.int32, -1),
               "public": (np.uint8, 0), "role": (np.int16, -1), "travaille": (np.uint8, 0),
-              "age": (np.float64, 0.0), "menage": (np.int32, -1)}
+              "age": (np.float64, 0.0), "menage": (np.int32, -1), "rang": (np.int64, -1),
+              "classe": (np.uint8, 0), "jours_etat": (np.float64, 0.0), "remede": (np.uint8, 0),
+              "amendes": (np.int32, 0), "incarne": (np.uint8, 0), "eleve": (np.uint8, 0)}
 
     def __init__(self, par_n, capacite=1024):
         self.par_n = par_n                 # les lieux par numero ( Carte.par_n )
         self.n = 0
         self.capacite = capacite
+        self.noms = {}                     # les seuls noms qui ne se deduisent pas du numero ( les ministres )
+        self.rang_suivant = 0              # l ordre d arrivee dans les menages
+        self.menages = None                # la table des menages
         for nom, (dt, defaut) in self.CHAMPS.items(): setattr(self, nom, np.full(capacite, defaut, dt))
 
     def ajouter(self):
-        """Une ligne de plus ; la capacite double quand elle est pleine ( une naissance ne recopie pas le pays )."""
-        if self.n == self.capacite:
-            neuve = self.capacite * 2
-            for nom, (dt, defaut) in self.CHAMPS.items():
-                vieille = getattr(self, nom)
-                t = np.full(neuve, defaut, dt); t[:self.capacite] = vieille
-                setattr(self, nom, t)
-            self.capacite = neuve
+        if self.n == self.capacite: _agrandir(self, self.CHAMPS)
         self.n += 1
         return self.n - 1
 
 
+class TableMenages:
+    """Les menages en colonnes. Les MEMBRES d un menage ne sont pas stockes : ils se retrouvent par la colonne `menage`
+    des habitants, dans leur ORDRE D ARRIVEE ( colonne `rang` ) - c est lui qui donne la classe d un nouveau-ne."""
+
+    CHAMPS = {"caisse": (np.float64, 0.0), "garde_manger": (np.float64, 0.0), "domicile": (np.int32, -1)}
+
+    def __init__(self, habitants, capacite=1024):
+        self.h = habitants
+        self.par_n = habitants.par_n
+        self.n = 0
+        self.capacite = capacite
+        self.index = None                  # ( ordre des habitants trie par menage puis rang, debuts de chaque menage )
+        self.n_indexe = 0
+        self.ajouts = {}                   # les arrivees depuis la construction de l index ( les naissances )
+        for nom, (dt, defaut) in self.CHAMPS.items(): setattr(self, nom, np.full(capacite, defaut, dt))
+
+    def nouveau(self, domicile):
+        if self.n == self.capacite: _agrandir(self, self.CHAMPS)
+        self.n += 1
+        m = Menage(self.n - 1, self)
+        m.domicile = domicile
+        return m
+
+    def _construire(self):
+        t = self.h
+        n = t.n
+        m = t.menage[:n]
+        dedans = np.nonzero(m >= 0)[0]
+        ordre = dedans[np.lexsort((t.rang[dedans], m[dedans]))]
+        debuts = np.searchsorted(m[ordre], np.arange(self.n + 1))
+        self.index, self.n_indexe, self.ajouts = (ordre, debuts), n, {}
+
+    def rejoindre(self, hid, k):
+        """Un habitant entre dans le menage k. Un nouveau venu s ajoute a la fin ; un habitant deja indexe qui change
+        de menage oblige a refaire l index."""
+        if self.index is None: return
+        if hid < self.n_indexe: self.index = None
+        else: self.ajouts.setdefault(k, []).append(hid)
+
+    def membres_ids(self, k):
+        if self.index is None: self._construire()
+        ordre, debuts = self.index
+        ids = ordre[debuts[k]:debuts[k + 1]].tolist() if k + 1 < len(debuts) else []
+        return ids + self.ajouts.get(k, [])
+
+
 class Habitant:
-    __slots__ = ("id", "nom", "_role", "classe", "_menage", "_domicile", "_travail", "_horaire", "_equipe",
-                 "_etat", "jours_etat", "_gravite", "remede", "_vivant", "_faim", "amendes",
-                 "incarne", "eleve", "_decalage", "_t")
+    """Une VUE sur une ligne de la table : aucune donnee ici, seulement un numero et la table. Deux vues du meme
+    habitant sont egales ( meme numero ) sans etre le meme objet."""
+    __slots__ = ("id", "_t")
 
-    def __init__(self, id, role, classe, age, table):
-        self._t = table
-        ligne = table.ajouter()
-        assert ligne == id, f"la ligne de la table ( {ligne} ) doit etre l identifiant de l habitant ( {id} )"
-        self.id, self.role, self.classe, self.age = id, role, classe, age
-        self.nom = f"H{id:03d}"
-        self.menage = None; self.domicile = None; self.travail = None; self.horaire = None; self.equipe = 0
-        self.decalage = 0.0          # son quart d heure a lui : tout le monde ne part pas a la meme minute
-        self.lieu = None; self.poste = "maison"     # ou il est DANS son lieu : maison, travail, hopital
-        self.etat = "S"; self.jours_etat = 0.0; self.gravite = 0.0; self.remede = False; self.vivant = True
-        self.faim = 0.0; self.heures_jour = 0.0; self.amendes = 0
-        self.incarne = False; self.eleve = False
+    def __init__(self, table, id):
+        self._t, self.id = table, id
 
-    # --- ce que Rust LIT : la valeur vit ici ( lecture rapide en Python ), recopiee dans la table a chaque ecriture ---
+    @classmethod
+    def nouveau(cls, table, role, classe, age):
+        h = cls(table, table.ajouter())
+        h.role, h.classe, h.age = role, classe, age
+        h.menage = None; h.domicile = None; h.travail = None; h.horaire = None; h.equipe = 0
+        h.decalage = 0.0             # son quart d heure a lui : tout le monde ne part pas a la meme minute
+        h.lieu = None; h.poste = "maison"     # ou il est DANS son lieu : maison, travail, hopital
+        h.etat = "S"; h.jours_etat = 0.0; h.gravite = 0.0; h.remede = False; h.vivant = True
+        h.faim = 0.0; h.heures_jour = 0.0; h.amendes = 0
+        h.incarne = False; h.eleve = False
+        return h
+
+    def __eq__(self, autre): return isinstance(autre, Habitant) and autre.id == self.id and autre._t is self._t
+    def __hash__(self): return hash(self.id)
+    def __repr__(self): return f"Habitant({self.id}, {self.role})"
+
+    # --- les nombres ---
+    def _f(nom):
+        return property(lambda s: float(getattr(s._t, nom)[s.id]),
+                        lambda s, v: getattr(s._t, nom).__setitem__(s.id, v))
+
+    def _i(nom):
+        return property(lambda s: int(getattr(s._t, nom)[s.id]),
+                        lambda s, v: getattr(s._t, nom).__setitem__(s.id, v))
+
+    def _b(nom):
+        return property(lambda s: bool(getattr(s._t, nom)[s.id]),
+                        lambda s, v: getattr(s._t, nom).__setitem__(s.id, 1 if v else 0))
+
+    age = _f("age"); faim = _f("faim"); gravite = _f("gravite"); decalage = _f("decalage")
+    jours_etat = _f("jours_etat"); heures_jour = _f("heures")
+    equipe = _i("equipe"); amendes = _i("amendes")
+    vivant = _b("vivant"); remede = _b("remede"); incarne = _b("incarne"); eleve = _b("eleve")
+
+    # --- les codes ---
     @property
-    def role(self): return self._role
+    def role(self):
+        k = self._t.role[self.id]
+        return ROLES[k] if k >= 0 else None
 
     @role.setter
     def role(self, v):
-        self._role = v
         self._t.role[self.id] = CODE_ROLE.get(v, -1)
         self._t.public[self.id] = 1 if v in C.ROLES and C.ROLES[v][2] else 0
 
     @property
-    def domicile(self): return self._domicile
+    def classe(self): return CLASSES[self._t.classe[self.id]]
 
-    @domicile.setter
-    def domicile(self, v):
-        self._domicile = v
-        self._t.domicile[self.id] = v.n if v is not None else -1
-        self._t.hopital[self.id] = v.marche.n if (v is not None and v.marche is not None) else -1   # l hopital du malade
+    @classe.setter
+    def classe(self, v): self._t.classe[self.id] = CODE_CLASSE[v]
 
     @property
-    def travail(self): return self._travail
-
-    @travail.setter
-    def travail(self, v):
-        self._travail = v
-        self._t.travail[self.id] = v.n if v is not None else -1
-
-    @property
-    def horaire(self): return self._horaire
-
-    @horaire.setter
-    def horaire(self, v):
-        self._horaire = v
-        self._t.horaire[self.id] = CODE_HORAIRE[v]
-
-    @property
-    def equipe(self): return self._equipe
-
-    @equipe.setter
-    def equipe(self, v):
-        self._equipe = v
-        self._t.equipe[self.id] = v
-
-    @property
-    def decalage(self): return self._decalage
-
-    @decalage.setter
-    def decalage(self, v):
-        self._decalage = v
-        self._t.decalage[self.id] = v
-
-    @property
-    def etat(self): return self._etat
+    def etat(self): return ETATS[self._t.etat[self.id]]
 
     @etat.setter
-    def etat(self, v):
-        self._etat = v
-        self._t.etat[self.id] = CODE_ETAT[v]
+    def etat(self, v): self._t.etat[self.id] = CODE_ETAT[v]
 
     @property
-    def gravite(self): return self._gravite
+    def horaire(self): return HORAIRE_DE_CODE[int(self._t.horaire[self.id])]
 
-    @gravite.setter
-    def gravite(self, v):
-        self._gravite = v
-        self._t.gravite[self.id] = v
-
-    @property
-    def faim(self): return self._faim
-
-    @faim.setter
-    def faim(self, v):
-        self._faim = v
-        self._t.faim[self.id] = v
-
-    @property
-    def vivant(self): return self._vivant
-
-    @vivant.setter
-    def vivant(self, v):
-        self._vivant = v
-        self._t.vivant[self.id] = 1 if v else 0
-
-    @property
-    def menage(self): return self._menage
-
-    @menage.setter
-    def menage(self, v):
-        self._menage = v
-        self._t.menage[self.id] = v.id if v is not None else -1
-
-    # --- ce que les routines en colonnes ECRIVENT : la colonne fait foi, l habitant la lit ---
-    @property
-    def age(self): return float(self._t.age[self.id])
-
-    @age.setter
-    def age(self, v): self._t.age[self.id] = v
-
-    @property
-    def lieu(self):
-        k = self._t.lieu[self.id]
-        return self._t.par_n[k] if k >= 0 else None
-
-    @lieu.setter
-    def lieu(self, v): self._t.lieu[self.id] = v.n if v is not None else -1
+    @horaire.setter
+    def horaire(self, v): self._t.horaire[self.id] = CODE_HORAIRE[v]
 
     @property
     def poste(self): return POSTES[self._t.poste[self.id]]
@@ -193,10 +197,46 @@ class Habitant:
     def poste(self, v): self._t.poste[self.id] = CODE_POSTE[v]
 
     @property
-    def heures_jour(self): return float(self._t.heures[self.id])
+    def nom(self): return self._t.noms.get(self.id) or f"H{self.id:03d}"
 
-    @heures_jour.setter
-    def heures_jour(self, v): self._t.heures[self.id] = v
+    @nom.setter
+    def nom(self, v): self._t.noms[self.id] = v
+
+    # --- les lieux ( des numeros dans la carte ) ---
+    def _lieu(nom):
+        def lire(s):
+            k = getattr(s._t, nom)[s.id]
+            return s._t.par_n[k] if k >= 0 else None
+        def ecrire(s, v): getattr(s._t, nom)[s.id] = v.n if v is not None else -1
+        return property(lire, ecrire)
+
+    lieu = _lieu("lieu"); travail = _lieu("travail")
+
+    @property
+    def domicile(self):
+        k = self._t.domicile[self.id]
+        return self._t.par_n[k] if k >= 0 else None
+
+    @domicile.setter
+    def domicile(self, v):
+        self._t.domicile[self.id] = v.n if v is not None else -1
+        self._t.hopital[self.id] = v.marche.n if (v is not None and v.marche is not None) else -1   # l hopital du malade
+
+    # --- le menage ---
+    @property
+    def menage(self):
+        k = self._t.menage[self.id]
+        return Menage(int(k), self._t.menages) if k >= 0 else None
+
+    @menage.setter
+    def menage(self, v):
+        t = self._t
+        t.menage[self.id] = v.id if v is not None else -1
+        if v is not None:
+            t.rang[self.id] = t.rang_suivant; t.rang_suivant += 1
+            t.menages.rejoindre(self.id, v.id)
+
+    del _f, _i, _b, _lieu
 
     def au_travail(self, heure):
         """Vrai si l horaire de cet habitant le met au travail a cette heure du monde.
@@ -214,26 +254,101 @@ class Habitant:
 
 
 class Menage:
-    def __init__(self, id, domicile):
-        self.id, self.domicile = id, domicile
-        self.membres = []
-        self.caisse = 0.0
-        self.garde_manger = 0.0      # nourriture en reserve a la maison
+    """Une VUE sur une ligne de la table des menages."""
+    __slots__ = ("id", "_mt")
+
+    def __init__(self, id, mt):
+        self.id, self._mt = id, mt
+
+    def __eq__(self, autre): return isinstance(autre, Menage) and autre.id == self.id and autre._mt is self._mt
+    def __hash__(self): return hash(("menage", self.id))
+    def __repr__(self): return f"Menage({self.id})"
+
+    @property
+    def caisse(self): return float(self._mt.caisse[self.id])
+
+    @caisse.setter
+    def caisse(self, v): self._mt.caisse[self.id] = v
+
+    @property
+    def garde_manger(self): return float(self._mt.garde_manger[self.id])
+
+    @garde_manger.setter
+    def garde_manger(self, v): self._mt.garde_manger[self.id] = v
+
+    @property
+    def domicile(self):
+        k = self._mt.domicile[self.id]
+        return self._mt.par_n[k] if k >= 0 else None
+
+    @domicile.setter
+    def domicile(self, v): self._mt.domicile[self.id] = v.n if v is not None else -1
+
+    @property
+    def membres(self):
+        """Les membres, dans leur ordre d arrivee. Une liste neuve a chaque lecture : `membres.append(...)` ne sert a
+        rien, c est `habitant.menage = menage` qui fait entrer quelqu un."""
+        t = self._mt.h
+        return [Habitant(t, i) for i in self._mt.membres_ids(self.id)]
 
     def adultes(self):
         return [h for h in self.membres if h.role not in ("enfant",) and h.vivant]
 
 
+class Population:
+    """Les habitants du pays, sans un seul objet stocke : chaque lecture fabrique une vue. `len`, l indexation et
+    l iteration marchent comme sur une liste ; `append` ne fait rien ( la ligne existe deja )."""
+    __slots__ = ("_t",)
+
+    def __init__(self, table): self._t = table
+    def __len__(self): return self._t.n
+
+    def __getitem__(self, i):
+        n = self._t.n
+        if isinstance(i, slice): return [Habitant(self._t, k) for k in range(*i.indices(n))]
+        i = int(i)
+        if i < 0: i += n
+        if not 0 <= i < n: raise IndexError(i)
+        return Habitant(self._t, i)
+
+    def __iter__(self):
+        t = self._t
+        return (Habitant(t, i) for i in range(t.n))
+
+    def append(self, h): pass
+
+
+class Menages:
+    """Les menages du pays, sans objet stocke."""
+    __slots__ = ("_mt",)
+
+    def __init__(self, mt): self._mt = mt
+    def __len__(self): return self._mt.n
+
+    def __getitem__(self, i):
+        n = self._mt.n
+        if isinstance(i, slice): return [Menage(k, self._mt) for k in range(*i.indices(n))]
+        i = int(i)
+        if i < 0: i += n
+        if not 0 <= i < n: raise IndexError(i)
+        return Menage(i, self._mt)
+
+    def __iter__(self):
+        mt = self._mt
+        return (Menage(k, mt) for k in range(mt.n))
+
+
 def generer(carte, rng, echelle=1.0, table=None):
     """Cree la population et ses menages, deterministe a graine fixee. `echelle` multiplie chaque metier : le pays
     garde ses proportions, il change de taille."""
-    H = []
     table = table if table is not None else Table(carte.par_n)
+    mt = TableMenages(table); table.menages = mt
+    H = Population(table)
     for role, (n, classe, _) in C.ROLES.items():
         for _ in range(max(1, int(round(n * echelle)))):
             age = int(rng.integers(6, 18)) if role == "enfant" else int(rng.integers(65, 86)) if role == "retraite" \
                 else int(rng.integers(20, 65))
-            H.append(Habitant(len(H), role, classe, age, table))
+            Habitant.nouveau(table, role, classe, age)
     # lieux de travail : repartition equilibree sur les lieux du bon type
     compteur = {}
     for h in H:
@@ -253,14 +368,14 @@ def generer(carte, rng, echelle=1.0, table=None):
             h.domicile = h.travail if h.travail.type in ("capitale", "ville", "village") else \
                 carte.plus_proche(h.travail, ("capitale", "ville", "village"))
     # menages : chaque adulte actif fonde un menage ; enfants et retraites rejoignent un menage au hasard
-    M = []
+    M = Menages(mt)
     for h in H:
         if h.role not in ("enfant", "retraite"):
-            m = Menage(len(M), h.domicile); m.membres.append(h); h.menage = m; M.append(m)
+            h.menage = mt.nouveau(h.domicile)
     for h in H:
         if h.role in ("enfant", "retraite"):
             m = M[int(rng.integers(0, len(M)))]
-            m.membres.append(h); h.menage = m; h.domicile = m.domicile
+            h.menage = m; h.domicile = m.domicile
             if h.role == "enfant":      # un enfant va a l ecole de la capitale de son marche
                 h.travail = h.domicile.marche
     for h in H:

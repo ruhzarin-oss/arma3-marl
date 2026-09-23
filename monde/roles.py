@@ -134,11 +134,11 @@ def noter_travailleurs(w, g):
     contaminations de son lieu de travail ce jour-la lui reviennent, partagees entre les contagieux presents."""
     contagieux = {}
     for pid, k in g.choix.items():
-        p = w.par_id.get(pid)
+        p = (w.habitants[pid] if 0 <= pid < len(w.habitants) else None)
         if p is not None and p.vivant and k == 0 and p.etat == "I" and p.travail is not None:
             contagieux[p.travail.id] = contagieux.get(p.travail.id, 0) + 1
     for pid in list(g.memoire):
-        p = w.par_id.get(pid)
+        p = (w.habitants[pid] if 0 <= pid < len(w.habitants) else None)
         if p is None or not p.vivant: continue
         r = (1.0 if w.nourri_menage.get(p.menage.id, True) else 0.0) - 2.0 * (pid in w.infectes_du_jour)
         if g.choix.get(pid) == 0 and p.etat == "I" and p.travail is not None:

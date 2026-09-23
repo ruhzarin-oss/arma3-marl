@@ -19,6 +19,8 @@ class Monde:
         self.graine = graine
         self.carte = K.Carte(iles=tuple(iles))
         self.table = P.Table(self.carte.par_n)          # les habitants en colonnes ( ce que lit le coeur Rust )
+        # le marche dont depend chaque lieu, par numero ( -1 : aucun ) - l index de la population par marche le lit
+        self._marche_du_lieu = np.array([l.marche.n if l.marche is not None else -1 for l in self.carte.par_n], np.int64)
         self.habitants, self.menages = P.generer(self.carte, self.rng, echelle, self.table)
         self.utiliser_coeur = COEUR is not None
         self._colonnes_fraiches = False                 # vrai quand `deplacer` a rempli la colonne « travaille » ce pas
@@ -58,7 +60,7 @@ class Monde:
             self.garnisons[b.id]["carburant"] = 5 * self.besoin_patrouille(b)
         self.convois = []; self.n_convoi = 0
         self.conducteur_libre = {h.id: 0 for h in self.habitants if h.role == "convoyeur"}
-        self._pop_marche = {}; self._par_travail = {}
+        self._pop_marche = {}
         self.indexer()
         self.cerveau = G.CerveauLLM() if cerveau == "llm" else None
         self.marchand = None               # pose par monde/apprenti.py : le reseau qui apprend a expedier
@@ -315,7 +317,7 @@ class Monde:
         for k in nes:
             mg = self.menages[int(k)]
             premier = next(x for x in mg.membres if x.vivant and x.role != "enfant" and x.age < 45)
-            b = P.Habitant(self.table.n, "enfant", premier.classe, 0, self.table)   # sa ligne est son numero
+            b = P.Habitant.nouveau(self.table, "enfant", premier.classe, 0)   # sa ligne est son numero
             b.menage, b.domicile, b.lieu = mg, mg.domicile, mg.domicile
             b.horaire, b.travail = "ecole", mg.domicile.marche
             mg.membres.append(b); self.habitants.append(b)
@@ -344,7 +346,7 @@ class Monde:
             adultes = [x for x in mg.membres if x.vivant and x.role != "enfant" and x.age < 45]
             if not adultes: continue
             if self.rng.random() < C.NAISSANCES_PAR_MENAGE_AN / C.JOURS_PAR_AN:
-                b = P.Habitant(self.table.n, "enfant", adultes[0].classe, 0, self.table)   # sa ligne est son numero
+                b = P.Habitant.nouveau(self.table, "enfant", adultes[0].classe, 0)   # sa ligne est son numero
                 b.menage, b.domicile, b.lieu = mg, mg.domicile, mg.domicile
                 b.horaire, b.travail = "ecole", mg.domicile.marche
                 mg.membres.append(b); self.habitants.append(b)
@@ -364,31 +366,54 @@ class Monde:
         h.travail = min(lieux, key=lambda l: l.distance(h.domicile)) if lieux else h.domicile
         self._compte_role[role] = self._compte_role.get(role, 0) + 1           # il compte des maintenant
         self._compte_role["enfant"] = max(0, self._compte_role.get("enfant", 1) - 1)
-        self._par_travail.setdefault((h.travail.id, role), []).append(h)
+        self._travail_ajouts.setdefault(self._cle_travail(h.travail, role), []).append(h.id)
         self.noter("entree_vie_active", habitant=h.id, role=role, lieu=getattr(h.travail, "id", None))
 
     def indexer(self):
-        """Les index du pays, refaits une fois par jour. Sans eux, chaque marche et chaque entreprise reparcourent
-        toute la population a chaque pas : le cout devient quadratique ( mesure du 23/09 : 42 s par jour a 50 000
-        habitants, 625 s a 200 000 - quinze fois plus cher pour quatre fois plus de monde )."""
-        self._pop_marche = {}
-        for mg in self.menages:
-            if mg.domicile is None or mg.domicile.marche is None: continue
-            k = mg.domicile.marche.id
-            self._pop_marche[k] = self._pop_marche.get(k, 0) + len([p for p in mg.membres if p.vivant])
-        self.par_id = {p.id: p for p in self.habitants}
-        self._par_travail = {}
-        self._compte_role = {}
+        """Les index du pays, refaits une fois par jour, SUR LES COLONNES : population de chaque marche, habitants par
+        ( lieu de travail, metier ) dans l ordre des habitants, compte par metier, lieux de chaque metier. Sans index,
+        chaque marche et chaque entreprise reparcouraient toute la population a chaque pas ( 23/09 : 42 s par jour a
+        50 000 habitants, 625 s a 200 000 )."""
+        t, n = self.table, self.table.n
+        vivant = t.vivant[:n] == 1
+        mt = t.menages
+        # la population de chaque marche : les vivants, comptes au marche du domicile de leur MENAGE
+        mm = t.menage[:n]
+        marche = self._marche_du_lieu[mt.domicile[:mt.n][mm[vivant & (mm >= 0)]]]
+        comptes = np.bincount(marche[marche >= 0], minlength=len(self.carte.par_n))
+        self._pop_marche = {self.carte.par_n[k].id: int(comptes[k]) for k in np.nonzero(comptes)[0]}
+        # qui travaille ou : par ( lieu, metier ), dans l ordre des habitants ( tri stable )
+        ro, tr, nr = t.role[:n], t.travail[:n], len(P.ROLES)
+        par_role = np.bincount(ro[vivant & (ro >= 0)], minlength=nr)
+        self._compte_role = {P.ROLES[r]: int(c) for r, c in enumerate(par_role) if c}
+        occupes = np.nonzero(vivant & (tr >= 0))[0]
+        cles = tr[occupes].astype(np.int64) * nr + ro[occupes]
+        tri = np.argsort(cles, kind="stable")
+        self._travail_ordre, cles = occupes[tri], cles[tri]
+        uniques, debuts = np.unique(cles, return_index=True)
+        fins = np.append(debuts[1:], len(cles))
+        self._travail_tranches = {int(c): (int(d), int(f)) for c, d, f in zip(uniques, debuts, fins)}
+        self._travail_ajouts = {}            # les embauches du jour, ajoutees a la fin de leur tranche
         self._lieux_par_role = {}
-        for p in self.habitants:
-            if not p.vivant: continue
-            self._compte_role[p.role] = self._compte_role.get(p.role, 0) + 1
-            if p.travail is not None:
-                self._par_travail.setdefault((p.travail.id, p.role), []).append(p)
-                self._lieux_par_role.setdefault(p.role, set()).add(p.travail)
+        for c in uniques: self._lieux_par_role.setdefault(P.ROLES[int(c) % nr], set()).add(self.carte.par_n[int(c) // nr])
+
+    def _cle_travail(self, lieu, role): return lieu.n * len(P.ROLES) + P.CODE_ROLE[role]
+
+    def ids_au_travail(self, lieu, role):
+        cle = self._cle_travail(lieu, role)
+        d, f = self._travail_tranches.get(cle, (0, 0))
+        return self._travail_ordre[d:f].tolist() + self._travail_ajouts.get(cle, [])
 
     def au_travail_de(self, lieu, role):
-        return self._par_travail.get((lieu.id, role), [])
+        """Les habitants ( vues ) qui travaillent a ce lieu dans ce metier, dans l ordre des habitants."""
+        t = self.table
+        return [P.Habitant(t, i) for i in self.ids_au_travail(lieu, role)]
+
+    def nombre_au_travail(self, lieu, role):
+        cle = self._cle_travail(lieu, role)
+        d, f = self._travail_tranches.get(cle, (0, 0))
+        return (f - d) + len(self._travail_ajouts.get(cle, []))
+
 
     def aube(self):
         self.demographie()
@@ -645,7 +670,7 @@ class Monde:
     def probabilite_controle(self, m):
         """La chance qu une fraude soit controlee dans la region d un marche : ses policiers, rapportes a ses menages,
         fois l intensite voulue par l Etat."""
-        policiers = len(self.au_travail_de(m.lieu, "policier"))
+        policiers = self.nombre_au_travail(m.lieu, "policier")
         menages = max(1.0, self._pop_marche.get(m.lieu.id, 0) / 2.5)
         return min(0.9, C.CONTROLE_PAR_POLICIER * self.intensite_controle * policiers / max(1.0, menages / 10.0))
 

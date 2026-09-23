@@ -1,0 +1,4 @@
+1,000,000 habitants, 732,000 menages, cree en 70 s
+memoire apres creation : 240 Mo ( Python nu 36 Mo ) -> 204 octets par habitant
+UNE JOURNEE : 29.1 s | pic memoire 357 Mo
+projection 50 millions : 9.9 Go ; 1 milliard : 199 Go
