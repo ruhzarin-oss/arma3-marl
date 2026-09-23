@@ -98,6 +98,10 @@ Deux fichiers, et **seulement** ces deux-là :
   | patrouilles, ravitailler_bases | armee |
 
   Un domaine qui a besoin d'une autre méthode le dit dans son rapport au lieu de la remplacer.
+- **Reprendre des entreprises du moteur** (fermes, mines, centrales...) : `p.reprendre(e, "<nom>")`. Le moteur n'y
+  produit plus (activité remise à 0 à 6 h 10, après la règle de l'aube) ; le domaine produit lui-même, met à jour
+  `livre.flux` pour ce qu'il crée ou consomme, et crédite `Habitant.heures_jour` des heures réellement travaillées
+  pour que la paie du moteur (ou du domaine travail) les paie. `p.repris` dit qui fait vivre quoi.
 - Morts : TOUTE mort passe par `d01_population.deceder(p, h, cause)` (causes : `d01.CAUSES`, en ajouter se discute).
   Nouveaux ménages : `d01.nouveau_menage`. Changer un habitant de ménage : `d01.deplacer_membre`.
 

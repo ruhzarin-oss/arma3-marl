@@ -19,7 +19,9 @@ Ce qu un domaine recoit ( `p` ) :
   p.decideur( point )                le Decideur d un point, dans le mode demande a l installation
   p.hasard( dom ), p.du_jour( dom )  le flux de hasard du domaine ; son flux du jour
   p.noter( type, **champs ), p.compter( type, valeur )   le journal
-  p.domaine( nom ), p.a( nom )       l etat d un autre domaine ; s il est installe"""
+  p.domaine( nom ), p.a( nom )       l etat d un autre domaine ; s il est installe
+  p.reprendre( e, dom )              declare qu un domaine fait vivre l entreprise du moteur `e` a sa place : le moteur
+                                     n y produit plus ( activite 0, reposee apres chaque regle de l aube )"""
 import importlib
 import numpy as np
 from .. import config as C
@@ -100,6 +102,12 @@ class Colonnes:
     def __contains__(self, nom): return nom in self.cols
 
 
+def _neutraliser_repris(p):
+    """6 h 10, apres la regle d activite de l aube : les entreprises reprises par un domaine ne produisent plus par le
+    moteur ( la production du moteur commence a 7 h )."""
+    for eid in p.repris: p.w.entreprises[eid].activite = 0.0
+
+
 class Horloge:
     """Remplace w.pas_suivant : le pas du moteur, puis le pays. Un objet et non une fonction liee, pour que
     l instantane le reconstruise sans boucler sur lui-meme."""
@@ -112,7 +120,7 @@ class Horloge:
 
 class Pays:
     __slots__ = ("w", "socle", "domaines", "routines", "gestionnaires", "colonnes", "decideurs", "modes", "clotures",
-                 "comptes_hier")
+                 "comptes_hier", "repris")
 
     def __init__(self, w, modes=None):
         self.w = w
@@ -125,6 +133,7 @@ class Pays:
         self.modes = dict(modes or {})   # nom du point -> mode ( regle par defaut )
         self.clotures = []          # ( domaine, fonction( pays, comptes ) )
         self.comptes_hier = None    # les comptes du grand livre de la veille : la matiere de la statistique
+        self.repris = {}            # identifiant d une entreprise du moteur -> domaine qui la fait vivre a sa place
 
     # ------------------------------------------------------------------ le temps
     @property
@@ -169,6 +178,17 @@ class Pays:
         return d
 
     def a(self, nom): return nom in self.domaines
+
+    def reprendre(self, e, domaine):
+        """Un domaine prend en charge une entreprise du moteur ( ferme, mine, centrale... ) : le moteur n y produit
+        plus. L activite est remise a zero apres chaque regle de l aube ( routine de 6 h 10 ). Le domaine produit
+        lui-meme, compte les heures travaillees ( Habitant.heures_jour ) pour que la paie les paie, et tient les flux."""
+        deja = self.repris.get(e.id)
+        if deja is not None and deja != domaine: raise ValueError(f"{e.id} deja repris par {deja}")
+        self.repris[e.id] = domaine
+        e.activite = 0.0
+        if not any(f is _neutraliser_repris for _, _, f in self.routines.get(370, ())):
+            self.routine(6 + 10 / 60, 0, "pays", _neutraliser_repris)
 
     def hasard(self, domaine): return self.socle.hasard.flux(domaine)
 
