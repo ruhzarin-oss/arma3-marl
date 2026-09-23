@@ -11,6 +11,9 @@ use rayon::prelude::*;
 /// Les horaires du monde, dans l ordre des codes : jour, bureau, nuit, ecole, marche ( 5 = garde, -1 = aucun ).
 const HORAIRES: [(f64, f64); 5] = [(7.0, 15.0), (8.0, 17.0), (22.0, 6.0), (8.0, 15.0), (8.0, 19.0)];
 const GARDE: i8 = 5;
+/// En dessous, le calcul reste sur un coeur ; au-dessus, il est reparti par paquets de PAQUET habitants.
+const SEUIL_PARALLELE: usize = 20_000;
+const PAQUET: usize = 8_192;
 
 /// `Habitant.au_travail`, mot pour mot. Attention au modulo : Python rend un reste du signe du diviseur,
 /// Rust du signe du dividende - d ou `rem_euclid`, sans quoi une garde de nuit se trompait d equipe avant minuit.
@@ -65,42 +68,53 @@ fn deplacer<'py>(
     let poste = poste.as_slice_mut()?;
     let heures = heures.as_slice_mut()?;
     let travaille = travaille.as_slice_mut()?;
-    // le verrou de Python est rendu pendant le calcul : tous les coeurs travaillent, Python attend
-    py.allow_threads(|| {
-        lieu.par_iter_mut()
-            .zip(poste.par_iter_mut())
-            .zip(heures.par_iter_mut())
-            .zip(travaille.par_iter_mut())
-            .enumerate()
-            .for_each(|(i, (((l, p), hj), tr))| {
-                if vivant[i] == 0 {
-                    *tr = 0;
-                    return;
-                }
-                let malade = etat[i] == 2;
-                let a_son_heure = au_travail(heure, decalage[i], horaire[i], equipe[i], true, malade, gravite[i]);
-                *tr = a_son_heure as u8;
-                if sauter[i] != 0 {
-                    return;
-                }
-                if malade && gravite[i] > 0.3 {
-                    *l = hopital[i];
-                    *p = 2;
-                    return;
-                }
-                let veut = enferme[i] == 0 && !(faim[i] > absence_faim);
-                if travail[i] >= 0 && veut && a_son_heure {
-                    *l = travail[i];
-                    *p = 1;
-                    if public[i] != 0 {
-                        *hj += heures_par_pas;
-                    }
-                } else {
-                    *l = domicile[i];
-                    *p = 0;
-                }
-            });
-    });
+    // un habitant : ou il va a ce pas. Le meme corps sert au calcul seul et au calcul parallele.
+    let un = |i: usize, l: &mut i32, p: &mut u8, hj: &mut f64, tr: &mut u8| {
+        if vivant[i] == 0 {
+            *tr = 0;
+            return;
+        }
+        let malade = etat[i] == 2;
+        let a_son_heure = au_travail(heure, decalage[i], horaire[i], equipe[i], true, malade, gravite[i]);
+        *tr = a_son_heure as u8;
+        if sauter[i] != 0 {
+            return;
+        }
+        if malade && gravite[i] > 0.3 {
+            *l = hopital[i];
+            *p = 2;
+            return;
+        }
+        let veut = enferme[i] == 0 && !(faim[i] > absence_faim);
+        if travail[i] >= 0 && veut && a_son_heure {
+            *l = travail[i];
+            *p = 1;
+            if public[i] != 0 {
+                *hj += heures_par_pas;
+            }
+        } else {
+            *l = domicile[i];
+            *p = 0;
+        }
+    };
+    if lieu.len() < SEUIL_PARALLELE {
+        // un petit monde : reveiller vingt fils coutait 470 microsecondes pour 500 habitants ( mesure du 23/09 ),
+        // cent fois le calcul lui-meme. Un seul coeur suffit.
+        for (i, (((l, p), hj), tr)) in lieu.iter_mut().zip(poste.iter_mut()).zip(heures.iter_mut()).zip(travaille.iter_mut()).enumerate() {
+            un(i, l, p, hj, tr);
+        }
+    } else {
+        // le verrou de Python est rendu pendant le calcul : tous les coeurs travaillent, par paquets assez gros
+        py.allow_threads(|| {
+            lieu.par_iter_mut()
+                .zip(poste.par_iter_mut())
+                .zip(heures.par_iter_mut())
+                .zip(travaille.par_iter_mut())
+                .enumerate()
+                .with_min_len(PAQUET)
+                .for_each(|(i, (((l, p), hj), tr))| un(i, l, p, hj, tr));
+        });
+    }
     Ok(())
 }
 
