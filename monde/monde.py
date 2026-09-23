@@ -54,7 +54,7 @@ class Monde:
         self.marchand = None               # pose par monde/apprenti.py : le reseau qui apprend a expedier
         self.doctrine = None               # posee par monde/former.py : ce que les menages ont appris ( point 1 )
         self.agents = {}                   # groupes d agents installes ( roles.py ) : nom -> Groupe ; absent = la regle
-        self.faim_region = {}; self.nourri_menage = {}; self.infectes_du_jour = set()
+        self.faim_region = {}; self.nourri_menage = {}; self.infectes_du_jour = set(); self.contagions_lieu = {}
         self.amendes_menage = {}; self.intensite_controle = 1.0
         self.patrouilles_jour = {}; self.derniere_livraison = {}; self.livraison_ratee = {}
         self.coupures = []                 # routes coupees pour un temps : [{ lieu, debut, jours }]
@@ -345,6 +345,7 @@ class Monde:
         if g: R.noter_armee(self, g)          # les patrouilles d hier soir et de ce matin sont comptees
         self.patrouilles_jour = {}
         self.infectes_du_jour = set()
+        self.contagions_lieu = {}             # nouvelles contaminations du jour, par lieu ( la note des travailleurs )
         self.routes_temporaires = {c["lieu"] for c in self.coupures if c["debut"] <= self.jour < c["debut"] + c["jours"]}
         g = self.agents.get("entreprises")
         if g: R.decider_entreprises(self, g)
@@ -734,6 +735,7 @@ class Monde:
                 if p.etat == "S" and self.rng.random() < proba * (1.5 if p.faim > 1 else 1.0):
                     p.etat, p.jours_etat = "E", 0.0
                     self.infectes_du_jour.add(p.id)
+                    self.contagions_lieu[p.lieu.id] = self.contagions_lieu.get(p.lieu.id, 0) + 1
                     self.noter("infection", habitant=p.id, lieu=p.lieu.id)
 
     def progression_maladie(self):

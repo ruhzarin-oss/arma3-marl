@@ -78,6 +78,17 @@ def borne(v, a=-1.0, b=1.0): return max(a, min(b, v))
 def nourris(w, marche_id): return 1.0 - w.faim_region.get(marche_id, 0.0)
 
 
+def manque(w, m, b):
+    """Ce qui manque a un marche pour tenir sa reserve de ce bien, en part de la reserve ( 0 : rien ne manque )."""
+    r = max(1.0, w.reserve_marche(m, b))
+    return max(0.0, r - m.stocks[b]) / r
+
+
+def utilite_livraison(w, m, b, q):
+    """Tentative 2 : un chargement vaut ce qu il manquait LA OU IL ARRIVE - le reste finit en stock dormant ou au port."""
+    return min(1.0, max(0.0, w.reserve_marche(m, b) - m.stocks[b]) / max(1e-6, q))
+
+
 # ================================================================== les travailleurs
 # Chaque matin, chaque adulte qui a un poste choisit : aller travailler ( 0 ) ou rester chez lui ( 1 ).
 # C est ce choix qui couvre desormais la quarantaine violee et l epuisement : il n y a plus de regle, il y a un choix.
@@ -119,11 +130,19 @@ def va_travailler(g, p):
 
 
 def noter_travailleurs(w, g):
-    """Le soir : son menage a-t-il mange ? est-il tombe malade aujourd hui ?"""
+    """Le soir : son menage a-t-il mange ? est-il tombe malade ? et s il est alle travailler CONTAGIEUX, les
+    contaminations de son lieu de travail ce jour-la lui reviennent, partagees entre les contagieux presents."""
+    contagieux = {}
+    for pid, k in g.choix.items():
+        p = w.par_id.get(pid)
+        if p is not None and p.vivant and k == 0 and p.etat == "I" and p.travail is not None:
+            contagieux[p.travail.id] = contagieux.get(p.travail.id, 0) + 1
     for pid in list(g.memoire):
         p = w.par_id.get(pid)
         if p is None or not p.vivant: continue
         r = (1.0 if w.nourri_menage.get(p.menage.id, True) else 0.0) - 2.0 * (pid in w.infectes_du_jour)
+        if g.choix.get(pid) == 0 and p.etat == "I" and p.travail is not None:
+            r -= w.contagions_lieu.get(p.travail.id, 0) / max(1, contagieux.get(p.travail.id, 1))
         g.noter(pid, r)
 
 
@@ -175,11 +194,14 @@ def decider_entreprises(w, g):
 
 
 def noter_entreprises(w, g):
-    """Son profit du jour, et sa region : une ferme qui s enrichit pendant que ses voisins ont faim n a pas tout gagne."""
+    """Tentative 2 : son marche tenu dans la bande vaut 1 ; le profit ne compte que pour 0,3. Premiere tentative :
+    notees sur leur profit, elles ralentissaient et affamaient leur region ( -42 contre -23 )."""
     for e in entreprises_pilotables(w):
         if e.id not in g.memoire: continue
+        m, b, recette, cout, cible = w.economie_entreprise(e)
+        bande = 1.0 if 0.5 * cible <= m.stocks[b] <= 2 * cible else 0.0
         profit = borne((e.caisse - g.etat.get(e.id, e.caisse)) / 2000.0)
-        g.noter(e.id, profit + 0.5 * nourris(w, e.lieu.marche.id))
+        g.noter(e.id, bande + 0.3 * profit)
 
 
 # ================================================================== les marches
@@ -215,9 +237,9 @@ def noter_marches(w, g):
         if m is None: continue
         cible = cible_marche(w, m, b)
         bande = 1.0 if 0.5 * cible <= m.stocks[b] <= 2 * cible else 0.0
-        base = nourris(w, mid) if b == "nourriture" else 0.5
-        caisse = borne((m.caisse - g.etat.get(mid, m.caisse)) / 5000.0)
-        g.noter((mid, b), base + 0.5 * bande + 0.1 * caisse)
+        # tentative 2 : le prix du pain repond de la region nourrie, celui des autres biens de leur stock ; la caisse
+        # du marche sort de la note ( elle poussait les prix vers le haut )
+        g.noter((mid, b), nourris(w, mid) if b == "nourriture" else bande)
 
 
 # ================================================================== le commerce entre marches
@@ -249,21 +271,24 @@ def commerce_agents(w, g, h):
                  1.0 if b == "nourriture" else 0.0,
                  1.0]
             k = g.choisir((a.lieu.id, b), x)
-            if k == 0: continue
+            if k == 0:
+                # garder son surplus n est bon que si personne n en a besoin : sinon il finit au port
+                g.ajouter((a.lieu.id, b), 0.5 * (1.0 - max(manque(w, y, b) for y in autres)))
+                continue
             if k == 1: cible = max(autres, key=lambda y: y.prix[b])
             elif k == 2: cible = min(autres, key=lambda y: y.stocks[b] / max(1.0, w.reserve_marche(y, b)))
             else: cible = min(autres, key=lambda y: w.carte.km_route(a.lieu, y.lieu))
             q = min(surplus, C.CAPACITE_CAMION)
+            utile = utilite_livraison(w, cible, b, q)
             if w.lancer_convoi(a.lieu, cible.lieu, {b: q}, a, "commerce", a):
                 a.stocks[b] -= q
-                g.ajouter((a.lieu.id, b), borne((cible.prix[b] * (1 - cible.marge) - a.prix[b]) * q / 2000.0))
+                marge = borne((cible.prix[b] * (1 - cible.marge) - a.prix[b]) * q / 2000.0)
+                g.ajouter((a.lieu.id, b), utile + 0.1 * marge)
 
 
 def noter_commerce(w, g):
-    """Les regions que ce marche peut nourrir ont-elles mange ?"""
-    for (mid, b) in list(g.memoire):
-        autres = [k for k in w.marches if k != mid]
-        g.noter((mid, b), sum(nourris(w, k) for k in autres) / max(1, len(autres)))
+    """Tentative 2 : tout se joue au depart du camion ( ce qu il manquait la-bas ) ; la moyenne du pays ne note plus."""
+    for k in list(g.memoire): g.noter(k, 0.0)
 
 
 # ================================================================== l armee
@@ -323,25 +348,26 @@ def decider_voyageurs(w, g, aveugle=False):
              1.0]
         k = 1 if aveugle else g.choisir(ile, x)
         b = CARGAISONS[k]
-        if b is None: continue
+        if b is None:
+            if not aveugle: g.ajouter(ile, 0.5 * (1.0 - max(manque(w, m, "nourriture") for m in ailleurs)))
+            continue
         origine = max(ici, key=lambda m: m.stocks[b] - w.reserve_marche(m, b))
         dest = max(ailleurs, key=lambda m: m.prix[b])
         q = min(origine.stocks[b] - w.reserve_marche(origine, b), CAPACITE_BATEAU)
-        if q < 10: continue
-        marchand = w.marchand_libre(ile)
-        if marchand is None: continue
+        marchand = w.marchand_libre(ile) if q >= 10 else None
+        if marchand is None:
+            continue                                   # rien a charger ou personne pour partir : pas de note
+        utile = utilite_livraison(w, dest, b, q)
         origine.stocks[b] -= q
         w.embarquer(marchand, dest.lieu, sejour_jours=1.0,
                     cargaison={b: q}, marche_origine=origine.lieu.id, marche_dest=dest.lieu.id)
         if not aveugle:
-            g.ajouter(ile, borne((dest.prix[b] * (1 - dest.marge) - origine.prix[b]) * q / 3000.0))
+            g.ajouter(ile, utile + 0.1 * borne((dest.prix[b] * (1 - dest.marge) - origine.prix[b]) * q / 3000.0))
 
 
 def noter_voyageurs(w, g):
-    """Le pays entier : combien d iles ont mange ? Un bateau sert autant ceux qui le recoivent que ceux qui l envoient."""
-    toutes = list(w.marches)
-    national = sum(nourris(w, k) for k in toutes) / max(1, len(toutes))
-    for ile in list(g.memoire): g.noter(ile, national)
+    """Tentative 2 : la note se joue au depart du bateau ( ce qu il manquait sur l ile d arrivee )."""
+    for ile in list(g.memoire): g.noter(ile, 0.0)
 
 
 # ================================================================== le registre

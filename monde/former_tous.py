@@ -13,6 +13,7 @@ from . import monde as W, roles as R, carte as K, config as C, apprenti as AP, a
 DOSSIER = "/mnt/data/hmt/monde/doctrine"
 ECOLE = list(range(1, 9))
 EXAMEN = list(range(101, 111))
+CONFIRMATION = list(range(201, 211))    # deuxieme tentative sur la meme porte : elle doit passer sur les deux series
 
 EPREUVE = {"travailleurs": "eco", "entreprises": "eco", "marches": "eco", "commerce": "eco",
            "armee": "armee", "voyageurs": "iles", "fraudeurs": "fraude"}
@@ -73,7 +74,7 @@ def _jouer(args): return jouer(*args)
 
 
 # ------------------------------------------------------------------ former un groupe
-def former(nom, epoques, jours):
+def former(nom, epoques, jours, dossier=None):
     epreuve = EPREUVE[nom]
     g = R.groupe(nom, mode="appris")
     journal = []
@@ -88,7 +89,7 @@ def former(nom, epoques, jours):
         journal.append({"epoque": e, "lecons": g.doctrine.n_lecons,
                         "recompense_de_l_epoque": round((g.doctrine.somme_recompense - somme0) / max(1, dn), 4)})
         g.doctrine.epsilon = max(0.02, g.doctrine.epsilon * 0.75)
-    chemin = os.path.join(DOSSIER, f"{nom}.json")
+    chemin = os.path.join(dossier or DOSSIER, f"{nom}.json")
     g.doctrine.ecrire(chemin)
     return nom, chemin, journal
 
@@ -134,41 +135,49 @@ def main():
     p.add_argument("--epoques", type=int, default=6)
     p.add_argument("--jours", type=int, default=20)
     p.add_argument("--procs", type=int, default=14)
+    p.add_argument("--confirmer", action="store_true", help="examiner aussi sur 201-210 et exiger les deux series")
+    p.add_argument("--sortie", default=DOSSIER)
     a = p.parse_args()
     noms = a.groupes.split(",")
-    os.makedirs(DOSSIER, exist_ok=True)
+    dossier = a.sortie
+    os.makedirs(dossier, exist_ok=True)
+    series = {"examen": EXAMEN, "confirmation": CONFIRMATION} if a.confirmer else {"examen": EXAMEN}
     t0 = time.time()
     print(f"formation de {len(noms)} groupes en parallele : {noms}", flush=True)
     with Pool(min(len(noms), a.procs)) as pool:
-        formes = pool.map(_former, [(n, a.epoques, a.jours) for n in noms])
+        formes = pool.map(_former, [(n, a.epoques, a.jours, dossier) for n in noms])
     for nom, chemin, journal in formes:
         print(f"{nom:13s} forme en {time.time() - t0:5.0f} s | " +
               " ".join(f"e{j['epoque']}:{j['recompense_de_l_epoque']}" for j in journal), flush=True)
 
-    taches = []
-    for nom, chemin, _ in formes:
-        ep = EPREUVE[nom]
-        if nom == "fraudeurs":
-            for g in EXAMEN:
-                taches += [(nom, ep, g, "fige", chemin, 1.0), (nom, ep, g, "fige", chemin, 4.0),
-                           (nom, ep, g, "regle", None, 1.0)]
-            continue
-        for g in EXAMEN:
-            taches += [(nom, ep, g, "regle"), (nom, ep, g, "hasard"), (nom, ep, g, "fige", chemin)]
-            if nom in ("commerce", "voyageurs"): taches.append((nom, ep, g, "aveugle"))
+    taches, etiquettes = [], []
+    for serie, graines in series.items():
+        for nom, chemin, _ in formes:
+            ep = EPREUVE[nom]
+            for g in graines:
+                if nom == "fraudeurs":
+                    lot = [(nom, ep, g, "fige", chemin, 1.0), (nom, ep, g, "fige", chemin, 4.0), (nom, ep, g, "regle", None, 1.0)]
+                else:
+                    lot = [(nom, ep, g, "regle"), (nom, ep, g, "hasard"), (nom, ep, g, "fige", chemin)]
+                    if nom in ("commerce", "voyageurs"): lot.append((nom, ep, g, "aveugle"))
+                taches += lot; etiquettes += [serie] * len(lot)
     with Pool(a.procs) as pool:
         resultats = pool.map(_jouer, taches)
     par_groupe = {}
-    for t, r in zip(taches, resultats):
+    for t, serie, r in zip(taches, etiquettes, resultats):
         cle = r["mode"] + (f"@{int(r['intensite'])}" if t[0] == "fraudeurs" and r["mode"] == "fige" else "")
-        par_groupe.setdefault(t[0], {}).setdefault(cle, []).append(r)
+        par_groupe.setdefault(t[0], {}).setdefault(serie, {}).setdefault(cle, []).append(r)
     verdicts = {}
     for nom in noms:
-        ok, texte = juger(nom, par_groupe[nom])
-        verdicts[nom] = {"retenu": ok, "detail": texte}
-        cons = max(r["conservation"] for m in par_groupe[nom].values() for r in m)
-        print(f"{'RETENU ' if ok else 'REFUSE '} {nom:13s} {texte} | conservation {cons:.1e}", flush=True)
-    with open(os.path.join(DOSSIER, "qualification_tous.json"), "w") as f:
+        oks, textes = [], []
+        for serie in series:
+            ok, texte = juger(nom, par_groupe[nom][serie])
+            oks.append(ok); textes.append(f"[{serie}] {texte}")
+        verdicts[nom] = {"retenu": all(oks), "detail": textes}
+        cons = max(r["conservation"] for s in par_groupe[nom].values() for m in s.values() for r in m)
+        print(f"{'RETENU ' if all(oks) else 'REFUSE '} {nom:13s} | conservation {cons:.1e}", flush=True)
+        for t in textes: print(f"          {t}", flush=True)
+    with open(os.path.join(dossier, "qualification_tous.json"), "w") as f:
         json.dump({"verdicts": verdicts, "resultats": par_groupe}, f, indent=1, default=str)
     print(f"termine en {time.time() - t0:.0f} s", flush=True)
     return 0
