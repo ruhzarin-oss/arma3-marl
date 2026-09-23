@@ -1,0 +1,20 @@
+1000000 habitants cree en 56 s | coeur Rust : True
+UNE JOURNEE : 15.7 s
+aube                      6.9 s  en    1 appels
+demographie               4.3 s  en    1 appels
+paie                      2.0 s  en    1 appels
+produire                  1.8 s  en  144 appels
+repas                     1.6 s  en    1 appels
+indexer                   1.5 s  en    1 appels
+achats                    1.2 s  en    1 appels
+expedier                  1.0 s  en   24 appels
+deplacer                  0.6 s  en  144 appels
+gouverner                 0.5 s  en    1 appels
+commerce_exterieur        0.4 s  en    1 appels
+contagion                 0.1 s  en   24 appels
+progression_maladie       0.1 s  en    1 appels
+arrivees                  0.0 s  en  144 appels
+patrouilles               0.0 s  en    2 appels
+debarquer                 0.0 s  en  144 appels
+regler_activite           0.0 s  en    1 appels
+ravitailler_bases         0.0 s  en    1 appels

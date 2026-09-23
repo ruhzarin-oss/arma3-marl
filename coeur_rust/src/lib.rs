@@ -28,7 +28,10 @@ fn au_travail(heure: f64, decalage: f64, horaire: i8, equipe: i32, vivant: bool,
     if a < b { a <= h && h < b } else { h >= a || h < b }
 }
 
-/// Postes : 0 maison, 1 travail, 2 hopital. Un habitant « saute » ( mort, en mer, en sejour ) garde tout en l etat.
+/// Postes : 0 maison, 1 travail, 2 hopital. Un habitant « saute » ( en mer, en sejour ) garde son lieu et son poste.
+/// `travaille` recoit, pour chaque vivant, le resultat de « est-ce son heure de travail » - independamment de son
+/// choix : un paysan qui vit dans son village de travail compte parmi les presents meme reste chez lui.
+/// Etats de sante : 0 sain, 1 expose, 2 malade ( I ), 3 gueri.
 #[pyfunction]
 #[allow(clippy::too_many_arguments)]
 fn deplacer<'py>(
@@ -38,7 +41,7 @@ fn deplacer<'py>(
     heures_par_pas: f64,
     sauter: PyReadonlyArray1<'py, u8>,
     vivant: PyReadonlyArray1<'py, u8>,
-    etat_i: PyReadonlyArray1<'py, u8>,
+    etat: PyReadonlyArray1<'py, u8>,
     gravite: PyReadonlyArray1<'py, f64>,
     horaire: PyReadonlyArray1<'py, i8>,
     equipe: PyReadonlyArray1<'py, i32>,
@@ -52,34 +55,41 @@ fn deplacer<'py>(
     mut lieu: PyReadwriteArray1<'py, i32>,
     mut poste: PyReadwriteArray1<'py, u8>,
     mut heures: PyReadwriteArray1<'py, f64>,
+    mut travaille: PyReadwriteArray1<'py, u8>,
 ) -> PyResult<()> {
-    let (sauter, vivant, etat_i, gravite) = (sauter.as_slice()?, vivant.as_slice()?, etat_i.as_slice()?, gravite.as_slice()?);
+    let (sauter, vivant, etat, gravite) = (sauter.as_slice()?, vivant.as_slice()?, etat.as_slice()?, gravite.as_slice()?);
     let (horaire, equipe, decalage, enferme) = (horaire.as_slice()?, equipe.as_slice()?, decalage.as_slice()?, enferme.as_slice()?);
     let (faim, public, travail, domicile, hopital) =
         (faim.as_slice()?, public.as_slice()?, travail.as_slice()?, domicile.as_slice()?, hopital.as_slice()?);
     let lieu = lieu.as_slice_mut()?;
     let poste = poste.as_slice_mut()?;
     let heures = heures.as_slice_mut()?;
-    // le verrou de Python est rendu pendant le calcul : les douze coeurs travaillent, Python attend
+    let travaille = travaille.as_slice_mut()?;
+    // le verrou de Python est rendu pendant le calcul : tous les coeurs travaillent, Python attend
     py.allow_threads(|| {
         lieu.par_iter_mut()
             .zip(poste.par_iter_mut())
             .zip(heures.par_iter_mut())
+            .zip(travaille.par_iter_mut())
             .enumerate()
-            .for_each(|(i, ((l, p), hj))| {
-                if sauter[i] != 0 || vivant[i] == 0 {
+            .for_each(|(i, (((l, p), hj), tr))| {
+                if vivant[i] == 0 {
+                    *tr = 0;
                     return;
                 }
-                if etat_i[i] != 0 && gravite[i] > 0.3 {
+                let malade = etat[i] == 2;
+                let a_son_heure = au_travail(heure, decalage[i], horaire[i], equipe[i], true, malade, gravite[i]);
+                *tr = a_son_heure as u8;
+                if sauter[i] != 0 {
+                    return;
+                }
+                if malade && gravite[i] > 0.3 {
                     *l = hopital[i];
                     *p = 2;
                     return;
                 }
                 let veut = enferme[i] == 0 && !(faim[i] > absence_faim);
-                if travail[i] >= 0
-                    && veut
-                    && au_travail(heure, decalage[i], horaire[i], equipe[i], true, etat_i[i] != 0, gravite[i])
-                {
+                if travail[i] >= 0 && veut && a_son_heure {
                     *l = travail[i];
                     *p = 1;
                     if public[i] != 0 {

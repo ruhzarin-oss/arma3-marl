@@ -25,6 +25,7 @@ VITESSE_MER_KMH = 25.0                                          # un cargo cotie
 class Lieu:
     def __init__(self, id, type, pos, rayon=(0, 0), ile="Altis"):
         self.id, self.type, self.pos, self.rayon, self.ile = id, type, tuple(pos), tuple(rayon), ile
+        self.n = -1                 # son numero dans Carte.par_n : c est ce numero que lisent les colonnes des habitants
         self.marche = None          # la capitale dont le marche sert ce lieu
         self.stocks = {}            # biens presents sur place ( sites de production, depots, marches )
 
@@ -53,6 +54,8 @@ class Carte:
                 cle = l["id"] if ile == self.iles[0] else f"{ile}:{l['id']}"
                 self.lieux[cle] = Lieu(cle, t, l["pos"], l.get("rayon", (0, 0)), ile=ile)
         # chaque village est aussi une ferme : l agriculture vit dans les villages
+        self.par_n = list(self.lieux.values())      # les lieux par numero, dans l ordre de la carte
+        for k, l in enumerate(self.par_n): l.n = k
         self.capitales = [l for l in self.lieux.values() if l.type == "capitale"]
         for l in self.lieux.values():       # un lieu depend d un marche de SON ile
             candidats = [c for c in self.capitales if c.ile == l.ile] or self.capitales

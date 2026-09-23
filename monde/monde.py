@@ -1,9 +1,13 @@
 """Le coeur du monde : l etat du pays et son pas de 10 minutes. Hors d Arma ( etape E1 ) : ici tout est donnee.
 Invariants verifies par les tests : l argent et les biens se CONSERVENT - rien n apparait ni ne disparait sans une
 cause ecrite au journal ( production, consommation, combustion, import, export, mort )."""
-import json, math
+import collections, json, math
 import numpy as np
 from . import config as C, carte as K, population as P, economie as E, gouvernement as G, ecole as S, agents as A, roles as R
+try:
+    import coeur as COEUR          # le coeur Rust ( coeur_rust/ ) : les routines de masse sur tous les coeurs
+except ImportError:                # sans lui, le monde tourne en Python, a l identique mais plus lentement
+    COEUR = None
 
 CATEGORIES_PUBLIQUES = ("hopitaux", "armee", "reserve", "population")
 
@@ -14,7 +18,10 @@ class Monde:
         self.rng = np.random.default_rng(graine)
         self.graine = graine
         self.carte = K.Carte(iles=tuple(iles))
-        self.habitants, self.menages = P.generer(self.carte, self.rng, echelle)
+        self.table = P.Table(self.carte.par_n)          # les habitants en colonnes ( ce que lit le coeur Rust )
+        self.habitants, self.menages = P.generer(self.carte, self.rng, echelle, self.table)
+        self.utiliser_coeur = COEUR is not None
+        self._colonnes_fraiches = False                 # vrai quand `deplacer` a rempli la colonne « travaille » ce pas
         self.pas = 0
         self.journal_fichier = journal
         self.evenements = []
@@ -22,6 +29,9 @@ class Monde:
         self.entreprises = {}
         for l in self.carte.de_type("village"): self.entreprises[l.id] = E.Entreprise(l, "ferme")
         for l in self.carte.de_type(*[t for t in C.RECETTES if t != "ferme"]): self.entreprises[l.id] = E.Entreprise(l, l.type)
+        # le role qu attend l entreprise de chaque lieu ( -1 : pas d entreprise ) : la production en colonnes le lit
+        self._role_entreprise = np.full(len(self.carte.par_n), -1, np.int16)
+        for e in self.entreprises.values(): self._role_entreprise[e.lieu.n] = P.CODE_ROLE.get(e.role, -1)
         patrons = [h for h in self.habitants if h.role == "patron"]
         privees = [e for e in self.entreprises.values() if e.type != "ferme"]
         for k, e in enumerate(privees): e.proprietaire = patrons[k % len(patrons)]
@@ -292,7 +302,7 @@ class Monde:
             adultes = [x for x in mg.membres if x.vivant and x.role != "enfant" and x.age < 45]
             if not adultes: continue
             if self.rng.random() < C.NAISSANCES_PAR_MENAGE_AN / C.JOURS_PAR_AN:
-                b = P.Habitant(max(h.id for h in self.habitants) + 1, "enfant", adultes[0].classe, 0)
+                b = P.Habitant(self.table.n, "enfant", adultes[0].classe, 0, self.table)   # sa ligne est son numero
                 b.menage, b.domicile, b.lieu = mg, mg.domicile, mg.domicile
                 b.horaire, b.travail = "ecole", mg.domicile.marche
                 mg.membres.append(b); self.habitants.append(b)
@@ -367,6 +377,38 @@ class Monde:
 
     # --- 1. les deplacements : au travail ou a la maison ( la quarantaine retient chez soi ) ---
     def deplacer(self, h):
+        """Ou est chacun a ce pas : maison, travail, hopital. Par le coeur Rust sur les colonnes quand il est la ;
+        la version Python ( `deplacer_python` ) reste la reference, et la porte compare les deux au centime."""
+        if not self.utiliser_coeur or self.agents.get("travailleurs") is not None:
+            self._colonnes_fraiches = False
+            return self.deplacer_python(h)
+        t, n = self.table, self.table.n
+        # 1. les sejours arrives a terme, comme dans la boucle Python : vivant, pas en mer, dans l ordre des habitants
+        if self.sejours:
+            for pid in sorted(k for k, fin in self.sejours.items() if self.pas >= fin):
+                p = self.habitants[pid]
+                if p.vivant and p.poste != "voyage":
+                    del self.sejours[pid]
+                    self.embarquer(p, p.domicile)
+        sauter = (t.poste[:n] == P.CODE_POSTE["voyage"]).astype(np.uint8)
+        if self.sejours: sauter[np.fromiter(self.sejours, np.int64, len(self.sejours))] = 1
+        # 2. la quarantaine : memes tirages, dans le meme ordre que la boucle Python ( rng.random(k) = k tirages )
+        enferme = np.zeros(n, np.uint8)
+        q = set(self.gouv.lois["quarantaine"])
+        if q:
+            qn = np.array([self.carte.lieux[x].n for x in q if x in self.carte.lieux], np.int32)
+            dom_q = np.isin(t.domicile[:n], qn)
+            trav_q = (t.travail[:n] >= 0) & np.isin(t.travail[:n], qn)
+            hopital = (t.etat[:n] == P.CODE_ETAT["I"]) & (t.gravite[:n] > 0.3)
+            k = np.nonzero((t.vivant[:n] == 1) & (sauter == 0) & ~hopital & (dom_q | trav_q))[0]
+            if k.size: enferme[k] = self.rng.random(k.size) > C.QUARANTAINE_VIOLEE
+        # 3. le coeur Rust, sur tous les coeurs
+        COEUR.deplacer(h, C.ABSENCE_FAIM, C.MINUTES_PAR_PAS / 60.0, sauter, t.vivant[:n], t.etat[:n], t.gravite[:n],
+                       t.horaire[:n], t.equipe[:n], t.decalage[:n], enferme, t.faim[:n], t.public[:n], t.travail[:n],
+                       t.domicile[:n], t.hopital[:n], t.lieu[:n], t.poste[:n], t.heures[:n], t.travaille[:n])
+        self._colonnes_fraiches = True
+
+    def deplacer_python(self, h):
         q = set(self.gouv.lois["quarantaine"])
         for p in self.habitants:
             if not p.vivant: continue
@@ -389,54 +431,91 @@ class Monde:
 
     # --- 2. la production ---
     def produire(self, h):
+        """Qui travaille sur chaque site, et ce que le site produit. En colonnes quand `deplacer` vient de les remplir :
+        un ouvrier est present s il est vivant, a son lieu de travail, a son heure, et du metier du site. Les sites
+        sont traites dans l ordre du premier ouvrier rencontre, comme le dictionnaire de la version Python : ils se
+        partagent le reseau electrique, et l ordre des additions change les centimes."""
+        if not self._colonnes_fraiches: return self.produire_python(h)
+        t, n = self.table, self.table.n
+        lieu = t.lieu[:n]
+        idx = np.nonzero((t.vivant[:n] == 1) & (lieu == t.travail[:n]) & (t.travail[:n] >= 0) & (t.travaille[:n] == 1))[0]
+        if idx.size == 0: return
+        l = lieu[idx]
+        garde = self._role_entreprise[l] == t.role[idx]
+        idx, l = idx[garde], l[garde]
+        if idx.size == 0: return
+        sites, premier, compte = np.unique(l, return_index=True, return_counts=True)
+        part = np.zeros(len(self.carte.par_n))
+        for k in np.argsort(premier, kind="stable"):
+            e = self.entreprises[self.carte.par_n[sites[k]].id]
+            nb = int(compte[k])
+            f = self._produire_site(e, nb)
+            if f is not None: part[sites[k]] = f / nb
+        t.heures[idx] += part[l]
+
+    def produire_python(self, h):
         present = {}
         for p in self.habitants:
             if p.vivant and p.lieu is p.travail and p.travail is not None and p.lieu.id in self.entreprises \
                     and p.role == self.entreprises[p.lieu.id].role and p.au_travail(h):
                 present.setdefault(p.lieu.id, []).append(p)
         for lid, ouvriers in present.items():
-            e = self.entreprises[lid]
-            heures = len(ouvriers) * C.MINUTES_PAR_PAS / 60.0 * e.activite
-            f = heures * self.facteur_choc(e.lieu)      # une secheresse coupe le RENDEMENT, pas les heures payees
-            for b, q in e.intrants.items():          # les intrants limitent la production
-                dispo = self.reseau.stock if b == "electricite" else e.stocks[b]
-                f = min(f, dispo / q if q > 0 else f)
-            if f <= 1e-9:
-                continue
-            if e.type == "centrale":                  # une centrale ne produit que ce que le reseau peut prendre
-                f = min(f, max(0.0, self.reseau.capacite - self.reseau.stock) / e.produits["electricite"])
-                if f <= 1e-9: continue
-            bonus = 1 + C.BONUS_OUTILS if e.stocks["outils"] >= 1 else 1.0
-            for b, q in e.intrants.items():
-                if b == "electricite":
-                    self.reseau.stock -= q * f; self.transferer(e, self.gouv, q * f * self.reseau.tarif, "electricite")
-                else: e.stocks[b] -= q * f
-                self.flux["consomme"][b] += q * f
-            for b, q in e.produits.items():
-                e.stocks[b] += q * f * bonus; self.flux["produit"][b] += q * f * bonus; e.produit_du_jour[b] += q * f * bonus
-            if e.stocks["or"] > 0:                    # redevance miniere : la moitie de l or revient a l Etat, en nature
-                r = e.stocks["or"] * C.REDEVANCE_OR; e.stocks["or"] -= r; self.publics["reserve"]["or"] += r
-            if e.type == "centrale":                  # la centrale injecte dans le reseau, l Etat la paie au tarif
-                q = e.stocks["electricite"]; e.stocks["electricite"] = 0.0
-                place = max(0.0, self.reseau.capacite - self.reseau.stock)
-                injecte = min(q, place); self.reseau.stock += injecte
-                perte = q - injecte
-                if perte > 0: self.flux["consomme"]["electricite"] += perte      # ce que le reseau ne peut pas stocker
-                self.transferer(self.gouv, e, injecte * self.reseau.tarif, "electricite")
-            if e.stocks["outils"] >= 1:
-                e.heures_outils += heures
-                if e.heures_outils >= C.USURE_OUTIL_H:
-                    e.heures_outils -= C.USURE_OUTIL_H; e.stocks["outils"] -= 1; self.flux["consomme"]["outils"] += 1
+            f = self._produire_site(self.entreprises[lid], len(ouvriers))
             # paye pour le travail REELLEMENT fait : sans intrants, ou reseau plein, c est du chomage technique, non paye
-            for p in ouvriers: p.heures_jour += f / len(ouvriers)
+            if f is not None:
+                for p in ouvriers: p.heures_jour += f / len(ouvriers)
+
+    def _produire_site(self, e, nb):
+        """La production d un site ou travaillent `nb` ouvriers pendant ce pas. Rend le travail reellement fait, ou
+        None si le site n a rien pu faire ( sans intrants, ou reseau plein )."""
+        heures = nb * C.MINUTES_PAR_PAS / 60.0 * e.activite
+        f = heures * self.facteur_choc(e.lieu)      # une secheresse coupe le RENDEMENT, pas les heures payees
+        for b, q in e.intrants.items():          # les intrants limitent la production
+            dispo = self.reseau.stock if b == "electricite" else e.stocks[b]
+            f = min(f, dispo / q if q > 0 else f)
+        if f <= 1e-9:
+            return None
+        if e.type == "centrale":                  # une centrale ne produit que ce que le reseau peut prendre
+            f = min(f, max(0.0, self.reseau.capacite - self.reseau.stock) / e.produits["electricite"])
+            if f <= 1e-9: return None
+        bonus = 1 + C.BONUS_OUTILS if e.stocks["outils"] >= 1 else 1.0
+        for b, q in e.intrants.items():
+            if b == "electricite":
+                self.reseau.stock -= q * f; self.transferer(e, self.gouv, q * f * self.reseau.tarif, "electricite")
+            else: e.stocks[b] -= q * f
+            self.flux["consomme"][b] += q * f
+        for b, q in e.produits.items():
+            e.stocks[b] += q * f * bonus; self.flux["produit"][b] += q * f * bonus; e.produit_du_jour[b] += q * f * bonus
+        if e.stocks["or"] > 0:                    # redevance miniere : la moitie de l or revient a l Etat, en nature
+            r = e.stocks["or"] * C.REDEVANCE_OR; e.stocks["or"] -= r; self.publics["reserve"]["or"] += r
+        if e.type == "centrale":                  # la centrale injecte dans le reseau, l Etat la paie au tarif
+            q = e.stocks["electricite"]; e.stocks["electricite"] = 0.0
+            place = max(0.0, self.reseau.capacite - self.reseau.stock)
+            injecte = min(q, place); self.reseau.stock += injecte
+            perte = q - injecte
+            if perte > 0: self.flux["consomme"]["electricite"] += perte      # ce que le reseau ne peut pas stocker
+            self.transferer(self.gouv, e, injecte * self.reseau.tarif, "electricite")
+        if e.stocks["outils"] >= 1:
+            e.heures_outils += heures
+            if e.heures_outils >= C.USURE_OUTIL_H:
+                e.heures_outils -= C.USURE_OUTIL_H; e.stocks["outils"] -= 1; self.flux["consomme"]["outils"] += 1
+        return f
 
     # --- 3. les convois ---
     def conducteur(self, capitale):
-        """Un convoyeur libre de cette capitale. Passe par l index : sans lui, chaque convoi reparcourait le pays."""
-        for p in self.au_travail_de(capitale, "convoyeur"):
-            if p.vivant and self.conducteur_libre.get(p.id, 0) <= self.pas and p.au_travail(self.heure):
-                return p
-        return None
+        """Le premier convoyeur libre de cette capitale, dans l ordre de l index. La liste de ceux qui sont EN SERVICE
+        ( vivants, a leur heure ) est dressee une fois par pas : profil du 23/09, chaque convoi re-verifiait l horaire de
+        tous les convoyeurs - 767 933 verifications pour 3 863 convois a 50 000 habitants. Un chauffeur parti ne
+        redevient pas libre dans le meme pas : on le retire de la tete de file."""
+        if getattr(self, "_chauffeurs_pas", None) != self.pas:
+            self._chauffeurs_pas, self._chauffeurs = self.pas, {}
+        file = self._chauffeurs.get(capitale.id)
+        if file is None:
+            h = self.heure
+            file = self._chauffeurs[capitale.id] = collections.deque(
+                p for p in self.au_travail_de(capitale, "convoyeur") if p.vivant and p.au_travail(h))
+        while file and self.conducteur_libre.get(file[0].id, 0) > self.pas: file.popleft()
+        return file[0] if file else None
 
     def lancer_convoi(self, origine, destination, cargaison, payeur, motif, marche_carburant, vendeur=None):
         coupees = self.routes_coupees | getattr(self, "routes_temporaires", set())
@@ -724,6 +803,36 @@ class Monde:
 
     # --- 6. la sante ---
     def contagion(self):
+        """Chaque lieu ou se trouve un malade contamine les sains presents. En colonnes quand la table est la : memes
+        groupes, meme ordre des groupes ( celui du premier habitant rencontre ), memes tirages dans le meme ordre -
+        la porte des colonnes compare au centime avec la boucle Python ( `contagion_python` )."""
+        if not self.utiliser_coeur: return self.contagion_python()
+        t, n = self.table, self.table.n
+        lieu = t.lieu[:n]
+        ici = np.nonzero((t.vivant[:n] == 1) & (lieu >= 0))[0]           # celui qui est en mer ne contamine personne
+        if ici.size == 0: return
+        l = lieu[ici]
+        malades = np.bincount(l[t.etat[ici] == P.CODE_ETAT["I"]], minlength=len(self.carte.par_n))
+        if not malades.any(): return
+        # l ordre des groupes : celui du premier habitant de chaque lieu dans la liste
+        sites, premier = np.unique(l, return_index=True)
+        rang = np.empty(len(self.carte.par_n), np.int64); rang[sites] = np.argsort(np.argsort(premier, kind="stable"), kind="stable")
+        # les candidats : sains, dans un lieu ou il y a au moins un malade ; tires groupe par groupe, en ordre de ligne
+        cand = ici[(t.etat[ici] == P.CODE_ETAT["S"]) & (malades[l] > 0)]
+        if cand.size == 0: return
+        cand = cand[np.lexsort((cand, rang[lieu[cand]]))]
+        proba = np.zeros(len(self.carte.par_n))
+        for k in np.nonzero(malades)[0]: proba[k] = 1 - (1 - C.BETA_CONTACT) ** int(malades[k])
+        seuil = proba[lieu[cand]] * np.where(t.faim[cand] > 1, 1.5, 1.0)
+        touches = cand[self.rng.random(cand.size) < seuil]
+        for i in touches:                                  # peu nombreux : on passe par l habitant, et par le journal
+            p = self.habitants[int(i)]
+            p.etat, p.jours_etat = "E", 0.0
+            self.infectes_du_jour.add(p.id)
+            self.contagions_lieu[p.lieu.id] = self.contagions_lieu.get(p.lieu.id, 0) + 1
+            self.noter("infection", habitant=p.id, lieu=p.lieu.id)
+
+    def contagion_python(self):
         groupes = {}
         for p in self.habitants:
             if p.vivant and p.lieu is not None: groupes.setdefault(p.lieu.id, []).append(p)   # celui qui est en mer ne contamine personne

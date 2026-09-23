@@ -166,7 +166,9 @@ def test_voyage_entre_iles():
     """Point 13 : un habitant qui traverse doit disparaitre des deux iles pendant la traversee, puis reparaitre
     la-bas avec la meme identite, le meme argent et la meme memoire. Jamais deux corps pour un homme."""
     from . import carte as K
-    w = W.Monde(); w.carte = K.Carte(iles=("Altis", "Malden"))
+    # le monde NAIT avec ses deux iles : greffer une carte sur un monde deja peuple n a plus de sens depuis que les
+    # habitants sont ranges par numero de lieu ( refonte en colonnes, 23/09 )
+    w = W.Monde(iles=("Altis", "Malden"))
     cible = w.carte.lieux["Malden:LaTrinite"]
     h = next(x for x in w.habitants if x.vivant and x.role == "marchand")
     avant = (h.id, h.menage.caisse, h.role)
