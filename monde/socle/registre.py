@@ -125,8 +125,10 @@ class Conservation:
         """Ce qui a coule depuis le depart, par bien ( toutes natures ), et pour l argent ( exterieur et emission ) :
         la mesure de l arrondi accumule."""
         L = self.livre
+        noms = set(self.biens0)
+        for n in SOURCES_BIENS + PUITS_BIENS: noms.update(L.flux[n])        # aussi les biens declares apres le branchement
         vb = {b: math.fsum(abs(L.flux[n].get(b, 0.0) - self.flux0[n].get(b, 0.0)) for n in SOURCES_BIENS + PUITS_BIENS)
-              for b in self.biens0}
+              for b in noms}
         va = (abs(L.ext["entree"] - self.ext0["entree"]) + abs(L.ext["sortie"] - self.ext0["sortie"])
               + abs(L.monnaie["emise"] - self.monnaie0["emise"]) + abs(L.monnaie["detruite"] - self.monnaie0["detruite"])
 )
