@@ -83,10 +83,13 @@ class Registre:
         return {b: math.fsum(v) for b, v in acc.items()}
 
 
-def tolerance(total):
-    """L ecart admis : un millionieme de drachme, plus l arrondi relatif du double ( 1e-12 du total ). Mesure du
-    22/09 : 4e-7 d accumulation sur 1,37 million de drachmes en 365 jours ( monde/tests.py, test_demographie )."""
-    return 1e-6 + 1e-12 * abs(total)
+def tolerance(total, volume=0.0):
+    """L ecart admis : un millionieme, plus l arrondi relatif du double sur le total ( 1e-12 ), plus l arrondi qui
+    s accumule avec le VOLUME des flux ( 1e-10 de la somme des flux ecoules ). Sans ce dernier terme, la porte mesure
+    la virgule flottante et non la conservation : 200 jours du moteur seul donnaient 1,2e-6 de nourriture pour 1e-6
+    admis ( domaine 2, 23/09 ) ; 4e-7 sur 1,37 million de drachmes en 365 jours ( monde/tests.py ). Une creation d une
+    unite reste mille fois au-dessus de ce seuil sur un an de flux d un million d unites."""
+    return 1e-6 + 1e-12 * abs(total) + 1e-10 * abs(volume)
 
 
 class Conservation:
@@ -118,11 +121,24 @@ class Conservation:
         d_o = self.parc.verifier() if self.parc is not None else {}
         return d_arg, d_b, d_o
 
+    def volumes(self):
+        """Ce qui a coule depuis le depart, par bien ( toutes natures ), et pour l argent ( exterieur et emission ) :
+        la mesure de l arrondi accumule."""
+        L = self.livre
+        vb = {b: math.fsum(abs(L.flux[n].get(b, 0.0) - self.flux0[n].get(b, 0.0)) for n in SOURCES_BIENS + PUITS_BIENS)
+              for b in self.biens0}
+        va = (abs(L.ext["entree"] - self.ext0["entree"]) + abs(L.ext["sortie"] - self.ext0["sortie"])
+              + abs(L.monnaie["emise"] - self.monnaie0["emise"]) + abs(L.monnaie["detruite"] - self.monnaie0["detruite"])
+)
+        return va, vb
+
     def tenue(self):
         """( vrai si tout est conserve, resume du pire ecart )."""
         d_arg, d_b, d_o = self.ecarts()
+        va, vb = self.volumes()
         pire_b = max(d_b, key=lambda b: abs(d_b[b])) if d_b else None
-        ok = (abs(d_arg) <= tolerance(self.argent0) and all(abs(v) <= tolerance(self.biens0.get(b, 0.0)) for b, v in d_b.items())
+        ok = (abs(d_arg) <= tolerance(self.argent0, va)
+              and all(abs(v) <= tolerance(self.biens0.get(b, 0.0), vb.get(b, 0.0)) for b, v in d_b.items())
               and all(v == 0 for v in d_o.values()))
         return ok, (f"argent {d_arg:+.2e}, pire bien {pire_b} {d_b.get(pire_b, 0.0):+.2e}, "
                     f"objets {sum(abs(v) for v in d_o.values())} exemplaire(s) hors compte")

@@ -30,10 +30,13 @@ FICHE
    `banque_centrale` du registre ), aucun bien.
 3. Decision `octroi_credit` ( une par demande, les jours ouvres a 9 h ) : refuser, accorder la moitie, accorder.
    Traits : capacite ( flux libre du compte sur la mensualite ), solde, endettement et incidents ( fichier Tiresias ),
-   taille, entreprise, taux propose, montant. Jamais la probabilite vraie de defaut. Note : ce que CE pret rapporte a
-   la banque sur 30 jours ( interets encaisses moins dotations aux provisions ), en rendement annuel du montant demande ;
-   0 pour un refus. Horizon 30 jours : le maximum du socle ; la premiere mensualite tombe au 30e jour. Regle : un score
-   a seuil ( accorder ce que le flux libre rembourse ). Temoin : tout accorder.
+   taille, entreprise, taux propose, montant. Jamais la probabilite vraie de defaut. Note : l effet de CE choix sur ceux
+   qu il touche, la banque ET l emprunteur, sur 120 jours ( lecon du 23/09 : noter le seul profit affame le pays ) :
+   resultat de la banque sur ce pret ( interets moins dotations ) en part du montant demande, plus la part des soirs ou
+   le menage a mange moins un ( une entreprise : la part des jours ou elle a pu payer ses salaires ), moins l exces de
+   son taux d effort au-dela de 35 %. Un refus se note aussi : le menage refuse a-t-il eu faim ? Horizon 120 jours :
+   premiere mensualite au 30e jour + 90 jours de retard avant le defaut ( ABE ) : le plus court horizon ou un pret jamais
+   paye atteint le defaut. Regle : un score a seuil ( accorder ce que le flux libre rembourse ). Temoin : tout accorder.
 4. Evenements. Individuels : defaut_de_paiement, radiation, decision_taux, avance_etat, titre_souscrit. Comptes :
    demande_credit, pret_accorde, pret_refuse, refus_reglementaire, mensualite_echue, mensualite_impayee, pret_solde,
    refinancement, depense_exceptionnelle, depense_renoncee.
@@ -99,7 +102,13 @@ PROVISION_STADE = (0.01, 0.10, 0.40, 1.00)
 DEFAUT_J = 90                      # defaut : 90 jours de retard ( definition de l ABE, art. 178 CRR )
 RADIATION_J = 360                  # un pret en defaut est radie un an plus tard ( a calibrer )
 PRET_MIN = 10.0                    # drachmes : en dessous, pas de pret
-HORIZON_OCTROI = 30                # le maximum du socle ; la premiere mensualite tombe au 30e jour
+HORIZON_OCTROI = 120               # 30 jours jusqu a la premiere mensualite + 90 jours de retard avant le defaut ( ABE ) :
+                                   # le plus court horizon ou un pret jamais paye atteint le defaut, donc ou la note voit le risque
+# La note d un octroi : banque ET emprunteur, a poids egaux sur la meme echelle ( A TRANCHER par Younes ) : perdre tout le
+# montant demande pese pour la banque autant, pour la note, qu un menage qui n a mange aucun soir de l horizon.
+POIDS_MENAGE = 1.0
+SEUIL_EFFORT = 0.35                # taux d effort au-dela duquel les mensualites etranglent un menage ( HCSF, France,
+                                   # decision D-HCSF-2021-7 : 35 % ; limites europeennes de 35 a 50 %, a calibrer )
 
 # ================================================================== la demande de credit
 SEUIL_BESOIN_J = 7                 # un menage demande quand sa caisse ne paie plus 7 jours de nourriture
@@ -272,13 +281,14 @@ class SuiviEntreprise:
     """Ce que la banque voit du compte d une entreprise : son flux net d exploitation ( variation de la caisse sur
     24 h, distributions rajoutees, flux des prets retires ), en moyenne mobile, et son histoire de credit."""
     __slots__ = ("flux", "n", "caisse_matin", "caisse_avant_paie", "salaires", "distribue", "flux_pret", "demande_j",
-                 "incidents")
+                 "incidents", "paie_couverte")
 
     def __init__(self, caisse):
         self.flux, self.n = 0.0, 0
         self.caisse_matin, self.caisse_avant_paie, self.salaires = None, caisse, 0.0
         self.distribue = self.flux_pret = 0.0
         self.demande_j, self.incidents = -100000, 0
+        self.paie_couverte = True        # sa caisse de 17 h 50 couvrait-elle les salaires du jour ( la note de l octroi )
 
     def flux_estime(self):
         return self.flux / (1.0 - (1.0 - ALPHA_REVENU) ** self.n) if self.n > 0 else 0.0
@@ -293,6 +303,33 @@ class Demande:
         self.montant, self.duree, self.taux, self.motif, self.depense, self.reserve = montant, duree, taux, motif, depense, reserve
 
 
+class DecisionOuverte:
+    """Une decision d octroi qui attend sa note ( 120 jours ) : ce qu elle a fait a la banque et a l emprunteur.
+      banque_jour, banque   drachmes du resultat de la banque sur ce pret : du jour, cumulees
+      soirs, nourris        soirs ecoules ; soirs ou le menage a mange ( entreprise : jours ou sa paie etait couverte )
+      revenu, paye          paie recue par le menage et mensualites qu il a payees sur ce pret, depuis la decision"""
+    __slots__ = ("jour", "montant", "action", "emprunteur", "entreprise", "pret", "banque_jour", "banque", "soirs",
+                 "nourris", "revenu", "paye")
+
+    def __init__(self, jour, montant, action, emprunteur, entreprise):
+        self.jour, self.montant, self.action, self.emprunteur, self.entreprise = jour, montant, action, emprunteur, entreprise
+        self.pret = -1
+        self.banque_jour = self.banque = self.revenu = self.paye = 0.0
+        self.soirs = self.nourris = 0
+
+    def effort(self):
+        """Part de sa paie que le menage a versee en mensualites de ce pret."""
+        if self.revenu > 0.0: return min(1.0, self.paye / self.revenu)
+        return 1.0 if self.paye > 0.0 else 0.0
+
+    def part_banque(self): return self.banque / self.montant
+
+    def part_menage(self):
+        """Part des soirs ou il a mange, moins un ; moins l exces du taux d effort ( menages seulement )."""
+        f = self.nourris / self.soirs - 1.0 if self.soirs else 0.0
+        return f if self.entreprise else f - max(0.0, self.effort() - SEUIL_EFFORT)
+
+
 class ContexteOctroi:
     """Ce que la banque voit d une demande : ses traits, calcules par `_traits`, et la demande elle-meme."""
     __slots__ = ("traits", "demande")
@@ -303,8 +340,8 @@ class ContexteOctroi:
 class Banques:
     """L etat du domaine."""
     __slots__ = ("banques", "bc", "decideur", "prets", "prets_de", "en_retard", "titres", "comptes", "suivi",
-                 "avant_paie", "ouvertes", "prochain_pret", "prochain_titre", "prochaine_demande", "emis_motif",
-                 "controle", "serie", "compte", "non_verse")
+                 "avant_paie", "entree_jour", "ouvertes", "prochain_pret", "prochain_titre", "prochaine_demande",
+                 "emis_motif", "controle", "serie", "compte", "non_verse", "composantes")
 
     def __init__(self, banques, bc):
         self.banques, self.bc = banques, bc
@@ -316,7 +353,8 @@ class Banques:
         self.comptes = {}        # detenteur ( hors menages ) -> indice de sa banque
         self.suivi = {}          # entreprise -> SuiviEntreprise
         self.avant_paie = None   # caisses des menages a 17 h 50
-        self.ouvertes = {}       # cle de demande -> [ jour, montant demande, consequence du jour, id du pret ou -1 ]
+        self.entree_jour = None  # ce que la paie du jour a verse a chaque menage
+        self.ouvertes = {}       # cle de demande -> DecisionOuverte
         self.prochain_pret = self.prochain_titre = self.prochaine_demande = 0
         self.emis_motif = {}     # motif -> monnaie emise moins detruite, lue dans les comptes clos du grand livre
         self.controle = {"jours": 0, "pire_bilan": 0.0, "pire_bc": 0.0, "dernier": None}
@@ -325,6 +363,7 @@ class Banques:
                                       "radiations", "exceptionnelles", "renoncees", "soldes")}
         self.compte.update(montant_demande=0.0, montant_accorde=0.0)
         self.non_verse = 0.0     # interets des depots dus mais non verses, faute de caisse propre
+        self.composantes = {}    # action -> [ notes murees, somme des parts banque, somme des parts emprunteur ]
 
 
 # ================================================================== le point de decision
@@ -361,8 +400,9 @@ POINT_OCTROI = D.PointDeDecision(
             ("montant", "le montant demande sur montant plus un an de revenu")),
     actions=("refuser", "accorder_petit", "accorder"),
     observer=_observer_octroi, regle=_regle_octroi, temoin=_temoin_octroi,
-    note="ce que CE pret rapporte a la banque sur 30 jours - interets encaisses moins dotations aux provisions - en "
-         "rendement annuel du montant demande ; 0 pour un refus",
+    note="l effet de CE choix sur la banque et l emprunteur, sur 120 jours : resultat de la banque sur ce pret ( interets "
+         "moins dotations ) en part du montant demande, plus la part des soirs ou le menage a mange moins un ( entreprise : "
+         "jours ou sa paie etait couverte ), moins l exces de son taux d effort au-dela de 35 % ; un refus se note aussi",
     horizon_j=HORIZON_OCTROI)
 
 
@@ -517,7 +557,13 @@ def _provisionner(p, d, pr):
 def _consequence(d, pr, drachmes):
     if pr.demande >= 0:
         o = d.ouvertes.get(pr.demande)
-        if o is not None: o[2] += drachmes
+        if o is not None: o.banque_jour += drachmes
+
+
+def _paiement(d, pr, drachmes):
+    if pr.demande >= 0:
+        o = d.ouvertes.get(pr.demande)
+        if o is not None: o.paye += drachmes
 
 
 def _poser_echeance(p, pr):
@@ -552,11 +598,12 @@ def _encaisser(p, d, pr):
         x = L.transferer(emp, b, pr.du_interet, "interet_pret")
         pr.du_interet -= x; b.interets += x; pr.paye_interet += x
         if s is not None: s.flux_pret -= x
-        _consequence(d, pr, x)
+        _consequence(d, pr, x); _paiement(d, pr, x)
     if pr.du_principal > 0.0:
         y = L.detruire_monnaie(emp, pr.du_principal, "remboursement_principal")
         pr.du_principal -= y; pr.principal -= y; b.detruit_jour += y; pr.paye_principal += y
         if s is not None: s.flux_pret -= y
+        _paiement(d, pr, y)
     if pr.du_interet + pr.du_principal > EPS:
         if pr.retard_depuis < 0:
             pr.retard_depuis = p.jour; d.en_retard[pr.id] = None
@@ -689,12 +736,12 @@ def instruire(p, q):
     if not _fonds_propres_suffisants(b, q.montant, TYPES[q.type][3]):
         d.compte["refus_reglementaires"] += 1; p.compter("refus_reglementaire"); return None
     a = d.decideur.decider(q.id, ContexteOctroi(_traits(p, d, q), q))
-    o = d.ouvertes[q.id] = [p.jour, q.montant, 0.0, -1]
+    o = d.ouvertes[q.id] = DecisionOuverte(p.jour, q.montant, a, q.emprunteur, q.entreprise)
     montant = (0.0, PART_PETIT, 1.0)[a] * q.montant
     if montant < PRET_MIN:
         d.compte["refuses"] += 1; p.compter("pret_refuse"); return None
     pr = _debloquer(p, d, b, q.emprunteur, montant, q.type, q.duree, q.taux, q.id)
-    o[3] = pr.id
+    o.pret = pr.id
     d.compte["accordes" if a == 2 else "petits"] += 1; d.compte["montant_accorde"] += montant
     return pr
 
@@ -811,6 +858,7 @@ def _avant_paie(p):
         s.caisse_avant_paie = e.caisse
         s.salaires = math.fsum(PO.SALAIRE_HORAIRE.get(h.role, 0) * h.heures_jour
                                for h in w.au_travail_de(e.lieu, e.role) if h.vivant)
+        s.paie_couverte = e.caisse >= s.salaires - EPS
 
 
 def _apres_paie(p):
@@ -821,6 +869,7 @@ def _apres_paie(p):
     n = len(d.avant_paie)
     maintenant = np.fromiter((w.menages[i].caisse for i in range(n)), np.float64, n)
     entree = np.maximum(0.0, maintenant - d.avant_paie)
+    d.entree_jour = entree
     ok = p.col("menage", "dissous")[:n] == 0
     rv, rn = p.col("menage", "revenu"), p.col("menage", "revenu_n")
     rv[:n] = np.where(ok, rv[:n] * (1.0 - ALPHA_REVENU) + ALPHA_REVENU * entree, rv[:n])
@@ -1043,17 +1092,34 @@ def verifier_bilans(p, S=None):
 
 
 def _noter_octrois(p, d):
-    """Chaque demande ouverte encaisse la consequence du jour ( interets moins dotations, rapportes au montant demande,
-    annualises ) ; la note murit au 30e jour. Pas de note le jour de la decision : elle entre dans le lendemain."""
-    dec = d.decideur; j = p.jour
+    """Chaque decision ouverte encaisse la consequence du jour, pour la banque et pour l emprunteur. La valeur du jour
+    est construite pour que la note muree ( la moyenne sur 120 jours ) soit exactement : part banque ( drachmes sur le
+    montant demande ) + POIDS_MENAGE x part emprunteur ( soirs nourris / soirs - 1 - exces d effort ). Pas de note le
+    jour de la decision : elle entre dans le lendemain."""
+    dec = d.decideur; w = p.w; j = p.jour
+    H = dec.point.horizon_j
+    entree = d.entree_jour
     for cle in list(d.ouvertes):
         o = d.ouvertes[cle]
-        if o[0] >= j: continue
-        dec.noter(cle, o[2] / o[1] * JOURS_AN, j); o[2] = 0.0
-        att = dec.attentes.get(cle)
-        if att is None or not att.choix:
+        if o.jour >= j: continue
+        emp = o.emprunteur
+        if o.entreprise:
+            s = d.suivi.get(emp)
+            nourri = 1 if s is None or s.paie_couverte else 0
+        else:
+            nourri = 1 if w.nourri_menage.get(emp.id, True) else 0
+            if entree is not None and emp.id < len(entree): o.revenu += float(entree[emp.id])
+        o.soirs += 1; o.nourris += nourri
+        r = o.banque_jour / o.montant * H + POIDS_MENAGE * (nourri - 1.0)
+        o.banque += o.banque_jour; o.banque_jour = 0.0
+        mur = o.soirs >= H
+        if mur and not o.entreprise: r -= POIDS_MENAGE * max(0.0, o.effort() - SEUIL_EFFORT) * H
+        dec.noter(cle, r, j)
+        if mur:
+            c = d.composantes.setdefault(o.action, [0, 0.0, 0.0])
+            c[0] += 1; c[1] += o.part_banque(); c[2] += o.part_menage()
             dec.attentes.pop(cle, None); del d.ouvertes[cle]
-            pr = d.prets.get(o[3])
+            pr = d.prets.get(o.pret)
             if pr is not None: pr.demande = -1
 
 

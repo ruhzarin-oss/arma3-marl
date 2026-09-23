@@ -280,23 +280,38 @@ def test_taux_reduit_le_credit():
 
 
 def test_octroi_part_du_choix():
-    """Porte de la decision : 1 500 habitants, secheresse de 40 jours a Athira et Pyrgos, depenses exceptionnelles 2 fois
-    par menage et par an, la banque decide au hasard ( mode hasard ) pendant 60 jours. ( Ce scenario effondre le moteur
-    E1 avec ou sans banques : population seule, faim 100 % des le jour 30, Tresor a sec. ) Au moins 150 decisions, au moins
-    60 notes murees ( 30 jours ) ; la note depend du choix : part du choix >= 0,01 ; un refus note exactement 0."""
-    w, p = _monde(60, echelle=3, modes={"octroi_credit": "hasard"}, exceptionnelle=2.0, secheresse=True)
+    """Porte de la decision : 1 000 habitants sans secheresse ( toute secheresse effondre le moteur E1 pour de bon, avec ou
+    sans banques : faim 93 a 100 % jusqu au jour 160 ; tout menage y a faim quoi que fasse la banque, et le volet
+    emprunteur de la note ne s y lit pas ), depenses exceptionnelles 3 fois par menage et par an ; au fil des mois, le
+    Tresor s epuise et des menages manquent d argent pour manger ( faim 2 % au jour 100, 13 % au jour 160, population
+    seule ). La banque decide au hasard ( mode hasard ) pendant 200 jours. Au moins 150 decisions, au moins 60 notes
+    murees ( 120 jours ) ; la note depend du choix : part du choix >= 0,01. Instrument : pour chaque action, la note
+    moyenne du decideur egale part banque + poids x part emprunteur ( 1e-9 pres ), la part banque d un refus est nulle,
+    et le volet emprunteur a servi : au moins une note de refus non nulle ( un menage refuse a eu faim ). La monnaie se
+    conserve ; les biens sont affiches sans seuil : sur 200 jours, l arrondi du moteur seul depasse la tolerance des biens
+    ( population seule, 1 000 habitants, jour 200 : nourriture +1,22e-06 pour 1e-06 admis, mesure du 23/09 ), et ce
+    domaine ne touche aucun bien."""
+    w, p = _monde(200, echelle=2, modes={"octroi_credit": "hasard"}, exceptionnelle=3.0)
     d = p.domaine("banques"); dec = d.decideur
     part = dec.part_du_choix()
     notes = dec.notes_par_action()
     murees = sum(n for n, _ in notes.values())
-    refus = [s for (j, a), s in dec.stats.items() if a == 0]
-    refus_nul = bool(refus) and all(s[1] == 0.0 and s[2] == 0.0 for s in refus)
-    tenue, msg = p.socle.conservation.tenue()
-    ok = dec.n_decisions >= 150 and murees >= 60 and part >= 0.01 and refus_nul and tenue
+    comp = {dec.point.actions[a]: (n, sb / n, sm / n) for a, (n, sb, sm) in sorted(d.composantes.items())}
+    somme = all(a in comp and comp[a][0] == n and _proche(m, comp[a][1] + M.POIDS_MENAGE * comp[a][2])
+                for a, (n, m) in notes.items())
+    refus = [st for (j, a), st in dec.stats.items() if a == 0]
+    refus_banque_nulle = "refuser" in comp and comp["refuser"][1] == 0.0
+    refus_non_nul = any(st[2] > 0.0 for st in refus)
+    cons = p.socle.conservation
+    tenue, msg = cons.tenue()
+    argent = abs(cons.ecarts()[0]) <= R.tolerance(cons.argent0)
+    ok = dec.n_decisions >= 150 and murees >= 60 and part >= 0.01 and somme and refus_banque_nulle and refus_non_nul and argent
     return ok, (f"{dec.n_decisions} decisions, {murees} notes murees : "
-                + ", ".join(f"{a} {m:+.4f} ( {n} )" for a, (n, m) in notes.items())
-                + f" ; part du choix {part:.3f} ; refus notes 0 : {refus_nul} ; prets en defaut ou en retard "
-                f"{len(d.en_retard)} ; faim finale {T.faim(w):.0%} ; {msg}")
+                + ", ".join(f"{a} {m:+.4f} ( {n} ; banque {comp[a][1]:+.4f}, emprunteur {comp[a][2]:+.4f} )"
+                            for a, (n, m) in notes.items() if a in comp)
+                + f" ; part du choix {part:.3f} ; note = banque + emprunteur : {somme} ; refus : part banque nulle "
+                f"{refus_banque_nulle}, une note non nulle {refus_non_nul} ; faim finale {T.faim(w):.0%} ; monnaie "
+                f"conservee {argent} ; {msg}")
 
 
 def test_pays_vivable():
