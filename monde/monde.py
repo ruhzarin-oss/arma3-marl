@@ -26,6 +26,44 @@ class ParMenage:
     def __contains__(self, k): return 0 <= k < len(self.v)
 
 
+class ListeTravail(list):
+    """Ceux qui travaillent a ( lieu, metier ), comme les rendait l ancien index `monde._par_travail` : une liste
+    neuve, dont `append` et `remove` tiennent l index du moteur ( embauche, licenciement en cours de journee )."""
+    __slots__ = ("_w", "_cle")
+
+    def append(self, h):
+        list.append(self, h); self._w._travail_ajouts.setdefault(self._cle, []).append(h.id)
+
+    def remove(self, h):
+        list.remove(self, h)
+        ajouts = self._w._travail_ajouts.get(self._cle)
+        if ajouts and h.id in ajouts: ajouts.remove(h.id)
+        else: self._w._travail_retraits.setdefault(self._cle, set()).add(h.id)
+
+
+class ParTravail:
+    """L ancien index `monde._par_travail` - { ( id du lieu, metier ) : [ habitants ] } - pour le code ecrit avant les
+    colonnes ( les domaines du pays, monde/pays/ ). Lire, ajouter et retirer passent par l index du moteur."""
+    __slots__ = ("_w",)
+
+    def __init__(self, w): self._w = w
+
+    def _valide(self, cle):
+        return isinstance(cle, tuple) and len(cle) == 2 and cle[0] in self._w.carte.lieux and cle[1] in P.CODE_ROLE
+
+    def __getitem__(self, cle):
+        if not self._valide(cle): raise KeyError(cle)
+        w = self._w
+        lieu = w.carte.lieux[cle[0]]
+        l = ListeTravail(w.au_travail_de(lieu, cle[1]))
+        l._w, l._cle = w, w._cle_travail(lieu, cle[1])
+        return l
+
+    def get(self, cle, defaut=None): return self[cle] if self._valide(cle) else defaut
+    def setdefault(self, cle, defaut=None): return self[cle]
+    def __contains__(self, cle): return self._valide(cle) and self._w.nombre_au_travail(self._w.carte.lieux[cle[0]], cle[1]) > 0
+
+
 class Monde:
     def __init__(self, graine=C.GRAINE, cerveau="regles", epidemie_jour=2, journal=None, eleve=None, iles=("Altis",),
                  echelle=1.0):
@@ -332,8 +370,9 @@ class Monde:
                 self.embaucher(h)
         # les naissances : un tirage par menage qui a un adulte de moins de 45 ans, dans l ordre des menages
         n = t.n
-        adulte_jeune = (t.vivant[:n] == 1) & (t.role[:n] != r_enfant) & (t.age[:n] < 45) & (t.menage[:n] >= 0)
-        eligibles = np.nonzero(np.bincount(t.menage[:n][adulte_jeune], minlength=len(self.menages)))[0]
+        mm = P.menages_inscrits(t, n)
+        adulte_jeune = (t.vivant[:n] == 1) & (t.role[:n] != r_enfant) & (t.age[:n] < 45) & (mm >= 0)
+        eligibles = np.nonzero(np.bincount(mm[adulte_jeune], minlength=len(self.menages)))[0]
         nes = eligibles[self.rng.random(eligibles.size) < C.NAISSANCES_PAR_MENAGE_AN / C.JOURS_PAR_AN]
         for k in nes:
             mg = self.menages[int(k)]
@@ -399,7 +438,7 @@ class Monde:
         vivant = t.vivant[:n] == 1
         mt = t.menages
         # la population de chaque marche : les vivants, comptes au marche du domicile de leur MENAGE
-        mm = t.menage[:n]
+        mm = P.menages_inscrits(t, n)
         marche = self._marche_du_lieu[mt.domicile[:mt.n][mm[vivant & (mm >= 0)]]]
         comptes = np.bincount(marche[marche >= 0], minlength=len(self.carte.par_n))
         self._pop_marche = {self.carte.par_n[k].id: int(comptes[k]) for k in np.nonzero(comptes)[0]}
@@ -415,15 +454,22 @@ class Monde:
         fins = np.append(debuts[1:], len(cles))
         self._travail_tranches = {int(c): (int(d), int(f)) for c, d, f in zip(uniques, debuts, fins)}
         self._travail_ajouts = {}            # les embauches du jour, ajoutees a la fin de leur tranche
+        self._travail_retraits = {}          # les departs du jour ( licenciements des domaines ), retires de leur tranche
         self._lieux_par_role = {}
         for c in uniques: self._lieux_par_role.setdefault(P.ROLES[int(c) % nr], set()).add(self.carte.par_n[int(c) // nr])
 
     def _cle_travail(self, lieu, role): return lieu.n * len(P.ROLES) + P.CODE_ROLE[role]
 
+    @property
+    def _par_travail(self): return ParTravail(self)
+
     def ids_au_travail(self, lieu, role):
         cle = self._cle_travail(lieu, role)
         d, f = self._travail_tranches.get(cle, (0, 0))
-        return self._travail_ordre[d:f].tolist() + self._travail_ajouts.get(cle, [])
+        ids = self._travail_ordre[d:f].tolist()
+        partis = self._travail_retraits.get(cle)
+        if partis: ids = [i for i in ids if i not in partis]
+        return ids + self._travail_ajouts.get(cle, [])
 
     def au_travail_de(self, lieu, role):
         """Les habitants ( vues ) qui travaillent a ce lieu dans ce metier, dans l ordre des habitants."""
@@ -433,7 +479,7 @@ class Monde:
     def nombre_au_travail(self, lieu, role):
         cle = self._cle_travail(lieu, role)
         d, f = self._travail_tranches.get(cle, (0, 0))
-        return (f - d) + len(self._travail_ajouts.get(cle, []))
+        return (f - d) - len(self._travail_retraits.get(cle, ())) + len(self._travail_ajouts.get(cle, []))
 
 
     def aube(self):
@@ -872,7 +918,7 @@ class Monde:
         t, n, mt = self.table, self.table.n, self.table.menages
         M = mt.n
         vivant = t.vivant[:n] == 1
-        mm = t.menage[:n]
+        mm = P.menages_inscrits(t, n)
         membres = np.nonzero(vivant & (mm >= 0))[0]
         v = np.bincount(mm[membres], minlength=M)
         besoin = C.NOURRITURE_PAR_JOUR * v

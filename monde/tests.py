@@ -184,10 +184,45 @@ def test_voyage_entre_iles():
                 f"sejour tenu {sum(la_bas)}/{len(la_bas)} pas, identite {h.id} conservee")
 
 
+def test_interface_ancienne():
+    """Le code ecrit pour l ancien moteur a objets ( les domaines du pays, monde/pays/ ) doit tourner sur les colonnes :
+    identite des vues ( `x is not h` ), creation `Habitant(id, role, classe, age)` et `Menage(id, domicile)`, liste des
+    membres tenue par `append` / `remove` ( y compris le lien casse que le controle des familles doit voir ), ancien
+    index `_par_travail`, et un monde qui se sauve et repart. Chaque point echoue sur le moteur sans la couche."""
+    from . import population as P
+    w = W.Monde(graine=3)
+    ok = {}
+    h = w.habitants[10]
+    ok["identite"] = h is w.habitants[10] and h.menage is h.menage and h not in [y for y in h.menage.membres if y is not h]
+    mg, n0 = h.menage, len(w.habitants)
+    taille = len(mg.membres)
+    b = P.Habitant(n0, "enfant", h.classe, 0)
+    b.menage, b.domicile, b.lieu, b.decalage = mg, mg.domicile, mg.domicile, 7.0
+    w.habitants.append(b); mg.membres.append(b)
+    ok["naissance"] = b is w.habitants[n0] and b.lieu is mg.domicile and mg.membres[-1] is b and len(mg.membres) == taille + 1
+    neuf = P.Menage(len(w.menages), mg.domicile); w.menages.append(neuf)
+    mg.membres.remove(b); neuf.membres.append(b); b.menage = neuf
+    ok["demenagement"] = b.menage is neuf and neuf.membres == [b] and b not in mg.membres
+    g = w.habitants[20]
+    g.menage.membres.remove(g)
+    ok["lien casse visible"] = g.menage is not None and g not in g.menage.membres
+    e = next(iter(w.entreprises.values()))
+    lst = w._par_travail.get((e.lieu.id, e.role))
+    n1, q = w.nombre_au_travail(e.lieu, e.role), lst[0]
+    lst.remove(q)
+    retire = w.nombre_au_travail(e.lieu, e.role) == n1 - 1 and q not in w.au_travail_de(e.lieu, e.role)
+    w._par_travail.setdefault((e.lieu.id, e.role), []).append(q)
+    ok["index du travail"] = retire and w.au_travail_de(e.lieu, e.role)[-1] is q
+    w2 = jours(pickle.loads(pickle.dumps(w)), 1)
+    ok["sauve et repart"] = w2.habitants[5] is w2.habitants[5] and len(w2.habitants) >= len(w.habitants)
+    rates = [k for k, v in ok.items() if not v]
+    return not rates, f"{len(ok) - len(rates)}/{len(ok)} points tenus" + (f" ; rates : {rates}" if rates else "")
+
+
 TESTS = [test_conservation, test_conservation_sait_echouer, test_negatif_sans_perturbation, test_positif_route_coupee,
          test_reproductible, test_gouvernement_borne, test_ecole, test_menages_decident, test_reprise_identique,
          test_demographie, test_desobeissance, test_hopital,
-         test_armee_coupee, test_voyage_entre_iles]
+         test_armee_coupee, test_voyage_entre_iles, test_interface_ancienne]
 
 if __name__ == "__main__":
     ok = 0

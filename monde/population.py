@@ -1,7 +1,10 @@
 """Les 500 habitants : role, classe, age, famille, domicile, lieu de travail, horaire, sante, argent.
 Chaque habitant garde son identite pour toujours, qu il soit simule ( donnee ) ou incarne dans Arma ( la bulle, E2 )."""
+import weakref
 import numpy as np
 from . import config as C
+
+_Ref = weakref.KeyedRef
 
 # lieu de travail de chaque role : types de lieux, horaire
 TRAVAIL = {
@@ -45,6 +48,21 @@ def _agrandir(table, champs):
     table.capacite = neuve
 
 
+def _preparer_vues(table):
+    """Le cache des vues vivantes d une table : deux lectures du meme habitant, tant que l une vit, rendent le MEME
+    objet. Le code ecrit pour l ancien moteur compare par identite ( `x.menage is not mg`, `x is not h` ) : sans ce
+    cache, chaque lecture fabriquait un objet neuf et ces tests etaient toujours vrais, sans erreur visible."""
+    vues = table.vues = {}                 # numero -> reference faible de la vue vivante
+    def oublier(r, vues=vues):
+        if vues.get(r.key) is r: del vues[r.key]
+    table._oubli = oublier
+
+
+def _sans_vues(table):
+    d = table.__dict__.copy(); d.pop("vues", None); d.pop("_oubli", None)
+    return d
+
+
 class Table:
     """Les habitants en COLONNES : un tableau par attribut, une ligne par habitant ( la ligne est son identifiant ).
 
@@ -69,6 +87,10 @@ class Table:
         self.rang_suivant = 0              # l ordre d arrivee dans les menages
         self.menages = None                # la table des menages
         for nom, (dt, defaut) in self.CHAMPS.items(): setattr(self, nom, np.full(capacite, defaut, dt))
+        _preparer_vues(self)
+
+    def __getstate__(self): return _sans_vues(self)
+    def __setstate__(self, d): self.__dict__.update(d); _preparer_vues(self)
 
     def ajouter(self):
         if self.n == self.capacite: _agrandir(self, self.CHAMPS)
@@ -91,11 +113,18 @@ class TableMenages:
         self.n_indexe = 0
         self.ajouts = {}                   # les arrivees depuis la construction de l index ( les naissances )
         for nom, (dt, defaut) in self.CHAMPS.items(): setattr(self, nom, np.full(capacite, defaut, dt))
+        _preparer_vues(self)
 
-    def nouveau(self, domicile):
+    def __getstate__(self): return _sans_vues(self)
+    def __setstate__(self, d): self.__dict__.update(d); _preparer_vues(self)
+
+    def _ajouter(self):
         if self.n == self.capacite: _agrandir(self, self.CHAMPS)
         self.n += 1
-        m = Menage(self.n - 1, self)
+        return self.n - 1
+
+    def nouveau(self, domicile):
+        m = Menage(self._ajouter(), self)
         m.domicile = domicile
         return m
 
@@ -103,7 +132,7 @@ class TableMenages:
         t = self.h
         n = t.n
         m = t.menage[:n]
-        dedans = np.nonzero(m >= 0)[0]
+        dedans = np.nonzero((m >= 0) & (t.rang[:n] >= 0))[0]     # rang -1 : retire de la liste de son menage
         ordre = dedans[np.lexsort((t.rang[dedans], m[dedans]))]
         debuts = np.searchsorted(m[ordre], np.arange(self.n + 1))
         self.index, self.n_indexe, self.ajouts = (ordre, debuts), n, {}
@@ -122,13 +151,72 @@ class TableMenages:
         return ids + self.ajouts.get(k, [])
 
 
+def menages_inscrits(t, n):
+    """La colonne des menages, avec -1 pour qui n est pas dans la LISTE de son menage. L ancien moteur tenait deux
+    faits separes, le pointeur `h.menage` et la liste `menage.membres` ; le code des domaines peut les desaccorder
+    ( un habitant retire de la liste avant d etre pointe ailleurs ) et les routines comptent la liste."""
+    return np.where(t.rang[:n] >= 0, t.menage[:n], -1)
+
+
+class _Case:
+    """Une colonne d une seule case : celle d un brouillon, quel que soit le numero demande."""
+    __slots__ = ("v",)
+    def __init__(self, v): self.v = v
+    def __getitem__(self, i): return self.v
+    def __setitem__(self, i, v): self.v = v
+
+
+class _Brouillon:
+    """La ligne d un habitant cree par l ANCIENNE interface, `Habitant(id, role, classe, age)`, avant d avoir une table :
+    ce qu on lui ecrit attend ici, et `monde.habitants.append(h)` l inscrit a son numero."""
+    def __init__(self):
+        for nom, (dt, defaut) in Table.CHAMPS.items(): setattr(self, nom, _Case(defaut))
+        self.noms = {}
+        self.menages = None                # la table de son menage, des qu on lui en donne un
+
+    @property
+    def par_n(self): return self.menages.par_n if self.menages is not None else {}
+
+
+class _BrouillonMenage:
+    """La ligne d un menage cree par l ANCIENNE interface, `Menage(id, domicile)`, en attente de `monde.menages.append`."""
+    def __init__(self, domicile):
+        self.caisse, self.garde_manger = _Case(0.0), _Case(0.0)
+        self.domicile = _Case(domicile.n if domicile is not None else -1)
+        self.par_n = {domicile.n: domicile} if domicile is not None else {}
+        self.h, self.vue = None, None
+
+    def membres_ids(self, k): return []
+
+
 class Habitant:
     """Une VUE sur une ligne de la table : aucune donnee ici, seulement un numero et la table. Deux vues du meme
     habitant sont egales ( meme numero ) sans etre le meme objet."""
-    __slots__ = ("id", "_t")
+    __slots__ = ("id", "_t", "__weakref__")
 
-    def __init__(self, table, id):
-        self._t, self.id = table, id
+    def __new__(cls, table, id=None, *ancien):
+        if not isinstance(table, Table): return cls._ancien(table, id, *ancien)
+        id = int(id)
+        vues = table.vues
+        r = vues.get(id)
+        if r is not None:
+            h = r()
+            if h is not None: return h
+        h = object.__new__(cls)
+        h._t = table; h.id = id
+        vues[id] = _Ref(h, table._oubli, id)
+        return h
+
+    @classmethod
+    def _ancien(cls, id, role=None, classe=None, age=0):
+        """L ANCIENNE interface ( le code ecrit avant les colonnes ) : un habitant hors de toute table, dont les
+        ecritures attendent dans un brouillon jusqu a `monde.habitants.append(h)`."""
+        h = object.__new__(cls)
+        h._t = _Brouillon(); h.id = int(id)
+        h.role, h.classe, h.age = role, classe, age
+        return h
+
+    def __reduce__(self): return (Habitant, (self._t, self.id))
 
     @classmethod
     def nouveau(cls, table, role, classe, age):
@@ -236,10 +324,19 @@ class Habitant:
     @menage.setter
     def menage(self, v):
         t = self._t
-        t.menage[self.id] = v.id if v is not None else -1
-        if v is not None:
+        k = v.id if v is not None else -1
+        if type(t) is _Brouillon:
+            t.menage.v = k
+            if v is not None: t.menages = v._mt
+            return
+        if t.menage[self.id] == k: return        # deja le sien : il garde sa place dans la liste ( ancien moteur )
+        t.menage[self.id] = k
+        if k >= 0:
             t.rang[self.id] = t.rang_suivant; t.rang_suivant += 1
-            t.menages.rejoindre(self.id, v.id)
+            t.menages.rejoindre(self.id, k)
+        else:
+            t.rang[self.id] = -1
+            if t.menages is not None: t.menages.index = None
 
     del _f, _i, _b, _lieu
 
@@ -260,10 +357,30 @@ class Habitant:
 
 class Menage:
     """Une VUE sur une ligne de la table des menages."""
-    __slots__ = ("id", "_mt")
+    __slots__ = ("id", "_mt", "__weakref__")
 
-    def __init__(self, id, mt):
-        self.id, self._mt = id, mt
+    def __new__(cls, id, mt=None):
+        if not isinstance(mt, TableMenages):
+            return mt.vue if type(mt) is _BrouillonMenage else cls._ancien(id, mt)
+        id = int(id)
+        vues = mt.vues
+        r = vues.get(id)
+        if r is not None:
+            m = r()
+            if m is not None: return m
+        m = object.__new__(cls)
+        m.id = id; m._mt = mt
+        vues[id] = _Ref(m, mt._oubli, id)
+        return m
+
+    @classmethod
+    def _ancien(cls, id, domicile):
+        """L ANCIENNE interface, `Menage(id, domicile)` : un menage vide hors table, jusqu a `monde.menages.append(m)`."""
+        m = object.__new__(cls)
+        m.id = int(id); m._mt = _BrouillonMenage(domicile); m._mt.vue = m
+        return m
+
+    def __reduce__(self): return (Menage, (self.id, self._mt))
 
     def __eq__(self, autre): return isinstance(autre, Menage) and autre.id == self.id and autre._mt is self._mt
     def __hash__(self): return hash(("menage", self.id))
@@ -287,17 +404,49 @@ class Menage:
         return self._mt.par_n[k] if k >= 0 else None
 
     @domicile.setter
-    def domicile(self, v): self._mt.domicile[self.id] = v.n if v is not None else -1
+    def domicile(self, v):
+        self._mt.domicile[self.id] = v.n if v is not None else -1
+        if type(self._mt) is _BrouillonMenage and v is not None: self._mt.par_n[v.n] = v
 
     @property
     def membres(self):
-        """Les membres, dans leur ordre d arrivee. Une liste neuve a chaque lecture : `membres.append(...)` ne sert a
-        rien, c est `habitant.menage = menage` qui fait entrer quelqu un."""
+        """Les membres, dans leur ordre d arrivee, dans une liste neuve a chaque lecture. `habitant.menage = menage` fait
+        entrer quelqu un ; pour le code ecrit avant les colonnes, `membres.append(h)` et `membres.remove(h)` ecrivent
+        aussi dans la table ( voir `Membres` )."""
         t = self._mt.h
-        return [Habitant(t, i) for i in self._mt.membres_ids(self.id)]
+        l = Membres([Habitant(t, i) for i in self._mt.membres_ids(self.id)])
+        l._m = self
+        return l
+
+    def _inscrire(self, h):
+        t = h._t
+        if type(t) is _Brouillon: h.menage = self; return
+        t.menage[h.id] = self.id
+        t.rang[h.id] = t.rang_suivant; t.rang_suivant += 1
+        self._mt.rejoindre(h.id, self.id)
+
+    def _retirer(self, h):
+        t = h._t
+        if type(t) is _Brouillon or t.menage[h.id] != self.id: return
+        t.rang[h.id] = -1                   # il pointe encore vers ce menage, mais n est plus dans sa liste
+        self._mt.index = None
 
     def adultes(self):
         return [h for h in self.membres if h.role not in ("enfant",) and h.vivant]
+
+
+class Membres(list):
+    """La liste des membres d un menage. L ancien moteur la tenait a la main ; ici `append` et `remove` l ecrivent
+    dans la table : `append` inscrit ( a la fin de la liste ), `remove` retire de la liste sans changer le pointeur
+    `h.menage` - exactement l etat que l ancien moteur laissait entre les deux lignes d un demenagement."""
+    __slots__ = ("_m",)
+
+    def append(self, h):
+        if h in self: return
+        list.append(self, h); self._m._inscrire(h)
+
+    def remove(self, h):
+        list.remove(self, h); self._m._retirer(h)
 
 
 class Population:
@@ -320,7 +469,23 @@ class Population:
         t = self._t
         return (Habitant(t, i) for i in range(t.n))
 
-    def append(self, h): pass
+    def append(self, h):
+        """Ne fait rien pour un habitant deja dans la table ; inscrit a son numero un habitant cree par l ancienne
+        interface ( `Habitant(id, role, classe, age)` ), qui doit etre le suivant."""
+        b = h._t
+        if type(b) is not _Brouillon: return
+        t = self._t
+        if h.id != t.n: raise ValueError(f"habitant {h.id} ajoute a la ligne {t.n} : les numeros doivent se suivre")
+        i = t.ajouter()
+        for nom in Table.CHAMPS: getattr(t, nom)[i] = getattr(b, nom).v
+        t.rang[i] = -1
+        if b.noms: t.noms[i] = b.noms[h.id]
+        h._t = t
+        t.vues[i] = _Ref(h, t._oubli, i)
+        k = int(b.menage.v)
+        if k >= 0:
+            t.rang[i] = t.rang_suivant; t.rang_suivant += 1
+            t.menages.rejoindre(i, k)
 
 
 class Menages:
@@ -341,6 +506,18 @@ class Menages:
     def __iter__(self):
         mt = self._mt
         return (Menage(k, mt) for k in range(mt.n))
+
+    def append(self, m):
+        """Inscrit a son numero un menage cree par l ancienne interface ( `Menage(id, domicile)` ), qui doit etre le
+        suivant ; ne fait rien pour un menage deja dans la table."""
+        b = m._mt
+        if type(b) is not _BrouillonMenage: return
+        mt = self._mt
+        if m.id != mt.n: raise ValueError(f"menage {m.id} ajoute a la ligne {mt.n} : les numeros doivent se suivre")
+        k = mt._ajouter()
+        mt.caisse[k], mt.garde_manger[k], mt.domicile[k] = b.caisse.v, b.garde_manger.v, b.domicile.v
+        m._mt = mt
+        mt.vues[k] = _Ref(m, mt._oubli, k)
 
 
 def generer(carte, rng, echelle=1.0, table=None):
