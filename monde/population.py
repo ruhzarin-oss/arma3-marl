@@ -40,7 +40,8 @@ class Table:
               "etat": (np.uint8, 0), "gravite": (np.float64, 0.0), "faim": (np.float64, 0.0),
               "horaire": (np.int8, -1), "equipe": (np.int32, 0), "decalage": (np.float64, 0.0),
               "travail": (np.int32, -1), "domicile": (np.int32, -1), "hopital": (np.int32, -1),
-              "public": (np.uint8, 0), "role": (np.int16, -1), "travaille": (np.uint8, 0)}
+              "public": (np.uint8, 0), "role": (np.int16, -1), "travaille": (np.uint8, 0),
+              "age": (np.float64, 0.0), "menage": (np.int32, -1)}
 
     def __init__(self, par_n, capacite=1024):
         self.par_n = par_n                 # les lieux par numero ( Carte.par_n )
@@ -62,7 +63,7 @@ class Table:
 
 
 class Habitant:
-    __slots__ = ("id", "nom", "_role", "classe", "age", "menage", "_domicile", "_travail", "_horaire", "_equipe",
+    __slots__ = ("id", "nom", "_role", "classe", "_menage", "_domicile", "_travail", "_horaire", "_equipe",
                  "_etat", "jours_etat", "_gravite", "remede", "_vivant", "_faim", "amendes",
                  "incarne", "eleve", "_decalage", "_t")
 
@@ -162,7 +163,21 @@ class Habitant:
         self._vivant = v
         self._t.vivant[self.id] = 1 if v else 0
 
-    # --- ce que Rust ECRIT : la colonne fait foi, l habitant la lit ---
+    @property
+    def menage(self): return self._menage
+
+    @menage.setter
+    def menage(self, v):
+        self._menage = v
+        self._t.menage[self.id] = v.id if v is not None else -1
+
+    # --- ce que les routines en colonnes ECRIVENT : la colonne fait foi, l habitant la lit ---
+    @property
+    def age(self): return float(self._t.age[self.id])
+
+    @age.setter
+    def age(self, v): self._t.age[self.id] = v
+
     @property
     def lieu(self):
         k = self._t.lieu[self.id]

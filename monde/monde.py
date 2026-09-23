@@ -279,8 +279,50 @@ class Monde:
             self.embarquer(libre, cible, sejour_jours=2.0)
 
     def demographie(self):
-        """Point 5 : on naît, on vieillit, on part a la retraite, on meurt de vieillesse. Une fois par jour du monde.
-        Le pays cesse d etre une photographie de 500 personnes figees."""
+        """Point 5 : on nait, on vieillit, on part a la retraite, on meurt de vieillesse. Une fois par jour du monde.
+        En colonnes quand la table est la ; `demographie_python` reste la reference, et la porte compare au centime.
+        Les tirages suivent l ordre de la boucle Python : un par vivant, puis un par menage eligible. Les evenements
+        rares ( morts, retraites, entrees dans la vie active ) sont traites un par un, dans l ordre des habitants :
+        l embauche d un jeune depend des embauches qui la precedent."""
+        if not self.utiliser_coeur: return self.demographie_python()
+        t, n = self.table, self.table.n
+        vivants = np.nonzero(t.vivant[:n] == 1)[0]
+        t.age[vivants] += 1.0 / C.JOURS_PAR_AN
+        age = t.age[vivants]
+        limites = np.array([lim for lim, _ in C.MORTALITE_AN]); taux = np.array([r for _, r in C.MORTALITE_AN])
+        risque = taux[np.minimum(np.searchsorted(limites, age, side="right"), len(taux) - 1)]
+        morts = self.rng.random(vivants.size) < risque / C.JOURS_PAR_AN
+        role = t.role[vivants]
+        r_retraite, r_enfant = P.CODE_ROLE["retraite"], P.CODE_ROLE["enfant"]
+        retraite = ~morts & (age >= C.AGE_RETRAITE) & (role != r_retraite) & (role != r_enfant)
+        grandit = ~morts & ~retraite & (role == r_enfant) & (age >= C.AGE_TRAVAIL)
+        rares = morts | retraite | grandit
+        for i, mort, part in zip(vivants[rares], morts[rares], retraite[rares]):
+            h = self.habitants[int(i)]
+            if mort:
+                h.vivant = False; h.lieu = None
+                self.noter("mort_naturelle", habitant=h.id, age=round(h.age, 1), role=h.role)
+            elif part:
+                self.noter("retraite", habitant=h.id, age=round(h.age, 1), ancien_role=h.role)
+                h.role, h.travail, h.horaire = "retraite", None, None
+            else:
+                self.embaucher(h)
+        # les naissances : un tirage par menage qui a un adulte de moins de 45 ans, dans l ordre des menages
+        n = t.n
+        adulte_jeune = (t.vivant[:n] == 1) & (t.role[:n] != r_enfant) & (t.age[:n] < 45) & (t.menage[:n] >= 0)
+        eligibles = np.nonzero(np.bincount(t.menage[:n][adulte_jeune], minlength=len(self.menages)))[0]
+        nes = eligibles[self.rng.random(eligibles.size) < C.NAISSANCES_PAR_MENAGE_AN / C.JOURS_PAR_AN]
+        for k in nes:
+            mg = self.menages[int(k)]
+            premier = next(x for x in mg.membres if x.vivant and x.role != "enfant" and x.age < 45)
+            b = P.Habitant(self.table.n, "enfant", premier.classe, 0, self.table)   # sa ligne est son numero
+            b.menage, b.domicile, b.lieu = mg, mg.domicile, mg.domicile
+            b.horaire, b.travail = "ecole", mg.domicile.marche
+            mg.membres.append(b); self.habitants.append(b)
+            self.noter("naissance", habitant=b.id, menage=mg.id, lieu=mg.domicile.id)
+
+    def demographie_python(self):
+        """La version d origine, une boucle sur chaque habitant : la reference de la porte des colonnes."""
         for h in self.habitants:
             if not h.vivant: continue
             h.age += 1.0 / C.JOURS_PAR_AN
