@@ -67,3 +67,25 @@ l'effet de CE choix sur ceux qu'il sert (la faim de la région livrée avant et 
 **Deux décisions pour Younes, mesurées** : adopter le **fret aveugle** comme règle de base des voyageurs (−26,2 contre
 −45,9 sans cargaison), et le **commerce aveugle** comme règle du commerce (−21,9 contre −22,6 ici, et déjà gagnant le
 22/09 sur deux séries).
+
+---
+
+## Tentative 2 pour les cinq refusés — écrite le 23/09 AVANT la mesure
+
+**Le diagnostic de la tentative 1.** La note des refusés était surtout nationale : leur récompense par époque est
+restée plate, parce que leur choix changeait à peine « ma région a-t-elle mangé ? ». Et la seule part nette de leur
+note — la marge, le profit — tirait dans le sens de la règle de rentabilité, ou contre le pays.
+
+**Le principe de la tentative 2** : noter l'effet de CE choix sur ceux qu'il touche, mesuré dans le monde.
+
+| groupe | nouvelle note |
+|---|---|
+| commerce | un camion vaut ce qu'il manquait là où il arrive : `min(1, manque de la destination / cargaison)` (+ 0,1 × marge). Ne rien envoyer vaut `0,5 × (1 − plus grand manque ailleurs)` : garder son surplus n'est bon que si personne n'en a besoin — sinon il part au port. |
+| voyageurs | même règle, d'île à île. |
+| entreprises | son marché tenu dans la bande (entre 0,5 et 2 fois la cible de son produit) vaut 1, sinon 0 ; + 0,3 × profit borné. Le profit ne commande plus. |
+| marchés | le prix de la nourriture est noté sur la région nourrie ; celui des autres biens sur le stock tenu dans la bande. La caisse du marché sort de la note. |
+| travailleurs | ménage nourri, −2 s'il tombe malade, **et** s'il est allé travailler en étant contagieux : moins les nouvelles contaminations de son lieu de travail ce jour-là, partagées entre les contagieux présents. Le coût qu'il fait porter aux autres lui revient. |
+
+**Porte, plus stricte** (deuxième tentative sur la même porte) : les mêmes exigences — battre la règle (médiane et
+7 mondes sur 10) et le hasard (médiane), et l'aveugle pour le commerce — **sur l'examen 101-110 ET sur la
+confirmation 201-210**. Un groupe qui passe l'une et pas l'autre est refusé.
