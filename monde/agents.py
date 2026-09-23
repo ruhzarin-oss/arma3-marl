@@ -23,8 +23,12 @@ N_TRAITS = len(TRAITS)
 class Doctrine:
     """Ce que le pays a appris. Des poids par action, partages par tous les menages, sauvegardes en JSON."""
 
-    def __init__(self, alpha=0.02, epsilon=0.1, graine=0):
-        self.poids = [[0.0] * N_TRAITS for _ in CIBLES]
+    def __init__(self, alpha=0.02, epsilon=0.1, graine=0, n_actions=None, n_traits=None, nom="menages"):
+        """Par defaut la doctrine des menages ( 7 cibles, 8 traits ) ; tout autre groupe donne sa propre forme."""
+        self.n_actions = n_actions or len(CIBLES)
+        self.n_traits = n_traits or N_TRAITS
+        self.nom = nom
+        self.poids = [[0.0] * self.n_traits for _ in range(self.n_actions)]
         self.alpha, self.epsilon = alpha, epsilon
         self.rng = random.Random(graine)
         self.n_choix = 0
@@ -38,11 +42,11 @@ class Doctrine:
     def choisir(self, x, explorer=True):
         self.n_choix += 1
         if explorer and self.rng.random() < self.epsilon:
-            return self.rng.randrange(len(CIBLES))
+            return self.rng.randrange(self.n_actions)
         # une note non finie n est pas une opinion : l action redevient inconnue plutot que de decider par un NaN
         notes = [n if math.isfinite(n) else float("-inf") for n in self.estimer(x)]
         meilleure = max(notes)
-        if not math.isfinite(meilleure): return self.rng.randrange(len(CIBLES))
+        if not math.isfinite(meilleure): return self.rng.randrange(self.n_actions)
         candidats = [i for i, n in enumerate(notes) if n >= meilleure - 1e-12]
         return self.rng.choice(candidats)
 
@@ -50,7 +54,7 @@ class Doctrine:
     def apprendre(self, x, action, recompense):
         p = self.poids[action]
         estime = sum(w * v for w, v in zip(p, x))
-        if not math.isfinite(estime): p[:] = [0.0] * N_TRAITS; estime = 0.0     # une doctrine qui diverge se rejoue a neuf
+        if not math.isfinite(estime): p[:] = [0.0] * self.n_traits; estime = 0.0     # une doctrine qui diverge se rejoue a neuf
         erreur = max(-2.0, min(2.0, recompense - estime))                       # un pas borne : pas d emballement
         for i, v in enumerate(x): p[i] += self.alpha * erreur * v
         self.n_lecons += 1
@@ -60,15 +64,17 @@ class Doctrine:
     def ecrire(self, chemin):
         os.makedirs(os.path.dirname(chemin), exist_ok=True)
         with open(chemin, "w") as f:
-            json.dump({"poids": self.poids, "cibles": list(CIBLES), "traits": list(TRAITS),
+            json.dump({"nom": self.nom, "poids": self.poids, "n_actions": self.n_actions, "n_traits": self.n_traits,
                        "lecons": self.n_lecons, "recompense_moyenne": self.moyenne()}, f, indent=1)
 
     @classmethod
     def lire(cls, chemin, **kw):
-        d = cls(**kw)
         with open(chemin) as f: s = json.load(f)
-        if len(s["poids"]) != len(CIBLES) or len(s["poids"][0]) != N_TRAITS:
+        n_a, n_t = len(s["poids"]), len(s["poids"][0])
+        attendu_a, attendu_t = kw.pop("n_actions", None), kw.pop("n_traits", None)
+        if (attendu_a and attendu_a != n_a) or (attendu_t and attendu_t != n_t):
             raise ValueError("doctrine d une autre forme : refusee plutot que rabotee")
+        d = cls(n_actions=n_a, n_traits=n_t, nom=s.get("nom", "menages"), **kw)
         d.poids = s["poids"]; d.n_lecons = s.get("lecons", 0)
         return d
 

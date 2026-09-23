@@ -97,3 +97,4 @@ FRAUDE_PENTE = 2.0                   # part des achats qui echappe a la TVA, par
 FRAUDE_MAX = 0.7
 QUARANTAINE_VIOLEE = 0.2             # part des habitants qui sortent quand meme
 ABSENCE_FAIM = 1.5                   # au-dela de cette faim accumulee, on ne va plus travailler
+CONTROLE_PAR_POLICIER = 0.2           # chance de controle par policier, pour dix menages de sa region

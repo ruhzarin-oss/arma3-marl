@@ -3,7 +3,7 @@ Invariants verifies par les tests : l argent et les biens se CONSERVENT - rien n
 cause ecrite au journal ( production, consommation, combustion, import, export, mort )."""
 import json, math
 import numpy as np
-from . import config as C, carte as K, population as P, economie as E, gouvernement as G, ecole as S, agents as A
+from . import config as C, carte as K, population as P, economie as E, gouvernement as G, ecole as S, agents as A, roles as R
 
 CATEGORIES_PUBLIQUES = ("hopitaux", "armee", "reserve", "population")
 
@@ -53,6 +53,12 @@ class Monde:
         self.cerveau = G.CerveauLLM() if cerveau == "llm" else None
         self.marchand = None               # pose par monde/apprenti.py : le reseau qui apprend a expedier
         self.doctrine = None               # posee par monde/former.py : ce que les menages ont appris ( point 1 )
+        self.agents = {}                   # groupes d agents installes ( roles.py ) : nom -> Groupe ; absent = la regle
+        self.faim_region = {}; self.nourri_menage = {}; self.infectes_du_jour = set()
+        self.amendes_menage = {}; self.intensite_controle = 1.0
+        self.patrouilles_jour = {}; self.derniere_livraison = {}; self.livraison_ratee = {}
+        self.coupures = []                 # routes coupees pour un temps : [{ lieu, debut, jours }]
+        self.fret_aveugle = False          # temoin des voyageurs : toujours la nourriture vers l ile la plus chere
         self.menagiers = {}                # la memoire propre de chaque menage
         self.memoire_gouv = ""
         self.epidemie_jour = epidemie_jour
@@ -104,6 +110,8 @@ class Monde:
         for g in self.garnisons.values(): t["carburant"] += g["carburant"]
         for c in self.convois:
             for b, q in c.cargaison.items(): t[b] += q
+        for v in getattr(self, "voyages", []):       # ce qui est en mer existe encore ( absent a la naissance du monde )
+            for b, q in v.get("cargaison", {}).items(): t[b] += q
         t["nourriture"] += sum(m.garde_manger for m in self.menages)
         t["electricite"] += self.reseau.stock
         return t
@@ -177,33 +185,43 @@ class Monde:
             elif mm == 19 * 60 + 10: self.ecole.observer_marche()
         self.pas += 1
 
+    def economie_entreprise(self, e):
+        """Ce qu une entreprise sait de son affaire : son marche, son produit principal, sa recette, son cout, sa cible."""
+        m = self.marches[e.lieu.marche.id]
+        b = max(e.produits, key=lambda x: e.produits[x] * C.PRIX_MONDE[x] if x != "or" else 0)
+        recette = sum(q * m.prix[x] * (1 - m.marge) for x, q in e.produits.items())
+        cout = P.SALAIRE_HORAIRE.get(e.role, 0) + sum(q * (self.reseau.tarif if x == "electricite" else m.prix[x])
+                                                      for x, q in e.intrants.items())
+        cible = self.reserve_marche(m, b) * 2 if b == "nourriture" else C.STOCK_CIBLE
+        return m, b, recette, cout, cible
+
     def regler_activite(self):
         """Chaque matin, l entreprise regle son activite sur son marche : elle ralentit quand le stock de son produit
         principal y depasse sa cible, accelere quand il manque, et s arrete presque quand elle perd de l argent."""
         for e in self.entreprises.values():
             if e.type == "centrale": continue                       # la centrale suit deja le reseau
             if "or" in e.produits: e.activite = 1.0; continue       # l or se vend toujours, au prix mondial
-            m = self.marches[e.lieu.marche.id]
+            m, b, recette, cout, cible = self.economie_entreprise(e)
             # ! 22/09 : ni la moyenne des marches ( la raffinerie a 15 % pendant que Pyrgos manquait ) ni le marche le plus a
             # court ( le puits surproduisait un petrole que seule Athira emploie, et faisait faillite ). Une entreprise produit
             # tant que son PRIX couvre son COUT, et ralentit quand son propre marche deborde.
-            b = max(e.produits, key=lambda x: e.produits[x] * C.PRIX_MONDE[x] if x != "or" else 0)
-            recette = sum(q * m.prix[x] * (1 - m.marge) for x, q in e.produits.items())
-            cout = P.SALAIRE_HORAIRE.get(e.role, 0) + sum(q * (self.reseau.tarif if x == "electricite" else m.prix[x])
-                                                          for x, q in e.intrants.items())
-            cible = self.reserve_marche(m, b) * 2 if b == "nourriture" else C.STOCK_CIBLE
             if m.stocks[b] > 2 * cible or recette < 0.95 * cout: e.activite = max(0.1, e.activite - 0.25)
             elif m.stocks[b] < cible and recette > 1.05 * cout: e.activite = min(1.0, e.activite + 0.25)
 
     # --- point 13 : le voyage entre iles -------------------------------------------------------------------
-    def embarquer(self, h, cible, demenage=False, sejour_jours=0.0):
+    def marchand_libre(self, ile):
+        return next((h for h in self.habitants if h.vivant and h.role == "marchand" and h.poste != "voyage"
+                     and h.id not in self.sejours and h.lieu is not None and h.lieu.ile == ile), None)
+
+    def embarquer(self, h, cible, demenage=False, sejour_jours=0.0, cargaison=None, marche_origine=None, marche_dest=None):
         """Un habitant quitte son ile. Pendant la traversee il n est nulle part : aucun corps, ni ici ni la-bas.
         C est la condition pour qu il n existe jamais en double."""
         km = self.carte.km_mer(h.lieu if h.lieu is not None else h.domicile, cible)
         minutes = 60.0 * km / K.VITESSE_MER_KMH
         pas = self.pas + max(1, int(minutes / C.MINUTES_PAR_PAS))
         self.voyages.append({"habitant": h, "arrivee": pas, "cible": cible, "demenage": demenage,
-                             "sejour": sejour_jours})
+                             "sejour": sejour_jours, "cargaison": dict(cargaison or {}),
+                             "marche_origine": marche_origine, "marche_dest": marche_dest})
         h.lieu, h.poste = None, "voyage"
         self.noter("embarquement", habitant=h.id, vers=cible.id, ile=cible.ile, km=round(km, 1),
                    heures=round(minutes / 60.0, 1))
@@ -213,6 +231,14 @@ class Monde:
         for v in [v for v in self.voyages if v["arrivee"] <= self.pas]:
             self.voyages.remove(v)
             h, cible = v["habitant"], v["cible"]
+            if v.get("cargaison"):
+                # le fret arrive : le marche d arrivee recoit la marchandise et paie celui d origine a son prix
+                dest, orig = self.marches[v["marche_dest"]], self.marches[v["marche_origine"]]
+                for b, q in v["cargaison"].items():
+                    dest.stocks[b] += q; dest.offre[b] += q
+                    self.transferer(dest, orig, min(dest.caisse, q * orig.prix[b]), "fret maritime")
+                self.noter("fret_arrive", vers=dest.lieu.id, cargaison={b: round(q, 1) for b, q in v["cargaison"].items()})
+                v["cargaison"] = {}
             if not h.vivant: continue
             h.lieu, h.poste = cible, "maison"
             if v["demenage"]:
@@ -226,7 +252,12 @@ class Monde:
 
     def commerce_exterieur(self):
         """Point 13 : une raison de traverser. Chaque matin, un marchand disponible part vendre sur l autre ile et y
-        reste deux jours. Sans cela le voyage serait une mecanique sans usage."""
+        reste deux jours. Sans cela le voyage serait une mecanique sans usage.
+        Avec le groupe « voyageurs », chaque ile decide si elle envoie un bateau, et avec quelle cargaison."""
+        gv = self.agents.get("voyageurs")
+        if gv or self.fret_aveugle:
+            R.decider_voyageurs(self, gv, aveugle=self.fret_aveugle and not gv)
+            return
         autres = [i for i in self.carte.iles if i != self.carte.iles[0]]
         if not autres: return
         for ile in autres:
@@ -293,6 +324,7 @@ class Monde:
             if mg.domicile is None or mg.domicile.marche is None: continue
             k = mg.domicile.marche.id
             self._pop_marche[k] = self._pop_marche.get(k, 0) + len([p for p in mg.membres if p.vivant])
+        self.par_id = {p.id: p for p in self.habitants}
         self._par_travail = {}
         self._compte_role = {}
         self._lieux_par_role = {}
@@ -309,8 +341,20 @@ class Monde:
     def aube(self):
         self.demographie()
         self.indexer()
-        self.regler_activite()
-        for m in self.marches.values(): m.ajuster_prix()
+        g = self.agents.get("armee")
+        if g: R.noter_armee(self, g)          # les patrouilles d hier soir et de ce matin sont comptees
+        self.patrouilles_jour = {}
+        self.infectes_du_jour = set()
+        self.routes_temporaires = {c["lieu"] for c in self.coupures if c["debut"] <= self.jour < c["debut"] + c["jours"]}
+        g = self.agents.get("entreprises")
+        if g: R.decider_entreprises(self, g)
+        else: self.regler_activite()
+        g = self.agents.get("marches")
+        if g: R.decider_marches(self, g)
+        else:
+            for m in self.marches.values(): m.ajuster_prix()
+        g = self.agents.get("travailleurs")
+        if g: R.decider_travailleurs(self, g)
         self.reseau.tarif = max(0.5, C.MARGE_ELECTRICITE * (self.prix_moyen("carburant") + P.SALAIRE_HORAIRE["ouvrier"]) / 12.0)   # cout complet d une heure de centrale
         self.progression_maladie()
         if self.jour == self.epidemie_jour:
@@ -335,7 +379,9 @@ class Monde:
             enferme = (p.domicile.id in q or p.travail is not None and p.travail.id in q) \
                 and self.rng.random() > C.QUARANTAINE_VIOLEE        # point 8 : une part de la population sort quand meme
             epuise = p.faim > C.ABSENCE_FAIM                        # on ne va pas travailler le ventre vide depuis deux jours
-            if p.au_travail(h) and p.travail is not None and not enferme and not epuise:
+            gt = self.agents.get("travailleurs")
+            veut = R.va_travailler(gt, p) if (gt and p.role not in ("enfant", "retraite")) else (not enferme and not epuise)
+            if p.au_travail(h) and p.travail is not None and veut:
                 p.lieu, p.poste = p.travail, "travail"
                 if C.ROLES[p.role][2]: p.heures_jour += C.MINUTES_PAR_PAS / 60.0     # le fonctionnaire est paye a l heure
             else: p.lieu, p.poste = p.domicile, "maison"
@@ -392,7 +438,8 @@ class Monde:
         return None
 
     def lancer_convoi(self, origine, destination, cargaison, payeur, motif, marche_carburant, vendeur=None):
-        if origine.id in self.routes_coupees or destination.id in self.routes_coupees:
+        coupees = self.routes_coupees | getattr(self, "routes_temporaires", set())
+        if origine.id in coupees or destination.id in coupees:
             return False
         km = self.carte.km_route(origine, destination)
         chauffeur = self.conducteur(marche_carburant.lieu)
@@ -441,7 +488,9 @@ class Monde:
         # le commerce entre marches. La decision - quel bien part d ou vers ou, en quelle quantite - est REMPLACABLE :
         # `self.marchand` prend la main quand il est pose ( un reseau, par exemple ), sinon c est la regle ci-dessous.
         if 7 <= h < 15:
+            gc = self.agents.get("commerce")
             if self.marchand is not None: self.marchand(self, h)
+            elif gc: R.commerce_agents(self, gc, h)
             else: self.commerce_regle(h)
         # les commandes publiques
         for cmd in list(self.gouv.commandes):
@@ -470,6 +519,13 @@ class Monde:
                 gain = surplus * C.PRIX_MONDE["nourriture"] * 0.8
                 m.stocks["nourriture"] -= surplus; self.flux["exporte"]["nourriture"] += surplus
                 m.caisse += gain; self.ext["entree"] += gain; m.offre["nourriture"] += 0
+
+    def probabilite_controle(self, m):
+        """La chance qu une fraude soit controlee dans la region d un marche : ses policiers, rapportes a ses menages,
+        fois l intensite voulue par l Etat."""
+        policiers = len(self.au_travail_de(m.lieu, "policier"))
+        menages = max(1.0, self._pop_marche.get(m.lieu.id, 0) / 2.5)
+        return min(0.9, C.CONTROLE_PAR_POLICIER * self.intensite_controle * policiers / max(1.0, menages / 10.0))
 
     def part_fraudeuse(self):
         """Point 8 : la part des achats qui echappe a la TVA. Nulle sous le seuil tolere, elle monte ensuite.
@@ -503,6 +559,7 @@ class Monde:
             self.convois.remove(c)
             if c.motif == "ravitaillement_base":
                 for b, q in c.cargaison.items(): self.garnisons[c.destination.id][b] += q
+                self.derniere_livraison[c.destination.id] = self.jour
                 continue
             if c.motif == "vente":
                 m = self.marches[c.destination.id]
@@ -591,11 +648,22 @@ class Monde:
             q = min(voulu, m.stocks["nourriture"], mg.caisse / prix if prix > 0 else 0)
             if q <= 0: continue
             m.stocks["nourriture"] -= q; mg.garde_manger += q
-            fraude = self.rng.random() < self.part_fraudeuse()      # point 8 : une taxe trop lourde se contourne
+            gf = self.agents.get("fraudeurs")
+            if gf: fraude = gf.choisir(mg.id, R.traits_fraude(self, mg, m)) == 1
+            else: fraude = self.rng.random() < self.part_fraudeuse()      # point 8 : une taxe trop lourde se contourne
             if self.doctrine is not None: self.menagiers[mg.id].depense += q * m.prix["nourriture"] * (1 + self.gouv.tva)   # noqa
             self.transferer(mg, m, q * m.prix["nourriture"], "nourriture")
             du = q * m.prix["nourriture"] * self.gouv.tva
-            if fraude: self.tva_fraudee += du
+            if fraude:
+                self.tva_fraudee += du
+                pris = self.rng.random() < self.probabilite_controle(m)
+                if pris:                                  # l amende : trois fois la taxe evitee
+                    amende = self.transferer(mg, self.gouv, 3 * du, "amende")
+                    self.amendes_menage[mg.id] = self.amendes_menage.get(mg.id, 0) + 1
+                    self.amendes_totales = getattr(self, "amendes_totales", 0.0) + amende
+                if gf:
+                    norme = max(1e-6, m.prix["nourriture"] * C.NOURRITURE_PAR_JOUR * len(mg.membres))
+                    gf.ajouter(mg.id, (du - (3 * du if pris else 0.0)) / norme)
             else: self.tva_percue += self.transferer(mg, self.gouv, du, "tva")
             # au-dela d une semaine de nourriture en epargne, le menage depense : biens manufactures et carburant
             reserve = 7 * ration * len(vivants) * prix
@@ -625,6 +693,7 @@ class Monde:
 
     def repas(self):
         sans = 0
+        par_region, affames_region = {}, {}
         for mg in self.menages:
             vivants = [p for p in mg.membres if p.vivant]
             besoin = C.NOURRITURE_PAR_JOUR * len(vivants)
@@ -632,6 +701,11 @@ class Monde:
             mg.garde_manger -= mange; self.flux["consomme"]["nourriture"] += mange
             manque = besoin - mange
             if manque > 1e-6: sans += 1
+            k = mg.domicile.marche.id if mg.domicile is not None and mg.domicile.marche is not None else None
+            if k is not None:
+                par_region[k] = par_region.get(k, 0) + 1
+                if manque > 1e-6: affames_region[k] = affames_region.get(k, 0) + 1
+            self.nourri_menage[mg.id] = manque <= 1e-6
             if self.doctrine is not None:                     # la consequence revient a celui qui a choisi, sur trois jours
                 ag = self.menagiers.get(mg.id)
                 if ag is not None:
@@ -640,6 +714,12 @@ class Monde:
                         ag.recompenses.append(r)
             for p in vivants: p.faim = p.faim + manque / len(vivants) if manque > 1e-6 else max(0.0, p.faim - 1)
         self.stats_jour["menages_sans_nourriture"] = sans
+        self.faim_region = {k: affames_region.get(k, 0) / n for k, n in par_region.items()}
+        for nom, noter in (("travailleurs", R.noter_travailleurs), ("entreprises", R.noter_entreprises),
+                           ("marches", R.noter_marches), ("commerce", R.noter_commerce),
+                           ("fraudeurs", R.noter_fraudeurs), ("voyageurs", R.noter_voyageurs)):
+            g = self.agents.get(nom)
+            if g: noter(self, g)
 
     # --- 6. la sante ---
     def contagion(self):
@@ -653,6 +733,7 @@ class Monde:
             for p in gens:
                 if p.etat == "S" and self.rng.random() < proba * (1.5 if p.faim > 1 else 1.0):
                     p.etat, p.jours_etat = "E", 0.0
+                    self.infectes_du_jour.add(p.id)
                     self.noter("infection", habitant=p.id, lieu=p.lieu.id)
 
     def progression_maladie(self):
@@ -690,8 +771,12 @@ class Monde:
             g = self.garnisons[base.id]
             if g["carburant"] >= carb:
                 g["carburant"] -= carb; self.flux["brule"]["carburant"] += carb
+                f, a = self.patrouilles_jour.get(base.id, (0, 0)); self.patrouilles_jour[base.id] = (f + 1, a)
+                self.patrouilles_faites = getattr(self, "patrouilles_faites", 0) + 1
                 self.noter("patrouille", base=base.id, vers=ville.id, carburant=round(carb, 2))
             else:
+                f, a = self.patrouilles_jour.get(base.id, (0, 0)); self.patrouilles_jour[base.id] = (f, a + 1)
+                self.patrouilles_annulees = getattr(self, "patrouilles_annulees", 0) + 1
                 self.noter("patrouille_annulee", base=base.id, cause="carburant")
 
     def besoin_patrouille(self, base):
@@ -702,16 +787,25 @@ class Monde:
     def ravitailler_bases(self):
         """Point 6 : le depot national alimente les garnisons par CONVOI. Une route coupee assoiffe donc une base,
         et le delai se calcule : ce qu elle a en stock divise par ce qu elle brule."""
+        ga = self.agents.get("armee")
         for base in self.carte.de_type("base"):
             g = self.garnisons[base.id]
             besoin = self.besoin_patrouille(base)
-            if g["carburant"] >= 3 * besoin: continue
-            q = min(C.CAPACITE_CAMION, self.publics["armee"]["carburant"], 5 * besoin - g["carburant"])
+            if ga:
+                vise = R.decider_armee(self, ga, base)
+                if g["carburant"] >= vise * besoin: continue
+                q = min(C.CAPACITE_CAMION, self.publics["armee"]["carburant"], vise * besoin - g["carburant"])
+            else:
+                if g["carburant"] >= 3 * besoin: continue
+                q = min(C.CAPACITE_CAMION, self.publics["armee"]["carburant"], 5 * besoin - g["carburant"])
             if q < 1: continue
             if self.lancer_convoi(self.depot_armee, base, {"carburant": q}, self.gouv, "ravitaillement_base",
                                   self.marches[self.depot_armee.marche.id]):
                 self.publics["armee"]["carburant"] -= q
+                self.livraison_ratee[base.id] = False
                 self.noter("ravitaillement_base", base=base.id, carburant=round(q, 1))
+            else:
+                self.livraison_ratee[base.id] = True
 
     # ------------------------------------------------------------------ le gouvernement
     def sitrep(self):
