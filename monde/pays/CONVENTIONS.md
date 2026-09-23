@@ -64,7 +64,8 @@ Deux fichiers, et **seulement** ces deux-là :
    apostrophes** dans le code (comme le moteur), qui disent le POURQUOI ; unités explicites (drachmes, unités,
    heures, km, jours) ; bornes vérifiées dans les constructeurs (`ValueError`).
 8. **Réalisme.** Ordres de grandeur réels (Grèce prise pour modèle : drachme, Égée ; médecine, prix, consommations,
-   balistique), avec leur source, ou « a calibrer » quand c'est une hypothèse. Aucune simplification de confort ;
+   balistique), avec leur source, ou « a calibrer » quand c'est une hypothèse. Toute conversion d'euros en drachmes passe par
+   `pays.EUROS_PAR_DRACHME` (1,15 €), jamais par un taux propre au domaine. Aucune simplification de confort ;
    aucun attribut qui ne serve pas une décision, une mesure ou la conservation.
 
 ## 4. Les leçons déjà payées, à respecter dans chaque point de décision

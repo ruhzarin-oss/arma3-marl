@@ -61,6 +61,10 @@ MODULE = {nom: mod for nom, mod, _ in DOMAINES}
 DEPEND = {nom: dep for nom, _, dep in DOMAINES}
 RANG = {nom: k for k, (nom, _, _) in enumerate(DOMAINES)}
 MINUTES_JOUR = 24 * 60
+# Le taux de conversion commun : 1 drachme = 1,15 euro. Deux ancrages concordants ( domaine 4, 23/09 ) : la ration a
+# 4 drachmes = 4,59 euros ( ELSTAT 2023 : 1 685 euros par mois x 20,7 % / 2,5 personnes / 30 ) ; l ouvrier a 8 drachmes
+# de l heure = 9,2 euros. Tout domaine qui convertit un prix, un salaire ou un tarif reels passe par ici.
+EUROS_PAR_DRACHME = 1.15
 DERNIERE_MINUTE = MINUTES_JOUR - C.MINUTES_PAR_PAS
 
 
@@ -105,7 +109,8 @@ class Colonnes:
 def _neutraliser_repris(p):
     """6 h 10, apres la regle d activite de l aube : les entreprises reprises par un domaine ne produisent plus par le
     moteur ( la production du moteur commence a 7 h )."""
-    for eid in p.repris: p.w.entreprises[eid].activite = 0.0
+    for e in p.w.entreprises.values():                  # le moteur indexe par lieu ; p.repris par Entreprise.id
+        if e.id in p.repris: e.activite = 0.0
 
 
 class Horloge:
