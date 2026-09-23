@@ -20,7 +20,10 @@ SALAIRE_HORAIRE = {   # drachmes par heure travaillee ( public : paye par l Etat
 PENSION_JOUR = 20     # retraite versee par l Etat
 
 
-POSTES = ("maison", "travail", "hopital", "voyage")
+# les quatre premiers postes sont ceux du moteur ( le coeur Rust ecrit 0, 1, 2 ; 3 = en mer ) ; les suivants sont ceux
+# de l agenda du pays ( monde/pays/d05_agenda.py ), qui donne a chacun sa journee. Toujours AJOUTER a la fin : les codes
+# deja ecrits dans une table ou un instantane ne doivent jamais changer de sens.
+POSTES = ("maison", "travail", "hopital", "voyage", "trajet", "courses", "loisir", "culte", "ecole")
 CODE_POSTE = {p: i for i, p in enumerate(POSTES)}
 CODE_HORAIRE = {None: -1, "jour": 0, "bureau": 1, "nuit": 2, "ecole": 3, "marche": 4, "garde": 5}
 HORAIRE_DE_CODE = {c: h for h, c in CODE_HORAIRE.items()}
@@ -194,7 +197,9 @@ class Habitant:
     def poste(self): return POSTES[self._t.poste[self.id]]
 
     @poste.setter
-    def poste(self, v): self._t.poste[self.id] = CODE_POSTE[v]
+    def poste(self, v):
+        if v not in CODE_POSTE: raise ValueError(f"poste inconnu du moteur : {v!r} ( a ajouter a population.POSTES )")
+        self._t.poste[self.id] = CODE_POSTE[v]
 
     @property
     def nom(self): return self._t.noms.get(self.id) or f"H{self.id:03d}"

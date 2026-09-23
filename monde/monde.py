@@ -12,6 +12,20 @@ except ImportError:                # sans lui, le monde tourne en Python, a l id
 CATEGORIES_PUBLIQUES = ("hopitaux", "armee", "reserve", "population")
 
 
+class ParMenage:
+    """Une valeur par menage, lisible comme un dictionnaire ( `.get(menage, defaut)` ) ET comme un tableau ( `[i]`,
+    `len` ). Les domaines du pays ( monde/pays/ ) l ont connue dictionnaire ; le moteur en colonnes la tient en tableau.
+    Un menage hors du tableau ( ne apres le repas ) rend la valeur par defaut, comme une cle absente."""
+    __slots__ = ("v",)
+
+    def __init__(self, v): self.v = v
+    def get(self, k, defaut=None): return bool(self.v[k]) if 0 <= k < len(self.v) else defaut
+    def __getitem__(self, k): return bool(self.v[k])
+    def __setitem__(self, k, x): self.v[k] = x
+    def __len__(self): return len(self.v)
+    def __contains__(self, k): return 0 <= k < len(self.v)
+
+
 class Monde:
     def __init__(self, graine=C.GRAINE, cerveau="regles", epidemie_jour=2, journal=None, eleve=None, iles=("Altis",),
                  echelle=1.0):
@@ -67,7 +81,7 @@ class Monde:
         self.marchand = None               # pose par monde/apprenti.py : le reseau qui apprend a expedier
         self.doctrine = None               # posee par monde/former.py : ce que les menages ont appris ( point 1 )
         self.agents = {}                   # groupes d agents installes ( roles.py ) : nom -> Groupe ; absent = la regle
-        self.faim_region = {}; self.nourri_menage = {}; self.infectes_du_jour = set(); self.contagions_lieu = {}
+        self.faim_region = {}; self.nourri_menage = ParMenage(np.ones(0, bool)); self.infectes_du_jour = set(); self.contagions_lieu = {}
         self.amendes_menage = {}; self.intensite_controle = 1.0
         self.patrouilles_jour = {}; self.derniere_livraison = {}; self.livraison_ratee = {}
         self.coupures = []                 # routes coupees pour un temps : [{ lieu, debut, jours }]
@@ -874,7 +888,7 @@ class Monde:
         tot = np.bincount(region[dans], minlength=len(self.carte.par_n))
         aff = np.bincount(region[dans & affame], minlength=len(self.carte.par_n))
         self.faim_region = {self.carte.par_n[k].id: int(aff[k]) / int(tot[k]) for k in np.nonzero(tot)[0]}
-        self.nourri_menage = ~affame
+        self.nourri_menage = ParMenage(~affame)
         k = mm[membres]
         faim = t.faim[membres]
         t.faim[membres] = np.where(affame[k], faim + manque[k] / np.maximum(v[k], 1), np.maximum(0.0, faim - 1))
@@ -886,7 +900,7 @@ class Monde:
 
     def repas_python(self):
         sans = 0
-        self.nourri_menage = np.ones(len(self.menages), bool)
+        self.nourri_menage = ParMenage(np.ones(len(self.menages), bool))
         par_region, affames_region = {}, {}
         for mg in self.menages:
             vivants = [p for p in mg.membres if p.vivant]
