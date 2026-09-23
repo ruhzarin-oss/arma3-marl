@@ -12,8 +12,8 @@ Trois lecons deja payees sont ecrites dans ce protocole :
   - une note lue le soir meme apprend a ne rien faire ( menages, 22/09 : 17 % de faim contre 8 % a trois jours ) :
     la note d un choix est la moyenne des consequences sur les `horizon_j` jours qui le suivent ;
   - une note surtout nationale ne bouge pas avec le choix, et l agent n apprend rien ( cinq groupes refuses le 23/09 ) :
-    `part_du_choix()` mesure, a jour egal, la part de la note qui varie avec l action. Zero : ce point ne peut rien
-    apprendre, inutile de le former ;
+    `part_du_choix()` mesure, a jour egal, la part de la note qui varie avec l action ( epsilon carre, corrige du biais
+    des petits groupes ) et `p_permutation()` la compare au hasard. Zero : ce point ne peut rien apprendre ;
   - un temoin bete a battu trois fois une regle savante : chaque point en declare un, et le `Decideur` le fait vivre.
 
 Le `Decideur` fait vivre un point dans l un de ses cinq modes : regle, appris ( il apprend en vivant ), fige ( il agit
@@ -22,12 +22,13 @@ partagee par le groupe ) ; le terme constant du bandit est ajoute ici, l observa
 
 `Attente` generalise roles.Memoire a un horizon quelconque ( celle-ci tient HORIZON = 3 en dur ) : roles.py pourra
 s appuyer sur elle quand il sera repris."""
-import math, re
+import collections, math, re
 import numpy as np
 from ..agents import Doctrine
 
 MODES = ("regle", "appris", "fige", "hasard", "temoin")
 HORIZON_DEFAUT = 3
+ECHANTILLON_MAX = 200_000   # notes murees gardees une a une pour le test par permutation ( memoire bornee )
 HORIZON_MAX = 365           # un pret, une recolte, une grossesse se lisent en mois : 30 jours ne suffisaient pas ( banques, 23/09 )
 NOM_VALIDE = re.compile(r"^[a-z][a-z0-9_]{0,39}$")
 
@@ -94,7 +95,7 @@ class Attente:
 
 class Decideur:
     """Fait vivre un point de decision pour un groupe d agents ( une cle par agent )."""
-    __slots__ = ("point", "mode", "doctrine", "rng", "attentes", "stats", "n_decisions")
+    __slots__ = ("point", "mode", "doctrine", "rng", "attentes", "stats", "n_decisions", "echantillon")
 
     def __init__(self, point, mode="regle", doctrine=None, rng=None, graine=0, epsilon=0.1, alpha=0.02):
         if mode not in MODES: raise ValueError(f"mode inconnu {mode!r} : {MODES}")
@@ -111,6 +112,7 @@ class Decideur:
         self.attentes = {}      # cle d agent -> Attente
         self.stats = {}         # ( jour, action ) -> [ nombre, somme, somme des carres ] des notes murees ce jour-la
         self.n_decisions = 0
+        self.echantillon = collections.deque(maxlen=ECHANTILLON_MAX)   # ( jour, action, note ) : pour la permutation
 
     @property
     def apprend(self):
@@ -153,6 +155,7 @@ class Decideur:
             s = self.stats.get((jour, a))
             if s is None: self.stats[(jour, a)] = [1, note, note * note]
             else: s[0] += 1; s[1] += note; s[2] += note * note
+            self.echantillon.append((jour, a, note))
 
     def notes_par_action(self):
         """{ action : ( nombre de notes, note moyenne ) }."""
@@ -162,8 +165,15 @@ class Decideur:
         return {self.point.actions[a]: (n, s / n) for a, (n, s) in sorted(acc.items())}
 
     def part_du_choix(self):
-        """La part de la variance des notes que l action explique, A JOUR EGAL ( eta carre intra-jour ). Une note
-        nationale donne la meme note a tous le meme jour : zero, et rien a apprendre."""
+        """La part de la variance des notes que l action explique, A JOUR EGAL : epsilon carre, corrige du biais des
+        petits groupes. L eta carre brut ( `part_du_choix_brute` ) tend vers 1 quand chaque jour ne compte qu une note
+        par action, meme au hasard ( trouve par le domaine 6, 23/09 ) ; epsilon carre retire ce que le hasard seul
+        explique ( ( k - 1 ) fois la variance intra-groupe ) et vaut 0 en esperance sans effet. Une note nationale donne
+        la meme note a tous le meme jour : zero."""
+        return _epsilon2(((j, a, n, s, q) for (j, a), (n, s, q) in self.stats.items()))
+
+    def part_du_choix_brute(self):
+        """L eta carre intra-jour, sans correction ( gardee pour comparer ; biaise vers le haut ). """
         par_jour = {}
         for (j, a), s in self.stats.items(): par_jour.setdefault(j, []).append(s)
         entre = total = 0.0
@@ -173,3 +183,48 @@ class Decideur:
             total += sum(g[2] for g in groupes) - somme * somme / n
             entre += sum(g[1] * g[1] / g[0] for g in groupes) - somme * somme / n
         return max(0.0, entre / total) if total > 1e-12 else 0.0
+
+    def p_permutation(self, n=200, graine=0):
+        """La probabilite que le hasard donne une part du choix au moins aussi grande : les actions sont permutees A
+        L INTERIEUR de chaque jour ( la note du jour ne bouge pas ), n fois. Sur l echantillon des notes murees."""
+        if len(self.echantillon) < 3: return 1.0
+        d = np.array([e[0] for e in self.echantillon]); a = np.array([e[1] for e in self.echantillon])
+        v = np.array([e[2] for e in self.echantillon], dtype=float)
+        ordre = np.argsort(d, kind="stable"); d, a, v = d[ordre], a[ordre], v[ordre]
+        coupes = np.flatnonzero(np.diff(d)) + 1
+        debuts = np.concatenate(([0], coupes)); fins = np.concatenate((coupes, [len(d)]))
+        obs = _epsilon2_tableaux(d, a, v)
+        rng = np.random.default_rng(graine)
+        plus = 0
+        for _ in range(n):
+            b = a.copy()
+            for x, y in zip(debuts, fins):
+                if y - x > 1: b[x:y] = b[x:y][rng.permutation(y - x)]
+            plus += _epsilon2_tableaux(d, b, v) >= obs - 1e-15
+        return (1 + plus) / (n + 1)
+
+
+def _epsilon2(groupes):
+    """Epsilon carre intra-jour a partir de ( jour, action, nombre, somme, somme des carres )."""
+    par_jour = {}
+    for j, a, n, s, q in groupes: par_jour.setdefault(j, []).append((n, s, q))
+    ssb = sst = 0.0; dfb = dfw = 0
+    for gs in par_jour.values():
+        n = sum(g[0] for g in gs)
+        if n < 2: continue
+        S = sum(g[1] for g in gs); Q = sum(g[2] for g in gs)
+        sst += Q - S * S / n
+        ssb += sum(g[1] * g[1] / g[0] for g in gs) - S * S / n
+        dfb += len(gs) - 1; dfw += n - len(gs)
+    if sst <= 1e-12 or dfw <= 0: return 0.0
+    msw = max(0.0, sst - ssb) / dfw
+    return max(0.0, (ssb - dfb * msw) / sst)
+
+
+def _epsilon2_tableaux(d, a, v):
+    cle = {}
+    for j, x, y in zip(d.tolist(), a.tolist(), v.tolist()):
+        g = cle.get((j, x))
+        if g is None: cle[(j, x)] = [1, y, y * y]
+        else: g[0] += 1; g[1] += y; g[2] += y * y
+    return _epsilon2((j, x, n, s, q) for (j, x), (n, s, q) in cle.items())

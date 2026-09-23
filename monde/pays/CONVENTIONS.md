@@ -71,7 +71,9 @@ Deux fichiers, et **seulement** ces deux-là :
 
 - Une note doit dépendre du choix de l'agent : noter l'effet de CE choix sur ceux qu'il touche (ni la moyenne
   nationale, ni le seul profit). Porte obligatoire : dans un scénario où la décision compte, en mode `hasard`,
-  `decideur.part_du_choix() >= 0.01`.
+  `decideur.part_du_choix() >= 0.01` (epsilon carré intra-jour, corrigé du biais des petits groupes) ET
+  `decideur.p_permutation() < 0.05` (le hasard permuté à jour égal ne fait pas aussi bien). L'ancien η² brut
+  (`part_du_choix_brute`) tendait vers 1 quand chaque jour ne comptait qu'une note par action, même au hasard.
 - La conséquence se lit sur plusieurs jours (horizon), jamais le soir même.
 - Le prix dit la faim trop tard, et pas du tout pour les pauvres : jamais un prix comme seul signal d'un besoin.
 - Un témoin bête peut battre une règle savante : chaque point en déclare un.
