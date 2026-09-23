@@ -19,15 +19,29 @@ def _secheresse(w, jours=40):
     w.chocs.append({"debut": 1, "jours": jours, "lieux": villages, "facteur": 0.03})
 
 
-def _monde(jours, echelle=1.0, graine=C.GRAINE, modes=None, taux=None, exceptionnelle=None, secheresse=False, suivre=None):
+def _crise(p, part):
+    """Une crise souveraine au jour 0 : `part` de l epargne de chaque menage habite ET toute la caisse du Tresor partent
+    au service de la dette exterieure ( Chypre 2013 et Grece 2015, en plus dur ). L argent manque, la nourriture non ;
+    le filet de l Etat ( subventions aux menages affames ) est vide. Motif declare par la porte, pas par le domaine."""
+    w = p.w; L = p.socle.livre; dis = p.col("menage", "dissous")
+    L.declarer_motif("service_dette_exterieure", "revenu_propriete", "tests_banques")
+    for mg in w.menages:
+        if not dis[mg.id] and mg.caisse > 0.0: L.payer_l_exterieur(mg, part * mg.caisse, "service_dette_exterieure")
+    L.payer_l_exterieur(w.gouv, w.gouv.caisse, "service_dette_exterieure")
+
+
+def _monde(jours, echelle=1.0, graine=C.GRAINE, modes=None, taux=None, exceptionnelle=None, secheresse=False, suivre=None,
+           prelevement=None):
     """Un pays avec ses banques, vecu `jours` jours ; `exceptionnelle` : la frequence annuelle des depenses
-    exceptionnelles le temps du scenario ; `suivre( w, p )` appele chaque soir de jour."""
+    exceptionnelles le temps du scenario ; `prelevement` : la part de l epargne des menages prelevee au jour 0 par une crise souveraine ( _crise ) ;
+    `suivre( w, p )` appele chaque soir de jour."""
     ancien = M.EXCEPTIONNELLE_AN
     if exceptionnelle is not None: M.EXCEPTIONNELLE_AN = exceptionnelle
     try:
         w, p = T.monde(["banques"], graine=graine, echelle=echelle, modes=modes)
         if taux is not None: M.fixer_taux_directeur(p, taux)
         if secheresse: _secheresse(w)
+        if prelevement: _crise(p, prelevement)
         for _ in range(jours):
             T.jours(w, 1)
             if suivre is not None: suivre(w, p)
@@ -280,22 +294,25 @@ def test_taux_reduit_le_credit():
 
 
 def test_octroi_part_du_choix():
-    """Porte de la decision : 1 000 habitants sans secheresse ( toute secheresse effondre le moteur E1 pour de bon, avec ou
-    sans banques : faim 93 a 100 % jusqu au jour 160 ; tout menage y a faim quoi que fasse la banque, et le volet
-    emprunteur de la note ne s y lit pas ), depenses exceptionnelles 3 fois par menage et par an ; au fil des mois, le
-    Tresor s epuise et des menages manquent d argent pour manger ( faim 2 % au jour 100, 13 % au jour 160, population
-    seule ). La banque decide au hasard ( mode hasard ) pendant 200 jours. Au moins 150 decisions, au moins 60 notes
-    murees ( 120 jours ) ; la note depend du choix : part du choix >= 0,01. Instrument : pour chaque action, la note
-    moyenne du decideur egale part banque + poids x part emprunteur ( 1e-9 pres ), la part banque d un refus est nulle,
-    et le volet emprunteur a servi : au moins une note de refus non nulle ( un menage refuse a eu faim ). La monnaie se
-    conserve ; les biens sont affiches sans seuil : sur 200 jours, l arrondi du moteur seul depasse la tolerance des biens
-    ( population seule, 1 000 habitants, jour 200 : nourriture +1,22e-06 pour 1e-06 admis, mesure du 23/09 ), et ce
-    domaine ne touche aucun bien."""
-    w, p = _monde(200, echelle=2, modes={"octroi_credit": "hasard"}, exceptionnelle=3.0)
+    """Porte de la decision, dans un scenario ou le choix change l issue de CE menage : l argent manque, pas la
+    nourriture. 1 500 habitants ; au jour 0, une crise souveraine envoie 97 % de l epargne des menages et toute la caisse
+    du Tresor au service de la dette exterieure ( _crise ) : plus de filet de l Etat. Un menage sur cinq gagne a la paie
+    moins que sa nourriture ( mesure du 23/09 ) : a court, il demande de quoi manger 30 jours. Accorde, il mange puis
+    doit rembourser ; refuse, il a faim. La banque decide au
+    hasard ( mode hasard ) pendant 130 jours. Au moins 150 decisions, au moins 60 notes murees ( 120 jours ) ; la note
+    depend du choix : part du choix ( epsilon carre intra-jour ) >= 0,01 ET p de permutation < 0,05. Instrument : pour
+    chaque action, la note moyenne du decideur egale part banque + poids x part emprunteur ( 1e-9 pres ), la part banque
+    d un refus est nulle, et le volet emprunteur a servi ( une note de refus non nulle ). La monnaie se conserve.
+    ( Mesures precedentes, epsilon carre 0,000 les deux fois : pays sans secheresse, 200 jours, 1 000 habitants, 131
+    notes murees, 1,5 par jour pour 3 actions - un pret de depense exceptionnelle ne change presque rien ; prelevement
+    de 97 % verse au Tresor, 687 notes murees - le Tresor enrichi subventionne les affames, faim finale 1 %, et la
+    plupart des demandeurs se refont a la paie du lendemain. )"""
+    w, p = _monde(130, echelle=3, modes={"octroi_credit": "hasard"}, prelevement=0.97)
     d = p.domaine("banques"); dec = d.decideur
-    part = dec.part_du_choix()
+    part, perm, brute = dec.part_du_choix(), dec.p_permutation(), dec.part_du_choix_brute()
     notes = dec.notes_par_action()
     murees = sum(n for n, _ in notes.values())
+    jours_notes = len({j for (j, a) in dec.stats})
     comp = {dec.point.actions[a]: (n, sb / n, sm / n) for a, (n, sb, sm) in sorted(d.composantes.items())}
     somme = all(a in comp and comp[a][0] == n and _proche(m, comp[a][1] + M.POIDS_MENAGE * comp[a][2])
                 for a, (n, m) in notes.items())
@@ -304,14 +321,15 @@ def test_octroi_part_du_choix():
     refus_non_nul = any(st[2] > 0.0 for st in refus)
     cons = p.socle.conservation
     tenue, msg = cons.tenue()
-    argent = abs(cons.ecarts()[0]) <= R.tolerance(cons.argent0)
-    ok = dec.n_decisions >= 150 and murees >= 60 and part >= 0.01 and somme and refus_banque_nulle and refus_non_nul and argent
-    return ok, (f"{dec.n_decisions} decisions, {murees} notes murees : "
+    argent = abs(cons.ecarts()[0]) <= R.tolerance(cons.argent0, cons.volumes()[0])
+    ok = (dec.n_decisions >= 150 and murees >= 60 and part >= 0.01 and perm < 0.05 and somme and refus_banque_nulle
+          and refus_non_nul and argent)
+    return ok, (f"{dec.n_decisions} decisions, {murees} notes murees sur {jours_notes} jours : "
                 + ", ".join(f"{a} {m:+.4f} ( {n} ; banque {comp[a][1]:+.4f}, emprunteur {comp[a][2]:+.4f} )"
                             for a, (n, m) in notes.items() if a in comp)
-                + f" ; part du choix {part:.3f} ; note = banque + emprunteur : {somme} ; refus : part banque nulle "
-                f"{refus_banque_nulle}, une note non nulle {refus_non_nul} ; faim finale {T.faim(w):.0%} ; monnaie "
-                f"conservee {argent} ; {msg}")
+                + f" ; part du choix {part:.3f} ( brute {brute:.3f} ), p de permutation {perm:.3f} ; note = banque + "
+                f"emprunteur : {somme} ; refus : part banque nulle {refus_banque_nulle}, une note non nulle {refus_non_nul} ; "
+                f"faim finale {T.faim(w):.0%} ; monnaie conservee {argent} ; {msg}")
 
 
 def test_pays_vivable():
