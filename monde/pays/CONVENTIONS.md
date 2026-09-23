@@ -88,6 +88,7 @@ Deux fichiers, et **seulement** ces deux-là :
   | méthode du moteur | propriétaire |
   |---|---|
   | demographie | population |
+  | deplacer | agenda |
   | paie, embaucher | travail |
   | achats, repas, regler_activite, ajuster_prix (marchés) | economie |
   | contagion, progression_maladie, soigner | medecine (soigner : hopitaux s'il est là) |
