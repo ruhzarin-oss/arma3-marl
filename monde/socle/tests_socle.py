@@ -429,14 +429,15 @@ def test_journal():
         bornee = len(jl.recents) == 1000
         refus = 0
         for essai in (lambda: jl.compter("vente"), lambda: jl.noter(1, 8.0, "naissance", mere=1),
-                      lambda: jl.noter(1, 8.0, "achat")):
+                      lambda: jl.noter(1, 8.0, "achat"), lambda: jl.noter(1, 8.0, "naissance", mere=1, enfant=2, type="x"),
+                      lambda: jl.declarer("vol", "justice", "individuel", ("type", "lieu"))):
             try: essai()
             except (J.TypeInconnu, ValueError): refus += 1
         bilan = jl.cloturer_jour(1)
         exact = bilan["comptes"]["achat"] == (1_000_000, 2_000_000.0) and bilan["individuels"]["naissance"] == 5000
         lignes = sum(1 for _ in open(chemin))
-    ok = bornee and exact and refus == 3 and lignes == 5001 and not jl.comptes
-    return ok, f"1 000 000 achats comptes exactement : {exact} ; file bornee a 1000 : {bornee} ; {lignes} lignes ecrites ; {refus}/3 refus"
+    ok = bornee and exact and refus == 5 and lignes == 5001 and not jl.comptes
+    return ok, f"1 000 000 achats comptes exactement : {exact} ; file bornee a 1000 : {bornee} ; {lignes} lignes ecrites ; {refus}/5 refus"
 
 
 TESTS = [test_catalogue, test_hasard_par_domaine, test_calendrier, test_registre_reproduit_le_moteur,

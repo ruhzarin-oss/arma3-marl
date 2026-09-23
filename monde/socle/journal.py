@@ -7,10 +7,11 @@ du journal a chaque ligne. A 500 habitants, c est invisible ; a un million, un a
     il garde ses champs, entre dans une file bornee des plus recents et dans le fichier ;
   - « compte »     : un evenement frequent ( un achat, une patrouille ) ; seuls son nombre et la somme d une valeur
     sont gardes, et ecrits une fois par jour.
-Un type non declare, un champ manquant : refuses. Un journal ou chacun ecrit ce qu il veut ne se relit pas."""
+Un type non declare, un champ manquant, un champ au nom reserve ( jour, heure, type ) : refuses. Un journal ou chacun ecrit ce qu il veut ne se relit pas."""
 import collections, json
 
 NIVEAUX = ("individuel", "compte")
+RESERVES = ("jour", "heure", "type")      # les cles du journal lui-meme : un champ de ce nom les ecraserait en silence
 RECENTS_MAX = 10000
 
 
@@ -38,6 +39,7 @@ class Journal:
 
     def declarer(self, nom, domaine, niveau="individuel", champs=()):
         if niveau not in NIVEAUX: raise ValueError(f"niveau inconnu {niveau!r} : {NIVEAUX}")
+        if any(c in RESERVES for c in champs): raise ValueError(f"{nom} : champ reserve parmi {champs} ( {RESERVES} )")
         ancien = self.types.get(nom)
         if ancien is not None and (ancien.niveau, ancien.champs) != (niveau, tuple(champs)):
             raise ValueError(f"type {nom!r} deja declare autrement par {ancien.domaine}")
@@ -48,6 +50,8 @@ class Journal:
         if t is None or t.niveau != "individuel": raise TypeInconnu(f"evenement individuel non declare : {type_!r}")
         manquants = [c for c in t.champs if c not in champs]
         if manquants: raise ValueError(f"{type_} : champs manquants {manquants}")
+        if any(c in champs for c in RESERVES):
+            raise ValueError(f"{type_} : un champ nomme {RESERVES} ecraserait la cle du journal ( bogue du 23/09 )")
         e = {"jour": jour, "heure": round(heure, 2), "type": type_, **champs}
         self.recents.append(e)
         self.individuels_jour[type_] = self.individuels_jour.get(type_, 0) + 1
