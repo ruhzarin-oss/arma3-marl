@@ -2,6 +2,7 @@
 import json, math, time
 import numpy as np
 from .. import config as C, monde as W
+from ..socle import decision as D
 from . import essais as T, d01_population as POP, d02_banques as BQ, d03_economie as EC, d06_etat as M
 
 
@@ -305,78 +306,49 @@ def test_enquete_chomage():
 
 
 # ================================================================== la decision
-def _eta2_par_jour(notes, rangs=False):
-    """La part de la variance des notes que l action explique, a jour egal ( comme Decideur.part_du_choix ) ; sur les
-    rangs des notes dans leur jour si `rangs` ( robuste aux quelques redressements geants )."""
-    par = {}
-    for j, a, x in notes: par.setdefault(j, []).append((a, x))
-    entre = total = 0.0
-    for lst in par.values():
-        if len(lst) < 2: continue
-        xs = np.array([x for _, x in lst], dtype=float); acts = np.array([a for a, _ in lst])
-        if rangs:
-            o = np.argsort(xs, kind="stable"); r = np.empty(len(xs)); r[o] = np.arange(len(xs))
-            for v in np.unique(xs): r[xs == v] = r[xs == v].mean()       # les ex aequo au rang moyen
-            xs = r
-        m = xs.mean(); total += float(((xs - m) ** 2).sum())
-        entre += sum(float(xs[acts == a].size * (xs[acts == a].mean() - m) ** 2) for a in np.unique(acts))
-    return entre / total if total > 1e-12 else 0.0
-
-
-def _permutations(notes, rangs, k, graine):
-    """La meme part, sur `k` permutations des actions a l interieur de chaque jour : ce que donne un choix sans effet."""
-    rng = np.random.default_rng(graine)
-    par = {}
-    for j, a, x in notes: par.setdefault(j, []).append((a, x))
-    out = []
-    for _ in range(k):
-        perm = []
-        for j, lst in par.items():
-            acts = rng.permutation([a for a, _ in lst])
-            perm += [(j, a, x) for a, (_, x) in zip(acts, lst)]
-        out.append(_eta2_par_jour(perm, rangs))
-    return np.array(out)
+def _instrument(notes):
+    """Le decideur du socle rempli de notes donnees ( jour, action, note ) : son epsilon carre et son test par
+    permutation, sur d autres notes que celles que le point a vraiment rendues."""
+    d = D.Decideur(M.POINT_CONTROLE, "hasard")
+    for j, a, x in notes:
+        st = d.stats.get((j, a))
+        if st is None: d.stats[(j, a)] = [1, x, x * x]
+        else: st[0] += 1; st[1] += x; st[2] += x * x
+        d.echantillon.append((j, a, x))
+    return d.part_du_choix(), d.p_permutation(n=200, graine=0)
 
 
 def test_controle_fiscal():
     """Porte de la decision : 1 500 habitants, tous les policiers presents a 10 h controlent ( une vingtaine de
     decisions par jour ), en choisissant leur critere au hasard ( mode hasard ), 45 jours ( l IS du premier mois est
-    liquide au 30e ). La note doit dependre du choix :
-      - part du choix >= 0,01 ( le protocole ), et les notes recomptees ici la redonnent a 1e-9 pres ;
-      - ET la part du choix calculee sur les RANGS des notes dans leur jour depasse le 99e centile de 300 permutations
-        des choix a l interieur de chaque jour ( p < 0,01 ). Pourquoi les rangs : la part du protocole, sur les notes
-        brutes, est portee par quelques redressements geants ( le passe fiscal d un gros fraudeur ) ; avec cinq actions
-        et une vingtaine de decisions par jour, sa loi sous le hasard est si large qu elle ne distingue rien ( mesure :
-        premiere version, ou l action etait un dossier tire au hasard, part 0,616 pour un effet nul ). Falsificateur de
-        l instrument : des notes tirees independamment du choix ne passent pas ce test.
-    Au moins 200 notes, au moins 10 controles qui redressent, la conservation tient."""
+    liquide au 30e ). La note doit dependre du choix ( conventions, section 4 ) : part du choix ( epsilon carre a jour
+    egal ) >= 0,01 ET p_permutation < 0,05 ; au moins 200 notes murees. La note est le logarithme signe du net
+    encaisse ( note_controle ) : les drachmes brutes, domineees par quelques arrieres geants, sont mesurees a cote
+    par le meme instrument ( 0,004 le 23/09 ). Falsificateur de l instrument : des notes tirees sans lien avec le choix,
+    aux memes jours et aux memes actions, ne passent pas. Au moins 10 controles qui redressent, la conservation tient."""
     w, p = T.monde(["etat"], echelle=3, modes={"controle_fiscal": "hasard"})
     M.appliquer(p, {"type": "fixer_controle", "part": 1.0})
     T.jours(w, 45)
     e = p.domaine("etat"); dec = e.decideur; f = e.fisc
-    part = dec.part_du_choix()
+    eps, pval, brute = dec.part_du_choix(), dec.p_permutation(n=200, graine=0), dec.part_du_choix_brute()
     notes = list(f.notes)
-    eta = _eta2_par_jour(notes)
-    eta_r = _eta2_par_jour(notes, rangs=True)
-    nul_r = _permutations(notes, True, 300, 9)
-    nul = _permutations(notes, False, 300, 9)
-    p_r = float(np.mean(nul_r >= eta_r)); p_brut = float(np.mean(nul >= eta))
     rng = np.random.default_rng(17)
-    bruit = [(j, a, float(x)) for (j, a, _), x in zip(notes, rng.standard_normal(len(notes)))]
-    p_bruit = float(np.mean(_permutations(bruit, True, 300, 11) >= _eta2_par_jour(bruit, True)))
-    moy = {M.CRITERES[a]: float(np.mean([x for _, b, x in notes if b == a])) for a in range(len(M.CRITERES))
-           if any(b == a for _, b, _ in notes)}
+    eps_bruit, p_bruit = _instrument([(j, a, float(z)) for (j, a, _, _), z in zip(notes, rng.standard_normal(len(notes)))])
+    eps_dr, p_dr = _instrument([(j, a, net) for j, a, _, net in notes])
+    par = {}
+    for _, a, x, net in notes: par.setdefault(M.CRITERES[a], []).append((x, net))
+    moy = ", ".join(f"{k} {np.mean([x for x, _ in v]):+.2f} ( {np.mean([n for _, n in v]):+.0f} dr, {len(v)} )"
+                    for k, v in par.items())
     tenue, msg = p.socle.conservation.tenue()
-    ok = (len(notes) >= 200 and part >= 0.01 and abs(eta - part) <= 1e-9 and eta_r > float(np.quantile(nul_r, 0.99))
-          and p_bruit >= 0.01 and f.compte["controles_positifs"] >= 10 and tenue)
-    return ok, (f"{dec.n_decisions} decisions, {len(notes)} notes murees ; note moyenne par critere : "
-                + ", ".join(f"{k} {v:+.3f}" for k, v in moy.items())
-                + f" ; part du choix {part:.3f} ( recomptee {eta:.3f} ; p = {p_brut:.2f} contre le hasard permute ) ; "
-                f"sur les rangs {eta_r:.3f}, 99e centile du hasard {float(np.quantile(nul_r, 0.99)):.3f}, p = {p_r:.3f} ; "
-                f"notes sans lien avec le choix : p = {p_bruit:.2f} ; {f.compte['controles_positifs']:.0f} redressements sur "
-                f"{f.compte['controles']:.0f} controles, {f.compte['redressements']:.0f} drachmes redressees + "
-                f"{f.compte['penalites']:.0f} de penalites, {f.compte['recouvre']:.0f} recouvrees ; IS liquide "
-                f"{f.compte['impot_societes']:.0f}, elude {f.compte['is_elude']:.0f} ; {msg}")
+    ok = (len(notes) >= 200 and eps >= 0.01 and pval < 0.05 and not (eps_bruit >= 0.01 and p_bruit < 0.05)
+          and f.compte["controles_positifs"] >= 10 and tenue)
+    return ok, (f"{dec.n_decisions} decisions, {len(notes)} notes murees ; note moyenne par critere ( drachmes nettes, "
+                f"nombre ) : {moy} ; part du choix {eps:.3f} ( epsilon carre ; eta carre brut {brute:.3f} ), p = {pval:.3f} ; "
+                f"en drachmes brutes : {eps_dr:.3f}, p = {p_dr:.3f} ; notes sans lien avec le choix : {eps_bruit:.3f}, "
+                f"p = {p_bruit:.3f} ; {f.compte['controles_positifs']:.0f} redressements sur {f.compte['controles']:.0f} "
+                f"controles, {f.compte['redressements']:.0f} drachmes redressees + {f.compte['penalites']:.0f} de "
+                f"penalites, {f.compte['recouvre']:.0f} recouvrees ; IS liquide {f.compte['impot_societes']:.0f}, elude "
+                f"{f.compte['is_elude']:.0f} ; {msg}")
 
 
 # ================================================================== le pays

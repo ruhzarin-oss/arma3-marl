@@ -38,7 +38,9 @@ FICHE
    marge declaree ( unite ), ecart a la mediane declaree des pairs de la region, anciennete du dernier controle,
    antecedents. Note ( horizon 7 jours : le redressement est exigible tout de suite, le reste est saisi sur les
    encaissements de la semaine ; delai legal reel plus long, a calibrer ) : ce que CE controle fait entrer ( impot
-   elude et penalite encaisses ) moins la journee du controleur, sur 100 drachmes. Regle : les plus gros ( le plus
+   elude et penalite encaisses ) moins la journee du controleur, en journees de controleur, en LOGARITHME SIGNE
+   ( `note_controle` : la queue lourde des arrieres geants noyait le choix, epsilon carre 0,004 en drachmes brutes ).
+   Regle : les plus gros ( le plus
    gros menage ou la plus grosse unite, en drachmes par jour declarees ). Temoin : un dossier au hasard.
    Pourquoi des criteres et pas des dossiers : quand l action etait " le dossier k " d un lot tire au hasard, les
    actions etaient interchangeables et la note ne dependait pas du choix ( porte, premiere version ). Le passe fiscal :
@@ -188,8 +190,22 @@ LOT_MENAGES, LOT_UNITES = 6, 3    # les dossiers du jour d un controleur, tires 
 CRITERES = ("menage_ecart", "menage_gros", "unite_ecart", "unite_grosse", "au_hasard")
 AU_HASARD = CRITERES.index("au_hasard")
 PART_CONTROLEURS = 0.5            # part des policiers presents a 10 h affectee au controle fiscal
-NORME_CONTROLE = 100.0            # drachmes : l unite de la note
-COUT_CONTROLE = 8.0 * PO.SALAIRE_HORAIRE["policier"]   # la journee du controleur ( 8 h ), drachmes
+COUT_CONTROLE = 8.0 * PO.SALAIRE_HORAIRE["policier"]   # la journee du controleur ( 8 h ), drachmes : l unite de la note
+
+
+def note_controle(net):
+    """La note d un controle : le logarithme signe de ce qu il a rapporte net de son cout, en journees de controleur,
+    sign( x ) * ln( 1 + | x | / cout ). Pourquoi pas les drachmes brutes : quatre controles sur cinq ne trouvent rien
+    ( -1 journee ), et quelques-uns trouvent cinq ans d arrieres d un gros fraudeur ( mille journees ) ; la moyenne
+    brute est un tirage de loterie - la part du choix mesuree a 0,004 ( epsilon carre, 23/09 ), et un bandit lineaire
+    appris par gradient saute a chaque geant. Le logarithme signe garde le signe ( le controle s est paye ou non ),
+    l ordre ( plus rapporte vaut toujours plus ) et les ordres de grandeur ( dix fois plus : +2,3 ), et ecrase la queue :
+    la note vise ce qu une administration veut apprendre - des criteres qui trouvent souvent, pas le gros lot.
+    Ecartes : le redressement rapporte a l impot declare du dossier ( infini pour qui ne declare rien : la borne
+    deciderait de tout ; et il ignore le montant ) ; les drachmes ecretees a un plafond ( arbitraire, et tous les geants
+    a egalite ). Ce qu il en coute : l agent maximise la moyenne du logarithme, il prefere un rendement regulier a un
+    rendement moyen plus haut mais tenu par de rares geants ( les drachmes brutes restent mesurees : porte )."""
+    return math.copysign(math.log1p(abs(net) / COUT_CONTROLE), net)
 REF_REVENU_J = 200.0              # drachmes par jour : un revenu declare au-dela est un gros dossier
 REF_CA_MOIS = 60000.0             # drachmes par mois : un chiffre d affaires au-dela est un gros dossier
 PART_SAISIE = 0.5                 # part de ce qui est saisissable prise chaque jour ( a calibrer )
@@ -350,7 +366,7 @@ class Fisc:
         self.revenus = {k: 0.0 for k in ("salaires", "pensions", "non_salarial", "declare", "non_attribue")}
         self.compte = {k: 0.0 for k in ("retenue_ir", "remboursement_ir", "impot_societes", "is_elude", "dividendes",
                                          "redressements", "penalites", "recouvre", "controles", "controles_positifs")}
-        self.notes = deque(maxlen=20000)   # ( jour ou la note murit, dossier choisi, note ) : la mesure de la decision
+        self.notes = deque(maxlen=20000)   # ( jour ou la note murit, critere, note, drachmes nettes ) : la mesure
 
     def jours_exercice(self, jour):
         return jour - self.debut + 1, self.fin - self.debut + 1
@@ -502,7 +518,7 @@ POINT_CONTROLE = D.PointDeDecision(
     "controle_fiscal", "etat", traits=_traits_declares(), actions=CRITERES,
     observer=_observer_controle, regle=_regle_controle, temoin=_temoin_controle,
     note="ce que CE controle fait entrer ( impot elude et penalite encaisses sur 7 jours ) moins la journee du "
-         "controleur, sur 100 drachmes",
+         "controleur, en journees de controleur, en logarithme signe ( note_controle )",
     horizon_j=HORIZON_CONTROLE)
 
 
@@ -953,7 +969,6 @@ def _controles_du_jour(p):
         if cible is None:                       # au hasard, ou un critere sans dossier dans le lot : un dossier tire
             lot = [("menage", w.menages[i]) for i in lot_m] + [("unite", c) for c in lot_u]
             cible = lot[int(rng.integers(0, len(lot)))]
-        dec.ajouter(cle, -COUT_CONTROLE / NORME_CONTROLE)
         controler(p, ag, cible, cle, a)
     _chrono(e, "controles", t0)
 
@@ -1035,14 +1050,18 @@ def _recouvrer(p):
         if actives.get(cr.id) is cr: garde.append(cr)
     f.creances = garde
     dec = e.decideur
+    H = dec.point.horizon_j
     for cle in list(f.controles):
         o = f.controles[cle]
         if o.jour >= p.jour: continue
-        dec.noter(cle, o.encaisse / NORME_CONTROLE, p.jour)
         o.total += o.encaisse; o.encaisse = 0.0; o.jours += 1
-        if o.jours >= dec.point.horizon_j:
-            if o.action >= 0:
-                f.notes.append((p.jour, o.action, (o.total - COUT_CONTROLE) / (NORME_CONTROLE * dec.point.horizon_j)))
+        # la note n est pas une somme de jours : le logarithme porte sur le total des 7 jours. Les jours d avant ne
+        # comptent rien, le dernier compte H fois la note ( l attente rend la moyenne sur l horizon, comme au domaine 2 )
+        mur = o.jours >= H
+        note = note_controle(o.total - COUT_CONTROLE)
+        dec.noter(cle, note * H if mur else 0.0, p.jour)
+        if mur:
+            if o.action >= 0: f.notes.append((p.jour, o.action, note, o.total - COUT_CONTROLE))
             dec.attentes.pop(cle, None); del f.controles[cle]
     _chrono(e, "recouvrer", t0)
 
