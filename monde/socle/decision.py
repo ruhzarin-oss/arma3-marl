@@ -28,7 +28,7 @@ from ..agents import Doctrine
 
 MODES = ("regle", "appris", "fige", "hasard", "temoin")
 HORIZON_DEFAUT = 3
-HORIZON_MAX = 30
+HORIZON_MAX = 365           # un pret, une recolte, une grossesse se lisent en mois : 30 jours ne suffisaient pas ( banques, 23/09 )
 NOM_VALIDE = re.compile(r"^[a-z][a-z0-9_]{0,39}$")
 
 
