@@ -89,3 +89,22 @@ note — la marge, le profit — tirait dans le sens de la règle de rentabilit�
 **Porte, plus stricte** (deuxième tentative sur la même porte) : les mêmes exigences — battre la règle (médiane et
 7 mondes sur 10) et le hasard (médiane), et l'aveugle pour le commerce — **sur l'examen 101-110 ET sur la
 confirmation 201-210**. Un groupe qui passe l'une et pas l'autre est refusé.
+
+## Verdicts de la tentative 2 — 23/09 (commit f3fb537, 491 s)
+
+| groupe | examen 101-110 | confirmation 201-210 | verdict |
+|---|---|---|---|
+| travailleurs | −20,66 contre −22,61, **7/10**, pic 10,7 % contre 10,8 % | −20,73 contre −20,54, 4/10 | refusé |
+| entreprises | −31,46 contre −22,61, 2/10 | −27,54 contre −20,54, 2/10 | refusé |
+| marchés | −29,11 contre −22,61, 2/10 | −28,22 contre −20,54, 2/10 | refusé |
+| commerce | −23,93 contre −22,61, 6/10 (aveugle −21,93) | −24,40 contre −20,54, 4/10 (aveugle −18,05) | refusé |
+| voyageurs | −30,17 contre −45,94, 8/10 (hasard −25,82) | −25,77 contre −37,95, 9/10 (hasard −21,51) | refusé |
+
+**La confirmation a servi** : les travailleurs passaient l'examen et échouent sur la seconde série.
+**Les notes par effet du choix ont aidé** le commerce (−26,4 → −23,9) et les entreprises (−42,0 → −31,5), et leur
+récompense monte enfin d'époque en époque (commerce 0,140 → 0,160 ; marchés 0,27 → 0,31) — sans suffire.
+
+**Diagnostic** : ces agents partent de zéro contre des règles qui contiennent déjà la calibration de plusieurs jours.
+Deux tentatives sur la même porte : on s'arrête là avec cette méthode. Proposition soumise à Younes : **former par
+imitation** — l'élève apprend d'abord à reproduire la règle, puis ne s'en écarte que là où il fait mieux ; la porte
+reste la même (dépasser son maître).
