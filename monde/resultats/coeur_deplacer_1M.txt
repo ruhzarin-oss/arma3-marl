@@ -1,0 +1,9 @@
+1000000 habitants, monde cree en 49 s
+  pas  24 | compares  24,002,404 | ecarts 0 | rust   0.09 s | python   17.8 s | colonnes   45.3 s
+  pas  48 | compares  48,004,756 | ecarts 0 | rust   0.18 s | python   36.7 s | colonnes   90.9 s
+  pas  72 | compares  72,007,108 | ecarts 0 | rust   0.28 s | python   54.6 s | colonnes  136.6 s
+  pas  96 | compares  96,009,460 | ecarts 0 | rust   0.40 s | python   72.3 s | colonnes  182.4 s
+  pas 120 | compares 120,011,812 | ecarts 0 | rust   0.49 s | python   89.6 s | colonnes  227.9 s
+  pas 144 | compares 144,014,164 | ecarts 0 | rust   0.58 s | python  106.6 s | colonnes  273.6 s
+PORTE : 0 ecart sur 144,014,164 decisions comparees ( 524 exclues : en mer ou en sejour ; 0 pas avec quarantaine )
+TEMPS sur 144 pas : rust 0.58 s | python 106.6 s | gain x183 | construction des colonnes 273.6 s

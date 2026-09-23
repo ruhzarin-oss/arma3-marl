@@ -1,0 +1,26 @@
+1000000 habitants cree en 47 s
+  pas  24/144 |     41 s | aube:13 deplacer:18 produire:9 contagion:1 demographie:11 indexer:1
+  pas  48/144 |     71 s | aube:13 deplacer:36 produire:19 contagion:2 demographie:11 indexer:1
+  pas  72/144 |     98 s | aube:13 deplacer:54 produire:26 expedier:2 contagion:4 demographie:11 indexer:1
+  pas  96/144 |    129 s | aube:13 deplacer:72 produire:30 expedier:5 contagion:5 paie:1 achats:1 repas:1 demographie:11 indexer:1
+  pas 120/144 |    156 s | aube:13 deplacer:89 produire:35 expedier:9 contagion:6 paie:1 achats:1 repas:1 demographie:11 indexer:1
+  pas 144/144 |    182 s | aube:13 deplacer:106 produire:39 expedier:12 contagion:7 paie:1 achats:1 repas:1 demographie:11 indexer:1
+UNE JOURNEE : 182 s
+deplacer                106.5 s  en  144 appels
+produire                 39.2 s  en  144 appels
+aube                     12.8 s  en    1 appels
+expedier                 12.1 s  en   24 appels
+demographie              10.8 s  en    1 appels
+contagion                 7.5 s  en   24 appels
+paie                      1.3 s  en    1 appels
+repas                     1.2 s  en    1 appels
+achats                    1.1 s  en    1 appels
+indexer                   1.1 s  en    1 appels
+gouverner                 0.5 s  en    1 appels
+commerce_exterieur        0.1 s  en    1 appels
+progression_maladie       0.1 s  en    1 appels
+arrivees                  0.0 s  en  144 appels
+patrouilles               0.0 s  en    2 appels
+debarquer                 0.0 s  en  144 appels
+regler_activite           0.0 s  en    1 appels
+ravitailler_bases         0.0 s  en    1 appels
