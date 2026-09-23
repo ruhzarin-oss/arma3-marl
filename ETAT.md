@@ -1,4 +1,4 @@
-# ETAT — 2026-09-19 23:44
+# ETAT — 2026-09-22 14:38
 
 Journal, detail des verdicts, historique des runs : le wiki de Plane — http://localhost:8080 (tunnel `ssh -f -N ws`) > espace travaux > projet HMT > Pages. Pages generees, ne pas les editer.
 
@@ -8,19 +8,19 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 ## Machine
 
-- dernier boot : 2026-09-15T15:42:36+02:00 ok=True  conteneurs=20 ;
-- GPU : 613 MiB, 24576 MiB, 0 %
+- dernier boot : 2026-09-20T05:32:55+02:00 ok=True  conteneurs=20 ;
+- GPU : 576 MiB, 24576 MiB, 0 %
 - /mnt/data : 2.5T libres sur 3.6T
-- serveurs Arma : 6 · residus : aucun
+- serveurs Arma : 3 · residus : aucun
 
 ## File
 
-- en cours : 2026-09-19_OP2_n0_t1_s1_g6g7.json, 2026-09-19_OP2_n0_t1_s2_g4g5.json, 2026-09-19_OP2_n0_t2_s3_g6g7.json, 2026-09-19_OP2_n1_t1_s1_g4g5.json, 2026-09-19_OP2_n1_t1_s1_g8g9.json, 2026-09-19_OP2_n1_t1_s2_g11g12.json, 2026-09-19_OP2_n1_t2_s1_g8g9.json
-- en attente : 2026-09-19_OP2_n0_t1_s1_g11g12.json
+- en cours : 2026-09-22_MUX_0001.json, 2026-09-22_MUX_0003.json, 2026-09-22_MUX_0005.json, 2026-09-22_MUX_0011.json
+- en attente : rien
 
 ## Debit du mois 2026-09
 
-- runs aboutis : 939 / 1020
+- runs aboutis : 1534 / 1654
 
 ## Portes ouvertes
 
@@ -69,6 +69,7 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 | Infrastructure de mesure : sentinelle de pont, harnais de banc, deploiement SQF depuis git | 2026-09-04 | n/a | trois outils en service ; une panne trouvee et non reparee : la couche bronze du lac est un lien mort | PASSE |  | infra-sentinelle-harnais.md |
 | Controle positif de la connaissance dans Arma | 2026-08-02 | 1 | knowsAbout 4,00 avec un camarade qui voit, 0,00 seul ; 0,00 a 50 m de flanc contre 2,00 a 300 m de face | PASSE |  | knowsabout-de-camp.md |
 | ? | ? | ? | ? | ? |  | l-allure-du-repli-rapide-tend-a-mieux-exfiltrer-sans-dependre-de-la-menace.md |
+| ? | ? | ? | ? | ? |  | l-oracle-punit-et-ne-triche-pas.md |
 | ? | ? | ? | ? | ? |  | la-connaissance-de-nuit-porte-a-150-m-et-arrive-en-6-secondes.md |
 | ? | ? | ? | ? | ? |  | la-couture-est-ouverte.md |
 | ? | ? | ? | ? | ? |  | la-porte-nest-pas-une-decision.md |
@@ -122,18 +123,18 @@ tache qui ne remonte pas a cette phrase sort du projet ou va en attente.
 
 | run | banc | etat du run | verdicts du banc | duree s |
 |---|---|---|---|---|
-| 2026-09-19_234038_chacaloracle_i3 | chacaloracle | EN COURS |  |  |
-| 2026-09-19_233834_chacaloracle_i1 | chacaloracle | EN COURS |  |  |
-| 2026-09-19_233731_chacaloracle_i7 | chacaloracle | EN COURS |  |  |
-| 2026-09-19_233051_chacaloracle_i11 | chacaloracle | COMPLET | g8:ACCEPTE g9:ACCEPTE | 813 |
-| 2026-09-19_232948_chacaloracle_i8 | chacaloracle | COMPLET | g6:ACCEPTE g7:ACCEPTE | 671 |
-| 2026-09-19_232438_chacaloracle_i5 | chacaloracle | EN COURS |  |  |
-| 2026-09-19_232034_chacaloracle_i13 | chacaloracle | COMPLET | g4:ACCEPTE g5:ACCEPTE | 1348 |
-| 2026-09-19_231900_chacaloracle_i10 | chacaloracle | COMPLET | g11:ACCEPTE g12:ACCEPTE | 1347 |
-| 2026-09-19_231755_chacaloracle_i6 | chacaloracle | COMPLET | g11:ACCEPTE g12:ACCEPTE | 1512 |
-| 2026-09-19_231606_chacaloracle_i12 | chacaloracle | EN COURS |  |  |
-| 2026-09-19_231448_chacaloracle_i4 | chacaloracle | EN COURS |  |  |
-| 2026-09-19_230705_chacaloracle_i3 | chacaloracle | COMPLET | g11:ACCEPTE g12:ACCEPTE | 1963 |
-| 2026-09-19_230542_chacaloracle_i2 | chacaloracle | COMPLET | g6:ACCEPTE g7:ACCEPTE | 2126 |
-| 2026-09-19_230326_chacaloracle_i11 | chacaloracle | COMPLET | g11:ACCEPTE g12:ACCEPTE | 1594 |
-| 2026-09-19_230051_chacaloracle_i7 | chacaloracle | COMPLET | g6:ACCEPTE g7:ACCEPTE | 2147 |
+| 2026-09-22_ORA_012_c13_o1_r1_multi | chacaloracle | COMPLET |  | 0 |
+| 2026-09-22_ORA_012_c13_o1_r0_multi | chacaloracle | COMPLET |  | 0 |
+| 2026-09-22_ORA_012_c12_o1_r1_multi | chacaloracle | COMPLET |  | 0 |
+| 2026-09-22_ORA_012_c12_o1_r0_multi | chacaloracle | COMPLET |  | 0 |
+| 2026-09-22_ORA_012_c11_o2_r0_multi | chacaloracle | EN COURS |  |  |
+| 2026-09-22_ORA_012_c10_o1_r0_multi | chacaloracle | COMPLET |  | 0 |
+| 2026-09-22_ORA_012_c08_o2_r0_multi | chacaloracle | EN COURS |  |  |
+| 2026-09-22_ORA_012_c07_o2_r0_multi | chacaloracle | EN COURS |  |  |
+| 2026-09-22_ORA_012_c07_o1_r0_multi | chacaloracle | EN COURS |  |  |
+| 2026-09-22_ORA_012_c06_o2_r0_multi | chacaloracle | EN COURS |  |  |
+| 2026-09-22_ORA_012_c06_o1_r0_multi | chacaloracle | EN COURS |  |  |
+| 2026-09-22_140611_chacalmulti_i13 | chacalmulti | COMPLET | g1:ACCEPTE g2:ACCEPTE | 1836 |
+| 2026-09-22_140609_chacalmulti_i12 | chacalmulti | EN COURS |  |  |
+| 2026-09-22_140607_chacalmulti_i11 | chacalmulti | COMPLET | g1:ACCEPTE g2:ACCEPTE | 1836 |
+| 2026-09-22_140605_chacalmulti_i10 | chacalmulti | COMPLET | g1:ACCEPTE g2:ACCEPTE | 1673 |
