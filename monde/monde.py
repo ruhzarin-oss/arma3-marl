@@ -63,6 +63,20 @@ class ParTravail:
     def setdefault(self, cle, defaut=None): return self[cle]
     def __contains__(self, cle): return self._valide(cle) and self._w.nombre_au_travail(self._w.carte.lieux[cle[0]], cle[1]) > 0
 
+    def keys(self):
+        """Les cles dans l ordre de l ancien dictionnaire : celui du premier habitant de chaque ( lieu, metier ) - le
+        plus petit numero de sa tranche - puis les cles nees d une embauche du jour, dans l ordre des embauches."""
+        w, nr = self._w, len(P.ROLES)
+        tr = w._travail_tranches
+        cles = sorted(tr, key=lambda c: w._travail_ordre[tr[c][0]])
+        cles += [c for c in w._travail_ajouts if c not in tr]
+        return [(w.carte.par_n[c // nr].id, P.ROLES[c % nr]) for c in cles]
+
+    def __iter__(self): return iter(self.keys())
+    def __len__(self): return len(self.keys())
+    def items(self): return [(k, self[k]) for k in self.keys()]
+    def values(self): return [self[k] for k in self.keys()]
+
 
 class Monde:
     def __init__(self, graine=C.GRAINE, cerveau="regles", epidemie_jour=2, journal=None, eleve=None, iles=("Altis",),
@@ -76,7 +90,7 @@ class Monde:
         self._ile_du_lieu = np.array([self.carte.iles.index(l.ile) for l in self.carte.par_n], np.int16)
         self.habitants, self.menages = P.generer(self.carte, self.rng, echelle, self.table)
         self.utiliser_coeur = COEUR is not None
-        self._colonnes_fraiches = False                 # vrai quand `deplacer` a rempli la colonne « travaille » ce pas
+        self._travaille_pas = -1                        # le pas ou la colonne « travaille » a ete remplie
         self.pas = 0
         self.journal_fichier = journal
         self.evenements = []
@@ -514,7 +528,6 @@ class Monde:
         """Ou est chacun a ce pas : maison, travail, hopital. Par le coeur Rust sur les colonnes quand il est la ;
         la version Python ( `deplacer_python` ) reste la reference, et la porte compare les deux au centime."""
         if not self.utiliser_coeur or self.agents.get("travailleurs") is not None:
-            self._colonnes_fraiches = False
             return self.deplacer_python(h)
         t, n = self.table, self.table.n
         # 1. les sejours arrives a terme, comme dans la boucle Python : vivant, pas en mer, dans l ordre des habitants
@@ -540,7 +553,35 @@ class Monde:
         COEUR.deplacer(h, C.ABSENCE_FAIM, C.MINUTES_PAR_PAS / 60.0, sauter, t.vivant[:n], t.etat[:n], t.gravite[:n],
                        t.horaire[:n], t.equipe[:n], t.decalage[:n], enferme, t.faim[:n], t.public[:n], t.travail[:n],
                        t.domicile[:n], t.hopital[:n], t.lieu[:n], t.poste[:n], t.heures[:n], t.travaille[:n])
-        self._colonnes_fraiches = True
+        self._travaille_pas = self.pas
+
+    def _assurer_travaille(self, h):
+        """La colonne « travaille » ( a son heure de travail ) pour CE pas, meme quand `deplacer` ne l a pas remplie : la
+        version Python, ou un domaine qui tient lui-meme les deplacements ( l agenda du pays ). Profil du 24/09 : sans
+        elle, la production repassait chaque habitant en Python a chaque pas, 85 % d une journee avec l agenda."""
+        if self._travaille_pas == self.pas: return
+        t, n = self.table, self.table.n
+        if COEUR is not None:
+            COEUR.a_son_heure(h, t.vivant[:n], t.etat[:n], t.gravite[:n], t.horaire[:n], t.equipe[:n], t.decalage[:n],
+                              t.travaille[:n])
+        else:
+            t.travaille[:n] = self._a_son_heure_numpy(h, n)
+        self._travaille_pas = self.pas
+
+    def _a_son_heure_numpy(self, h, n):
+        """`Habitant.au_travail` sur toute la colonne, en numpy ( sans le coeur Rust )."""
+        t = self.table
+        hl = h - t.decalage[:n] / 60.0
+        hor = t.horaire[:n]
+        ok = (hor >= 0) & (t.vivant[:n] == 1) & ~((t.etat[:n] == P.CODE_ETAT["I"]) & (t.gravite[:n] > 0.5))
+        res = np.zeros(n, bool)
+        for code, (a, b) in ((P.CODE_HORAIRE[k], C.HORAIRES[k]) for k in C.HORAIRES):
+            m = hor == code
+            res[m] = ((a <= hl[m]) & (hl[m] < b)) if a < b else ((hl[m] >= a) | (hl[m] < b))
+        g = hor == P.CODE_HORAIRE["garde"]
+        debut = np.array([6.0, 14.0, 22.0])[t.equipe[:n][g] % 3]
+        res[g] = np.mod(hl[g] - debut, 24.0) < 8.0
+        return (res & ok).astype(np.uint8)
 
     def deplacer_python(self, h):
         q = set(self.gouv.lois["quarantaine"])
@@ -569,7 +610,7 @@ class Monde:
         un ouvrier est present s il est vivant, a son lieu de travail, a son heure, et du metier du site. Les sites
         sont traites dans l ordre du premier ouvrier rencontre, comme le dictionnaire de la version Python : ils se
         partagent le reseau electrique, et l ordre des additions change les centimes."""
-        if not self._colonnes_fraiches: return self.produire_python(h)
+        self._assurer_travaille(h)
         t, n = self.table, self.table.n
         lieu = t.lieu[:n]
         idx = np.nonzero((t.vivant[:n] == 1) & (lieu == t.travail[:n]) & (t.travail[:n] >= 0) & (t.travaille[:n] == 1))[0]
@@ -647,11 +688,8 @@ class Monde:
         t = self.table
         if file is None:
             ids = np.array(self.ids_au_travail(capitale, "convoyeur"), np.int64)
-            if self._colonnes_fraiches and ids.size:
-                ids = ids[(t.vivant[ids] == 1) & (t.travaille[ids] == 1)]
-            else:
-                h = self.heure
-                ids = np.array([i for i in ids.tolist() if P.Habitant(t, i).vivant and P.Habitant(t, i).au_travail(h)], np.int64)
+            self._assurer_travaille(self.heure)
+            if ids.size: ids = ids[(t.vivant[ids] == 1) & (t.travaille[ids] == 1)]
             file = self._chauffeurs[capitale.id] = collections.deque(ids.tolist())
         while file and self.conducteur_libre.get(file[0], 0) > self.pas: file.popleft()
         return P.Habitant(t, file[0]) if file else None

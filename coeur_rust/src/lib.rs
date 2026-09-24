@@ -118,8 +118,41 @@ fn deplacer<'py>(
     Ok(())
 }
 
+/// La colonne `travaille` seule - qui est a son heure de travail a ce pas - sans deplacer personne. Pour un monde ou
+/// un domaine tient lui-meme les deplacements ( l agenda du pays ) : la production et les convois la lisent. Sans
+/// elle, ils retombaient sur la boucle Python, habitant par habitant, a chaque pas ( profil du 24/09 : 85 % du temps ).
+#[pyfunction]
+#[allow(clippy::too_many_arguments)]
+fn a_son_heure<'py>(
+    py: Python<'py>,
+    heure: f64,
+    vivant: PyReadonlyArray1<'py, u8>,
+    etat: PyReadonlyArray1<'py, u8>,
+    gravite: PyReadonlyArray1<'py, f64>,
+    horaire: PyReadonlyArray1<'py, i8>,
+    equipe: PyReadonlyArray1<'py, i32>,
+    decalage: PyReadonlyArray1<'py, f64>,
+    mut travaille: PyReadwriteArray1<'py, u8>,
+) -> PyResult<()> {
+    let (vivant, etat, gravite) = (vivant.as_slice()?, etat.as_slice()?, gravite.as_slice()?);
+    let (horaire, equipe, decalage) = (horaire.as_slice()?, equipe.as_slice()?, decalage.as_slice()?);
+    let travaille = travaille.as_slice_mut()?;
+    let un = |i: usize, tr: &mut u8| {
+        *tr = au_travail(heure, decalage[i], horaire[i], equipe[i], vivant[i] != 0, etat[i] == 2, gravite[i]) as u8;
+    };
+    if travaille.len() < SEUIL_PARALLELE {
+        for (i, tr) in travaille.iter_mut().enumerate() {
+            un(i, tr);
+        }
+    } else {
+        py.allow_threads(|| travaille.par_iter_mut().enumerate().with_min_len(PAQUET).for_each(|(i, tr)| un(i, tr)));
+    }
+    Ok(())
+}
+
 #[pymodule]
 fn coeur(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(deplacer, m)?)?;
+    m.add_function(wrap_pyfunction!(a_son_heure, m)?)?;
     Ok(())
 }
