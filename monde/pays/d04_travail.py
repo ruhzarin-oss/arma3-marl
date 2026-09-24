@@ -1341,8 +1341,11 @@ def _placer_reserves(p, d, agg):
 
 
 def _accidents(p, d, heures):
-    """Un tirage par jour travaille, au taux de son secteur. La medecine ( domaine 16 ) blesse si elle est la ;
-    sinon on compte."""
+    """Un tirage par jour travaille, au taux de son secteur : ce domaine COMPTE ses accidents ( statistiques,
+    indemnites ), il ne blesse personne. La medecine ( domaine 16 ) tire elle-meme les accidents du travail, avec sa loi
+    de gravite calibree ( ISS_TRAVAIL ). Decision de Younes le 24/09 ( option A ) : l ancien appel
+    `blesser( p, h, "accident_travail", 0,3 ou 1 )` ne suivait pas l API de la medecine ( type inconnu, gravite hors de
+    l echelle ISS 1-75 ), plantait tout monde assez grand ou assez long, et aurait compte deux fois les blesses."""
     w = p.w
     idx = np.nonzero(heures > 0.0)[0]
     if not len(idx): return
@@ -1351,13 +1354,11 @@ def _accidents(p, d, heures):
     pm = ACCIDENTS_PAR_CODE[1][rc] / 1e5 / JOURS_TRAVAILLES_AN
     pb = ACCIDENTS_PAR_CODE[0][rc] / 1e5 / JOURS_TRAVAILLES_AN
     u = p.du_jour("travail_accidents").random(len(idx))
-    med = importlib.import_module(".d16_medecine", __package__) if p.a("medecine") else None
     for k in np.nonzero(u < pm + pb)[0].tolist():
         h = H[int(idx[k])]; mortel = bool(u[k] < pm[k])
         t = d.accidents.setdefault(h.role, [0, 0]); t[1 if mortel else 0] += 1
         p.compter("accident_travail")
         if mortel: p.noter("accident_mortel", habitant=h.id, metier=h.role)
-        if med is not None and hasattr(med, "blesser"): med.blesser(p, h, "accident_travail", 1.0 if mortel else 0.3)
 
 
 # ================================================================== les carrieres ( 6 h 10 )
