@@ -49,6 +49,7 @@ FICHE
 import importlib, math
 import numpy as np
 from .. import config as C, population as PO
+POSTE_TRAVAIL = PO.CODE_POSTE["travail"]
 from ..socle import decision as D, objets as O
 from . import pays as P, d01_population as POP, d02_banques as BQ, d03_economie as ECO, d08_territoire as TER
 
@@ -916,9 +917,13 @@ def _pas(p):
     for s in D_.sites:
         if not s.actif or s.equipe <= 0: continue
         e = s.entreprise; lieu = e.lieu
-        presents = [h for h in w.au_travail_de(lieu, e.role) if h.vivant and h.lieu is lieu and h.poste == "travail"]
-        n = len(presents)
+        # EN COLONNES ( 24/09 ) : les presents trouves sur la table du moteur, une vue seulement pour eux, dans l ordre
+        tb = w.table
+        ids = np.array(w.ids_au_travail(lieu, e.role), np.int64)
+        if len(ids): ids = ids[(tb.vivant[ids] == 1) & (tb.lieu[ids] == lieu.n) & (tb.poste[ids] == POSTE_TRAVAIL)]
+        n = len(ids)
         if n == 0: continue
+        presents = [PO.Habitant(tb, i) for i in ids.tolist()]
         presence = min(1.0, n / s.equipe)
         paye = 0.0
         rng = D_.rng_accidents
@@ -944,8 +949,7 @@ def _pas(p):
                     if vivants: _accident(p, D_, s, a, vivants[int(rng.integers(len(vivants)))], mortel)
             _machines(p, D_, s, a, ouvert, ouvert * a.regime * min(1.0, fait) if fait > 0 else 0.0, presents)
         if paye > 0.0:
-            for h in presents:
-                if h.vivant: h.heures_jour += DT_H * paye
+            np.add.at(tb.heures, ids[tb.vivant[ids] == 1], DT_H * paye)
             s.heures_j += n * DT_H * paye
 
 # ================================================================== l apres-midi ( 16 h ) : gazole et livraisons entre sites

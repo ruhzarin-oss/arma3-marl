@@ -919,9 +919,33 @@ def _pointer(p, pas=None):
     d = p.domaine("travail"); w = p.w
     libre = w.conducteur_libre
     if pas is None: pas = w.pas - 1
-    ids = [h.id for h in d.pointes if (h.poste == "travail" and h.lieu is h.travail and h.travail is not None)
-           or libre.get(h.id, 0) > pas]
-    if ids: p.col("habitant", "tr_pointage")[ids] += 1
+    # EN COLONNES ( 24/09 ) : la liste des salaries est lue une fois en numeros, puis le test se fait sur la table
+    ids = _ids_pointes(d)
+    if not len(ids): return
+    tb = w.table
+    tr = tb.travail[ids]
+    ok = (tb.poste[ids] == PO.CODE_POSTE["travail"]) & (tb.lieu[ids] == tr) & (tr >= 0)
+    if libre:
+        au_volant = np.fromiter((k for k, v in libre.items() if v > pas), np.int64)
+        if len(au_volant): ok |= np.isin(ids, au_volant)
+    ids = ids[ok]
+    if len(ids): p.col("habitant", "tr_pointage")[ids] += 1
+
+
+_POINTES = {}          # id( etat du domaine ) -> ( la liste d.pointes, sa longueur lue, ses numeros )
+
+
+def _ids_pointes(d):
+    """Les numeros de `d.pointes`, dans son ordre : relus seulement quand la liste est remplacee ( chaque matin ) ;
+    les embauches du jour, ajoutees a la fin, sont lues a leur tour."""
+    lst = d.pointes
+    c = _POINTES.get(id(d))
+    if c is None or c[0] is not lst or c[1] > len(lst):
+        c = (lst, 0, np.zeros(0, np.int64))
+    if c[1] < len(lst):
+        c = (lst, len(lst), np.concatenate([c[2], np.fromiter((h.id for h in lst[c[1]:]), np.int64)]))
+    _POINTES[id(d)] = c
+    return c[2]
 
 
 def _refaire_pointes(p, d):

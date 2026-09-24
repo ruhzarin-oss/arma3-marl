@@ -59,7 +59,7 @@ FICHE
 import json, math, os
 from collections import deque
 import numpy as np
-from .. import config as C, carte as K
+from .. import config as C, carte as K, population as PO_MOTEUR
 from ..socle import decision as D, biens as SB
 from . import d08_territoire as TER, pays as PAYS
 
@@ -767,6 +767,7 @@ def _presence(p):
     A = p.domaine("agriculture")
     e1 = A.critere == "lieu_e1"
     heure = ((p.w.minutes - C.MINUTES_PAR_PAS) % (24 * 60)) / 60.0     # l heure ou Monde.deplacer a pose les postes
+    if not e1: return _presence_colonnes(p, A)
     for ex in A.liste:
         n = 0
         lieu = ex.lieu
@@ -777,6 +778,33 @@ def _presence(p):
         if n:
             ex.presence_h += n * PAS_H
             if n > ex.presents_max: ex.presents_max = n
+
+
+_PAYSANS = {}          # id( etat du domaine ) -> ( listes ex.paysans lues, numeros, indice de l exploitation, lieux )
+
+
+def _presence_colonnes(p, A):
+    """`_presence` EN COLONNES ( 24/09 ; le critere du poste, celui du pays ) : les paysans de toutes les exploitations
+    lus une fois en numeros ( les listes sont refaites chaque matin ), le test de presence sur la table du moteur."""
+    c = _PAYSANS.get(id(A))
+    if c is None or len(c[0]) != len(A.liste) or any(l is not ex.paysans or len(l) != k
+                                                     for (l, k), ex in zip(c[0], A.liste)):
+        ids, exi = [], []
+        for j, ex in enumerate(A.liste):
+            ids += [h.id for h in ex.paysans]; exi += [j] * len(ex.paysans)
+        c = ([(ex.paysans, len(ex.paysans)) for ex in A.liste], np.array(ids, np.int64), np.array(exi, np.int64),
+             np.array([ex.lieu.n for ex in A.liste], np.int64))
+        _PAYSANS[id(A)] = c
+    _, ids, exi, lieux = c
+    if not len(ids): return
+    tb = p.w.table
+    present = (tb.vivant[ids] == 1) & (tb.poste[ids] == PO_MOTEUR.CODE_POSTE["travail"]) & (tb.lieu[ids] == lieux[exi])
+    np.add.at(tb.heures, ids[present], PAS_H)
+    nb = np.bincount(exi[present], minlength=len(A.liste))
+    for j in np.nonzero(nb)[0].tolist():
+        ex, n = A.liste[j], int(nb[j])
+        ex.presence_h += n * PAS_H
+        if n > ex.presents_max: ex.presents_max = n
 
 
 def _paysans(p):
