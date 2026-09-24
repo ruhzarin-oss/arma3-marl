@@ -106,6 +106,7 @@ class Monde:
         self.graine = graine
         self.carte = K.Carte(iles=tuple(iles))
         self.table = P.Table(self.carte.par_n)          # les habitants en colonnes ( ce que lit le coeur Rust )
+        self.table.code_ile = K.CODES_ILES[self.carte.iles[0]]      # le pays de ce monde : il entre dans chaque numero
         # le marche dont depend chaque lieu, par numero ( -1 : aucun ) - l index de la population par marche le lit
         self._marche_du_lieu = np.array([l.marche.n if l.marche is not None else -1 for l in self.carte.par_n], np.int64)
         self._ile_du_lieu = np.array([self.carte.iles.index(l.ile) for l in self.carte.par_n], np.int16)
@@ -147,6 +148,8 @@ class Monde:
             (depots[0] if depots else self.carte.gouvernement)
         # le foyer de l epidemie du jour 2 : Pyrgos sur Altis ; ailleurs, la capitale du gouvernement
         self.foyer_epidemie = "Pyrgos" if "Pyrgos" in self.carte.lieux else self.carte.gouvernement.id
+        self.passeports_en_cours = {}    # habitant -> jour de remise
+        self._passeports_de_depart(graine)
         # point 6 : chaque base tient SON carburant. Un depot national ne pouvait jamais etre coupe de quoi que ce soit.
         self.garnisons = {b.id: {"carburant": 0.0} for b in self.carte.de_type("base")}
         for b in self.carte.de_type("base"):        # cinq jours d autonomie : une base n est ni a sec ni intarissable
@@ -522,7 +525,53 @@ class Monde:
         return (f - d) - len(self._travail_retraits.get(cle, ())) + len(self._travail_ajouts.get(cle, []))
 
 
+    # --- l identite : le passeport ( archipel, 24/09 ) ------------------------------------------------------------
+    def _passeports_de_depart(self, graine):
+        """Au debut du monde, une part des adultes a deja un passeport, emis dans les annees passees. Un hasard A PART
+        ( graine, 71 ) : le monde lui-meme ne tire pas un nombre de plus."""
+        t, n = self.table, self.table.n
+        rng = np.random.default_rng([graine, 71])
+        adultes = np.nonzero((t.vivant[:n] == 1) & (t.age[:n] >= 18))[0]
+        u = rng.random(adultes.size)
+        porteurs = adultes[u < C.PART_PASSEPORT_DEPART]
+        duree = C.VALIDITE_PASSEPORT_ANS[1] * 365
+        emis = -rng.integers(0, duree, porteurs.size)            # emis dans les dix ans avant le jour 0
+        for i, e in zip(porteurs.tolist(), emis.tolist()): self._emettre_passeport(i, int(e))
+
+    def _emettre_passeport(self, i, jour):
+        t = self.table
+        t.n_passeports += 1
+        adulte = t.age[i] >= 18
+        t.passeport[i] = (int(t.code_ile) << C.BITS_NUMERO_LOCAL) | t.n_passeports
+        t.passeport_ile[i] = t.code_ile
+        t.passeport_emis_j[i] = jour
+        t.passeport_fin_j[i] = jour + C.VALIDITE_PASSEPORT_ANS[1 if adulte else 0] * 365
+
+    def passeport_valide(self, h, jour=None):
+        jour = self.jour if jour is None else jour
+        return self.table.passeport[h.id] >= 0 and self.table.passeport_fin_j[h.id] > jour
+
+    def demander_passeport(self, h):
+        """Un habitant demande son passeport a SON Etat : il le paie ( motif « passeport » ) et le recoit
+        DELAI_PASSEPORT_J jours plus tard. Rend : "valide", "en_cours", "refuse" ( son menage ne peut pas payer ), "demande"."""
+        if not h.vivant: return "refuse"
+        if self.passeport_valide(h, self.jour + C.DELAI_PASSEPORT_J): return "valide"
+        if h.id in self.passeports_en_cours: return "en_cours"
+        mg = h.menage
+        if mg is None or mg.caisse < C.FRAIS_PASSEPORT: return "refuse"
+        self.transferer(mg, self.gouv, C.FRAIS_PASSEPORT, "passeport")
+        self.passeports_en_cours[h.id] = self.jour + C.DELAI_PASSEPORT_J
+        self.noter("passeport_demande", habitant=h.id)
+        return "demande"
+
+    def _remettre_passeports(self):
+        prets = sorted(i for i, j in self.passeports_en_cours.items() if j <= self.jour)
+        for i in prets:
+            del self.passeports_en_cours[i]
+            if self.table.vivant[i]: self._emettre_passeport(i, self.jour); self.noter("passeport_remis", habitant=i)
+
     def aube(self):
+        self._remettre_passeports()
         self.demographie()
         self.indexer()
         g = self.agents.get("armee")

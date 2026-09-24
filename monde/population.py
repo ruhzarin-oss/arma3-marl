@@ -77,7 +77,11 @@ class Table:
               "public": (np.uint8, 0), "role": (np.int16, -1), "travaille": (np.uint8, 0),
               "age": (np.float64, 0.0), "menage": (np.int32, -1), "rang": (np.int64, -1),
               "classe": (np.uint8, 0), "jours_etat": (np.float64, 0.0), "remede": (np.uint8, 0),
-              "amendes": (np.int32, 0), "incarne": (np.uint8, 0), "eleve": (np.uint8, 0)}
+              "amendes": (np.int32, 0), "incarne": (np.uint8, 0), "eleve": (np.uint8, 0),
+              # l identite ( archipel, 24/09 ) : carte d identite = numero d archipel + nationalite ; passeport
+              "nia": (np.int64, -1), "nationalite": (np.int8, -1),
+              "passeport": (np.int64, -1), "passeport_ile": (np.int8, -1),
+              "passeport_emis_j": (np.int32, -1), "passeport_fin_j": (np.int32, -1)}
 
     def __init__(self, par_n, capacite=1024):
         self.par_n = par_n                 # les lieux par numero ( Carte.par_n )
@@ -86,6 +90,8 @@ class Table:
         self.noms = {}                     # les seuls noms qui ne se deduisent pas du numero ( les ministres )
         self.rang_suivant = 0              # l ordre d arrivee dans les menages
         self.menages = None                # la table des menages
+        self.code_ile = 0                  # le code de l ile de ce monde ( config.ILES_ARCHIPEL ) : il entre dans les numeros
+        self.n_passeports = 0              # les passeports delivres par cette ile ( leur numero en suit le compte )
         for nom, (dt, defaut) in self.CHAMPS.items(): setattr(self, nom, np.full(capacite, defaut, dt))
         _preparer_vues(self)
 
@@ -94,8 +100,15 @@ class Table:
 
     def ajouter(self):
         if self.n == self.capacite: _agrandir(self, self.CHAMPS)
+        i = self.n
         self.n += 1
-        return self.n - 1
+        self.identifier(i)
+        return i
+
+    def identifier(self, i):
+        """La carte d identite d un habitant ne ici : son numero d archipel ( jamais reutilise ) et sa nationalite."""
+        self.nia[i] = (self.code_ile << C.BITS_NUMERO_LOCAL) | i
+        self.nationalite[i] = self.code_ile
 
 
 class TableMenages:
@@ -262,6 +275,7 @@ class Habitant:
     age = _f("age"); faim = _f("faim"); gravite = _f("gravite"); decalage = _f("decalage")
     jours_etat = _f("jours_etat"); heures_jour = _f("heures")
     equipe = _i("equipe"); amendes = _i("amendes")
+    nia = _i("nia"); passeport = _i("passeport"); passeport_fin_j = _i("passeport_fin_j")
     vivant = _b("vivant"); remede = _b("remede"); incarne = _b("incarne"); eleve = _b("eleve")
 
     # --- les codes ---
@@ -300,6 +314,11 @@ class Habitant:
     def poste(self, v):
         if v not in CODE_POSTE: raise ValueError(f"poste inconnu du moteur : {v!r} ( a ajouter a population.POSTES )")
         self._t.poste[self.id] = CODE_POSTE[v]
+
+    @property
+    def nationalite(self):
+        k = int(self._t.nationalite[self.id])
+        return C.ILES_ARCHIPEL[k] if k >= 0 else None
 
     @property
     def nom(self): return self._t.noms.get(self.id) or f"H{self.id:03d}"
@@ -494,6 +513,7 @@ class Population:
         i = t.ajouter()
         for nom in Table.CHAMPS: getattr(t, nom)[i] = getattr(b, nom).v
         t.rang[i] = -1
+        if t.nia[i] < 0: t.identifier(i)            # un nouveau-ne recoit sa carte d identite en entrant dans la table
         if b.noms: t.noms[i] = b.noms[h.id]
         h._t = t
         t.vues[i] = _Ref(h, t._oubli, i)

@@ -35,6 +35,16 @@ assert sum(v[0] for v in ROLES.values()) == 500
 
 MINISTERES = ["finances", "sante", "interieur", "defense", "education", "industrie"]
 
+# --- l archipel ( 24/09 ) : six pays, chacun une ile. Le code d une ile ( son rang ici ) entre dans le numero de chaque
+# personne nee chez elle : ne jamais changer cet ordre, les numeros deja donnes changeraient de sens.
+ILES_ARCHIPEL = ("Altis", "Malden", "Stratis", "Tanoa", "Enoch", "Sara")
+BITS_NUMERO_LOCAL = 40                   # numero d archipel = ( code de l ile << 40 ) | numero local : 10^12 par ile
+# le passeport, delivre par l Etat de chaque ile ( a calibrer : ordre de grandeur grec, ~84 euros, 1 drachme = 1,15 euro )
+FRAIS_PASSEPORT = 73.0                   # drachmes
+DELAI_PASSEPORT_J = 7                    # jours entre la demande et la remise
+VALIDITE_PASSEPORT_ANS = (5, 10)         # ( mineur, adulte )
+PART_PASSEPORT_DEPART = 0.4              # adultes qui en ont deja un au debut du monde ( a calibrer )
+
 # --- les biens ---
 BIENS = ["nourriture", "fer", "zinc", "or", "petrole", "carburant", "electricite", "outils", "remedes"]
 MONNAIE = "drachme"

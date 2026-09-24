@@ -76,7 +76,9 @@ def main():
     ok = True
     for cle, serie in res.items():
         for j, (a_, b_) in enumerate(zip(ref[cle], serie)):
-            diff = sorted(k for k in set(a_) | set(b_) if a_.get(k) != b_.get(k))
+            # les empreintes nouvelles ( colonnes ajoutees apres la reference, ex. l identite du 24/09 ) ne se comparent
+            # pas ; toutes celles de la reference doivent etre identiques
+            diff = sorted(k for k in a_ if a_.get(k) != b_.get(k))
             if diff:
                 ok = False
                 print(f"  monde {cle} jour {j + 1} : ECART sur {len(diff)} empreintes : {diff[:12]}")

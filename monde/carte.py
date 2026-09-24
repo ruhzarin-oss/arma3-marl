@@ -18,6 +18,9 @@ CAPITALE_GOUVERNEMENT = "Kavala"
 # point 13 : les iles du pays. Chaque ile a sa geographie ; un habitant passe de l une a l autre par la mer.
 ILES = {"Altis": "altis_lieux.json", "Malden": "malden_lieux.json", "Stratis": "stratis_lieux.json",
         "Tanoa": "tanoa_lieux.json", "Enoch": "enoch_lieux.json", "Sara": "sara_lieux.json"}
+from . import config as _C
+assert tuple(ILES) == _C.ILES_ARCHIPEL, "l ordre des iles fixe les codes des numeros d archipel"
+CODES_ILES = {ile: k for k, ile in enumerate(_C.ILES_ARCHIPEL)}
 PORTS = {"Altis": "KavalaPier"}     # les autres iles trouvent leur port toutes seules : la ville la plus proche de la mer
 VITESSE_MER_KMH = 25.0                                          # un cargo cotier
 PAYS = os.path.join(ICI, "donnees", "pays")     # archipel ( 24/09 ) : la carte de chaque pays, ecrite par monde/pays_carte.py
