@@ -149,6 +149,12 @@ class Monde:
         # le foyer de l epidemie du jour 2 : Pyrgos sur Altis ; ailleurs, la capitale du gouvernement
         self.foyer_epidemie = "Pyrgos" if "Pyrgos" in self.carte.lieux else self.carte.gouvernement.id
         self.passeports_en_cours = {}    # habitant -> jour de remise
+        # l archipel ( phase E ) : pose par le pont quand il est OUVERT ; sinon ce monde ne voit jamais la mer
+        self.archipel = None             # { "noms": ( les six iles ), "ouvert": True }
+        self.courrier_sortant = []       # ( ile de destination, delai en pas, message ) : le pont le ramasse a chaque pas
+        self.absents = {}                # habitant d ici en voyage -> { destination, depart }
+        self.etrangers = {}              # numero d archipel -> le corps d un visiteur venu d ailleurs
+        self.frontiere = {"ouverte": True, "refuses": set()}      # la politique d entree de ce pays
         self._passeports_de_depart(graine)
         # point 6 : chaque base tient SON carburant. Un depot national ne pouvait jamais etre coupe de quoi que ce soit.
         self.garnisons = {b.id: {"carburant": 0.0} for b in self.carte.de_type("base")}
@@ -268,6 +274,7 @@ class Monde:
 
     # ------------------------------------------------------------------ un pas de 10 minutes
     def pas_suivant(self):
+        if self.etrangers: self._departs_des_etrangers()
         h = self.heure
         debut_heure = (self.minutes % 60) == 0
         if self.minutes % (24 * 60) == 6 * 60: self.aube()
@@ -390,7 +397,9 @@ class Monde:
         l embauche d un jeune depend des embauches qui la precedent."""
         if not self.utiliser_coeur: return self.demographie_python()
         t, n = self.table, self.table.n
-        vivants = np.nonzero(t.vivant[:n] == 1)[0]
+        absents = np.nonzero((t.vivant[:n] == 1) & (t.statut[:n] == P.ABSENT))[0]
+        t.age[absents] += 1.0 / C.JOURS_PAR_AN                           # l absent vieillit, mais ne meurt pas ici
+        vivants = np.nonzero((t.vivant[:n] == 1) & (t.statut[:n] != P.ABSENT))[0]
         t.age[vivants] += 1.0 / C.JOURS_PAR_AN
         age = t.age[vivants]
         limites = np.array([lim for lim, _ in C.MORTALITE_AN]); taux = np.array([r for _, r in C.MORTALITE_AN])
@@ -570,8 +579,100 @@ class Monde:
             del self.passeports_en_cours[i]
             if self.table.vivant[i]: self._emettre_passeport(i, self.jour); self.noter("passeport_remis", habitant=i)
 
+    # --- la traversee ( archipel, phase E1 : les visiteurs ) -------------------------------------------------------
+    @property
+    def ile(self): return self.carte.iles[0]
+
+    def delai_pas(self, dest):
+        """Le temps de traversee jusqu a `dest`, en pas : la mer, ou l avion si l une des deux iles n a pas de mer."""
+        if self.ile in C.PAR_AIR_SEULEMENT or dest in C.PAR_AIR_SEULEMENT:
+            minutes = C.AIR_MINUTES
+        else:
+            minutes = 60.0 * C.MER_PORT_A_PORT_KM / K.VITESSE_MER_KMH
+        return max(1, int(round(minutes / C.MINUTES_PAR_PAS)))
+
+    def logement_des_visiteurs(self):
+        """La ville ou dorment les visiteurs : la plus proche du port ( ou la capitale, pour un pays sans port )."""
+        port = self.carte.port(self.ile)
+        return self.carte.plus_proche(port, ("capitale", "ville", "village")) if port is not None else self.carte.gouvernement
+
+    def peut_voyager(self, i, retour_j):
+        """Un adulte d ici, present, sain ( on ne voyage pas malade ), pas enceinte, au passeport valide jusqu au retour."""
+        t = self.table
+        if not (t.vivant[i] and t.statut[i] == P.RESIDENT and t.age[i] >= 18 and t.etat[i] == P.CODE_ETAT["S"]
+                and t.poste[i] != P.CODE_POSTE["voyage"] and t.passeport[i] >= 0 and t.passeport_fin_j[i] > retour_j):
+            return False
+        p = getattr(self, "pays", None)
+        if p is not None and "habitant" in p.colonnes and "enceinte" in p.colonnes["habitant"] and p.colonnes["habitant"]["enceinte"][i]:
+            return False
+        return True
+
+    def partir(self, i, dest, sejour_jours):
+        """Un habitant d ici part en visite : son corps quitte l ile ( ici ne reste que son dossier, ABSENT ) et
+        voyage dans le courrier du pont ; il arrivera a `dest` apres la traversee."""
+        t = self.table
+        delai = self.delai_pas(dest)
+        corps = {"nia": int(t.nia[i]), "id_local": int(i), "origine": self.ile, "nationalite": int(t.nationalite[i]),
+                 "passeport": int(t.passeport[i]), "passeport_fin_j": int(t.passeport_fin_j[i]), "age": float(t.age[i]),
+                 "role": P.ROLES[t.role[i]] if t.role[i] >= 0 else None, "classe": P.CLASSES[t.classe[i]],
+                 "depart_pas": self.pas, "sejour_pas": int(sejour_jours * C.PAS_PAR_JOUR), "destination": dest}
+        t.statut[i] = P.ABSENT
+        t.lieu[i] = -1; t.poste[i] = P.CODE_POSTE["voyage"]
+        self.absents[int(i)] = {"destination": dest, "depart_pas": self.pas}
+        self.courrier_sortant.append((dest, delai, ("arrivee", corps)))
+        self.noter("depart_etranger", habitant=int(i), vers=dest, pas_de_mer=delai)
+
+    def recevoir_courrier(self, m):
+        genre, corps = m
+        if genre == "arrivee":
+            ok = (corps["passeport"] >= 0 and corps["passeport_fin_j"] > self.jour and self.frontiere["ouverte"]
+                  and corps["origine"] not in self.frontiere["refuses"])
+            if not ok:
+                self.courrier_sortant.append((corps["origine"], self.delai_pas(corps["origine"]), ("refoule", corps)))
+                self.noter("refoulement", nia=corps["nia"], origine=corps["origine"]); return
+            corps = dict(corps, arrivee_pas=self.pas, depart_prevu_pas=self.pas + corps["sejour_pas"],
+                         lieu=self.logement_des_visiteurs().id)
+            self.etrangers[corps["nia"]] = corps
+            self.noter("debarquement_etranger", nia=corps["nia"], origine=corps["origine"], lieu=corps["lieu"])
+        elif genre in ("retour", "refoule"):
+            i = corps["id_local"]
+            t = self.table
+            if int(t.nia[i]) != corps["nia"]: raise ValueError(f"retour d un inconnu : {corps['nia']}")
+            del self.absents[i]
+            t.statut[i] = P.RESIDENT
+            if t.vivant[i]:
+                t.poste[i] = P.CODE_POSTE["maison"]; t.lieu[i] = t.domicile[i]
+            self.noter("retour_au_pays" if genre == "retour" else "retour_refoule", habitant=i)
+        else:
+            raise ValueError(f"courrier inconnu {genre!r}")
+
+    def _departs_des_etrangers(self):
+        for nia in sorted(k for k, c in self.etrangers.items() if c["depart_prevu_pas"] <= self.pas):
+            c = self.etrangers.pop(nia)
+            self.courrier_sortant.append((c["origine"], self.delai_pas(c["origine"]), ("retour", c)))
+            self.noter("embarquement_etranger", nia=nia, vers=c["origine"])
+
+    def _voyages_du_jour(self):
+        """La regle provisoire des departs ( phase E1 ) : chaque jour, une part des adultes au passeport valide part en
+        visite 1 a 4 jours sur une autre ile ; une part de ceux qui n en ont pas en demande un. Un hasard A PART
+        ( graine, 91, jour ) : le monde lui-meme ne tire pas un nombre de plus. A remplacer par de vraies decisions."""
+        t, n = self.table, self.table.n
+        rng = np.random.default_rng([self.graine, 91, self.jour])
+        autres = [x for x in self.archipel["noms"] if x != self.ile]
+        present = (t.vivant[:n] == 1) & (t.statut[:n] == P.RESIDENT) & (t.age[:n] >= 18)
+        sans = np.nonzero(present & (t.passeport[:n] < 0))[0]
+        for i in sans[rng.random(sans.size) < C.TAUX_DEMANDE_PASSEPORT_JOUR].tolist():
+            self.demander_passeport(self.habitants[i])
+        cands = np.nonzero(present & (t.passeport[:n] >= 0) & (t.passeport_fin_j[:n] > self.jour + C.SEJOUR_JOURS[1] + 2))[0]
+        choisis = cands[rng.random(cands.size) < C.TAUX_VOYAGE_JOUR]
+        dest = rng.integers(0, len(autres), choisis.size)
+        duree = rng.integers(C.SEJOUR_JOURS[0], C.SEJOUR_JOURS[1] + 1, choisis.size)
+        for i, d, s in zip(choisis.tolist(), dest.tolist(), duree.tolist()):
+            if self.peut_voyager(i, self.jour + s + 2): self.partir(i, autres[d], s)
+
     def aube(self):
         self._remettre_passeports()
+        if self.archipel and self.archipel.get("ouvert"): self._voyages_du_jour()
         self.demographie()
         self.indexer()
         g = self.agents.get("armee")
@@ -1043,7 +1144,7 @@ class Monde:
         if not self.utiliser_coeur or self.doctrine is not None: return self.repas_python()
         t, n, mt = self.table, self.table.n, self.table.menages
         M = mt.n
-        vivant = t.vivant[:n] == 1
+        vivant = (t.vivant[:n] == 1) & (t.statut[:n] != P.ABSENT)        # l absent ne mange pas a la maison
         mm = P.menages_inscrits(t, n)
         membres = np.nonzero(vivant & (mm >= 0))[0]
         v = np.bincount(mm[membres], minlength=M)

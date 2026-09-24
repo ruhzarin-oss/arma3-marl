@@ -44,6 +44,13 @@ FRAIS_PASSEPORT = 73.0                   # drachmes
 DELAI_PASSEPORT_J = 7                    # jours entre la demande et la remise
 VALIDITE_PASSEPORT_ANS = (5, 10)         # ( mineur, adulte )
 PART_PASSEPORT_DEPART = 0.4              # adultes qui en ont deja un au debut du monde ( a calibrer )
+# la traversee ( archipel, phase E ; a calibrer ) : 120 km de port a port a 25 km/h ; l avion pour Livonia
+MER_PORT_A_PORT_KM = 120.0
+AIR_MINUTES = 90                          # embarquement, vol, debarquement
+PAR_AIR_SEULEMENT = ("Enoch",)            # Livonia n a pas de mer ( decision de Younes, 24/09 )
+TAUX_VOYAGE_JOUR = 0.002                  # part des adultes munis d un passeport qui partent en visite chaque jour
+TAUX_DEMANDE_PASSEPORT_JOUR = 0.001       # part des adultes sans passeport qui en demandent un chaque jour
+SEJOUR_JOURS = (1, 4)
 
 # --- les biens ---
 BIENS = ["nourriture", "fer", "zinc", "or", "petrole", "carburant", "electricite", "outils", "remedes"]

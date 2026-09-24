@@ -12,7 +12,8 @@ serveurs Arma ). On change de vitesse a la frontiere d un pas, jamais au milieu.
 Instantane : les six iles et le pont, au meme pas ; reprise : on repart de la. En mode SEQUENTIEL, les six iles
 tournent dans le meme processus : c est le juge du mode parallele ( porte G3 ).
 
-Phase D : le pont est FERME ( aucun courrier ). Phase E : les traversees.
+Phase D : le pont FERME ( aucun courrier ). Phase E1 : OUVERT, les visiteurs traversent ( monde.partir,
+recevoir_courrier : arrivee, retour, refoule ).
 
    python -m monde.archipel --jours 2 --echelle 4"""
 import argparse, hashlib, os, pickle, sys, time
@@ -45,13 +46,10 @@ class Ile:
         self.nom, self.w, self.sortant = nom, w, []
 
     def pas(self, entrant):
-        for m in entrant: self.recevoir(m)
+        for m in entrant: self.w.recevoir_courrier(m)
         self.w.pas_suivant()
-        s, self.sortant = self.sortant, []
+        s, self.w.courrier_sortant = self.w.courrier_sortant, []
         return s
-
-    def recevoir(self, m):
-        raise NotImplementedError(f"courrier {m[0]!r} : le pont est ferme en phase D")
 
     def commande(self, ordre, *args):
         if ordre == "empreinte": return empreinte(self.w)
@@ -61,13 +59,25 @@ class Ile:
         if ordre == "instantane":
             with open(args[0], "wb") as f: pickle.dump(self.w, f, protocol=pickle.HIGHEST_PROTOCOL)
             return True
+        if ordre == "corps":                        # le recensement de l archipel : qui a un corps ici, qui est absent
+            t = self.w.table; n = t.n
+            viv = t.vivant[:n] == 1
+            return {"residents": t.nia[:n][viv & (t.statut[:n] == 0)].tolist(),
+                    "absents": t.nia[:n][viv & (t.statut[:n] == 1)].tolist(), "etrangers": sorted(self.w.etrangers)}
+        if ordre == "etrangers":
+            return [(c["nia"], c["origine"], c["depart_pas"], c["arrivee_pas"]) for c in self.w.etrangers.values()]
+        if ordre == "tenue":
+            return self.w.pays.socle.conservation.tenue() if getattr(self.w, "pays", None) else (True, "sans socle")
+        if ordre == "frontiere":                    # ( ouverte, iles refusees )
+            self.w.frontiere = {"ouverte": args[0], "refuses": set(args[1])}; return True
         if ordre == "perturber":                    # controle positif des portes : un milliardieme de drachme
             self.w.table.menages.caisse[0] += 1e-9; return True
         raise ValueError(ordre)
 
 
-def _processus_ile(nom, graine, echelle, reprise, tuyau):
+def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False):
     w = pickle.load(open(reprise, "rb")) if reprise else creer_ile(nom, graine, echelle)
+    if ouvert: w.archipel = {"noms": tuple(noms), "ouvert": True}
     ile = Ile(nom, w)
     tuyau.send(("pret", nom))
     while True:
@@ -79,8 +89,8 @@ def _processus_ile(nom, graine, echelle, reprise, tuyau):
 
 # ------------------------------------------------------------------ le pont
 class Archipel:
-    def __init__(self, iles=C.ILES_ARCHIPEL, graine=C.GRAINE, echelle=4.0, parallele=True, reprise=None):
-        self.noms, self.graine, self.echelle, self.parallele = tuple(iles), graine, echelle, parallele
+    def __init__(self, iles=C.ILES_ARCHIPEL, graine=C.GRAINE, echelle=4.0, parallele=True, reprise=None, ouvert=False):
+        self.noms, self.graine, self.echelle, self.parallele, self.ouvert = tuple(iles), graine, echelle, parallele, ouvert
         self.pas = 0
         self.mer = []                      # ( pas d arrivee, ile d origine, n d ordre, destination, message )
         self.journal = []                  # tout ce qui a traverse ( phase E )
@@ -94,12 +104,14 @@ class Archipel:
             self.tuyaux, self.proc = {}, {}
             for n in self.noms:
                 a, b = ctx.Pipe()
-                p = ctx.Process(target=_processus_ile, args=(n, graine, echelle, chemin(n), b), daemon=True)
+                p = ctx.Process(target=_processus_ile, args=(n, graine, echelle, chemin(n), b, self.noms, ouvert), daemon=True)
                 p.start(); self.tuyaux[n], self.proc[n] = a, p
             for n in self.noms: assert self.tuyaux[n].recv() == ("pret", n)
         else:
             self.iles = {n: Ile(n, pickle.load(open(chemin(n), "rb")) if reprise else creer_ile(n, graine, echelle))
                          for n in self.noms}
+            if ouvert:
+                for i in self.iles.values(): i.w.archipel = {"noms": self.noms, "ouvert": True}
 
     # --- la vitesse : temps reel si un humain est la ---
     def temps_reel(self): return os.path.exists(HUMAIN)
@@ -119,6 +131,7 @@ class Archipel:
         reel = self.temps_reel()
         # le courrier qui arrive a ce pas, dans l ordre ( ile d origine, numero d ordre )
         arrive = sorted((x for x in self.mer if x[0] <= self.pas), key=lambda x: (x[0], x[1], x[2]))
+        if self.pas in getattr(self, "inverser_au_pas", ()): arrive = arrive[::-1]     # controle positif de G3
         self.mer = [x for x in self.mer if x[0] > self.pas]
         entrant = {n: [x[4] for x in arrive if x[3] == n] for n in self.noms}
         sortant = self._envoyer_a_tous(lambda n: ("pas", entrant[n]))
@@ -143,6 +156,14 @@ class Archipel:
         with open(os.path.join(dossier, "pont.pkl"), "wb") as f:
             pickle.dump({"pas": self.pas, "mer": self.mer, "journal": self.journal, "noms": self.noms,
                          "graine": self.graine, "echelle": self.echelle}, f)
+
+    def commande(self, ile, *m):
+        if self.parallele: self.tuyaux[ile].send(m); return self.tuyaux[ile].recv()
+        return self.iles[ile].commande(*m)
+
+    def en_mer(self):
+        """Les corps en traversee : ( numero d archipel, genre, depart, arrivee prevue, destination )."""
+        return [(x[4][1]["nia"], x[4][0], x[1], x[0], x[3]) for x in self.mer]
 
     def perturber(self, ile):
         if self.parallele: self.tuyaux[ile].send(("perturber",)); return self.tuyaux[ile].recv()

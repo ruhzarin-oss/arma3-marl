@@ -30,6 +30,7 @@ POSTES = ("maison", "travail", "hopital", "voyage", "trajet", "courses", "loisir
 CODE_POSTE = {p: i for i, p in enumerate(POSTES)}
 CODE_HORAIRE = {None: -1, "jour": 0, "bureau": 1, "nuit": 2, "ecole": 3, "marche": 4, "garde": 5}
 HORAIRE_DE_CODE = {c: h for h, c in CODE_HORAIRE.items()}
+RESIDENT, ABSENT = 0, 1                  # la colonne « statut »
 ETATS = ("S", "E", "I", "R")
 CODE_ETAT = {e: i for i, e in enumerate(ETATS)}
 ROLES = tuple(C.ROLES)
@@ -81,7 +82,10 @@ class Table:
               # l identite ( archipel, 24/09 ) : carte d identite = numero d archipel + nationalite ; passeport
               "nia": (np.int64, -1), "nationalite": (np.int8, -1),
               "passeport": (np.int64, -1), "passeport_ile": (np.int8, -1),
-              "passeport_emis_j": (np.int32, -1), "passeport_fin_j": (np.int32, -1)}
+              "passeport_emis_j": (np.int32, -1), "passeport_fin_j": (np.int32, -1),
+              # 0 resident ; 1 ABSENT : son corps est ailleurs ( en mer, ou dans une autre ile ), ici il n est qu un
+              # dossier - il ne mange pas a la maison, ne meurt pas, ne concoit pas, ne tombe pas malade ici
+              "statut": (np.uint8, 0)}
 
     def __init__(self, par_n, capacite=1024):
         self.par_n = par_n                 # les lieux par numero ( Carte.par_n )

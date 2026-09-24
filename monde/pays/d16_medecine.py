@@ -1563,7 +1563,7 @@ def _index_du_jour(p, med):
     tb = w.table
     ro = tb.role[:n].astype(np.int64)
     role = ROLE_NOM[ro].tolist()
-    vivant[:] = tb.vivant[:n] == 1
+    vivant[:] = (tb.vivant[:n] == 1) & (tb.statut[:n] != MPOP.ABSENT)     # archipel : l absent est ailleurs
     v = np.nonzero(vivant)[0]
     men[v] = tb.menage[v]
     d_ = tb.domicile[v].astype(np.int64); a_dom = d_ >= 0

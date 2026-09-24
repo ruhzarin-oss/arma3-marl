@@ -590,7 +590,7 @@ def _demographie(p):
     numeros. La porte d identite des domaines ( monde/porte_domaines.py ) le tient pour identique."""
     w = p.w; d = p.domaine("population")
     H = w.habitants; tb = w.table; n = tb.n
-    ids = np.nonzero(tb.vivant[:n] == 1)[0]
+    ids = np.nonzero((tb.vivant[:n] == 1) & (tb.statut[:n] != P.ABSENT))[0]   # archipel : l absent vit ailleurs
     col = p.colonnes["habitant"]
     sexe = col["sexe"][ids].astype(np.int64)
     age = _age_ans(p, ids)
@@ -614,7 +614,7 @@ def _demographie(p):
             if h.age >= C.AGE_TRAVAIL: w.embaucher(h)
             elif h.age >= AGE_ECOLE and h.horaire is None: h.horaire, h.travail = "ecole", h.domicile.marche
     # 3. les conceptions, puis une fois par semaine les unions et les divorces
-    ids = np.nonzero(tb.vivant[:n] == 1)[0]
+    ids = np.nonzero((tb.vivant[:n] == 1) & (tb.statut[:n] != P.ABSENT))[0]   # archipel : l absent vit ailleurs
     sexe = col["sexe"][ids].astype(np.int64); age = _age_ans(p, ids)
     _concevoir(p, d, ids, age, sexe)
     if p.jour % 7 == 0: _unions_et_divorces(p, d, ids, age, sexe)

@@ -506,7 +506,7 @@ def _tableaux_menages(p):
     """Une passe sur les habitants : vivants par menage et classe du menage ( la plus haute de ses adultes )."""
     w = p.w; H = w.habitants; n = len(w.menages)
     tb = w.table; nh = tb.n                       # colonnes du moteur ( 24/09 )
-    mid = np.where(tb.vivant[:nh] == 1, tb.menage[:nh], -1).astype(np.int64)
+    mid = np.where((tb.vivant[:nh] == 1) & (tb.statut[:nh] != PO.ABSENT), tb.menage[:nh], -1).astype(np.int64)   # archipel : l absent ne mange pas ici
     cl = np.where(tb.role[:nh] == PO.CODE_ROLE["enfant"], -1, CLASSE_DU_MOTEUR[tb.classe[:nh]]).astype(np.int64)
     ok = mid >= 0
     v = np.bincount(mid[ok], minlength=n)[:n]
