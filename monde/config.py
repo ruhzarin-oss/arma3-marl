@@ -51,6 +51,8 @@ PAR_AIR_SEULEMENT = ("Enoch",)            # Livonia n a pas de mer ( decision de
 TAUX_VOYAGE_JOUR = 0.002                  # part des adultes munis d un passeport qui partent en visite chaque jour
 TAUX_DEMANDE_PASSEPORT_JOUR = 0.001       # part des adultes sans passeport qui en demandent un chaque jour
 SEJOUR_JOURS = (1, 4)
+# les monnaies ( phase F1, decisions de Younes le 25/09 ) : chacune est un poids d or ( monde/or_reel.py )
+MONNAIES = {"Altis": "drachme", "Malden": "franc", "Stratis": "obole", "Tanoa": "dollar", "Enoch": "zloty", "Sara": "dinar"}
 
 # --- les biens ---
 BIENS = ["nourriture", "fer", "zinc", "or", "petrole", "carburant", "electricite", "outils", "remedes"]

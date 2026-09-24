@@ -18,7 +18,7 @@ recevoir_courrier : arrivee, retour, refoule ).
    python -m monde.archipel --jours 2 --echelle 4"""
 import argparse, hashlib, os, pickle, sys, time
 import multiprocessing as mp
-from . import monde as W, tests as T, config as C
+from . import monde as W, tests as T, config as C, or_reel as OR
 from .pays import pays as P
 from .porte_domaines import LIVRES, empreinte
 
@@ -32,9 +32,19 @@ def graine_ile(graine, ile):
     return int.from_bytes(hashlib.sha256(f"{graine}:{ile}".encode()).digest()[:4], "little")
 
 
-def creer_ile(ile, graine, echelle):
-    w = W.Monde(graine=graine_ile(graine, ile), iles=(ile,), echelle=echelle)
+def creer_ile(ile, graine, echelle, llm=False):
+    """Un pays : son monde, ses domaines, son etalon-or ( F1 ) ; avec `llm`, son gouvernement est joue par Qwen, qui
+    sait de quel pays il est le gouvernement et dans quelle monnaie il compte."""
+    w = W.Monde(graine=graine_ile(graine, ile), iles=(ile,), echelle=echelle, cerveau="llm" if llm else "regles")
     P.installer(w, LIVRES)
+    OR.installer(w, w.pays)
+    if llm and w.cerveau is not None and hasattr(w.cerveau, "consigne"):
+        c = w.cerveau
+        c.consigne = c.consigne.replace("Tu es le gouvernement du pays :",
+                                        f"Tu es le gouvernement de {ile}, un pays insulaire ( sa monnaie : le {C.MONNAIES[ile]}, "
+                                        f"definie par un poids d or ; cinq autres iles-pays sont ses voisins ) :", 1)
+        import hashlib
+        c.empreinte = hashlib.sha256(c.consigne.encode()).hexdigest()[:12]
     return w
 
 
@@ -64,6 +74,18 @@ class Ile:
             viv = t.vivant[:n] == 1
             return {"residents": t.nia[:n][viv & (t.statut[:n] == 0)].tolist(),
                     "absents": t.nia[:n][viv & (t.statut[:n] == 1)].tolist(), "etrangers": sorted(self.w.etrangers)}
+        if ordre == "etat":                         # le bulletin de la nuit
+            w = self.w; t = w.table; n = t.n
+            tenue, msg = w.pays.socle.conservation.tenue() if getattr(w, "pays", None) else (True, "")
+            dec = next((e for e in reversed(w.evenements) if e.get("type") == "decision_gouvernement"), None)
+            o = getattr(w, "etalon_or", {})
+            return {"ile": self.nom, "jour": w.jour, "vivants": int(t.vivant[:n].sum()), "habitants": n,
+                    "faim": w.stats_jour.get("menages_sans_nourriture", 0) / max(1, len(w.menages)),
+                    "conservation": bool(tenue), "monnaie": o.get("monnaie"), "euros_par_unite": o.get("dernier_taux"),
+                    "or_euros_g": o.get("cours"), "etrangers": len(w.etrangers), "absents": len(w.absents),
+                    "gouvernement": None if dec is None else {"cerveau": dec.get("cerveau"), "motifs": str(dec.get("motifs"))[:160],
+                                                              "actions": len(dec.get("actions", [])),
+                                                              "acceptees": sum(1 for a in dec.get("actions", []) if a.get("acceptee"))}}
         if ordre == "etrangers":
             return [(c["nia"], c["origine"], c["depart_pas"], c["arrivee_pas"]) for c in self.w.etrangers.values()]
         if ordre == "tenue":
@@ -75,8 +97,8 @@ class Ile:
         raise ValueError(ordre)
 
 
-def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False):
-    w = pickle.load(open(reprise, "rb")) if reprise else creer_ile(nom, graine, echelle)
+def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False, llm=False):
+    w = pickle.load(open(reprise, "rb")) if reprise else creer_ile(nom, graine, echelle, llm)
     if ouvert: w.archipel = {"noms": tuple(noms), "ouvert": True}
     ile = Ile(nom, w)
     tuyau.send(("pret", nom))
@@ -89,7 +111,8 @@ def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False
 
 # ------------------------------------------------------------------ le pont
 class Archipel:
-    def __init__(self, iles=C.ILES_ARCHIPEL, graine=C.GRAINE, echelle=4.0, parallele=True, reprise=None, ouvert=False):
+    def __init__(self, iles=C.ILES_ARCHIPEL, graine=C.GRAINE, echelle=4.0, parallele=True, reprise=None, ouvert=False,
+                 llm=False):
         self.noms, self.graine, self.echelle, self.parallele, self.ouvert = tuple(iles), graine, echelle, parallele, ouvert
         self.pas = 0
         self.mer = []                      # ( pas d arrivee, ile d origine, n d ordre, destination, message )
@@ -104,11 +127,11 @@ class Archipel:
             self.tuyaux, self.proc = {}, {}
             for n in self.noms:
                 a, b = ctx.Pipe()
-                p = ctx.Process(target=_processus_ile, args=(n, graine, echelle, chemin(n), b, self.noms, ouvert), daemon=True)
+                p = ctx.Process(target=_processus_ile, args=(n, graine, echelle, chemin(n), b, self.noms, ouvert, llm), daemon=True)
                 p.start(); self.tuyaux[n], self.proc[n] = a, p
             for n in self.noms: assert self.tuyaux[n].recv() == ("pret", n)
         else:
-            self.iles = {n: Ile(n, pickle.load(open(chemin(n), "rb")) if reprise else creer_ile(n, graine, echelle))
+            self.iles = {n: Ile(n, pickle.load(open(chemin(n), "rb")) if reprise else creer_ile(n, graine, echelle, llm))
                          for n in self.noms}
             if ouvert:
                 for i in self.iles.values(): i.w.archipel = {"noms": self.noms, "ouvert": True}
