@@ -20,6 +20,14 @@ ILES = {"Altis": "altis_lieux.json", "Malden": "malden_lieux.json", "Stratis": "
         "Tanoa": "tanoa_lieux.json", "Enoch": "enoch_lieux.json", "Sara": "sara_lieux.json"}
 PORTS = {"Altis": "KavalaPier"}     # les autres iles trouvent leur port toutes seules : la ville la plus proche de la mer
 VITESSE_MER_KMH = 25.0                                          # un cargo cotier
+PAYS = os.path.join(ICI, "donnees", "pays")     # archipel ( 24/09 ) : la carte de chaque pays, ecrite par monde/pays_carte.py
+
+
+def carte_du_pays(ile):
+    """La carte du pays qu est cette ile ( lieux du moteur, gouvernement, port, aeroports ), si elle a ete ecrite."""
+    chemin = os.path.join(PAYS, f"{ile.lower()}.json")
+    if not os.path.exists(chemin): return None
+    with open(chemin) as f: return json.load(f)
 
 
 class Lieu:
@@ -44,7 +52,16 @@ class Carte:
         self.lieux = {}
         self.iles = list(iles)
         marines = {}                      # les lieux marins de chaque ile : ils designent la cote
+        # archipel ( 24/09 ) : une ile autre qu Altis qui ouvre le monde est un PAYS - elle prend sa carte de pays
+        # ( bases, usines, centrales, port, depot, gouvernement tires de l inventaire de la carte par Arma ). Altis garde
+        # la sienne, choisie a la main et tenue par toutes les portes.
+        premiere = self.iles[0]
+        self.pays = carte_du_pays(premiere) if (premiere != "Altis" and not fichier) else None
         for ile in self.iles:
+            if self.pays is not None and ile == premiere:
+                for l in self.pays["lieux"]:
+                    self.lieux[l["id"]] = Lieu(l["id"], l["type"], l["pos"], l.get("rayon", (0, 0)), ile=ile)
+                continue
             chemin = fichier if (fichier and ile == self.iles[0]) else os.path.join(ICI, "donnees", ILES[ile])
             for l in json.load(open(chemin)):
                 if l["type"] == "NameMarine": marines.setdefault(ile, []).append(tuple(l["pos"]))
@@ -60,10 +77,13 @@ class Carte:
         for l in self.lieux.values():       # un lieu depend d un marche de SON ile
             candidats = [c for c in self.capitales if c.ile == l.ile] or self.capitales
             l.marche = min(candidats, key=lambda c: l.distance(c))
-        self.gouvernement = self.lieux[CAPITALE_GOUVERNEMENT]
+        self.gouvernement = self.lieux[self.pays["gouvernement"] if self.pays else CAPITALE_GOUVERNEMENT]
         # le port de chaque ile : c est par la qu on embarque. Un port peut aussi etre un village ( Malden ).
         self.ports = {}
         for ile in self.iles:
+            if self.pays is not None and ile == premiere:          # le port du pays, ou aucun ( Livonia : par air )
+                if self.pays.get("port"): self.ports[ile] = self.lieux[self.pays["port"]]
+                continue
             nom = PORTS.get(ile)
             cle = nom if ile == self.iles[0] else f"{ile}:{nom}"
             if cle in self.lieux:

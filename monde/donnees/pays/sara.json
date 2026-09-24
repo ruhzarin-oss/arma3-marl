@@ -746,6 +746,21 @@
    "surface_m2": 9187,
    "objets": 6,
    "source": "plus grand site portuaire ( 9187 m2 )"
+  },
+  {
+   "id": "depot01",
+   "type": "depot",
+   "pos": [
+    9217,
+    5846
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 404,
+   "objets": 8,
+   "source": "plus grand parc de carburant ( 404 m2 ) : depot de l armee"
   }
  ],
  "absents": [

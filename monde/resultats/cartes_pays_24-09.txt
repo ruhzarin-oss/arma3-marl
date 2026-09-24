@@ -1,8 +1,8 @@
-pays     places  gouvernement            aeroports | capital   ville village    base carrier    mine fonderi central    port | absents
-Malden     6316  Malden_C_LaTrinite             2 |       1       3      13       3       0       0       6       1       1 | puits, raffinerie, pharmacie, mine, carriere
-Stratis     500  Agia_Marina                    1 |       1       2       5       5       0       0       1       0       1 | puits, raffinerie, pharmacie, mine, carriere, centrale
-Tanoa     21265  Georgetown01                   5 |       2      13      45       2       3       0       7       2       1 | puits, raffinerie, pharmacie, mine
+pays     places  gouvernement            aeroports | capital   ville village    base carrier    mine fonderi central    port   depot | absents
+Malden     6316  Malden_C_LaTrinite             2 |       1       3      13       3       0       0       6       1       1       1 | puits, raffinerie, pharmacie, mine, carriere
+Stratis     500  Agia_Marina                    1 |       1       2       5       5       0       0       1       0       1       1 | puits, raffinerie, pharmacie, mine, carriere, centrale
+Tanoa     21265  Georgetown01                   5 |       2      13      45       2       3       0       7       2       1       1 | puits, raffinerie, pharmacie, mine
             Katkoula01 devient capitale ( 811 places de logement )
-Enoch      9154  Nadbor                         1 |       1       4      23       6       3       1      13       7       0 | puits, raffinerie, pharmacie
+Enoch      9154  Nadbor                         1 |       1       4      23       6       3       1      13       7       0       1 | puits, raffinerie, pharmacie
             Nadbor devient capitale ( 671 places de logement )
-Sara      12679  Sara_Bagango                   4 |       2      10      29       6       0       0       3       0       1 | puits, raffinerie, pharmacie, mine, carriere, centrale
+Sara      12679  Sara_Bagango                   4 |       2      10      29       6       0       0       3       0       1       1 | puits, raffinerie, pharmacie, mine, carriere, centrale

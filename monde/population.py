@@ -535,6 +535,18 @@ class Menages:
         mt.vues[k] = _Ref(m, mt._oubli, k)
 
 
+# le metier de repli d un metier sans lieu dans ce pays ( on descend la chaine jusqu a un metier possible )
+SUBSTITUTS = {"petrolier": "ouvrier", "mineur": "ouvrier", "ouvrier": "paysan", "soldat": "policier",
+              "officier": "policier"}
+
+
+def metier_possible(carte, role):
+    types, _ = TRAVAIL[role]
+    if not types: return True
+    if types == ("gouvernement",): return True
+    return bool(carte.de_type(*types))
+
+
 def generer(carte, rng, echelle=1.0, table=None):
     """Cree la population et ses menages, deterministe a graine fixee. `echelle` multiplie chaque metier : le pays
     garde ses proportions, il change de taille."""
@@ -542,10 +554,15 @@ def generer(carte, rng, echelle=1.0, table=None):
     mt = TableMenages(table); table.menages = mt
     H = Population(table)
     for role, (n, classe, _) in C.ROLES.items():
+        # archipel ( 24/09 ) : un pays sans le lieu d un metier n a pas ce metier ( pas de puits, pas de petroliers ) ;
+        # ces gens exercent le metier de repli ( SUBSTITUTS ), avec sa classe. Sur Altis, rien ne change.
+        vrai = role
+        while not metier_possible(carte, vrai): vrai = SUBSTITUTS[vrai]
+        if vrai != role: classe = C.ROLES[vrai][1]
         for _ in range(max(1, int(round(n * echelle)))):
             age = int(rng.integers(6, 18)) if role == "enfant" else int(rng.integers(65, 86)) if role == "retraite" \
                 else int(rng.integers(20, 65))
-            Habitant.nouveau(table, role, classe, age)
+            Habitant.nouveau(table, vrai, classe, age)
     # lieux de travail : repartition equilibree sur les lieux du bon type
     compteur = {}
     for h in H:
@@ -582,7 +599,7 @@ def generer(carte, rng, echelle=1.0, table=None):
     for m in M:
         m.caisse = sum({"aisee": 3000.0, "moyenne": 800.0, "populaire": 250.0}[x.classe] for x in m.adultes())
         m.garde_manger = 2.0 * len(m.membres)
-    # l eleve : un enfant de Kavala, le plus jeune
-    enfants = [h for h in H if h.role == "enfant" and h.domicile.id == "Kavala"] or [h for h in H if h.role == "enfant"]
+    # l eleve : un enfant de la capitale du gouvernement ( Kavala sur Altis ), le plus jeune
+    enfants = [h for h in H if h.role == "enfant" and h.domicile.id == carte.gouvernement.id] or [h for h in H if h.role == "enfant"]
     min(enfants, key=lambda h: (h.age, h.id)).eleve = True
     return H, M

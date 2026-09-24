@@ -141,7 +141,12 @@ class Monde:
         self.publics["hopitaux"]["remedes"] = 30.0
         self.publics["armee"]["carburant"] = 150.0
         self.publics["reserve"]["or"] = 20.0
-        self.depot_armee = self.carte.lieux["storage01"]
+        # le depot d ou partent les convois des bases : storage01 sur Altis ; ailleurs, celui de la carte du pays
+        depots = self.carte.de_type("depot")
+        self.depot_armee = self.carte.lieux["storage01"] if "storage01" in self.carte.lieux else \
+            (depots[0] if depots else self.carte.gouvernement)
+        # le foyer de l epidemie du jour 2 : Pyrgos sur Altis ; ailleurs, la capitale du gouvernement
+        self.foyer_epidemie = "Pyrgos" if "Pyrgos" in self.carte.lieux else self.carte.gouvernement.id
         # point 6 : chaque base tient SON carburant. Un depot national ne pouvait jamais etre coupe de quoi que ce soit.
         self.garnisons = {b.id: {"carburant": 0.0} for b in self.carte.de_type("base")}
         for b in self.carte.de_type("base"):        # cinq jours d autonomie : une base n est ni a sec ni intarissable
@@ -538,9 +543,9 @@ class Monde:
         self.reseau.tarif = max(0.5, C.MARGE_ELECTRICITE * (self.prix_moyen("carburant") + P.SALAIRE_HORAIRE["ouvrier"]) / 12.0)   # cout complet d une heure de centrale
         self.progression_maladie()
         if self.jour == self.epidemie_jour:
-            cibles = self.rng.choice([h for h in self.habitants if h.domicile.id == "Pyrgos" and h.vivant], 3, replace=False)
+            cibles = self.rng.choice([h for h in self.habitants if h.domicile.id == self.foyer_epidemie and h.vivant], 3, replace=False)
             for h in cibles: h.etat, h.jours_etat = "E", 0.0
-            self.noter("epidemie", patients_zero=[h.id for h in cibles], lieu="Pyrgos")
+            self.noter("epidemie", patients_zero=[h.id for h in cibles], lieu=self.foyer_epidemie)
         self.gouverner()
         self.noter("aube", **self.resume_jour())
 
@@ -820,6 +825,7 @@ class Monde:
     def commerce_regle(self, h):
         """La regle d origine : un bien part vers le marche ou son prix couvre le transport et la marge. C est le temoin
         que tout marchand appris doit battre."""
+        if len(self.marches) < 2: return               # un pays a un seul marche n a pas de commerce entre marches ( 24/09 )
         for a in self.marches.values():
             for b in C.BIENS_COMMERCE:
                 garde = self.reserve_marche(a, b)

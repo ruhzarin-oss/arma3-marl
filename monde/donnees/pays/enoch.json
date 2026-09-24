@@ -852,6 +852,21 @@
    "surface_m2": 3102,
    "objets": 11,
    "source": "site militaire de 11 objets : barracks_03_f.p3d barracks_06_f.p3d guardhouse_02_f.p3d guardbox_01_green_f.p3d "
+  },
+  {
+   "id": "depot01",
+   "type": "depot",
+   "pos": [
+    11535,
+    7063
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 1496,
+   "objets": 14,
+   "source": "plus grand parc de carburant ( 1496 m2 ) : depot de l armee"
   }
  ],
  "absents": [

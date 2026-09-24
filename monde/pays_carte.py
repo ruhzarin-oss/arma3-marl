@@ -15,6 +15,8 @@ possible - jamais inventees :
 - ENERGIE : une centrale seulement la ou il y a un batiment de centrale ou un champ solaire d au moins MIN_SOLAIRE
   panneaux.
 - PORT : le plus grand site portuaire ( Livonia n a pas de mer : seulement l air, decision de Younes le 24/09 ).
+- DEPOT DE L ARMEE ( celui d ou partent les convois des bases, `storage01` sur Altis ) : le plus grand parc de
+  reservoirs de carburant ; sans parc, la capitale du gouvernement.
 - Ce que la carte ne montre pas ( puits de petrole, raffinerie, pharmacie ) n existe pas : le pays l importera.
 Les aeroports ( configuration de la carte ) sont gardes pour le pont de l archipel.
 
@@ -93,6 +95,10 @@ def carte_du_pays(ile):
     if ile not in PAR_AIR_SEULEMENT and ports:
         p = max(ports, key=lambda s: s["surface_m2"])
         ajouter(p, "port", f"plus grand site portuaire ( {p['surface_m2']} m2 )"); port = lieux[-1]["id"]
+    parcs = [s for s in sites if s["fonction"] == "carburant"]
+    if parcs:
+        d = max(parcs, key=lambda s: s["surface_m2"])
+        ajouter(d, "depot", f"plus grand parc de carburant ( {d['surface_m2']} m2 ) : depot de l armee")
     aeroports = [{"x": s["x"], "y": s["y"]} for s in sites if s["fonction"] == "piste"]
     absents = [t for t in ("puits", "raffinerie", "pharmacie", "mine", "carriere", "fonderie", "centrale", "base")
                if not any(l["type"] == t for l in lieux)]
@@ -104,7 +110,7 @@ def carte_du_pays(ile):
 
 def main():
     os.makedirs(os.path.join(ICI, "donnees", "pays"), exist_ok=True)
-    types = ("capitale", "ville", "village", "base", "carriere", "mine", "fonderie", "centrale", "port")
+    types = ("capitale", "ville", "village", "base", "carriere", "mine", "fonderie", "centrale", "port", "depot")
     print("pays     places  gouvernement            aeroports | " + " ".join(f"{t[:7]:>7s}" for t in types) + " | absents")
     for ile in ILES:
         c = carte_du_pays(ile)
