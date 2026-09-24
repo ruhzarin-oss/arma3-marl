@@ -934,12 +934,12 @@ def emigrer(p, gens, motif_journal="emigration"):
 
 def _emigration(p, e):
     w = p.w; H = w.habitants; n = len(H)
-    vivant = np.fromiter((h.vivant for h in H), bool, n)
+    vivant = w.table.vivant[:n] == 1
     ids = np.nonzero(vivant)[0]
     if not len(ids): return
     age = POP._age_ans(p, ids)
     f7 = p.col("menage", "faim7")
-    mids = np.fromiter((H[i].menage.id for i in ids.tolist()), np.int64, len(ids))
+    mids = w.table.menage[ids].astype(np.int64)
     faim = _POPCOUNT[f7[mids].astype(np.int64) & 0x7F] / 7.0
     hz = taux_emigration_jour(age, e.facteur_migration) * (1.0 + FACTEUR_FAIM_EMIGRATION * faim)
     hz = np.where(age >= EMIGRATION_AN[0][0], hz, 0.0)

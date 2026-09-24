@@ -500,6 +500,7 @@ def _ages(p, n):
 
 
 def _public(role): return role in C.ROLES and C.ROLES[role][2]
+PUBLIC_DU_MOTEUR = np.array([False] + [bool(_public(r)) for r in PO.ROLES])      # code du moteur + 1 ( -1 : aucun )
 
 
 def _secteur(role): return "public" if _public(role) else "prive"
@@ -943,7 +944,7 @@ def _paie(p):
     H = w.habitants; n = len(H)
     col = p.colonnes["habitant"]; col.assurer(n)
     _pointer(p, w.pas)                                   # le pas de 18 h, joue en ce moment
-    heures = np.fromiter((h.heures_jour for h in H), np.float64, n)
+    heures = w.table.heures[:n].copy()
     statut = col["tr_statut"][:n]
     pt = col["tr_pointage"][:n].astype(np.float64) / 6.0
     net_j = col["tr_net_jour"]; net_j[:n] = 0.0
@@ -1266,7 +1267,7 @@ def _carrieres(p):
     car = col["tr_carriere_j"][:n]
     idx = np.nonzero(np.isin(st[:n], PAYES_A_L_HEURE) & (col["tr_carriere"][:n] == 1))[0]
     if len(idx):
-        pub = np.fromiter((_public(H[i].role) for i in idx.tolist()), bool, len(idx))
+        pub = PUBLIC_DU_MOTEUR[w.table.role[idx].astype(np.int64) + 1]
         ann = (p.jour - car[idx]) / JOURS_AN
         pas = np.where(pub, GRILLE_PUBLIQUE[0], GRILLE_PRIVEE[0]); hausse = np.where(pub, GRILLE_PUBLIQUE[1], GRILLE_PRIVEE[1])
         e = np.minimum(np.where(pub, GRILLE_PUBLIQUE[2], GRILLE_PRIVEE[2]), np.maximum(0.0, ann) // pas).astype(np.int64)
@@ -1648,7 +1649,7 @@ def mesurer_emploi(p):
     population est celle du domaine 1 : le taux standardise mesure les comportements, pas la composition )."""
     w = p.w; H = w.habitants; n = len(H)
     col = p.colonnes["habitant"]
-    viv = np.fromiter((h.vivant for h in H), bool, n)
+    viv = w.table.vivant[:n] == 1
     age = _ages(p, n); st = col["tr_statut"][:n]; sx = col["sexe"][:n]
     m = viv & (age >= 20) & (age < 65)
     emp = np.isin(st, EN_EMPLOI); cho = st == CHOMEUR

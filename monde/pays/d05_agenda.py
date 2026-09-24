@@ -647,9 +647,11 @@ def _decider(p, a, pl, g, ai, sympt, quar, indoc):
     M = len(w.menages)
     viv_m = np.bincount(g.menage[g.vivant & (g.menage >= 0)], minlength=M)
     prix = {mid: m.prix["nourriture"] * (1 + w.gouv.tva) for mid, m in w.marches.items()}
-    caisse = np.fromiter((mg.caisse for mg in w.menages), float, M)
-    pm = np.fromiter((prix.get(mg.domicile.marche.id, C.PRIX_MONDE["nourriture"]) if mg.domicile is not None
-                      else C.PRIX_MONDE["nourriture"] for mg in w.menages), float, M)
+    caisse = w.table.menages.caisse[:M].copy()
+    prix_n = np.full(len(w.carte.par_n), float(C.PRIX_MONDE["nourriture"]))
+    for mid, v in prix.items(): prix_n[w.carte.lieux[mid].n] = v
+    dm = w.table.menages.domicile[:M].astype(np.int64)
+    pm = np.where(dm >= 0, prix_n[w._marche_du_lieu[np.maximum(dm, 0)]], float(C.PRIX_MONDE["nourriture"]))
     jours = caisse / np.maximum(1e-6, pm * C.NOURRITURE_PAR_JOUR * np.maximum(1, viv_m))
     cj = np.minimum(1.0, jours / JOURS_CAISSE_PLEINS)[g.menage[ai]]
     x = np.column_stack([sympt[ai], rum, quar[ai], faim, cj, pl.actif[ai, T_TRAVAIL]]).astype(float)
@@ -892,7 +894,7 @@ def _revision_du_soir(p, a, pl, k):
                      & (pl.cand[:, RET].astype(np.int32) > t))[0]
     if not len(idx): return
     H = p.w.habitants
-    epuise = np.fromiter((H[i].faim > C.ABSENCE_FAIM for i in idx.tolist()), bool, len(idx))
+    epuise = p.w.table.faim[idx] > C.ABSENCE_FAIM
     change = idx[epuise != pl.epuise[idx]]
     if not len(change): return
     for i in change.tolist():

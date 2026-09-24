@@ -760,7 +760,7 @@ def _demandes_menages(p, d):
     les seuls candidats."""
     w = p.w
     n = len(w.menages)
-    caisse = np.fromiter((m.caisse for m in w.menages), np.float64, n)
+    caisse = w.table.menages.caisse[:n].copy()
     ok = (p.col("menage", "dissous")[:n] == 0) & (p.col("menage", "banque")[:n] >= 0)
     dj = p.col("menage", "demande_j")
     libre = ok & (p.jour - dj[:n] >= DELAI_DEMANDE_J)
@@ -853,7 +853,7 @@ def _guichet(p):
 # ================================================================== la paie observee
 def _avant_paie(p):
     d = p.domaine("banques"); w = p.w
-    d.avant_paie = np.fromiter((m.caisse for m in w.menages), np.float64, len(w.menages))
+    d.avant_paie = w.table.menages.caisse[:len(w.menages)].copy()
     for e, s in d.suivi.items():
         s.caisse_avant_paie = e.caisse
         s.salaires = math.fsum(PO.SALAIRE_HORAIRE.get(h.role, 0) * h.heures_jour
@@ -867,7 +867,7 @@ def _apres_paie(p):
     d = p.domaine("banques"); w = p.w
     if d.avant_paie is None: return
     n = len(d.avant_paie)
-    maintenant = np.fromiter((w.menages[i].caisse for i in range(n)), np.float64, n)
+    maintenant = w.table.menages.caisse[:n].copy()
     entree = np.maximum(0.0, maintenant - d.avant_paie)
     d.entree_jour = entree
     ok = p.col("menage", "dissous")[:n] == 0
@@ -976,7 +976,7 @@ def soldes_des_cercles(p):
         if f.argent is None: continue
         if f.nom == "menages":
             n = len(w.menages)
-            caisse = np.fromiter((m.caisse for m in w.menages), np.float64, n)
+            caisse = w.table.menages.caisse[:n].copy()
             bq = p.col("menage", "banque")[:n]
             for k in range(K): par[k].extend(caisse[bq == k].tolist())
             par[K].extend(caisse[bq < 0].tolist())

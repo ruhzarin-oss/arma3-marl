@@ -12,7 +12,10 @@ from .pays import pays as P
 
 # ( graine, echelle, jours, secheresse ) : 2 000, 2 000 et 1 000 habitants, puis 500 sous secheresse et epidemie
 # ( apprenti.monde_epreuve ) pour forcer la faim, donc les migrations
-MONDES = ((11, 4, 8, False), (23, 4, 8, False), (7, 2, 40, False), (5, 1, 30, True))
+# ( graine, echelle, jours, secheresse, domaines : None = tous les livres ) ; le dernier, sans agenda, fait passer les
+# domaines par leur chemin « sans agenda » ( la medecine lit alors le poste du moteur )
+MONDES = ((11, 4, 8, False, None), (23, 4, 8, False, None), (7, 2, 40, False, None), (5, 1, 30, True, None),
+          (13, 4, 10, False, ("medecine",)))
 # les evenements rares dont on affiche le compte : une branche jamais empruntee n est pas prouvee
 RARES = ("retraite", "fin_etudes", "entree_vie_active", "migration_interne", "naissance", "deces", "union",
          "divorce", "embauche", "licenciement", "faillite", "placement", "desherence", "fin_de_grossesse")
@@ -41,9 +44,9 @@ def empreinte(w):
     return e
 
 
-def jouer(graine, echelle, jours, secheresse=False, saboter=False):
+def jouer(graine, echelle, jours, secheresse=False, domaines=None, saboter=False):
     w = AP.monde_epreuve(graine) if secheresse else W.Monde(graine=graine, echelle=echelle)
-    P.installer(w, LIVRES)
+    P.installer(w, list(domaines) if domaines else LIVRES)
     J = w.pays.socle.journal
     rares, serie, t0 = {}, [], time.perf_counter()
     for j in range(jours):
@@ -63,8 +66,8 @@ def main():
     x = a.parse_args()
     res = {}
     print(f"{len(LIVRES)} domaines : {', '.join(LIVRES)}", flush=True)
-    for graine, echelle, jours, secheresse in MONDES:
-        serie, dt, n, rares = jouer(graine, echelle, jours, secheresse, x.saboter)
+    for graine, echelle, jours, secheresse, domaines in MONDES:
+        serie, dt, n, rares = jouer(graine, echelle, jours, secheresse, domaines, x.saboter)
         res[f"{graine}"] = serie
         print(f"monde {graine} : {n} habitants, {jours} jours, {dt:.2f} s par jour | evenements rares {rares}", flush=True)
     if x.ecrire:

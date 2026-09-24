@@ -575,6 +575,7 @@ def _ministere(h):
 # ================================================================== les roles, en tableaux
 ROLES = tuple(C.ROLES)
 ROLE_IDX = {r: k + 1 for k, r in enumerate(ROLES)}
+if ROLES != PO.ROLES: raise RuntimeError("les roles de l Etat ne suivent plus les codes du moteur")
 SAL_ROLE = np.array([0.0] + [float(PO.SALAIRE_HORAIRE.get(r, 0)) for r in ROLES])
 PUB_ROLE = np.array([False] + [bool(C.ROLES[r][2]) for r in ROLES])
 # categorie de revenu : 0 aucun, 1 salarie, 2 retraite, 3 non salarie ( paysan, marchand, patron )
@@ -684,8 +685,9 @@ def _photo_paie(p, cle, donnees):
     chacun avant la paie de 18 h ; et la paie du soir assuree dans la caisse du Tresor."""
     t0 = time.perf_counter()
     e = _etat(p); f = e.fisc; w = p.w
-    f.caisse_1750 = np.fromiter((m.caisse for m in w.menages), np.float64, len(w.menages))
-    f.heures_1750 = np.fromiter((h.heures_jour if h.vivant else 0.0 for h in w.habitants), np.float64, len(w.habitants))
+    f.caisse_1750 = w.table.menages.caisse[:len(w.menages)].copy()
+    tb = w.table
+    f.heures_1750 = np.where(tb.vivant[:tb.n] == 1, tb.heures[:tb.n], 0.0)      # colonnes du moteur ( 24/09 )
     p.poser(C.PAS_PAR_JOUR - 1, "etat_photo_paie", 0)     # servie apres le pas : w.pas est deja le suivant
     paie = e.tresor.paie_hier if e.tresor.paie_hier > 0 else _paie_prevue(p)
     assurer(p, 1.25 * paie + 0.5 * e.tresor.depense_moyenne)
@@ -711,14 +713,15 @@ def _paie_fiscale(p):
     e = _etat(p); f = e.fisc; w = p.w
     if f.caisse_1750 is None: return
     n = len(f.caisse_1750)
-    maintenant = np.fromiter((w.menages[i].caisse for i in range(n)), np.float64, n)
+    maintenant = w.table.menages.caisse[:n].copy()
     entree = np.maximum(0.0, maintenant - f.caisse_1750)
     f.caisse_1750 = None
     H = w.habitants; nh = len(f.heures_1750)
-    mid = np.fromiter((H[i].menage.id if H[i].vivant and H[i].menage is not None and H[i].menage.id < n else -1
-                       for i in range(nh)), np.int64, nh)
-    rid = np.fromiter((ROLE_IDX.get(H[i].role, 0) for i in range(nh)), np.int64, nh)
-    atw = np.fromiter((H[i].poste == "travail" for i in range(nh)), bool, nh)
+    tb = w.table                                   # colonnes du moteur ( 24/09 ) : ROLE_IDX = code du moteur + 1
+    mm = tb.menage[:nh].astype(np.int64)
+    mid = np.where((tb.vivant[:nh] == 1) & (mm >= 0) & (mm < n), mm, -1)
+    rid = tb.role[:nh].astype(np.int64) + 1
+    atw = tb.poste[:nh] == PO.CODE_POSTE["travail"]
     ok = mid >= 0
     ms = np.where(ok, mid, 0)
     cat = np.where(ok, CAT_ROLE[rid], 0); pub = PUB_ROLE[rid]
@@ -819,8 +822,7 @@ def _nouvel_exercice(p, e):
     if len(idx):
         elude = (np.asarray(impot_annuel(Y[idx] + Ca[idx], Ys[idx], enf[idx], f.taux_ir, f.tranches_ir))
                  - np.asarray(impot_annuel(Y[idx], Ys[idx], enf[idx], f.taux_ir, f.tranches_ir)))
-        mid = np.fromiter((w.habitants[i].menage.id if w.habitants[i].menage is not None else -1 for i in idx.tolist()),
-                          np.int64, len(idx))
+        mid = w.table.menage[idx].astype(np.int64)
         ok = (mid >= 0) & (mid < n)
         np.add.at(p.col("menage", "fisc_arrieres"), mid[ok], elude[ok])
     for c in ("fisc_revenu", "fisc_sal", "fisc_retenu", "fisc_cache"): ch[c][:nh] = 0.0
@@ -1295,7 +1297,7 @@ def _publier(p, e, comptes, dep, rec):
            "deces": int(ec.deces - st.base_deces)}
     st.population.append((p.jour, pop["inscrits"], pop["naissances"], pop["deces"]))
     H = w.habitants; nh = len(H)
-    hop = np.fromiter((h.vivant and h.poste == "hopital" for h in H), bool, nh)
+    hop = (w.table.vivant[:nh] == 1) & (w.table.poste[:nh] == PO.CODE_POSTE["hopital"])
     ids = set(np.nonzero(hop)[0].tolist())
     admissions = len(ids - st.hospitalises); sorties = len(st.hospitalises - ids)
     st.hospitalises = ids

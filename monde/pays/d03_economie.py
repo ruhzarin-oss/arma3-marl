@@ -124,6 +124,7 @@ BIENS_COURANTS = ((I_TRANSPORT, "carburant"), (I_SANTE, "remedes"))   # achetes 
 # deux mois de revenu, moyens de plusieurs mois, tres concentres chez les aises ) - a calibrer.
 TAMPON_MOIS = {"populaire": 1.0, "moyenne": 3.0, "aisee": 6.0}
 CLASSES = {"populaire": 0, "moyenne": 1, "aisee": 2}
+CLASSE_DU_MOTEUR = np.array([CLASSES.get(c, 0) for c in PO.CLASSES], np.int64)
 NOMS_CLASSES = ("populaire", "moyenne", "aisee")
 EPARGNE_STRUCTURELLE = 0.0      # taux d epargne brut des menages grecs proche de zero ou negatif depuis 2012 ( Eurostat, a calibrer )
 AJUSTEMENT_J = 90.0             # un exces ou un manque de tampon se resorbe en trois mois ( a calibrer )
@@ -477,11 +478,21 @@ class AjusterPrix:
 
 
 # ================================================================== les achats des menages ( 19 h )
+def _rang_marche_menages(w, d, n):
+    """Le rang du marche de chacun des `n` premiers menages ( celui du domicile ), lu dans les colonnes du moteur."""
+    rm = np.full(len(w.carte.par_n), -1, np.int64)
+    for k, r in d.rang_marche.items(): rm[w.carte.lieux[k].n] = r
+    mi = rm[w._marche_du_lieu[w.table.menages.domicile[:n]]]
+    if (mi < 0).any(): raise KeyError("menage dont le marche n a pas de rang")
+    return mi
+
+
 def _tableaux_menages(p):
     """Une passe sur les habitants : vivants par menage et classe du menage ( la plus haute de ses adultes )."""
     w = p.w; H = w.habitants; n = len(w.menages)
-    mid = np.fromiter((h.menage.id if h.vivant and h.menage is not None else -1 for h in H), np.int64, len(H))
-    cl = np.fromiter((CLASSES.get(h.classe, 0) if h.role != "enfant" else -1 for h in H), np.int64, len(H))
+    tb = w.table; nh = tb.n                       # colonnes du moteur ( 24/09 )
+    mid = np.where(tb.vivant[:nh] == 1, tb.menage[:nh], -1).astype(np.int64)
+    cl = np.where(tb.role[:nh] == PO.CODE_ROLE["enfant"], -1, CLASSE_DU_MOTEUR[tb.classe[:nh]]).astype(np.int64)
     ok = mid >= 0
     v = np.bincount(mid[ok], minlength=n)[:n]
     classe = np.zeros(n, np.int64)
@@ -557,11 +568,11 @@ def _achats(p):
     masque = _acheteurs(p, n)
     achete = ok if masque is None else ok & masque
     marches = [w.marches[k] for k in d.ids_marches]
-    mi = np.fromiter((d.rang_marche[mg.domicile.marche.id] for mg in w.menages), np.int64, n)
+    mi = _rang_marche_menages(w, d, n)
     tva = g.tva
     ration = g.lois["rationnement_nourriture"] or C.NOURRITURE_PAR_JOUR
-    caisse = np.fromiter((mg.caisse for mg in w.menages), np.float64, n)
-    gm = np.fromiter((mg.garde_manger for mg in w.menages), np.float64, n)
+    caisse = w.table.menages.caisse[:n].copy()
+    gm = w.table.menages.garde_manger[:n].copy()
     pn = np.array([m.prix["nourriture"] for m in marches])[mi]
     pn_ttc = pn * (1.0 + tva)
     besoin = ration * v
@@ -590,7 +601,7 @@ def _achats(p):
         em = d.marches[m.lieu.id]; em.ventes_ht["nourriture"] += ht; em.ventes_q["nourriture"] += qi
         em.ventes_jour["nourriture"] += ht
         _payer_tva(p, w, mg, m, qi * m.prix["nourriture"] * tva, u[i, 0], u[i, 1], part_fraude, gf)
-    caisse = np.fromiter((mg.caisse for mg in w.menages), np.float64, n)
+    caisse = w.table.menages.caisse[:n].copy()
     # --- le budget du jour
     rev = p.col("menage", "eco_revenu")[:n]
     tampon = tampon_vise(classe, rev)
@@ -623,7 +634,7 @@ def _achats(p):
     # --- les durables : un renouvellement d un coup, sans descendre sous la moitie du tampon
     E = p.col("menage", "eco_equipement")
     cible_e = equipement_vise(rev, cout_n)
-    caisse = np.fromiter((mg.caisse for mg in w.menages), np.float64, n)
+    caisse = w.table.menages.caisse[:n].copy()
     bas = achete & (E[:n] < SEUIL_RENOUVELLEMENT * cible_e)
     if bas.any():
         po = np.array([m.prix["outils"] for m in marches]); pt = po[mi] * (1.0 + tva)
@@ -859,7 +870,7 @@ def _avant_paie(p):
     """17 h 50 : les caisses des menages avant la paie ( leur revenu du jour ), et les salaires que chaque unite doit
     pour les heures du jour ( ce que le domaine 4 lira comme masse salariale )."""
     w = p.w; d = p.domaine("economie")
-    d.caisses_1750 = np.fromiter((mg.caisse for mg in w.menages), np.float64, len(w.menages))
+    d.caisses_1750 = w.table.menages.caisse[:len(w.menages)].copy()
     for c in d.unites:
         u = c.unite
         gens = salaries(p, u)
@@ -877,7 +888,7 @@ def _apres_paie(p):
     w = p.w; d = p.domaine("economie")
     if d.caisses_1750 is not None:
         n = len(d.caisses_1750)
-        maintenant = np.fromiter((w.menages[i].caisse for i in range(n)), np.float64, n)
+        maintenant = w.table.menages.caisse[:n].copy()
         entree = np.maximum(0.0, maintenant - d.caisses_1750)
         rv = p.col("menage", "eco_revenu")
         vivant = p.col("menage", "dissous")[:n] == 0
@@ -925,8 +936,8 @@ def _credits(p):
     dis = p.col("menage", "dissous")[:n]; bq = p.col("menage", "banque")[:n]
     cj = p.col("menage", "eco_credit_j")
     rev = p.col("menage", "eco_revenu")[:n]
-    caisse = np.fromiter((mg.caisse for mg in w.menages), np.float64, n)
-    mi = np.fromiter((d.rang_marche[mg.domicile.marche.id] for mg in w.menages), np.int64, n)
+    caisse = w.table.menages.caisse[:n].copy()
+    mi = _rang_marche_menages(w, d, n)
     pn = np.array([w.marches[k].prix["nourriture"] for k in d.ids_marches])[mi] * (1.0 + w.gouv.tva)
     cout_n = (w.gouv.lois["rationnement_nourriture"] or C.NOURRITURE_PAR_JOUR) * v * pn
     reserve = RESERVE_ALIMENTAIRE_J * cout_n
@@ -1497,7 +1508,7 @@ def installer(p):
         mg = w.menages[i]
         x = float(cible[i]) - mg.caisse
         if x > 0: d.recalibrage += L.recevoir_de_l_exterieur(mg, x, "epargne_initiale")
-    mi = np.fromiter((d.rang_marche[mg.domicile.marche.id] for mg in w.menages), np.int64, n)
+    mi = _rang_marche_menages(w, d, n)
     pn = np.array([w.marches[k].prix["nourriture"] for k in d.ids_marches])[mi] * (1.0 + w.gouv.tva)
     u = p.hasard("economie_equipement").random(n)
     # l age de l equipement en regime : il descend de 1 a 0,8 de sa cible a vitesse constante ( exponentielle )

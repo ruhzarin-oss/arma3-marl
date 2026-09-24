@@ -92,6 +92,7 @@ import numpy as np
 from .. import config as C
 from ..socle import decision as D, biens as B
 from . import d01_population as POP, d05_agenda as AG, d08_territoire as TER
+from .. import population as MPOP      # les colonnes du moteur ( monde.table )
 
 JOURS_AN = 365.0
 PAS_J = C.PAS_PAR_JOUR
@@ -131,6 +132,11 @@ ACT_CADRE = {AG.MAISON: MAISON_C, AG.TRAVAIL: TRAVAIL_C, AG.ECOLE: ECOLE_C, AG.C
 CODE_POSTE = {"maison": AG.MAISON, "travail": AG.TRAVAIL, "hopital": AG.HOPITAL, "voyage": AG.VOYAGE,
               "trajet": AG.TRAJET, "courses": AG.COURSES, "loisir": AG.LOISIR, "culte": AG.CULTE}
 SOIGNANTS = ("medecin", "infirmier")
+# codes du moteur -> ceux de la medecine ( colonnes, 24/09 )
+ACT_DU_POSTE = np.array([CODE_POSTE.get(x, -1) for x in MPOP.POSTES], np.int64)
+ROLE_NOM = np.array(list(MPOP.ROLES) + [None], dtype=object)              # code -1 -> None
+RANG_DU_ROLE = np.array([sorted(MPOP.ROLES).index(r) for r in MPOP.ROLES] + [-1], np.int64)   # l ordre des noms
+EST_SOIGNANT = np.array([r in SOIGNANTS for r in MPOP.ROLES] + [False])
 
 # ================================================================== les symptomes visibles
 SYMPTOMES = ("fievre", "toux", "gorge", "diarrhee", "vomissement", "eruption", "dyspnee", "douleur", "saignement",
@@ -1232,11 +1238,11 @@ def _cles_du_moment(p, med):
         col = p.colonnes["habitant"]
         act = col["agenda_activite"][:n].astype(np.int64)
         lieu = col["agenda_lieu"][:n].astype(np.int64)
-    else:
-        H = w.habitants
-        il = med.index_lieu
-        act = np.fromiter((CODE_POSTE.get(H[i].poste, -1) if H[i].lieu is not None else -1 for i in range(n)), np.int64, n)
-        lieu = np.fromiter((il[H[i].lieu.id] if H[i].lieu is not None else -1 for i in range(n)), np.int64, n)
+    else:                                          # sans agenda : le poste et le lieu du moteur, lus en colonnes
+        tb = w.table
+        lieu = tb.lieu[:n].astype(np.int64)
+        act = ACT_DU_POSTE[tb.poste[:n]]
+        act[lieu < 0] = -1
         act[(act == AG.TRAVAIL) & ix.enfant] = AG.ECOLE
     cle = np.full(n, -1, np.int64)
     m = act == AG.MAISON
@@ -1521,53 +1527,75 @@ def _index_du_jour(p, med):
     il = med.index_lieu; rl = med.region_de_lieu
     men = np.full(n, -1, np.int64); dom = np.full(n, -1, np.int64); hop = np.full(n, -1, np.int64)
     region = np.zeros(n, np.int64); faim = np.zeros(n); vivant = np.zeros(n, bool)
-    soignant = np.zeros(n, bool); enfant = np.zeros(n, bool); role = []
-    equipes, classes = {}, {}
+    soignant = np.zeros(n, bool); enfant = np.zeros(n, bool)
     age = (p.jour - p.col("habitant", "naissance_j")[:n]) / JOURS_AN
-    for h in H:
-        i = h.id
-        role.append(h.role)
-        if not h.vivant: continue
-        vivant[i] = True
-        if h.menage is not None: men[i] = h.menage.id
-        if h.domicile is not None:
-            dom[i] = il[h.domicile.id]; hop[i] = il[h.domicile.marche.id]; region[i] = rl[h.domicile.marche.id]
-        faim[i] = h.faim
-        if h.role in SOIGNANTS: soignant[i] = True
-        if h.role == "enfant":
-            enfant[i] = True
-            if h.horaire == "ecole" and h.travail is not None:
-                classes.setdefault(il[h.travail.id], []).append(i)
-        elif h.travail is not None and h.role not in SOIGNANTS:
-            equipes.setdefault((il[h.travail.id], h.role), []).append(i)
+    # EN COLONNES ( 24/09 ) : la boucle sur les habitants coutait 3 s par jour a 10 000 habitants ; meme resultat,
+    # equipes et classes numerotees dans l ordre de l ancienne boucle ( lieu, nom du metier, numero ; lieu, age, numero )
+    tb = w.table
+    ro = tb.role[:n].astype(np.int64)
+    role = ROLE_NOM[ro].tolist()
+    vivant[:] = tb.vivant[:n] == 1
+    v = np.nonzero(vivant)[0]
+    men[v] = tb.menage[v]
+    d_ = tb.domicile[v].astype(np.int64); a_dom = d_ >= 0
+    dv, dd = v[a_dom], d_[a_dom]
+    marche = w._marche_du_lieu[dd]
+    dom[dv] = dd; hop[dv] = marche; region[dv] = _region_par_numero(p, med)[marche]
+    faim[v] = tb.faim[v]
+    soignant[v] = EST_SOIGNANT[ro[v]]
+    enfant[v] = ro[v] == MPOP.CODE_ROLE["enfant"]
+    trav = tb.travail[:n].astype(np.int64)
     equipe = np.full(n, -1, np.int64); classe = np.full(n, -1, np.int64)
-    nxt = 0
-    for cle_ in sorted(equipes):
-        ids = equipes[cle_]
-        for r, i in enumerate(ids): equipe[i] = nxt + r // TAILLE_EQUIPE
-        nxt += (len(ids) + TAILLE_EQUIPE - 1) // TAILLE_EQUIPE
-    nxt = 0
-    for cle_ in sorted(classes):                   # une ecole : ses eleves par age, par classes de TAILLE_CLASSE ( une
-        ids = sorted(classes[cle_], key=lambda i: (age[i], i))     # petite ecole a des classes a plusieurs niveaux )
-        for r, i in enumerate(ids): classe[i] = nxt + r // TAILLE_CLASSE
-        nxt += (len(ids) + TAILLE_CLASSE - 1) // TAILLE_CLASSE
+    sel = np.nonzero(vivant & ~enfant & (trav >= 0) & ~soignant)[0]
+    _numeroter(equipe, sel, (sel, RANG_DU_ROLE[ro[sel]], trav[sel]), 2, TAILLE_EQUIPE)
+    sel = np.nonzero(vivant & enfant & (tb.horaire[:n] == MPOP.CODE_HORAIRE["ecole"]) & (trav >= 0))[0]
+    _numeroter(classe, sel, (sel, age[sel], trav[sel]), 1, TAILLE_CLASSE)
     ix.men, ix.dom, ix.hop, ix.region, ix.faim, ix.vivant = men, dom, hop, region, faim, vivant
     ix.soignant, ix.enfant, ix.equipe, ix.classe, ix.age = soignant, enfant, equipe, classe, age
     ix.sexe = p.col("habitant", "sexe")[:n].copy()
     ix.enceinte = p.col("habitant", "enceinte")[:n] == 1
     ix.role = role
     # un menage pauvre : moins de trois jours de nourriture dans sa caisse, au prix de son marche
+    # ( en colonnes : les membres VIVANTS de la liste de chaque menage, sa caisse, le prix de son marche )
+    mt = tb.menages; M = mt.n
+    inscrit = MPOP.menages_inscrits(tb, n)
+    membres = np.nonzero(vivant & (inscrit >= 0))[0]
+    nb = np.bincount(inscrit[membres], minlength=M)
+    prix = np.full(len(w.carte.par_n), C.PRIX_MONDE["nourriture"])
+    for mid, m in w.marches.items(): prix[w.carte.lieux[mid].n] = m.prix["nourriture"]
+    dm = mt.domicile[:M].astype(np.int64)
+    pm = np.where(dm >= 0, prix[w._marche_du_lieu[np.maximum(dm, 0)]], 0.0)
+    pauvre_m = (nb > 0) & (dm >= 0) & (mt.caisse[:M] < 3 * nb * C.NOURRITURE_PAR_JOUR * pm)
     pauvre = np.zeros(n, bool)
-    prix = {mid: m.prix["nourriture"] for mid, m in w.marches.items()}
-    for mg in w.menages:
-        viv = [x.id for x in mg.membres if x.vivant]
-        if not viv or mg.domicile is None: continue
-        if mg.caisse < 3 * len(viv) * C.NOURRITURE_PAR_JOUR * prix.get(mg.domicile.marche.id, C.PRIX_MONDE["nourriture"]):
-            pauvre[viv] = True
+    pauvre[membres] = pauvre_m[inscrit[membres]]
     ix.pauvre = pauvre
     med.ix = ix
     for ph in med.pharmacies: ph.pop = 0
     for r, c in zip(*np.unique(region[vivant], return_counts=True)): med.pharmacies[int(r)].pop = int(c)
+
+
+def _region_par_numero(p, med):
+    """La region ( indice de `region_de_lieu` ) de chaque marche, par numero de lieu du moteur ; 0 hors marche."""
+    r = np.zeros(len(p.w.carte.par_n), np.int64)
+    for mid, k in med.region_de_lieu.items(): r[p.w.carte.lieux[mid].n] = k
+    return r
+
+
+def _numeroter(sortie, ids, cles, n_cles, taille):
+    """Numerote des groupes de `taille` ( equipes, classes ) : les `ids` tries par `cles` ( np.lexsort, la derniere
+    cle d abord ; les `n_cles` dernieres definissent le groupe ), chaque groupe coupe en blocs de `taille`, les blocs
+    numerotes a la suite dans l ordre des groupes - comme l ancienne boucle sur un dictionnaire trie."""
+    if len(ids) == 0: return
+    o = np.lexsort(cles)
+    g = ids[o]
+    k = [c[o] for c in cles[len(cles) - n_cles:]]
+    neuf = np.zeros(len(o), bool); neuf[0] = True
+    for c in k: neuf[1:] |= c[1:] != c[:-1]
+    debuts = np.nonzero(neuf)[0]
+    tailles = np.diff(np.append(debuts, len(o)))
+    pos = np.arange(len(o)) - np.repeat(debuts, tailles)
+    base = np.concatenate(([0], np.cumsum((tailles + taille - 1) // taille)[:-1]))
+    sortie[g] = np.repeat(base, tailles) + pos // taille
 
 
 def _purger_morts(p, med):
@@ -2611,6 +2639,7 @@ def installer(p):
     med.infecte = np.zeros((0, M_INF), np.int8); med.deja = np.zeros((0, M_INF), np.bool_)
     med.doses = np.zeros((0, len(VACCINS)), np.int8); med.vacc_saison = np.zeros(0, np.int16)
     med.lieux = list(w.carte.lieux.values())                   # le meme ordre que l agenda ( agenda_lieu )
+    if any(l.n != k for k, l in enumerate(med.lieux)): raise RuntimeError("lieux de la medecine hors de l ordre du moteur")
     med.index_lieu = {l.id: k for k, l in enumerate(med.lieux)}
     caps = sorted({l.marche.id for l in med.lieux})
     med.region_de_lieu = {c: k for k, c in enumerate(caps)}
