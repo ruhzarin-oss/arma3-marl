@@ -1,0 +1,907 @@
+{
+ "sites": [
+  {
+   "fonction": "administration",
+   "x": 2113,
+   "y": 5715,
+   "objets": 6,
+   "surface_m2": 6031,
+   "places": 45,
+   "modeles": [
+    [
+     "miloffices_v1_f.p3d",
+     5
+    ],
+    [
+     "bc_court_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 3217,
+   "y": 5807,
+   "objets": 1,
+   "surface_m2": 1111,
+   "places": 9,
+   "modeles": [
+    [
+     "miloffices_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 2028,
+   "y": 5340,
+   "objets": 1,
+   "surface_m2": 1111,
+   "places": 9,
+   "modeles": [
+    [
+     "miloffices_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 4342,
+   "y": 3818,
+   "objets": 1,
+   "surface_m2": 1111,
+   "places": 9,
+   "modeles": [
+    [
+     "miloffices_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 6454,
+   "y": 5377,
+   "objets": 1,
+   "surface_m2": 1111,
+   "places": 9,
+   "modeles": [
+    [
+     "miloffices_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "aeroport",
+   "x": 1910,
+   "y": 5713,
+   "objets": 1,
+   "surface_m2": 173,
+   "places": 19,
+   "modeles": [
+    [
+     "airport_tower_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 2112,
+   "y": 5673,
+   "objets": 12,
+   "surface_m2": 2400,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_small_f.p3d",
+     12
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 6430,
+   "y": 5371,
+   "objets": 3,
+   "surface_m2": 600,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_small_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 2065,
+   "y": 5699,
+   "objets": 9,
+   "surface_m2": 2310,
+   "places": 42,
+   "modeles": [
+    [
+     "dp_bigtank_f.p3d",
+     6
+    ],
+    [
+     "dp_smalltank_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 2715,
+   "y": 5795,
+   "objets": 9,
+   "surface_m2": 439,
+   "places": 4,
+   "modeles": [
+    [
+     "fuelstation_feed_f.p3d",
+     3
+    ],
+    [
+     "fuelstation_sign_f.p3d",
+     2
+    ],
+    [
+     "dp_smalltank_f.p3d",
+     2
+    ],
+    [
+     "fuelstation_shed_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_build_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 2987,
+   "y": 6002,
+   "objets": 51,
+   "surface_m2": 10817,
+   "places": 293,
+   "modeles": [
+    [
+     "i_house_small_03_v1_f.p3d",
+     27
+    ],
+    [
+     "i_house_small_01_v2_f.p3d",
+     7
+    ],
+    [
+     "i_stone_housesmall_v1_f.p3d",
+     6
+    ],
+    [
+     "i_shop_01_v1_f.p3d",
+     5
+    ],
+    [
+     "i_shop_02_v1_f.p3d",
+     4
+    ],
+    [
+     "u_house_small_02_v1_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 2023,
+   "y": 2713,
+   "objets": 7,
+   "surface_m2": 1288,
+   "places": 32,
+   "modeles": [
+    [
+     "u_house_small_01_v1_f.p3d",
+     2
+    ],
+    [
+     "i_stone_housesmall_v1_f.p3d",
+     2
+    ],
+    [
+     "u_house_small_02_v1_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_v1_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_02_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 5228,
+   "y": 5023,
+   "objets": 3,
+   "surface_m2": 428,
+   "places": 0,
+   "modeles": [
+    [
+     "ttowerbig_2_f.p3d",
+     2
+    ],
+    [
+     "ttowerbig_1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 4374,
+   "y": 3822,
+   "objets": 2,
+   "surface_m2": 992,
+   "places": 10,
+   "modeles": [
+    [
+     "radar_f.p3d",
+     1
+    ],
+    [
+     "communication_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 1659,
+   "y": 4949,
+   "objets": 1,
+   "surface_m2": 85,
+   "places": 0,
+   "modeles": [
+    [
+     "radar_small_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 1972,
+   "y": 5732,
+   "objets": 1,
+   "surface_m2": 20,
+   "places": 0,
+   "modeles": [
+    [
+     "communication_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 2434,
+   "y": 5676,
+   "objets": 1,
+   "surface_m2": 20,
+   "places": 0,
+   "modeles": [
+    [
+     "communication_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 3496,
+   "y": 4916,
+   "objets": 1,
+   "surface_m2": 71,
+   "places": 0,
+   "modeles": [
+    [
+     "ttowerbig_2_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 3064,
+   "y": 6189,
+   "objets": 1,
+   "surface_m2": 286,
+   "places": 0,
+   "modeles": [
+    [
+     "ttowerbig_1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 6437,
+   "y": 5346,
+   "objets": 1,
+   "surface_m2": 20,
+   "places": 0,
+   "modeles": [
+    [
+     "communication_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 2010,
+   "y": 5554,
+   "objets": 20,
+   "surface_m2": 360,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     20
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 4364,
+   "y": 3841,
+   "objets": 6,
+   "surface_m2": 108,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     6
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 5238,
+   "y": 5033,
+   "objets": 2,
+   "surface_m2": 36,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 6520,
+   "y": 5271,
+   "objets": 2,
+   "surface_m2": 36,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 1959,
+   "y": 5593,
+   "objets": 24,
+   "surface_m2": 11880,
+   "places": 0,
+   "modeles": [
+    [
+     "tenthangar_v1_f.p3d",
+     15
+    ],
+    [
+     "shed_big_f.p3d",
+     9
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 3276,
+   "y": 5788,
+   "objets": 4,
+   "surface_m2": 1580,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 6395,
+   "y": 5400,
+   "objets": 1,
+   "surface_m2": 395,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 2041,
+   "y": 5489,
+   "objets": 7,
+   "surface_m2": 2492,
+   "places": 0,
+   "modeles": [
+    [
+     "dp_smallfactory_f.p3d",
+     7
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 2778,
+   "y": 5848,
+   "objets": 3,
+   "surface_m2": 546,
+   "places": 14,
+   "modeles": [
+    [
+     "metal_shed_f.p3d",
+     2
+    ],
+    [
+     "dp_smallfactory_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 2123,
+   "y": 5656,
+   "objets": 104,
+   "surface_m2": 4584,
+   "places": 74,
+   "modeles": [
+    [
+     "cargo20_military_green_f.p3d",
+     33
+    ],
+    [
+     "cargo40_military_green_f.p3d",
+     24
+    ],
+    [
+     "cargo_house_v1_f.p3d",
+     21
+    ],
+    [
+     "cargo_house_v2_f.p3d",
+     15
+    ],
+    [
+     "cargo_patrol_v1_f.p3d",
+     6
+    ],
+    [
+     "bunker_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 4992,
+   "y": 5904,
+   "objets": 15,
+   "surface_m2": 798,
+   "places": 23,
+   "modeles": [
+    [
+     "cargo20_military_green_f.p3d",
+     6
+    ],
+    [
+     "cargo_house_v2_f.p3d",
+     3
+    ],
+    [
+     "cargo_house_v1_f.p3d",
+     3
+    ],
+    [
+     "cargo_patrol_v1_f.p3d",
+     2
+    ],
+    [
+     "cargo_hq_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 4368,
+   "y": 3804,
+   "objets": 13,
+   "surface_m2": 779,
+   "places": 26,
+   "modeles": [
+    [
+     "cargo_house_v1_f.p3d",
+     5
+    ],
+    [
+     "cargo_patrol_v1_f.p3d",
+     4
+    ],
+    [
+     "cargo20_military_green_f.p3d",
+     2
+    ],
+    [
+     "cargo40_military_green_f.p3d",
+     1
+    ],
+    [
+     "cargo_hq_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 3258,
+   "y": 5813,
+   "objets": 12,
+   "surface_m2": 456,
+   "places": 6,
+   "modeles": [
+    [
+     "cargo20_military_green_f.p3d",
+     5
+    ],
+    [
+     "cargo_house_v1_f.p3d",
+     4
+    ],
+    [
+     "cargo40_military_green_f.p3d",
+     2
+    ],
+    [
+     "cargo_patrol_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 6480,
+   "y": 5370,
+   "objets": 10,
+   "surface_m2": 470,
+   "places": 8,
+   "modeles": [
+    [
+     "cargo_house_v1_f.p3d",
+     4
+    ],
+    [
+     "cargo40_military_green_f.p3d",
+     2
+    ],
+    [
+     "cargo_patrol_v1_f.p3d",
+     2
+    ],
+    [
+     "bunker_f.p3d",
+     1
+    ],
+    [
+     "cargo20_military_green_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 3307,
+   "y": 2945,
+   "objets": 8,
+   "surface_m2": 573,
+   "places": 21,
+   "modeles": [
+    [
+     "cargo_house_v2_f.p3d",
+     4
+    ],
+    [
+     "cargo_patrol_v2_f.p3d",
+     2
+    ],
+    [
+     "cargo_hq_v2_f.p3d",
+     1
+    ],
+    [
+     "cargo20_military_green_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 1989,
+   "y": 3521,
+   "objets": 6,
+   "surface_m2": 473,
+   "places": 18,
+   "modeles": [
+    [
+     "cargo_house_v1_f.p3d",
+     3
+    ],
+    [
+     "cargo_patrol_v1_f.p3d",
+     1
+    ],
+    [
+     "cargo20_military_green_f.p3d",
+     1
+    ],
+    [
+     "cargo_hq_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 4328,
+   "y": 4359,
+   "objets": 4,
+   "surface_m2": 1050,
+   "places": 50,
+   "modeles": [
+    [
+     "cargo20_military_green_f.p3d",
+     3
+    ],
+    [
+     "i_barracks_v2_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "piste",
+   "x": 1535,
+   "y": 5033,
+   "objets": 0,
+   "surface_m2": 0,
+   "places": 0,
+   "modeles": []
+  },
+  {
+   "fonction": "port",
+   "x": 2764,
+   "y": 6084,
+   "objets": 13,
+   "surface_m2": 8213,
+   "places": 139,
+   "modeles": [
+    [
+     "pier_f.p3d",
+     9
+    ],
+    [
+     "pierladder_f.p3d",
+     2
+    ],
+    [
+     "pier_box_f.p3d",
+     1
+    ],
+    [
+     "lighthouse_small_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "port",
+   "x": 2166,
+   "y": 5870,
+   "objets": 9,
+   "surface_m2": 4613,
+   "places": 75,
+   "modeles": [
+    [
+     "pier_f.p3d",
+     5
+    ],
+    [
+     "pier_addon.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "port",
+   "x": 1984,
+   "y": 5228,
+   "objets": 8,
+   "surface_m2": 5120,
+   "places": 90,
+   "modeles": [
+    [
+     "pier_f.p3d",
+     6
+    ],
+    [
+     "pierladder_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "port",
+   "x": 1889,
+   "y": 3544,
+   "objets": 3,
+   "surface_m2": 1565,
+   "places": 21,
+   "modeles": [
+    [
+     "nav_pier_m_f.p3d",
+     2
+    ],
+    [
+     "pier_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "port",
+   "x": 4503,
+   "y": 6815,
+   "objets": 2,
+   "surface_m2": 1706,
+   "places": 30,
+   "modeles": [
+    [
+     "pier_f.p3d",
+     2
+    ]
+   ]
+  }
+ ],
+ "logements": {
+  "Agia_Marina": {
+   "batiments": 41,
+   "places": 236,
+   "surface_m2": 6741,
+   "type": "NameCityCapital"
+  },
+  "Girna": {
+   "batiments": 20,
+   "places": 72,
+   "surface_m2": 2137,
+   "type": "NameCity"
+  },
+  "SniperSchool": {
+   "batiments": 9,
+   "places": 40,
+   "surface_m2": 1460,
+   "type": "NameVillage"
+  },
+  "Village1": {
+   "batiments": 8,
+   "places": 26,
+   "surface_m2": 689,
+   "type": "NameLocal"
+  },
+  "Old_Outpost": {
+   "batiments": 7,
+   "places": 23,
+   "surface_m2": 664,
+   "type": "NameLocal"
+  },
+  "Spartan": {
+   "batiments": 7,
+   "places": 19,
+   "surface_m2": 677,
+   "type": "NameLocal"
+  },
+  "CampMaxwell": {
+   "batiments": 5,
+   "places": 17,
+   "surface_m2": 640,
+   "type": "NameVillage"
+  },
+  "farm2": {
+   "batiments": 3,
+   "places": 16,
+   "surface_m2": 354,
+   "type": "NameLocal"
+  },
+  "Tsoukalia": {
+   "batiments": 5,
+   "places": 13,
+   "surface_m2": 497,
+   "type": "NameLocal"
+  },
+  "village2": {
+   "batiments": 4,
+   "places": 9,
+   "surface_m2": 420,
+   "type": "NameLocal"
+  },
+  "MilRange": {
+   "batiments": 2,
+   "places": 9,
+   "surface_m2": 257,
+   "type": "NameLocal"
+  },
+  "NatoBase1": {
+   "batiments": 2,
+   "places": 6,
+   "surface_m2": 180,
+   "type": "NameCity"
+  },
+  "LZBaldy": {
+   "batiments": 2,
+   "places": 6,
+   "surface_m2": 180,
+   "type": "NameLocal"
+  },
+  "CampTempest1": {
+   "batiments": 2,
+   "places": 4,
+   "surface_m2": 262,
+   "type": "NameVillage"
+  },
+  "AirStation": {
+   "batiments": 2,
+   "places": 3,
+   "surface_m2": 240,
+   "type": "NameVillage"
+  },
+  "Xiros": {
+   "batiments": 1,
+   "places": 1,
+   "surface_m2": 193,
+   "type": "NameLocal"
+  }
+ }
+}

@@ -1,0 +1,1982 @@
+{
+ "sites": [
+  {
+   "fonction": "carburant",
+   "x": 11725,
+   "y": 6038,
+   "objets": 10,
+   "surface_m2": 146,
+   "places": 0,
+   "modeles": [
+    [
+     "fuel_tank_small.p3d",
+     4
+    ],
+    [
+     "fuel_tank_stairs.p3d",
+     3
+    ],
+    [
+     "fuel_tank_big.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 9217,
+   "y": 5846,
+   "objets": 8,
+   "surface_m2": 404,
+   "places": 10,
+   "modeles": [
+    [
+     "fuel_tank_big.p3d",
+     3
+    ],
+    [
+     "fuel_tank_stairs.p3d",
+     2
+    ],
+    [
+     "fuel_tank_small.p3d",
+     2
+    ],
+    [
+     "benzina_schnell.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 19256,
+   "y": 13888,
+   "objets": 5,
+   "surface_m2": 313,
+   "places": 1,
+   "modeles": [
+    [
+     "fuel_tank_big.p3d",
+     3
+    ],
+    [
+     "fuel_tank_small.p3d",
+     1
+    ],
+    [
+     "fuelstation_army.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 11928,
+   "y": 15447,
+   "objets": 4,
+   "surface_m2": 92,
+   "places": 0,
+   "modeles": [
+    [
+     "fuel_tank_stairs.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 9612,
+   "y": 9812,
+   "objets": 3,
+   "surface_m2": 275,
+   "places": 1,
+   "modeles": [
+    [
+     "fuel_tank_small.p3d",
+     1
+    ],
+    [
+     "fuel_tank_big.p3d",
+     1
+    ],
+    [
+     "fuelstation_army.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 10081,
+   "y": 9396,
+   "objets": 3,
+   "surface_m2": 29,
+   "places": 0,
+   "modeles": [
+    [
+     "fuel_tank_small.p3d",
+     2
+    ],
+    [
+     "fuel_tank_big.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 13626,
+   "y": 9198,
+   "objets": 3,
+   "surface_m2": 47,
+   "places": 0,
+   "modeles": [
+    [
+     "fuel_tank_small.p3d",
+     1
+    ],
+    [
+     "fuel_tank_stairs.p3d",
+     1
+    ],
+    [
+     "fuel_tank_big.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 9402,
+   "y": 5228,
+   "objets": 2,
+   "surface_m2": 296,
+   "places": 10,
+   "modeles": [
+    [
+     "fuel_tank_small.p3d",
+     1
+    ],
+    [
+     "benzina_schnell.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 8966,
+   "y": 8402,
+   "objets": 2,
+   "surface_m2": 10,
+   "places": 0,
+   "modeles": [
+    [
+     "fuel_tank_small.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 11237,
+   "y": 6111,
+   "objets": 2,
+   "surface_m2": 296,
+   "places": 10,
+   "modeles": [
+    [
+     "fuel_tank_small.p3d",
+     1
+    ],
+    [
+     "benzina_schnell.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 11495,
+   "y": 6331,
+   "objets": 2,
+   "surface_m2": 42,
+   "places": 0,
+   "modeles": [
+    [
+     "fuel_tank_stairs.p3d",
+     1
+    ],
+    [
+     "fuel_tank_big.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 10936,
+   "y": 9476,
+   "objets": 2,
+   "surface_m2": 296,
+   "places": 10,
+   "modeles": [
+    [
+     "fuel_tank_small.p3d",
+     1
+    ],
+    [
+     "benzina_schnell.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 12287,
+   "y": 6838,
+   "objets": 2,
+   "surface_m2": 296,
+   "places": 10,
+   "modeles": [
+    [
+     "fuel_tank_small.p3d",
+     1
+    ],
+    [
+     "benzina_schnell.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 9678,
+   "y": 9896,
+   "objets": 2,
+   "surface_m2": 141,
+   "places": 10,
+   "modeles": [
+    [
+     "vysilac_fm2.p3d",
+     1
+    ],
+    [
+     "vysilac_fm.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 4940,
+   "y": 15460,
+   "objets": 1,
+   "surface_m2": 79,
+   "places": 5,
+   "modeles": [
+    [
+     "vysilac_fm2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 8516,
+   "y": 7995,
+   "objets": 1,
+   "surface_m2": 79,
+   "places": 5,
+   "modeles": [
+    [
+     "vysilac_fm2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 11885,
+   "y": 6209,
+   "objets": 1,
+   "surface_m2": 37,
+   "places": 3,
+   "modeles": [
+    [
+     "telek1.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 11462,
+   "y": 6307,
+   "objets": 1,
+   "surface_m2": 79,
+   "places": 5,
+   "modeles": [
+    [
+     "vysilac_fm2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 10414,
+   "y": 9762,
+   "objets": 1,
+   "surface_m2": 62,
+   "places": 5,
+   "modeles": [
+    [
+     "vysilac_fm.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 10213,
+   "y": 9348,
+   "objets": 1,
+   "surface_m2": 62,
+   "places": 5,
+   "modeles": [
+    [
+     "vysilac_fm.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 11067,
+   "y": 16904,
+   "objets": 1,
+   "surface_m2": 62,
+   "places": 5,
+   "modeles": [
+    [
+     "vysilac_fm.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 12620,
+   "y": 7490,
+   "objets": 1,
+   "surface_m2": 62,
+   "places": 5,
+   "modeles": [
+    [
+     "vysilac_fm.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 12560,
+   "y": 8360,
+   "objets": 1,
+   "surface_m2": 79,
+   "places": 5,
+   "modeles": [
+    [
+     "vysilac_fm2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 13327,
+   "y": 9058,
+   "objets": 1,
+   "surface_m2": 79,
+   "places": 5,
+   "modeles": [
+    [
+     "vysilac_fm2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 12328,
+   "y": 15029,
+   "objets": 1,
+   "surface_m2": 79,
+   "places": 5,
+   "modeles": [
+    [
+     "vysilac_fm2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 13965,
+   "y": 15753,
+   "objets": 1,
+   "surface_m2": 37,
+   "places": 3,
+   "modeles": [
+    [
+     "telek1.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 14789,
+   "y": 12763,
+   "objets": 1,
+   "surface_m2": 37,
+   "places": 3,
+   "modeles": [
+    [
+     "telek1.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 17263,
+   "y": 14161,
+   "objets": 1,
+   "surface_m2": 62,
+   "places": 5,
+   "modeles": [
+    [
+     "vysilac_fm.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 10575,
+   "y": 9427,
+   "objets": 23,
+   "surface_m2": 1194,
+   "places": 82,
+   "modeles": [
+    [
+     "water_tank.p3d",
+     8
+    ],
+    [
+     "dum_istan3_pumpa.p3d",
+     7
+    ],
+    [
+     "kasna_new.p3d",
+     7
+    ],
+    [
+     "pumpa.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 8214,
+   "y": 9049,
+   "objets": 8,
+   "surface_m2": 617,
+   "places": 30,
+   "modeles": [
+    [
+     "dum_istan3_pumpa.p3d",
+     5
+    ],
+    [
+     "kasna_new.p3d",
+     2
+    ],
+    [
+     "pumpa.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 9130,
+   "y": 8288,
+   "objets": 6,
+   "surface_m2": 88,
+   "places": 5,
+   "modeles": [
+    [
+     "pumpa.p3d",
+     3
+    ],
+    [
+     "kasna_new.p3d",
+     2
+    ],
+    [
+     "water_tank.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 10708,
+   "y": 4949,
+   "objets": 6,
+   "surface_m2": 381,
+   "places": 18,
+   "modeles": [
+    [
+     "dum_istan3_pumpa.p3d",
+     3
+    ],
+    [
+     "pumpa.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 12349,
+   "y": 7280,
+   "objets": 6,
+   "surface_m2": 489,
+   "places": 24,
+   "modeles": [
+    [
+     "dum_istan3_pumpa.p3d",
+     4
+    ],
+    [
+     "pumpa.p3d",
+     1
+    ],
+    [
+     "kasna_new.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 6866,
+   "y": 8101,
+   "objets": 5,
+   "surface_m2": 373,
+   "places": 18,
+   "modeles": [
+    [
+     "dum_istan3_pumpa.p3d",
+     3
+    ],
+    [
+     "kasna_new.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 9302,
+   "y": 5253,
+   "objets": 5,
+   "surface_m2": 317,
+   "places": 22,
+   "modeles": [
+    [
+     "water_tank.p3d",
+     2
+    ],
+    [
+     "dum_istan3_pumpa.p3d",
+     2
+    ],
+    [
+     "kasna_new.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 9714,
+   "y": 8717,
+   "objets": 5,
+   "surface_m2": 76,
+   "places": 5,
+   "modeles": [
+    [
+     "pumpa.p3d",
+     4
+    ],
+    [
+     "water_tank.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 10123,
+   "y": 8389,
+   "objets": 5,
+   "surface_m2": 211,
+   "places": 16,
+   "modeles": [
+    [
+     "water_tank.p3d",
+     2
+    ],
+    [
+     "kasna_new.p3d",
+     2
+    ],
+    [
+     "dum_istan3_pumpa.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 13231,
+   "y": 6892,
+   "objets": 5,
+   "surface_m2": 76,
+   "places": 5,
+   "modeles": [
+    [
+     "pumpa.p3d",
+     4
+    ],
+    [
+     "water_tank.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 13610,
+   "y": 9125,
+   "objets": 5,
+   "surface_m2": 51,
+   "places": 0,
+   "modeles": [
+    [
+     "pumpa.p3d",
+     4
+    ],
+    [
+     "kasna_new.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 14501,
+   "y": 11008,
+   "objets": 5,
+   "surface_m2": 51,
+   "places": 0,
+   "modeles": [
+    [
+     "pumpa.p3d",
+     4
+    ],
+    [
+     "kasna_new.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 12418,
+   "y": 6880,
+   "objets": 4,
+   "surface_m2": 200,
+   "places": 16,
+   "modeles": [
+    [
+     "water_tank.p3d",
+     2
+    ],
+    [
+     "dum_istan3_pumpa.p3d",
+     1
+    ],
+    [
+     "kasna_new.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 13176,
+   "y": 8889,
+   "objets": 4,
+   "surface_m2": 148,
+   "places": 6,
+   "modeles": [
+    [
+     "pumpa.p3d",
+     2
+    ],
+    [
+     "dum_istan3_pumpa.p3d",
+     1
+    ],
+    [
+     "kasna_new.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 9334,
+   "y": 5893,
+   "objets": 3,
+   "surface_m2": 425,
+   "places": 13,
+   "modeles": [
+    [
+     "pumpa.p3d",
+     1
+    ],
+    [
+     "watertower1.p3d",
+     1
+    ],
+    [
+     "dum_istan3_pumpa.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 8875,
+   "y": 7818,
+   "objets": 3,
+   "surface_m2": 56,
+   "places": 5,
+   "modeles": [
+    [
+     "pumpa.p3d",
+     2
+    ],
+    [
+     "water_tank.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 11548,
+   "y": 5959,
+   "objets": 3,
+   "surface_m2": 83,
+   "places": 10,
+   "modeles": [
+    [
+     "water_tank.p3d",
+     2
+    ],
+    [
+     "kasna_new.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 11220,
+   "y": 5224,
+   "objets": 3,
+   "surface_m2": 137,
+   "places": 6,
+   "modeles": [
+    [
+     "pumpa.p3d",
+     2
+    ],
+    [
+     "dum_istan3_pumpa.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 10863,
+   "y": 12638,
+   "objets": 3,
+   "surface_m2": 30,
+   "places": 0,
+   "modeles": [
+    [
+     "pumpa.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 11249,
+   "y": 14547,
+   "objets": 3,
+   "surface_m2": 82,
+   "places": 10,
+   "modeles": [
+    [
+     "water_tank.p3d",
+     2
+    ],
+    [
+     "pumpa.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 14390,
+   "y": 8582,
+   "objets": 3,
+   "surface_m2": 30,
+   "places": 0,
+   "modeles": [
+    [
+     "pumpa.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 14300,
+   "y": 9402,
+   "objets": 3,
+   "surface_m2": 31,
+   "places": 0,
+   "modeles": [
+    [
+     "pumpa.p3d",
+     2
+    ],
+    [
+     "kasna_new.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 14366,
+   "y": 12381,
+   "objets": 3,
+   "surface_m2": 32,
+   "places": 0,
+   "modeles": [
+    [
+     "kasna_new.p3d",
+     2
+    ],
+    [
+     "pumpa.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 17324,
+   "y": 14234,
+   "objets": 3,
+   "surface_m2": 56,
+   "places": 5,
+   "modeles": [
+    [
+     "pumpa.p3d",
+     2
+    ],
+    [
+     "water_tank.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 13281,
+   "y": 9149,
+   "objets": 4,
+   "surface_m2": 3008,
+   "places": 32,
+   "modeles": [
+    [
+     "hangar_2.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 9804,
+   "y": 9961,
+   "objets": 3,
+   "surface_m2": 4860,
+   "places": 30,
+   "modeles": [
+    [
+     "ss_hangard.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 11986,
+   "y": 15468,
+   "objets": 2,
+   "surface_m2": 1504,
+   "places": 16,
+   "modeles": [
+    [
+     "hangar_2.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 14240,
+   "y": 11915,
+   "objets": 2,
+   "surface_m2": 1504,
+   "places": 16,
+   "modeles": [
+    [
+     "hangar_2.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 17332,
+   "y": 14156,
+   "objets": 2,
+   "surface_m2": 1504,
+   "places": 16,
+   "modeles": [
+    [
+     "hangar_2.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 19214,
+   "y": 13902,
+   "objets": 2,
+   "surface_m2": 3240,
+   "places": 20,
+   "modeles": [
+    [
+     "ss_hangar.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 8974,
+   "y": 8419,
+   "objets": 1,
+   "surface_m2": 752,
+   "places": 8,
+   "modeles": [
+    [
+     "hangar_2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 13494,
+   "y": 8700,
+   "objets": 1,
+   "surface_m2": 752,
+   "places": 8,
+   "modeles": [
+    [
+     "hangar_2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 19225,
+   "y": 13572,
+   "objets": 1,
+   "surface_m2": 752,
+   "places": 8,
+   "modeles": [
+    [
+     "hangar_2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 18806,
+   "y": 13638,
+   "objets": 1,
+   "surface_m2": 752,
+   "places": 8,
+   "modeles": [
+    [
+     "hangar_2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 9646,
+   "y": 9886,
+   "objets": 44,
+   "surface_m2": 3612,
+   "places": 151,
+   "modeles": [
+    [
+     "army_hut_storrage.p3d",
+     14
+    ],
+    [
+     "army_hut3_long_int.p3d",
+     10
+    ],
+    [
+     "army_hut2_int.p3d",
+     8
+    ],
+    [
+     "hlaska.p3d",
+     7
+    ],
+    [
+     "army_hut2.p3d",
+     2
+    ],
+    [
+     "ammostore2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 12155,
+   "y": 17655,
+   "objets": 21,
+   "surface_m2": 189,
+   "places": 42,
+   "modeles": [
+    [
+     "posed.p3d",
+     21
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 8146,
+   "y": 7833,
+   "objets": 17,
+   "surface_m2": 1560,
+   "places": 41,
+   "modeles": [
+    [
+     "army_hut_storrage.p3d",
+     7
+    ],
+    [
+     "army_hut3_long_int.p3d",
+     7
+    ],
+    [
+     "army_hut2_int.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 12357,
+   "y": 8470,
+   "objets": 15,
+   "surface_m2": 1212,
+   "places": 48,
+   "modeles": [
+    [
+     "army_hut3_long_int.p3d",
+     8
+    ],
+    [
+     "hlaska.p3d",
+     4
+    ],
+    [
+     "army_hut_storrage.p3d",
+     2
+    ],
+    [
+     "army_hut2_int.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 11456,
+   "y": 6322,
+   "objets": 12,
+   "surface_m2": 828,
+   "places": 40,
+   "modeles": [
+    [
+     "army_hut2_int.p3d",
+     4
+    ],
+    [
+     "army_hut3_long_int.p3d",
+     4
+    ],
+    [
+     "hlaska.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 14228,
+   "y": 11824,
+   "objets": 10,
+   "surface_m2": 153,
+   "places": 29,
+   "modeles": [
+    [
+     "vez.p3d",
+     9
+    ],
+    [
+     "posed.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 8165,
+   "y": 17012,
+   "objets": 9,
+   "surface_m2": 155,
+   "places": 30,
+   "modeles": [
+    [
+     "vez.p3d",
+     8
+    ],
+    [
+     "hlaska.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 10627,
+   "y": 8946,
+   "objets": 8,
+   "surface_m2": 672,
+   "places": 24,
+   "modeles": [
+    [
+     "army_hut_storrage.p3d",
+     8
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 14643,
+   "y": 10587,
+   "objets": 8,
+   "surface_m2": 150,
+   "places": 30,
+   "modeles": [
+    [
+     "vez.p3d",
+     6
+    ],
+    [
+     "hlaska.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 17777,
+   "y": 12396,
+   "objets": 8,
+   "surface_m2": 128,
+   "places": 24,
+   "modeles": [
+    [
+     "vez.p3d",
+     8
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 11927,
+   "y": 15394,
+   "objets": 7,
+   "surface_m2": 156,
+   "places": 33,
+   "modeles": [
+    [
+     "hlaska.p3d",
+     4
+    ],
+    [
+     "vez.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 4898,
+   "y": 15508,
+   "objets": 6,
+   "surface_m2": 129,
+   "places": 27,
+   "modeles": [
+    [
+     "vez.p3d",
+     3
+    ],
+    [
+     "hlaska.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 10144,
+   "y": 9345,
+   "objets": 6,
+   "surface_m2": 527,
+   "places": 20,
+   "modeles": [
+    [
+     "army_hut_storrage.p3d",
+     4
+    ],
+    [
+     "army_hut_int.p3d",
+     1
+    ],
+    [
+     "army_hut2_int.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 17575,
+   "y": 9546,
+   "objets": 6,
+   "surface_m2": 316,
+   "places": 34,
+   "modeles": [
+    [
+     "vez.p3d",
+     4
+    ],
+    [
+     "ammostore2.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 13371,
+   "y": 8954,
+   "objets": 5,
+   "surface_m2": 135,
+   "places": 30,
+   "modeles": [
+    [
+     "hlaska.p3d",
+     5
+    ]
+   ]
+  },
+  {
+   "fonction": "piste",
+   "x": 9240,
+   "y": 10144,
+   "objets": 0,
+   "surface_m2": 0,
+   "places": 0,
+   "modeles": []
+  },
+  {
+   "fonction": "piste",
+   "x": 2545,
+   "y": 3000,
+   "objets": 0,
+   "surface_m2": 0,
+   "places": 0,
+   "modeles": []
+  },
+  {
+   "fonction": "piste",
+   "x": 18640,
+   "y": 14512,
+   "objets": 0,
+   "surface_m2": 0,
+   "places": 0,
+   "modeles": []
+  },
+  {
+   "fonction": "piste",
+   "x": 18013,
+   "y": 18867,
+   "objets": 0,
+   "surface_m2": 0,
+   "places": 0,
+   "modeles": []
+  },
+  {
+   "fonction": "port",
+   "x": 11764,
+   "y": 6026,
+   "objets": 6,
+   "surface_m2": 9187,
+   "places": 4,
+   "modeles": [
+    [
+     "nabrezi.p3d",
+     3
+    ],
+    [
+     "nabrezi_najezd.p3d",
+     2
+    ],
+    [
+     "majak2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "port",
+   "x": 13108,
+   "y": 9076,
+   "objets": 6,
+   "surface_m2": 5038,
+   "places": 61,
+   "modeles": [
+    [
+     "molo_beton.p3d",
+     3
+    ],
+    [
+     "majak2.p3d",
+     1
+    ],
+    [
+     "nabrezi_najezd.p3d",
+     1
+    ],
+    [
+     "nabrezi.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "port",
+   "x": 13546,
+   "y": 8667,
+   "objets": 3,
+   "surface_m2": 1230,
+   "places": 57,
+   "modeles": [
+    [
+     "molo_beton.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "sante",
+   "x": 4888,
+   "y": 15494,
+   "objets": 1,
+   "surface_m2": 700,
+   "places": 1,
+   "modeles": [
+    [
+     "hospital.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "sante",
+   "x": 9263,
+   "y": 5859,
+   "objets": 1,
+   "surface_m2": 700,
+   "places": 1,
+   "modeles": [
+    [
+     "hospital.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "sante",
+   "x": 11481,
+   "y": 6271,
+   "objets": 1,
+   "surface_m2": 700,
+   "places": 1,
+   "modeles": [
+    [
+     "hospital.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "sante",
+   "x": 11839,
+   "y": 15333,
+   "objets": 1,
+   "surface_m2": 700,
+   "places": 1,
+   "modeles": [
+    [
+     "hospital.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "sante",
+   "x": 12363,
+   "y": 8513,
+   "objets": 1,
+   "surface_m2": 700,
+   "places": 1,
+   "modeles": [
+    [
+     "hospital.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "sante",
+   "x": 12638,
+   "y": 14971,
+   "objets": 1,
+   "surface_m2": 700,
+   "places": 1,
+   "modeles": [
+    [
+     "hospital.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "sante",
+   "x": 12070,
+   "y": 17635,
+   "objets": 1,
+   "surface_m2": 700,
+   "places": 1,
+   "modeles": [
+    [
+     "hospital.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "sante",
+   "x": 19128,
+   "y": 14010,
+   "objets": 1,
+   "surface_m2": 700,
+   "places": 1,
+   "modeles": [
+    [
+     "hospital.p3d",
+     1
+    ]
+   ]
+  }
+ ],
+ "logements": {
+  "Sara_Corazol": {
+   "batiments": 162,
+   "places": 1505,
+   "surface_m2": 35699,
+   "type": "NameCity"
+  },
+  "Sara_Paraiso": {
+   "batiments": 174,
+   "places": 1167,
+   "surface_m2": 47784,
+   "type": "NameCityCapital"
+  },
+  "Sara_Ortego": {
+   "batiments": 143,
+   "places": 1096,
+   "surface_m2": 30591,
+   "type": "NameCity"
+  },
+  "Sara_Bagango": {
+   "batiments": 104,
+   "places": 1070,
+   "surface_m2": 18810,
+   "type": "NameCityCapital"
+  },
+  "Sara_Obregan": {
+   "batiments": 65,
+   "places": 739,
+   "surface_m2": 13040,
+   "type": "NameCity"
+  },
+  "Sara_Dolores": {
+   "batiments": 101,
+   "places": 731,
+   "surface_m2": 23591,
+   "type": "NameCity"
+  },
+  "Local_CaboSantaLucia": {
+   "batiments": 43,
+   "places": 690,
+   "surface_m2": 8773,
+   "type": "NameLocal"
+  },
+  "Sara_Eponia": {
+   "batiments": 57,
+   "places": 602,
+   "surface_m2": 11264,
+   "type": "NameCity"
+  },
+  "Sara_Masbete": {
+   "batiments": 37,
+   "places": 574,
+   "surface_m2": 8461,
+   "type": "NameCity"
+  },
+  "Sara_Mercalillo": {
+   "batiments": 49,
+   "places": 456,
+   "surface_m2": 8141,
+   "type": "NameCity"
+  },
+  "Local_Pesadas": {
+   "batiments": 28,
+   "places": 343,
+   "surface_m2": 4957,
+   "type": "NameLocal"
+  },
+  "Sara_Somato": {
+   "batiments": 62,
+   "places": 323,
+   "surface_m2": 13230,
+   "type": "NameVillage"
+  },
+  "Sara_Everon": {
+   "batiments": 35,
+   "places": 303,
+   "surface_m2": 5742,
+   "type": "NameVillage"
+  },
+  "Sara_Iguana": {
+   "batiments": 44,
+   "places": 292,
+   "surface_m2": 8718,
+   "type": "NameCity"
+  },
+  "Sara_Modesta": {
+   "batiments": 32,
+   "places": 291,
+   "surface_m2": 5432,
+   "type": "NameVillage"
+  },
+  "Sara_Pita": {
+   "batiments": 27,
+   "places": 228,
+   "surface_m2": 4497,
+   "type": "NameVillage"
+  },
+  "Sara_Arcadia": {
+   "batiments": 41,
+   "places": 215,
+   "surface_m2": 7189,
+   "type": "NameVillage"
+  },
+  "Sara_Tiberia": {
+   "batiments": 31,
+   "places": 214,
+   "surface_m2": 6655,
+   "type": "NameVillage"
+  },
+  "Sara_Cedras": {
+   "batiments": 16,
+   "places": 203,
+   "surface_m2": 2559,
+   "type": "NameVillage"
+  },
+  "Sara_Benoma": {
+   "batiments": 15,
+   "places": 203,
+   "surface_m2": 3153,
+   "type": "NameVillage"
+  },
+  "Sara_Cayo": {
+   "batiments": 27,
+   "places": 201,
+   "surface_m2": 5536,
+   "type": "NameCity"
+  },
+  "Local_Matas": {
+   "batiments": 18,
+   "places": 183,
+   "surface_m2": 3488,
+   "type": "NameLocal"
+  },
+  "Sara_Estrella": {
+   "batiments": 20,
+   "places": 164,
+   "surface_m2": 3776,
+   "type": "NameVillage"
+  },
+  "Sara_Ambergris": {
+   "batiments": 20,
+   "places": 156,
+   "surface_m2": 2268,
+   "type": "NameVillage"
+  },
+  "Sara_Gulan": {
+   "batiments": 19,
+   "places": 148,
+   "surface_m2": 3827,
+   "type": "NameVillage"
+  },
+  "Sara_Carmen": {
+   "batiments": 12,
+   "places": 137,
+   "surface_m2": 2095,
+   "type": "NameVillage"
+  },
+  "Sara_Gaula": {
+   "batiments": 17,
+   "places": 135,
+   "surface_m2": 2493,
+   "type": "NameVillage"
+  },
+  "Local_IslaDeVassal": {
+   "batiments": 19,
+   "places": 133,
+   "surface_m2": 2525,
+   "type": "NameLocal"
+  },
+  "Local_PlayaDePalomas": {
+   "batiments": 21,
+   "places": 122,
+   "surface_m2": 2330,
+   "type": "NameLocal"
+  },
+  "Sara_Ixel": {
+   "batiments": 11,
+   "places": 117,
+   "surface_m2": 2329,
+   "type": "NameVillage"
+  },
+  "Sara_Mataredo": {
+   "batiments": 7,
+   "places": 110,
+   "surface_m2": 1894,
+   "type": "NameVillage"
+  },
+  "Sara_Balmopan": {
+   "batiments": 17,
+   "places": 106,
+   "surface_m2": 2761,
+   "type": "NameVillage"
+  },
+  "Sara_Tandag": {
+   "batiments": 15,
+   "places": 106,
+   "surface_m2": 2058,
+   "type": "NameVillage"
+  },
+  "Sara_Chantico": {
+   "batiments": 15,
+   "places": 99,
+   "surface_m2": 3523,
+   "type": "NameCity"
+  },
+  "Sara_Parato": {
+   "batiments": 11,
+   "places": 96,
+   "surface_m2": 2195,
+   "type": "NameVillage"
+  },
+  "Sara_Bonanza": {
+   "batiments": 12,
+   "places": 94,
+   "surface_m2": 2150,
+   "type": "NameVillage"
+  },
+  "Sara_Rahmadi": {
+   "batiments": 16,
+   "places": 91,
+   "surface_m2": 2248,
+   "type": "NameVillage"
+  },
+  "Sara_Hunapu": {
+   "batiments": 11,
+   "places": 86,
+   "surface_m2": 2246,
+   "type": "NameVillage"
+  },
+  "Sara_Corinto": {
+   "batiments": 10,
+   "places": 74,
+   "surface_m2": 2123,
+   "type": "NameVillage"
+  },
+  "Sara_Pacamac": {
+   "batiments": 10,
+   "places": 73,
+   "surface_m2": 1469,
+   "type": "NameVillage"
+  },
+  "Sara_Geraldo": {
+   "batiments": 13,
+   "places": 71,
+   "surface_m2": 2615,
+   "type": "NameVillage"
+  },
+  "Sara_Tlaloc": {
+   "batiments": 9,
+   "places": 58,
+   "surface_m2": 1300,
+   "type": "NameVillage"
+  },
+  "Sara_Yoro": {
+   "batiments": 8,
+   "places": 57,
+   "surface_m2": 2079,
+   "type": "NameVillage"
+  },
+  "Sara_Pesto": {
+   "batiments": 5,
+   "places": 43,
+   "surface_m2": 1041,
+   "type": "NameVillage"
+  },
+  "Sara_Rashidah": {
+   "batiments": 7,
+   "places": 40,
+   "surface_m2": 1223,
+   "type": "NameVillage"
+  },
+  "Local_BajoValor": {
+   "batiments": 6,
+   "places": 40,
+   "surface_m2": 1103,
+   "type": "NameLocal"
+  },
+  "Local_Alcazar": {
+   "batiments": 9,
+   "places": 35,
+   "surface_m2": 995,
+   "type": "NameLocal"
+  },
+  "Sara_Valor": {
+   "batiments": 6,
+   "places": 30,
+   "surface_m2": 1333,
+   "type": "NameVillage"
+  },
+  "Local_RocaDror": {
+   "batiments": 8,
+   "places": 26,
+   "surface_m2": 640,
+   "type": "NameLocal"
+  },
+  "Local_ValleAzul": {
+   "batiments": 8,
+   "places": 24,
+   "surface_m2": 715,
+   "type": "NameLocal"
+  },
+  "Local_SanPeregrino": {
+   "batiments": 5,
+   "places": 23,
+   "surface_m2": 664,
+   "type": "NameLocal"
+  },
+  "Local_TresValles": {
+   "batiments": 2,
+   "places": 23,
+   "surface_m2": 255,
+   "type": "NameLocal"
+  },
+  "Local_CalhetaDemiseca": {
+   "batiments": 2,
+   "places": 20,
+   "surface_m2": 430,
+   "type": "NameLocal"
+  },
+  "Local_Antigua": {
+   "batiments": 2,
+   "places": 19,
+   "surface_m2": 494,
+   "type": "NameLocal"
+  },
+  "Local_IslaDeLibertad": {
+   "batiments": 4,
+   "places": 18,
+   "surface_m2": 356,
+   "type": "NameLocal"
+  },
+  "Local_IslaDeVida": {
+   "batiments": 3,
+   "places": 17,
+   "surface_m2": 488,
+   "type": "NameLocal"
+  },
+  "Local_TerraAcorcha": {
+   "batiments": 5,
+   "places": 15,
+   "surface_m2": 526,
+   "type": "NameLocal"
+  },
+  "Local_CaboCanino": {
+   "batiments": 2,
+   "places": 13,
+   "surface_m2": 414,
+   "type": "NameLocal"
+  },
+  "Local_PassoSanAndres": {
+   "batiments": 3,
+   "places": 13,
+   "surface_m2": 476,
+   "type": "NameLocal"
+  },
+  "Local_PlatoDeCayo": {
+   "batiments": 2,
+   "places": 10,
+   "surface_m2": 220,
+   "type": "NameLocal"
+  },
+  "Local_PassoParadiso": {
+   "batiments": 4,
+   "places": 10,
+   "surface_m2": 148,
+   "type": "NameLocal"
+  },
+  "Local_Vallejo": {
+   "batiments": 1,
+   "places": 10,
+   "surface_m2": 233,
+   "type": "NameLocal"
+  },
+  "Local_PassoSanMarco": {
+   "batiments": 2,
+   "places": 8,
+   "surface_m2": 119,
+   "type": "NameLocal"
+  },
+  "Local_MonteGalassi": {
+   "batiments": 1,
+   "places": 7,
+   "surface_m2": 23,
+   "type": "NameLocal"
+  },
+  "Local_IslaDeVictoria": {
+   "batiments": 2,
+   "places": 4,
+   "surface_m2": 121,
+   "type": "NameLocal"
+  },
+  "Local_CalhetaDeCedras": {
+   "batiments": 1,
+   "places": 3,
+   "surface_m2": 181,
+   "type": "NameLocal"
+  },
+  "Local_IslaDesCompadres": {
+   "batiments": 1,
+   "places": 3,
+   "surface_m2": 53,
+   "type": "NameLocal"
+  },
+  "Local_SierraMasbete": {
+   "batiments": 1,
+   "places": 3,
+   "surface_m2": 53,
+   "type": "NameLocal"
+  }
+ }
+}

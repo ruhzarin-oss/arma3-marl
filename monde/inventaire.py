@@ -31,23 +31,29 @@ def main():
     print(f"iles connectees ( {len(iles)} ) : {iles}", flush=True)
     for ile in iles: pont.envoyer([["inventaire", a.pas]], ile)
 
-    inv = {ile: {"carte": None, "objets": [], "cases": [], "fin": None} for ile in iles}
+    inv = {ile: {"version": 2, "carte": None, "lieux": [], "objets": [], "cases": [], "fin": None} for ile in iles}
     t0, dernier = time.time(), time.time()
     while time.time() - t0 < a.attente:
         for _, m in pont.messages_iles(1.0):
             if not m or not isinstance(m[0], str) or not m[0].startswith("inv_"): continue
             ile = m[1]
-            d = inv.setdefault(ile, {"carte": None, "objets": [], "cases": [], "fin": None})
+            d = inv.setdefault(ile, {"version": 2, "carte": None, "lieux": [], "objets": [], "cases": [], "fin": None})
             if m[0] == "inv_carte":
                 d["carte"] = {"monde": ile, "taille_m": m[2], "pas_m": m[3], "aeroports": m[4], "centre": m[5]}
+            elif m[0] == "inv_lieux":
+                d["lieux"] += [{"id": l[0], "type": l[1], "nom": l[2], "x": l[3], "y": l[4], "rayon": [l[5], l[6]]} for l in m[2]]
             elif m[0] == "inv_objets":
-                d["objets"] += [{"type": o[0], "modele": o[1], "x": o[2], "y": o[3]} for o in m[2]]
+                d["objets"] += [{"type": o[0], "modele": o[1], "x": o[2], "y": o[3], "z": o[4], "places": o[5],
+                                 "sol_m2": o[6], "dir": o[7]} for o in m[2]]
             elif m[0] == "inv_case":
-                sols = {str(k): v for k, v in m[5]}          # Arma rend les paires ( sol, nombre de sondages )
-                d["cases"].append({"x": m[2], "y": m[3], "terre_pct": m[4], "sols": sols,
-                                   "arbres": m[6], "routes": m[7]})
+                # 400 sondages par case ; Arma rend les compteurs en paires ( sol, sondages ), ( categorie de route, m )
+                veg = dict(zip(("arbres", "petits_arbres", "buissons", "rocher", "rochers", "foret"), m[6]))
+                d["cases"].append({"x": m[2], "y": m[3], "terre_sondages": m[4], "sondages": 400,
+                                   "sols": {str(k): v for k, v in m[5]}, "vegetation": veg,
+                                   "routes_m": {str(k): v for k, v in m[7]}, "ponts": m[8],
+                                   "altitude": {"min": m[9][0], "moy": m[9][1], "max": m[9][2]}})
             elif m[0] == "inv_fin":
-                d["fin"] = {"objets_annonces": m[2], "cases": m[3], "secondes": m[4]}
+                d["fin"] = {"objets_annonces": m[2], "cases": m[3], "secondes": m[4], "lieux": m[5]}
                 print(f"{ile} : fini en {m[4]} s | {len(d['objets'])} objets recus sur {m[2]} annonces | "
                       f"{len(d['cases'])} cases de terre sur {m[3]}", flush=True)
         if time.time() - dernier > 60:

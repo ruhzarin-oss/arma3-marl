@@ -1,0 +1,105 @@
+ile      places_logement  batiments_hab | milita indust carbur    eau energi   port  piste aeropo hangar  sante agricu commer admini commun
+Altis              34761           7832 |     35     60     34      9     63     24      6      3     23      1      7     96     29     18
+Malden              6316           1484 |      5     12     12     14     17      9      2      1      9      0      7     25     12      5
+Stratis              500            120 |      8      2      2      0      4      5      1      1      3      0      2      2      5      8
+Tanoa              21265           2272 |     14     15     40      9      5     90      5      6     21      0      5     92     31     13
+Enoch               9154           2360 |     19     32     31     31     15      1      1      5     14      0     35     28     18     14
+Sara               14319           1696 |     15      0     13     24      0      3      4      0     10      8      0      0      0     15
+
+Altis : plus grands sites
+   militaire  ( 17422, 13174)   58 objets    4941 m2 | [('cargo_house_v1_f.p3d', 41), ('cargo_patrol_v1_f.p3d', 5), ('cargo40_military_green_f.p3d', 3)]
+   militaire  ( 16031, 16981)   57 objets    2915 m2 | [('cargo_house_v1_f.p3d', 24), ('cargo40_military_green_f.p3d', 18), ('cargo20_military_green_f.p3d', 7)]
+   militaire  ( 20943, 19239)   35 objets    1794 m2 | [('cargo_house_v1_f.p3d', 11), ('cargo20_military_green_f.p3d', 9), ('cargo_patrol_v1_f.p3d', 7)]
+   industrie  ( 17038, 12843)   41 objets    6246 m2 | [('metal_shed_f.p3d', 36), ('u_shed_ind_f.p3d', 2), ('i_shed_ind_f.p3d', 2)]
+   industrie  (  4129, 13825)   23 objets    5507 m2 | [('metal_shed_f.p3d', 16), ('i_shed_ind_f.p3d', 6), ('crane_f.p3d', 1)]
+   industrie  (  9597, 15065)   23 objets    3760 m2 | [('factory_conv1_10_f.p3d', 10), ('metal_shed_f.p3d', 5), ('factory_hopper_f.p3d', 2)]
+   carburant  (  6263, 16221)   13 objets    2030 m2 | [('dp_smalltank_f.p3d', 9), ('dp_bigtank_f.p3d', 4)]
+   carburant  ( 15413, 16281)    9 objets    1750 m2 | [('dp_smalltank_f.p3d', 5), ('dp_bigtank_f.p3d', 4)]
+   carburant  ( 20717, 15717)    9 objets    1470 m2 | [('dp_smalltank_f.p3d', 6), ('dp_bigtank_f.p3d', 3)]
+   energie    ( 10987, 12621)   86 objets    3778 m2 | [('spp_panel_f.p3d', 78), ('dp_transformer_f.p3d', 8)]
+   energie    (  3007, 18425)   32 objets    1504 m2 | [('spp_panel_f.p3d', 32)]
+   energie    ( 17040, 18058)   32 objets    1446 m2 | [('spp_panel_f.p3d', 30), ('spp_transformer_f.p3d', 2)]
+   port       (  3195, 12833)   56 objets   28819 m2 | [('pier_f.p3d', 33), ('pierladder_f.p3d', 20), ('lighthouse_small_f.p3d', 2)]
+   port       ( 16509, 12424)   31 objets   22183 m2 | [('pier_f.p3d', 26), ('pierladder_f.p3d', 5)]
+   port       ( 15420, 15794)   26 objets    9651 m2 | [('nav_pier_m_f.p3d', 12), ('pier_addon.p3d', 8), ('pier_f.p3d', 5)]
+   villes les plus logeables : Aggelochori 2348, Kavala 2013, Pyrgos 1498, Neri 1443, Paros 1431, Zaros 1385
+
+Malden : plus grands sites
+   militaire  (  6121, 10745)   71 objets    6572 m2 | [('cargo_house_v2_f.p3d', 24), ('bunker_f.p3d', 14), ('bunker_01_small_f.p3d', 8)]
+   militaire  (  8150, 10152)   50 objets   10874 m2 | [('cargo20_military_green_f.p3d', 37), ('i_barracks_v2_f.p3d', 6), ('i_barracks_v1_f.p3d', 4)]
+   militaire  (  7796,  3199)   10 objets    2146 m2 | [('cargo20_military_green_f.p3d', 8), ('i_barracks_v2_f.p3d', 2)]
+   industrie  (  8041,  3741)   29 objets   10608 m2 | [('metal_shed_f.p3d', 12), ('i_shed_ind_f.p3d', 12), ('dp_smallfactory_f.p3d', 4)]
+   industrie  (  6033,  8714)   11 objets    2090 m2 | [('metal_shed_f.p3d', 9), ('i_shed_ind_f.p3d', 1), ('u_shed_ind_f.p3d', 1)]
+   industrie  (  5372,  2781)   10 objets     950 m2 | [('metal_shed_f.p3d', 10)]
+   carburant  (  8222,  9967)   13 objets    1480 m2 | [('dp_smalltank_f.p3d', 5), ('tank_rust_f.p3d', 5), ('dp_bigtank_f.p3d', 3)]
+   carburant  (  8032,  4032)   12 objets    1735 m2 | [('fuelstation_01_pump_malevil_f.p3d', 6), ('dp_bigtank_f.p3d', 2), ('fuelstation_01_workshop_f.p3d', 1)]
+   carburant  (  7773,  3207)    9 objets    2030 m2 | [('dp_bigtank_f.p3d', 5), ('dp_smalltank_f.p3d', 4)]
+   energie    (  7781,  3310)   17 objets    2234 m2 | [('spp_transformer_f.p3d', 11), ('dp_transformer_f.p3d', 5), ('dp_mainfactory_f.p3d', 1)]
+   energie    (  5977,  3437)    9 objets     134 m2 | [('dp_transformer_f.p3d', 7), ('spp_transformer_f.p3d', 2)]
+   energie    (  7158,  8005)    8 objets     132 m2 | [('spp_transformer_f.p3d', 5), ('dp_transformer_f.p3d', 3)]
+   port       (  3617,  3150)   23 objets   10779 m2 | [('pier_f.p3d', 12), ('pierladder_f.p3d', 9), ('pier_box_f.p3d', 1)]
+   port       (   927, 11856)    9 objets    2000 m2 | [('pierladder_f.p3d', 4), ('pier_addon.p3d', 2), ('pier_f.p3d', 2)]
+   port       (  7696,  3241)    9 objets    5979 m2 | [('pier_f.p3d', 6), ('pier_addon.p3d', 1), ('pier_box_f.p3d', 1)]
+   villes les plus logeables : Malden_C_LaTrinite 721, Malden_C_Larche 574, Malden_C_Chapoi 478, Malden_V_SaintLouis 464, Malden_V_LePort 457, Malden_V_Cancon 387
+
+Stratis : plus grands sites
+   militaire  (  2123,  5656)  104 objets    4584 m2 | [('cargo20_military_green_f.p3d', 33), ('cargo40_military_green_f.p3d', 24), ('cargo_house_v1_f.p3d', 21)]
+   militaire  (  4992,  5904)   15 objets     798 m2 | [('cargo20_military_green_f.p3d', 6), ('cargo_house_v2_f.p3d', 3), ('cargo_house_v1_f.p3d', 3)]
+   militaire  (  4368,  3804)   13 objets     779 m2 | [('cargo_house_v1_f.p3d', 5), ('cargo_patrol_v1_f.p3d', 4), ('cargo20_military_green_f.p3d', 2)]
+   industrie  (  2041,  5489)    7 objets    2492 m2 | [('dp_smallfactory_f.p3d', 7)]
+   industrie  (  2778,  5848)    3 objets     546 m2 | [('metal_shed_f.p3d', 2), ('dp_smallfactory_f.p3d', 1)]
+   carburant  (  2065,  5699)    9 objets    2310 m2 | [('dp_bigtank_f.p3d', 6), ('dp_smalltank_f.p3d', 3)]
+   carburant  (  2715,  5795)    9 objets     439 m2 | [('fuelstation_feed_f.p3d', 3), ('fuelstation_sign_f.p3d', 2), ('dp_smalltank_f.p3d', 2)]
+   energie    (  2010,  5554)   20 objets     360 m2 | [('spp_transformer_f.p3d', 20)]
+   energie    (  4364,  3841)    6 objets     108 m2 | [('spp_transformer_f.p3d', 6)]
+   energie    (  5238,  5033)    2 objets      36 m2 | [('spp_transformer_f.p3d', 2)]
+   port       (  2764,  6084)   13 objets    8213 m2 | [('pier_f.p3d', 9), ('pierladder_f.p3d', 2), ('pier_box_f.p3d', 1)]
+   port       (  2166,  5870)    9 objets    4613 m2 | [('pier_f.p3d', 5), ('pier_addon.p3d', 4)]
+   port       (  1984,  5228)    8 objets    5120 m2 | [('pier_f.p3d', 6), ('pierladder_f.p3d', 2)]
+   villes les plus logeables : Agia_Marina 236, Girna 72, SniperSchool 40, Village1 26, Old_Outpost 23, Spartan 19
+
+Tanoa : plus grands sites
+   militaire  (  2760,  9149)   19 objets    1773 m2 | [('pillboxbunker_01_hex_f.p3d', 11), ('pillboxbunker_01_rectangle_f.p3d', 6), ('pillboxbunker_01_big_f.p3d', 2)]
+   militaire  ( 11344,  6612)   10 objets     880 m2 | [('pillboxbunker_01_rectangle_f.p3d', 5), ('pillboxbunker_01_hex_f.p3d', 4), ('pillboxbunker_01_big_f.p3d', 1)]
+   militaire  (  6728,  9536)    8 objets     840 m2 | [('pillboxbunker_01_hex_f.p3d', 7), ('pillboxbunker_01_big_f.p3d', 1)]
+   industrie  ( 13432, 12106)  259 objets   86750 m2 | [('sy_01_conveyor_reclaimer_f.p3d', 65), ('sy_01_conveyor_short_f.p3d', 51), ('warehouse_02_f.p3d', 21)]
+   industrie  (  8347, 10331)   41 objets   10056 m2 | [('scf_01_conveyor_hole_f.p3d', 8), ('scf_01_conveyor_16m_high_f.p3d', 8), ('scf_01_conveyor_16m_slope_f.p3d', 6)]
+   industrie  (  5429, 10117)   20 objets    9642 m2 | [('mobilecrane_01_f.p3d', 3), ('gantrycrane_01_f.p3d', 3), ('i_shed_ind_f.p3d', 3)]
+   carburant  ( 14002, 12104)   21 objets   29854 m2 | [('storagetank_01_small_f.p3d', 8), ('storagetank_01_large_f.p3d', 8), ('dp_smalltank_f.p3d', 5)]
+   carburant  (  9003, 13725)   19 objets     769 m2 | [('railwaycar_01_tank_f.p3d', 10), ('fuelstation_02_pump_f.p3d', 3), ('fuelstation_02_prices_f.p3d', 2)]
+   carburant  ( 11634, 13050)   14 objets    1373 m2 | [('fuelstation_01_pump_f.p3d', 6), ('fuelstation_01_prices_f.p3d', 3), ('dp_smalltank_f.p3d', 1)]
+   energie    (  7440,  8538)   28 objets    2356 m2 | [('dpp_01_transformer_f.p3d', 24), ('spp_transformer_f.p3d', 3), ('dpp_01_mainfactory_f.p3d', 1)]
+   energie    ( 13901, 12073)   14 objets    2200 m2 | [('spp_transformer_f.p3d', 13), ('dpp_01_mainfactory_f.p3d', 1)]
+   energie    ( 10050, 11762)    3 objets      54 m2 | [('spp_transformer_f.p3d', 3)]
+   port       ( 13647, 12180)  197 objets   58030 m2 | [('quayconcrete_01_20m_f.p3d', 158), ('quayconcrete_01_innercorner_f.p3d', 10), ('quayconcrete_01_5m_ladder_f.p3d', 8)]
+   port       (  9495, 13701)  137 objets   29398 m2 | [('quayconcrete_01_20m_f.p3d', 74), ('pierconcrete_01_16m_f.p3d', 26), ('quayconcrete_01_5m_ladder_f.p3d', 9)]
+   port       (  5459, 10237)   98 objets   22035 m2 | [('quayconcrete_01_20m_f.p3d', 55), ('pierconcrete_01_16m_f.p3d', 13), ('pierconcrete_01_4m_ladders_f.p3d', 7)]
+   villes les plus logeables : Georgetown01 1225, SugarcaneFactory01 986, Katkoula01 811, Tanouka01 774, SaintJulien01 743, LaRochelle01 720
+
+Enoch : plus grands sites
+   militaire  (  9822,  8563)   22 objets    3691 m2 | [('cargo20_military_green_f.p3d', 5), ('guardtower_02_f.p3d', 4), ('cargo10_military_green_f.p3d', 3)]
+   militaire  (  5122,  2168)   21 objets    2452 m2 | [('guardtower_02_f.p3d', 7), ('guardtower_01_f.p3d', 5), ('guardhouse_02_f.p3d', 2)]
+   militaire  (  2129, 10959)   14 objets    2759 m2 | [('cargo20_military_green_f.p3d', 5), ('guardhouse_03_f.p3d', 1), ('barracks_04_f.p3d', 1)]
+   industrie  (  1650,  7469)   86 objets   28626 m2 | [('workshop_02_f.p3d', 14), ('workshop_04_f.p3d', 13), ('workshop_03_f.p3d', 12)]
+   industrie  (  5947,  4013)   37 objets   10705 m2 | [('workshop_01_f.p3d', 11), ('workshop_04_f.p3d', 7), ('workshop_02_f.p3d', 6)]
+   industrie  (  7404,  2703)   33 objets   16725 m2 | [('workshop_02_grey_f.p3d', 5), ('i_shed_ind_old_f.p3d', 4), ('workshop_04_grey_f.p3d', 4)]
+   carburant  ( 11535,  7063)   14 objets    1496 m2 | [('tank_rust_f.p3d', 6), ('dp_smalltank_old_f.p3d', 5), ('dp_bigtank_old_f.p3d', 3)]
+   carburant  (  2004,  7372)   11 objets     588 m2 | [('fuelstation_03_pump_f.p3d', 6), ('fuelstation_02_workshop_f.p3d', 1), ('fuelstation_03_prices_f.p3d', 1)]
+   carburant  ( 11073,  8959)   11 objets    1168 m2 | [('dp_smalltank_old_f.p3d', 6), ('tank_rust_f.p3d', 3), ('dp_bigtank_old_f.p3d', 2)]
+   energie    ( 11542,  7106)   13 objets     560 m2 | [('spp_transformer_f.p3d', 6), ('dp_transformer_f.p3d', 6), ('powerstation_01_f.p3d', 1)]
+   energie    (  7853,  9900)    7 objets     116 m2 | [('spp_transformer_f.p3d', 3), ('mobileradar_01_generator_f.p3d', 2), ('dp_transformer_f.p3d', 2)]
+   energie    (  1264,  7741)    4 objets      88 m2 | [('spp_transformer_f.p3d', 3), ('substation_01_f.p3d', 1)]
+   port       (  3485,  8888)    2 objets      64 m2 | [('pierwooden_03_f.p3d', 2)]
+   villes les plus logeables : Nadbor 671, Topolin 607, Gieraltow 576, Tarnow 482, ind1 373, Lukow 370
+
+Sara : plus grands sites
+   militaire  (  9646,  9886)   44 objets    3612 m2 | [('army_hut_storrage.p3d', 14), ('army_hut3_long_int.p3d', 10), ('army_hut2_int.p3d', 8)]
+   militaire  ( 12155, 17655)   21 objets     189 m2 | [('posed.p3d', 21)]
+   militaire  (  8146,  7833)   17 objets    1560 m2 | [('army_hut_storrage.p3d', 7), ('army_hut3_long_int.p3d', 7), ('army_hut2_int.p3d', 3)]
+   carburant  ( 11725,  6038)   10 objets     146 m2 | [('fuel_tank_small.p3d', 4), ('fuel_tank_stairs.p3d', 3), ('fuel_tank_big.p3d', 3)]
+   carburant  (  9217,  5846)    8 objets     404 m2 | [('fuel_tank_big.p3d', 3), ('fuel_tank_stairs.p3d', 2), ('fuel_tank_small.p3d', 2)]
+   carburant  ( 19256, 13888)    5 objets     313 m2 | [('fuel_tank_big.p3d', 3), ('fuel_tank_small.p3d', 1), ('fuelstation_army.p3d', 1)]
+   port       ( 11764,  6026)    6 objets    9187 m2 | [('nabrezi.p3d', 3), ('nabrezi_najezd.p3d', 2), ('majak2.p3d', 1)]
+   port       ( 13108,  9076)    6 objets    5038 m2 | [('molo_beton.p3d', 3), ('majak2.p3d', 1), ('nabrezi_najezd.p3d', 1)]
+   port       ( 13546,  8667)    3 objets    1230 m2 | [('molo_beton.p3d', 3)]
+   villes les plus logeables : Sara_Corazol 1505, Sara_Paraiso 1167, Sara_Ortego 1096, Sara_Bagango 1070, Sara_Obregan 739, Sara_Dolores 731

@@ -1,0 +1,2852 @@
+{
+ "sites": [
+  {
+   "fonction": "administration",
+   "x": 8203,
+   "y": 10066,
+   "objets": 4,
+   "surface_m2": 3809,
+   "places": 27,
+   "modeles": [
+    [
+     "miloffices_v1_f.p3d",
+     3
+    ],
+    [
+     "bc_court_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 7796,
+   "y": 4098,
+   "objets": 2,
+   "surface_m2": 2222,
+   "places": 18,
+   "modeles": [
+    [
+     "miloffices_v1_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 8418,
+   "y": 3809,
+   "objets": 2,
+   "surface_m2": 2222,
+   "places": 18,
+   "modeles": [
+    [
+     "miloffices_v1_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 3642,
+   "y": 3226,
+   "objets": 1,
+   "surface_m2": 1111,
+   "places": 9,
+   "modeles": [
+    [
+     "miloffices_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 5389,
+   "y": 2830,
+   "objets": 1,
+   "surface_m2": 16,
+   "places": 0,
+   "modeles": [
+    [
+     "slidecastle_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 7741,
+   "y": 3392,
+   "objets": 1,
+   "surface_m2": 1016,
+   "places": 45,
+   "modeles": [
+    [
+     "offices_01_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 7020,
+   "y": 7792,
+   "objets": 1,
+   "surface_m2": 476,
+   "places": 0,
+   "modeles": [
+    [
+     "bc_court_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 7119,
+   "y": 9001,
+   "objets": 1,
+   "surface_m2": 16,
+   "places": 0,
+   "modeles": [
+    [
+     "slidecastle_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 7032,
+   "y": 9994,
+   "objets": 1,
+   "surface_m2": 1111,
+   "places": 9,
+   "modeles": [
+    [
+     "miloffices_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 7475,
+   "y": 10589,
+   "objets": 1,
+   "surface_m2": 1111,
+   "places": 9,
+   "modeles": [
+    [
+     "miloffices_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 8254,
+   "y": 3138,
+   "objets": 1,
+   "surface_m2": 16,
+   "places": 0,
+   "modeles": [
+    [
+     "slidecastle_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 8063,
+   "y": 9764,
+   "objets": 1,
+   "surface_m2": 1111,
+   "places": 9,
+   "modeles": [
+    [
+     "miloffices_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "aeroport",
+   "x": 8035,
+   "y": 9856,
+   "objets": 1,
+   "surface_m2": 173,
+   "places": 19,
+   "modeles": [
+    [
+     "airport_tower_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 8205,
+   "y": 10171,
+   "objets": 15,
+   "surface_m2": 3000,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_small_f.p3d",
+     15
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 7286,
+   "y": 8025,
+   "objets": 6,
+   "surface_m2": 4008,
+   "places": 44,
+   "modeles": [
+    [
+     "barn_01_grey_f.p3d",
+     4
+    ],
+    [
+     "shed_small_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 8454,
+   "y": 3812,
+   "objets": 4,
+   "surface_m2": 800,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_small_f.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 5750,
+   "y": 3557,
+   "objets": 3,
+   "surface_m2": 1302,
+   "places": 11,
+   "modeles": [
+    [
+     "shed_small_f.p3d",
+     2
+    ],
+    [
+     "barn_01_grey_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 6092,
+   "y": 3192,
+   "objets": 3,
+   "surface_m2": 600,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_small_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 7450,
+   "y": 10549,
+   "objets": 3,
+   "surface_m2": 600,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_small_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 9746,
+   "y": 3930,
+   "objets": 3,
+   "surface_m2": 600,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_small_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 8222,
+   "y": 9967,
+   "objets": 13,
+   "surface_m2": 1480,
+   "places": 21,
+   "modeles": [
+    [
+     "dp_smalltank_f.p3d",
+     5
+    ],
+    [
+     "tank_rust_f.p3d",
+     5
+    ],
+    [
+     "dp_bigtank_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 8032,
+   "y": 4032,
+   "objets": 12,
+   "surface_m2": 1735,
+   "places": 31,
+   "modeles": [
+    [
+     "fuelstation_01_pump_malevil_f.p3d",
+     6
+    ],
+    [
+     "dp_bigtank_f.p3d",
+     2
+    ],
+    [
+     "fuelstation_01_workshop_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_01_shop_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_01_roof_malevil_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_01_prices_malevil_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 7773,
+   "y": 3207,
+   "objets": 9,
+   "surface_m2": 2030,
+   "places": 35,
+   "modeles": [
+    [
+     "dp_bigtank_f.p3d",
+     5
+    ],
+    [
+     "dp_smalltank_f.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 7219,
+   "y": 7780,
+   "objets": 9,
+   "surface_m2": 1036,
+   "places": 17,
+   "modeles": [
+    [
+     "fuelstation_01_pump_malevil_f.p3d",
+     4
+    ],
+    [
+     "fuelstation_01_prices_malevil_f.p3d",
+     2
+    ],
+    [
+     "fuelstation_01_shop_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_01_workshop_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_01_roof_malevil_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 3202,
+   "y": 6294,
+   "objets": 6,
+   "surface_m2": 641,
+   "places": 17,
+   "modeles": [
+    [
+     "fs_feed_f.p3d",
+     3
+    ],
+    [
+     "tank_rust_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_01_shop_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_01_workshop_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 7109,
+   "y": 10056,
+   "objets": 5,
+   "surface_m2": 673,
+   "places": 17,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     3
+    ],
+    [
+     "fuelstation_01_workshop_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_01_shop_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 5937,
+   "y": 8544,
+   "objets": 4,
+   "surface_m2": 64,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 5505,
+   "y": 3499,
+   "objets": 3,
+   "surface_m2": 0,
+   "places": 0,
+   "modeles": [
+    [
+     "fs_feed_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 7047,
+   "y": 7052,
+   "objets": 3,
+   "surface_m2": 0,
+   "places": 0,
+   "modeles": [
+    [
+     "fs_feed_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 10059,
+   "y": 3996,
+   "objets": 3,
+   "surface_m2": 16,
+   "places": 0,
+   "modeles": [
+    [
+     "fuelstation_feed_f.p3d",
+     2
+    ],
+    [
+     "tank_rust_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 5102,
+   "y": 9062,
+   "objets": 2,
+   "surface_m2": 16,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     1
+    ],
+    [
+     "fs_feed_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 11600,
+   "y": 4474,
+   "objets": 2,
+   "surface_m2": 16,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_feed_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 6650,
+   "y": 8805,
+   "objets": 128,
+   "surface_m2": 24496,
+   "places": 680,
+   "modeles": [
+    [
+     "i_house_small_02_v2_f.p3d",
+     11
+    ],
+    [
+     "d_stone_housesmall_v1_f.p3d",
+     10
+    ],
+    [
+     "i_house_small_02_v1_f.p3d",
+     10
+    ],
+    [
+     "i_house_small_01_v3_f.p3d",
+     8
+    ],
+    [
+     "u_house_small_02_v1_f.p3d",
+     8
+    ],
+    [
+     "i_house_small_03_v1_f.p3d",
+     7
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 8077,
+   "y": 3444,
+   "objets": 111,
+   "surface_m2": 16877,
+   "places": 502,
+   "modeles": [
+    [
+     "i_house_small_01_v1_f.p3d",
+     10
+    ],
+    [
+     "indpipe2_small_9_f.p3d",
+     9
+    ],
+    [
+     "i_stone_housesmall_v3_f.p3d",
+     9
+    ],
+    [
+     "u_house_small_01_v1_f.p3d",
+     7
+    ],
+    [
+     "i_house_small_02_v3_f.p3d",
+     7
+    ],
+    [
+     "u_house_small_02_v1_f.p3d",
+     6
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 7258,
+   "y": 7933,
+   "objets": 72,
+   "surface_m2": 12941,
+   "places": 454,
+   "modeles": [
+    [
+     "i_house_small_02_v3_f.p3d",
+     8
+    ],
+    [
+     "i_shop_01_v2_f.p3d",
+     5
+    ],
+    [
+     "i_house_small_01_b_pink_f.p3d",
+     5
+    ],
+    [
+     "i_house_small_01_v2_f.p3d",
+     5
+    ],
+    [
+     "i_shop_01_v3_f.p3d",
+     4
+    ],
+    [
+     "i_house_small_02_v2_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 5586,
+   "y": 3642,
+   "objets": 50,
+   "surface_m2": 9547,
+   "places": 256,
+   "modeles": [
+    [
+     "i_stone_housesmall_v3_f.p3d",
+     6
+    ],
+    [
+     "i_house_small_01_v2_f.p3d",
+     5
+    ],
+    [
+     "i_house_small_03_v1_f.p3d",
+     5
+    ],
+    [
+     "u_house_small_01_v1_f.p3d",
+     5
+    ],
+    [
+     "i_house_small_01_b_whiteblue_f.p3d",
+     4
+    ],
+    [
+     "i_house_small_02_v2_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 5423,
+   "y": 2733,
+   "objets": 42,
+   "surface_m2": 8590,
+   "places": 212,
+   "modeles": [
+    [
+     "i_stone_housesmall_v3_f.p3d",
+     12
+    ],
+    [
+     "u_house_small_01_v1_f.p3d",
+     6
+    ],
+    [
+     "i_house_small_02_v1_f.p3d",
+     4
+    ],
+    [
+     "u_house_small_02_v1_f.p3d",
+     4
+    ],
+    [
+     "i_stone_housesmall_v1_f.p3d",
+     2
+    ],
+    [
+     "d_stone_housesmall_v1_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 3687,
+   "y": 3302,
+   "objets": 34,
+   "surface_m2": 6252,
+   "places": 165,
+   "modeles": [
+    [
+     "i_house_small_01_v3_f.p3d",
+     6
+    ],
+    [
+     "i_house_small_01_v1_f.p3d",
+     6
+    ],
+    [
+     "i_house_small_02_v1_f.p3d",
+     4
+    ],
+    [
+     "i_shop_01_v3_f.p3d",
+     2
+    ],
+    [
+     "i_house_small_03_v1_f.p3d",
+     2
+    ],
+    [
+     "i_stone_housesmall_v3_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 7039,
+   "y": 7162,
+   "objets": 26,
+   "surface_m2": 4353,
+   "places": 116,
+   "modeles": [
+    [
+     "i_house_small_01_v1_f.p3d",
+     5
+    ],
+    [
+     "i_house_small_01_v2_f.p3d",
+     4
+    ],
+    [
+     "i_house_small_02_v3_f.p3d",
+     3
+    ],
+    [
+     "u_house_small_01_v1_f.p3d",
+     2
+    ],
+    [
+     "i_stone_housesmall_v3_f.p3d",
+     2
+    ],
+    [
+     "u_house_small_02_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 5526,
+   "y": 6992,
+   "objets": 24,
+   "surface_m2": 4503,
+   "places": 145,
+   "modeles": [
+    [
+     "u_house_small_02_v1_f.p3d",
+     4
+    ],
+    [
+     "u_house_small_01_v1_f.p3d",
+     2
+    ],
+    [
+     "d_stone_housesmall_v1_f.p3d",
+     2
+    ],
+    [
+     "i_shop_01_v1_f.p3d",
+     1
+    ],
+    [
+     "i_shop_02_v2_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_02_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 7116,
+   "y": 6096,
+   "objets": 18,
+   "surface_m2": 3395,
+   "places": 104,
+   "modeles": [
+    [
+     "i_house_small_01_b_white_f.p3d",
+     3
+    ],
+    [
+     "i_shop_01_v3_f.p3d",
+     2
+    ],
+    [
+     "i_shop_02_b_pink_f.p3d",
+     2
+    ],
+    [
+     "i_stone_housesmall_v2_f.p3d",
+     2
+    ],
+    [
+     "i_house_small_01_b_whiteblue_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_v3_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 3124,
+   "y": 6338,
+   "objets": 17,
+   "surface_m2": 3372,
+   "places": 107,
+   "modeles": [
+    [
+     "i_house_small_01_b_pink_f.p3d",
+     2
+    ],
+    [
+     "i_stone_housesmall_v2_f.p3d",
+     2
+    ],
+    [
+     "i_house_small_02_b_blue_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_v1_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_02_v1_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_b_blue_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 5573,
+   "y": 11204,
+   "objets": 12,
+   "surface_m2": 2196,
+   "places": 54,
+   "modeles": [
+    [
+     "i_house_small_02_v3_f.p3d",
+     2
+    ],
+    [
+     "i_house_small_01_v1_f.p3d",
+     2
+    ],
+    [
+     "i_house_small_02_v1_f.p3d",
+     2
+    ],
+    [
+     "d_house_small_01_v1_f.p3d",
+     1
+    ],
+    [
+     "u_house_small_01_v1_f.p3d",
+     1
+    ],
+    [
+     "u_house_small_02_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 3572,
+   "y": 8494,
+   "objets": 9,
+   "surface_m2": 1654,
+   "places": 56,
+   "modeles": [
+    [
+     "i_shop_02_b_yellow_f.p3d",
+     1
+    ],
+    [
+     "i_shop_02_v3_f.p3d",
+     1
+    ],
+    [
+     "i_shop_01_v1_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_b_pink_f.p3d",
+     1
+    ],
+    [
+     "i_stone_housesmall_v3_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_b_blue_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 8234,
+   "y": 10061,
+   "objets": 9,
+   "surface_m2": 1238,
+   "places": 25,
+   "modeles": [
+    [
+     "i_house_small_03_v1_f.p3d",
+     5
+    ],
+    [
+     "indpipe2_small_9_f.p3d",
+     2
+    ],
+    [
+     "indpipe2_small_ground1_f.p3d",
+     1
+    ],
+    [
+     "indpipe2_small_ground2_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 4540,
+   "y": 4094,
+   "objets": 8,
+   "surface_m2": 1615,
+   "places": 43,
+   "modeles": [
+    [
+     "i_stone_housesmall_v1_f.p3d",
+     3
+    ],
+    [
+     "i_house_small_01_b_yellow_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_03_v1_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_b_blue_f.p3d",
+     1
+    ],
+    [
+     "i_shop_02_b_blue_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_02_v3_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 5580,
+   "y": 4233,
+   "objets": 8,
+   "surface_m2": 1404,
+   "places": 41,
+   "modeles": [
+    [
+     "i_house_small_02_v3_f.p3d",
+     2
+    ],
+    [
+     "i_house_small_01_b_whiteblue_f.p3d",
+     1
+    ],
+    [
+     "i_stone_housesmall_v3_f.p3d",
+     1
+    ],
+    [
+     "u_house_small_01_v1_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_b_pink_f.p3d",
+     1
+    ],
+    [
+     "i_shop_01_v3_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 7575,
+   "y": 6580,
+   "objets": 7,
+   "surface_m2": 1172,
+   "places": 32,
+   "modeles": [
+    [
+     "i_house_small_02_v1_f.p3d",
+     2
+    ],
+    [
+     "i_house_small_02_b_yellow_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_b_pink_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_02_b_blue_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_v1_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_b_blue_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 7633,
+   "y": 10723,
+   "objets": 7,
+   "surface_m2": 1574,
+   "places": 36,
+   "modeles": [
+    [
+     "u_house_small_02_v1_f.p3d",
+     2
+    ],
+    [
+     "u_house_small_01_v1_f.p3d",
+     2
+    ],
+    [
+     "d_house_small_01_v1_f.p3d",
+     2
+    ],
+    [
+     "u_shop_02_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 3125,
+   "y": 6811,
+   "objets": 6,
+   "surface_m2": 1074,
+   "places": 33,
+   "modeles": [
+    [
+     "i_house_small_02_b_whiteblue_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_02_b_pink_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_b_blue_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_02_b_brown_f.p3d",
+     1
+    ],
+    [
+     "i_shop_02_b_yellow_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 875,
+   "y": 11904,
+   "objets": 5,
+   "surface_m2": 856,
+   "places": 28,
+   "modeles": [
+    [
+     "i_shop_02_b_yellow_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_b_whiteblue_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_02_b_whiteblue_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_v1_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_02_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 6146,
+   "y": 10759,
+   "objets": 5,
+   "surface_m2": 4292,
+   "places": 0,
+   "modeles": [
+    [
+     "dome_01_small_green_ruins_f.p3d",
+     4
+    ],
+    [
+     "domedebris_01_struts_small_green_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 1612,
+   "y": 4648,
+   "objets": 3,
+   "surface_m2": 583,
+   "places": 19,
+   "modeles": [
+    [
+     "i_shop_02_b_yellow_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_b_yellow_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_03_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 4063,
+   "y": 3631,
+   "objets": 3,
+   "surface_m2": 570,
+   "places": 14,
+   "modeles": [
+    [
+     "d_house_small_02_v1_f.p3d",
+     1
+    ],
+    [
+     "u_house_small_02_v1_f.p3d",
+     1
+    ],
+    [
+     "u_house_small_01_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 6267,
+   "y": 3163,
+   "objets": 3,
+   "surface_m2": 556,
+   "places": 14,
+   "modeles": [
+    [
+     "i_stone_housesmall_v1_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_01_v3_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_02_v1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 7503,
+   "y": 5925,
+   "objets": 3,
+   "surface_m2": 608,
+   "places": 15,
+   "modeles": [
+    [
+     "i_stone_housesmall_v2_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_02_b_white_f.p3d",
+     1
+    ],
+    [
+     "i_house_small_02_b_blue_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 6477,
+   "y": 7659,
+   "objets": 3,
+   "surface_m2": 661,
+   "places": 15,
+   "modeles": [
+    [
+     "i_house_small_02_b_yellow_f.p3d",
+     1
+    ],
+    [
+     "i_stone_housesmall_v2_f.p3d",
+     1
+    ],
+    [
+     "i_stone_housesmall_v3_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 7033,
+   "y": 9992,
+   "objets": 3,
+   "surface_m2": 442,
+   "places": 0,
+   "modeles": [
+    [
+     "ttowerbig_2_f.p3d",
+     1
+    ],
+    [
+     "radar_small_f.p3d",
+     1
+    ],
+    [
+     "ttowerbig_1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 7831,
+   "y": 10382,
+   "objets": 1,
+   "surface_m2": 85,
+   "places": 0,
+   "modeles": [
+    [
+     "radar_small_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 9635,
+   "y": 3310,
+   "objets": 1,
+   "surface_m2": 286,
+   "places": 0,
+   "modeles": [
+    [
+     "ttowerbig_1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 8310,
+   "y": 10139,
+   "objets": 1,
+   "surface_m2": 20,
+   "places": 0,
+   "modeles": [
+    [
+     "communication_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 11320,
+   "y": 4122,
+   "objets": 1,
+   "surface_m2": 71,
+   "places": 0,
+   "modeles": [
+    [
+     "ttowerbig_2_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 5405,
+   "y": 2707,
+   "objets": 9,
+   "surface_m2": 100,
+   "places": 0,
+   "modeles": [
+    [
+     "stallwater_f.p3d",
+     5
+    ],
+    [
+     "watertower_01_f.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 6002,
+   "y": 8567,
+   "objets": 9,
+   "surface_m2": 149,
+   "places": 0,
+   "modeles": [
+    [
+     "stallwater_f.p3d",
+     7
+    ],
+    [
+     "water_source_f.p3d",
+     1
+    ],
+    [
+     "reservoirtower_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 3114,
+   "y": 6354,
+   "objets": 6,
+   "surface_m2": 57,
+   "places": 0,
+   "modeles": [
+    [
+     "stallwater_f.p3d",
+     3
+    ],
+    [
+     "watertower_01_f.p3d",
+     2
+    ],
+    [
+     "water_source_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 7122,
+   "y": 6097,
+   "objets": 6,
+   "surface_m2": 72,
+   "places": 0,
+   "modeles": [
+    [
+     "watertower_01_f.p3d",
+     3
+    ],
+    [
+     "stallwater_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 6970,
+   "y": 7169,
+   "objets": 6,
+   "surface_m2": 72,
+   "places": 0,
+   "modeles": [
+    [
+     "stallwater_f.p3d",
+     3
+    ],
+    [
+     "watertower_01_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 3539,
+   "y": 8506,
+   "objets": 5,
+   "surface_m2": 70,
+   "places": 0,
+   "modeles": [
+    [
+     "watertower_01_f.p3d",
+     3
+    ],
+    [
+     "water_source_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 7205,
+   "y": 7922,
+   "objets": 5,
+   "surface_m2": 38,
+   "places": 0,
+   "modeles": [
+    [
+     "stallwater_f.p3d",
+     2
+    ],
+    [
+     "water_source_f.p3d",
+     2
+    ],
+    [
+     "watertower_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 8327,
+   "y": 3251,
+   "objets": 5,
+   "surface_m2": 52,
+   "places": 0,
+   "modeles": [
+    [
+     "stallwater_f.p3d",
+     3
+    ],
+    [
+     "watertower_01_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 3138,
+   "y": 6825,
+   "objets": 4,
+   "surface_m2": 48,
+   "places": 0,
+   "modeles": [
+    [
+     "stallwater_f.p3d",
+     2
+    ],
+    [
+     "watertower_01_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 6764,
+   "y": 3487,
+   "objets": 3,
+   "surface_m2": 28,
+   "places": 0,
+   "modeles": [
+    [
+     "stallwater_f.p3d",
+     2
+    ],
+    [
+     "watertower_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 7522,
+   "y": 6338,
+   "objets": 3,
+   "surface_m2": 44,
+   "places": 0,
+   "modeles": [
+    [
+     "watertower_01_f.p3d",
+     2
+    ],
+    [
+     "stallwater_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 6486,
+   "y": 8892,
+   "objets": 3,
+   "surface_m2": 28,
+   "places": 0,
+   "modeles": [
+    [
+     "stallwater_f.p3d",
+     2
+    ],
+    [
+     "watertower_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 6280,
+   "y": 10648,
+   "objets": 3,
+   "surface_m2": 303,
+   "places": 0,
+   "modeles": [
+    [
+     "reservoirtank_01_military_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 8235,
+   "y": 10118,
+   "objets": 3,
+   "surface_m2": 141,
+   "places": 0,
+   "modeles": [
+    [
+     "watertower_01_f.p3d",
+     2
+    ],
+    [
+     "reservoirtank_airport_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 7781,
+   "y": 3310,
+   "objets": 17,
+   "surface_m2": 2234,
+   "places": 3,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     11
+    ],
+    [
+     "dp_transformer_f.p3d",
+     5
+    ],
+    [
+     "dp_mainfactory_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 5977,
+   "y": 3437,
+   "objets": 9,
+   "surface_m2": 134,
+   "places": 0,
+   "modeles": [
+    [
+     "dp_transformer_f.p3d",
+     7
+    ],
+    [
+     "spp_transformer_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 7158,
+   "y": 8005,
+   "objets": 8,
+   "surface_m2": 132,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     5
+    ],
+    [
+     "dp_transformer_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 7041,
+   "y": 9950,
+   "objets": 8,
+   "surface_m2": 120,
+   "places": 0,
+   "modeles": [
+    [
+     "dp_transformer_f.p3d",
+     6
+    ],
+    [
+     "spp_transformer_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 3263,
+   "y": 6365,
+   "objets": 7,
+   "surface_m2": 110,
+   "places": 0,
+   "modeles": [
+    [
+     "dp_transformer_f.p3d",
+     4
+    ],
+    [
+     "spp_transformer_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 8294,
+   "y": 10000,
+   "objets": 7,
+   "surface_m2": 118,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     5
+    ],
+    [
+     "dp_transformer_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 5608,
+   "y": 7034,
+   "objets": 6,
+   "surface_m2": 96,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     3
+    ],
+    [
+     "dp_transformer_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 7199,
+   "y": 7182,
+   "objets": 5,
+   "surface_m2": 78,
+   "places": 0,
+   "modeles": [
+    [
+     "dp_transformer_f.p3d",
+     3
+    ],
+    [
+     "spp_transformer_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 7656,
+   "y": 3695,
+   "objets": 3,
+   "surface_m2": 54,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 7538,
+   "y": 10582,
+   "objets": 3,
+   "surface_m2": 54,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 7714,
+   "y": 4205,
+   "objets": 2,
+   "surface_m2": 36,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 8432,
+   "y": 3794,
+   "objets": 2,
+   "surface_m2": 36,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 8282,
+   "y": 3004,
+   "objets": 2,
+   "surface_m2": 36,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 9748,
+   "y": 3902,
+   "objets": 2,
+   "surface_m2": 36,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 9358,
+   "y": 3772,
+   "objets": 2,
+   "surface_m2": 36,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 8162,
+   "y": 10546,
+   "objets": 2,
+   "surface_m2": 36,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 11607,
+   "y": 4447,
+   "objets": 2,
+   "surface_m2": 36,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 8185,
+   "y": 10022,
+   "objets": 7,
+   "surface_m2": 4302,
+   "places": 10,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     4
+    ],
+    [
+     "tenthangar_v1_f.p3d",
+     2
+    ],
+    [
+     "hangar_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 8085,
+   "y": 10635,
+   "objets": 3,
+   "surface_m2": 1665,
+   "places": 0,
+   "modeles": [
+    [
+     "tenthangar_v1_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 7790,
+   "y": 7529,
+   "objets": 2,
+   "surface_m2": 790,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 8454,
+   "y": 3812,
+   "objets": 2,
+   "surface_m2": 790,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 698,
+   "y": 12119,
+   "objets": 1,
+   "surface_m2": 1612,
+   "places": 10,
+   "modeles": [
+    [
+     "hangar_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 7771,
+   "y": 3178,
+   "objets": 1,
+   "surface_m2": 395,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 7637,
+   "y": 3660,
+   "objets": 1,
+   "surface_m2": 395,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 7111,
+   "y": 10082,
+   "objets": 1,
+   "surface_m2": 395,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 9341,
+   "y": 3873,
+   "objets": 1,
+   "surface_m2": 395,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 8041,
+   "y": 3741,
+   "objets": 29,
+   "surface_m2": 10608,
+   "places": 214,
+   "modeles": [
+    [
+     "metal_shed_f.p3d",
+     12
+    ],
+    [
+     "i_shed_ind_f.p3d",
+     12
+    ],
+    [
+     "dp_smallfactory_f.p3d",
+     4
+    ],
+    [
+     "u_shed_ind_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 6033,
+   "y": 8714,
+   "objets": 11,
+   "surface_m2": 2090,
+   "places": 83,
+   "modeles": [
+    [
+     "metal_shed_f.p3d",
+     9
+    ],
+    [
+     "i_shed_ind_f.p3d",
+     1
+    ],
+    [
+     "u_shed_ind_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 5372,
+   "y": 2781,
+   "objets": 10,
+   "surface_m2": 950,
+   "places": 70,
+   "modeles": [
+    [
+     "metal_shed_f.p3d",
+     10
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 8194,
+   "y": 10028,
+   "objets": 9,
+   "surface_m2": 5045,
+   "places": 70,
+   "modeles": [
+    [
+     "i_shed_ind_f.p3d",
+     7
+    ],
+    [
+     "dp_smallfactory_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 3636,
+   "y": 3414,
+   "objets": 7,
+   "surface_m2": 2237,
+   "places": 58,
+   "modeles": [
+    [
+     "metal_shed_f.p3d",
+     4
+    ],
+    [
+     "i_shed_ind_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 7487,
+   "y": 7872,
+   "objets": 7,
+   "surface_m2": 1713,
+   "places": 55,
+   "modeles": [
+    [
+     "metal_shed_f.p3d",
+     5
+    ],
+    [
+     "i_shed_ind_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 7211,
+   "y": 8921,
+   "objets": 7,
+   "surface_m2": 2234,
+   "places": 58,
+   "modeles": [
+    [
+     "metal_shed_f.p3d",
+     4
+    ],
+    [
+     "i_shed_ind_f.p3d",
+     2
+    ],
+    [
+     "u_shed_ind_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 7836,
+   "y": 3152,
+   "objets": 5,
+   "surface_m2": 3400,
+   "places": 38,
+   "modeles": [
+    [
+     "i_shed_ind_f.p3d",
+     3
+    ],
+    [
+     "dp_smallfactory_f.p3d",
+     1
+    ],
+    [
+     "factory_main_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 6515,
+   "y": 8841,
+   "objets": 5,
+   "surface_m2": 1260,
+   "places": 31,
+   "modeles": [
+    [
+     "metal_shed_f.p3d",
+     3
+    ],
+    [
+     "dp_smallfactory_f.p3d",
+     1
+    ],
+    [
+     "i_shed_ind_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 3095,
+   "y": 6295,
+   "objets": 3,
+   "surface_m2": 285,
+   "places": 21,
+   "modeles": [
+    [
+     "metal_shed_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 5878,
+   "y": 3417,
+   "objets": 3,
+   "surface_m2": 1594,
+   "places": 20,
+   "modeles": [
+    [
+     "i_shed_ind_f.p3d",
+     2
+    ],
+    [
+     "dp_smallfactory_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 5459,
+   "y": 6941,
+   "objets": 3,
+   "surface_m2": 809,
+   "places": 24,
+   "modeles": [
+    [
+     "metal_shed_f.p3d",
+     2
+    ],
+    [
+     "i_shed_ind_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 6121,
+   "y": 10745,
+   "objets": 71,
+   "surface_m2": 6572,
+   "places": 228,
+   "modeles": [
+    [
+     "cargo_house_v2_f.p3d",
+     24
+    ],
+    [
+     "bunker_f.p3d",
+     14
+    ],
+    [
+     "bunker_01_small_f.p3d",
+     8
+    ],
+    [
+     "cargo_house_v3_derelict_f.p3d",
+     7
+    ],
+    [
+     "bunker_01_tall_f.p3d",
+     3
+    ],
+    [
+     "bunker_01_big_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 8150,
+   "y": 10152,
+   "objets": 50,
+   "surface_m2": 10874,
+   "places": 506,
+   "modeles": [
+    [
+     "cargo20_military_green_f.p3d",
+     37
+    ],
+    [
+     "i_barracks_v2_f.p3d",
+     6
+    ],
+    [
+     "i_barracks_v1_f.p3d",
+     4
+    ],
+    [
+     "cargo40_military_green_f.p3d",
+     2
+    ],
+    [
+     "guardhouse_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 7796,
+   "y": 3199,
+   "objets": 10,
+   "surface_m2": 2146,
+   "places": 100,
+   "modeles": [
+    [
+     "cargo20_military_green_f.p3d",
+     8
+    ],
+    [
+     "i_barracks_v2_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 9336,
+   "y": 3864,
+   "objets": 6,
+   "surface_m2": 138,
+   "places": 0,
+   "modeles": [
+    [
+     "cargo20_military_green_f.p3d",
+     6
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 7433,
+   "y": 10522,
+   "objets": 4,
+   "surface_m2": 1293,
+   "places": 62,
+   "modeles": [
+    [
+     "guardhouse_01_f.p3d",
+     2
+    ],
+    [
+     "cargo40_military_green_f.p3d",
+     1
+    ],
+    [
+     "i_barracks_v2_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "piste",
+   "x": 7921,
+   "y": 9516,
+   "objets": 0,
+   "surface_m2": 0,
+   "places": 0,
+   "modeles": []
+  },
+  {
+   "fonction": "piste",
+   "x": 600,
+   "y": 12285,
+   "objets": 0,
+   "surface_m2": 0,
+   "places": 0,
+   "modeles": []
+  },
+  {
+   "fonction": "port",
+   "x": 3617,
+   "y": 3150,
+   "objets": 23,
+   "surface_m2": 10779,
+   "places": 184,
+   "modeles": [
+    [
+     "pier_f.p3d",
+     12
+    ],
+    [
+     "pierladder_f.p3d",
+     9
+    ],
+    [
+     "pier_box_f.p3d",
+     1
+    ],
+    [
+     "lighthouse_small_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "port",
+   "x": 927,
+   "y": 11856,
+   "objets": 9,
+   "surface_m2": 2000,
+   "places": 34,
+   "modeles": [
+    [
+     "pierladder_f.p3d",
+     4
+    ],
+    [
+     "pier_addon.p3d",
+     2
+    ],
+    [
+     "pier_f.p3d",
+     2
+    ],
+    [
+     "lighthouse_small_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "port",
+   "x": 7696,
+   "y": 3241,
+   "objets": 9,
+   "surface_m2": 5979,
+   "places": 93,
+   "modeles": [
+    [
+     "pier_f.p3d",
+     6
+    ],
+    [
+     "pier_addon.p3d",
+     1
+    ],
+    [
+     "pier_box_f.p3d",
+     1
+    ],
+    [
+     "nav_pier_m_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "port",
+   "x": 8487,
+   "y": 3828,
+   "objets": 8,
+   "surface_m2": 4691,
+   "places": 63,
+   "modeles": [
+    [
+     "pier_f.p3d",
+     4
+    ],
+    [
+     "pier_box_f.p3d",
+     2
+    ],
+    [
+     "pier_addon.p3d",
+     1
+    ],
+    [
+     "nav_pier_m_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "port",
+   "x": 9312,
+   "y": 3787,
+   "objets": 8,
+   "surface_m2": 3943,
+   "places": 63,
+   "modeles": [
+    [
+     "pier_f.p3d",
+     4
+    ],
+    [
+     "pier_addon.p3d",
+     2
+    ],
+    [
+     "pierladder_f.p3d",
+     1
+    ],
+    [
+     "nav_pier_m_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "port",
+   "x": 1025,
+   "y": 649,
+   "objets": 5,
+   "surface_m2": 2486,
+   "places": 47,
+   "modeles": [
+    [
+     "nav_pier_m_f.p3d",
+     2
+    ],
+    [
+     "pier_f.p3d",
+     2
+    ],
+    [
+     "lighthouse_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "port",
+   "x": 5505,
+   "y": 11644,
+   "objets": 4,
+   "surface_m2": 2418,
+   "places": 36,
+   "modeles": [
+    [
+     "nav_pier_m_f.p3d",
+     2
+    ],
+    [
+     "pier_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "port",
+   "x": 5782,
+   "y": 2383,
+   "objets": 3,
+   "surface_m2": 2559,
+   "places": 45,
+   "modeles": [
+    [
+     "pier_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "port",
+   "x": 3062,
+   "y": 8492,
+   "objets": 2,
+   "surface_m2": 1706,
+   "places": 30,
+   "modeles": [
+    [
+     "pier_f.p3d",
+     2
+    ]
+   ]
+  }
+ ],
+ "logements": {
+  "Malden_C_LaTrinite": {
+   "batiments": 150,
+   "places": 721,
+   "surface_m2": 22086,
+   "type": "NameCityCapital"
+  },
+  "Malden_C_Larche": {
+   "batiments": 131,
+   "places": 574,
+   "surface_m2": 19358,
+   "type": "NameCity"
+  },
+  "Malden_C_Chapoi": {
+   "batiments": 118,
+   "places": 478,
+   "surface_m2": 16615,
+   "type": "NameCity"
+  },
+  "Malden_V_SaintLouis": {
+   "batiments": 98,
+   "places": 464,
+   "surface_m2": 15424,
+   "type": "NameVillage"
+  },
+  "Malden_V_LePort": {
+   "batiments": 103,
+   "places": 457,
+   "surface_m2": 13853,
+   "type": "NameVillage"
+  },
+  "Malden_V_Cancon": {
+   "batiments": 99,
+   "places": 387,
+   "surface_m2": 11658,
+   "type": "NameVillage"
+  },
+  "Malden_L_LePortHarbor": {
+   "batiments": 71,
+   "places": 289,
+   "surface_m2": 9004,
+   "type": "NameLocal"
+  },
+  "Malden_V_Houdan": {
+   "batiments": 66,
+   "places": 280,
+   "surface_m2": 8612,
+   "type": "NameVillage"
+  },
+  "Malden_V_Dourdan": {
+   "batiments": 61,
+   "places": 268,
+   "surface_m2": 8038,
+   "type": "NameVillage"
+  },
+  "Malden_C_LaPessagne": {
+   "batiments": 50,
+   "places": 227,
+   "surface_m2": 7323,
+   "type": "NameCity"
+  },
+  "Malden_V_LaRiviere": {
+   "batiments": 53,
+   "places": 221,
+   "surface_m2": 6764,
+   "type": "NameVillage"
+  },
+  "Malden_L_powerplant": {
+   "batiments": 48,
+   "places": 211,
+   "surface_m2": 6648,
+   "type": "NameLocal"
+  },
+  "Malden_L_Blanches": {
+   "batiments": 45,
+   "places": 177,
+   "surface_m2": 5634,
+   "type": "NameLocal"
+  },
+  "Malden_V_Arudy": {
+   "batiments": 43,
+   "places": 161,
+   "surface_m2": 5185,
+   "type": "NameVillage"
+  },
+  "Malden_L_SaintJean": {
+   "batiments": 29,
+   "places": 106,
+   "surface_m2": 3643,
+   "type": "NameLocal"
+  },
+  "Malden_L_Feas": {
+   "batiments": 28,
+   "places": 103,
+   "surface_m2": 4516,
+   "type": "NameLocal"
+  },
+  "Malden_L_CanconHarbor": {
+   "batiments": 22,
+   "places": 101,
+   "surface_m2": 3206,
+   "type": "NameLocal"
+  },
+  "Malden_L_Lavalle": {
+   "batiments": 23,
+   "places": 90,
+   "surface_m2": 2987,
+   "type": "NameLocal"
+  },
+  "Malden_V_Lolisse": {
+   "batiments": 20,
+   "places": 84,
+   "surface_m2": 3040,
+   "type": "NameVillage"
+  },
+  "Malden_L_Bosquet": {
+   "batiments": 18,
+   "places": 80,
+   "surface_m2": 2695,
+   "type": "NameLocal"
+  },
+  "Malden_V_SainteMarie": {
+   "batiments": 20,
+   "places": 77,
+   "surface_m2": 2573,
+   "type": "NameVillage"
+  },
+  "Malden_L_Moray": {
+   "batiments": 15,
+   "places": 73,
+   "surface_m2": 2385,
+   "type": "NameVillage"
+  },
+  "Malden_L_Corton": {
+   "batiments": 21,
+   "places": 72,
+   "surface_m2": 2561,
+   "type": "NameLocal"
+  },
+  "Malden_L_Guran": {
+   "batiments": 16,
+   "places": 68,
+   "surface_m2": 1949,
+   "type": "NameLocal"
+  },
+  "Malden_V_Goisse": {
+   "batiments": 17,
+   "places": 65,
+   "surface_m2": 1903,
+   "type": "NameVillage"
+  },
+  "Malden_L_MilitaryBase1": {
+   "batiments": 12,
+   "places": 62,
+   "surface_m2": 2411,
+   "type": "NameLocal"
+  },
+  "Malden_L_militarybase": {
+   "batiments": 19,
+   "places": 62,
+   "surface_m2": 2601,
+   "type": "NameLocal"
+  },
+  "Malden_V_Vigny": {
+   "batiments": 12,
+   "places": 57,
+   "surface_m2": 1957,
+   "type": "NameVillage"
+  },
+  "Malden_L_Dorres": {
+   "batiments": 11,
+   "places": 53,
+   "surface_m2": 1776,
+   "type": "NameLocal"
+  },
+  "Malden_L_LaRiviereH": {
+   "batiments": 11,
+   "places": 47,
+   "surface_m2": 1430,
+   "type": "NameLocal"
+  },
+  "Malden_L_lumbermill": {
+   "batiments": 13,
+   "places": 46,
+   "surface_m2": 2127,
+   "type": "NameLocal"
+  },
+  "Malden_L_Arette": {
+   "batiments": 13,
+   "places": 44,
+   "surface_m2": 1917,
+   "type": "NameLocal"
+  },
+  "Malden_L_SaintMartin": {
+   "batiments": 7,
+   "places": 33,
+   "surface_m2": 836,
+   "type": "NameLocal"
+  },
+  "Malden_L_radiostation": {
+   "batiments": 8,
+   "places": 27,
+   "surface_m2": 1024,
+   "type": "NameLocal"
+  },
+  "Malden_L_GoisseHarbor": {
+   "batiments": 5,
+   "places": 21,
+   "surface_m2": 714,
+   "type": "NameLocal"
+  },
+  "Malden_L_Faro": {
+   "batiments": 3,
+   "places": 12,
+   "surface_m2": 341,
+   "type": "NameLocal"
+  },
+  "Malden_L_LolisseHarbor": {
+   "batiments": 2,
+   "places": 6,
+   "surface_m2": 157,
+   "type": "NameLocal"
+  },
+  "Malden_L_Harbor": {
+   "batiments": 1,
+   "places": 6,
+   "surface_m2": 114,
+   "type": "NameLocal"
+  },
+  "Malden_L_Pegsus": {
+   "batiments": 1,
+   "places": 3,
+   "surface_m2": 67,
+   "type": "NameLocal"
+  },
+  "Malden_C_Airport": {
+   "batiments": 1,
+   "places": 3,
+   "surface_m2": 133,
+   "type": "NameVillage"
+  }
+ }
+}

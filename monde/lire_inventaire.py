@@ -23,7 +23,9 @@ PAR_MOT = [
     ("militaire", r"mil_|military|barrack|bunker|cargo_hq|cargo_tower|cargo_patrol|cargo_house|guardhouse|guardbox|"
                   r"army|bagbunker|hbarrier|checkpoint|ammo|armory|dragons|mil\b|garrison"),
     ("hangar", r"hangar|shed_big|dome_big|tenthangar"),
-    ("carburant", r"fuel|oil|petrol|pump|refinery|bigtank|smalltank|tank_|_tank|gasstation"),
+    ("eau", r"water|well|toilet|cistern|reservoir|pumpa|kasna"),        # avant le carburant : 24/09, « oil » prenait les
+    ("carburant", r"fuel|(^|_)oil|petrol|pump|refinery|bigtank|smalltank|storagetank|tank_rust|railwaycar_01_tank|"
+                  r"gasstation|benzin"),                                  # toilettes seches, « tank » les citernes d eau
     ("energie", r"power|transformer|substation|spp_|solar|windturbine|wind_turbine|wtg|generator"),
     ("industrie", r"factory|ind_|industrial|indust|warehouse|workshop|sawmill|silo|cement|mine|quarry|conveyor|"
                   r"crane|dp_|kombinat|shed_ind|storage|containerline|metal_shed|slaughter|fabrik"),
@@ -54,20 +56,31 @@ def classer(o):
 def portrait(d):
     carte, cases, objets = d.get("carte") or {}, d["cases"], d["objets"]
     pas = (carte.get("pas_m") or 2000) / 1000.0
-    terre_km2 = sum(c["terre_pct"] for c in cases) / 100.0 * pas * pas
+    v2 = d.get("version") == 2
+    if v2: terre_km2 = sum(c["terre_sondages"] / c["sondages"] for c in cases) * pas * pas
+    else: terre_km2 = sum(c["terre_pct"] for c in cases) / 100.0 * pas * pas
     sols = Counter()
-    for c in cases:     # 24/09 : la premiere collecte a mal lu les sols ( paires prises pour deux listes ) : on garde le lisible
+    for c in cases:     # la version 1 ( 24/09 ) a mal lu les sols ( paires prises pour deux listes ) : on garde le lisible
         sols.update({k: v for k, v in c["sols"].items() if isinstance(v, (int, float))})
     tot_sols = sum(sols.values()) or 1
     cat = Counter(classer(o) for o in objets)
     inclasses = Counter(os.path.basename(str(o["modele"]).replace("\\", "/")).lower() for o in objets if classer(o) == "inclasse")
+    veg, routes, alt = Counter(), Counter(), []
+    for c in cases:
+        if v2:
+            veg.update(c["vegetation"]); routes.update(c["routes_m"]); alt.append(c["altitude"]["max"])
+        else:
+            veg["arbres"] += c["arbres"]; routes["?"] += c["routes"]
     return {"terre_km2": round(terre_km2, 1), "taille_km": (carte.get("taille_m") or 0) / 1000.0,
             "aeroports": len([a for a in (carte.get("aeroports") or []) if a]),
-            "arbres": sum(c["arbres"] for c in cases), "routes": sum(c["routes"] for c in cases),
+            "arbres": int(veg.get("arbres", 0) + veg.get("petits_arbres", 0)), "vegetation": dict(veg),
+            "routes": int(sum(routes.values())), "routes_m": dict(routes),
+            "altitude_max": max(alt) if alt else None,
+            "places_interieures": int(sum(o.get("places", 0) for o in objets)),
             "objets": len(objets), "par_fonction": dict(cat.most_common()),
             "sols": {k: round(v / tot_sols, 3) for k, v in sols.most_common(8)},
             "inclasses_principaux": inclasses.most_common(25),
-            "fin": d.get("fin")}
+            "lieux_nommes": len(d.get("lieux", [])), "fin": d.get("fin")}
 
 
 def main():
@@ -79,12 +92,13 @@ def main():
     json.dump(portraits, open(os.path.join(ICI, "donnees", "portraits_iles.json"), "w"), indent=1, ensure_ascii=False)
     fonctions = ["logement", "commerce", "administration", "sante", "culte", "agriculture", "industrie", "hangar",
                  "carburant", "energie", "port", "aeroport", "militaire", "communication", "eau", "rail", "inclasse"]
-    print("ile      terre km2  aeroports   arbres  routes  objets | " + " ".join(f"{f[:6]:>6s}" for f in fonctions))
+    print("ile      terre km2  aeroports   arbres  routes_m  alt_max  places  objets | " + " ".join(f"{f[:6]:>6s}" for f in fonctions))
     for ile, p in portraits.items():
-        print(f"{ile:8s} {p['terre_km2']:9.1f} {p['aeroports']:10d} {p['arbres']:8d} {p['routes']:7d} {p['objets']:7d} | "
+        print(f"{ile:8s} {p['terre_km2']:9.1f} {p['aeroports']:10d} {p['arbres']:8d} {p['routes']:9d} {p['altitude_max'] or 0:8.0f} "
+              f"{p['places_interieures']:7d} {p['objets']:7d} | "
               + " ".join(f"{p['par_fonction'].get(f, 0):6d}" for f in fonctions))
     for ile, p in portraits.items():
-        print(f"\n{ile} : sols {p['sols']}")
+        print(f"\n{ile} : sols {p['sols']} | routes {p['routes_m']} | vegetation {p['vegetation']}")
         print(f"  inclasses : {p['inclasses_principaux'][:15]}")
     return 0
 

@@ -1,0 +1,5577 @@
+{
+ "sites": [
+  {
+   "fonction": "administration",
+   "x": 1105,
+   "y": 11387,
+   "objets": 49,
+   "surface_m2": 7596,
+   "places": 4,
+   "modeles": [
+    [
+     "castleruins_01_wall_10m_f.p3d",
+     19
+    ],
+    [
+     "castleruins_01_wall_d_r_f.p3d",
+     15
+    ],
+    [
+     "castleruins_01_wall_d_l_f.p3d",
+     14
+    ],
+    [
+     "castleruins_01_bastion_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 2405,
+   "y": 2284,
+   "objets": 6,
+   "surface_m2": 926,
+   "places": 0,
+   "modeles": [
+    [
+     "castleruins_01_wall_10m_f.p3d",
+     3
+    ],
+    [
+     "castleruins_01_wall_d_l_f.p3d",
+     2
+    ],
+    [
+     "castleruins_01_wall_d_r_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 1532,
+   "y": 7480,
+   "objets": 2,
+   "surface_m2": 521,
+   "places": 20,
+   "modeles": [
+    [
+     "policestation_01_f.p3d",
+     1
+    ],
+    [
+     "garageoffice_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 11530,
+   "y": 4600,
+   "objets": 2,
+   "surface_m2": 521,
+   "places": 20,
+   "modeles": [
+    [
+     "policestation_01_f.p3d",
+     1
+    ],
+    [
+     "garageoffice_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 11518,
+   "y": 7025,
+   "objets": 2,
+   "surface_m2": 274,
+   "places": 14,
+   "modeles": [
+    [
+     "garageoffice_01_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 1260,
+   "y": 8969,
+   "objets": 1,
+   "surface_m2": 137,
+   "places": 7,
+   "modeles": [
+    [
+     "garageoffice_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 1238,
+   "y": 8048,
+   "objets": 1,
+   "surface_m2": 137,
+   "places": 7,
+   "modeles": [
+    [
+     "garageoffice_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 1634,
+   "y": 9589,
+   "objets": 1,
+   "surface_m2": 137,
+   "places": 7,
+   "modeles": [
+    [
+     "garageoffice_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 1989,
+   "y": 9498,
+   "objets": 1,
+   "surface_m2": 137,
+   "places": 7,
+   "modeles": [
+    [
+     "garageoffice_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 2080,
+   "y": 7754,
+   "objets": 1,
+   "surface_m2": 137,
+   "places": 7,
+   "modeles": [
+    [
+     "garageoffice_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 4945,
+   "y": 2071,
+   "objets": 1,
+   "surface_m2": 137,
+   "places": 7,
+   "modeles": [
+    [
+     "garageoffice_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 5957,
+   "y": 4130,
+   "objets": 1,
+   "surface_m2": 384,
+   "places": 13,
+   "modeles": [
+    [
+     "policestation_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 7318,
+   "y": 2619,
+   "objets": 1,
+   "surface_m2": 137,
+   "places": 7,
+   "modeles": [
+    [
+     "garageoffice_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 8190,
+   "y": 10792,
+   "objets": 1,
+   "surface_m2": 137,
+   "places": 7,
+   "modeles": [
+    [
+     "garageoffice_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 9297,
+   "y": 10848,
+   "objets": 1,
+   "surface_m2": 384,
+   "places": 13,
+   "modeles": [
+    [
+     "policestation_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 11413,
+   "y": 518,
+   "objets": 1,
+   "surface_m2": 137,
+   "places": 7,
+   "modeles": [
+    [
+     "garageoffice_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 11040,
+   "y": 8954,
+   "objets": 1,
+   "surface_m2": 137,
+   "places": 7,
+   "modeles": [
+    [
+     "garageoffice_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "administration",
+   "x": 10545,
+   "y": 11120,
+   "objets": 1,
+   "surface_m2": 384,
+   "places": 13,
+   "modeles": [
+    [
+     "policestation_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "aeroport",
+   "x": 570,
+   "y": 1133,
+   "objets": 1,
+   "surface_m2": 103,
+   "places": 23,
+   "modeles": [
+    [
+     "controltower_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "aeroport",
+   "x": 4225,
+   "y": 10408,
+   "objets": 1,
+   "surface_m2": 290,
+   "places": 16,
+   "modeles": [
+    [
+     "controltower_02_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "aeroport",
+   "x": 6572,
+   "y": 6171,
+   "objets": 1,
+   "surface_m2": 103,
+   "places": 23,
+   "modeles": [
+    [
+     "controltower_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "aeroport",
+   "x": 8111,
+   "y": 7740,
+   "objets": 1,
+   "surface_m2": 103,
+   "places": 23,
+   "modeles": [
+    [
+     "controltower_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "aeroport",
+   "x": 8494,
+   "y": 10074,
+   "objets": 1,
+   "surface_m2": 103,
+   "places": 23,
+   "modeles": [
+    [
+     "controltower_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 1651,
+   "y": 7359,
+   "objets": 112,
+   "surface_m2": 21898,
+   "places": 187,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     58
+    ],
+    [
+     "shed_small_f.p3d",
+     13
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     11
+    ],
+    [
+     "greenhouse_01_damaged_f.p3d",
+     5
+    ],
+    [
+     "cowshed_01_a_f.p3d",
+     4
+    ],
+    [
+     "cowshed_01_b_f.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 11455,
+   "y": 4527,
+   "objets": 73,
+   "surface_m2": 9072,
+   "places": 83,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     53
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     7
+    ],
+    [
+     "barn_02_f.p3d",
+     3
+    ],
+    [
+     "barn_03_small_f.p3d",
+     2
+    ],
+    [
+     "barn_03_large_f.p3d",
+     2
+    ],
+    [
+     "greenhouse_01_damaged_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 9382,
+   "y": 10727,
+   "objets": 67,
+   "surface_m2": 7997,
+   "places": 75,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     42
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     6
+    ],
+    [
+     "barn_02_f.p3d",
+     5
+    ],
+    [
+     "barn_03_small_f.p3d",
+     5
+    ],
+    [
+     "greenhouse_01_damaged_f.p3d",
+     3
+    ],
+    [
+     "shed_small_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 6000,
+   "y": 4093,
+   "objets": 65,
+   "surface_m2": 7506,
+   "places": 51,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     46
+    ],
+    [
+     "shed_small_f.p3d",
+     7
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     6
+    ],
+    [
+     "barn_03_large_f.p3d",
+     2
+    ],
+    [
+     "barn_04_f.p3d",
+     1
+    ],
+    [
+     "greenhouse_01_damaged_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 6514,
+   "y": 11230,
+   "objets": 50,
+   "surface_m2": 7706,
+   "places": 80,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     30
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     5
+    ],
+    [
+     "barn_02_f.p3d",
+     4
+    ],
+    [
+     "barn_03_small_f.p3d",
+     3
+    ],
+    [
+     "cowshed_01_b_f.p3d",
+     2
+    ],
+    [
+     "cowshed_01_c_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 11470,
+   "y": 9504,
+   "objets": 49,
+   "surface_m2": 9517,
+   "places": 97,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     25
+    ],
+    [
+     "cowshed_01_b_f.p3d",
+     6
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     4
+    ],
+    [
+     "cowshed_01_a_f.p3d",
+     3
+    ],
+    [
+     "cowshed_01_c_f.p3d",
+     3
+    ],
+    [
+     "greenhouse_01_damaged_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 3098,
+   "y": 6800,
+   "objets": 43,
+   "surface_m2": 6849,
+   "places": 62,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     30
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     2
+    ],
+    [
+     "barn_02_f.p3d",
+     2
+    ],
+    [
+     "shed_small_f.p3d",
+     2
+    ],
+    [
+     "greenhouse_01_damaged_f.p3d",
+     1
+    ],
+    [
+     "barn_03_large_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 5080,
+   "y": 10059,
+   "objets": 42,
+   "surface_m2": 12282,
+   "places": 112,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     20
+    ],
+    [
+     "barn_03_small_f.p3d",
+     6
+    ],
+    [
+     "shed_small_f.p3d",
+     3
+    ],
+    [
+     "barn_02_f.p3d",
+     2
+    ],
+    [
+     "barn_03_large_f.p3d",
+     2
+    ],
+    [
+     "cowshed_01_a_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 3556,
+   "y": 11921,
+   "objets": 39,
+   "surface_m2": 14462,
+   "places": 134,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     10
+    ],
+    [
+     "barn_03_small_f.p3d",
+     6
+    ],
+    [
+     "barn_02_f.p3d",
+     4
+    ],
+    [
+     "shed_small_f.p3d",
+     4
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     3
+    ],
+    [
+     "barn_03_large_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 10766,
+   "y": 11015,
+   "objets": 38,
+   "surface_m2": 1415,
+   "places": 9,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     29
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     4
+    ],
+    [
+     "greenhouse_01_damaged_f.p3d",
+     2
+    ],
+    [
+     "barn_02_f.p3d",
+     1
+    ],
+    [
+     "barn_03_small_f.p3d",
+     1
+    ],
+    [
+     "shed_small_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 6256,
+   "y": 10268,
+   "objets": 35,
+   "surface_m2": 5773,
+   "places": 60,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     21
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     4
+    ],
+    [
+     "cowshed_01_b_f.p3d",
+     2
+    ],
+    [
+     "barn_02_f.p3d",
+     2
+    ],
+    [
+     "barn_03_large_f.p3d",
+     2
+    ],
+    [
+     "cowshed_01_a_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 11324,
+   "y": 636,
+   "objets": 34,
+   "surface_m2": 3158,
+   "places": 26,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     24
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     2
+    ],
+    [
+     "greenhouse_01_damaged_f.p3d",
+     2
+    ],
+    [
+     "barn_02_f.p3d",
+     2
+    ],
+    [
+     "shed_small_f.p3d",
+     2
+    ],
+    [
+     "barn_03_large_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 4896,
+   "y": 7589,
+   "objets": 30,
+   "surface_m2": 3291,
+   "places": 37,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     18
+    ],
+    [
+     "barn_02_f.p3d",
+     3
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     3
+    ],
+    [
+     "greenhouse_01_damaged_f.p3d",
+     2
+    ],
+    [
+     "barn_03_small_f.p3d",
+     1
+    ],
+    [
+     "cowshed_01_a_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 3941,
+   "y": 8172,
+   "objets": 25,
+   "surface_m2": 4320,
+   "places": 44,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     15
+    ],
+    [
+     "barn_02_f.p3d",
+     2
+    ],
+    [
+     "barn_03_small_f.p3d",
+     1
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     1
+    ],
+    [
+     "greenhouse_01_damaged_f.p3d",
+     1
+    ],
+    [
+     "cowshed_01_a_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 8456,
+   "y": 11938,
+   "objets": 18,
+   "surface_m2": 1048,
+   "places": 9,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     12
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     3
+    ],
+    [
+     "barn_02_f.p3d",
+     1
+    ],
+    [
+     "greenhouse_01_damaged_f.p3d",
+     1
+    ],
+    [
+     "barn_03_small_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 1451,
+   "y": 9615,
+   "objets": 16,
+   "surface_m2": 2872,
+   "places": 26,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     8
+    ],
+    [
+     "barn_03_small_f.p3d",
+     4
+    ],
+    [
+     "barn_02_f.p3d",
+     2
+    ],
+    [
+     "greenhouse_01_damaged_f.p3d",
+     1
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 2673,
+   "y": 5407,
+   "objets": 10,
+   "surface_m2": 6779,
+   "places": 71,
+   "modeles": [
+    [
+     "cowshed_01_b_f.p3d",
+     2
+    ],
+    [
+     "cowshed_01_c_f.p3d",
+     2
+    ],
+    [
+     "cowshed_01_a_f.p3d",
+     2
+    ],
+    [
+     "barn_02_f.p3d",
+     1
+    ],
+    [
+     "chickencoop_01_f.p3d",
+     1
+    ],
+    [
+     "barn_04_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 8839,
+   "y": 6642,
+   "objets": 8,
+   "surface_m2": 758,
+   "places": 4,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     6
+    ],
+    [
+     "barn_03_small_f.p3d",
+     1
+    ],
+    [
+     "shed_small_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 884,
+   "y": 5545,
+   "objets": 7,
+   "surface_m2": 2515,
+   "places": 26,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     3
+    ],
+    [
+     "barn_02_f.p3d",
+     2
+    ],
+    [
+     "barn_03_large_f.p3d",
+     1
+    ],
+    [
+     "barn_03_small_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 2040,
+   "y": 9481,
+   "objets": 7,
+   "surface_m2": 2589,
+   "places": 22,
+   "modeles": [
+    [
+     "shed_small_f.p3d",
+     3
+    ],
+    [
+     "cowshed_01_a_f.p3d",
+     1
+    ],
+    [
+     "cowshed_01_b_f.p3d",
+     1
+    ],
+    [
+     "cowshed_01_c_f.p3d",
+     1
+    ],
+    [
+     "barn_03_small_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 3267,
+   "y": 2092,
+   "objets": 7,
+   "surface_m2": 49,
+   "places": 0,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     7
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 11868,
+   "y": 7378,
+   "objets": 7,
+   "surface_m2": 626,
+   "places": 4,
+   "modeles": [
+    [
+     "greenhouse_01_f.p3d",
+     4
+    ],
+    [
+     "chickencoop_01_f.p3d",
+     2
+    ],
+    [
+     "barn_03_small_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 4242,
+   "y": 8977,
+   "objets": 5,
+   "surface_m2": 397,
+   "places": 5,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     3
+    ],
+    [
+     "barn_02_f.p3d",
+     1
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 8004,
+   "y": 11659,
+   "objets": 5,
+   "surface_m2": 1336,
+   "places": 12,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     2
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     1
+    ],
+    [
+     "greenhouse_01_damaged_f.p3d",
+     1
+    ],
+    [
+     "barn_03_large_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 3200,
+   "y": 4964,
+   "objets": 4,
+   "surface_m2": 1295,
+   "places": 12,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     3
+    ],
+    [
+     "barn_03_large_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 9118,
+   "y": 4436,
+   "objets": 4,
+   "surface_m2": 28,
+   "places": 0,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 10659,
+   "y": 7002,
+   "objets": 4,
+   "surface_m2": 1505,
+   "places": 12,
+   "modeles": [
+    [
+     "greenhouse_01_damaged_f.p3d",
+     1
+    ],
+    [
+     "chickencoop_01_f.p3d",
+     1
+    ],
+    [
+     "shed_small_f.p3d",
+     1
+    ],
+    [
+     "barn_03_large_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 10930,
+   "y": 9037,
+   "objets": 4,
+   "surface_m2": 800,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_small_f.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 2090,
+   "y": 2367,
+   "objets": 3,
+   "surface_m2": 55,
+   "places": 0,
+   "modeles": [
+    [
+     "greenhouse_01_f.p3d",
+     2
+    ],
+    [
+     "chickencoop_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 7050,
+   "y": 3936,
+   "objets": 3,
+   "surface_m2": 38,
+   "places": 0,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     2
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 6302,
+   "y": 6823,
+   "objets": 3,
+   "surface_m2": 1473,
+   "places": 18,
+   "modeles": [
+    [
+     "cowshed_01_a_f.p3d",
+     1
+    ],
+    [
+     "cowshed_01_b_f.p3d",
+     1
+    ],
+    [
+     "cowshed_01_c_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 9913,
+   "y": 3807,
+   "objets": 3,
+   "surface_m2": 600,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_small_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 9733,
+   "y": 8138,
+   "objets": 3,
+   "surface_m2": 1473,
+   "places": 18,
+   "modeles": [
+    [
+     "cowshed_01_a_f.p3d",
+     1
+    ],
+    [
+     "cowshed_01_b_f.p3d",
+     1
+    ],
+    [
+     "cowshed_01_c_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 11489,
+   "y": 1236,
+   "objets": 3,
+   "surface_m2": 38,
+   "places": 0,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     2
+    ],
+    [
+     "greenhouse_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 11269,
+   "y": 7938,
+   "objets": 3,
+   "surface_m2": 1288,
+   "places": 12,
+   "modeles": [
+    [
+     "chickencoop_01_f.p3d",
+     2
+    ],
+    [
+     "barn_03_large_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 11535,
+   "y": 7063,
+   "objets": 14,
+   "surface_m2": 1496,
+   "places": 21,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     6
+    ],
+    [
+     "dp_smalltank_old_f.p3d",
+     5
+    ],
+    [
+     "dp_bigtank_old_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 2004,
+   "y": 7372,
+   "objets": 11,
+   "surface_m2": 588,
+   "places": 11,
+   "modeles": [
+    [
+     "fuelstation_03_pump_f.p3d",
+     6
+    ],
+    [
+     "fuelstation_02_workshop_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_03_prices_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_03_roof_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_03_shop_f.p3d",
+     1
+    ],
+    [
+     "tank_rust_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 11073,
+   "y": 8959,
+   "objets": 11,
+   "surface_m2": 1168,
+   "places": 14,
+   "modeles": [
+    [
+     "dp_smalltank_old_f.p3d",
+     6
+    ],
+    [
+     "tank_rust_f.p3d",
+     3
+    ],
+    [
+     "dp_bigtank_old_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 10215,
+   "y": 2179,
+   "objets": 10,
+   "surface_m2": 314,
+   "places": 4,
+   "modeles": [
+    [
+     "fuelstation_feed_f.p3d",
+     6
+    ],
+    [
+     "fuelstation_sign_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_shed_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_build_f.p3d",
+     1
+    ],
+    [
+     "tank_rust_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 5109,
+   "y": 10530,
+   "objets": 8,
+   "surface_m2": 344,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     4
+    ],
+    [
+     "dp_smalltank_old_f.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 1293,
+   "y": 7856,
+   "objets": 7,
+   "surface_m2": 274,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     4
+    ],
+    [
+     "dp_smalltank_old_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 1190,
+   "y": 8954,
+   "objets": 6,
+   "surface_m2": 204,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     4
+    ],
+    [
+     "dp_smalltank_old_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 4008,
+   "y": 10137,
+   "objets": 5,
+   "surface_m2": 188,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     3
+    ],
+    [
+     "dp_smalltank_old_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 4272,
+   "y": 10384,
+   "objets": 5,
+   "surface_m2": 80,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     5
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 6220,
+   "y": 3975,
+   "objets": 5,
+   "surface_m2": 341,
+   "places": 9,
+   "modeles": [
+    [
+     "fuelstation_03_pump_f.p3d",
+     2
+    ],
+    [
+     "fuelstation_03_shop_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_03_prices_f.p3d",
+     1
+    ],
+    [
+     "fuelstation_02_workshop_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 2056,
+   "y": 7716,
+   "objets": 4,
+   "surface_m2": 226,
+   "places": 0,
+   "modeles": [
+    [
+     "dp_smalltank_old_f.p3d",
+     3
+    ],
+    [
+     "tank_rust_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 1111,
+   "y": 7245,
+   "objets": 3,
+   "surface_m2": 294,
+   "places": 7,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     2
+    ],
+    [
+     "fuelstation_02_workshop_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 7239,
+   "y": 2936,
+   "objets": 3,
+   "surface_m2": 490,
+   "places": 7,
+   "modeles": [
+    [
+     "dp_smalltank_old_f.p3d",
+     2
+    ],
+    [
+     "dp_bigtank_old_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 7708,
+   "y": 2726,
+   "objets": 3,
+   "surface_m2": 210,
+   "places": 0,
+   "modeles": [
+    [
+     "dp_smalltank_old_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 8963,
+   "y": 6618,
+   "objets": 3,
+   "surface_m2": 48,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 9620,
+   "y": 10691,
+   "objets": 3,
+   "surface_m2": 156,
+   "places": 0,
+   "modeles": [
+    [
+     "dp_smalltank_old_f.p3d",
+     2
+    ],
+    [
+     "tank_rust_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 9324,
+   "y": 11209,
+   "objets": 3,
+   "surface_m2": 210,
+   "places": 0,
+   "modeles": [
+    [
+     "dp_smalltank_old_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 11486,
+   "y": 420,
+   "objets": 3,
+   "surface_m2": 48,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 1388,
+   "y": 7402,
+   "objets": 2,
+   "surface_m2": 32,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 3779,
+   "y": 6349,
+   "objets": 2,
+   "surface_m2": 32,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 2072,
+   "y": 9442,
+   "objets": 2,
+   "surface_m2": 32,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 2114,
+   "y": 11164,
+   "objets": 2,
+   "surface_m2": 32,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 3158,
+   "y": 12028,
+   "objets": 2,
+   "surface_m2": 32,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 4876,
+   "y": 7293,
+   "objets": 2,
+   "surface_m2": 32,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 4432,
+   "y": 6668,
+   "objets": 2,
+   "surface_m2": 32,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 6374,
+   "y": 4818,
+   "objets": 2,
+   "surface_m2": 140,
+   "places": 0,
+   "modeles": [
+    [
+     "dp_smalltank_old_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 7808,
+   "y": 5838,
+   "objets": 2,
+   "surface_m2": 32,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 6284,
+   "y": 11242,
+   "objets": 2,
+   "surface_m2": 32,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 8144,
+   "y": 10870,
+   "objets": 2,
+   "surface_m2": 86,
+   "places": 0,
+   "modeles": [
+    [
+     "dp_smalltank_old_f.p3d",
+     1
+    ],
+    [
+     "tank_rust_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 11352,
+   "y": 9424,
+   "objets": 2,
+   "surface_m2": 86,
+   "places": 0,
+   "modeles": [
+    [
+     "dp_smalltank_old_f.p3d",
+     1
+    ],
+    [
+     "tank_rust_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "carburant",
+   "x": 10036,
+   "y": 8666,
+   "objets": 2,
+   "surface_m2": 32,
+   "places": 0,
+   "modeles": [
+    [
+     "tank_rust_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 7405,
+   "y": 2717,
+   "objets": 55,
+   "surface_m2": 1422,
+   "places": 6,
+   "modeles": [
+    [
+     "indpipe3_small_9_f.p3d",
+     37
+    ],
+    [
+     "indpipe3_smalll_l_f.p3d",
+     5
+    ],
+    [
+     "indpipe3_small_ground1_f.p3d",
+     4
+    ],
+    [
+     "indpipe3_small_ground2_f.p3d",
+     4
+    ],
+    [
+     "indpipe3_smalll_r_f.p3d",
+     4
+    ],
+    [
+     "garagerow_01_small_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 11041,
+   "y": 8994,
+   "objets": 38,
+   "surface_m2": 839,
+   "places": 0,
+   "modeles": [
+    [
+     "indpipe3_small_9_f.p3d",
+     24
+    ],
+    [
+     "indpipe3_small_ground1_f.p3d",
+     4
+    ],
+    [
+     "indpipe3_smalll_r_f.p3d",
+     4
+    ],
+    [
+     "indpipe3_smalll_l_f.p3d",
+     3
+    ],
+    [
+     "indpipe3_small_ground2_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 11514,
+   "y": 430,
+   "objets": 21,
+   "surface_m2": 877,
+   "places": 12,
+   "modeles": [
+    [
+     "indpipe3_small_9_f.p3d",
+     12
+    ],
+    [
+     "indpipe3_small_ground2_f.p3d",
+     3
+    ],
+    [
+     "indpipe3_small_ground1_f.p3d",
+     3
+    ],
+    [
+     "garagerow_01_small_f.p3d",
+     2
+    ],
+    [
+     "indpipe3_smalll_l_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 11582,
+   "y": 7060,
+   "objets": 20,
+   "surface_m2": 441,
+   "places": 0,
+   "modeles": [
+    [
+     "indpipe3_small_9_f.p3d",
+     11
+    ],
+    [
+     "indpipe3_small_ground1_f.p3d",
+     5
+    ],
+    [
+     "indpipe3_small_ground2_f.p3d",
+     2
+    ],
+    [
+     "indpipe3_smalll_l_f.p3d",
+     1
+    ],
+    [
+     "indpipe3_smalll_r_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 6366,
+   "y": 4788,
+   "objets": 18,
+   "surface_m2": 396,
+   "places": 0,
+   "modeles": [
+    [
+     "indpipe3_small_9_f.p3d",
+     13
+    ],
+    [
+     "indpipe3_small_ground1_f.p3d",
+     2
+    ],
+    [
+     "indpipe3_small_ground2_f.p3d",
+     2
+    ],
+    [
+     "indpipe3_smalll_r_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 7377,
+   "y": 6284,
+   "objets": 18,
+   "surface_m2": 9639,
+   "places": 27,
+   "modeles": [
+    [
+     "houseruin_small_01_half_f.p3d",
+     9
+    ],
+    [
+     "houseruin_small_02_f.p3d",
+     6
+    ],
+    [
+     "houseruin_small_01_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 1846,
+   "y": 7253,
+   "objets": 13,
+   "surface_m2": 3439,
+   "places": 69,
+   "modeles": [
+    [
+     "garagerow_01_small_f.p3d",
+     10
+    ],
+    [
+     "villagestore_01_f.p3d",
+     2
+    ],
+    [
+     "houseruin_small_01_half_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 5108,
+   "y": 5427,
+   "objets": 13,
+   "surface_m2": 7412,
+   "places": 6,
+   "modeles": [
+    [
+     "houseruin_small_02_f.p3d",
+     6
+    ],
+    [
+     "houseruin_small_01_f.p3d",
+     5
+    ],
+    [
+     "houseruin_small_01_half_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 6059,
+   "y": 8140,
+   "objets": 12,
+   "surface_m2": 6495,
+   "places": 15,
+   "modeles": [
+    [
+     "houseruin_small_01_half_f.p3d",
+     5
+    ],
+    [
+     "houseruin_small_02_f.p3d",
+     4
+    ],
+    [
+     "houseruin_small_01_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 8102,
+   "y": 8693,
+   "objets": 11,
+   "surface_m2": 5800,
+   "places": 18,
+   "modeles": [
+    [
+     "houseruin_small_01_half_f.p3d",
+     6
+    ],
+    [
+     "houseruin_small_02_f.p3d",
+     3
+    ],
+    [
+     "houseruin_small_01_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 7667,
+   "y": 5376,
+   "objets": 9,
+   "surface_m2": 4839,
+   "places": 9,
+   "modeles": [
+    [
+     "houseruin_small_01_f.p3d",
+     4
+    ],
+    [
+     "houseruin_small_01_half_f.p3d",
+     3
+    ],
+    [
+     "houseruin_small_02_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 9849,
+   "y": 8428,
+   "objets": 8,
+   "surface_m2": 4228,
+   "places": 12,
+   "modeles": [
+    [
+     "houseruin_small_01_half_f.p3d",
+     4
+    ],
+    [
+     "houseruin_small_01_f.p3d",
+     2
+    ],
+    [
+     "houseruin_small_02_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 4554,
+   "y": 6473,
+   "objets": 7,
+   "surface_m2": 3824,
+   "places": 6,
+   "modeles": [
+    [
+     "houseruin_small_01_f.p3d",
+     3
+    ],
+    [
+     "houseruin_small_02_f.p3d",
+     2
+    ],
+    [
+     "houseruin_small_01_half_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 6066,
+   "y": 4127,
+   "objets": 7,
+   "surface_m2": 2200,
+   "places": 33,
+   "modeles": [
+    [
+     "garagerow_01_small_f.p3d",
+     4
+    ],
+    [
+     "houseruin_small_01_half_f.p3d",
+     2
+    ],
+    [
+     "villagestore_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 8483,
+   "y": 6877,
+   "objets": 7,
+   "surface_m2": 3686,
+   "places": 12,
+   "modeles": [
+    [
+     "houseruin_small_01_half_f.p3d",
+     4
+    ],
+    [
+     "houseruin_small_02_f.p3d",
+     2
+    ],
+    [
+     "houseruin_small_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 10700,
+   "y": 11067,
+   "objets": 6,
+   "surface_m2": 1430,
+   "places": 27,
+   "modeles": [
+    [
+     "garagerow_01_small_f.p3d",
+     4
+    ],
+    [
+     "villagestore_01_f.p3d",
+     1
+    ],
+    [
+     "rail_station_small_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 3097,
+   "y": 6846,
+   "objets": 5,
+   "surface_m2": 1254,
+   "places": 27,
+   "modeles": [
+    [
+     "garagerow_01_small_f.p3d",
+     4
+    ],
+    [
+     "villagestore_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 2090,
+   "y": 7732,
+   "objets": 5,
+   "surface_m2": 111,
+   "places": 0,
+   "modeles": [
+    [
+     "indpipe3_small_9_f.p3d",
+     3
+    ],
+    [
+     "indpipe3_smalll_l_f.p3d",
+     1
+    ],
+    [
+     "indpipe3_small_ground2_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 10250,
+   "y": 6816,
+   "objets": 5,
+   "surface_m2": 2809,
+   "places": 3,
+   "modeles": [
+    [
+     "houseruin_small_01_f.p3d",
+     2
+    ],
+    [
+     "houseruin_small_02_f.p3d",
+     2
+    ],
+    [
+     "houseruin_small_01_half_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 11482,
+   "y": 9649,
+   "objets": 5,
+   "surface_m2": 1651,
+   "places": 21,
+   "modeles": [
+    [
+     "garagerow_01_small_f.p3d",
+     3
+    ],
+    [
+     "houseruin_small_02_f.p3d",
+     1
+    ],
+    [
+     "villagestore_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 1386,
+   "y": 7413,
+   "objets": 4,
+   "surface_m2": 1025,
+   "places": 21,
+   "modeles": [
+    [
+     "garagerow_01_small_f.p3d",
+     3
+    ],
+    [
+     "villagestore_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 5932,
+   "y": 6771,
+   "objets": 4,
+   "surface_m2": 2183,
+   "places": 3,
+   "modeles": [
+    [
+     "houseruin_small_01_f.p3d",
+     2
+    ],
+    [
+     "houseruin_small_01_half_f.p3d",
+     1
+    ],
+    [
+     "houseruin_small_02_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 9388,
+   "y": 11006,
+   "objets": 4,
+   "surface_m2": 916,
+   "places": 24,
+   "modeles": [
+    [
+     "garagerow_01_small_f.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 11250,
+   "y": 2481,
+   "objets": 4,
+   "surface_m2": 2183,
+   "places": 3,
+   "modeles": [
+    [
+     "houseruin_small_01_f.p3d",
+     2
+    ],
+    [
+     "houseruin_small_02_f.p3d",
+     1
+    ],
+    [
+     "houseruin_small_01_half_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 11108,
+   "y": 4254,
+   "objets": 4,
+   "surface_m2": 1025,
+   "places": 21,
+   "modeles": [
+    [
+     "garagerow_01_small_f.p3d",
+     3
+    ],
+    [
+     "villagestore_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 5947,
+   "y": 5082,
+   "objets": 3,
+   "surface_m2": 1481,
+   "places": 6,
+   "modeles": [
+    [
+     "houseruin_small_02_f.p3d",
+     2
+    ],
+    [
+     "garagerow_01_small_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 9244,
+   "y": 10761,
+   "objets": 3,
+   "surface_m2": 796,
+   "places": 15,
+   "modeles": [
+    [
+     "garagerow_01_small_f.p3d",
+     2
+    ],
+    [
+     "villagestore_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "commerce",
+   "x": 11502,
+   "y": 4598,
+   "objets": 3,
+   "surface_m2": 687,
+   "places": 18,
+   "modeles": [
+    [
+     "garagerow_01_small_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 7850,
+   "y": 10034,
+   "objets": 3,
+   "surface_m2": 377,
+   "places": 0,
+   "modeles": [
+    [
+     "communication_f.p3d",
+     1
+    ],
+    [
+     "ttowerbig_1_f.p3d",
+     1
+    ],
+    [
+     "ttowerbig_2_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 1583,
+   "y": 7162,
+   "objets": 1,
+   "surface_m2": 20,
+   "places": 0,
+   "modeles": [
+    [
+     "communication_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 1410,
+   "y": 8673,
+   "objets": 1,
+   "surface_m2": 20,
+   "places": 0,
+   "modeles": [
+    [
+     "communication_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 3831,
+   "y": 1827,
+   "objets": 1,
+   "surface_m2": 286,
+   "places": 0,
+   "modeles": [
+    [
+     "ttowerbig_1_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 3146,
+   "y": 7024,
+   "objets": 1,
+   "surface_m2": 20,
+   "places": 0,
+   "modeles": [
+    [
+     "communication_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 3586,
+   "y": 11541,
+   "objets": 1,
+   "surface_m2": 20,
+   "places": 0,
+   "modeles": [
+    [
+     "communication_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 2382,
+   "y": 11480,
+   "objets": 1,
+   "surface_m2": 71,
+   "places": 0,
+   "modeles": [
+    [
+     "ttowerbig_2_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 4923,
+   "y": 2195,
+   "objets": 1,
+   "surface_m2": 1337,
+   "places": 61,
+   "modeles": [
+    [
+     "radar_01_antenna_base_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 6294,
+   "y": 9910,
+   "objets": 1,
+   "surface_m2": 20,
+   "places": 0,
+   "modeles": [
+    [
+     "communication_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 6909,
+   "y": 11120,
+   "objets": 1,
+   "surface_m2": 20,
+   "places": 0,
+   "modeles": [
+    [
+     "communication_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 8895,
+   "y": 2049,
+   "objets": 1,
+   "surface_m2": 71,
+   "places": 0,
+   "modeles": [
+    [
+     "ttowerbig_2_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 9257,
+   "y": 10281,
+   "objets": 1,
+   "surface_m2": 20,
+   "places": 0,
+   "modeles": [
+    [
+     "communication_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 10609,
+   "y": 10892,
+   "objets": 1,
+   "surface_m2": 20,
+   "places": 0,
+   "modeles": [
+    [
+     "communication_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "communication",
+   "x": 11173,
+   "y": 11424,
+   "objets": 1,
+   "surface_m2": 20,
+   "places": 0,
+   "modeles": [
+    [
+     "communication_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 1650,
+   "y": 7231,
+   "objets": 65,
+   "surface_m2": 536,
+   "places": 4,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     60
+    ],
+    [
+     "waterstation_01_f.p3d",
+     4
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 11508,
+   "y": 4563,
+   "objets": 64,
+   "surface_m2": 256,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     63
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 9416,
+   "y": 10705,
+   "objets": 59,
+   "surface_m2": 822,
+   "places": 1,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     54
+    ],
+    [
+     "dpp_01_watercooler_f.p3d",
+     2
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     1
+    ],
+    [
+     "waterstation_01_f.p3d",
+     1
+    ],
+    [
+     "watertower_02_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 6067,
+   "y": 4165,
+   "objets": 46,
+   "surface_m2": 184,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     42
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 3131,
+   "y": 6751,
+   "objets": 37,
+   "surface_m2": 217,
+   "places": 1,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     31
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     4
+    ],
+    [
+     "waterstation_01_f.p3d",
+     1
+    ],
+    [
+     "stonewell_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 10779,
+   "y": 11004,
+   "objets": 37,
+   "surface_m2": 217,
+   "places": 1,
+   "modeles": [
+    [
+     "drytoilet_01_f.p3d",
+     19
+    ],
+    [
+     "concretewell_02_f.p3d",
+     16
+    ],
+    [
+     "waterstation_01_f.p3d",
+     1
+    ],
+    [
+     "stonewell_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 6503,
+   "y": 11269,
+   "objets": 36,
+   "surface_m2": 144,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     31
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     5
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 5023,
+   "y": 9904,
+   "objets": 34,
+   "surface_m2": 136,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     24
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     10
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 3584,
+   "y": 11909,
+   "objets": 32,
+   "surface_m2": 507,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     21
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     10
+    ],
+    [
+     "watertower_02_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 6274,
+   "y": 10309,
+   "objets": 28,
+   "surface_m2": 112,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     24
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 11496,
+   "y": 9589,
+   "objets": 24,
+   "surface_m2": 544,
+   "places": 1,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     19
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     3
+    ],
+    [
+     "waterstation_01_f.p3d",
+     1
+    ],
+    [
+     "watertower_02_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 1512,
+   "y": 9691,
+   "objets": 23,
+   "surface_m2": 92,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     13
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     9
+    ],
+    [
+     "stonewell_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 4890,
+   "y": 7664,
+   "objets": 22,
+   "surface_m2": 88,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     21
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 8452,
+   "y": 11990,
+   "objets": 21,
+   "surface_m2": 84,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     16
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     5
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 11301,
+   "y": 675,
+   "objets": 16,
+   "surface_m2": 64,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     15
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 3986,
+   "y": 8031,
+   "objets": 15,
+   "surface_m2": 60,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     13
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 981,
+   "y": 5525,
+   "objets": 13,
+   "surface_m2": 52,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     8
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     3
+    ],
+    [
+     "stonewell_01_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 11168,
+   "y": 2336,
+   "objets": 9,
+   "surface_m2": 36,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     5
+    ],
+    [
+     "stonewell_01_f.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 3259,
+   "y": 2092,
+   "objets": 8,
+   "surface_m2": 32,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     7
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 8843,
+   "y": 6669,
+   "objets": 8,
+   "surface_m2": 32,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     8
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 1263,
+   "y": 8111,
+   "objets": 7,
+   "surface_m2": 407,
+   "places": 0,
+   "modeles": [
+    [
+     "stonewell_01_f.p3d",
+     2
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     2
+    ],
+    [
+     "concretewell_02_f.p3d",
+     2
+    ],
+    [
+     "watertower_02_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 9087,
+   "y": 4425,
+   "objets": 7,
+   "surface_m2": 28,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     5
+    ],
+    [
+     "drytoilet_01_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 8083,
+   "y": 8731,
+   "objets": 6,
+   "surface_m2": 93,
+   "places": 1,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     3
+    ],
+    [
+     "stonewell_01_f.p3d",
+     2
+    ],
+    [
+     "waterstation_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 11646,
+   "y": 408,
+   "objets": 6,
+   "surface_m2": 24,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     6
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 7593,
+   "y": 5263,
+   "objets": 5,
+   "surface_m2": 20,
+   "places": 0,
+   "modeles": [
+    [
+     "stonewell_01_f.p3d",
+     3
+    ],
+    [
+     "concretewell_02_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 11888,
+   "y": 7371,
+   "objets": 5,
+   "surface_m2": 20,
+   "places": 0,
+   "modeles": [
+    [
+     "drytoilet_01_f.p3d",
+     2
+    ],
+    [
+     "concretewell_02_f.p3d",
+     2
+    ],
+    [
+     "stonewell_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 7046,
+   "y": 3958,
+   "objets": 4,
+   "surface_m2": 85,
+   "places": 1,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     3
+    ],
+    [
+     "waterstation_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 7326,
+   "y": 6433,
+   "objets": 4,
+   "surface_m2": 16,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     2
+    ],
+    [
+     "stonewell_01_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 10867,
+   "y": 974,
+   "objets": 4,
+   "surface_m2": 16,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     4
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 6126,
+   "y": 8171,
+   "objets": 3,
+   "surface_m2": 12,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "eau",
+   "x": 8474,
+   "y": 6841,
+   "objets": 3,
+   "surface_m2": 12,
+   "places": 0,
+   "modeles": [
+    [
+     "concretewell_02_f.p3d",
+     2
+    ],
+    [
+     "stonewell_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 11542,
+   "y": 7106,
+   "objets": 13,
+   "surface_m2": 560,
+   "places": 5,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     6
+    ],
+    [
+     "dp_transformer_f.p3d",
+     6
+    ],
+    [
+     "powerstation_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 7853,
+   "y": 9900,
+   "objets": 7,
+   "surface_m2": 116,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     3
+    ],
+    [
+     "mobileradar_01_generator_f.p3d",
+     2
+    ],
+    [
+     "dp_transformer_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 1264,
+   "y": 7741,
+   "objets": 4,
+   "surface_m2": 88,
+   "places": 1,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     3
+    ],
+    [
+     "substation_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 3994,
+   "y": 10214,
+   "objets": 4,
+   "surface_m2": 420,
+   "places": 5,
+   "modeles": [
+    [
+     "mobileradar_01_generator_f.p3d",
+     2
+    ],
+    [
+     "powerstation_01_f.p3d",
+     1
+    ],
+    [
+     "spp_transformer_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 1154,
+   "y": 7233,
+   "objets": 3,
+   "surface_m2": 432,
+   "places": 6,
+   "modeles": [
+    [
+     "powergenerator_wreck_f.p3d",
+     1
+    ],
+    [
+     "substation_01_f.p3d",
+     1
+    ],
+    [
+     "powerstation_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 8162,
+   "y": 10717,
+   "objets": 3,
+   "surface_m2": 402,
+   "places": 5,
+   "modeles": [
+    [
+     "mobileradar_01_generator_f.p3d",
+     2
+    ],
+    [
+     "powerstation_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 9305,
+   "y": 11111,
+   "objets": 3,
+   "surface_m2": 2368,
+   "places": 9,
+   "modeles": [
+    [
+     "substation_01_f.p3d",
+     1
+    ],
+    [
+     "powerstation_01_f.p3d",
+     1
+    ],
+    [
+     "dpp_01_mainfactory_old_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 1588,
+   "y": 7382,
+   "objets": 2,
+   "surface_m2": 68,
+   "places": 2,
+   "modeles": [
+    [
+     "substation_01_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 2049,
+   "y": 7406,
+   "objets": 2,
+   "surface_m2": 36,
+   "places": 0,
+   "modeles": [
+    [
+     "spp_transformer_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 5646,
+   "y": 3796,
+   "objets": 2,
+   "surface_m2": 35,
+   "places": 0,
+   "modeles": [
+    [
+     "mobileradar_01_generator_f.p3d",
+     1
+    ],
+    [
+     "spp_transformer_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 4337,
+   "y": 10445,
+   "objets": 2,
+   "surface_m2": 35,
+   "places": 0,
+   "modeles": [
+    [
+     "mobileradar_01_generator_f.p3d",
+     1
+    ],
+    [
+     "spp_transformer_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 7319,
+   "y": 2893,
+   "objets": 2,
+   "surface_m2": 2334,
+   "places": 8,
+   "modeles": [
+    [
+     "powerstation_01_f.p3d",
+     1
+    ],
+    [
+     "dpp_01_mainfactory_old_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 9984,
+   "y": 8582,
+   "objets": 2,
+   "surface_m2": 34,
+   "places": 0,
+   "modeles": [
+    [
+     "mobileradar_01_generator_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 11282,
+   "y": 9588,
+   "objets": 2,
+   "surface_m2": 52,
+   "places": 1,
+   "modeles": [
+    [
+     "substation_01_f.p3d",
+     1
+    ],
+    [
+     "spp_transformer_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 10908,
+   "y": 9044,
+   "objets": 2,
+   "surface_m2": 398,
+   "places": 5,
+   "modeles": [
+    [
+     "powergenerator_wreck_f.p3d",
+     1
+    ],
+    [
+     "powerstation_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 5676,
+   "y": 3732,
+   "objets": 2,
+   "surface_m2": 790,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 5226,
+   "y": 5694,
+   "objets": 2,
+   "surface_m2": 790,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 4092,
+   "y": 10208,
+   "objets": 2,
+   "surface_m2": 7148,
+   "places": 24,
+   "modeles": [
+    [
+     "servicehangar_01_r_f.p3d",
+     1
+    ],
+    [
+     "servicehangar_01_l_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 6437,
+   "y": 4812,
+   "objets": 2,
+   "surface_m2": 790,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 9368,
+   "y": 11170,
+   "objets": 2,
+   "surface_m2": 790,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 10855,
+   "y": 9008,
+   "objets": 2,
+   "surface_m2": 790,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 1616,
+   "y": 7545,
+   "objets": 1,
+   "surface_m2": 395,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 1843,
+   "y": 7650,
+   "objets": 1,
+   "surface_m2": 395,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 1247,
+   "y": 7792,
+   "objets": 1,
+   "surface_m2": 395,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 5212,
+   "y": 10472,
+   "objets": 1,
+   "surface_m2": 395,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 7270,
+   "y": 2960,
+   "objets": 1,
+   "surface_m2": 395,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 9109,
+   "y": 6686,
+   "objets": 1,
+   "surface_m2": 395,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 11515,
+   "y": 454,
+   "objets": 1,
+   "surface_m2": 395,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "hangar",
+   "x": 11487,
+   "y": 7047,
+   "objets": 1,
+   "surface_m2": 395,
+   "places": 0,
+   "modeles": [
+    [
+     "shed_big_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 1650,
+   "y": 7469,
+   "objets": 86,
+   "surface_m2": 28626,
+   "places": 478,
+   "modeles": [
+    [
+     "workshop_02_f.p3d",
+     14
+    ],
+    [
+     "workshop_04_f.p3d",
+     13
+    ],
+    [
+     "workshop_03_f.p3d",
+     12
+    ],
+    [
+     "workshop_01_f.p3d",
+     10
+    ],
+    [
+     "workshop_05_f.p3d",
+     9
+    ],
+    [
+     "i_shed_ind_old_f.p3d",
+     5
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 5947,
+   "y": 4013,
+   "objets": 37,
+   "surface_m2": 10705,
+   "places": 173,
+   "modeles": [
+    [
+     "workshop_01_f.p3d",
+     11
+    ],
+    [
+     "workshop_04_f.p3d",
+     7
+    ],
+    [
+     "workshop_02_f.p3d",
+     6
+    ],
+    [
+     "i_shed_ind_old_f.p3d",
+     3
+    ],
+    [
+     "metal_shed_f.p3d",
+     3
+    ],
+    [
+     "workshop_05_f.p3d",
+     3
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 7404,
+   "y": 2703,
+   "objets": 33,
+   "surface_m2": 16725,
+   "places": 273,
+   "modeles": [
+    [
+     "workshop_02_grey_f.p3d",
+     5
+    ],
+    [
+     "i_shed_ind_old_f.p3d",
+     4
+    ],
+    [
+     "workshop_04_grey_f.p3d",
+     4
+    ],
+    [
+     "workshop_05_grey_f.p3d",
+     4
+    ],
+    [
+     "factory_tunnel_f.p3d",
+     3
+    ],
+    [
+     "mine_01_warehouse_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 10765,
+   "y": 11090,
+   "objets": 32,
+   "surface_m2": 7764,
+   "places": 153,
+   "modeles": [
+    [
+     "workshop_01_f.p3d",
+     9
+    ],
+    [
+     "workshop_02_f.p3d",
+     6
+    ],
+    [
+     "metal_shed_f.p3d",
+     4
+    ],
+    [
+     "workshop_04_f.p3d",
+     4
+    ],
+    [
+     "workshop_05_f.p3d",
+     3
+    ],
+    [
+     "workshop_03_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 11444,
+   "y": 9562,
+   "objets": 26,
+   "surface_m2": 5620,
+   "places": 97,
+   "modeles": [
+    [
+     "workshop_02_f.p3d",
+     6
+    ],
+    [
+     "workshop_01_f.p3d",
+     5
+    ],
+    [
+     "metal_shed_f.p3d",
+     4
+    ],
+    [
+     "workshop_05_f.p3d",
+     4
+    ],
+    [
+     "workshop_03_f.p3d",
+     3
+    ],
+    [
+     "workshop_04_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 3476,
+   "y": 11922,
+   "objets": 22,
+   "surface_m2": 4774,
+   "places": 117,
+   "modeles": [
+    [
+     "workshop_03_f.p3d",
+     5
+    ],
+    [
+     "workshop_01_f.p3d",
+     5
+    ],
+    [
+     "workshop_05_f.p3d",
+     3
+    ],
+    [
+     "workshop_04_f.p3d",
+     3
+    ],
+    [
+     "industrialshed_01_f.p3d",
+     2
+    ],
+    [
+     "workshop_02_f.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 10991,
+   "y": 9028,
+   "objets": 22,
+   "surface_m2": 12907,
+   "places": 223,
+   "modeles": [
+    [
+     "workshop_02_f.p3d",
+     5
+    ],
+    [
+     "i_shed_ind_old_f.p3d",
+     3
+    ],
+    [
+     "workshop_04_f.p3d",
+     2
+    ],
+    [
+     "cementworks_01_grey_f.p3d",
+     2
+    ],
+    [
+     "workshop_03_f.p3d",
+     2
+    ],
+    [
+     "mine_01_hopper_silo_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 1224,
+   "y": 8937,
+   "objets": 21,
+   "surface_m2": 2666,
+   "places": 19,
+   "modeles": [
+    [
+     "mine_01_minecart_f.p3d",
+     13
+    ],
+    [
+     "mine_01_hopper_silo_f.p3d",
+     1
+    ],
+    [
+     "workshop_04_f.p3d",
+     1
+    ],
+    [
+     "workshop_02_f.p3d",
+     1
+    ],
+    [
+     "workshop_03_f.p3d",
+     1
+    ],
+    [
+     "mine_01_warehouse_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 11317,
+   "y": 4413,
+   "objets": 19,
+   "surface_m2": 3775,
+   "places": 46,
+   "modeles": [
+    [
+     "workshop_02_f.p3d",
+     7
+    ],
+    [
+     "workshop_01_f.p3d",
+     4
+    ],
+    [
+     "workshop_05_f.p3d",
+     4
+    ],
+    [
+     "workshop_03_f.p3d",
+     3
+    ],
+    [
+     "workshop_04_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 1688,
+   "y": 9604,
+   "objets": 18,
+   "surface_m2": 3856,
+   "places": 79,
+   "modeles": [
+    [
+     "workshop_01_f.p3d",
+     6
+    ],
+    [
+     "workshop_02_f.p3d",
+     5
+    ],
+    [
+     "workshop_03_f.p3d",
+     2
+    ],
+    [
+     "workshop_05_f.p3d",
+     1
+    ],
+    [
+     "i_shed_ind_old_f.p3d",
+     1
+    ],
+    [
+     "industrialshed_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 6424,
+   "y": 11238,
+   "objets": 16,
+   "surface_m2": 4473,
+   "places": 107,
+   "modeles": [
+    [
+     "workshop_01_f.p3d",
+     5
+    ],
+    [
+     "workshop_03_f.p3d",
+     4
+    ],
+    [
+     "workshop_04_f.p3d",
+     2
+    ],
+    [
+     "i_shed_ind_old_f.p3d",
+     2
+    ],
+    [
+     "industrialshed_01_f.p3d",
+     2
+    ],
+    [
+     "workshop_05_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 11490,
+   "y": 487,
+   "objets": 15,
+   "surface_m2": 4509,
+   "places": 72,
+   "modeles": [
+    [
+     "workshop_01_f.p3d",
+     4
+    ],
+    [
+     "workshop_02_f.p3d",
+     3
+    ],
+    [
+     "workshop_05_f.p3d",
+     2
+    ],
+    [
+     "workshop_04_f.p3d",
+     2
+    ],
+    [
+     "factory_02_f.p3d",
+     1
+    ],
+    [
+     "i_shed_ind_old_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 9453,
+   "y": 10955,
+   "objets": 13,
+   "surface_m2": 5669,
+   "places": 103,
+   "modeles": [
+    [
+     "workshop_05_f.p3d",
+     3
+    ],
+    [
+     "sawmill_01_illuminati_tower_f.p3d",
+     2
+    ],
+    [
+     "workshop_02_f.p3d",
+     1
+    ],
+    [
+     "industrialshed_01_f.p3d",
+     1
+    ],
+    [
+     "workshop_02_grey_f.p3d",
+     1
+    ],
+    [
+     "dpp_01_smallfactory_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 11538,
+   "y": 7050,
+   "objets": 11,
+   "surface_m2": 4900,
+   "places": 102,
+   "modeles": [
+    [
+     "i_shed_ind_old_f.p3d",
+     2
+    ],
+    [
+     "coalplant_01_conveyor_f.p3d",
+     1
+    ],
+    [
+     "industrialshed_01_f.p3d",
+     1
+    ],
+    [
+     "workshop_04_grey_f.p3d",
+     1
+    ],
+    [
+     "cementworks_01_grey_f.p3d",
+     1
+    ],
+    [
+     "workshop_03_grey_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 4014,
+   "y": 7994,
+   "objets": 10,
+   "surface_m2": 1963,
+   "places": 29,
+   "modeles": [
+    [
+     "workshop_02_f.p3d",
+     4
+    ],
+    [
+     "workshop_04_f.p3d",
+     2
+    ],
+    [
+     "workshop_05_f.p3d",
+     1
+    ],
+    [
+     "workshop_03_f.p3d",
+     1
+    ],
+    [
+     "workshop_01_f.p3d",
+     1
+    ],
+    [
+     "metal_shed_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 5186,
+   "y": 10430,
+   "objets": 9,
+   "surface_m2": 3013,
+   "places": 86,
+   "modeles": [
+    [
+     "metal_shed_f.p3d",
+     3
+    ],
+    [
+     "workshop_03_f.p3d",
+     1
+    ],
+    [
+     "workshop_01_f.p3d",
+     1
+    ],
+    [
+     "industrialshed_01_f.p3d",
+     1
+    ],
+    [
+     "workshop_05_f.p3d",
+     1
+    ],
+    [
+     "factory_02_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 9845,
+   "y": 8544,
+   "objets": 9,
+   "surface_m2": 1985,
+   "places": 25,
+   "modeles": [
+    [
+     "workshop_04_f.p3d",
+     2
+    ],
+    [
+     "workshop_05_f.p3d",
+     2
+    ],
+    [
+     "workshop_03_f.p3d",
+     2
+    ],
+    [
+     "sawmill_01_illuminati_tower_f.p3d",
+     1
+    ],
+    [
+     "workshop_02_f.p3d",
+     1
+    ],
+    [
+     "rail_warehouse_small_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 839,
+   "y": 5576,
+   "objets": 8,
+   "surface_m2": 1514,
+   "places": 19,
+   "modeles": [
+    [
+     "workshop_01_f.p3d",
+     3
+    ],
+    [
+     "workshop_02_f.p3d",
+     2
+    ],
+    [
+     "workshop_05_f.p3d",
+     2
+    ],
+    [
+     "workshop_03_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 2162,
+   "y": 11054,
+   "objets": 8,
+   "surface_m2": 4142,
+   "places": 65,
+   "modeles": [
+    [
+     "i_shed_ind_old_f.p3d",
+     6
+    ],
+    [
+     "workshop_05_grey_f.p3d",
+     1
+    ],
+    [
+     "workshop_02_grey_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 5063,
+   "y": 9923,
+   "objets": 8,
+   "surface_m2": 1542,
+   "places": 20,
+   "modeles": [
+    [
+     "workshop_01_f.p3d",
+     4
+    ],
+    [
+     "workshop_03_f.p3d",
+     2
+    ],
+    [
+     "workshop_05_f.p3d",
+     1
+    ],
+    [
+     "workshop_04_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 6388,
+   "y": 4761,
+   "objets": 8,
+   "surface_m2": 2668,
+   "places": 66,
+   "modeles": [
+    [
+     "i_shed_ind_old_f.p3d",
+     2
+    ],
+    [
+     "workshop_04_grey_f.p3d",
+     1
+    ],
+    [
+     "workshop_03_grey_f.p3d",
+     1
+    ],
+    [
+     "workshop_02_grey_f.p3d",
+     1
+    ],
+    [
+     "workshop_05_grey_f.p3d",
+     1
+    ],
+    [
+     "metal_shed_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 4194,
+   "y": 10308,
+   "objets": 6,
+   "surface_m2": 1228,
+   "places": 15,
+   "modeles": [
+    [
+     "workshop_02_f.p3d",
+     2
+    ],
+    [
+     "workshop_05_grey_f.p3d",
+     1
+    ],
+    [
+     "workshop_01_f.p3d",
+     1
+    ],
+    [
+     "workshop_05_f.p3d",
+     1
+    ],
+    [
+     "workshop_03_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 8234,
+   "y": 11180,
+   "objets": 6,
+   "surface_m2": 1365,
+   "places": 16,
+   "modeles": [
+    [
+     "workshop_02_f.p3d",
+     2
+    ],
+    [
+     "workshop_04_f.p3d",
+     2
+    ],
+    [
+     "workshop_05_f.p3d",
+     1
+    ],
+    [
+     "workshop_03_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 3112,
+   "y": 6884,
+   "objets": 4,
+   "surface_m2": 800,
+   "places": 10,
+   "modeles": [
+    [
+     "workshop_02_f.p3d",
+     1
+    ],
+    [
+     "workshop_05_f.p3d",
+     1
+    ],
+    [
+     "workshop_03_f.p3d",
+     1
+    ],
+    [
+     "workshop_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 5220,
+   "y": 5678,
+   "objets": 4,
+   "surface_m2": 1646,
+   "places": 13,
+   "modeles": [
+    [
+     "workshop_02_f.p3d",
+     1
+    ],
+    [
+     "sawmill_01_f.p3d",
+     1
+    ],
+    [
+     "workshop_01_f.p3d",
+     1
+    ],
+    [
+     "workshop_03_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 6262,
+   "y": 10095,
+   "objets": 4,
+   "surface_m2": 837,
+   "places": 10,
+   "modeles": [
+    [
+     "workshop_02_f.p3d",
+     2
+    ],
+    [
+     "workshop_05_f.p3d",
+     1
+    ],
+    [
+     "workshop_03_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 9036,
+   "y": 6597,
+   "objets": 4,
+   "surface_m2": 1171,
+   "places": 17,
+   "modeles": [
+    [
+     "i_shed_ind_old_f.p3d",
+     1
+    ],
+    [
+     "workshop_02_f.p3d",
+     1
+    ],
+    [
+     "workshop_03_f.p3d",
+     1
+    ],
+    [
+     "workshop_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 10642,
+   "y": 6956,
+   "objets": 4,
+   "surface_m2": 1934,
+   "places": 38,
+   "modeles": [
+    [
+     "factory_02_f.p3d",
+     1
+    ],
+    [
+     "workshop_03_f.p3d",
+     1
+    ],
+    [
+     "workshop_02_f.p3d",
+     1
+    ],
+    [
+     "metal_shed_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 4836,
+   "y": 7587,
+   "objets": 3,
+   "surface_m2": 907,
+   "places": 34,
+   "modeles": [
+    [
+     "workshop_03_f.p3d",
+     1
+    ],
+    [
+     "industrialshed_01_f.p3d",
+     1
+    ],
+    [
+     "workshop_04_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 7621,
+   "y": 11531,
+   "objets": 3,
+   "surface_m2": 1839,
+   "places": 31,
+   "modeles": [
+    [
+     "workshop_02_f.p3d",
+     1
+    ],
+    [
+     "factory_02_f.p3d",
+     1
+    ],
+    [
+     "workshop_03_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 8158,
+   "y": 10852,
+   "objets": 3,
+   "surface_m2": 1063,
+   "places": 15,
+   "modeles": [
+    [
+     "workshop_04_f.p3d",
+     1
+    ],
+    [
+     "workshop_02_f.p3d",
+     1
+    ],
+    [
+     "i_shed_ind_old_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 10881,
+   "y": 960,
+   "objets": 3,
+   "surface_m2": 636,
+   "places": 8,
+   "modeles": [
+    [
+     "workshop_01_f.p3d",
+     1
+    ],
+    [
+     "workshop_04_f.p3d",
+     1
+    ],
+    [
+     "workshop_03_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 9822,
+   "y": 8563,
+   "objets": 22,
+   "surface_m2": 3691,
+   "places": 130,
+   "modeles": [
+    [
+     "cargo20_military_green_f.p3d",
+     5
+    ],
+    [
+     "guardtower_02_f.p3d",
+     4
+    ],
+    [
+     "cargo10_military_green_f.p3d",
+     3
+    ],
+    [
+     "barracks_04_f.p3d",
+     3
+    ],
+    [
+     "barracks_03_f.p3d",
+     2
+    ],
+    [
+     "cargo40_military_green_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 5122,
+   "y": 2168,
+   "objets": 21,
+   "surface_m2": 2452,
+   "places": 115,
+   "modeles": [
+    [
+     "guardtower_02_f.p3d",
+     7
+    ],
+    [
+     "guardtower_01_f.p3d",
+     5
+    ],
+    [
+     "guardhouse_02_f.p3d",
+     2
+    ],
+    [
+     "barracks_05_f.p3d",
+     2
+    ],
+    [
+     "deerstand_01_f.p3d",
+     2
+    ],
+    [
+     "barracks_04_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 2129,
+   "y": 10959,
+   "objets": 14,
+   "surface_m2": 2759,
+   "places": 88,
+   "modeles": [
+    [
+     "cargo20_military_green_f.p3d",
+     5
+    ],
+    [
+     "guardhouse_03_f.p3d",
+     1
+    ],
+    [
+     "barracks_04_f.p3d",
+     1
+    ],
+    [
+     "guardbox_01_green_f.p3d",
+     1
+    ],
+    [
+     "cargo40_military_green_f.p3d",
+     1
+    ],
+    [
+     "barracks_03_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 7893,
+   "y": 9802,
+   "objets": 14,
+   "surface_m2": 2850,
+   "places": 115,
+   "modeles": [
+    [
+     "guardtower_02_f.p3d",
+     7
+    ],
+    [
+     "guardhouse_02_f.p3d",
+     2
+    ],
+    [
+     "barracks_03_f.p3d",
+     1
+    ],
+    [
+     "barracks_02_f.p3d",
+     1
+    ],
+    [
+     "barracks_04_f.p3d",
+     1
+    ],
+    [
+     "barracks_06_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 5627,
+   "y": 3784,
+   "objets": 11,
+   "surface_m2": 2278,
+   "places": 111,
+   "modeles": [
+    [
+     "guardtower_02_f.p3d",
+     4
+    ],
+    [
+     "cargo40_military_green_f.p3d",
+     2
+    ],
+    [
+     "cargo20_military_green_f.p3d",
+     2
+    ],
+    [
+     "i_barracks_v1_f.p3d",
+     2
+    ],
+    [
+     "guardhouse_02_grey_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 9026,
+   "y": 6621,
+   "objets": 11,
+   "surface_m2": 3102,
+   "places": 115,
+   "modeles": [
+    [
+     "barracks_03_f.p3d",
+     3
+    ],
+    [
+     "barracks_06_f.p3d",
+     1
+    ],
+    [
+     "guardhouse_02_f.p3d",
+     1
+    ],
+    [
+     "guardbox_01_green_f.p3d",
+     1
+    ],
+    [
+     "u_barracks_v2_f.p3d",
+     1
+    ],
+    [
+     "barracks_02_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 7766,
+   "y": 5884,
+   "objets": 9,
+   "surface_m2": 2862,
+   "places": 111,
+   "modeles": [
+    [
+     "i_barracks_v1_f.p3d",
+     1
+    ],
+    [
+     "barracks_06_f.p3d",
+     1
+    ],
+    [
+     "barracks_04_f.p3d",
+     1
+    ],
+    [
+     "barracks_03_f.p3d",
+     1
+    ],
+    [
+     "barracks_02_f.p3d",
+     1
+    ],
+    [
+     "guardhouse_03_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 6432,
+   "y": 8171,
+   "objets": 8,
+   "surface_m2": 1213,
+   "places": 47,
+   "modeles": [
+    [
+     "guardtower_02_f.p3d",
+     3
+    ],
+    [
+     "barracks_03_f.p3d",
+     2
+    ],
+    [
+     "guardhouse_02_f.p3d",
+     1
+    ],
+    [
+     "barracks_04_f.p3d",
+     1
+    ],
+    [
+     "barracks_02_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 7437,
+   "y": 2613,
+   "objets": 7,
+   "surface_m2": 1285,
+   "places": 42,
+   "modeles": [
+    [
+     "guardhouse_03_f.p3d",
+     3
+    ],
+    [
+     "guardhouse_02_grey_f.p3d",
+     2
+    ],
+    [
+     "barracks_04_f.p3d",
+     1
+    ],
+    [
+     "barracks_02_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 3932,
+   "y": 1291,
+   "objets": 6,
+   "surface_m2": 534,
+   "places": 16,
+   "modeles": [
+    [
+     "bunker_02_double_f.p3d",
+     2
+    ],
+    [
+     "deerstand_01_f.p3d",
+     2
+    ],
+    [
+     "bunker_02_right_f.p3d",
+     1
+    ],
+    [
+     "bunker_02_light_double_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 4428,
+   "y": 6707,
+   "objets": 6,
+   "surface_m2": 1249,
+   "places": 50,
+   "modeles": [
+    [
+     "barracks_03_f.p3d",
+     2
+    ],
+    [
+     "barracks_04_f.p3d",
+     1
+    ],
+    [
+     "guardhouse_02_f.p3d",
+     1
+    ],
+    [
+     "barracks_02_f.p3d",
+     1
+    ],
+    [
+     "guardtower_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 8160,
+   "y": 10994,
+   "objets": 6,
+   "surface_m2": 1883,
+   "places": 56,
+   "modeles": [
+    [
+     "barracks_04_f.p3d",
+     2
+    ],
+    [
+     "barracks_06_f.p3d",
+     1
+    ],
+    [
+     "barracks_02_f.p3d",
+     1
+    ],
+    [
+     "barracks_03_f.p3d",
+     1
+    ],
+    [
+     "guardtower_02_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 9901,
+   "y": 3781,
+   "objets": 5,
+   "surface_m2": 706,
+   "places": 28,
+   "modeles": [
+    [
+     "guardbox_01_brown_f.p3d",
+     1
+    ],
+    [
+     "barracks_04_f.p3d",
+     1
+    ],
+    [
+     "barracks_03_f.p3d",
+     1
+    ],
+    [
+     "guardtower_01_f.p3d",
+     1
+    ],
+    [
+     "guardtower_02_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 10929,
+   "y": 9030,
+   "objets": 5,
+   "surface_m2": 348,
+   "places": 10,
+   "modeles": [
+    [
+     "cargo20_military_green_f.p3d",
+     2
+    ],
+    [
+     "guardhouse_02_grey_f.p3d",
+     1
+    ],
+    [
+     "cargo40_military_green_f.p3d",
+     1
+    ],
+    [
+     "guardhouse_03_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 1532,
+   "y": 7522,
+   "objets": 4,
+   "surface_m2": 2118,
+   "places": 86,
+   "modeles": [
+    [
+     "u_barracks_v2_f.p3d",
+     2
+    ],
+    [
+     "guardhouse_02_f.p3d",
+     1
+    ],
+    [
+     "guardhouse_03_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 4770,
+   "y": 858,
+   "objets": 4,
+   "surface_m2": 68,
+   "places": 5,
+   "modeles": [
+    [
+     "guardtower_02_f.p3d",
+     2
+    ],
+    [
+     "guardbox_01_brown_f.p3d",
+     1
+    ],
+    [
+     "deerstand_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 4355,
+   "y": 10416,
+   "objets": 4,
+   "surface_m2": 1174,
+   "places": 35,
+   "modeles": [
+    [
+     "barracks_04_f.p3d",
+     1
+    ],
+    [
+     "guardhouse_02_grey_f.p3d",
+     1
+    ],
+    [
+     "barracks_06_f.p3d",
+     1
+    ],
+    [
+     "guardtower_02_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 5414,
+   "y": 10376,
+   "objets": 4,
+   "surface_m2": 409,
+   "places": 15,
+   "modeles": [
+    [
+     "guardhouse_02_f.p3d",
+     1
+    ],
+    [
+     "guardhouse_03_f.p3d",
+     1
+    ],
+    [
+     "bunker_02_light_double_f.p3d",
+     1
+    ],
+    [
+     "deerstand_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "militaire",
+   "x": 8942,
+   "y": 4294,
+   "objets": 4,
+   "surface_m2": 362,
+   "places": 11,
+   "modeles": [
+    [
+     "bunker_02_right_f.p3d",
+     2
+    ],
+    [
+     "bunker_02_left_f.p3d",
+     1
+    ],
+    [
+     "deerstand_01_f.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "piste",
+   "x": 4235,
+   "y": 10593,
+   "objets": 0,
+   "surface_m2": 0,
+   "places": 0,
+   "modeles": []
+  },
+  {
+   "fonction": "port",
+   "x": 3485,
+   "y": 8888,
+   "objets": 2,
+   "surface_m2": 64,
+   "places": 0,
+   "modeles": [
+    [
+     "pierwooden_03_f.p3d",
+     2
+    ]
+   ]
+  }
+ ],
+ "logements": {
+  "Nadbor": {
+   "batiments": 179,
+   "places": 671,
+   "surface_m2": 31493,
+   "type": "NameCity"
+  },
+  "Topolin": {
+   "batiments": 162,
+   "places": 607,
+   "surface_m2": 27072,
+   "type": "NameCity"
+  },
+  "Gieraltow": {
+   "batiments": 149,
+   "places": 576,
+   "surface_m2": 25347,
+   "type": "NameVillage"
+  },
+  "Tarnow": {
+   "batiments": 126,
+   "places": 482,
+   "surface_m2": 24209,
+   "type": "NameCity"
+  },
+  "ind1": {
+   "batiments": 95,
+   "places": 373,
+   "surface_m2": 18669,
+   "type": "NameLocal"
+  },
+  "Lukow": {
+   "batiments": 132,
+   "places": 370,
+   "surface_m2": 19351,
+   "type": "NameVillage"
+  },
+  "Adamow": {
+   "batiments": 98,
+   "places": 351,
+   "surface_m2": 14837,
+   "type": "NameVillage"
+  },
+  "Grabin": {
+   "batiments": 98,
+   "places": 335,
+   "surface_m2": 17637,
+   "type": "NameVillage"
+  },
+  "Dolnik": {
+   "batiments": 72,
+   "places": 306,
+   "surface_m2": 14263,
+   "type": "NameVillage"
+  },
+  "Brena": {
+   "batiments": 105,
+   "places": 286,
+   "surface_m2": 15121,
+   "type": "NameCity"
+  },
+  "Sitnik": {
+   "batiments": 102,
+   "places": 282,
+   "surface_m2": 15181,
+   "type": "NameVillage"
+  },
+  "Gliniska": {
+   "batiments": 93,
+   "places": 272,
+   "surface_m2": 13758,
+   "type": "NameVillage"
+  },
+  "Lembork": {
+   "batiments": 41,
+   "places": 251,
+   "surface_m2": 11848,
+   "type": "NameVillage"
+  },
+  "Bielawa": {
+   "batiments": 76,
+   "places": 240,
+   "surface_m2": 12213,
+   "type": "NameVillage"
+  },
+  "Radacz": {
+   "batiments": 71,
+   "places": 216,
+   "surface_m2": 10694,
+   "type": "NameVillage"
+  },
+  "Karlin": {
+   "batiments": 39,
+   "places": 214,
+   "surface_m2": 11135,
+   "type": "NameVillage"
+  },
+  "Muratyn": {
+   "batiments": 26,
+   "places": 195,
+   "surface_m2": 9893,
+   "type": "NameVillage"
+  },
+  "Zapadlisko": {
+   "batiments": 26,
+   "places": 193,
+   "surface_m2": 9696,
+   "type": "NameVillage"
+  },
+  "Huta": {
+   "batiments": 28,
+   "places": 191,
+   "surface_m2": 10001,
+   "type": "NameVillage"
+  },
+  "Roztoka": {
+   "batiments": 23,
+   "places": 189,
+   "surface_m2": 8343,
+   "type": "NameVillage"
+  },
+  "Nidek": {
+   "batiments": 25,
+   "places": 183,
+   "surface_m2": 9470,
+   "type": "NameVillage"
+  },
+  "Borek": {
+   "batiments": 24,
+   "places": 183,
+   "surface_m2": 9346,
+   "type": "NameVillage"
+  },
+  "Kolembrody": {
+   "batiments": 54,
+   "places": 180,
+   "surface_m2": 6813,
+   "type": "NameVillage"
+  },
+  "Sobotka": {
+   "batiments": 61,
+   "places": 178,
+   "surface_m2": 7959,
+   "type": "NameVillage"
+  },
+  "Radunin": {
+   "batiments": 25,
+   "places": 176,
+   "surface_m2": 9318,
+   "type": "NameCity"
+  },
+  "Lipina": {
+   "batiments": 24,
+   "places": 169,
+   "surface_m2": 8351,
+   "type": "NameVillage"
+  },
+  "Olszanka": {
+   "batiments": 52,
+   "places": 165,
+   "surface_m2": 8344,
+   "type": "NameVillage"
+  },
+  "Polana": {
+   "batiments": 34,
+   "places": 159,
+   "surface_m2": 6051,
+   "type": "NameVillage"
+  },
+  "Zalesie": {
+   "batiments": 48,
+   "places": 158,
+   "surface_m2": 6819,
+   "type": "NameVillage"
+  },
+  "powerplant": {
+   "batiments": 33,
+   "places": 150,
+   "surface_m2": 8148,
+   "type": "NameLocal"
+  },
+  "ind4": {
+   "batiments": 26,
+   "places": 127,
+   "surface_m2": 5285,
+   "type": "NameLocal"
+  },
+  "drewniki": {
+   "batiments": 15,
+   "places": 111,
+   "surface_m2": 4546,
+   "type": "NameLocal"
+  },
+  "ind2": {
+   "batiments": 35,
+   "places": 88,
+   "surface_m2": 4391,
+   "type": "NameLocal"
+  },
+  "Wrzeszcz": {
+   "batiments": 22,
+   "places": 78,
+   "surface_m2": 2905,
+   "type": "NameLocal"
+  },
+  "farm1": {
+   "batiments": 19,
+   "places": 66,
+   "surface_m2": 4014,
+   "type": "NameLocal"
+  },
+  "ind3": {
+   "batiments": 8,
+   "places": 60,
+   "surface_m2": 2782,
+   "type": "NameLocal"
+  },
+  "kulno": {
+   "batiments": 11,
+   "places": 57,
+   "surface_m2": 2633,
+   "type": "NameLocal"
+  },
+  "Widok": {
+   "batiments": 13,
+   "places": 54,
+   "surface_m2": 2383,
+   "type": "NameLocal"
+  },
+  "farm2": {
+   "batiments": 11,
+   "places": 26,
+   "surface_m2": 2104,
+   "type": "NameLocal"
+  },
+  "Hedrykow": {
+   "batiments": 10,
+   "places": 23,
+   "surface_m2": 929,
+   "type": "NameLocal"
+  },
+  "mil2": {
+   "batiments": 9,
+   "places": 22,
+   "surface_m2": 2238,
+   "type": "NameLocal"
+  },
+  "sawmill": {
+   "batiments": 7,
+   "places": 20,
+   "surface_m2": 693,
+   "type": "NameLocal"
+  },
+  "Bagno": {
+   "batiments": 7,
+   "places": 17,
+   "surface_m2": 678,
+   "type": "NameLocal"
+  },
+  "Jezurow": {
+   "batiments": 7,
+   "places": 16,
+   "surface_m2": 794,
+   "type": "NameLocal"
+  },
+  "Tymbark": {
+   "batiments": 6,
+   "places": 15,
+   "surface_m2": 888,
+   "type": "NameLocal"
+  },
+  "Hrud": {
+   "batiments": 3,
+   "places": 14,
+   "surface_m2": 478,
+   "type": "NameLocal"
+  },
+  "farm": {
+   "batiments": 7,
+   "places": 13,
+   "surface_m2": 1203,
+   "type": "NameLocal"
+  },
+  "quarry": {
+   "batiments": 5,
+   "places": 12,
+   "surface_m2": 819,
+   "type": "NameLocal"
+  },
+  "Branzow_castle": {
+   "batiments": 7,
+   "places": 12,
+   "surface_m2": 524,
+   "type": "NameLocal"
+  },
+  "Airfield": {
+   "batiments": 7,
+   "places": 12,
+   "surface_m2": 553,
+   "type": "NameLocal"
+  },
+  "mil1": {
+   "batiments": 2,
+   "places": 7,
+   "surface_m2": 295,
+   "type": "NameLocal"
+  },
+  "mil4": {
+   "batiments": 2,
+   "places": 3,
+   "surface_m2": 164,
+   "type": "NameLocal"
+  }
+ }
+}
