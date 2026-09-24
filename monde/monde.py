@@ -10,6 +10,7 @@ except ImportError:                # sans lui, le monde tourne en Python, a l id
     COEUR = None
 
 CATEGORIES_PUBLIQUES = ("hopitaux", "armee", "reserve", "population")
+SALAIRE_PAR_ROLE = np.array([0.0] + [float(P.SALAIRE_HORAIRE.get(r, 0)) for r in P.ROLES])   # code du role + 1
 
 
 class ParMenage:
@@ -858,9 +859,14 @@ class Monde:
 
     # --- 4. la paie ( echeance de 18 h ), les pensions, les dividendes ---
     def paie(self):
-        g = self.gouv
-        for p in self.habitants:
-            if not p.vivant: continue
+        """EN COLONNES ( 24/09 ) : les colonnes trouvent qui est paye ( retraites, heures du jour ), la boucle ne passe
+        que sur eux, dans l ordre des habitants. Les paiements restent un a un : l ordre decide qui est paye quand une
+        caisse tombe a sec."""
+        g = self.gouv; t = self.table; n = t.n
+        ro = t.role[:n].astype(np.int64)
+        paye = (t.vivant[:n] == 1) & ((ro == P.CODE_ROLE["retraite"]) | (SALAIRE_PAR_ROLE[ro + 1] * t.heures[:n] > 0))
+        for i in np.nonzero(paye)[0].tolist():
+            p = P.Habitant(t, i)
             if p.role == "retraite":
                 self.transferer(g, p.menage, P.PENSION_JOUR, "pension"); continue
             if p.heures_jour <= 0: continue
@@ -897,16 +903,22 @@ class Monde:
             if e.proprietaire is not None and e.caisse > 10000:
                 brut = self.transferer(e, e.proprietaire.menage, e.caisse - 10000, "dividende")
                 self.transferer(e.proprietaire.menage, g, brut * g.impot_revenu, "impot")
-        for p in self.habitants: p.heures_jour = 0.0
+        t.heures[:n] = 0.0
 
     # --- 5. les achats du soir et le repas ---
     def achats(self):
         ration = self.gouv.lois["rationnement_nourriture"] or C.NOURRITURE_PAR_JOUR
-        for mg in self.menages:
-            vivants = [p for p in mg.membres if p.vivant]
-            if not vivants: continue
+        # EN COLONNES ( 24/09 ) : les membres ( de la liste ) et les vivants de chaque menage comptes d un coup ; la
+        # boucle ne passe que sur les menages qui ont un vivant, dans l ordre, avec les memes paiements
+        t = self.table; n = t.n; M = len(self.menages)
+        ins = P.menages_inscrits(t, n)
+        nb_membres = np.bincount(ins[ins >= 0], minlength=M)
+        nb_vivants = np.bincount(ins[(t.vivant[:n] == 1) & (ins >= 0)], minlength=M)
+        for k in np.nonzero(nb_vivants)[0].tolist():
+            mg = self.menages[k]
+            nv = int(nb_vivants[k])
             m = self.marches[mg.domicile.marche.id]
-            besoin_jour = max(1e-6, ration * len(vivants))
+            besoin_jour = max(1e-6, ration * nv)
             if self.doctrine is None:
                 cible = 1.5                                  # la regle d origine : un jour et demi, toujours
             else:
@@ -939,11 +951,11 @@ class Monde:
                     self.amendes_menage[mg.id] = self.amendes_menage.get(mg.id, 0) + 1
                     self.amendes_totales = getattr(self, "amendes_totales", 0.0) + amende
                 if gf:
-                    norme = max(1e-6, m.prix["nourriture"] * C.NOURRITURE_PAR_JOUR * len(mg.membres))
+                    norme = max(1e-6, m.prix["nourriture"] * C.NOURRITURE_PAR_JOUR * int(nb_membres[k]))
                     gf.ajouter(mg.id, (du - (3 * du if pris else 0.0)) / norme)
             else: self.tva_percue += self.transferer(mg, self.gouv, du, "tva")
             # au-dela d une semaine de nourriture en epargne, le menage depense : biens manufactures et carburant
-            reserve = 7 * ration * len(vivants) * prix
+            reserve = 7 * ration * nv * prix
             budget = max(0.0, mg.caisse - reserve) * C.PROPENSION_DEPENSE
             for b, part, plafond in (("outils", 0.6, 1.0), ("carburant", 0.4, 0.3)):
                 pb = m.prix[b] * (1 + self.gouv.tva)
@@ -962,9 +974,10 @@ class Monde:
         # la ration de l Etat : ce que le gouvernement a achete pour la population est distribue aux menages affames
         stock = self.publics["population"]["nourriture"]
         if stock > 0:
-            affames = [mg for mg in self.menages if mg.garde_manger < len(mg.membres) * 0.5]
-            for mg in affames:
-                q = min(stock, len(mg.membres) * 1.0)
+            gm = t.menages.garde_manger[:M]
+            for k in np.nonzero(gm < nb_membres * 0.5)[0].tolist():
+                mg = self.menages[k]
+                q = min(stock, int(nb_membres[k]) * 1.0)
                 mg.garde_manger += q; stock -= q
             self.publics["population"]["nourriture"] = stock
 
