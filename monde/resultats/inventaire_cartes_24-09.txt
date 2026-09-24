@@ -1,0 +1,21 @@
+en attente des serveurs
+iles connectees ( 6 ) : ['Altis', 'Enoch', 'Malden', 'Sara', 'Stratis', 'Tanoa']
+Stratis : fini en 15 s | 716 objets recus sur 716 annonces | 11 cases de terre sur 25
+Malden : fini en 42 s | 7710 objets recus sur 7710 annonces | 30 cases de terre sur 49
+  en cours : Altis 9091 objets, 40 cases | Enoch 1926 objets, 6 cases | Malden 7710 objets, 30 cases FINI | Sara 3639 objets, 42 cases | Stratis 716 objets, 11 cases FINI | Tanoa 9490 objets, 31 cases
+Sara : fini en 66 s | 3763 objets recus sur 3763 annonces | 52 cases de terre sur 121
+  en cours : Altis 19035 objets, 99 cases | Enoch 3399 objets, 14 cases | Malden 7710 objets, 30 cases FINI | Sara 3763 objets, 52 cases FINI | Stratis 716 objets, 11 cases FINI | Tanoa 17486 objets, 48 cases
+Altis : fini en 133 s | 20265 objets recus sur 20265 annonces | 109 cases de terre sur 256
+Tanoa : fini en 138 s | 19820 objets recus sur 19820 annonces | 57 cases de terre sur 64
+  en cours : Altis 20265 objets, 109 cases FINI | Enoch 5367 objets, 21 cases | Malden 7710 objets, 30 cases FINI | Sara 3763 objets, 52 cases FINI | Stratis 716 objets, 11 cases FINI | Tanoa 19820 objets, 57 cases FINI
+  en cours : Altis 20265 objets, 109 cases FINI | Enoch 7524 objets, 28 cases | Malden 7710 objets, 30 cases FINI | Sara 3763 objets, 52 cases FINI | Stratis 716 objets, 11 cases FINI | Tanoa 19820 objets, 57 cases FINI
+  en cours : Altis 20265 objets, 109 cases FINI | Enoch 9668 objets, 36 cases | Malden 7710 objets, 30 cases FINI | Sara 3763 objets, 52 cases FINI | Stratis 716 objets, 11 cases FINI | Tanoa 19820 objets, 57 cases FINI
+  en cours : Altis 20265 objets, 109 cases FINI | Enoch 12003 objets, 47 cases | Malden 7710 objets, 30 cases FINI | Sara 3763 objets, 52 cases FINI | Stratis 716 objets, 11 cases FINI | Tanoa 19820 objets, 57 cases FINI
+Enoch : fini en 369 s | 12006 objets recus sur 12006 annonces | 49 cases de terre sur 49
+Altis : 20265 objets ecrits dans altis_inventaire.json | HOUSE 17471, POWER LINES 2224, CHAPEL 165, POWERWIND 128, CHURCH 54, POWERWAVE 51, CROSS 48, SHIPWRECK 38, FUELSTATION 32, TRANSMITTER 23, POWERSOLAR 10, WATERTOWER 10, LIGHTHOUSE 6, RUIN 3, HOSPITAL 1, TOURISM 1
+Enoch : 12006 objets ecrits dans enoch_inventaire.json | HOUSE 6763, POWER LINES 2671, BUILDING 1262, RAILWAY 843, VIEW-TOWER 239, BUSSTOP 73, BUNKER 40, FOUNTAIN 36, CHURCH 17, TRANSMITTER 15, FUELSTATION 14, STACK 11, CHAPEL 8, WATERTOWER 7, SHIPWRECK 4, POWERSOLAR 2, POWERWIND 1
+Malden : 7710 objets ecrits dans malden_inventaire.json | HOUSE 4062, POWER LINES 3427, WATERTOWER 63, BUSSTOP 45, FUELSTATION 24, SHIPWRECK 23, CROSS 16, LIGHTHOUSE 14, CHURCH 14, CHAPEL 14, TRANSMITTER 7, POWERSOLAR 1
+Sara : 3763 objets ecrits dans sara_inventaire.json | HOUSE 2416, BUILDING 862, POWER LINES 152, VIEW-TOWER 109, BUSSTOP 86, FOUNTAIN 26, CHAPEL 20, TRANSMITTER 16, QUAY 13, CHURCH 12, LIGHTHOUSE 11, CROSS 11, TOURISM 10, FUELSTATION 10, STACK 5, WATERTOWER 2, RUIN 2
+Stratis : 716 objets ecrits dans stratis_inventaire.json | HOUSE 684, SHIPWRECK 11, TRANSMITTER 11, LIGHTHOUSE 3, FUELSTATION 3, CHAPEL 2, CROSS 1, WATERTOWER 1
+Tanoa : 19820 objets ecrits dans tanoa_inventaire.json | HOUSE 13389, POWER LINES 3985, RAILWAY 2138, FUELSTATION 85, WATERTOWER 73, SHIPWRECK 57, TOURISM 35, CHURCH 21, POWERWIND 19, TRANSMITTER 16, POWERSOLAR 2
+INVENTAIRE COMPLET

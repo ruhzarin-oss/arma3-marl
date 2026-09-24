@@ -186,6 +186,58 @@ MONDE_fnc_executer = {
             };
             (format ["lieux|%1|%2", worldName, _n]) call MONDE_LOG;
         };
+        // ["inventaire", pas_m] : TOUT ce que la carte contient ( 24/09, archipel, phase A ). Les lieux nommes ne disent
+        // pas ou sont les usines, les centrales, les bases : on demande au terrain lui-meme, case par case, en tache de
+        // fond ( le serveur ne se fige jamais ). Rapports : inv_carte, inv_objets ( pages ), inv_case, inv_fin.
+        case "inventaire": {
+            [_o param [1, 2000]] spawn {
+                params ["_pas"];
+                private _t0 = diag_tickTime;
+                private _ws = worldSize;
+                private _cfg = configFile >> "CfgWorlds" >> worldName;
+                private _aero = [getArray (_cfg >> "ilsPosition")];
+                { _aero pushBack getArray (_x >> "ilsPosition") } forEach ("true" configClasses (_cfg >> "SecondaryAirports"));
+                ["inv_carte", worldName, _ws, _pas, _aero, getArray (_cfg >> "centerPosition")] call MONDE_fnc_envoyer;
+                private _types = ["BUILDING", "HOUSE", "CHURCH", "CHAPEL", "FUELSTATION", "HOSPITAL", "LIGHTHOUSE", "QUAY",
+                    "TRANSMITTER", "POWER LINES", "POWERSOLAR", "POWERWAVE", "POWERWIND", "WATERTOWER", "BUNKER", "FORTRESS",
+                    "VIEW-TOWER", "STACK", "RAILWAY", "SHIPWRECK", "TOURISM", "RUIN", "BUSSTOP", "CROSS", "FOUNTAIN"];
+                private _n_obj = 0; private _n_cases = 0;
+                for "_x0" from 0 to (_ws - 1) step _pas do {
+                    for "_y0" from 0 to (_ws - 1) step _pas do {
+                        private _c = [_x0 + _pas / 2, _y0 + _pas / 2, 0];
+                        private _r = _pas * 0.71;
+                        private _dans = { params ["_p"]; (_p select 0) >= _x0 && (_p select 0) < _x0 + _pas && (_p select 1) >= _y0 && (_p select 1) < _y0 + _pas };
+                        // la terre de la case : 100 sondages, la nature du sol de ceux qui sont a terre
+                        private _terre = 0; private _sols = createHashMap;
+                        for "_i" from 0 to 9 do { for "_j" from 0 to 9 do {
+                            private _q = [_x0 + (_i + 0.5) * _pas / 10, _y0 + (_j + 0.5) * _pas / 10];
+                            if (!surfaceIsWater _q) then { _terre = _terre + 1; private _s = surfaceType _q; _sols set [_s, (_sols getOrDefault [_s, 0]) + 1] };
+                        } };
+                        if (_terre > 0) then {
+                            private _page = [];
+                            {
+                                private _ty = _x;
+                                {
+                                    private _p = getPosATL _x;
+                                    if ([_p] call _dans) then {
+                                        _page pushBack [_ty, (getModelInfo _x) select 0, round (_p select 0), round (_p select 1)];
+                                        if (count _page >= 40) then { ["inv_objets", worldName, _page] call MONDE_fnc_envoyer; _n_obj = _n_obj + 40; _page = [] };
+                                    };
+                                } forEach (nearestTerrainObjects [_c, [_ty], _r, false, true]);
+                            } forEach _types;
+                            if (count _page > 0) then { ["inv_objets", worldName, _page] call MONDE_fnc_envoyer; _n_obj = _n_obj + count _page };
+                            private _arbres = { [getPosATL _x] call _dans } count (nearestTerrainObjects [_c, ["TREE", "SMALL TREE"], _r, false, true]);
+                            private _routes = { [getPosATL _x] call _dans } count (_c nearRoads _r);
+                            ["inv_case", worldName, _x0, _y0, _terre, _sols toArray false, _arbres, _routes] call MONDE_fnc_envoyer;
+                        };
+                        _n_cases = _n_cases + 1;
+                        sleep 0.05;
+                    };
+                };
+                ["inv_fin", worldName, _n_obj, _n_cases, round (diag_tickTime - _t0)] call MONDE_fnc_envoyer;
+                (format ["inventaire|%1|objets|%2|cases|%3|s|%4", worldName, _n_obj, _n_cases, round (diag_tickTime - _t0)]) call MONDE_LOG;
+            };
+        };
         case "temps": { setTimeMultiplier (_o select 1) };
         case "date": { setDate (_o select 1) };
         default { (format ["ordre_inconnu|%1", _t]) call MONDE_LOG };
