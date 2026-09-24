@@ -235,6 +235,16 @@ def vulnerabilite(annee, modele):
     return V_PERIODE[-1][1]
 
 
+def _vulnerabilites(d, sel):
+    """vulnerabilite() de chaque batiment de sel, en une passe : la premiere borne de periode atteinte, V_ABRI pour un
+    abri."""
+    T = d.B
+    an = T["annee"][sel].astype(np.int64)
+    v = np.full(len(sel), V_PERIODE[-1][1])
+    for borne, x in reversed(V_PERIODE): v = np.where(an <= borne, x, v)
+    return np.where(T["modele"][sel] == d.idx_modele["abri_urgence"], V_ABRI, v)
+
+
 def degat_moyen(intensite, v):
     """Degat moyen EMS-98 ( 0 a 5 ) de la methode Risk-UE, vectorise."""
     return 2.5 * (1.0 + np.tanh((np.asarray(intensite, float) + 6.25 * np.asarray(v, float) - 13.1) / Q_DUCTILITE))
@@ -437,7 +447,28 @@ def cle(x):
 def _est_menage(x): return type(x).__name__ == "Menage"
 
 
-def _n_vivants(mg): return sum(1 for x in mg.membres if x.vivant)
+def _n_vivants(mg):
+    """Les vivants de la LISTE des membres ( mg.membres ), lus dans les colonnes sans fabriquer de vue."""
+    mt = mg._mt
+    ids = mt.membres_ids(mg.id)
+    if not ids: return 0
+    v = mt.h.vivant
+    return sum(1 for i in ids if v[i])
+
+
+def _k_par_n(p, d):
+    """Le rang k de chaque lieu de la carte, par numero de lieu ( Lieu.n ) : -1 hors de la table des lieux."""
+    return np.array([d.k_lieu.get(l.id, -1) for l in p.w.carte.par_n], np.int64)
+
+
+def _marche_par_n(p):
+    """Le numero du lieu du marche de chaque lieu, par numero de lieu : -1 sans marche."""
+    return np.array([l.marche.n if l.marche is not None else -1 for l in p.w.carte.par_n], np.int64)
+
+
+ENFANT = PO.CODE_ROLE["enfant"]
+RETRAITE = PO.CODE_ROLE["retraite"]
+ETAT_I = PO.CODE_ETAT["I"]
 
 
 def annee(p): return ANNEE_DEPART + p.jour // 365
@@ -495,15 +526,20 @@ def _revenu_roles(p, mg):
     """Le revenu net journalier que les metiers des membres rapportent : la paie du moteur ( a defaut du revenu lisse
     du domaine 3, qui part de zero pour un menage neuf )."""
     w = p.w; t = 1.0 - w.gouv.impot_revenu
+    mt = mg._mt; tb = mt.h
+    viv, rol, trv = tb.vivant, tb.role, tb.travail
     s = 0.0
-    for h in mg.membres:
-        if not h.vivant or h.role == "enfant": continue
-        if h.role == "retraite": s += PO.PENSION_JOUR; continue
-        if h.travail is None: continue
-        if h.role == "paysan": s += 23.0 * t
-        elif h.role == "marchand": s += 30.0 * t
-        elif h.role == "patron": s += 60.0 * t
-        else: s += PO.SALAIRE_HORAIRE.get(h.role, 0) * 8.0 * t
+    for i in mt.membres_ids(mg.id):
+        if not viv[i]: continue
+        r = int(rol[i])
+        role = PO.ROLES[r] if r >= 0 else None
+        if role == "enfant": continue
+        if role == "retraite": s += PO.PENSION_JOUR; continue
+        if trv[i] < 0: continue
+        if role == "paysan": s += 23.0 * t
+        elif role == "marchand": s += 30.0 * t
+        elif role == "patron": s += 60.0 * t
+        else: s += PO.SALAIRE_HORAIRE.get(role, 0) * 8.0 * t
     return s
 
 
@@ -513,9 +549,11 @@ def revenu_mensuel(p, mg):
 
 
 def _vivants_par_menage(p):
-    w = p.w; H = w.habitants; n = len(H)
-    viv = np.fromiter((h.vivant for h in H), bool, n)
-    mid = np.fromiter((h.menage.id if h.menage is not None else 0 for h in H), np.int64, n)
+    """( vivants par menage selon le POINTEUR h.menage, vivant par habitant ) : les colonnes du moteur."""
+    w = p.w; tb = w.table; n = tb.n
+    viv = tb.vivant[:n] != 0
+    mid = tb.menage[:n].astype(np.int64)
+    mid[mid < 0] = 0
     return np.bincount(mid[viv], minlength=len(w.menages)), viv
 
 
@@ -629,8 +667,29 @@ def _occuper(p, d, mg, b, statut):
 
 
 def _choisir_chef(p, mg):
-    ad = [h for h in mg.membres if h.vivant and h.role != "enfant"] or [h for h in mg.membres if h.vivant]
-    if ad: p.col("menage", "im_chef")[mg.id] = max(ad, key=lambda h: (h.age, -h.id)).id
+    mt = mg._mt; tb = mt.h
+    viv, rol, age = tb.vivant, tb.role, tb.age
+    vv = [i for i in mt.membres_ids(mg.id) if viv[i]]
+    ad = [i for i in vv if rol[i] != ENFANT] or vv
+    if ad: p.col("menage", "im_chef")[mg.id] = max(ad, key=lambda i: (float(age[i]), -i))
+
+
+def _choisir_chefs(p, ks):
+    """_choisir_chef pour un ensemble de menages ks ( distincts ), en une passe sur les colonnes : parmi les vivants
+    de la liste de chaque menage, les adultes s il y en a, le plus age, puis le plus petit numero."""
+    tb = p.w.table; nh = tb.n
+    ins = PO.menages_inscrits(tb, nh)
+    vise = np.zeros(max(1, tb.menages.n), bool); vise[ks] = True
+    cand = np.nonzero((ins >= 0) & (tb.vivant[:nh] != 0))[0]
+    hh = ins[cand].astype(np.int64)
+    garde = vise[hh]
+    cand, hh = cand[garde], hh[garde]
+    if len(cand) == 0: return
+    adulte = (tb.role[cand] != ENFANT).astype(np.int8)
+    ordre = np.lexsort((-cand, tb.age[cand], adulte, hh))
+    hs, cs = hh[ordre], cand[ordre]
+    dernier = np.nonzero(np.r_[hs[1:] != hs[:-1], True])[0]
+    p.col("menage", "im_chef")[hs[dernier]] = cs[dernier]
 
 
 def _liberer(p, d, mg, raison, offrir=True):
@@ -790,7 +849,7 @@ def _heritier(p, mg, dis):
     def ok(m): return m is not None and m is not mg and not p.col("menage", "dissous")[m.id] and _n_vivants(m) > 0
     if chef >= 0 and H[chef].vivant and ok(H[chef].menage): return H[chef].menage
     enfants_de = p.domaine("population").enfants_de
-    for x in ([chef] if chef >= 0 else []) + sorted(h.id for h in mg.membres):
+    for x in ([chef] if chef >= 0 else []) + sorted(mg._mt.membres_ids(mg.id)):
         for e in sorted(enfants_de.get(x, ())):
             if H[e].vivant and ok(H[e].menage): return H[e].menage
     return w.gouv
@@ -809,7 +868,8 @@ def _matin(p):
         _liberer(p, d, w.menages[i], "dissolution")
     _successions(p, d, nv, dis)
     for mid in [m for m in d.cherche if dis[m] or nv[m] == 0]: del d.cherche[mid]
-    dom = np.fromiter((d.k_lieu.get(mg.domicile.id, -1) if mg.domicile is not None else -1 for mg in w.menages), np.int64, n)
+    dm = w.table.menages.domicile[:n]
+    dom = np.where(dm >= 0, _k_par_n(p, d)[np.maximum(dm, 0)], -1).astype(np.int64)
     a = log[:n] >= 0
     lieu_log = np.where(a, T["lieu"][np.maximum(log[:n], 0)], -1)
     for i in np.nonzero(a & (lieu_log != dom) & (nv > 0) & (dis == 0))[0].tolist():
@@ -887,12 +947,14 @@ def _enfia(p, d):
 
 # ================================================================== le marche locatif et les ventes ( 9 h )
 def _chercheurs_par_lieu(p, d):
-    w = p.w; out = {}
+    out = {}
+    if not d.cherche: return out
+    dm = p.w.table.menages.domicile; kn = _k_par_n(p, d)
     for mid in sorted(d.cherche):
-        mg = w.menages[mid]
-        if mg.domicile is None: continue
-        k = d.k_lieu.get(mg.domicile.id)
-        if k is not None: out.setdefault(k, []).append(mid)
+        x = dm[mid]
+        if x < 0: continue
+        k = int(kn[x])
+        if k >= 0: out.setdefault(k, []).append(mid)
     return out
 
 
@@ -1002,9 +1064,10 @@ def _loger_en_urgence(p, d):
     """Un menage sans logement apres le marche du jour recoit un abri d urgence de l Etat : tire de la reserve la
     plus proche de son ile, sinon achete a l etranger."""
     w = p.w; log = p.col("menage", "im_logement"); dis = p.col("menage", "dissous")
+    dm = w.table.menages.domicile
     for mid in sorted(d.cherche):
+        if log[mid] >= 0 or dis[mid] or dm[mid] < 0: continue
         mg = w.menages[mid]
-        if log[mid] >= 0 or dis[mid] or mg.domicile is None: continue
         n = _n_vivants(mg)
         if n == 0: continue
         motif = d.cherche[mid]
@@ -1048,12 +1111,17 @@ def _ventes(p, d):
     ventes = _offres(d, 2)
     if not ventes: return
     st = p.col("menage", "im_statut"); log = p.col("menage", "im_logement"); dis = p.col("menage", "dissous")
-    acheteurs = [i for i in range(len(w.menages)) if i % 7 == p.jour % 7 and st[i] in (LOCATAIRE, ABRI, SANS)
-                 and not dis[i] and (log[i] >= 0 or i in d.cherche)]
+    nm = len(w.menages)
+    s_ = st[:nm]
+    sel = np.nonzero((np.arange(nm) % 7 == p.jour % 7) & ((s_ == LOCATAIRE) | (s_ == ABRI) | (s_ == SANS))
+                     & (dis[:nm] == 0))[0].tolist()
+    acheteurs = [i for i in sel if log[i] >= 0 or i in d.cherche]
+    dm = w.table.menages.domicile; kn = _k_par_n(p, d)
     for mid in acheteurs:
+        if dm[mid] < 0: continue
+        k = int(kn[dm[mid]])
+        if not ventes.get(k if k >= 0 else None): continue     # aucun logement a vendre dans son lieu : rien a lire
         mg = w.menages[mid]
-        if mg.domicile is None: continue
-        k = d.k_lieu.get(mg.domicile.id)
         n = _n_vivants(mg)
         cands = [b for b in ventes.get(k, []) if T["occupant"][b] < 0 and T["offre"][b] == 2 and capacite(T["surface"][b]) >= n]
         dispo = disponible(p, mg)
@@ -1182,12 +1250,15 @@ def _postes(p, d, lieu_id):
         if cs: TR.declarer_employeur(p, lieu_id, "ouvrier", cs[0].btp)
         TR.ouvrir_postes(p, lieu_id, "ouvrier", total)
         if total == 0:
-            for h in list(p.w.au_travail_de(p.w.carte.lieux[lieu_id], "ouvrier")):
-                if h.vivant and h.travail is not None and h.travail.id == lieu_id:
-                    TR.rompre_contrat(p, h, "fin_chantier", involontaire=True)
+            w = p.w; lieu = w.carte.lieux[lieu_id]; ln = lieu.n
+            for i in w.ids_au_travail(lieu, "ouvrier"):
+                tb = w.table                      # relu : une rupture peut faire grandir la table
+                if tb.vivant[i] and tb.travail[i] == ln:
+                    TR.rompre_contrat(p, PO.Habitant(tb, i), "fin_chantier", involontaire=True)
         return
+    tb = p.w.table
     for ch in cs:
-        ch.ouvriers = [i for i in ch.ouvriers if p.w.habitants[i].vivant and p.w.habitants[i].travail is None]
+        ch.ouvriers = [i for i in ch.ouvriers if tb.vivant[i] and tb.travail[i] < 0]
         manque = ch.equipe - len(ch.ouvriers)
         if manque <= 0: continue
         for i in _chomeurs(p, d, lieu_id)[:manque]:
@@ -1200,11 +1271,15 @@ def _chomeurs(p, d, lieu_id):
     w = p.w; lieu = w.carte.lieux[lieu_id]
     eco = p.domaine("economie")
     out = []
+    tb = w.table; par_n = w.carte.par_n
+    viv, trv, rol, dom = tb.vivant, tb.travail, tb.role, tb.domicile
     for i in sorted(eco.chomeurs):
-        h = w.habitants[i]
-        if (i in d.ouvriers_libres or not h.vivant or h.travail is not None or h.role in ("enfant", "retraite")
-                or h.domicile is None or h.domicile.ile != lieu.ile or POP.age_de(p, h) < 18
-                or w.carte.km_route(h.domicile, lieu) > 40.0): continue
+        if i in d.ouvriers_libres or not viv[i] or trv[i] >= 0 or rol[i] == ENFANT or rol[i] == RETRAITE: continue
+        x = int(dom[i])
+        if x < 0: continue
+        dl = par_n[x]
+        if (dl.ile != lieu.ile or POP.age_de(p, PO.Habitant(tb, i)) < 18
+                or w.carte.km_route(dl, lieu) > 40.0): continue
         out.append(i)
     return out
 
@@ -1252,21 +1327,28 @@ def _travail(p):
         heures = 0.0
         if avec_travail:
             pt = p.col("habitant", "tr_pointage")
-            for h in w.au_travail_de(w.carte.lieux[lid], "ouvrier"):
-                if not h.vivant or h.travail is None or h.travail.id != lid: continue
-                x = float(pt[h.id]) / 6.0
-                if x > h.heures_jour: heures += x - h.heures_jour; h.heures_jour = x
+            tb = w.table; lieu = w.carte.lieux[lid]; ln = lieu.n
+            viv, trv, hj = tb.vivant, tb.travail, tb.heures
+            for i in w.ids_au_travail(lieu, "ouvrier"):
+                if not viv[i] or trv[i] != ln: continue
+                x = float(pt[i]) / 6.0
+                a = float(hj[i])
+                if x > a: heures += x - a; hj[i] = x
         else:
+            tb = w.table; mt = tb.menages
             for ch in cs:
                 for i in ch.ouvriers:
-                    h = w.habitants[i]
-                    if (not h.vivant or h.travail is not None or (h.etat == "I" and h.gravite > 0.5)
-                            or h.faim > C.ABSENCE_FAIM): continue
+                    if (not tb.vivant[i] or tb.travail[i] >= 0 or (tb.etat[i] == ETAT_I and float(tb.gravite[i]) > 0.5)
+                            or float(tb.faim[i]) > C.ABSENCE_FAIM): continue
                     brut = 8.0 * PO.SALAIRE_HORAIRE["ouvrier"]
-                    paye, _ = L.payer_ou_devoir(ch.btp, h.menage, brut, "salaire", p.socle.creances, p.jour)
+                    k = int(tb.menage[i])
+                    mg = PO.Menage(k, mt) if k >= 0 else None
+                    paye, _ = L.payer_ou_devoir(ch.btp, mg, brut, "salaire", p.socle.creances, p.jour)
                     ch.btp.salaires += brut
                     if w.gouv.impot_revenu > 0 and paye > 0:
-                        L.transferer(h.menage, w.gouv, paye * w.gouv.impot_revenu, "impot sur le revenu")
+                        k = int(tb.menage[i])
+                        L.transferer(PO.Menage(k, mt) if k >= 0 else None, w.gouv, paye * w.gouv.impot_revenu,
+                                     "impot sur le revenu")
                     heures += 8.0
         eq = sum(c.equipe for c in cs)
         for ch in cs:
@@ -1357,10 +1439,10 @@ def _promotions(p, d):
     st = p.col("menage", "im_statut")
     offres = _offres(d, 1)
     attente = {}
+    dm = w.table.menages.domicile; kn = _k_par_n(p, d)
     for mid in sorted(d.cherche):
-        mg = w.menages[mid]
-        if st[mid] in (SANS, ABRI) and mg.domicile is not None and mg.domicile.id in d.k_lieu:
-            k = d.k_lieu[mg.domicile.id]; attente[k] = attente.get(k, 0) + 1
+        if st[mid] in (SANS, ABRI) and dm[mid] >= 0 and kn[dm[mid]] >= 0:
+            k = int(kn[dm[mid]]); attente[k] = attente.get(k, 0) + 1
     for k in sorted(attente):
         if attente[k] < 3 or offres.get(k): continue
         if any(c.lieu == d.lieux[k] and c.vendre and c.etat != "termine" for c in d.chantiers.values()): continue
@@ -1368,9 +1450,9 @@ def _promotions(p, d):
         modele = "maison" if typ == "village" else "appartement"
         unites = 2 if typ == "village" else 4
         surf = SURFACE_TYPIQUE[modele] * unites
-        libres = [i for i in range(ca.t.n) if ca.t["lieu"][i] == k and ca.constructible_restant(i) >= surf]
-        if not libres: continue
-        i = libres[0]
+        i = next((i for i in np.nonzero(ca.t["lieu"][:ca.t.n] == k)[0].tolist()
+                  if ca.constructible_restant(i) >= surf), None)
+        if i is None: continue
         lieu = w.carte.lieux[d.lieux[k]]
         btp = d.btp_de_zone[lieu.marche.id]
         terrain = PART_TERRAIN * surf * d.prix_m2[k]
@@ -1452,7 +1534,7 @@ def appliquer_seisme(p, intensites):
                 T["dommage"][b] = x; T["degats"][b] = RATIO_DOMMAGE[x]
                 if x >= DS_INHABITABLE: parc.mettre_en_etat(o, O.IMMOBILISE)
         if len(sel) == 0: out[lid] = (0, 0, 0, 0); continue
-        v = np.array([vulnerabilite(int(T["annee"][b]), NOMS_MODELES[int(T["modele"][b])]) for b in sel.tolist()])
+        v = _vulnerabilites(d, sel)
         ds = tirer_dommages(np.full(len(sel), I), v, rng)
         touches = inhab = detr = 0
         for b, x in zip(sel.tolist(), ds.tolist()):
@@ -1559,9 +1641,11 @@ def _lieux(p, d):
         d.zone_m2[k] = PART_VALEUR_ZONE * d.prix_m2[k]
 
 
+_POIDS_PERIODES = np.array([x[2] for x in PERIODES]); _POIDS_PERIODES = _POIDS_PERIODES / _POIDS_PERIODES.sum()
+
+
 def _tirer_annee(rng):
-    poids = np.array([x[2] for x in PERIODES]); poids = poids / poids.sum()
-    i = int(rng.choice(len(PERIODES), p=poids))
+    i = int(rng.choice(len(PERIODES), p=_POIDS_PERIODES))
     a, b_, _ = PERIODES[i]
     return int(rng.integers(a, b_ + 1))
 
@@ -1569,7 +1653,7 @@ def _tirer_annee(rng):
 def _tirer_surface(rng, modele, n):
     m, s = SURFACE[modele]
     x = float(rng.lognormal(math.log(m) - s * s / 2, s))
-    return float(np.clip(max(x, surface_min(n + 1)), SURFACE_BORNES[0], SURFACE_BORNES[1]))
+    return float(min(max(max(x, surface_min(n + 1)), SURFACE_BORNES[0]), SURFACE_BORNES[1]))   # = np.clip, sans numpy
 
 
 def _recensement(p, d, rng):
@@ -1581,32 +1665,48 @@ def _recensement(p, d, rng):
     n = len(w.menages)
     dis = p.col("menage", "dissous")
     nv, _ = _vivants_par_menage(p)
-    habites = [mg for mg in w.menages if not dis[mg.id] and nv[mg.id] > 0]
-    for mg in habites: _choisir_chef(p, mg)
-    H = w.habitants
-    score = {}
-    for mg in habites:
-        chef = H[int(p.col("menage", "im_chef")[mg.id])]
-        k = d.k_lieu[mg.domicile.id]
-        score[mg.id] = ((chef.age - 18) / 60.0 + {"aisee": 0.5, "moyenne": 0.2}.get(chef.classe, 0.0)
-                        + (0.25 if d.type_lieu[k] == "village" else 0.0) + 0.6 * float(rng.random()))
-    total = sum(int(nv[mg.id]) for mg in habites)
-    proprios, cumul = set(), 0
-    for mg in sorted(habites, key=lambda m: (-score[m.id], m.id)):
-        if cumul >= PART_PROPRIETAIRES * total: break
-        proprios.add(mg.id); cumul += int(nv[mg.id])
+    tb = w.table; mt = tb.menages; nh = tb.n
+    ks_h = np.nonzero((dis[:n] == 0) & (nv[:n] > 0))[0]            # les menages habites, dans l ordre
+    habites = [w.menages[i] for i in ks_h.tolist()]                 # leurs vues vivent le temps du recensement
+    _choisir_chefs(p, ks_h)
+    kn = _k_par_n(p, d)
+    kh = kn[mt.domicile[ks_h]]                                      # le rang du lieu de chaque menage habite
+    chefs = p.col("menage", "im_chef")[ks_h].astype(np.int64)
+    ci = np.where(chefs < 0, chefs + nh, chefs)                     # H[-1] : le dernier habitant ( ancien code )
+    bonus = np.array([{"aisee": 0.5, "moyenne": 0.2}.get(c, 0.0) for c in PO.CLASSES])
+    village = np.array([t == "village" for t in d.type_lieu], bool)
+    u = rng.random(len(ks_h))
+    sc = (tb.age[ci] - 18) / 60.0 + bonus[tb.classe[ci]] + np.where(village[kh], 0.25, 0.0) + 0.6 * u
+    nvh = nv[ks_h].astype(np.int64)
+    total = int(nvh.sum())
+    ordre = np.lexsort((ks_h, -sc))
+    avant = np.cumsum(nvh[ordre]) - nvh[ordre]                       # les personnes deja proprietaires avant lui
+    j = int(np.searchsorted(avant >= PART_PROPRIETAIRES * total, True)) if len(ordre) else 0
+    proprios = set(ks_h[ordre[:j]].tolist())
     # les bailleurs de chaque lieu ( poids par classe )
+    poids_cl = [POIDS_BAILLEUR.get(c, 1.0) for c in PO.CLASSES]
+    cl_chef = tb.classe[ci].tolist()
+    kh_l = kh.tolist()
     bailleurs = {}
-    for mg in habites:
+    for x, mg in enumerate(habites):
         if mg.id not in proprios: continue
-        chef = H[int(p.col("menage", "im_chef")[mg.id])]
-        bailleurs.setdefault(d.k_lieu[mg.domicile.id], []).append((mg, POIDS_BAILLEUR.get(chef.classe, 1.0)))
+        bailleurs.setdefault(kh_l[x], []).append((mg, poids_cl[cl_chef[x]]))
     zone_bailleurs = {}
     for k, lst in bailleurs.items(): zone_bailleurs.setdefault(d.zone_de[k], []).extend(lst)
+    tirages = {}         # lieu -> ( liste, poids normalises ) quand personne n est exclu
     def tirer_bailleur(k, sauf):
-        lst = [x for x in bailleurs.get(k, []) if x[0] is not sauf] or [x for x in zone_bailleurs.get(d.zone_de[k], []) if x[0] is not sauf]
+        if sauf is None or sauf.id not in proprios:                 # aucun bailleur n est `sauf` : la liste entiere
+            c = tirages.get(k)
+            if c is None:
+                lst = bailleurs.get(k, []) or zone_bailleurs.get(d.zone_de[k], [])
+                pw = np.array([x[1] for x in lst]) if lst else None
+                if lst: pw = pw / pw.sum()
+                c = tirages[k] = (lst, pw)
+            lst, pw = c
+        else:
+            lst = [x for x in bailleurs.get(k, []) if x[0] is not sauf] or [x for x in zone_bailleurs.get(d.zone_de[k], []) if x[0] is not sauf]
+            if lst: pw = np.array([x[1] for x in lst]); pw = pw / pw.sum()
         if not lst: return w.gouv
-        pw = np.array([x[1] for x in lst]); pw = pw / pw.sum()
         return lst[int(rng.choice(len(lst), p=pw))][0]
     immeubles = {}       # lieu -> ( parcelle, logements deja dedans )
     def parcelle_pour(k, modele, surface, proprio):
@@ -1621,23 +1721,25 @@ def _recensement(p, d, rng):
         cur[1] += 1; ca.t["bati"][cur[0]] += surface
         return cur[0]
     an = annee(p)
-    for mg in habites:
-        k = d.k_lieu[mg.domicile.id]
+    nv_l = nvh.tolist()
+    for x, mg in enumerate(habites):
+        k = kh_l[x]
         typ = d.type_lieu[k]
-        nvm = int(nv[mg.id])
+        nvm = nv_l[x]
+        lid = d.lieux[k]
         modele = "maison" if rng.random() < P_MAISON[typ] else "appartement"
         s = _tirer_surface(rng, modele, nvm)
         a = _tirer_annee(rng)
         if mg.id in proprios:
-            b = _nouveau(p, d, modele, mg, mg.domicile.id, s, a, "initial", 0)
+            b = _nouveau(p, d, modele, mg, lid, s, a, "initial", 0)
             T["parcelle"][b] = parcelle_pour(k, modele, s, mg)
             _occuper(p, d, mg, b, PROPRIETAIRE)
             continue
         loyer_m2 = d.loyer_m2[k] * facteur_age(an - a)
         s_aff = EFFORT_RECENSEMENT * revenu_mensuel(p, mg) / max(EPS, loyer_m2)
-        s = float(np.clip(max(min(s, s_aff), surface_min(nvm)), SURFACE_BORNES[0], SURFACE_BORNES[1]))
+        s = float(min(max(max(min(s, s_aff), surface_min(nvm)), SURFACE_BORNES[0]), SURFACE_BORNES[1]))
         bailleur = tirer_bailleur(k, mg)
-        b = _nouveau(p, d, modele, bailleur, mg.domicile.id, s, a, "initial", 0)
+        b = _nouveau(p, d, modele, bailleur, lid, s, a, "initial", 0)
         T["parcelle"][b] = parcelle_pour(k, modele, s, bailleur)
         age_bail = int(rng.integers(0, DUREE_BAIL_J))
         ref = loyer_reference(p, b)
@@ -1652,7 +1754,7 @@ def _recensement(p, d, rng):
         p.poser(max(0, (bail.fin_j - p.jour) * C.PAS_PAR_JOUR), "immobilier_fin_bail", bail.id, (bail.fin_j,))
     # les logements vides offerts
     par_lieu = {}
-    for mg in habites: par_lieu[d.k_lieu[mg.domicile.id]] = par_lieu.get(d.k_lieu[mg.domicile.id], 0) + 1
+    for k in kh_l: par_lieu[k] = par_lieu.get(k, 0) + 1
     for k in sorted(par_lieu):
         typ = d.type_lieu[k]
         nvac = int(round(TAUX_VACANTS * par_lieu[k] + rng.random() - 0.5))
@@ -1683,30 +1785,40 @@ def _recensement(p, d, rng):
 def _batiments_publics(p, d, rng):
     w = p.w; parc = p.socle.parc; g = w.gouv
     an = annee(p)
-    pop_zone, enfants_zone, agents_zone = {}, {}, {}
-    for h in w.habitants:
-        if not h.vivant or h.domicile is None: continue
-        z = h.domicile.marche.id
-        pop_zone[z] = pop_zone.get(z, 0) + 1
-        if h.role == "enfant": enfants_zone[z] = enfants_zone.get(z, 0) + 1
-        if h.role in ("ministre", "chef_gouvernement", "policier", "enseignant", "infirmier", "medecin", "officier"):
-            agents_zone[z] = agents_zone.get(z, 0) + 1
+    # les comptes par zone de marche, lus dans les colonnes ( numero du lieu du marche )
+    tb = w.table; nh = tb.n; mt = tb.menages; nl = len(w.carte.par_n)
+    mdl = _marche_par_n(p)
+    dom = tb.domicile[:nh]
+    sel = (tb.vivant[:nh] != 0) & (dom >= 0)
+    z = mdl[np.maximum(dom, 0)]
+    sel &= z >= 0
+    rol = tb.role[:nh]
+    agents = [PO.CODE_ROLE[r] for r in ("ministre", "chef_gouvernement", "policier", "enseignant", "infirmier",
+                                         "medecin", "officier") if r in PO.CODE_ROLE]
+    pop_zone = np.bincount(z[sel], minlength=nl)
+    enfants_zone = np.bincount(z[sel & (rol == ENFANT)], minlength=nl)
+    agents_zone = np.bincount(z[sel & np.isin(rol, agents)], minlength=nl)
+    dmm = mt.domicile[:mt.n]
+    zm = mdl[np.maximum(dmm, 0)]
+    menages_zone = np.bincount(zm[(dmm >= 0) & (zm >= 0)], minlength=nl)
+    trv = tb.travail[:nh]
+    au_poste = np.bincount(trv[(tb.vivant[:nh] != 0) & (trv >= 0)], minlength=nl)
     for cap in sorted(w.marches):
-        pz = pop_zone.get(cap, 0)
+        cn = w.carte.lieux[cap].n
+        pz = int(pop_zone[cn])
         lits = max(2, int(round(LITS_PAR_HABITANT * pz)))
         _nouveau(p, d, "hopital", g, cap, lits * M2_PAR_LIT, _tirer_annee(rng), "initial", 0)
-        _nouveau(p, d, "ecole", g, cap, max(300.0, M2_PAR_ELEVE * enfants_zone.get(cap, 0)), _tirer_annee(rng), "initial", 0)
-        _nouveau(p, d, "bureau_public", g, cap, max(200.0, M2_PAR_AGENT * agents_zone.get(cap, 0)), _tirer_annee(rng),
+        _nouveau(p, d, "ecole", g, cap, max(300.0, M2_PAR_ELEVE * int(enfants_zone[cn])), _tirer_annee(rng), "initial", 0)
+        _nouveau(p, d, "bureau_public", g, cap, max(200.0, M2_PAR_AGENT * int(agents_zone[cn])), _tirer_annee(rng),
                  "initial", 0)
         n = max(1, int(round(pz / HABITANTS_PAR_COMMERCE)))
         parc.creer_cohorte(d.modele_parc["commerce"], w.marches[cap], cap, n, "initial", 0.4)
         d.nes["commerce"]["initial"] += n
-        nab = max(1, int(round(ABRIS_PAR_MENAGE * sum(1 for mg in w.menages if mg.domicile is not None
-                                                       and mg.domicile.marche.id == cap))))
+        nab = max(1, int(round(ABRIS_PAR_MENAGE * int(menages_zone[cn]))))
         parc.creer_cohorte(d.modele_parc["abri_urgence"], g, cap, nab, "initial", 0.0)
         d.nes["abri_urgence"]["initial"] += nab
     for base in sorted(w.garnisons):
-        soldats = sum(1 for h in w.habitants if h.vivant and h.travail is not None and h.travail.id == base)
+        soldats = int(au_poste[w.carte.lieux[base].n])
         _nouveau(p, d, "caserne", g, base, max(200.0, M2_PAR_SOLDAT * soldats), _tirer_annee(rng), "initial", 0)
     for eid in sorted(w.entreprises):
         e = w.entreprises[eid]
@@ -1747,13 +1859,24 @@ def installer(p):
     reg = p.socle.registre
     reg.inscrire("entreprises_btp", "entreprises", _membres_btp, "caisse", "stock", "EntrepriseBTP")
     reg.inscrire("chantiers", "entreprises", _membres_chantiers, None, "stock", None)
+    tb = w.table; nh = tb.n; mt = tb.menages; nm = mt.n
+    mdl = _marche_par_n(p)
+    dom = tb.domicile[:nh]
+    z_patron = np.where((tb.vivant[:nh] != 0) & (tb.role[:nh] == PO.CODE_ROLE["patron"]) & (dom >= 0),
+                        mdl[np.maximum(dom, 0)], -1)
+    ins = PO.menages_inscrits(tb, nh)
+    nvl = np.bincount(ins[(ins >= 0) & (tb.vivant[:nh] != 0)], minlength=nm)[:nm]      # vivants de la liste
+    dmm = mt.domicile[:nm]
+    z_menage = np.where((dmm >= 0) & (nvl > 0), mdl[np.maximum(dmm, 0)], -1)
     for cap in sorted(w.marches):
         lieu = w.carte.lieux[cap]
-        patrons = sorted((h for h in w.habitants if h.vivant and h.role == "patron" and h.domicile is not None
-                          and h.domicile.marche.id == cap), key=lambda h: h.id)
-        riches = sorted((mg for mg in w.menages if mg.domicile is not None and mg.domicile.marche.id == cap
-                         and _n_vivants(mg) > 0), key=lambda m: (-m.caisse, m.id))
-        prop = patrons[0].menage if patrons else (riches[0] if riches else None)
+        cn = lieu.n
+        pat = np.nonzero(z_patron == cn)[0]                 # le patron de la zone au plus petit numero
+        if len(pat):
+            prop = w.habitants[int(pat[0])].menage
+        else:                                               # sinon le menage le plus riche ( puis le plus petit numero )
+            rich = np.nonzero(z_menage == cn)[0]
+            prop = w.menages[int(rich[np.argmax(mt.caisse[rich])])] if len(rich) else None
         btp = EntrepriseBTP(lieu, prop)
         d.btp.append(btp); d.btp_de_zone[cap] = btp
         BQ.ouvrir_compte(p, btp)
