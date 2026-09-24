@@ -229,6 +229,7 @@ ACCIDENTS = {"paysan": (1700.0, 6.0), "mineur": (1600.0, 10.8), "petrolier": (16
              "medecin": (1300.0, 0.3), "infirmier": (1300.0, 0.3), "enseignant": (500.0, 0.2),
              "ministre": (300.0, 0.2), "chef_gouvernement": (300.0, 0.2)}
 JOURS_TRAVAILLES_AN = 225.0
+ACCIDENTS_PAR_CODE = tuple(np.array([ACCIDENTS.get(r, (0.0, 0.0))[k] for r in (None,) + PO.ROLES]) for k in (0, 1))
 
 # ================================================================== les statuts et les contrats
 HORS, SALARIE, FONCTIONNAIRE, INDEPENDANT, CHOMEUR, ETUDIANT, AU_FOYER, INVALIDE, DECOURAGE, RETRAITE = range(10)
@@ -503,6 +504,68 @@ def _public(role): return role in C.ROLES and C.ROLES[role][2]
 PUBLIC_DU_MOTEUR = np.array([False] + [bool(_public(r)) for r in PO.ROLES])      # code du moteur + 1 ( -1 : aucun )
 
 
+# ================================================================== EN COLONNES ( 24/09 ) : les outils
+# Les colonnes TROUVENT les lignes concernees ; le Python ne traite qu elles, dans l ordre d origine. Aucune vue
+# ( Habitant, Menage ) n est fabriquee pour une ligne qui n est pas touchee.
+def _role_de(tb, i):
+    k = int(tb.role[i])
+    return PO.ROLES[k] if k >= 0 else None
+
+
+def _menage_de(tb, i):
+    """`h.menage` sans la vue de l habitant."""
+    k = int(tb.menage[i])
+    return PO.Menage(k, tb.menages) if k >= 0 else None
+
+
+def _codes(roles): return [PO.CODE_ROLE[r] for r in roles if r in PO.CODE_ROLE]
+
+
+def _index_travail(w):
+    """Tout l index du travail du moteur en deux tableaux ( numeros, cle de chacun ) : pour chaque cle, les memes
+    numeros, repetitions comprises, que w.ids_au_travail( lieu, metier ) ( la tranche du matin moins les departs du
+    jour, puis les embauches du jour )."""
+    ordre = w._travail_ordre
+    tr = w._travail_tranches
+    cles = np.empty(len(ordre), np.int64)
+    garde = np.ones(len(ordre), bool)
+    for c, (a, b) in tr.items(): cles[a:b] = c
+    for c, partis in w._travail_retraits.items():
+        if not partis or c not in tr: continue
+        a, b = tr[c]
+        garde[a:b] &= ~np.isin(ordre[a:b], np.fromiter(partis, np.int64, len(partis)))
+    ids, cl = [np.asarray(ordre, np.int64)[garde]], [cles[garde]]
+    for c, lst in w._travail_ajouts.items():
+        if lst: ids.append(np.array(lst, np.int64)); cl.append(np.full(len(lst), c, np.int64))
+    return np.concatenate(ids), np.concatenate(cl)
+
+
+def _ids_filtres(w, lieu, role):
+    """Les numeros de w.ids_au_travail( lieu, metier ) vivants et dont le travail est encore ce lieu, dans l ordre."""
+    ids = w.ids_au_travail(lieu, role)
+    if not ids: return []
+    tb = w.table
+    a = np.array(ids, np.int64)
+    return a[(tb.vivant[a] == 1) & (tb.travail[a] == lieu.n)].tolist()
+
+
+class _Pointes:
+    """`d.pointes` EN NUMEROS : les salaries a pointer, sans une vue par salarie. Se parcourt comme l ancienne liste
+    d habitants ( vues fabriquees a la lecture ) ; `append( h )` ajoute a la fin, comme elle."""
+    __slots__ = ("t", "ids", "plus")
+
+    def __init__(self, t, ids): self.t, self.ids, self.plus = t, np.asarray(ids, np.int64), []
+    def append(self, h): self.plus.append(h.id)
+    def numeros(self): return np.concatenate([self.ids, np.array(self.plus, np.int64)]) if self.plus else self.ids
+    def __len__(self): return len(self.ids) + len(self.plus)
+    def __bool__(self): return len(self) > 0
+    def __iter__(self):
+        t = self.t
+        return (PO.Habitant(t, i) for i in self.ids.tolist() + self.plus)
+    def __getitem__(self, k): return list(self)[k]
+    def __contains__(self, h): return h.id in self.plus or bool(np.any(self.ids == h.id))
+
+
 def _secteur(role): return "public" if _public(role) else "prive"
 
 
@@ -610,8 +673,8 @@ def embaucher_contrat(p, h, unite, role=None, contrat=CDI, duree_j=None, taux=No
     elif _public(role) and contrat in (CDI,): contrat = TITULAIRE
     if equipe is None and PO.TRAVAIL[role][1] == "garde":
         n_eq = [0, 0, 0]
-        for x in w.au_travail_de(unite.lieu, role):
-            if x.vivant and x.travail is unite.lieu: n_eq[x.equipe % 3] += 1
+        eq = w.table.equipe
+        for i in _ids_filtres(w, unite.lieu, role): n_eq[int(eq[i]) % 3] += 1
         equipe = min(range(3), key=lambda k: (n_eq[k], k))
     if h.id in d.grevistes: _sortir_de_greve(p, d, h)
     if h.travail is not None: _solde_de_tout_compte(p, d, h)
@@ -677,7 +740,16 @@ def _jours_14_mois(p, col, i):
 
 
 def _a_charge(p, h):
-    return sum(1 for x in h.menage.membres if x.vivant and x is not h and POP.age_de(p, x) < POP.AGE_MAJEUR)
+    return _a_charge_i(p, h._t, h.id)
+
+
+def _a_charge_i(p, tb, i):
+    """Les mineurs vivants du menage de i ( sa liste de membres, lue en numeros )."""
+    k = int(tb.menage[i])
+    if k < 0: raise AttributeError("'NoneType' object has no attribute 'membres'")
+    nj = p.col("habitant", "naissance_j"); jour = p.jour; viv = tb.vivant
+    return sum(1 for x in tb.menages.membres_ids(k)
+               if viv[x] and x != i and (jour - int(nj[x])) / POP.JOURS_AN < POP.AGE_MAJEUR)
 
 
 def _devenir_chomeur(p, d, h, involontaire):
@@ -726,8 +798,12 @@ def _tirer_sortie_etudes(rng, age):
 
 def _carriere(p, h, rng, age, sexe, role_ref, age_fin=None):
     """Une carriere reconstituee : debut, jours d assurance, gains cotises. `age_fin` : l age ou elle s est arretee."""
-    col = p.colonnes["habitant"]; i = h.id
-    a0, a1 = ENTREE_CARRIERE.get(h.classe, ENTREE_CARRIERE["populaire"])
+    return _carriere_i(p, h.id, h.classe, rng, age, sexe, role_ref, age_fin)
+
+
+def _carriere_i(p, i, classe, rng, age, sexe, role_ref, age_fin=None):
+    col = p.colonnes["habitant"]
+    a0, a1 = ENTREE_CARRIERE.get(classe, ENTREE_CARRIERE["populaire"])
     debut = a0 + (a1 - a0) * rng.random()
     d0, d1 = DENSITE_COTISATION[sexe]
     dens = d0 + (d1 - d0) * rng.random()
@@ -746,7 +822,11 @@ def _carriere(p, h, rng, age, sexe, role_ref, age_fin=None):
 def _liquider(p, d, h, age, nature="vieillesse", ecrire=True):
     """Liquide la pension de `h` ; rend la Pension ( ou None sans droit : moins de 15 ans d assurance ). Sans droit a
     62-66 ans, il attend 67 ans et l allocation des non-assures."""
-    col = p.colonnes["habitant"]; i = h.id
+    return _liquider_i(p, d, h.id, age, nature, ecrire)
+
+
+def _liquider_i(p, d, i, age, nature="vieillesse", ecrire=True):
+    col = p.colonnes["habitant"]
     jours, assiette = float(col["tr_jours_cotises"][i]), float(col["tr_assiette"][i])
     tot, nat, _, pen = calculer_pension(jours, assiette, age, invalidite=nature == "invalidite")
     pn = None
@@ -769,38 +849,46 @@ def _recensement(p, d, rng):
     """Le jour de l installation : le moteur fait travailler tous les adultes de 16 a 65 ans. Le recensement du travail
     donne a chacun son statut selon son sexe et son age ( taux grecs ), son contrat, sa carriere, ses titres, son
     syndicat ; les retraites recoivent la pension de leur carriere reconstituee. Un poste que personne n occupe plus
-    disparait : l effectif vise d un etablissement est celui du recensement."""
-    w = p.w; H = w.habitants; col = p.colonnes["habitant"]
-    sexe_c = col["sexe"]
-    for h in H:
-        if not h.vivant: continue
-        i = h.id
-        age = POP.age_de(p, h)
+    disparait : l effectif vise d un etablissement est celui du recensement.
+    EN COLONNES ( 24/09 ) : une passe sur les numeros, les memes tirages dans le meme ordre ; une vue n est fabriquee
+    que pour qui quitte son poste ( licencie, etudiant, retraite, invalide )."""
+    w = p.w; tb = w.table; col = p.colonnes["habitant"]; mt = tb.menages
+    sexe_c = col["sexe"]; nj = col["naissance_j"]
+    jour = p.jour
+    for i in range(tb.n):
+        if not tb.vivant[i]: continue
+        age = (jour - int(nj[i])) / POP.JOURS_AN
         sexe = int(sexe_c[i]) if sexe_c[i] >= 0 else HOMME
+        role = _role_de(tb, i)
         q = 0
         if age >= 21 and rng.random() < SERVICE_MILITAIRE[sexe]: q |= BIT["formation_militaire"]
         if age >= 21 and rng.random() < PERMIS_POIDS_LOURD[sexe]: q |= BIT["permis_poids_lourd"]
-        if h.role in EXIGE: q |= BIT[EXIGE[h.role]]
+        if role in EXIGE: q |= BIT[EXIGE[role]]
         col["tr_qualifs"][i] = q
-        if h.role == "enfant":
+        if role == "enfant":
             if age >= C.AGE_TRAVAIL:
                 col["tr_statut"][i] = ETUDIANT
-                col["tr_fin_etudes"][i] = p.jour + int(round((_tirer_sortie_etudes(rng, age) - age) * JOURS_AN))
+                col["tr_fin_etudes"][i] = jour + int(round((_tirer_sortie_etudes(rng, age) - age) * JOURS_AN))
             continue
-        if h.role == "retraite":
-            ref = METIER_DE_CLASSE.get(h.classe, "ouvrier")
-            _carriere(p, h, rng, age, sexe, ref, age_fin=min(age, C.AGE_RETRAITE))
+        classe = PO.CLASSES[tb.classe[i]]
+        if role == "retraite":
+            ref = METIER_DE_CLASSE.get(classe, "ouvrier")
+            _carriere_i(p, i, classe, rng, age, sexe, ref, age_fin=min(age, C.AGE_RETRAITE))
             col["tr_statut"][i] = RETRAITE
-            _liquider(p, d, h, min(age, C.AGE_RETRAITE), ecrire=False)
+            _liquider_i(p, d, i, min(age, C.AGE_RETRAITE), ecrire=False)
             continue
-        annees = _carriere(p, h, rng, age, sexe, h.role)
+        annees = _carriere_i(p, i, classe, rng, age, sexe, role)
         statut = SALARIE
-        if d.inactifs and h.role not in POLITIQUES + ("patron",) and C.AGE_TRAVAIL <= age < 65:
+        if d.inactifs and role not in POLITIQUES + ("patron",) and C.AGE_TRAVAIL <= age < 65:
             ligne = next((t for a0, a1, t in STATUTS_RECENSEMENT if a0 <= age < a1), None)
             if ligne is not None:
                 e_, u_, s_, f_, i_, r_ = ligne[sexe]
-                autre_adulte = any(x.vivant and x is not h and POP.age_de(p, x) >= POP.AGE_MAJEUR for x in h.menage.membres)
-                if not autre_adulte or h.role == "paysan": e_, f_ = e_ + f_, 0.0
+                k = int(tb.menage[i])
+                if k < 0: raise AttributeError("'NoneType' object has no attribute 'membres'")
+                viv = tb.vivant
+                autre_adulte = any(viv[x] and x != i and (jour - int(nj[x])) / POP.JOURS_AN >= POP.AGE_MAJEUR
+                                   for x in mt.membres_ids(k))
+                if not autre_adulte or role == "paysan": e_, f_ = e_ + f_, 0.0
                 # au foyer suppose un autre revenu dans le menage ; sur une exploitation familiale, le conjoint qui y
                 # travaille est un aide familial, en emploi au sens du BIT ( la Grece en compte la part la plus forte de
                 # l Union, surtout dans l agriculture : Eurostat, a calibrer )
@@ -810,8 +898,9 @@ def _recensement(p, d, rng):
                     x -= pr
                 else: statut = DECOURAGE
         if statut == SALARIE:
-            _contrat_recensement(p, d, h, rng, annees)
+            _contrat_recensement_i(p, i, role, rng, annees)
             continue
+        h = PO.Habitant(tb, i)
         ECO.licencier(p, h, "recensement", inscrire=statut == CHOMEUR)
         col["tr_statut"][i] = statut
         if statut == CHOMEUR:
@@ -826,20 +915,34 @@ def _recensement(p, d, rng):
         elif statut in (INVALIDE, RETRAITE):
             h.role, h.horaire = "retraite", None
             _liquider(p, d, h, age, "invalidite" if statut == INVALIDE else "vieillesse", ecrire=False)
-    # les syndiques, parmi les salaries ; l effectif vise de chaque etablissement
+    # les syndiques, parmi les salaries ( un tirage chacun, dans l ordre des numeros ) ; l effectif vise de chaque
+    # etablissement ( les cles dans l ordre de leur premier habitant )
+    n = tb.n
     stat = col["tr_statut"]
-    for h in H:
-        if not h.vivant or stat[h.id] not in PAYES_A_L_HEURE: continue
-        if rng.random() < ADHESION[_secteur(h.role)]: col["tr_syndique"][h.id] = 1
+    viv = tb.vivant[:n] == 1
+    ids = np.nonzero(viv & np.isin(stat[:n], PAYES_A_L_HEURE))[0]
+    if len(ids):
+        u = rng.random(len(ids))
+        seuil = np.where(PUBLIC_DU_MOTEUR[tb.role[ids].astype(np.int64) + 1], ADHESION["public"], ADHESION["prive"])
+        col["tr_syndique"][ids[u < seuil]] = 1
     d.cible = {}
-    for h in H:
-        if h.vivant and h.travail is not None and stat[h.id] in EN_EMPLOI:
-            k = (h.travail.id, h.role); d.cible[k] = d.cible.get(k, 0) + 1
+    ids = np.nonzero(viv & (tb.travail[:n] >= 0) & np.isin(stat[:n], EN_EMPLOI))[0]
+    if len(ids):
+        nr1 = len(PO.ROLES) + 1
+        cles = tb.travail[ids].astype(np.int64) * nr1 + (tb.role[ids].astype(np.int64) + 1)
+        u, premier, nb = np.unique(cles, return_index=True, return_counts=True)
+        par_n = w.carte.par_n
+        for j in np.argsort(premier, kind="stable").tolist():
+            c = int(u[j]); r = c % nr1 - 1
+            d.cible[(par_n[c // nr1].id, PO.ROLES[r] if r >= 0 else None)] = int(nb[j])
 
 
 def _contrat_recensement(p, d, h, rng, annees):
-    col = p.colonnes["habitant"]; i = h.id
-    r = h.role
+    _contrat_recensement_i(p, h.id, h.role, rng, annees)
+
+
+def _contrat_recensement_i(p, i, r, rng, annees):
+    col = p.colonnes["habitant"]
     if r in INDEPENDANTS: contrat = INDEP
     elif _public(r): contrat = TITULAIRE
     else: contrat = CDD if rng.random() < PART_CDD_RECENSEMENT else CDI
@@ -939,6 +1042,7 @@ def _ids_pointes(d):
     """Les numeros de `d.pointes`, dans son ordre : relus seulement quand la liste est remplacee ( chaque matin ) ;
     les embauches du jour, ajoutees a la fin, sont lues a leur tour."""
     lst = d.pointes
+    if type(lst) is _Pointes: return lst.numeros()
     c = _POINTES.get(id(d))
     if c is None or c[0] is not lst or c[1] > len(lst):
         c = (lst, 0, np.zeros(0, np.int64))
@@ -949,8 +1053,9 @@ def _ids_pointes(d):
 
 
 def _refaire_pointes(p, d):
-    w = p.w; st = p.col("habitant", "tr_statut")
-    d.pointes = [h for h in w.habitants if h.vivant and h.travail is not None and st[h.id] in PAYES_A_L_HEURE]
+    w = p.w; st = p.col("habitant", "tr_statut"); tb = w.table; n = tb.n
+    d.pointes = _Pointes(tb, np.nonzero((tb.vivant[:n] == 1) & (tb.travail[:n] >= 0)
+                                        & np.isin(st[:n], PAYES_A_L_HEURE))[0])
 
 
 # ================================================================== la paie ( 18 h )
@@ -965,10 +1070,10 @@ def _paie(p):
     ( la caisse, financee par l Etat pour la part nationale et son deficit ), les cotisations des independants en fin de
     mois, les accidents du travail."""
     w = p.w; d = p.domaine("travail"); L = p.socle.livre; g = w.gouv
-    H = w.habitants; n = len(H)
+    tb = w.table; n = tb.n
     col = p.colonnes["habitant"]; col.assurer(n)
     _pointer(p, w.pas)                                   # le pas de 18 h, joue en ce moment
-    heures = w.table.heures[:n].copy()
+    heures = tb.heures[:n].copy()
     statut = col["tr_statut"][:n]
     pt = col["tr_pointage"][:n].astype(np.float64) / 6.0
     net_j = col["tr_net_jour"]; net_j[:n] = 0.0
@@ -985,19 +1090,27 @@ def _paie(p):
         p.compter("heures_non_travaillees", float(heures[i]))
         solde[i] = 0.0
     # --- 2. les salaires, employeur par employeur ( ordre des identifiants : deterministe )
+    # EN COLONNES ( 24/09 ) : les vivants payes qui ont des heures sont trouves en vecteurs ; le payeur d un
+    # ( lieu, metier ) se lit une fois ( rien ne le change pendant cette passe )
     parts = {}
-    taux = col["tr_taux"]; syn = col["tr_syndique"]
-    for i in np.nonzero(payes & (heures > 0.0))[0].tolist():
-        h = H[i]
-        if not h.vivant or i in d.grevistes: continue
-        x = _payeur(p, d, h)
+    taux = col["tr_taux"]
+    gr = d.grevistes; payeurs = {}
+    for i in np.nonzero(payes & (heures > 0.0) & (tb.vivant[:n] == 1))[0].tolist():
+        if i in gr: continue
+        tn = int(tb.travail[i]); rc = int(tb.role[i])
+        if tn < 0: continue
+        cle = (tn, rc)
+        if cle in payeurs: x = payeurs[cle]
+        else:
+            x = payeurs[cle] = _payeur_de(p, d, tb.par_n[tn].id, PO.ROLES[rc] if rc >= 0 else None)
+            if x is not None: x = payeurs[cle] = (x, _cle_payeur(x))
         if x is None: continue
-        f = g.facteur_salaire_public if _public(h.role) else 1.0
+        f = g.facteur_salaire_public if PUBLIC_DU_MOTEUR[rc + 1] else 1.0
         brut = round(float(taux[i]) * float(heures[i]) * f, 2)
         if brut <= 0.0: continue
-        k = _cle_payeur(x)
+        x, k = x
         if k not in parts: parts[k] = (x, [])
-        parts[k][1].append((h, brut))
+        parts[k][1].append((PO.Habitant(tb, i), brut))
     for k, (x, lignes) in parts.items():
         _payer_employeur(p, d, x, lignes, agg)
     # --- 3. les independants, comme le moteur : benefice des marchands, revenu des cooperatives agricoles
@@ -1011,7 +1124,7 @@ def _paie(p):
     # --- 6. accidents du travail, sur les jours travailles
     _accidents(p, d, heures)
     agg["heures"] = float(heures.sum())
-    for h in H: h.heures_jour = 0.0
+    tb.heures[:tb.n] = 0.0
     col["tr_pointage"][:n] = 0
     d.jour = agg
     for kk, v in agg.items(): _ajouter(d.cumul, kk, v)
@@ -1046,9 +1159,10 @@ def _payer_employeur(p, d, x, lignes, agg, credit_jours=True):
     motif = "salaire public" if etat else "salaire"
     b = []
     tot = 0.0
+    syn = col["tr_syndique"]; tir = _taux_ir(p) if d.bareme_ir is None else None   # rien ne bouge dans cette passe
     for h, brut in lignes:
-        syndique = bool(col["tr_syndique"][h.id])
-        if d.bareme_ir is None: cs, cp, ir, sy, net = decomposer(brut, _taux_ir(p), syndique)
+        syndique = bool(syn[h.id])
+        if tir is not None: cs, cp, ir, sy, net = decomposer(brut, tir, syndique)
         else:
             cs, cp, _, sy, _ = decomposer(brut, 0.0, syndique)
             ir = round(float(d.bareme_ir(p, h, brut - cs)), 2)
@@ -1099,48 +1213,52 @@ def _payer_employeur(p, d, x, lignes, agg, credit_jours=True):
 def _independants(p, d, agg):
     """Monde.paie, pour ceux qui ne sont pas payes a l heure : les marchands se partagent la moitie du benefice de leur
     marche au-dela de 20 000 drachmes, les paysans la caisse de leur cooperative ; l impot du moteur est preleve.
-    Les dividendes des patrons sont au domaine 3 ( fin de mois )."""
-    w = p.w; L = p.socle.livre; g = w.gouv; col = p.colonnes["habitant"]
+    Les dividendes des patrons sont au domaine 3 ( fin de mois ).
+    EN COLONNES ( 24/09 ) : les numeros de l index, filtres sur la table ; le menage se lit sans vue d habitant."""
+    w = p.w; L = p.socle.livre; g = w.gouv; col = p.colonnes["habitant"]; tb = w.table
     for m in w.marches.values():
-        marchands = [x for x in w.au_travail_de(m.lieu, "marchand") if x.vivant and x.travail is m.lieu]
+        marchands = _ids_filtres(w, m.lieu, "marchand")
         exces = m.caisse - 20000.0
         if exces > 0 and marchands:
-            for x in marchands:
-                brut = L.transferer(m, x.menage, 0.5 * exces / len(marchands), "benefice marchand")
-                L.transferer(x.menage, g, brut * g.impot_revenu, "impot")
-                col["tr_imposable_an"][x.id] += brut; col["tr_net_jour"][x.id] += brut * (1.0 - g.impot_revenu)
+            for i in marchands:
+                mg = _menage_de(tb, i)
+                brut = L.transferer(m, mg, 0.5 * exces / len(marchands), "benefice marchand")
+                L.transferer(mg, g, brut * g.impot_revenu, "impot")
+                col["tr_imposable_an"][i] += brut; col["tr_net_jour"][i] += brut * (1.0 - g.impot_revenu)
                 agg["revenu_independants"] += brut
     for e in w.entreprises.values():
         if e.type != "ferme": continue
-        paysans = [x for x in w.au_travail_de(e.lieu, "paysan") if x.vivant and x.travail is e.lieu]
+        paysans = _ids_filtres(w, e.lieu, "paysan")
         part = e.caisse / len(paysans) if paysans and e.caisse > 0 else 0.0
         r = d.revenu_coop.get(e.id)
         d.revenu_coop[e.id] = part if r is None else r + (part - r) / 30.0
         if part <= 0.0: continue
-        for x in paysans:
-            brut = L.transferer(e, x.menage, part, "revenu agricole")
-            L.transferer(x.menage, g, brut * g.impot_revenu, "impot")
-            col["tr_imposable_an"][x.id] += brut; col["tr_net_jour"][x.id] += brut * (1.0 - g.impot_revenu)
+        for i in paysans:
+            mg = _menage_de(tb, i)
+            brut = L.transferer(e, mg, part, "revenu agricole")
+            L.transferer(mg, g, brut * g.impot_revenu, "impot")
+            col["tr_imposable_an"][i] += brut; col["tr_net_jour"][i] += brut * (1.0 - g.impot_revenu)
             agg["revenu_independants"] += brut
 
 
 def _prestations(p, d, agg):
     """Pensions et indemnites du jour. L Etat verse d abord la part nationale des pensions ( et les allocations des
     non-assures ), puis couvre le deficit de la caisse s il y en a un : les prestations sont garanties par la loi."""
-    w = p.w; L = p.socle.livre; g = w.gouv; col = p.colonnes["habitant"]; H = w.habitants
+    w = p.w; L = p.socle.livre; g = w.gouv; col = p.colonnes["habitant"]; tb = w.table; n = tb.n
     c = d.caisse
-    dues = []
+    dues = []                   # ( numero, montant, motif ) : EN NUMEROS ( 24/09 ), le menage se lit au paiement
     nat = 0.0
+    viv = tb.vivant; jour = p.jour
     for i, pn in d.pensions.items():
-        h = H[i]
-        if not h.vivant: continue
-        dues.append((h, pn.par_jour(), "pension_invalidite" if pn.nature == "invalidite" else "pension_vieillesse"))
+        if not 0 <= i < n: raise IndexError(i)
+        if not viv[i]: continue
+        dues.append((i, pn.par_jour(), "pension_invalidite" if pn.nature == "invalidite" else "pension_vieillesse"))
         nat += pn.nationale_par_jour()
     for i, ind in d.indemnites.items():
-        h = H[i]
-        if not h.vivant or not ind.debut <= p.jour <= ind.fin: continue
-        dues.append((h, ind.jour, "indemnite_chomage"))
-    for h, g_, mot in _allocations_greve(p, d): dues.append((h, g_, mot))
+        if not 0 <= i < n: raise IndexError(i)
+        if not viv[i] or not ind.debut <= jour <= ind.fin: continue
+        dues.append((i, ind.jour, "indemnite_chomage"))
+    for h, g_, mot in _allocations_greve(p, d): dues.append((h.id, g_, mot))
     total = math.fsum(m for _, m, mot in dues if mot != "allocation_greve")
     K = p.socle.creances
     arr = math.fsum(cr.montant for cr in K.de(c))
@@ -1159,18 +1277,18 @@ def _prestations(p, d, agg):
     for cr in list(K.de(c)):                                     # les prestations en retard d abord
         if c.caisse <= TOL: break
         x = K.regler(cr, L); _cote(p, d, cr.motif, x, recu=False)
-    for h, m, mot in dues:
+    for i, m, mot in dues:
         if mot == "allocation_greve":
-            s = d.syndicats[_secteur(h.role)]
-            x = L.transferer(s, h.menage, m, mot); s.allocations += x; agg["allocations_greve"] += x
-            gv = d.grevistes.get(h.id)
+            s = d.syndicats[_secteur(_role_de(tb, i))]
+            x = L.transferer(s, _menage_de(tb, i), m, mot); s.allocations += x; agg["allocations_greve"] += x
+            gv = d.grevistes.get(i)
             if gv is not None: gv.allocations += x
         else:
-            x, du = _payer(p, c, h.menage, m, mot)
+            x, du = _payer(p, c, _menage_de(tb, i), m, mot)
             _cote(p, d, mot, x, recu=False)
             agg["indemnites" if mot == "indemnite_chomage" else "pensions"] += x
             agg["prestations_dues"] += du
-        col["tr_net_jour"][h.id] += x
+        col["tr_net_jour"][i] += x
 
 
 def _allocations_greve(p, d):
@@ -1193,16 +1311,16 @@ def _allocations_greve(p, d):
 def _cotisations_independants(p, d, agg):
     """Fin de mois : chaque independant en activite paie sa categorie ; un impaye est une dette envers la caisse, et le
     mois n est credite qu a proportion de ce qui est paye."""
-    w = p.w; col = p.colonnes["habitant"]; st = col["tr_statut"]
-    for h in w.habitants:
-        if not h.vivant or st[h.id] != INDEPENDANT or h.travail is None: continue
-        m = COTISATION_INDEPENDANT_MOIS.get(h.role)
+    w = p.w; col = p.colonnes["habitant"]; st = col["tr_statut"]; tb = w.table; n = tb.n
+    # EN COLONNES ( 24/09 ) : les independants en activite trouves en vecteurs, payes dans l ordre des numeros
+    for i in np.nonzero((tb.vivant[:n] == 1) & (st[:n] == INDEPENDANT) & (tb.travail[:n] >= 0))[0].tolist():
+        m = COTISATION_INDEPENDANT_MOIS.get(_role_de(tb, i))
         if m is None: continue
-        paye, du = _payer(p, h.menage, d.caisse, m, "cotisation_independant")
+        paye, du = _payer(p, _menage_de(tb, i), d.caisse, m, "cotisation_independant")
         _cote(p, d, "cotisation_independant", paye)
         f = paye / m
-        col["tr_jours_cotises"][h.id] += JOURS_ASSURANCE_MOIS * f
-        col["tr_assiette"][h.id] += paye * PART_RETRAITE_INDEPENDANT / DIVISEUR_ASSIETTE_INDEPENDANT
+        col["tr_jours_cotises"][i] += JOURS_ASSURANCE_MOIS * f
+        col["tr_assiette"][i] += paye * PART_RETRAITE_INDEPENDANT / DIVISEUR_ASSIETTE_INDEPENDANT
         agg["cotisations_independants"] += paye; agg["cotisations_dues"] += du
 
 
@@ -1229,9 +1347,9 @@ def _accidents(p, d, heures):
     idx = np.nonzero(heures > 0.0)[0]
     if not len(idx): return
     H = w.habitants
-    roles = [H[i].role for i in idx.tolist()]
-    pm = np.array([ACCIDENTS.get(r, (0.0, 0.0))[1] for r in roles]) / 1e5 / JOURS_TRAVAILLES_AN
-    pb = np.array([ACCIDENTS.get(r, (0.0, 0.0))[0] for r in roles]) / 1e5 / JOURS_TRAVAILLES_AN
+    rc = w.table.role[idx].astype(np.int64) + 1                  # EN COLONNES ( 24/09 ) : les taux par code de metier
+    pm = ACCIDENTS_PAR_CODE[1][rc] / 1e5 / JOURS_TRAVAILLES_AN
+    pb = ACCIDENTS_PAR_CODE[0][rc] / 1e5 / JOURS_TRAVAILLES_AN
     u = p.du_jour("travail_accidents").random(len(idx))
     med = importlib.import_module(".d16_medecine", __package__) if p.a("medecine") else None
     for k in np.nonzero(u < pm + pb)[0].tolist():
@@ -1255,25 +1373,35 @@ def _carrieres(p):
     date = cal.date(w.pas).date()
     if date.month == 1 and date.day == 1: col["tr_imposable_an"][:n] = 0.0
     ages = _ages(p, n)
-    for h in H:
-        i = h.id
-        if not h.vivant:
+    # EN COLONNES ( 24/09 ) : les lignes a reprendre sont trouvees en vecteurs ( un sur-ensemble ), puis chacune passe
+    # par la regle d origine, dans l ordre des numeros ; une ligne ne touche que ses propres champs.
+    tb = w.table
+    viv = tb.vivant[:n] == 1; s_ = st[:n]; ro = tb.role[:n]; trv = tb.travail[:n]
+    R_RET, R_ENF = PO.CODE_ROLE["retraite"], PO.CODE_ROLE["enfant"]
+    emp = np.isin(s_, EN_EMPLOI)
+    a_voir = (~viv & (s_ != HORS)) | (viv & (((ro == R_RET) & ~np.isin(s_, (RETRAITE, INVALIDE)))
+                                             | ((s_ == RETRAITE) & (ages >= AGE_LEGAL))
+                                             | (emp & (trv < 0))
+                                             | (~emp & (trv >= 0) & (ro != R_ENF) & (ro != R_RET))))
+    for i in np.nonzero(a_voir)[0].tolist():
+        if not tb.vivant[i]:
             if st[i] != HORS:
                 st[i] = HORS; _fermer_contrat(col, i); d.pensions.pop(i, None); d.indemnites.pop(i, None)
             continue
         s = int(st[i])
-        if h.role == "retraite" and s not in (RETRAITE, INVALIDE):         # le domaine 1 l a mis a la retraite
+        r = int(tb.role[i])
+        if r == R_RET and s not in (RETRAITE, INVALIDE):                   # le domaine 1 l a mis a la retraite
             _fermer_contrat(col, i); st[i] = RETRAITE; col["tr_syndique"][i] = 0
-            _liquider(p, d, h, float(ages[i]))
+            _liquider_i(p, d, i, float(ages[i]))
             continue
         if s == RETRAITE and i not in d.pensions and ages[i] >= AGE_LEGAL:
-            _liquider(p, d, h, float(ages[i]))
+            _liquider_i(p, d, i, float(ages[i]))
             continue
-        if s in EN_EMPLOI and h.travail is None:                           # licencie par un autre domaine ( faillite )
-            _devenir_chomeur(p, d, h, involontaire=i in p.domaine("economie").chomeurs)
+        if s in EN_EMPLOI and tb.travail[i] < 0:                           # licencie par un autre domaine ( faillite )
+            _devenir_chomeur(p, d, H[i], involontaire=i in p.domaine("economie").chomeurs)
             continue
-        if s not in EN_EMPLOI and h.travail is not None and h.role not in ("enfant", "retraite"):
-            _contrat_par_defaut(p, d, h)                                    # embauche par un autre domaine
+        if s not in EN_EMPLOI and tb.travail[i] >= 0 and r not in (R_ENF, R_RET):
+            _contrat_par_defaut(p, d, H[i])                                 # embauche par un autre domaine
     # les retraites volontaires
     jc = col["tr_jours_cotises"][:n]
     cand = np.nonzero(np.isin(st[:n], (SALARIE, FONCTIONNAIRE, INDEPENDANT, CHOMEUR, DECOURAGE, AU_FOYER))
@@ -1369,11 +1497,16 @@ def _fin_cdd(p, d, h, rng):
 
 # ================================================================== le marche du travail ( 6 h 20 )
 def _effectifs(p):
-    out = {}
-    for (lid, r), lst in p.w._par_travail.items():
-        k = sum(1 for x in lst if x.vivant and x.travail is not None and x.travail.id == lid and x.role == r)
-        if k: out[(lid, r)] = k
-    return out
+    """{ ( lieu, metier ) : effectif } : ceux de l index du travail, vivants, encore a ce lieu dans ce metier. EN
+    COLONNES ( 24/09 ) : tout l index en deux tableaux, compte par cle."""
+    w = p.w; tb = w.table; nr = len(PO.ROLES)
+    ids, cles = _index_travail(w)
+    if not len(ids): return {}
+    tr = tb.travail[ids].astype(np.int64); ro = tb.role[ids].astype(np.int64)
+    ok = (tb.vivant[ids] == 1) & (tr >= 0) & (ro >= 0) & (tr * nr + ro == cles)
+    u, nb = np.unique(cles[ok], return_counts=True)
+    par_n = w.carte.par_n
+    return {(par_n[c // nr].id, PO.ROLES[c % nr]): k for c, k in zip(u.tolist(), nb.tolist())}
 
 
 def _postes_vacants(p, d):
@@ -1442,7 +1575,8 @@ def _traits_offre(p, d, h, o):
     st = int(col["tr_statut"][i])
     cj = int(col["tr_chomage_j"][i])
     mg = h.menage
-    vivants = sum(1 for x in mg.membres if x.vivant)
+    viv = w.table.vivant
+    vivants = sum(1 for x in mg._mt.membres_ids(mg.id) if viv[x])
     prix = w.marches[mg.domicile.marche.id].prix["nourriture"] * (1.0 + w.gouv.tva)
     x = (min(1.0, o.net_jour / NORME_REVENU_J), min(1.0, actuel / NORME_REVENU_J), min(1.0, o.km / 60.0),
          1.0 if o.role == h.role else 0.5, min(1.0, max(0, p.jour - cj) / 365.0) if st == CHOMEUR else 0.0,
@@ -1467,17 +1601,21 @@ def _marche_du_travail(p):
     a_terme = np.isin(col["tr_contrat"][:n], (CDD, SAISONNIER)) & (fin - p.jour <= MOIS_J)
     ok = (((st == CHOMEUR) | (np.isin(st, PAYES_A_L_HEURE) & (cherche | a_terme)))
           & (ages >= C.AGE_TRAVAIL) & (ages < AGE_LEGAL))
+    # EN COLONNES ( 24/09 ) : les candidats en numeros, groupes par domicile dans l ordre des numeros ; une vue n est
+    # fabriquee que pour qui recoit une offre
+    tb = w.table
+    ok &= (tb.vivant[:n] == 1) & ~np.isin(tb.role[:n], _codes(HORS_MARCHE)) & (tb.domicile[:n] >= 0)
     par_lieu = {}
+    gr = d.grevistes; dom = tb.domicile; par_n = w.carte.par_n
     for i in np.nonzero(ok)[0].tolist():
-        h = H[i]
-        if h.vivant and h.role not in HORS_MARCHE and i not in d.grevistes and h.domicile is not None:
-            par_lieu.setdefault(h.domicile.id, []).append(h)
+        if i not in gr: par_lieu.setdefault(par_n[dom[i]].id, []).append(i)
     if not par_lieu: _refaire_pointes(p, d); return
     lieux_cands = [w.carte.lieux[k] for k in sorted(par_lieu)]
     dec = d.decideur
     for k in sorted(vac):
         lid, role = k
         lieu = w.carte.lieux[lid]
+        ln, rc = lieu.n, PO.CODE_ROLE.get(role, -2)
         proches = [l for l in sorted((l for l in lieux_cands if l.ile == lieu.ile), key=lambda l: (_km(p, d, l, lieu), l.id))
                    if _km(p, d, l, lieu) <= TRAJET_MAX_KM]
         for _ in range(vac[k]):
@@ -1486,10 +1624,12 @@ def _marche_du_travail(p):
                 reste = par_lieu[l.id]
                 j = 0
                 while j < len(reste) and faites < PROPOSITIONS_PAR_POSTE and not pourvu:
-                    h = reste[j]
-                    if not h.vivant or (h.travail is lieu and h.role == role) or not _a(int(col["tr_qualifs"][h.id]), role):
+                    i = reste[j]
+                    if (not tb.vivant[i] or (tb.travail[i] == ln and tb.role[i] == rc)
+                            or not _a(int(col["tr_qualifs"][i]), role)):
                         j += 1; continue
                     reste.pop(j); faites += 1                      # une offre par candidat et par jour
+                    h = PO.Habitant(tb, i)
                     o = _offre_pour(p, d, h, lid, role, rng)
                     x, fin_cdd = _traits_offre(p, d, h, o)
                     a = dec.decider(h.id, ContexteOffre(x, fin_cdd))
@@ -1508,17 +1648,32 @@ def _marche_du_travail(p):
 
 
 def _effectif(p, lid, role):
-    return sum(1 for x in p.w._par_travail.get((lid, role), ()) if x.vivant and x.travail is not None and x.travail.id == lid)
+    w = p.w
+    if lid not in w.carte.lieux or role not in PO.CODE_ROLE: return 0     # la cle que l ancien index ne connait pas
+    return len(_ids_filtres(w, w.carte.lieux[lid], role))
 
 
 # ================================================================== les greves ( 6 h 20, apres le marche )
 def _membres(p, lid, role):
     """Les travailleurs d un etablissement ( lieu, metier ), ou d une branche publique ( lieu None )."""
+    tb = p.w.table
+    return [PO.Habitant(tb, i) for i in _membres_ids(p, lid, role)]
+
+
+def _membres_ids(p, lid, role):
+    """Les numeros de `_membres`, dans le meme ordre ( les lieux d une branche dans l ordre de leur identifiant ),
+    sans une vue par travailleur."""
     w = p.w
+    if role not in PO.CODE_ROLE: return []
     if lid is None:
-        return [x for (l, r), lst in sorted(w._par_travail.items()) if r == role for x in lst
-                if x.vivant and x.travail is not None and x.travail.id == l]
-    return [x for x in w._par_travail.get((lid, role), ()) if x.vivant and x.travail is not None and x.travail.id == lid]
+        nr = len(PO.ROLES); rc = PO.CODE_ROLE[role]; par_n = w.carte.par_n
+        cles = {c for c in w._travail_tranches if c % nr == rc}
+        cles.update(c for c in w._travail_ajouts if c % nr == rc)
+        out = []
+        for l in sorted((par_n[c // nr] for c in cles), key=lambda l: l.id): out += _ids_filtres(w, l, role)
+        return out
+    if lid not in w.carte.lieux: return []
+    return _ids_filtres(w, w.carte.lieux[lid], role)
 
 
 def declencher_greve(p, lid, role, jours, motif="decision"):
@@ -1607,8 +1762,8 @@ def _greves(p):
     w = p.w; d = p.domaine("travail"); col = p.colonnes["habitant"]
     for k in sorted(d.en_greve, key=lambda k: d.en_greve[k].id):
         gv = d.en_greve[k]
-        gens = [w.habitants[i] for i in gv.horaires]
-        gv.salaires_perdus += math.fsum(float(col["tr_taux"][h.id]) * float(col["tr_heures_prevues"][h.id]) for h in gens)
+        gens = list(gv.horaires)                                           # les numeros des grevistes
+        gv.salaires_perdus += math.fsum(float(col["tr_taux"][i]) * float(col["tr_heures_prevues"][i]) for i in gens)
         if gv.lieu is not None:
             e = w.entreprises.get(gv.lieu)
             if e is not None and e.role == gv.role:
@@ -1618,10 +1773,16 @@ def _greves(p):
         if fini: _finir_greve(p, d, gv)
         else: _arreter_etablissement(p, gv)
     # la regle
+    # EN COLONNES ( 24/09 ) : les ( lieu, metier ) de l index qui ont un syndique vivant encore a ce lieu
     etabs = {}
-    for (lid, r), lst in w._par_travail.items():
-        if r in INTERDITS_DE_GREVE or r in HORS_MARCHE or r in ("enfant", "retraite"): continue
-        if not any(x.vivant and x.travail is not None and x.travail.id == lid and col["tr_syndique"][x.id] for x in lst): continue
+    tb = w.table; nr = len(PO.ROLES); par_n = w.carte.par_n
+    ids, cles = _index_travail(w)
+    garde = ~np.isin(cles % nr, _codes(INTERDITS_DE_GREVE + HORS_MARCHE + ("enfant", "retraite")))
+    ids, cles = ids[garde], cles[garde]
+    la = (tb.vivant[ids] == 1) & (tb.travail[ids].astype(np.int64) == cles // nr)
+    ids, cles = ids[la], cles[la]
+    for c in np.unique(cles[col["tr_syndique"][ids] != 0]).tolist():
+        lid, r = par_n[c // nr].id, PO.ROLES[c % nr]
         etabs[(None if _public(r) else lid, r)] = True
     ind = BQ.indice_des_prix(p)
     for k in sorted(etabs, key=lambda k: (k[0] or "", k[1])):
@@ -1638,13 +1799,25 @@ def _arrieres(p, d, lid, role):
     """( arrieres en jours de paie nette, en drachmes ) des travailleurs d un etablissement ( ou d une branche
     publique, lid None ) sur leur employeur : les creances de salaire du socle."""
     col = p.colonnes["habitant"]
-    gens = _membres(p, lid, role)
+    gens = _membres_ids(p, lid, role)
     if not gens: return 0.0, 0.0
     x = p.w.gouv if lid is None else _payeur_de(p, d, lid, role)
     if x is None: return 0.0, 0.0
-    menages = {h.menage for h in gens}
-    du = math.fsum(cr.montant for cr in p.socle.creances.de(x) if cr.creancier in menages and cr.motif in MOTIFS_SALAIRE)
-    paie = math.fsum(_net_jour(p, float(col["tr_taux"][h.id]), float(col["tr_heures_prevues"][h.id]), h.role) for h in gens)
+    # EN COLONNES ( 24/09 ) : les menages en numeros ( un Menage de la table est egal a un autre par son numero ) ;
+    # le net du jour de chacun en vecteurs, operation par operation comme _net_jour ; fsum est exacte
+    tb = p.w.table; mt = tb.menages
+    ids = np.array(gens, np.int64)
+    mids = set(tb.menage[ids].tolist())
+    sans = -1 in mids
+
+    def de_ses_menages(c):
+        if c is None: return sans
+        return isinstance(c, PO.Menage) and c._mt is mt and c.id in mids
+    du = math.fsum(cr.montant for cr in p.socle.creances.de(x) if de_ses_menages(cr.creancier) and cr.motif in MOTIFS_SALAIRE)
+    f = np.where(PUBLIC_DU_MOTEUR[tb.role[ids].astype(np.int64) + 1], p.w.gouv.facteur_salaire_public, 1.0)
+    nets = (col["tr_taux"][ids].astype(np.float64) * col["tr_heures_prevues"][ids].astype(np.float64) * f
+            * (1.0 - TAUX_SALARIE) * (1.0 - _taux_ir(p)))
+    paie = math.fsum(nets.tolist())
     return (du / paie if paie > 0 else 0.0), du
 
 

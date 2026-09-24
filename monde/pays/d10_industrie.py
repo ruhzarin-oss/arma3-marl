@@ -588,13 +588,22 @@ POINT_ENTRETIEN = D.PointDeDecision(
     horizon_j=HORIZON_ENTRETIEN)
 
 
-def _traits_entretien(m, a):
+def _traits_entretien(m, a, en_service=None, n_autres=None):
+    """Les traits d une machine. `en_service`, `n_autres` : les AUTRES machines de l atelier en service ce matin et leur
+    nombre, quand l appelant les tient a jour ( _matin, 24/09 : les recompter pour chaque machine coutait le carre de
+    la flotte d un atelier ) ; sinon comptes ici."""
     fia, o = m.fia, m.objet
-    autres = [x for x in a.machines if x is not m]
-    en_service = sum(1 for x in autres if x.objet.etat == O.SERVICE and x.pm_h <= 0)
+    if en_service is None:
+        autres = [x for x in a.machines if x is not m]
+        en_service = sum(1 for x in autres if x.objet.etat == O.SERVICE and x.pm_h <= 0)
+        n_autres = len(autres)
     return (min(1.0, m.t_h / (2.0 * fia.pm_h)), o.usure, min(1.0, len(m.pannes) / 3.0),
             min(1.0, proba_panne(fia, m.t_h, HEURES_POSTE, o.usure) / 0.5), a.regime,
-            en_service / len(autres) if autres else 1.0, min(1.0, max(0.0, a.couverture)))
+            en_service / n_autres if n_autres else 1.0, min(1.0, max(0.0, a.couverture)))
+
+
+def _en_service(m):
+    return m.objet.etat == O.SERVICE and m.pm_h <= 0
 
 
 # ================================================================== les lois, pour les portes
@@ -709,12 +718,17 @@ def _matin(p):
     """6 h 20, avant la prise de poste : l equipe de chaque site, les regimes, puis chaque machine en service d un
     atelier qui tourne decide de son entretien."""
     D_ = _dom(p); w = p.w
+    tb = w.table
+    # EN COLONNES ( 24/09 ) : l equipe comptee sur l index du travail et la table du moteur, sans une vue par personne
     for s in D_.sites:
         e = s.entreprise
         s.actif = not ECO.comptes(p, e).liquidee
-        s.equipe = sum(1 for h in w.au_travail_de(e.lieu, e.role) if h.vivant) if s.actif else 0
+        if s.actif:
+            ids = np.array(w.ids_au_travail(e.lieu, e.role), np.int64)
+            s.equipe = int(np.count_nonzero(tb.vivant[ids])) if len(ids) else 0
+        else: s.equipe = 0
     D_.reserve_reseau = RESERVE_RESEAU_MIN + HEURES_POSTE * math.fsum(
-        len(w.au_travail_de(e.lieu, e.role)) * e.intrants.get("electricite", 0.0)
+        len(w.ids_au_travail(e.lieu, e.role)) * e.intrants.get("electricite", 0.0)
         for e in w.entreprises.values() if e.id not in p.repris and e.type != "centrale")
     _regimes(p, D_)
     dec = D_.decideur; parc = p.socle.parc
@@ -722,14 +736,21 @@ def _matin(p):
         if not s.actif: continue
         for a in s.ateliers:
             if a.regime <= 0.0: continue
-            for m in a.machines:
+            ms = a.machines
+            # les machines en service de l atelier, comptees une fois puis tenues a jour a chaque entretien decide
+            # ( chaque machine et chaque objet une seule fois dans l atelier : sinon, le compte machine par machine )
+            unique = len({id(x) for x in ms}) == len(ms) == len({id(x.objet) for x in ms})
+            c = sum(1 for x in ms if _en_service(x)) if unique else None
+            for m in ms:
                 if m.objet.etat != O.SERVICE or m.pm_h > 0: continue
-                if dec.decider(m.objet.id, ContexteEntretien(_traits_entretien(m, a), m)) == 1:
+                tr = _traits_entretien(m, a, c - 1, len(ms) - 1) if unique else _traits_entretien(m, a)
+                if dec.decider(m.objet.id, ContexteEntretien(tr, m)) == 1:
                     m.pm_h = m.fia.pm_duree_h
                     dec.ajouter(m.objet.id, -m.fia.pm_duree_h / HEURES_POSTE)
                     parc.mettre_en_etat(m.objet, O.IMMOBILISE)
                     D_.stats["entretiens"] += 1
                     p.compter("entretien_machine")
+                if unique and not _en_service(m): c -= 1
 
 # ================================================================== les mouvements de biens
 def _e1(D_, nature, b, q):
@@ -856,9 +877,10 @@ def _panne(p, D_, s, a, m, presents):
     pa, pm = a.p_acc * D_.facteur_risque, a.p_mort * D_.facteur_risque
     D_.attendu[0] += pa; D_.attendu[1] += pm
     u = rng.random()
-    vivants = [h for h in presents if h.vivant]
-    if u < pa + pm and vivants:
-        h = vivants[int(rng.integers(len(vivants)))]
+    tb = p.w.table                                # `presents` : les numeros des presents ( _pas, en colonnes )
+    vivants = presents[tb.vivant[presents] != 0]
+    if u < pa + pm and len(vivants):
+        h = PO.Habitant(tb, int(vivants[int(rng.integers(len(vivants)))]))
         mortel = u >= pa
         _accident(p, D_, s, a, h, mortel)
         if mortel: m.morts += 1
@@ -868,6 +890,7 @@ def _panne(p, D_, s, a, m, presents):
 def _accident(p, D_, s, a, h, mortel):
     """Un accident du travail. Mort : par la population ( cause accident ). Blessure : par la medecine si elle est
     installee et sait `blesser` ( gravite dans [ 0 ; 1 ] : jours perdus sur 180 ), sinon comptee ici."""
+    _ACCIDENTS[0] += 1
     k = D_.accidents_secteur[a.secteur]
     if mortel:
         k[1] += 1; D_.stats["morts"] += 1
@@ -909,29 +932,69 @@ def _machines(p, D_, s, a, ouvert_h, service_h, presents):
         if rng.random() < 1.0 - math.exp(-lam): _panne(p, D_, s, a, m, presents)
 
 
+def _ids_au_travail(w, lieu, role):
+    """`Monde.ids_au_travail` en tableau d entiers, sans passer par une liste : la tranche de l index du travail
+    quand elle n a ni depart ni embauche du jour ( le cas de presque tous les pas ), sinon la liste du moteur.
+    ( 24/09 : la liste puis le tableau coutaient 20 us par site et par pas, le tiers des routines du domaine. )"""
+    ordre = getattr(w, "_travail_ordre", None)
+    if ordre is not None:
+        cle = w._cle_travail(lieu, role)
+        if not w._travail_retraits.get(cle) and not w._travail_ajouts.get(cle):
+            d, f = w._travail_tranches.get(cle, (0, 0))
+            return ordre[d:f].astype(np.int64)
+    return np.array(w.ids_au_travail(lieu, role), np.int64)
+
+
+_ACCIDENTS = [0]      # accidents du travail tires ( _accident ) : un compteur, pas un etat du monde
+
+
+def _presents(w, tb, lieu, role):
+    """Les numeros des travailleurs vivants de ce metier presents a leur poste de ce lieu, dans l ordre de l index."""
+    ids = _ids_au_travail(w, lieu, role)
+    if len(ids): ids = ids[(tb.vivant[ids] == 1) & (tb.lieu[ids] == lieu.n) & (tb.poste[ids] == POSTE_TRAVAIL)]
+    return ids
+
+
+def _presents_des_sites(w, tb, sites):
+    """`_presents` de chaque site, en une seule lecture de la table ( les appels numpy d un site coutaient 20 us )."""
+    if not sites: return []
+    lots = [_ids_au_travail(w, s.entreprise.lieu, s.entreprise.role) for s in sites]
+    tous = np.concatenate(lots)
+    ln = np.repeat(np.array([s.entreprise.lieu.n for s in sites], np.int64), [len(l) for l in lots])
+    ok = (tb.vivant[tous] == 1) & (tb.lieu[tous] == ln) & (tb.poste[tous] == POSTE_TRAVAIL)
+    res, d = [], 0
+    for l in lots:
+        f = d + len(l); res.append(l[ok[d:f]]); d = f
+    return res
+
+
 def _pas(p):
     """Chaque pas : les travailleurs presents de chaque site, leurs heures payees ( celles ou l atelier a vraiment
     travaille : sans intrant, sans reseau, c est du chomage technique, comme le moteur ), leurs accidents, la production
     de chaque atelier et la vie de ses machines."""
     D_ = _dom(p); w = p.w
-    for s in D_.sites:
-        if not s.actif or s.equipe <= 0: continue
+    # EN COLONNES ( 24/09 ) : les presents trouves sur la table du moteur, une vue seulement pour une victime ; ceux de
+    # tous les sites lus d un coup au debut du pas. Seul un accident ( _accident : un mort, un blesse emmene ) change la
+    # table ou l index du travail pendant le pas : apres lui, chaque site suivant relit les siens a son tour.
+    tb = w.table
+    sites = [s for s in D_.sites if s.actif and s.equipe > 0]
+    vu = _ACCIDENTS[0]
+    for s, ids in zip(sites, _presents_des_sites(w, tb, sites)):
         e = s.entreprise; lieu = e.lieu
-        # EN COLONNES ( 24/09 ) : les presents trouves sur la table du moteur, une vue seulement pour eux, dans l ordre
-        tb = w.table
-        ids = np.array(w.ids_au_travail(lieu, e.role), np.int64)
-        if len(ids): ids = ids[(tb.vivant[ids] == 1) & (tb.lieu[ids] == lieu.n) & (tb.poste[ids] == POSTE_TRAVAIL)]
+        if _ACCIDENTS[0] != vu: ids = _presents(w, tb, lieu, e.role)
         n = len(ids)
         if n == 0: continue
-        presents = [PO.Habitant(tb, i) for i in ids.tolist()]
         presence = min(1.0, n / s.equipe)
         paye = 0.0
         rng = D_.rng_accidents
+        SERVICE = O.SERVICE
         for a in s.ateliers:
             if a.regime <= 0.0: continue
             h_a = n * DT_H * a.part * a.regime
             ouvert = DT_H * presence
-            en_service = sum(1 for m in a.machines if m.objet.etat == O.SERVICE and m.pm_h <= 0.0)
+            en_service = 0                         # une boucle simple : la somme d un generateur coutait le double
+            for m in a.machines:
+                if m.objet.etat == SERVICE and m.pm_h <= 0.0: en_service += 1
             dispo = en_service / len(a.machines) if a.machines else 1.0
             h_eff = h_a * dispo * s.facteur_eau
             fait = _extraire(p, D_, s, a, h_eff) if a.gisement is not None else _transformer(p, D_, s, a, h_eff)
@@ -944,10 +1007,11 @@ def _pas(p):
             D_.attendu[0] += lam_nf; D_.attendu[1] += lam_m
             k_nf, k_m = int(rng.poisson(lam_nf)), int(rng.poisson(lam_m))
             for mortel, k in ((True, k_m), (False, k_nf)):
-                for _ in range(k):
-                    vivants = [h for h in presents if h.vivant]
-                    if vivants: _accident(p, D_, s, a, vivants[int(rng.integers(len(vivants)))], mortel)
-            _machines(p, D_, s, a, ouvert, ouvert * a.regime * min(1.0, fait) if fait > 0 else 0.0, presents)
+                for _ in range(k):                 # une vue seulement pour la victime tiree parmi les vivants
+                    vivants = ids[tb.vivant[ids] != 0]
+                    if len(vivants):
+                        _accident(p, D_, s, a, PO.Habitant(tb, int(vivants[int(rng.integers(len(vivants)))])), mortel)
+            _machines(p, D_, s, a, ouvert, ouvert * a.regime * min(1.0, fait) if fait > 0 else 0.0, ids)
         if paye > 0.0:
             np.add.at(tb.heures, ids[tb.vivant[ids] == 1], DT_H * paye)
             s.heures_j += n * DT_H * paye

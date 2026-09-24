@@ -655,8 +655,31 @@ def _decider(p, a, pl, g, ai, sympt, quar, indoc):
     jours = caisse / np.maximum(1e-6, pm * C.NOURRITURE_PAR_JOUR * np.maximum(1, viv_m))
     cj = np.minimum(1.0, jours / JOURS_CAISSE_PLEINS)[g.menage[ai]]
     x = np.column_stack([sympt[ai], rum, quar[ai], faim, cj, pl.actif[ai, T_TRAVAIL]]).astype(float)
+    if _decideur_simple(dec) and ((x >= 0.0) & (x <= 1.0)).all():
+        # EN COLONNES ( 24/09 ) : la regle ( ou le temoin, qui ne tire rien ) appliquee a tous d un coup, puis chaque
+        # choix pose dans son attente exactement comme Decideur.decider le ferait ( traits bornes : verifies ci-dessus ;
+        # hors bornes, le chemin un par un leve l erreur du decideur )
+        if dec.mode == "regle": out = np.where((x[:, 0] >= 0.5) | ((x[:, 2] >= 0.5) & ~indoc[ai]), 0, 1)
+        else: out = np.ones(len(ai), np.int64)
+        attentes = dec.attentes; Attente = D.Attente
+        for i, r, act in zip(ai.tolist(), x.tolist(), out.tolist()):
+            r.append(1.0)
+            att = attentes.get(i)
+            if att is None: att = attentes[i] = Attente()
+            att.choix.append([r, act, 0, 0.0])
+        dec.n_decisions += len(ai)
+        return out.astype(np.int8)
     out = [dec.decider(i, ContexteSortie(tuple(r), bool(d))) for i, r, d in zip(ai.tolist(), x.tolist(), indoc[ai].tolist())]
     return np.array(out, np.int8)
+
+
+def _decideur_simple(dec):
+    """Le decideur du point `sortir` en mode regle ou temoin, tel que le socle le fait : sa decision se calcule en
+    colonnes ( la regle ne lit que les traits et l indocilite ; le temoin rend toujours `sortir` sans tirer )."""
+    pt = POINT_SORTIR
+    return (type(dec) is D.Decideur and dec.point is pt and dec.mode in ("regle", "temoin")
+            and pt.observer is _observer_sortir and pt.regle is _regle_sortir and pt.temoin is _temoin_sortir
+            and type(dec).observer is D.Decideur.observer and len(pt.traits) == 6)
 
 
 def _courses(p, a, pl, g, jt, libre, Ti, mi, Tm, mm):
@@ -761,14 +784,73 @@ def _noter_sorties(p, a, g, fen):
         fait = np.bincount(mg, weights=col["agenda_pas_travail"][:n][v], minlength=M)
         prevu = np.bincount(mg, weights=col["agenda_pas_prevus"][:n][v], minlength=M)
         nourri = p.w.nourri_menage
-        for c in cles:
-            if c >= n or not v[c]: r = 0.0
+        cl = np.array(cles)
+        if cl.dtype.kind in "iu" and cl.min() >= 0:
+            # EN COLONNES ( 24/09 ) : la note de chaque menage calculee d un coup ( memes operations, meme ordre ;
+            # des np.float64 comme les lectures une a une ), puis notee cle par cle dans l ordre des attentes
+            cl = cl.astype(np.int64)
+            vi = np.nonzero(cl < n)[0]
+            vi = vi[v[cl[vi]]]
+            mv = g.menage[cl[vi]].astype(np.int64)
+            fm, pm_ = fait[mv], prevu[mv]
+            trav = np.where(pm_ > 0, np.minimum(1.0, fm / np.where(pm_ > 0, pm_, 1.0)), 1.0)
+            nou = _nourris(nourri, mv)
+            rv = (sains[mv] / np.maximum(1, vivants[mv]) + trav + nou) / 3.0
+            rs = [0.0] * len(cles)
+            for j, r in zip(vi.tolist(), rv): rs[j] = r
+            if type(dec) is D.Decideur and type(dec).noter is D.Decideur.noter \
+                    and D.Attente.jour is _JOUR_ATTENTE:
+                _noter_tous(dec, cles, rs, fen - 1)
             else:
-                m = int(g.menage[c])
-                trav = min(1.0, fait[m] / prevu[m]) if prevu[m] > 0 else 1.0
-                r = (sains[m] / max(1, vivants[m]) + trav + (1.0 if nourri.get(m, True) else 0.0)) / 3.0
-            dec.noter(c, r, fen - 1)
+                for c, r in zip(cles, rs): dec.noter(c, r, fen - 1)
+        else:
+            for c in cles:
+                if c >= n or not v[c]: r = 0.0
+                else:
+                    m = int(g.menage[c])
+                    trav = min(1.0, fait[m] / prevu[m]) if prevu[m] > 0 else 1.0
+                    r = (sains[m] / max(1, vivants[m]) + trav + (1.0 if nourri.get(m, True) else 0.0)) / 3.0
+                dec.noter(c, r, fen - 1)
     for c in [c for c, att in dec.attentes.items() if not att.choix]: del dec.attentes[c]
+
+
+_JOUR_ATTENTE = D.Attente.jour
+
+
+def _nourris(nourri, mg):
+    """`1.0 if nourri.get( m, True ) else 0.0` pour chaque menage de `mg`, lu dans le tableau de `Monde.nourri_menage`
+    ( ParMenage : hors du tableau, la valeur par defaut ) ; un autre objet est lu menage par menage."""
+    from .. import monde as MW
+    if type(nourri) is MW.ParMenage and isinstance(nourri.v, np.ndarray):
+        v = nourri.v
+        dans = (mg >= 0) & (mg < len(v))
+        nou = np.ones(len(mg))
+        nou[dans] = np.where(v[mg[dans]].astype(bool), 1.0, 0.0)
+        return nou
+    return np.array([1.0 if nourri.get(m, True) else 0.0 for m in mg.tolist()])
+
+
+def _noter_tous(dec, cles, rs, jour):
+    """`Decideur.noter( c, r, jour )` pour chaque cle, dans l ordre, sans ses deux appels par cle ( Decideur.noter puis
+    Attente.jour, recopies ici a l identique : memes operations, meme ordre ). 24/09 : la moitie du plan du matin."""
+    horizon = dec.point.horizon_j; apprend = dec.apprend
+    attentes = dec.attentes; stats = dec.stats; ech = dec.echantillon
+    for c, r in zip(cles, rs):
+        att = attentes.get(c)
+        if att is None: continue
+        if type(att) is not D.Attente:
+            dec.noter(c, r, jour); continue
+        murs, restent = [], []
+        for e in att.choix:
+            e[2] += 1; e[3] += r
+            (murs if e[2] >= horizon else restent).append(e)
+        att.choix = restent
+        for x, a, note in [(x, a, s / horizon) for x, a, j, s in murs]:
+            if apprend: dec.doctrine.apprendre(x, a, note)
+            st = stats.get((jour, a))
+            if st is None: stats[(jour, a)] = [1, note, note * note]
+            else: st[0] += 1; st[1] += note; st[2] += note * note
+            ech.append((jour, a, note))
 
 
 def _planifier(p, a, fen, k):

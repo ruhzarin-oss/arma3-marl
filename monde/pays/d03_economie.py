@@ -357,12 +357,27 @@ def _valeur_stocks(w, unite, m):
     return math.fsum(q * _valeur_unitaire(w, m, b) for b, q in unite.stocks.items() if q)
 
 
+def _ids_salaries(p, unite):
+    """Les numeros des salaries vivants d une unite, dans l ordre de `salaries`, lus dans les colonnes du moteur
+    ( 24/09 : sans fabriquer une vue par salarie )."""
+    w = p.w; tb = w.table
+    roles = ("marchand", "convoyeur") if type(unite).__name__ == "Marche" else (unite.role,)
+    ids = [i for r in roles for i in w.ids_au_travail(unite.lieu, r)]
+    a = np.array(ids, np.int64)
+    if not len(a): return a
+    return a[(tb.vivant[a] == 1) & (tb.travail[a] == unite.lieu.n)]
+
+
+def _salaires_horaires():
+    """Le salaire horaire de chaque code de metier ( la derniere case sert au code -1, sans metier )."""
+    return np.array([float(PO.SALAIRE_HORAIRE.get(r, 0)) for r in PO.ROLES] + [0.0])
+
+
 def salaries(p, unite):
     """Les salaries vivants d une unite : l index du moteur ( refait a l aube, tenu par embaucher et licencier ). Un
     marche emploie ses marchands et ses convoyeurs."""
-    w = p.w
-    roles = ("marchand", "convoyeur") if type(unite).__name__ == "Marche" else (unite.role,)
-    return [h for r in roles for h in w.au_travail_de(unite.lieu, r) if h.vivant and h.travail is unite.lieu]
+    tb = p.w.table
+    return [PO.Habitant(tb, i) for i in _ids_salaries(p, unite).tolist()]
 
 
 def cout_unitaire(p, e, b=None):
@@ -521,13 +536,18 @@ def _acheteurs(p, n):
     cal = p.socle.calendrier
     if not _cal_marche_ouvert(cal, cal.date(w.pas).date()): return masque      # dimanche, ferie : tout est ferme
     t = AG.tours_du_jour(p)
-    for i in t["courses"]:
-        h = w.habitants[i]
-        if h.vivant and h.menage is not None: masque[h.menage.id] = True
-    for i in t["travail"]:
-        h = w.habitants[i]
-        if h.vivant and h.menage is not None and h.travail is not None and h.travail is h.domicile.marche:
-            masque[h.menage.id] = True
+    tb = w.table                                   # colonnes du moteur ( 24/09 )
+    c = np.array(t["courses"], np.int64)
+    if len(c):
+        k = tb.menage[c]
+        masque[k[(tb.vivant[c] == 1) & (k >= 0)]] = True
+    c = np.array(t["travail"], np.int64)
+    if len(c):
+        k = tb.menage[c]; tr = tb.travail[c]; dom = tb.domicile[c]
+        sel = (tb.vivant[c] == 1) & (k >= 0) & (tr >= 0)
+        if (sel & (dom < 0)).any(): raise AttributeError("'NoneType' object has no attribute 'marche'")
+        sel[sel] = tr[sel] == w._marche_du_lieu[dom[sel]]      # il travaille au marche de son domicile
+        masque[k[sel]] = True
     return masque
 
 
@@ -594,13 +614,20 @@ def _achats(p):
     part_fraude = w.part_fraudeuse(); gf = w.agents.get("fraudeurs")
     u = p.du_jour("economie_fraude").random((n, 2)) if part_fraude > 0.0 else np.ones((n, 2))
     vendu = 0.0
+    # une vue par menage, gardee pour toute la routine ( 24/09 : la meme vue sert a la nourriture et aux autres biens )
+    mt = w.menages._mt; vues = {}; Mg = PO.Menage
+    ems = [d.marches[m.lieu.id] for m in marches]
+    mi_l = mi.tolist(); q_l = q.tolist(); gmc = mt.garde_manger
     for i in idx.tolist():
-        mg = w.menages[i]; m = marches[mi[i]]; qi = float(q[i])
-        m.stocks["nourriture"] -= qi; mg.garde_manger += qi; vendu += qi
+        mg = vues[i] = Mg(i, mt); k = mi_l[i]; m = marches[k]; qi = q_l[i]
+        m.stocks["nourriture"] -= qi; gmc[i] += qi; vendu += qi
         ht = L.transferer(mg, m, qi * m.prix["nourriture"], "nourriture")
-        em = d.marches[m.lieu.id]; em.ventes_ht["nourriture"] += ht; em.ventes_q["nourriture"] += qi
+        em = ems[k]; em.ventes_ht["nourriture"] += ht; em.ventes_q["nourriture"] += qi
         em.ventes_jour["nourriture"] += ht
-        _payer_tva(p, w, mg, m, qi * m.prix["nourriture"] * tva, u[i, 0], u[i, 1], part_fraude, gf)
+        du = qi * m.prix["nourriture"] * tva
+        if not gf and not (part_fraude > 0.0 and u[i, 0] < part_fraude):
+            w.tva_percue += L.transferer(mg, w.gouv, du, "tva")        # _payer_tva, sans fraude
+        else: _payer_tva(p, w, mg, m, du, u[i, 0], u[i, 1], part_fraude, gf)
     caisse = w.table.menages.caisse[:n].copy()
     # --- le budget du jour
     rev = p.col("menage", "eco_revenu")[:n]
@@ -629,8 +656,11 @@ def _achats(p):
             m.demande[b] += float(q0[sel].sum())
             em.non_servi[b] += float((q0[sel] - q[sel]).sum())
             em.non_solvable[b] += float((env[sel] / pt[sel] - q0[sel]).sum())
+        q_l = q.tolist()
         for i in np.nonzero(q > 0.0)[0].tolist():
-            _vendre(p, d, w.menages[i], marches[mi[i]], b, float(q[i]), tva)
+            mg = vues.get(i)
+            if mg is None: mg = vues[i] = Mg(i, mt)
+            _vendre(p, d, mg, marches[mi_l[i]], b, q_l[i], tva)
     # --- les durables : un renouvellement d un coup, sans descendre sous la moitie du tampon
     E = p.col("menage", "eco_equipement")
     cible_e = equipement_vise(rev, cout_n)
@@ -648,8 +678,11 @@ def _achats(p):
             m.demande["outils"] += float(q0[sel].sum())
             em.non_servi["outils"] += float((q0[sel] - q[sel]).sum())
             em.non_solvable["outils"] += float((voulu_e[sel] / pt[sel] - q0[sel]).sum())
+        q_l = q.tolist()
         for i in np.nonzero(q > 0.0)[0].tolist():
-            valeur = _vendre(p, d, w.menages[i], marches[mi[i]], "outils", float(q[i]), tva)
+            mg = vues.get(i)
+            if mg is None: mg = vues[i] = Mg(i, mt)
+            valeur = _vendre(p, d, mg, marches[mi_l[i]], "outils", q_l[i], tva)
             E[i] += valeur
             p.compter("achat_durable", valeur)
     # --- ce que rien ne sert : demande en attente, epargne forcee
@@ -674,11 +707,11 @@ def _achats(p):
     # --- la ration de l Etat, comme le moteur : aux menages dont le garde-manger tient moins d une demi-journee
     stock = w.publics["population"]["nourriture"]
     if stock > 0:
-        for i in np.nonzero(ok)[0].tolist():
-            mg = w.menages[i]
-            if mg.garde_manger < 0.5 * v[i]:
-                x = min(stock, float(v[i]))
-                mg.garde_manger += x; stock -= x
+        io = np.nonzero(ok)[0]
+        v_l = v.tolist()
+        for i in io[gmc[io] < 0.5 * v[io]].tolist():      # les colonnes trouvent les menages, dans leur ordre
+            x = min(stock, float(v_l[i]))
+            gmc[i] += x; stock -= x
         w.publics["population"]["nourriture"] = stock
 
 
@@ -826,7 +859,7 @@ def _regler_activite(p):
         if c.liquidee: e.activite = 0.0; continue
         if e.id in p.repris or e.type == "centrale": continue
         if "or" in e.produits: e.activite = 1.0; continue
-        c.effectif = len(salaries(p, e))
+        c.effectif = len(_ids_salaries(p, e))
         if c.effectif == 0: continue
         b = _produit_principal(e)
         bonus = BONUS if e.stocks.get("outils", 0.0) >= 1 else 1.0
@@ -871,12 +904,14 @@ def _avant_paie(p):
     pour les heures du jour ( ce que le domaine 4 lira comme masse salariale )."""
     w = p.w; d = p.domaine("economie")
     d.caisses_1750 = w.table.menages.caisse[:len(w.menages)].copy()
+    tb = w.table; sal = _salaires_horaires(); conv = PO.CODE_ROLE["convoyeur"]
     for c in d.unites:
         u = c.unite
-        gens = salaries(p, u)
-        c.effectif = len(gens)
-        if c.nature == "marche": dus = math.fsum(PO.SALAIRE_HORAIRE["convoyeur"] * h.heures_jour for h in gens if h.role == "convoyeur")
-        else: dus = math.fsum(PO.SALAIRE_HORAIRE.get(h.role, 0) * h.heures_jour for h in gens)
+        ids = _ids_salaries(p, u)
+        c.effectif = len(ids)
+        ro = tb.role[ids]; hr = tb.heures[ids]
+        if c.nature == "marche": dus = math.fsum((float(PO.SALAIRE_HORAIRE["convoyeur"]) * hr[ro == conv]).tolist())
+        else: dus = math.fsum((sal[ro] * hr).tolist())
         c.salaires_dus_j = dus
         c.salaires_lisses = c.salaires_lisses * (1.0 - 1.0 / 30.0) + dus / 30.0 if c.salaires_lisses > 0 else dus
         c.mois["salaires_dus"] += dus; c.cumul["salaires_dus"] += dus
@@ -971,10 +1006,12 @@ def _tresorerie_de_paie(p):
     w = p.w; d = p.domaine("economie")
     cal = p.socle.calendrier
     if not cal.ouvre(cal.date(w.pas)): return
+    tb = w.table; sal = _salaires_horaires()
     for c in d.unites:
         e = c.unite
         if c.nature != "entreprise" or c.liquidee or e.type == "ferme" or p.jour - c.credit_j < DELAI_CREDIT_J: continue
-        dus = math.fsum(PO.SALAIRE_HORAIRE.get(h.role, 0) * h.heures_jour for h in salaries(p, e))
+        ids = _ids_salaries(p, e)
+        dus = math.fsum((sal[tb.role[ids]] * tb.heures[ids]).tolist())
         if dus <= 0.0 or e.caisse >= dus or BQ.banque_de(p, e) is None: continue
         besoin = max(TRESORERIE_BESOIN_J * max(c.salaires_lisses, dus), dus) - e.caisse
         _demander(p, d, e, besoin, "entreprise", "tresorerie", DUREE_CREDIT_TRESORERIE)
@@ -1177,20 +1214,20 @@ def mesurer_chomage(p):
     registre ; un ecart dit qu un domaine a retire un emploi sans le dire. Sous-emploi : la part des heures que les
     entreprises n ouvrent pas ( activite sous 1 ), ponderee par leurs salaries."""
     w = p.w; d = p.domaine("economie")
-    actifs = chom = 0; inscrits = 0
+    tb = w.table; nh = tb.n                        # colonnes du moteur ( 24/09 )
     nj = p.col("habitant", "naissance_j")
-    for h in w.habitants:
-        if not h.vivant or h.role in ("enfant", "retraite"): continue
-        age = (p.jour - int(nj[h.id])) / POP.JOURS_AN
-        if not C.AGE_TRAVAIL <= age < C.AGE_RETRAITE: continue
-        actifs += 1
-        if h.travail is None:
-            chom += 1
-            if h.id in d.chomeurs: inscrits += 1
+    ro = tb.role[:nh]
+    act = (tb.vivant[:nh] == 1) & (ro != PO.CODE_ROLE["enfant"]) & (ro != PO.CODE_ROLE["retraite"])
+    age = (p.jour - nj[:nh].astype(np.int64)) / POP.JOURS_AN
+    act &= (C.AGE_TRAVAIL <= age) & (age < C.AGE_RETRAITE)
+    sans = act & (tb.travail[:nh] < 0)
+    actifs = int(np.count_nonzero(act)); chom = int(np.count_nonzero(sans))
+    ks = np.fromiter(d.chomeurs.keys(), np.int64, len(d.chomeurs))
+    inscrits = int(np.count_nonzero(sans[ks[(ks >= 0) & (ks < nh)]]))
     eff = inact = 0.0
     for c in d.unites:
         if c.nature != "entreprise" or c.liquidee: continue
-        n = len(salaries(p, c.unite)); eff += n; inact += n * (1.0 - max(0.0, min(1.0, c.unite.activite)))
+        n = len(_ids_salaries(p, c.unite)); eff += n; inact += n * (1.0 - max(0.0, min(1.0, c.unite.activite)))
     return {"jour": p.jour, "actifs": actifs, "chomeurs": chom, "inscrits": inscrits, "non_inscrits": chom - inscrits,
             "taux": chom / actifs if actifs else 0.0, "sous_emploi": inact / eff if eff else 0.0,
             "epargne_forcee": float(p.col("menage", "eco_epargne_forcee")[:len(w.menages)].sum())}
@@ -1330,7 +1367,7 @@ def masse_salariale(p, unite):
     effectif }."""
     c = p.domaine("economie").comptes[_id_unite(unite)]
     return {"jour": c.salaires_dus_j, "lisse": c.salaires_lisses, "mois": c.mois["salaires_dus"],
-            "effectif": len(salaries(p, unite))}
+            "effectif": len(_ids_salaries(p, unite))}
 
 
 def offres_d_emploi(p):

@@ -133,6 +133,8 @@ CODE_POSTE = {"maison": AG.MAISON, "travail": AG.TRAVAIL, "hopital": AG.HOPITAL,
               "trajet": AG.TRAJET, "courses": AG.COURSES, "loisir": AG.LOISIR, "culte": AG.CULTE}
 SOIGNANTS = ("medecin", "infirmier")
 # codes du moteur -> ceux de la medecine ( colonnes, 24/09 )
+ETAT_E_MOTEUR, ETAT_I_MOTEUR = MPOP.CODE_ETAT["E"], MPOP.CODE_ETAT["I"]
+POSTE_HOPITAL_MOTEUR = MPOP.CODE_POSTE["hopital"]
 ACT_DU_POSTE = np.array([CODE_POSTE.get(x, -1) for x in MPOP.POSTES], np.int64)
 ROLE_NOM = np.array(list(MPOP.ROLES) + [None], dtype=object)              # code -1 -> None
 RANG_DU_ROLE = np.array([sorted(MPOP.ROLES).index(r) for r in MPOP.ROLES] + [-1], np.int64)   # l ordre des noms
@@ -1266,6 +1268,19 @@ def _cles_du_moment(p, med):
     return cle
 
 
+def _tailles_des_groupes(c):
+    """La taille du groupe de chacun ( le nombre de cles egales a la sienne ; cles >= 0 ), sans tri : chaque ( cadre,
+    bit de lieu ) recoit une plage de cases de la taille de son plus grand numero, et un bincount compte. Le meme
+    resultat que np.unique( return_inverse, return_counts ), cinq fois plus vite ( 24/09 )."""
+    g = c >> (DECALAGE - 1)                       # cadre et bit de lieu ( BIT_LIEU = 1 << ( DECALAGE - 1 ) )
+    bas = c & (BIT_LIEU - 1)
+    mx = np.full(int(g.max()) + 1, -1, np.int64)
+    np.maximum.at(mx, g, bas)
+    debut = np.cumsum(mx + 1) - (mx + 1)
+    case = debut[g] + bas
+    return np.bincount(case)[case]
+
+
 def _mesurer_contacts(p, med, cle):
     """Une heure de la semaine d etalonnage : pour chaque habitant de l echantillon, les heures passees dans chaque cadre
     avec au moins une autre personne, et la taille de ces groupes ; pour les malades ( etat I hors de l hopital ), les
@@ -1273,21 +1288,27 @@ def _mesurer_contacts(p, med, cle):
     pos = med.cal_pos
     n = min(len(cle), len(pos))
     med.expo_heures += 1
-    H = p.w.habitants
-    mal = [hid for hid in med.par_hab if hid < n and H[hid].vivant and H[hid].etat == "I" and H[hid].poste != "hopital"]
+    # EN COLONNES ( 24/09 ) : les malades lus dans la table du moteur, dans l ordre de `par_hab`, sans une vue chacun
+    tb = p.w.table
+    mal = np.fromiter(med.par_hab, np.int64, len(med.par_hab))
+    mal = mal[mal < n]
+    mal = mal[(tb.vivant[mal] != 0) & (tb.etat[mal] == ETAT_I_MOTEUR) & (tb.poste[mal] != POSTE_HOPITAL_MOTEUR)]
     med.cal_malades_h += len(mal)
     ok = np.nonzero(cle[:n] >= 0)[0]
     if not len(ok): return
-    _, inv, cnt = np.unique(cle[ok], return_inverse=True, return_counts=True)
-    ni = cnt[inv]
+    ni = _tailles_des_groupes(cle[ok])
     avec = ni >= 2
     ii = ok[avec]; cc = (cle[ii] >> DECALAGE).astype(np.int64); nn = ni[avec].astype(np.float32)
     k = pos[ii]; dans = k >= 0
-    np.add.at(med.cal_h, (k[dans], cc[dans]), np.float32(1.0))
-    np.add.at(med.cal_n, (k[dans], cc[dans]), nn[dans])
-    if mal:
+    # chaque habitant de l echantillon a sa ligne ( cal_pos est injectif ) et un seul cadre a cette heure : les couples
+    # ( ligne, cadre ) sont distincts, l addition indicee directe fait exactement ce que faisait np.add.at ( 24/09 )
+    kd, cd = k[dans], cc[dans]
+    med.cal_h[kd, cd] += np.float32(1.0)
+    med.cal_n[kd, cd] += nn[dans]
+    if len(mal):
         mm = np.zeros(len(cle), bool); mm[mal] = True
-        np.add.at(med.cal_hI, cc[mm[ii]], 1.0)
+        # des heures entieres ( 1,0 par malade present ) : le compte par cadre, ajoute d un coup, est exact
+        med.cal_hI += np.bincount(cc[mm[ii]], minlength=len(med.cal_hI))
 
 
 def part_alitee(m):
@@ -1352,8 +1373,11 @@ def _contagion(p):
     paths = A.path[idx]
     poids = np.where(A.asym[idx], K_ASYM[paths], 1.0)
     chauds = np.unique(ck)
-    membres = np.nonzero(np.isin(cle, chauds))[0]
-    gm = np.searchsorted(chauds, cle[membres])
+    # les membres des groupes chauds : une recherche dans les cles chaudes triees ( meme resultat que np.isin, puis
+    # l indice de groupe de chacun, sans refaire la recherche )
+    pos = np.searchsorted(chauds, cle)
+    membres = np.nonzero(chauds[np.minimum(pos, len(chauds) - 1)] == cle)[0]
+    gm = pos[membres]
     taille = np.bincount(gm, minlength=len(chauds)).astype(float)
     cg = CONTACTS_H[(chauds >> DECALAGE).astype(np.int64)]
     gi_inf = np.searchsorted(chauds, ck)
@@ -1478,9 +1502,14 @@ def _adopter_e1(p, med, t):
     """Les E et I poses par le moteur ( Monde.aube : l epidemie de Pyrgos ) ou par un autre code, sans affection : une
     grippe commence pour eux maintenant."""
     rng = p.hasard("medecine_moteur")
-    orph = [h.id for h in p.w.habitants if h.vivant and h.etat in ("E", "I") and h.id not in med.par_hab]
+    # EN COLONNES ( 24/09 ) : les E et I vivants lus dans la table, dans l ordre des habitants ; `par_hab` filtre ensuite
+    tb = p.w.table; n = tb.n
+    e = tb.etat[:n]
+    cand = np.nonzero((tb.vivant[:n] != 0) & ((e == ETAT_E_MOTEUR) | (e == ETAT_I_MOTEUR)))[0].tolist()
+    par_hab = med.par_hab
+    orph = [i for i in cand if i not in par_hab]
     if orph:
-        for hid in orph: p.w.habitants[hid].etat = "S"
+        tb.etat[np.array(orph, np.int64)] = MPOP.CODE_ETAT["S"]
         infecter(p, orph, MALADIE_DU_MOTEUR, t, rng)
 
 
@@ -1599,8 +1628,10 @@ def _numeroter(sortie, ids, cles, n_cles, taille):
 
 
 def _purger_morts(p, med):
-    H = p.w.habitants
-    for hid in [h for h in med.par_hab if not H[h].vivant]:
+    # EN COLONNES ( 24/09 ) : les morts lus dans la table, dans l ordre de `par_hab`
+    if not med.par_hab: return
+    ids = np.fromiter(med.par_hab, np.int64, len(med.par_hab))
+    for hid in ids[p.w.table.vivant[ids] == 0].tolist():
         for s in list(med.par_hab.get(hid, ())): _retirer_affection(med, s)
 
 
@@ -1957,9 +1988,11 @@ def _journee(p):
     _perimer(p, med)
     if p.jour % 7 == 0: _reapprovisionner(p, med)
     _resistance(p, med)
-    for hid in med.par_hab:
-        h = w.habitants[hid]
-        if h.vivant and h.etat != "S": h.jours_etat += 1.0
+    if med.par_hab:                               # en colonnes ( 24/09 ) : un jour de plus dans son etat
+        tb = w.table
+        ids = np.fromiter(med.par_hab, np.int64, len(med.par_hab))
+        ids = ids[(tb.vivant[ids] != 0) & (tb.etat[ids] != MPOP.CODE_ETAT["S"])]
+        tb.jours_etat[ids] += 1.0
 
 
 # ================================================================== soins : la ville et l hopital
@@ -2220,13 +2253,13 @@ def _renouvellement(p, hid, donnees):
 def _clinique(p, med, t):
     """Chaque matin, pour chaque malade : l hospitalise non encore soigne est soigne ( Monde.soigner, celui qui le
     tient ) ; les autres decident, a leurs jours de decision, s ils consultent."""
-    A = med.aff; w = p.w; H = w.habitants
+    A = med.aff; w = p.w; H = w.habitants; tb = w.table
     dec = med.dec_consulter
     for hid in list(med.par_hab):
-        h = H[hid]
-        if not h.vivant: continue
+        if not tb.vivant[hid]: continue           # la table d abord : une vue seulement pour un malade clinique
         cl = _cliniques(med, hid)
         if not cl: continue
+        h = H[hid]
         g = max(float(A.g[s]) for s in cl)
         if g > GRAVITE_HOPITAL:
             if a_soigner(p, h): w.soigner(h)
@@ -2369,16 +2402,22 @@ def _tirer_iss(rng, dist):
 def _accidents_travail(p):
     med = p.domaine("medecine")
     if "travail" in med.reprises: return
-    H = p.w.habitants
+    tb = p.w.table; n = tb.n
     rng = p.du_jour("medecine_travail")
+    # EN COLONNES ( 24/09 ) : les presents au travail de chaque metier lus dans la table, dans l ordre des habitants ;
+    # une vue seulement pour qui est tire
+    ro = tb.role[:n]
+    au_poste = np.nonzero((tb.vivant[:n] != 0) & (tb.poste[:n] == MPOP.CODE_POSTE["travail"]))[0]
     par_role = {}
-    for h in H:
-        if h.vivant and h.poste == "travail" and h.role in ACCIDENTS_TRAVAIL: par_role.setdefault(h.role, []).append(h)
+    for role in ACCIDENTS_TRAVAIL:
+        if role not in MPOP.CODE_ROLE: continue
+        gens = au_poste[ro[au_poste] == MPOP.CODE_ROLE[role]]
+        if len(gens): par_role[role] = gens
     for role in sorted(par_role):
         gens = par_role[role]
         k = int(rng.poisson(len(gens) * ACCIDENTS_TRAVAIL[role] / 1e5 / JOURS_OUVRES_AN))
         for _ in range(k):
-            h = gens[int(rng.integers(0, len(gens)))]
+            h = MPOP.Habitant(tb, int(gens[int(rng.integers(0, len(gens)))]))
             if h.vivant:
                 blesser(p, h, "ecrasement" if role in ("mineur", "ouvrier") else "chute" if role == "paysan" else "travail",
                         _tirer_iss(rng, ISS_TRAVAIL))
