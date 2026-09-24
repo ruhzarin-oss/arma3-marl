@@ -26,16 +26,40 @@ class ParMenage:
     def __contains__(self, k): return 0 <= k < len(self.v)
 
 
-class ListeTravail(list):
-    """Ceux qui travaillent a ( lieu, metier ), comme les rendait l ancien index `monde._par_travail` : une liste
-    neuve, dont `append` et `remove` tiennent l index du moteur ( embauche, licenciement en cours de journee )."""
-    __slots__ = ("_w", "_cle")
+class ListeTravail:
+    """Ceux qui travaillent a ( lieu, metier ), comme les rendait l ancien index `monde._par_travail`. PARESSEUSE
+    ( 24/09 ) : `h in liste` se lit dans l index du moteur ( recherche dichotomique, la tranche est triee par numero ),
+    et les vues ne sont fabriquees que si l on parcourt la liste ; chaque licenciement fabriquait toute l equipe pour
+    savoir si le licencie en faisait partie ( 60 s sur 106 pour installer le domaine du travail a 30 000 habitants ).
+    `append` et `remove` tiennent l index du moteur ( embauche, licenciement en cours de journee )."""
+    __slots__ = ("_w", "_lieu", "_role", "_cle")
+
+    def __init__(self, w, lieu, role):
+        self._w, self._lieu, self._role, self._cle = w, lieu, role, w._cle_travail(lieu, role)
+
+    def _ids(self): return self._w.ids_au_travail(self._lieu, self._role)
+    def __len__(self): return self._w.nombre_au_travail(self._lieu, self._role)
+    def __bool__(self): return len(self) > 0
+    def __iter__(self): return iter(self._w.au_travail_de(self._lieu, self._role))
+    def __getitem__(self, i): return self._w.au_travail_de(self._lieu, self._role)[i]
+    def __repr__(self): return f"ListeTravail({self._lieu.id}, {self._role}, {len(self)})"
+
+    def __eq__(self, autre): return list(self) == list(autre)
+
+    def __contains__(self, h):
+        if not isinstance(h, P.Habitant): return False
+        w, i, c = self._w, h.id, self._cle
+        if i in w._travail_ajouts.get(c, ()): return True
+        if i in w._travail_retraits.get(c, ()): return False
+        d, f = w._travail_tranches.get(c, (0, 0))
+        k = d + int(np.searchsorted(w._travail_ordre[d:f], i))
+        return k < f and int(w._travail_ordre[k]) == i
 
     def append(self, h):
-        list.append(self, h); self._w._travail_ajouts.setdefault(self._cle, []).append(h.id)
+        self._w._travail_ajouts.setdefault(self._cle, []).append(h.id)
 
     def remove(self, h):
-        list.remove(self, h)
+        if h not in self: raise ValueError(f"{h!r} ne travaille pas a {self._lieu.id} comme {self._role}")
         ajouts = self._w._travail_ajouts.get(self._cle)
         if ajouts and h.id in ajouts: ajouts.remove(h.id)
         else: self._w._travail_retraits.setdefault(self._cle, set()).add(h.id)
@@ -53,11 +77,7 @@ class ParTravail:
 
     def __getitem__(self, cle):
         if not self._valide(cle): raise KeyError(cle)
-        w = self._w
-        lieu = w.carte.lieux[cle[0]]
-        l = ListeTravail(w.au_travail_de(lieu, cle[1]))
-        l._w, l._cle = w, w._cle_travail(lieu, cle[1])
-        return l
+        return ListeTravail(self._w, self._w.carte.lieux[cle[0]], cle[1])
 
     def get(self, cle, defaut=None): return self[cle] if self._valide(cle) else defaut
     def setdefault(self, cle, defaut=None): return self[cle]

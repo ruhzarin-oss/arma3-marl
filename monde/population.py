@@ -111,7 +111,8 @@ class TableMenages:
         self.capacite = capacite
         self.index = None                  # ( ordre des habitants trie par menage puis rang, debuts de chaque menage )
         self.n_indexe = 0
-        self.ajouts = {}                   # les arrivees depuis la construction de l index ( les naissances )
+        self.ajouts = {}                   # les arrivees depuis la construction de l index, dans leur ordre
+        self.sortis = set()                # les habitants indexes dont l entree de l index n est plus juste
         for nom, (dt, defaut) in self.CHAMPS.items(): setattr(self, nom, np.full(capacite, defaut, dt))
         _preparer_vues(self)
 
@@ -135,19 +136,30 @@ class TableMenages:
         dedans = np.nonzero((m >= 0) & (t.rang[:n] >= 0))[0]     # rang -1 : retire de la liste de son menage
         ordre = dedans[np.lexsort((t.rang[dedans], m[dedans]))]
         debuts = np.searchsorted(m[ordre], np.arange(self.n + 1))
-        self.index, self.n_indexe, self.ajouts = (ordre, debuts), n, {}
+        self.index, self.n_indexe, self.ajouts, self.sortis = (ordre, debuts), n, {}, set()
 
+    # L index se tient A JOUR sans se refaire ( 24/09 : chaque changement de menage le refaisait en entier - 13 834 fois
+    # pour installer 30 000 habitants, un cout qui croissait comme le carre de la population ). Un habitant qui quitte
+    # la liste d un menage est note `sorti` ( son entree de l index ne compte plus ) ; qui y entre s ajoute a la fin
+    # des arrivees de ce menage - son rang est le plus recent, l ordre d arrivee est garde.
     def rejoindre(self, hid, k):
-        """Un habitant entre dans le menage k. Un nouveau venu s ajoute a la fin ; un habitant deja indexe qui change
-        de menage oblige a refaire l index."""
+        """Un habitant entre dans la liste du menage k, a la fin."""
         if self.index is None: return
-        if hid < self.n_indexe: self.index = None
-        else: self.ajouts.setdefault(k, []).append(hid)
+        if hid < self.n_indexe: self.sortis.add(hid)
+        self.ajouts.setdefault(k, []).append(hid)
+
+    def quitter(self, hid, k):
+        """Un habitant sort de la liste du menage k."""
+        if self.index is None: return
+        if hid < self.n_indexe: self.sortis.add(hid)
+        a = self.ajouts.get(k)
+        if a and hid in a: a.remove(hid)
 
     def membres_ids(self, k):
-        if self.index is None: self._construire()
+        if self.index is None or len(self.sortis) > max(4096, self.n_indexe // 4): self._construire()
         ordre, debuts = self.index
         ids = ordre[debuts[k]:debuts[k + 1]].tolist() if k + 1 < len(debuts) else []
+        if self.sortis: ids = [i for i in ids if i not in self.sortis]
         return ids + self.ajouts.get(k, [])
 
 
@@ -329,14 +341,15 @@ class Habitant:
             t.menage.v = k
             if v is not None: t.menages = v._mt
             return
-        if t.menage[self.id] == k: return        # deja le sien : il garde sa place dans la liste ( ancien moteur )
+        ancien = int(t.menage[self.id])
+        if ancien == k: return                   # deja le sien : il garde sa place dans la liste ( ancien moteur )
+        if ancien >= 0 and t.rang[self.id] >= 0 and t.menages is not None: t.menages.quitter(self.id, ancien)
         t.menage[self.id] = k
         if k >= 0:
             t.rang[self.id] = t.rang_suivant; t.rang_suivant += 1
             t.menages.rejoindre(self.id, k)
         else:
             t.rang[self.id] = -1
-            if t.menages is not None: t.menages.index = None
 
     del _f, _i, _b, _lieu
 
@@ -421,6 +434,8 @@ class Menage:
     def _inscrire(self, h):
         t = h._t
         if type(t) is _Brouillon: h.menage = self; return
+        ancien = int(t.menage[h.id])
+        if ancien >= 0 and t.rang[h.id] >= 0: self._mt.quitter(h.id, ancien)
         t.menage[h.id] = self.id
         t.rang[h.id] = t.rang_suivant; t.rang_suivant += 1
         self._mt.rejoindre(h.id, self.id)
@@ -429,7 +444,7 @@ class Menage:
         t = h._t
         if type(t) is _Brouillon or t.menage[h.id] != self.id: return
         t.rang[h.id] = -1                   # il pointe encore vers ce menage, mais n est plus dans sa liste
-        self._mt.index = None
+        self._mt.quitter(h.id, self.id)
 
     def adultes(self):
         return [h for h in self.membres if h.role not in ("enfant",) and h.vivant]

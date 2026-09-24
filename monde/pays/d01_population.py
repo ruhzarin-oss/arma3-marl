@@ -716,13 +716,20 @@ def _recensement(p, d, rng):
     for m in w.menages:
         for x in m.membres:
             if col["sexe"][x.id] == FEMME and x.age >= 36: meres.setdefault(m.domicile.id, []).append(x)
+    # les candidates de chaque lieu en tableaux, dans l ordre de la liste ( 24/09 : le filtre relisait le menage de
+    # chaque candidate pour chaque jeune - un cout en carre de la population, des heures a un million d habitants )
+    tb = w.table
+    meres_ids = {lid: np.array([x.id for x in xs], np.int64) for lid, xs in meres.items()}
+    meres_age = {lid: tb.age[v] for lid, v in meres_ids.items()}
     for h in w.habitants:
         r = next((v for a, v in reversed(FOYER_PARENTAL) if h.age >= a), 0.0) if h.age >= AGE_MAJEUR else 0.0
         if col["conjoint"][h.id] >= 0 or d.enfants_de.get(h.id) or rng.random() >= r: continue
-        cands = [x for x in meres.get(h.domicile.id, ()) if 18 <= x.age - h.age <= 45 and x.menage is not h.menage
-                 and not d.enfants_de.get(h.id)]
-        if not cands or not _peut_partir(p, h, ()): continue
-        mere = cands[int(rng.integers(0, len(cands)))]
+        ids_l = meres_ids.get(h.domicile.id)
+        if ids_l is None: continue
+        ecart = meres_age[h.domicile.id] - h.age
+        cands = ids_l[(ecart >= 18) & (ecart <= 45) & (tb.menage[ids_l] != tb.menage[h.id])]
+        if not len(cands) or not _peut_partir(p, h, ()): continue
+        mere = w.habitants[int(cands[int(rng.integers(0, len(cands)))])]
         _rejoindre(p, h, mere.menage, "mise_en_commun")
         col["mere"][h.id] = mere.id; d.enfants_de.setdefault(mere.id, []).append(h.id)
         c = int(col["conjoint"][mere.id])
