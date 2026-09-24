@@ -1,0 +1,871 @@
+{
+ "ile": "Enoch",
+ "gouvernement": "Nadbor",
+ "port": null,
+ "par_air_seulement": true,
+ "aeroports": [
+  {
+   "x": 4235,
+   "y": 10593
+  }
+ ],
+ "places_logement": 9154,
+ "lieux": [
+  {
+   "id": "Bielawa",
+   "type": "village",
+   "pos": [
+    1573,
+    9677
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 240,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Lukow",
+   "type": "village",
+   "pos": [
+    3530,
+    11967
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 370,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Gliniska",
+   "type": "village",
+   "pos": [
+    4993,
+    9922
+   ],
+   "rayon": [
+    1000,
+    1000
+   ],
+   "places": 272,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Brena",
+   "type": "ville",
+   "pos": [
+    6618,
+    11211
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 286,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Tarnow",
+   "type": "ville",
+   "pos": [
+    9328,
+    10905
+   ],
+   "rayon": [
+    1000,
+    1000
+   ],
+   "places": 482,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Sitnik",
+   "type": "village",
+   "pos": [
+    11502,
+    9573
+   ],
+   "rayon": [
+    500,
+    500
+   ],
+   "places": 282,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Borek",
+   "type": "village",
+   "pos": [
+    9807,
+    8495
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 183,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Zapadlisko",
+   "type": "village",
+   "pos": [
+    8058,
+    8712
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 193,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Nidek",
+   "type": "village",
+   "pos": [
+    6129,
+    8013
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 183,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Topolin",
+   "type": "ville",
+   "pos": [
+    1859,
+    7331
+   ],
+   "rayon": [
+    1000,
+    1000
+   ],
+   "places": 607,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Adamow",
+   "type": "village",
+   "pos": [
+    3076,
+    6851
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 351,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Muratyn",
+   "type": "village",
+   "pos": [
+    4568,
+    6384
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 195,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Radunin",
+   "type": "ville",
+   "pos": [
+    7298,
+    6492
+   ],
+   "rayon": [
+    1000,
+    1000
+   ],
+   "places": 176,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Lembork",
+   "type": "village",
+   "pos": [
+    8680,
+    6636
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 251,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Gieraltow",
+   "type": "village",
+   "pos": [
+    11240,
+    4380
+   ],
+   "rayon": [
+    1000,
+    1000
+   ],
+   "places": 576,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Nadbor",
+   "type": "capitale",
+   "pos": [
+    6110,
+    3983
+   ],
+   "rayon": [
+    1000,
+    1000
+   ],
+   "places": 671,
+   "source": "lieu nomme NameCity -> capitale designee ( marche et hopital )"
+  },
+  {
+   "id": "Zalesie",
+   "type": "village",
+   "pos": [
+    896,
+    5536
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 158,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Huta",
+   "type": "village",
+   "pos": [
+    5141,
+    5473
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 191,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Radacz",
+   "type": "village",
+   "pos": [
+    4008,
+    7940
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 216,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Olszanka",
+   "type": "village",
+   "pos": [
+    4819,
+    7674
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 165,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Lipina",
+   "type": "village",
+   "pos": [
+    5942,
+    6820
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 169,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Kolembrody",
+   "type": "village",
+   "pos": [
+    8417,
+    11982
+   ],
+   "rayon": [
+    1000,
+    1000
+   ],
+   "places": 180,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Karlin",
+   "type": "village",
+   "pos": [
+    10073,
+    6957
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 214,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sobotka",
+   "type": "village",
+   "pos": [
+    6257,
+    10253
+   ],
+   "rayon": [
+    750,
+    750
+   ],
+   "places": 178,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Roztoka",
+   "type": "village",
+   "pos": [
+    7695,
+    5317
+   ],
+   "rayon": [
+    500,
+    500
+   ],
+   "places": 189,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Polana",
+   "type": "village",
+   "pos": [
+    3280,
+    2132
+   ],
+   "rayon": [
+    500,
+    500
+   ],
+   "places": 159,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Dolnik",
+   "type": "village",
+   "pos": [
+    11312,
+    656
+   ],
+   "rayon": [
+    600,
+    600
+   ],
+   "places": 306,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Grabin",
+   "type": "village",
+   "pos": [
+    10666,
+    11026
+   ],
+   "rayon": [
+    1000,
+    1000
+   ],
+   "places": 335,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "centrale01",
+   "type": "centrale",
+   "pos": [
+    11542,
+    7106
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 560,
+   "objets": 13,
+   "source": "site d energie : spp_transformer_f.p3d dp_transformer_f.p3d powerstation_01_f.p3d"
+  },
+  {
+   "id": "centrale02",
+   "type": "centrale",
+   "pos": [
+    3994,
+    10214
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 420,
+   "objets": 4,
+   "source": "site d energie : mobileradar_01_generator_f.p3d powerstation_01_f.p3d spp_transformer_f.p3d"
+  },
+  {
+   "id": "centrale03",
+   "type": "centrale",
+   "pos": [
+    1154,
+    7233
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 432,
+   "objets": 3,
+   "source": "site d energie : powergenerator_wreck_f.p3d substation_01_f.p3d powerstation_01_f.p3d"
+  },
+  {
+   "id": "centrale04",
+   "type": "centrale",
+   "pos": [
+    8162,
+    10717
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 402,
+   "objets": 3,
+   "source": "site d energie : mobileradar_01_generator_f.p3d powerstation_01_f.p3d"
+  },
+  {
+   "id": "centrale05",
+   "type": "centrale",
+   "pos": [
+    9305,
+    11111
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2368,
+   "objets": 3,
+   "source": "site d energie : substation_01_f.p3d powerstation_01_f.p3d dpp_01_mainfactory_old_f.p3d"
+  },
+  {
+   "id": "centrale06",
+   "type": "centrale",
+   "pos": [
+    7319,
+    2893
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2334,
+   "objets": 2,
+   "source": "site d energie : powerstation_01_f.p3d dpp_01_mainfactory_old_f.p3d"
+  },
+  {
+   "id": "centrale07",
+   "type": "centrale",
+   "pos": [
+    10908,
+    9044
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 398,
+   "objets": 2,
+   "source": "site d energie : powergenerator_wreck_f.p3d powerstation_01_f.p3d"
+  },
+  {
+   "id": "fonderie01",
+   "type": "fonderie",
+   "pos": [
+    1650,
+    7469
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 28626,
+   "objets": 86,
+   "source": "site industriel de 28626 m2 : workshop_02_f.p3d workshop_04_f.p3d workshop_03_f.p3d workshop_01_f.p3d workshop"
+  },
+  {
+   "id": "fonderie02",
+   "type": "fonderie",
+   "pos": [
+    5947,
+    4013
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 10705,
+   "objets": 37,
+   "source": "site industriel de 10705 m2 : workshop_01_f.p3d workshop_04_f.p3d workshop_02_f.p3d i_shed_ind_old_f.p3d metal"
+  },
+  {
+   "id": "mine01",
+   "type": "mine",
+   "pos": [
+    7404,
+    2703
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 16725,
+   "objets": 33,
+   "source": "site industriel de 16725 m2 : workshop_02_grey_f.p3d i_shed_ind_old_f.p3d workshop_04_grey_f.p3d workshop_05_g"
+  },
+  {
+   "id": "fonderie03",
+   "type": "fonderie",
+   "pos": [
+    10765,
+    11090
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 7764,
+   "objets": 32,
+   "source": "site industriel de 7764 m2 : workshop_01_f.p3d workshop_02_f.p3d metal_shed_f.p3d workshop_04_f.p3d workshop_"
+  },
+  {
+   "id": "fonderie04",
+   "type": "fonderie",
+   "pos": [
+    11444,
+    9562
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 5620,
+   "objets": 26,
+   "source": "site industriel de 5620 m2 : workshop_02_f.p3d workshop_01_f.p3d metal_shed_f.p3d workshop_05_f.p3d workshop_"
+  },
+  {
+   "id": "fonderie05",
+   "type": "fonderie",
+   "pos": [
+    3476,
+    11922
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 4774,
+   "objets": 22,
+   "source": "site industriel de 4774 m2 : workshop_03_f.p3d workshop_01_f.p3d workshop_05_f.p3d workshop_04_f.p3d industri"
+  },
+  {
+   "id": "carriere01",
+   "type": "carriere",
+   "pos": [
+    10991,
+    9028
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 12907,
+   "objets": 22,
+   "source": "site industriel de 12907 m2 : workshop_02_f.p3d i_shed_ind_old_f.p3d workshop_04_f.p3d cementworks_01_grey_f.p"
+  },
+  {
+   "id": "carriere02",
+   "type": "carriere",
+   "pos": [
+    1224,
+    8937
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2666,
+   "objets": 21,
+   "source": "site industriel de 2666 m2 : mine_01_minecart_f.p3d mine_01_hopper_silo_f.p3d workshop_04_f.p3d workshop_02_f"
+  },
+  {
+   "id": "fonderie06",
+   "type": "fonderie",
+   "pos": [
+    11317,
+    4413
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 3775,
+   "objets": 19,
+   "source": "site industriel de 3775 m2 : workshop_02_f.p3d workshop_01_f.p3d workshop_05_f.p3d workshop_03_f.p3d workshop"
+  },
+  {
+   "id": "fonderie07",
+   "type": "fonderie",
+   "pos": [
+    1688,
+    9604
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 3856,
+   "objets": 18,
+   "source": "site industriel de 3856 m2 : workshop_01_f.p3d workshop_02_f.p3d workshop_03_f.p3d workshop_05_f.p3d i_shed_i"
+  },
+  {
+   "id": "fonderie08",
+   "type": "fonderie",
+   "pos": [
+    6424,
+    11238
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 4473,
+   "objets": 16,
+   "source": "site industriel de 4473 m2 : workshop_01_f.p3d workshop_03_f.p3d workshop_04_f.p3d i_shed_ind_old_f.p3d indus"
+  },
+  {
+   "id": "fonderie09",
+   "type": "fonderie",
+   "pos": [
+    11490,
+    487
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 4509,
+   "objets": 15,
+   "source": "site industriel de 4509 m2 : workshop_01_f.p3d workshop_02_f.p3d workshop_05_f.p3d workshop_04_f.p3d factory_"
+  },
+  {
+   "id": "fonderie10",
+   "type": "fonderie",
+   "pos": [
+    9453,
+    10955
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 5669,
+   "objets": 13,
+   "source": "site industriel de 5669 m2 : workshop_05_f.p3d sawmill_01_illuminati_tower_f.p3d workshop_02_f.p3d industrial"
+  },
+  {
+   "id": "carriere03",
+   "type": "carriere",
+   "pos": [
+    11538,
+    7050
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 4900,
+   "objets": 11,
+   "source": "site industriel de 4900 m2 : i_shed_ind_old_f.p3d coalplant_01_conveyor_f.p3d industrialshed_01_f.p3d worksho"
+  },
+  {
+   "id": "fonderie11",
+   "type": "fonderie",
+   "pos": [
+    5186,
+    10430
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 3013,
+   "objets": 9,
+   "source": "site industriel de 3013 m2 : metal_shed_f.p3d workshop_03_f.p3d workshop_01_f.p3d industrialshed_01_f.p3d wor"
+  },
+  {
+   "id": "fonderie12",
+   "type": "fonderie",
+   "pos": [
+    2162,
+    11054
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 4142,
+   "objets": 8,
+   "source": "site industriel de 4142 m2 : i_shed_ind_old_f.p3d workshop_05_grey_f.p3d workshop_02_grey_f.p3d"
+  },
+  {
+   "id": "fonderie13",
+   "type": "fonderie",
+   "pos": [
+    6388,
+    4761
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2668,
+   "objets": 8,
+   "source": "site industriel de 2668 m2 : i_shed_ind_old_f.p3d workshop_04_grey_f.p3d workshop_03_grey_f.p3d workshop_02_g"
+  },
+  {
+   "id": "base01",
+   "type": "base",
+   "pos": [
+    9822,
+    8563
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 3691,
+   "objets": 22,
+   "source": "site militaire de 22 objets : cargo20_military_green_f.p3d guardtower_02_f.p3d cargo10_military_green_f.p3d ba"
+  },
+  {
+   "id": "base02",
+   "type": "base",
+   "pos": [
+    5122,
+    2168
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2452,
+   "objets": 21,
+   "source": "site militaire de 21 objets : guardtower_02_f.p3d guardtower_01_f.p3d guardhouse_02_f.p3d barracks_05_f.p3d de"
+  },
+  {
+   "id": "base03",
+   "type": "base",
+   "pos": [
+    2129,
+    10959
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2759,
+   "objets": 14,
+   "source": "site militaire de 14 objets : cargo20_military_green_f.p3d guardhouse_03_f.p3d barracks_04_f.p3d guardbox_01_g"
+  },
+  {
+   "id": "base04",
+   "type": "base",
+   "pos": [
+    7893,
+    9802
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2850,
+   "objets": 14,
+   "source": "site militaire de 14 objets : guardtower_02_f.p3d guardhouse_02_f.p3d barracks_03_f.p3d barracks_02_f.p3d barr"
+  },
+  {
+   "id": "base05",
+   "type": "base",
+   "pos": [
+    5627,
+    3784
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2278,
+   "objets": 11,
+   "source": "site militaire de 11 objets : guardtower_02_f.p3d cargo40_military_green_f.p3d cargo20_military_green_f.p3d i_"
+  },
+  {
+   "id": "base06",
+   "type": "base",
+   "pos": [
+    9026,
+    6621
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 3102,
+   "objets": 11,
+   "source": "site militaire de 11 objets : barracks_03_f.p3d barracks_06_f.p3d guardhouse_02_f.p3d guardbox_01_green_f.p3d "
+  }
+ ],
+ "absents": [
+  "puits",
+  "raffinerie",
+  "pharmacie"
+ ],
+ "notes": [
+  "Nadbor devient capitale ( 671 places de logement )"
+ ],
+ "regles": {
+  "places_par_capitale": 11587,
+  "min_base": 10,
+  "min_usine_m2": 2000,
+  "min_solaire": 20
+ }
+}

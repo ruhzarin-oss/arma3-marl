@@ -4,7 +4,7 @@ Malden              6316           1484 |      5     12     12     14     17    
 Stratis              500            120 |      8      2      2      0      4      5      1      1      3      0      2      2      5      8
 Tanoa              21265           2272 |     14     15     40      9      5     90      5      6     21      0      5     92     31     13
 Enoch               9154           2360 |     19     32     31     31     15      1      1      5     14      0     35     28     18     14
-Sara               14319           1696 |     15      0     13     24      0      3      4      0     10      8      0      0      0     15
+Sara               12679           1565 |     15      5     13     24      2      3      4      0     10      8     17      0      0     15
 
 Altis : plus grands sites
    militaire  ( 17422, 13174)   58 objets    4941 m2 | [('cargo_house_v1_f.p3d', 41), ('cargo_patrol_v1_f.p3d', 5), ('cargo40_military_green_f.p3d', 3)]
@@ -96,10 +96,15 @@ Sara : plus grands sites
    militaire  (  9646,  9886)   44 objets    3612 m2 | [('army_hut_storrage.p3d', 14), ('army_hut3_long_int.p3d', 10), ('army_hut2_int.p3d', 8)]
    militaire  ( 12155, 17655)   21 objets     189 m2 | [('posed.p3d', 21)]
    militaire  (  8146,  7833)   17 objets    1560 m2 | [('army_hut_storrage.p3d', 7), ('army_hut3_long_int.p3d', 7), ('army_hut2_int.p3d', 3)]
+   industrie  ( 13577,  9156)    5 objets    2032 m2 | [('tovarna2.p3d', 2), ('repair_center.p3d', 2), ('sara_domek_kovarna.p3d', 1)]
+   industrie  ( 10089,  9383)    4 objets    2378 m2 | [('tovarna2.p3d', 3), ('repair_center.p3d', 1)]
+   industrie  ( 10682,  8988)    4 objets    1691 m2 | [('tovarna2.p3d', 2), ('repair_center.p3d', 1), ('komin.p3d', 1)]
    carburant  ( 11725,  6038)   10 objets     146 m2 | [('fuel_tank_small.p3d', 4), ('fuel_tank_stairs.p3d', 3), ('fuel_tank_big.p3d', 3)]
    carburant  (  9217,  5846)    8 objets     404 m2 | [('fuel_tank_big.p3d', 3), ('fuel_tank_stairs.p3d', 2), ('fuel_tank_small.p3d', 2)]
    carburant  ( 19256, 13888)    5 objets     313 m2 | [('fuel_tank_big.p3d', 3), ('fuel_tank_small.p3d', 1), ('fuelstation_army.p3d', 1)]
+   energie    ( 12953,  8649)    5 objets     961 m2 | [('trafostanica_mala.p3d', 3), ('trafostanica_velka.p3d', 2)]
+   energie    ( 13646,  9354)    2 objets     417 m2 | [('trafostanica_velka.p3d', 1), ('trafostanica_mala.p3d', 1)]
    port       ( 11764,  6026)    6 objets    9187 m2 | [('nabrezi.p3d', 3), ('nabrezi_najezd.p3d', 2), ('majak2.p3d', 1)]
    port       ( 13108,  9076)    6 objets    5038 m2 | [('molo_beton.p3d', 3), ('majak2.p3d', 1), ('nabrezi_najezd.p3d', 1)]
    port       ( 13546,  8667)    3 objets    1230 m2 | [('molo_beton.p3d', 3)]
-   villes les plus logeables : Sara_Corazol 1505, Sara_Paraiso 1167, Sara_Ortego 1096, Sara_Bagango 1070, Sara_Obregan 739, Sara_Dolores 731
+   villes les plus logeables : Sara_Corazol 1365, Sara_Ortego 1080, Sara_Bagango 978, Sara_Paraiso 957, Sara_Dolores 719, Sara_Obregan 665

@@ -1,0 +1,1111 @@
+{
+ "ile": "Tanoa",
+ "gouvernement": "Georgetown01",
+ "port": "port01",
+ "par_air_seulement": false,
+ "aeroports": [
+  {
+   "x": 7226,
+   "y": 6991
+  },
+  {
+   "x": 1834,
+   "y": 12992
+  },
+  {
+   "x": 11897,
+   "y": 2949
+  },
+  {
+   "x": 1923,
+   "y": 3471
+  },
+  {
+   "x": 12201,
+   "y": 13060
+  }
+ ],
+ "places_logement": 21265,
+ "lieux": [
+  {
+   "id": "Sosovu01",
+   "type": "village",
+   "pos": [
+    2687,
+    9281
+   ],
+   "rayon": [
+    300,
+    100
+   ],
+   "places": 172,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Katkoula01",
+   "type": "capitale",
+   "pos": [
+    5685,
+    3994
+   ],
+   "rayon": [
+    400,
+    120
+   ],
+   "places": 811,
+   "source": "lieu nomme NameCity -> capitale designee ( marche et hopital )"
+  },
+  {
+   "id": "Yanukka01",
+   "type": "village",
+   "pos": [
+    3051,
+    3449
+   ],
+   "rayon": [
+    300,
+    100
+   ],
+   "places": 396,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Balavu01",
+   "type": "ville",
+   "pos": [
+    2677,
+    7442
+   ],
+   "rayon": [
+    300,
+    100
+   ],
+   "places": 196,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Rautake01",
+   "type": "village",
+   "pos": [
+    3404,
+    6836
+   ],
+   "rayon": [
+    300,
+    100
+   ],
+   "places": 203,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Tavu01",
+   "type": "village",
+   "pos": [
+    974,
+    7654
+   ],
+   "rayon": [
+    300,
+    100
+   ],
+   "places": 221,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Muaceba01",
+   "type": "village",
+   "pos": [
+    1556,
+    8545
+   ],
+   "rayon": [
+    300,
+    100
+   ],
+   "places": 96,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Namuvaka01",
+   "type": "village",
+   "pos": [
+    2824,
+    5700
+   ],
+   "rayon": [
+    200,
+    100
+   ],
+   "places": 167,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Laikoro01",
+   "type": "village",
+   "pos": [
+    1628,
+    6191
+   ],
+   "rayon": [
+    200,
+    100
+   ],
+   "places": 114,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Leqa01",
+   "type": "village",
+   "pos": [
+    2364,
+    8237
+   ],
+   "rayon": [
+    200,
+    100
+   ],
+   "places": 106,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "IndPort01",
+   "type": "ville",
+   "pos": [
+    13523,
+    12135
+   ],
+   "rayon": [
+    600,
+    100
+   ],
+   "places": 620,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Vatukoula01",
+   "type": "village",
+   "pos": [
+    14057,
+    9956
+   ],
+   "rayon": [
+    300,
+    100
+   ],
+   "places": 198,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Georgetown01",
+   "type": "capitale",
+   "pos": [
+    5396,
+    10335
+   ],
+   "rayon": [
+    500,
+    200
+   ],
+   "places": 1225,
+   "source": "lieu nomme NameCityCapital"
+  },
+  {
+   "id": "Lijnhaven01",
+   "type": "ville",
+   "pos": [
+    11802,
+    2663
+   ],
+   "rayon": [
+    300,
+    100
+   ],
+   "places": 687,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Tuvanaka01",
+   "type": "ville",
+   "pos": [
+    1579,
+    11938
+   ],
+   "rayon": [
+    300,
+    90
+   ],
+   "places": 245,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Belfort01",
+   "type": "village",
+   "pos": [
+    3133,
+    10977
+   ],
+   "rayon": [
+    250,
+    100
+   ],
+   "places": 296,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Koumac01",
+   "type": "village",
+   "pos": [
+    1347,
+    2968
+   ],
+   "rayon": [
+    200,
+    80
+   ],
+   "places": 129,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Moddergat01",
+   "type": "ville",
+   "pos": [
+    9407,
+    4133
+   ],
+   "rayon": [
+    300,
+    90
+   ],
+   "places": 176,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Doodstil01",
+   "type": "ville",
+   "pos": [
+    12862,
+    4691
+   ],
+   "rayon": [
+    300,
+    86
+   ],
+   "places": 144,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Blerick01",
+   "type": "village",
+   "pos": [
+    10256,
+    2738
+   ],
+   "rayon": [
+    200,
+    80
+   ],
+   "places": 192,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Harcourt01",
+   "type": "ville",
+   "pos": [
+    11123,
+    5343
+   ],
+   "rayon": [
+    250,
+    80
+   ],
+   "places": 481,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "PortBoise01",
+   "type": "village",
+   "pos": [
+    12715,
+    3309
+   ],
+   "rayon": [
+    200,
+    80
+   ],
+   "places": 103,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Tobakoro01",
+   "type": "village",
+   "pos": [
+    8741,
+    3556
+   ],
+   "rayon": [
+    200,
+    80
+   ],
+   "places": 158,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Losi01",
+   "type": "village",
+   "pos": [
+    10201,
+    4964
+   ],
+   "rayon": [
+    200,
+    70
+   ],
+   "places": 92,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Rereki01",
+   "type": "village",
+   "pos": [
+    13069,
+    2118
+   ],
+   "rayon": [
+    200,
+    90
+   ],
+   "places": 210,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Cerebu01",
+   "type": "village",
+   "pos": [
+    2132,
+    4590
+   ],
+   "rayon": [
+    200,
+    100
+   ],
+   "places": 152,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Savaka01",
+   "type": "village",
+   "pos": [
+    7212,
+    4238
+   ],
+   "rayon": [
+    200,
+    100
+   ],
+   "places": 81,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Lailai01",
+   "type": "village",
+   "pos": [
+    3628,
+    2209
+   ],
+   "rayon": [
+    200,
+    100
+   ],
+   "places": 303,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Tanouka01",
+   "type": "ville",
+   "pos": [
+    9014,
+    10214
+   ],
+   "rayon": [
+    350,
+    150
+   ],
+   "places": 774,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Lifou01",
+   "type": "ville",
+   "pos": [
+    7080,
+    8004
+   ],
+   "rayon": [
+    250,
+    80
+   ],
+   "places": 317,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "LaRochelle01",
+   "type": "ville",
+   "pos": [
+    9550,
+    13673
+   ],
+   "rayon": [
+    390,
+    100
+   ],
+   "places": 720,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Nicolet01",
+   "type": "ville",
+   "pos": [
+    6165,
+    12865
+   ],
+   "rayon": [
+    250,
+    90
+   ],
+   "places": 258,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Regina01",
+   "type": "village",
+   "pos": [
+    4920,
+    8729
+   ],
+   "rayon": [
+    200,
+    80
+   ],
+   "places": 630,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Lami01",
+   "type": "village",
+   "pos": [
+    7942,
+    7663
+   ],
+   "rayon": [
+    200,
+    80
+   ],
+   "places": 653,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Kotomo01",
+   "type": "village",
+   "pos": [
+    10974,
+    6233
+   ],
+   "rayon": [
+    250,
+    100
+   ],
+   "places": 301,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Oumere01",
+   "type": "ville",
+   "pos": [
+    12984,
+    7322
+   ],
+   "rayon": [
+    250,
+    100
+   ],
+   "places": 432,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Murarua01",
+   "type": "village",
+   "pos": [
+    14041,
+    8308
+   ],
+   "rayon": [
+    300,
+    100
+   ],
+   "places": 401,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Savu01",
+   "type": "village",
+   "pos": [
+    8393,
+    13778
+   ],
+   "rayon": [
+    200,
+    80
+   ],
+   "places": 239,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Buawa01",
+   "type": "village",
+   "pos": [
+    8317,
+    11132
+   ],
+   "rayon": [
+    150,
+    60
+   ],
+   "places": 303,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Ovau01",
+   "type": "village",
+   "pos": [
+    12402,
+    12788
+   ],
+   "rayon": [
+    200,
+    100
+   ],
+   "places": 156,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Vagalala01",
+   "type": "village",
+   "pos": [
+    11069,
+    9748
+   ],
+   "rayon": [
+    250,
+    100
+   ],
+   "places": 287,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Nasua01",
+   "type": "village",
+   "pos": [
+    11418,
+    12360
+   ],
+   "rayon": [
+    200,
+    100
+   ],
+   "places": 187,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Lobaka01",
+   "type": "village",
+   "pos": [
+    6028,
+    8580
+   ],
+   "rayon": [
+    200,
+    100
+   ],
+   "places": 414,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Nandai01",
+   "type": "village",
+   "pos": [
+    14496,
+    8877
+   ],
+   "rayon": [
+    250,
+    100
+   ],
+   "places": 175,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Momea01",
+   "type": "village",
+   "pos": [
+    10424,
+    13252
+   ],
+   "rayon": [
+    250,
+    100
+   ],
+   "places": 234,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Ba01",
+   "type": "village",
+   "pos": [
+    14295,
+    11680
+   ],
+   "rayon": [
+    200,
+    180
+   ],
+   "places": 144,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Galili01",
+   "type": "village",
+   "pos": [
+    8114,
+    11957
+   ],
+   "rayon": [
+    250,
+    100
+   ],
+   "places": 223,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "SaintJulien01",
+   "type": "ville",
+   "pos": [
+    5809,
+    11213
+   ],
+   "rayon": [
+    300,
+    100
+   ],
+   "places": 743,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Imone01",
+   "type": "village",
+   "pos": [
+    10488,
+    10614
+   ],
+   "rayon": [
+    300,
+    100
+   ],
+   "places": 187,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "PetitNicolet01",
+   "type": "village",
+   "pos": [
+    6813,
+    13440
+   ],
+   "rayon": [
+    250,
+    120
+   ],
+   "places": 127,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "OuaOue01",
+   "type": "village",
+   "pos": [
+    5752,
+    12326
+   ],
+   "rayon": [
+    250,
+    100
+   ],
+   "places": 272,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Penelo01",
+   "type": "village",
+   "pos": [
+    10966,
+    13183
+   ],
+   "rayon": [
+    250,
+    120
+   ],
+   "places": 248,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Ipota01",
+   "type": "village",
+   "pos": [
+    12318,
+    13929
+   ],
+   "rayon": [
+    250,
+    100
+   ],
+   "places": 15,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "SaintPaul01",
+   "type": "village",
+   "pos": [
+    7829,
+    13600
+   ],
+   "rayon": [
+    200,
+    50
+   ],
+   "places": 112,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Saioko01",
+   "type": "village",
+   "pos": [
+    12404,
+    4570
+   ],
+   "rayon": [
+    200,
+    80
+   ],
+   "places": 167,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Nani01",
+   "type": "village",
+   "pos": [
+    1955,
+    10727
+   ],
+   "rayon": [
+    250,
+    50
+   ],
+   "places": 92,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Lakatoro01",
+   "type": "village",
+   "pos": [
+    9214,
+    8741
+   ],
+   "rayon": [
+    150,
+    50
+   ],
+   "places": 270,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Buabua01",
+   "type": "village",
+   "pos": [
+    13255,
+    3020
+   ],
+   "rayon": [
+    250,
+    80
+   ],
+   "places": 169,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "LaFoa01",
+   "type": "village",
+   "pos": [
+    8825,
+    4778
+   ],
+   "rayon": [
+    250,
+    80
+   ],
+   "places": 114,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Taga01",
+   "type": "village",
+   "pos": [
+    12255,
+    1880
+   ],
+   "rayon": [
+    250,
+    80
+   ],
+   "places": 154,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "centrale01",
+   "type": "centrale",
+   "pos": [
+    7440,
+    8538
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2356,
+   "objets": 28,
+   "source": "site d energie : dpp_01_transformer_f.p3d spp_transformer_f.p3d dpp_01_mainfactory_f.p3d"
+  },
+  {
+   "id": "centrale02",
+   "type": "centrale",
+   "pos": [
+    13901,
+    12073
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2200,
+   "objets": 14,
+   "source": "site d energie : spp_transformer_f.p3d dpp_01_mainfactory_f.p3d"
+  },
+  {
+   "id": "carriere01",
+   "type": "carriere",
+   "pos": [
+    13432,
+    12106
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 86750,
+   "objets": 259,
+   "source": "site industriel de 86750 m2 : sy_01_conveyor_reclaimer_f.p3d sy_01_conveyor_short_f.p3d warehouse_02_f.p3d gan"
+  },
+  {
+   "id": "carriere02",
+   "type": "carriere",
+   "pos": [
+    8347,
+    10331
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 10056,
+   "objets": 41,
+   "source": "site industriel de 10056 m2 : scf_01_conveyor_hole_f.p3d scf_01_conveyor_16m_high_f.p3d scf_01_conveyor_16m_sl"
+  },
+  {
+   "id": "fonderie01",
+   "type": "fonderie",
+   "pos": [
+    5429,
+    10117
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 9642,
+   "objets": 20,
+   "source": "site industriel de 9642 m2 : mobilecrane_01_f.p3d gantrycrane_01_f.p3d i_shed_ind_f.p3d scf_01_storagebin_sma"
+  },
+  {
+   "id": "fonderie02",
+   "type": "fonderie",
+   "pos": [
+    9016,
+    13783
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 8251,
+   "objets": 19,
+   "source": "site industriel de 8251 m2 : scf_01_storagebin_small_f.p3d i_shed_ind_f.p3d warehouse_03_f.p3d scf_01_storage"
+  },
+  {
+   "id": "fonderie03",
+   "type": "fonderie",
+   "pos": [
+    9938,
+    13560
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 6039,
+   "objets": 16,
+   "source": "site industriel de 6039 m2 : scf_01_storagebin_small_f.p3d scf_01_storagebin_medium_f.p3d dpp_01_smallfactory"
+  },
+  {
+   "id": "carriere03",
+   "type": "carriere",
+   "pos": [
+    5233,
+    3641
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 3696,
+   "objets": 5,
+   "source": "site industriel de 3696 m2 : scf_01_storagebin_medium_f.p3d scf_01_conveyor_16m_high_f.p3d scf_01_warehouse_f"
+  },
+  {
+   "id": "fonderie04",
+   "type": "fonderie",
+   "pos": [
+    5373,
+    11169
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2770,
+   "objets": 5,
+   "source": "site industriel de 2770 m2 : scf_01_storagebin_medium_f.p3d scf_01_storagebin_small_f.p3d scf_01_warehouse_f."
+  },
+  {
+   "id": "fonderie05",
+   "type": "fonderie",
+   "pos": [
+    6849,
+    7399
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2245,
+   "objets": 5,
+   "source": "site industriel de 2245 m2 : warehouse_03_f.p3d dpp_01_smallfactory_f.p3d i_shed_ind_f.p3d"
+  },
+  {
+   "id": "fonderie06",
+   "type": "fonderie",
+   "pos": [
+    11797,
+    2292
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 3643,
+   "objets": 5,
+   "source": "site industriel de 3643 m2 : warehouse_01_f.p3d gantrycrane_01_f.p3d warehouse_02_f.p3d mobilecrane_01_f.p3d"
+  },
+  {
+   "id": "fonderie07",
+   "type": "fonderie",
+   "pos": [
+    5611,
+    4032
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2314,
+   "objets": 4,
+   "source": "site industriel de 2314 m2 : i_shed_ind_f.p3d warehouse_03_f.p3d"
+  },
+  {
+   "id": "base01",
+   "type": "base",
+   "pos": [
+    2760,
+    9149
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 1773,
+   "objets": 19,
+   "source": "site militaire de 19 objets : pillboxbunker_01_hex_f.p3d pillboxbunker_01_rectangle_f.p3d pillboxbunker_01_big"
+  },
+  {
+   "id": "base02",
+   "type": "base",
+   "pos": [
+    11344,
+    6612
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 880,
+   "objets": 10,
+   "source": "site militaire de 10 objets : pillboxbunker_01_rectangle_f.p3d pillboxbunker_01_hex_f.p3d pillboxbunker_01_big"
+  },
+  {
+   "id": "port01",
+   "type": "port",
+   "pos": [
+    13647,
+    12180
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 58030,
+   "objets": 197,
+   "source": "plus grand site portuaire ( 58030 m2 )"
+  }
+ ],
+ "absents": [
+  "puits",
+  "raffinerie",
+  "pharmacie",
+  "mine"
+ ],
+ "notes": [
+  "Katkoula01 devient capitale ( 811 places de logement )"
+ ],
+ "regles": {
+  "places_par_capitale": 11587,
+  "min_base": 10,
+  "min_usine_m2": 2000,
+  "min_solaire": 20
+ }
+}

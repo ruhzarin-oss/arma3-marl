@@ -1,0 +1,436 @@
+{
+ "ile": "Malden",
+ "gouvernement": "Malden_C_LaTrinite",
+ "port": "port01",
+ "par_air_seulement": false,
+ "aeroports": [
+  {
+   "x": 7921,
+   "y": 9516
+  },
+  {
+   "x": 600,
+   "y": 12285
+  }
+ ],
+ "places_logement": 6316,
+ "lieux": [
+  {
+   "id": "Malden_C_Larche",
+   "type": "ville",
+   "pos": [
+    6013,
+    8627
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 574,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Malden_C_LaTrinite",
+   "type": "capitale",
+   "pos": [
+    7264,
+    7931
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 721,
+   "source": "lieu nomme NameCityCapital"
+  },
+  {
+   "id": "Malden_C_LaPessagne",
+   "type": "ville",
+   "pos": [
+    3116,
+    6331
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 227,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Malden_C_Chapoi",
+   "type": "ville",
+   "pos": [
+    5836,
+    3530
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 478,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Malden_V_Vigny",
+   "type": "village",
+   "pos": [
+    3069,
+    6835
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 57,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Malden_V_SainteMarie",
+   "type": "village",
+   "pos": [
+    5547,
+    4233
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 77,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Malden_V_LaRiviere",
+   "type": "village",
+   "pos": [
+    3731,
+    3258
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 221,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Malden_V_Cancon",
+   "type": "village",
+   "pos": [
+    5404,
+    2796
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 387,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Malden_V_LePort",
+   "type": "village",
+   "pos": [
+    8193,
+    3117
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 457,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Malden_V_Houdan",
+   "type": "village",
+   "pos": [
+    7121,
+    6075
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 280,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Malden_V_Dourdan",
+   "type": "village",
+   "pos": [
+    7036,
+    7108
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 268,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Malden_V_Arudy",
+   "type": "village",
+   "pos": [
+    5537,
+    6983
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 161,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Malden_V_Goisse",
+   "type": "village",
+   "pos": [
+    3585,
+    8520
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 65,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Malden_V_SaintLouis",
+   "type": "village",
+   "pos": [
+    7143,
+    8968
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 464,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Malden_V_Lolisse",
+   "type": "village",
+   "pos": [
+    5567,
+    11187
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 84,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Malden_C_Airport",
+   "type": "village",
+   "pos": [
+    8173,
+    10114
+   ],
+   "rayon": [
+    120,
+    60
+   ],
+   "places": 3,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Malden_L_Moray",
+   "type": "village",
+   "pos": [
+    883,
+    11988
+   ],
+   "rayon": [
+    538,
+    332
+   ],
+   "places": 73,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "centrale01",
+   "type": "centrale",
+   "pos": [
+    7781,
+    3310
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2234,
+   "objets": 17,
+   "source": "site d energie : spp_transformer_f.p3d dp_transformer_f.p3d dp_mainfactory_f.p3d"
+  },
+  {
+   "id": "fonderie01",
+   "type": "fonderie",
+   "pos": [
+    8041,
+    3741
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 10608,
+   "objets": 29,
+   "source": "site industriel de 10608 m2 : metal_shed_f.p3d i_shed_ind_f.p3d dp_smallfactory_f.p3d u_shed_ind_f.p3d"
+  },
+  {
+   "id": "fonderie02",
+   "type": "fonderie",
+   "pos": [
+    6033,
+    8714
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2090,
+   "objets": 11,
+   "source": "site industriel de 2090 m2 : metal_shed_f.p3d i_shed_ind_f.p3d u_shed_ind_f.p3d"
+  },
+  {
+   "id": "fonderie03",
+   "type": "fonderie",
+   "pos": [
+    8194,
+    10028
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 5045,
+   "objets": 9,
+   "source": "site industriel de 5045 m2 : i_shed_ind_f.p3d dp_smallfactory_f.p3d"
+  },
+  {
+   "id": "fonderie04",
+   "type": "fonderie",
+   "pos": [
+    3636,
+    3414
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2237,
+   "objets": 7,
+   "source": "site industriel de 2237 m2 : metal_shed_f.p3d i_shed_ind_f.p3d"
+  },
+  {
+   "id": "fonderie05",
+   "type": "fonderie",
+   "pos": [
+    7211,
+    8921
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2234,
+   "objets": 7,
+   "source": "site industriel de 2234 m2 : metal_shed_f.p3d i_shed_ind_f.p3d u_shed_ind_f.p3d"
+  },
+  {
+   "id": "fonderie06",
+   "type": "fonderie",
+   "pos": [
+    7836,
+    3152
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 3400,
+   "objets": 5,
+   "source": "site industriel de 3400 m2 : i_shed_ind_f.p3d dp_smallfactory_f.p3d factory_main_f.p3d"
+  },
+  {
+   "id": "base01",
+   "type": "base",
+   "pos": [
+    6121,
+    10745
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 6572,
+   "objets": 71,
+   "source": "site militaire de 71 objets : cargo_house_v2_f.p3d bunker_f.p3d bunker_01_small_f.p3d cargo_house_v3_derelict_"
+  },
+  {
+   "id": "base02",
+   "type": "base",
+   "pos": [
+    8150,
+    10152
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 10874,
+   "objets": 50,
+   "source": "site militaire de 50 objets : cargo20_military_green_f.p3d i_barracks_v2_f.p3d i_barracks_v1_f.p3d cargo40_mil"
+  },
+  {
+   "id": "base03",
+   "type": "base",
+   "pos": [
+    7796,
+    3199
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2146,
+   "objets": 10,
+   "source": "site militaire de 10 objets : cargo20_military_green_f.p3d i_barracks_v2_f.p3d"
+  },
+  {
+   "id": "port01",
+   "type": "port",
+   "pos": [
+    3617,
+    3150
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 10779,
+   "objets": 23,
+   "source": "plus grand site portuaire ( 10779 m2 )"
+  }
+ ],
+ "absents": [
+  "puits",
+  "raffinerie",
+  "pharmacie",
+  "mine",
+  "carriere"
+ ],
+ "notes": [],
+ "regles": {
+  "places_par_capitale": 11587,
+  "min_base": 10,
+  "min_usine_m2": 2000,
+  "min_solaire": 20
+ }
+}

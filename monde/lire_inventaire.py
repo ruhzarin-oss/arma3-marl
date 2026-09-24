@@ -26,20 +26,22 @@ PAR_MOT = [
     ("eau", r"water|well|toilet|cistern|reservoir|pumpa|kasna"),        # avant le carburant : 24/09, « oil » prenait les
     ("carburant", r"fuel|(^|_)oil|petrol|pump|refinery|bigtank|smalltank|storagetank|tank_rust|railwaycar_01_tank|"
                   r"gasstation|benzin"),                                  # toilettes seches, « tank » les citernes d eau
-    ("energie", r"power|transformer|substation|spp_|solar|windturbine|wind_turbine|wtg|generator"),
+    ("energie", r"power|transformer|substation|spp_|solar|windturbine|wind_turbine|wtg|generator|trafostanic|elektrarn"),
     ("industrie", r"factory|ind_|industrial|indust|warehouse|workshop|sawmill|silo|cement|mine|quarry|conveyor|"
-                  r"crane|dp_|kombinat|shed_ind|storage|containerline|metal_shed|slaughter|fabrik"),
+                  r"crane|dp_|kombinat|shed_ind|storage|containerline|metal_shed|slaughter|fabrik|"
+                  r"tovarn|repair|kovarn|dilna|pila_|sklad"),                      # tcheque ( cartes CUP : Sahrani )
     ("sante", r"hospital|clinic|medevac|medical|pharma"),
     ("port", r"pier|quay|dock|harbour|harbor|port_|lighthouse|boathouse|mooring"),
     ("agriculture", r"barn|farm|stable|cowshed|greenhouse|haystack|hay_|chickencoop|pigsty|cattle|agri|vineyard|"
-                    r"orchard|shed_small|shed_wooden|farmhouse|granary"),
+                    r"orchard|shed_small|shed_wooden|farmhouse|granary|stodol|kravin|seno|statek"),
     ("culte", r"church|chapel|mosque|temple|monastery|cathedral|shrine|cemetery|grave"),
     ("commerce", r"shop|store|market|kiosk|supermarket|restaurant|cafe|bar_|hotel|kiosek|mall"),
     ("administration", r"government|police|cityhall|townhall|school|office|court|prison|bank|post|fire_?station|"
                        r"administration|embassy|library|university|castle"),
     ("communication", r"radio|tower_comm|comm_tower|antenna|transmitter|telek"),
-    ("logement", r"house|home|villa|panelak|slum|apartment|flat|dwelling|bungalow|hut|cabin|residential|garage|"
-                 r"i_|u_|d_|stone_|addon_0|sara_|ca_|dom|budova|hlaseni|kulna|kostel"),
+    ("logement", r"house|home|villa|panelak|slum|apartment|flat|dwelling|bungalow|hut|cabin|residential|garage|garaz|"
+                 r"^(i_|u_|d_|ca_)|stone_|addon_0|sara_|dom|dum|budova|hlaseni|kulna|zalchata"),   # prefixes courts ANCRES
+                 # ( 24/09 : « ca_ » prenait « trafostanica_ », un poste electrique range parmi les logements )
 ]
 MOTS = [(c, re.compile(m)) for c, m in PAR_MOT]
 

@@ -1,0 +1,247 @@
+{
+ "ile": "Stratis",
+ "gouvernement": "Agia_Marina",
+ "port": "port01",
+ "par_air_seulement": false,
+ "aeroports": [
+  {
+   "x": 1535,
+   "y": 5033
+  }
+ ],
+ "places_logement": 500,
+ "lieux": [
+  {
+   "id": "Agia_Marina",
+   "type": "capitale",
+   "pos": [
+    2915,
+    6165
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 236,
+   "source": "lieu nomme NameCityCapital"
+  },
+  {
+   "id": "Girna",
+   "type": "ville",
+   "pos": [
+    1935,
+    2723
+   ],
+   "rayon": [
+    77,
+    58
+   ],
+   "places": 72,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "CampMaxwell",
+   "type": "village",
+   "pos": [
+    3253,
+    2984
+   ],
+   "rayon": [
+    121,
+    90
+   ],
+   "places": 17,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "AirStation",
+   "type": "village",
+   "pos": [
+    4279,
+    3856
+   ],
+   "rayon": [
+    151,
+    113
+   ],
+   "places": 3,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "SniperSchool",
+   "type": "village",
+   "pos": [
+    6402,
+    5427
+   ],
+   "rayon": [
+    62,
+    46
+   ],
+   "places": 40,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "CampTempest1",
+   "type": "village",
+   "pos": [
+    1942,
+    3557
+   ],
+   "rayon": [
+    121,
+    90
+   ],
+   "places": 4,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "NatoBase1",
+   "type": "ville",
+   "pos": [
+    1987,
+    5626
+   ],
+   "rayon": [
+    369,
+    276
+   ],
+   "places": 6,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "CampRogain",
+   "type": "village",
+   "pos": [
+    4886,
+    5948
+   ],
+   "rayon": [
+    97,
+    72
+   ],
+   "places": 0,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "fonderie01",
+   "type": "fonderie",
+   "pos": [
+    2041,
+    5489
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2492,
+   "objets": 7,
+   "source": "site industriel de 2492 m2 : dp_smallfactory_f.p3d"
+  },
+  {
+   "id": "base01",
+   "type": "base",
+   "pos": [
+    2123,
+    5656
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 4584,
+   "objets": 104,
+   "source": "site militaire de 104 objets : cargo20_military_green_f.p3d cargo40_military_green_f.p3d cargo_house_v1_f.p3d c"
+  },
+  {
+   "id": "base02",
+   "type": "base",
+   "pos": [
+    4992,
+    5904
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 798,
+   "objets": 15,
+   "source": "site militaire de 15 objets : cargo20_military_green_f.p3d cargo_house_v2_f.p3d cargo_house_v1_f.p3d cargo_pat"
+  },
+  {
+   "id": "base03",
+   "type": "base",
+   "pos": [
+    4368,
+    3804
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 779,
+   "objets": 13,
+   "source": "site militaire de 13 objets : cargo_house_v1_f.p3d cargo_patrol_v1_f.p3d cargo20_military_green_f.p3d cargo40_"
+  },
+  {
+   "id": "base04",
+   "type": "base",
+   "pos": [
+    3258,
+    5813
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 456,
+   "objets": 12,
+   "source": "site militaire de 12 objets : cargo20_military_green_f.p3d cargo_house_v1_f.p3d cargo40_military_green_f.p3d c"
+  },
+  {
+   "id": "base05",
+   "type": "base",
+   "pos": [
+    6480,
+    5370
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 470,
+   "objets": 10,
+   "source": "site militaire de 10 objets : cargo_house_v1_f.p3d cargo40_military_green_f.p3d cargo_patrol_v1_f.p3d bunker_f"
+  },
+  {
+   "id": "port01",
+   "type": "port",
+   "pos": [
+    2764,
+    6084
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 8213,
+   "objets": 13,
+   "source": "plus grand site portuaire ( 8213 m2 )"
+  }
+ ],
+ "absents": [
+  "puits",
+  "raffinerie",
+  "pharmacie",
+  "mine",
+  "carriere",
+  "centrale"
+ ],
+ "notes": [],
+ "regles": {
+  "places_par_capitale": 11587,
+  "min_base": 10,
+  "min_usine_m2": 2000,
+  "min_solaire": 20
+ }
+}

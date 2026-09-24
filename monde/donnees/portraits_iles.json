@@ -23,8 +23,8 @@
   "places_interieures": 60815,
   "objets": 20270,
   "par_fonction": {
-   "logement": 8233,
-   "inclasse": 3043,
+   "logement": 7555,
+   "inclasse": 3721,
    "energie": 2870,
    "commerce": 2853,
    "culte": 1247,
@@ -67,6 +67,14 @@
     281
    ],
    [
+    "cargo20_brick_red_f.p3d",
+    198
+   ],
+   [
+    "unfinished_building_01_f.p3d",
+    165
+   ],
+   [
     "cargo_addon01_v1_f.p3d",
     163
    ],
@@ -89,6 +97,10 @@
    [
     "tbox_f.p3d",
     96
+   ],
+   [
+    "unfinished_building_02_f.p3d",
+    93
    ],
    [
     "cargo20_grey_f.p3d",
@@ -123,6 +135,14 @@
     48
    ],
    [
+    "ancientpillar_damaged_f.p3d",
+    45
+   ],
+   [
+    "cargo40_brick_red_f.p3d",
+    41
+   ],
+   [
     "indpipe1_20m_f.p3d",
     41
    ],
@@ -133,26 +153,6 @@
    [
     "goal_f.p3d",
     36
-   ],
-   [
-    "lifeguardtower_01_f.p3d",
-    33
-   ],
-   [
-    "tribune_f.p3d",
-    33
-   ],
-   [
-    "cargo40_white_f.p3d",
-    32
-   ],
-   [
-    "bc_basket_f.p3d",
-    30
-   ],
-   [
-    "scaffolding_f.p3d",
-    29
    ]
   ],
   "lieux_nommes": 176,
@@ -188,8 +188,8 @@
   "objets": 7711,
   "par_fonction": {
    "energie": 3524,
-   "logement": 1667,
-   "inclasse": 702,
+   "logement": 1451,
+   "inclasse": 918,
    "commerce": 680,
    "culte": 314,
    "militaire": 182,
@@ -245,6 +245,10 @@
     33
    ],
    [
+    "shed_08_brown_f.p3d",
+    29
+   ],
+   [
     "indpipe1_20m_f.p3d",
     27
    ],
@@ -257,12 +261,24 @@
     25
    ],
    [
+    "indpipe1_ground_f.p3d",
+    25
+   ],
+   [
     "cargo20_white_f.p3d",
+    21
+   ],
+   [
+    "unfinished_building_01_f.p3d",
     21
    ],
    [
     "cargo20_blue_f.p3d",
     18
+   ],
+   [
+    "unfinished_building_02_f.p3d",
+    16
    ],
    [
     "timbers_f.p3d",
@@ -271,6 +287,14 @@
    [
     "cmp_tower_f.p3d",
     15
+   ],
+   [
+    "cargo20_sand_f.p3d",
+    14
+   ],
+   [
+    "cargo20_brick_red_f.p3d",
+    14
    ],
    [
     "cargo_addon02_v2_f.p3d",
@@ -291,30 +315,6 @@
    [
     "indpipe1_valve_f.p3d",
     13
-   ],
-   [
-    "gh_stairs_f.p3d",
-    12
-   ],
-   [
-    "touristshelter_01_f.p3d",
-    10
-   ],
-   [
-    "busstop_01_shelter_f.p3d",
-    10
-   ],
-   [
-    "turret_01_ruins_f.p3d",
-    10
-   ],
-   [
-    "fs_price_f.p3d",
-    8
-   ],
-   [
-    "carservice_f.p3d",
-    8
    ]
   ],
   "lieux_nommes": 122,
@@ -349,8 +349,8 @@
   "objets": 716,
   "par_fonction": {
    "militaire": 175,
-   "logement": 132,
-   "inclasse": 127,
+   "inclasse": 142,
+   "logement": 117,
    "commerce": 67,
    "port": 37,
    "energie": 36,
@@ -387,6 +387,10 @@
    [
     "communication_anchor_f.p3d",
     16
+   ],
+   [
+    "indpipe1_ground_f.p3d",
+    12
    ],
    [
     "indpipe1_20m_f.p3d",
@@ -449,7 +453,15 @@
     2
    ],
    [
+    "unfinished_building_01_f.p3d",
+    2
+   ],
+   [
     "slide_f.p3d",
+    1
+   ],
+   [
+    "unfinished_building_02_f.p3d",
     1
    ]
   ],
@@ -486,9 +498,9 @@
   "places_interieures": 49347,
   "objets": 19821,
   "par_fonction": {
-   "logement": 4278,
+   "inclasse": 5955,
    "energie": 4061,
-   "inclasse": 3882,
+   "logement": 2205,
    "rail": 2138,
    "commerce": 1956,
    "port": 1052,
@@ -521,8 +533,20 @@
     716
    ],
    [
+    "shed_04_f.p3d",
+    443
+   ],
+   [
+    "shed_02_f.p3d",
+    388
+   ],
+   [
     "scf_01_pipe_8m_high_f.p3d",
     374
+   ],
+   [
+    "shed_05_f.p3d",
+    370
    ],
    [
     "railwaycar_01_sugarcane_empty_f.p3d",
@@ -537,12 +561,24 @@
     219
    ],
    [
+    "shed_03_f.p3d",
+    209
+   ],
+   [
     "basaltwall_01_8m_f.p3d",
     195
    ],
    [
+    "shed_01_f.p3d",
+    185
+   ],
+   [
     "canal_dutch_01_15m_f.p3d",
     162
+   ],
+   [
+    "shed_06_f.p3d",
+    140
    ],
    [
     "woodenshelter_01_f.p3d",
@@ -557,12 +593,20 @@
     101
    ],
    [
+    "shed_07_f.p3d",
+    85
+   ],
+   [
     "metalshelter_01_f.p3d",
     78
    ],
    [
     "canal_dutch_01_plate_f.p3d",
     78
+   ],
+   [
+    "basaltwall_01_d_left_f.p3d",
+    77
    ],
    [
     "scf_01_pipe_8m_f.p3d",
@@ -583,38 +627,6 @@
    [
     "scf_01_pipe_curve_f.p3d",
     51
-   ],
-   [
-    "basaltwall_01_4m_f.p3d",
-    47
-   ],
-   [
-    "canal_dutch_01_corner_f.p3d",
-    44
-   ],
-   [
-    "fireescape_01_tall_f.p3d",
-    39
-   ],
-   [
-    "scf_01_pipe_up_f.p3d",
-    37
-   ],
-   [
-    "basaltwall_01_gate_f.p3d",
-    36
-   ],
-   [
-    "cargo40_cyan_f.p3d",
-    28
-   ],
-   [
-    "tomb_01_f.p3d",
-    27
-   ],
-   [
-    "cargo40_white_f.p3d",
-    27
    ]
   ],
   "lieux_nommes": 138,
@@ -648,9 +660,9 @@
   "places_interieures": 16691,
   "objets": 12006,
   "par_fonction": {
-   "logement": 3289,
    "energie": 2740,
-   "inclasse": 1176,
+   "logement": 2242,
+   "inclasse": 2223,
    "agriculture": 873,
    "rail": 843,
    "eau": 749,
@@ -679,12 +691,32 @@
   },
   "inclasses_principaux": [
    [
+    "shed_09_f.p3d",
+    229
+   ],
+   [
+    "shed_10_f.p3d",
+    209
+   ],
+   [
+    "shed_11_f.p3d",
+    205
+   ],
+   [
+    "shed_14_f.p3d",
+    185
+   ],
+   [
     "feedrack_01_f.p3d",
     161
    ],
    [
     "scf_01_pipe_8m_f.p3d",
     141
+   ],
+   [
+    "shed_12_f.p3d",
+    95
    ],
    [
     "calvary_03_f.p3d",
@@ -719,6 +751,10 @@
     31
    ],
    [
+    "shed_06_f.p3d",
+    29
+   ],
+   [
     "scf_01_pipe_curve_f.p3d",
     29
    ],
@@ -731,8 +767,16 @@
     27
    ],
    [
+    "scf_01_pipe_end_f.p3d",
+    26
+   ],
+   [
     "scf_01_pipe_8m_high_f.p3d",
     24
+   ],
+   [
+    "shed_07_f.p3d",
+    23
    ],
    [
     "busstop_02_shelter_ruins_f.p3d",
@@ -745,38 +789,6 @@
    [
     "scf_01_pipe_up_f.p3d",
     19
-   ],
-   [
-    "goal_f.p3d",
-    18
-   ],
-   [
-    "ironpipes_f.p3d",
-    17
-   ],
-   [
-    "radar_01_hq_f.p3d",
-    14
-   ],
-   [
-    "rail_track_passing_25_f.p3d",
-    14
-   ],
-   [
-    "tribune_f.p3d",
-    14
-   ],
-   [
-    "indpipe3_big_18_f.p3d",
-    13
-   ],
-   [
-    "cargo20_grey_f.p3d",
-    11
-   ],
-   [
-    "scf_01_pipe_curve_high_f.p3d",
-    11
    ]
   ],
   "lieux_nommes": 64,
@@ -810,20 +822,21 @@
   "places_interieures": 17228,
   "objets": 3763,
   "par_fonction": {
-   "inclasse": 2333,
-   "logement": 624,
+   "logement": 1942,
+   "inclasse": 836,
    "militaire": 214,
    "eau": 171,
-   "energie": 152,
+   "energie": 164,
+   "agriculture": 124,
    "transport": 86,
    "carburant": 56,
+   "industrie": 48,
    "culte": 43,
    "port": 24,
    "hangar": 19,
    "communication": 16,
    "tourisme": 10,
    "sante": 8,
-   "industrie": 5,
    "ruine": 2
   },
   "sols": {
@@ -838,20 +851,8 @@
   },
   "inclasses_principaux": [
    [
-    "dum_olez_istan2.p3d",
-    179
-   ],
-   [
     "kontejner.p3d",
     170
-   ],
-   [
-    "dum_olez_istan1_open.p3d",
-    152
-   ],
-   [
-    "dum_olez_istan2_maly2.p3d",
-    143
    ],
    [
     "popelnice.p3d",
@@ -862,40 +863,8 @@
     81
    ],
    [
-    "dum_istan2_01.p3d",
-    78
-   ],
-   [
-    "dum_istan3_hromada.p3d",
-    74
-   ],
-   [
-    "dum_olezlina_open.p3d",
-    62
-   ],
-   [
     "bouda2_vnitrek.p3d",
     60
-   ],
-   [
-    "garaz.p3d",
-    51
-   ],
-   [
-    "dum_istan4.p3d",
-    46
-   ],
-   [
-    "dum_mesto2.p3d",
-    46
-   ],
-   [
-    "dum_istan3.p3d",
-    43
-   ],
-   [
-    "dum_olez_istan2_maly_open.p3d",
-    42
    ],
    [
     "nasypka.p3d",
@@ -906,36 +875,80 @@
     35
    ],
    [
-    "dum_mesto3_istan.p3d",
-    34
-   ],
-   [
-    "dum_istan4_inverse.p3d",
-    32
-   ],
-   [
     "zastavka_sever.p3d",
     32
-   ],
-   [
-    "dum_istan2_03.p3d",
-    32
-   ],
-   [
-    "dum_istan2_04a.p3d",
-    31
-   ],
-   [
-    "dum_m2.p3d",
-    29
    ],
    [
     "zavora_2_a1.p3d",
     27
    ],
    [
-    "dum_istan2.p3d",
-    27
+    "dulni_bs.p3d",
+    26
+   ],
+   [
+    "kontejner_sklo.p3d",
+    25
+   ],
+   [
+    "hlidac_budka.p3d",
+    25
+   ],
+   [
+    "kontejner_plasty.p3d",
+    23
+   ],
+   [
+    "kontejner_papir.p3d",
+    23
+   ],
+   [
+    "deutshe.p3d",
+    19
+   ],
+   [
+    "strazni_vez.p3d",
+    16
+   ],
+   [
+    "stanice.p3d",
+    16
+   ],
+   [
+    "zavora.p3d",
+    15
+   ],
+   [
+    "orlhot.p3d",
+    14
+   ],
+   [
+    "deutshe_mini.p3d",
+    13
+   ],
+   [
+    "vez_ropa.p3d",
+    10
+   ],
+   [
+    "majak_podesta.p3d",
+    9
+   ],
+   [
+    "bouda1.p3d",
+    7
+   ],
+   [
+    "hospoda_mesto.p3d",
+    6
+   ],
+   [
+    "kasarna.p3d",
+    5
+   ],
+   [
+    "afbarabizna.p3d",
+    4
    ]
   ],
   "lieux_nommes": 255,

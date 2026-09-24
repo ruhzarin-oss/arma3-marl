@@ -1,0 +1,766 @@
+{
+ "ile": "Sara",
+ "gouvernement": "Sara_Bagango",
+ "port": "port01",
+ "par_air_seulement": false,
+ "aeroports": [
+  {
+   "x": 9240,
+   "y": 10144
+  },
+  {
+   "x": 2545,
+   "y": 3000
+  },
+  {
+   "x": 18640,
+   "y": 14512
+  },
+  {
+   "x": 18013,
+   "y": 18867
+  }
+ ],
+ "places_logement": 12679,
+ "lieux": [
+  {
+   "id": "Sara_Rashidah",
+   "type": "village",
+   "pos": [
+    9586,
+    11109
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 32,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Balmopan",
+   "type": "village",
+   "pos": [
+    8036,
+    9456
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 106,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Estrella",
+   "type": "village",
+   "pos": [
+    6785,
+    8140
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 164,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Chantico",
+   "type": "ville",
+   "pos": [
+    8222,
+    9088
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 99,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Sara_Cedras",
+   "type": "village",
+   "pos": [
+    7379,
+    8688
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 203,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Ambergris",
+   "type": "village",
+   "pos": [
+    7670,
+    9182
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 156,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Ortego",
+   "type": "ville",
+   "pos": [
+    12356,
+    7096
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 1080,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Sara_Cayo",
+   "type": "ville",
+   "pos": [
+    9325,
+    5983
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 159,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Sara_Iguana",
+   "type": "ville",
+   "pos": [
+    10730,
+    4828
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 289,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Sara_Dolores",
+   "type": "ville",
+   "pos": [
+    11614,
+    6019
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 719,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Sara_Parato",
+   "type": "village",
+   "pos": [
+    11368,
+    5291
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 88,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Tiberia",
+   "type": "village",
+   "pos": [
+    9406,
+    5146
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 214,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Geraldo",
+   "type": "village",
+   "pos": [
+    13277,
+    6966
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 71,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Corazol",
+   "type": "ville",
+   "pos": [
+    13192,
+    8794
+   ],
+   "rayon": [
+    300,
+    300
+   ],
+   "places": 1365,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Sara_Gulan",
+   "type": "village",
+   "pos": [
+    8804,
+    7734
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 144,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Somato",
+   "type": "village",
+   "pos": [
+    9200,
+    8274
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 319,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Bonanza",
+   "type": "village",
+   "pos": [
+    11212,
+    8858
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 86,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Corinto",
+   "type": "village",
+   "pos": [
+    11568,
+    9144
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 69,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Yoro",
+   "type": "village",
+   "pos": [
+    9751,
+    8724
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 57,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Pesto",
+   "type": "village",
+   "pos": [
+    10180,
+    8432
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 43,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Paraiso",
+   "type": "capitale",
+   "pos": [
+    10612,
+    9413
+   ],
+   "rayon": [
+    300,
+    300
+   ],
+   "places": 957,
+   "source": "lieu nomme NameCityCapital"
+  },
+  {
+   "id": "Sara_Arcadia",
+   "type": "village",
+   "pos": [
+    7601,
+    6436
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 215,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Masbete",
+   "type": "ville",
+   "pos": [
+    17231,
+    14339
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 430,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Sara_Pita",
+   "type": "village",
+   "pos": [
+    18941,
+    13889
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 211,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Bagango",
+   "type": "capitale",
+   "pos": [
+    14240,
+    12534
+   ],
+   "rayon": [
+    300,
+    300
+   ],
+   "places": 978,
+   "source": "lieu nomme NameCityCapital"
+  },
+  {
+   "id": "Sara_Eponia",
+   "type": "ville",
+   "pos": [
+    12448,
+    15099
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 555,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Sara_Everon",
+   "type": "village",
+   "pos": [
+    16514,
+    9300
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 151,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Hunapu",
+   "type": "village",
+   "pos": [
+    7738,
+    15756
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 86,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Pacamac",
+   "type": "village",
+   "pos": [
+    9713,
+    14449
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 59,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Tlaloc",
+   "type": "village",
+   "pos": [
+    10858,
+    12629
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 53,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Obregan",
+   "type": "ville",
+   "pos": [
+    14520,
+    10878
+   ],
+   "rayon": [
+    300,
+    300
+   ],
+   "places": 665,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Sara_Carmen",
+   "type": "village",
+   "pos": [
+    12436,
+    13303
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 95,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Ixel",
+   "type": "village",
+   "pos": [
+    17481,
+    13565
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "places": 103,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Mercalillo",
+   "type": "ville",
+   "pos": [
+    13250,
+    11293
+   ],
+   "rayon": [
+    250,
+    250
+   ],
+   "places": 245,
+   "source": "lieu nomme NameCity"
+  },
+  {
+   "id": "Sara_Modesta",
+   "type": "village",
+   "pos": [
+    14372,
+    9428
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 177,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Valor",
+   "type": "village",
+   "pos": [
+    15343,
+    9896
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 22,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Gaula",
+   "type": "village",
+   "pos": [
+    14504,
+    8539
+   ],
+   "rayon": [
+    200,
+    200
+   ],
+   "places": 108,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Mataredo",
+   "type": "village",
+   "pos": [
+    10653,
+    16265
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 87,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Benoma",
+   "type": "village",
+   "pos": [
+    15383,
+    13769
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 145,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Tandag",
+   "type": "village",
+   "pos": [
+    11856,
+    14418
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "places": 74,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "Sara_Rahmadi",
+   "type": "village",
+   "pos": [
+    2931,
+    2799
+   ],
+   "rayon": [
+    100,
+    100
+   ],
+   "places": 91,
+   "source": "lieu nomme NameVillage"
+  },
+  {
+   "id": "fonderie01",
+   "type": "fonderie",
+   "pos": [
+    13577,
+    9156
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2032,
+   "objets": 5,
+   "source": "site industriel de 2032 m2 : tovarna2.p3d repair_center.p3d sara_domek_kovarna.p3d"
+  },
+  {
+   "id": "fonderie02",
+   "type": "fonderie",
+   "pos": [
+    10089,
+    9383
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2378,
+   "objets": 4,
+   "source": "site industriel de 2378 m2 : tovarna2.p3d repair_center.p3d"
+  },
+  {
+   "id": "fonderie03",
+   "type": "fonderie",
+   "pos": [
+    17354,
+    14110
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 2378,
+   "objets": 4,
+   "source": "site industriel de 2378 m2 : tovarna2.p3d repair_center.p3d"
+  },
+  {
+   "id": "base01",
+   "type": "base",
+   "pos": [
+    9646,
+    9886
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 3612,
+   "objets": 44,
+   "source": "site militaire de 44 objets : army_hut_storrage.p3d army_hut3_long_int.p3d army_hut2_int.p3d hlaska.p3d army_h"
+  },
+  {
+   "id": "base02",
+   "type": "base",
+   "pos": [
+    12155,
+    17655
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 189,
+   "objets": 21,
+   "source": "site militaire de 21 objets : posed.p3d"
+  },
+  {
+   "id": "base03",
+   "type": "base",
+   "pos": [
+    8146,
+    7833
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 1560,
+   "objets": 17,
+   "source": "site militaire de 17 objets : army_hut_storrage.p3d army_hut3_long_int.p3d army_hut2_int.p3d"
+  },
+  {
+   "id": "base04",
+   "type": "base",
+   "pos": [
+    12357,
+    8470
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 1212,
+   "objets": 15,
+   "source": "site militaire de 15 objets : army_hut3_long_int.p3d hlaska.p3d army_hut_storrage.p3d army_hut2_int.p3d"
+  },
+  {
+   "id": "base05",
+   "type": "base",
+   "pos": [
+    11456,
+    6322
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 828,
+   "objets": 12,
+   "source": "site militaire de 12 objets : army_hut2_int.p3d army_hut3_long_int.p3d hlaska.p3d"
+  },
+  {
+   "id": "base06",
+   "type": "base",
+   "pos": [
+    14228,
+    11824
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 153,
+   "objets": 10,
+   "source": "site militaire de 10 objets : vez.p3d posed.p3d"
+  },
+  {
+   "id": "port01",
+   "type": "port",
+   "pos": [
+    11764,
+    6026
+   ],
+   "rayon": [
+    150,
+    150
+   ],
+   "surface_m2": 9187,
+   "objets": 6,
+   "source": "plus grand site portuaire ( 9187 m2 )"
+  }
+ ],
+ "absents": [
+  "puits",
+  "raffinerie",
+  "pharmacie",
+  "mine",
+  "carriere",
+  "centrale"
+ ],
+ "notes": [],
+ "regles": {
+  "places_par_capitale": 11587,
+  "min_base": 10,
+  "min_usine_m2": 2000,
+  "min_solaire": 20
+ }
+}

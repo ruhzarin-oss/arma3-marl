@@ -1,6 +1,440 @@
 {
  "sites": [
   {
+   "fonction": "agriculture",
+   "x": 16566,
+   "y": 9377,
+   "objets": 16,
+   "surface_m2": 3220,
+   "places": 140,
+   "modeles": [
+    [
+     "stodola_open.p3d",
+     4
+    ],
+    [
+     "stodola_old_open.p3d",
+     3
+    ],
+    [
+     "statek_kulna.p3d",
+     3
+    ],
+    [
+     "sara_stodola2.p3d",
+     2
+    ],
+    [
+     "sara_stodola.p3d",
+     2
+    ],
+    [
+     "sara_zluty_statek_in.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 13205,
+   "y": 11310,
+   "objets": 8,
+   "surface_m2": 2083,
+   "places": 92,
+   "modeles": [
+    [
+     "stodola_old_open.p3d",
+     3
+    ],
+    [
+     "stodola_open.p3d",
+     3
+    ],
+    [
+     "sara_stodola2.p3d",
+     1
+    ],
+    [
+     "statek_kulna.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 12305,
+   "y": 13372,
+   "objets": 7,
+   "surface_m2": 1152,
+   "places": 34,
+   "modeles": [
+    [
+     "sara_stodola3.p3d",
+     3
+    ],
+    [
+     "stodola_old_open.p3d",
+     1
+    ],
+    [
+     "statek_hl_bud.p3d",
+     1
+    ],
+    [
+     "sara_stodola2.p3d",
+     1
+    ],
+    [
+     "statek_brana_open.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 11805,
+   "y": 14441,
+   "objets": 5,
+   "surface_m2": 864,
+   "places": 32,
+   "modeles": [
+    [
+     "stodola_old_open.p3d",
+     1
+    ],
+    [
+     "sara_stodola3.p3d",
+     1
+    ],
+    [
+     "statek_kulna.p3d",
+     1
+    ],
+    [
+     "statek_hl_bud.p3d",
+     1
+    ],
+    [
+     "sara_stodola.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 13549,
+   "y": 11974,
+   "objets": 5,
+   "surface_m2": 821,
+   "places": 28,
+   "modeles": [
+    [
+     "stodola_open.p3d",
+     1
+    ],
+    [
+     "sara_zluty_statek_in.p3d",
+     1
+    ],
+    [
+     "sara_stodola.p3d",
+     1
+    ],
+    [
+     "sara_stodola3.p3d",
+     1
+    ],
+    [
+     "statek_kulna.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 14197,
+   "y": 9362,
+   "objets": 5,
+   "surface_m2": 1842,
+   "places": 91,
+   "modeles": [
+    [
+     "stodola_old_open.p3d",
+     3
+    ],
+    [
+     "sara_zluty_statek_in.p3d",
+     1
+    ],
+    [
+     "sara_stodola2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 14453,
+   "y": 8594,
+   "objets": 5,
+   "surface_m2": 936,
+   "places": 27,
+   "modeles": [
+    [
+     "sara_stodola2.p3d",
+     1
+    ],
+    [
+     "stodola_open.p3d",
+     1
+    ],
+    [
+     "statek_hl_bud.p3d",
+     1
+    ],
+    [
+     "sara_stodola3.p3d",
+     1
+    ],
+    [
+     "sara_zluty_statek_in.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 14902,
+   "y": 13744,
+   "objets": 5,
+   "surface_m2": 527,
+   "places": 17,
+   "modeles": [
+    [
+     "stodola_open.p3d",
+     1
+    ],
+    [
+     "sara_stodola.p3d",
+     1
+    ],
+    [
+     "statek_hl_bud.p3d",
+     1
+    ],
+    [
+     "statek_kulna.p3d",
+     1
+    ],
+    [
+     "statek_brana_open.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 12534,
+   "y": 12700,
+   "objets": 4,
+   "surface_m2": 473,
+   "places": 8,
+   "modeles": [
+    [
+     "sara_stodola2.p3d",
+     1
+    ],
+    [
+     "sara_stodola3.p3d",
+     1
+    ],
+    [
+     "statek_hl_bud.p3d",
+     1
+    ],
+    [
+     "statek_kulna.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 15575,
+   "y": 8982,
+   "objets": 4,
+   "surface_m2": 593,
+   "places": 18,
+   "modeles": [
+    [
+     "stodola_open.p3d",
+     2
+    ],
+    [
+     "statek_kulna.p3d",
+     1
+    ],
+    [
+     "sara_stodola2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 14308,
+   "y": 10918,
+   "objets": 4,
+   "surface_m2": 1014,
+   "places": 38,
+   "modeles": [
+    [
+     "stodola_open.p3d",
+     2
+    ],
+    [
+     "sara_zluty_statek_in.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 15652,
+   "y": 13847,
+   "objets": 4,
+   "surface_m2": 351,
+   "places": 12,
+   "modeles": [
+    [
+     "sara_stodola.p3d",
+     1
+    ],
+    [
+     "statek_hl_bud.p3d",
+     1
+    ],
+    [
+     "statek_kulna.p3d",
+     1
+    ],
+    [
+     "statek_brana_open.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 16094,
+   "y": 9356,
+   "objets": 4,
+   "surface_m2": 377,
+   "places": 8,
+   "modeles": [
+    [
+     "stodola_open.p3d",
+     1
+    ],
+    [
+     "statek_hl_bud.p3d",
+     1
+    ],
+    [
+     "statek_kulna.p3d",
+     1
+    ],
+    [
+     "statek_brana_open.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 13358,
+   "y": 10696,
+   "objets": 3,
+   "surface_m2": 966,
+   "places": 45,
+   "modeles": [
+    [
+     "stodola_old_open.p3d",
+     1
+    ],
+    [
+     "sara_zluty_statek_in.p3d",
+     1
+    ],
+    [
+     "sara_stodola2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 14001,
+   "y": 12398,
+   "objets": 3,
+   "surface_m2": 706,
+   "places": 28,
+   "modeles": [
+    [
+     "sara_zluty_statek_in.p3d",
+     2
+    ],
+    [
+     "statek_kulna.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 17237,
+   "y": 13619,
+   "objets": 3,
+   "surface_m2": 495,
+   "places": 14,
+   "modeles": [
+    [
+     "statek_kulna.p3d",
+     1
+    ],
+    [
+     "sara_stodola3.p3d",
+     1
+    ],
+    [
+     "sara_zluty_statek_in.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "agriculture",
+   "x": 16643,
+   "y": 13741,
+   "objets": 3,
+   "surface_m2": 201,
+   "places": 3,
+   "modeles": [
+    [
+     "statek_hl_bud.p3d",
+     1
+    ],
+    [
+     "statek_brana_open.p3d",
+     1
+    ],
+    [
+     "statek_kulna.p3d",
+     1
+    ]
+   ]
+  },
+  {
    "fonction": "carburant",
    "x": 11725,
    "y": 6038,
@@ -929,6 +1363,42 @@
    ]
   },
   {
+   "fonction": "energie",
+   "x": 12953,
+   "y": 8649,
+   "objets": 5,
+   "surface_m2": 961,
+   "places": 40,
+   "modeles": [
+    [
+     "trafostanica_mala.p3d",
+     3
+    ],
+    [
+     "trafostanica_velka.p3d",
+     2
+    ]
+   ]
+  },
+  {
+   "fonction": "energie",
+   "x": 13646,
+   "y": 9354,
+   "objets": 2,
+   "surface_m2": 417,
+   "places": 16,
+   "modeles": [
+    [
+     "trafostanica_velka.p3d",
+     1
+    ],
+    [
+     "trafostanica_mala.p3d",
+     1
+    ]
+   ]
+  },
+  {
    "fonction": "hangar",
    "x": 13281,
    "y": 9149,
@@ -1064,6 +1534,108 @@
    "modeles": [
     [
      "hangar_2.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 13577,
+   "y": 9156,
+   "objets": 5,
+   "surface_m2": 2032,
+   "places": 84,
+   "modeles": [
+    [
+     "tovarna2.p3d",
+     2
+    ],
+    [
+     "repair_center.p3d",
+     2
+    ],
+    [
+     "sara_domek_kovarna.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 10089,
+   "y": 9383,
+   "objets": 4,
+   "surface_m2": 2378,
+   "places": 118,
+   "modeles": [
+    [
+     "tovarna2.p3d",
+     3
+    ],
+    [
+     "repair_center.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 10682,
+   "y": 8988,
+   "objets": 4,
+   "surface_m2": 1691,
+   "places": 85,
+   "modeles": [
+    [
+     "tovarna2.p3d",
+     2
+    ],
+    [
+     "repair_center.p3d",
+     1
+    ],
+    [
+     "komin.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 17354,
+   "y": 14110,
+   "objets": 4,
+   "surface_m2": 2378,
+   "places": 118,
+   "modeles": [
+    [
+     "tovarna2.p3d",
+     3
+    ],
+    [
+     "repair_center.p3d",
+     1
+    ]
+   ]
+  },
+  {
+   "fonction": "industrie",
+   "x": 14204,
+   "y": 11872,
+   "objets": 3,
+   "surface_m2": 954,
+   "places": 47,
+   "modeles": [
+    [
+     "repair_center.p3d",
+     1
+    ],
+    [
+     "tovarna2.p3d",
+     1
+    ],
+    [
+     "komin.p3d",
      1
     ]
    ]
@@ -1571,100 +2143,82 @@
  ],
  "logements": {
   "Sara_Corazol": {
-   "batiments": 162,
-   "places": 1505,
-   "surface_m2": 35699,
+   "batiments": 151,
+   "places": 1365,
+   "surface_m2": 32513,
    "type": "NameCity"
   },
-  "Sara_Paraiso": {
-   "batiments": 174,
-   "places": 1167,
-   "surface_m2": 47784,
-   "type": "NameCityCapital"
-  },
   "Sara_Ortego": {
-   "batiments": 143,
-   "places": 1096,
-   "surface_m2": 30591,
+   "batiments": 141,
+   "places": 1080,
+   "surface_m2": 30011,
    "type": "NameCity"
   },
   "Sara_Bagango": {
-   "batiments": 104,
-   "places": 1070,
-   "surface_m2": 18810,
+   "batiments": 98,
+   "places": 978,
+   "surface_m2": 16623,
    "type": "NameCityCapital"
   },
-  "Sara_Obregan": {
-   "batiments": 65,
-   "places": 739,
-   "surface_m2": 13040,
-   "type": "NameCity"
+  "Sara_Paraiso": {
+   "batiments": 165,
+   "places": 957,
+   "surface_m2": 43308,
+   "type": "NameCityCapital"
   },
   "Sara_Dolores": {
-   "batiments": 101,
-   "places": 731,
-   "surface_m2": 23591,
+   "batiments": 99,
+   "places": 719,
+   "surface_m2": 23134,
+   "type": "NameCity"
+  },
+  "Sara_Obregan": {
+   "batiments": 58,
+   "places": 665,
+   "surface_m2": 11215,
    "type": "NameCity"
   },
   "Local_CaboSantaLucia": {
-   "batiments": 43,
-   "places": 690,
-   "surface_m2": 8773,
+   "batiments": 42,
+   "places": 652,
+   "surface_m2": 8036,
    "type": "NameLocal"
   },
   "Sara_Eponia": {
-   "batiments": 57,
-   "places": 602,
-   "surface_m2": 11264,
+   "batiments": 53,
+   "places": 555,
+   "surface_m2": 10235,
    "type": "NameCity"
   },
   "Sara_Masbete": {
-   "batiments": 37,
-   "places": 574,
-   "surface_m2": 8461,
-   "type": "NameCity"
-  },
-  "Sara_Mercalillo": {
-   "batiments": 49,
-   "places": 456,
-   "surface_m2": 8141,
+   "batiments": 31,
+   "places": 430,
+   "surface_m2": 5600,
    "type": "NameCity"
   },
   "Local_Pesadas": {
-   "batiments": 28,
-   "places": 343,
-   "surface_m2": 4957,
+   "batiments": 26,
+   "places": 335,
+   "surface_m2": 4623,
    "type": "NameLocal"
   },
   "Sara_Somato": {
-   "batiments": 62,
-   "places": 323,
-   "surface_m2": 13230,
-   "type": "NameVillage"
-  },
-  "Sara_Everon": {
-   "batiments": 35,
-   "places": 303,
-   "surface_m2": 5742,
+   "batiments": 61,
+   "places": 319,
+   "surface_m2": 13063,
    "type": "NameVillage"
   },
   "Sara_Iguana": {
-   "batiments": 44,
-   "places": 292,
-   "surface_m2": 8718,
+   "batiments": 43,
+   "places": 289,
+   "surface_m2": 8673,
    "type": "NameCity"
   },
-  "Sara_Modesta": {
-   "batiments": 32,
-   "places": 291,
-   "surface_m2": 5432,
-   "type": "NameVillage"
-  },
-  "Sara_Pita": {
-   "batiments": 27,
-   "places": 228,
-   "surface_m2": 4497,
-   "type": "NameVillage"
+  "Sara_Mercalillo": {
+   "batiments": 34,
+   "places": 245,
+   "surface_m2": 3603,
+   "type": "NameCity"
   },
   "Sara_Arcadia": {
    "batiments": 41,
@@ -1678,28 +2232,28 @@
    "surface_m2": 6655,
    "type": "NameVillage"
   },
+  "Sara_Pita": {
+   "batiments": 23,
+   "places": 211,
+   "surface_m2": 3820,
+   "type": "NameVillage"
+  },
   "Sara_Cedras": {
    "batiments": 16,
    "places": 203,
    "surface_m2": 2559,
    "type": "NameVillage"
   },
-  "Sara_Benoma": {
-   "batiments": 15,
-   "places": 203,
-   "surface_m2": 3153,
+  "Sara_Modesta": {
+   "batiments": 23,
+   "places": 177,
+   "surface_m2": 2865,
    "type": "NameVillage"
   },
-  "Sara_Cayo": {
-   "batiments": 27,
-   "places": 201,
-   "surface_m2": 5536,
-   "type": "NameCity"
-  },
   "Local_Matas": {
-   "batiments": 18,
-   "places": 183,
-   "surface_m2": 3488,
+   "batiments": 15,
+   "places": 166,
+   "surface_m2": 3004,
    "type": "NameLocal"
   },
   "Sara_Estrella": {
@@ -1708,28 +2262,34 @@
    "surface_m2": 3776,
    "type": "NameVillage"
   },
+  "Sara_Cayo": {
+   "batiments": 25,
+   "places": 159,
+   "surface_m2": 4632,
+   "type": "NameCity"
+  },
   "Sara_Ambergris": {
    "batiments": 20,
    "places": 156,
    "surface_m2": 2268,
    "type": "NameVillage"
   },
-  "Sara_Gulan": {
+  "Sara_Everon": {
    "batiments": 19,
-   "places": 148,
-   "surface_m2": 3827,
+   "places": 151,
+   "surface_m2": 2266,
    "type": "NameVillage"
   },
-  "Sara_Carmen": {
-   "batiments": 12,
-   "places": 137,
-   "surface_m2": 2095,
+  "Sara_Benoma": {
+   "batiments": 11,
+   "places": 145,
+   "surface_m2": 2082,
    "type": "NameVillage"
   },
-  "Sara_Gaula": {
-   "batiments": 17,
-   "places": 135,
-   "surface_m2": 2493,
+  "Sara_Gulan": {
+   "batiments": 18,
+   "places": 144,
+   "surface_m2": 3660,
    "type": "NameVillage"
   },
   "Local_IslaDeVassal": {
@@ -1744,16 +2304,10 @@
    "surface_m2": 2330,
    "type": "NameLocal"
   },
-  "Sara_Ixel": {
-   "batiments": 11,
-   "places": 117,
-   "surface_m2": 2329,
-   "type": "NameVillage"
-  },
-  "Sara_Mataredo": {
-   "batiments": 7,
-   "places": 110,
-   "surface_m2": 1894,
+  "Sara_Gaula": {
+   "batiments": 14,
+   "places": 108,
+   "surface_m2": 1789,
    "type": "NameVillage"
   },
   "Sara_Balmopan": {
@@ -1762,10 +2316,10 @@
    "surface_m2": 2761,
    "type": "NameVillage"
   },
-  "Sara_Tandag": {
-   "batiments": 15,
-   "places": 106,
-   "surface_m2": 2058,
+  "Sara_Ixel": {
+   "batiments": 10,
+   "places": 103,
+   "surface_m2": 1998,
    "type": "NameVillage"
   },
   "Sara_Chantico": {
@@ -1774,16 +2328,10 @@
    "surface_m2": 3523,
    "type": "NameCity"
   },
-  "Sara_Parato": {
-   "batiments": 11,
-   "places": 96,
-   "surface_m2": 2195,
-   "type": "NameVillage"
-  },
-  "Sara_Bonanza": {
-   "batiments": 12,
-   "places": 94,
-   "surface_m2": 2150,
+  "Sara_Carmen": {
+   "batiments": 8,
+   "places": 95,
+   "surface_m2": 1218,
    "type": "NameVillage"
   },
   "Sara_Rahmadi": {
@@ -1792,22 +2340,34 @@
    "surface_m2": 2248,
    "type": "NameVillage"
   },
+  "Sara_Parato": {
+   "batiments": 10,
+   "places": 88,
+   "surface_m2": 1998,
+   "type": "NameVillage"
+  },
+  "Sara_Mataredo": {
+   "batiments": 6,
+   "places": 87,
+   "surface_m2": 1456,
+   "type": "NameVillage"
+  },
   "Sara_Hunapu": {
    "batiments": 11,
    "places": 86,
    "surface_m2": 2246,
    "type": "NameVillage"
   },
-  "Sara_Corinto": {
-   "batiments": 10,
-   "places": 74,
-   "surface_m2": 2123,
+  "Sara_Bonanza": {
+   "batiments": 11,
+   "places": 86,
+   "surface_m2": 1953,
    "type": "NameVillage"
   },
-  "Sara_Pacamac": {
-   "batiments": 10,
-   "places": 73,
-   "surface_m2": 1469,
+  "Sara_Tandag": {
+   "batiments": 13,
+   "places": 74,
+   "surface_m2": 1470,
    "type": "NameVillage"
   },
   "Sara_Geraldo": {
@@ -1816,16 +2376,28 @@
    "surface_m2": 2615,
    "type": "NameVillage"
   },
-  "Sara_Tlaloc": {
+  "Sara_Corinto": {
    "batiments": 9,
-   "places": 58,
-   "surface_m2": 1300,
+   "places": 69,
+   "surface_m2": 1947,
+   "type": "NameVillage"
+  },
+  "Sara_Pacamac": {
+   "batiments": 9,
+   "places": 59,
+   "surface_m2": 1138,
    "type": "NameVillage"
   },
   "Sara_Yoro": {
    "batiments": 8,
    "places": 57,
    "surface_m2": 2079,
+   "type": "NameVillage"
+  },
+  "Sara_Tlaloc": {
+   "batiments": 8,
+   "places": 53,
+   "surface_m2": 1124,
    "type": "NameVillage"
   },
   "Sara_Pesto": {
@@ -1835,27 +2407,9 @@
    "type": "NameVillage"
   },
   "Sara_Rashidah": {
-   "batiments": 7,
-   "places": 40,
-   "surface_m2": 1223,
-   "type": "NameVillage"
-  },
-  "Local_BajoValor": {
    "batiments": 6,
-   "places": 40,
-   "surface_m2": 1103,
-   "type": "NameLocal"
-  },
-  "Local_Alcazar": {
-   "batiments": 9,
-   "places": 35,
-   "surface_m2": 995,
-   "type": "NameLocal"
-  },
-  "Sara_Valor": {
-   "batiments": 6,
-   "places": 30,
-   "surface_m2": 1333,
+   "places": 32,
+   "surface_m2": 1026,
    "type": "NameVillage"
   },
   "Local_RocaDror": {
@@ -1882,6 +2436,18 @@
    "surface_m2": 255,
    "type": "NameLocal"
   },
+  "Sara_Valor": {
+   "batiments": 5,
+   "places": 22,
+   "surface_m2": 1136,
+   "type": "NameVillage"
+  },
+  "Local_BajoValor": {
+   "batiments": 3,
+   "places": 22,
+   "surface_m2": 554,
+   "type": "NameLocal"
+  },
   "Local_CalhetaDemiseca": {
    "batiments": 2,
    "places": 20,
@@ -1900,6 +2466,12 @@
    "surface_m2": 356,
    "type": "NameLocal"
   },
+  "Local_Alcazar": {
+   "batiments": 6,
+   "places": 18,
+   "surface_m2": 624,
+   "type": "NameLocal"
+  },
   "Local_IslaDeVida": {
    "batiments": 3,
    "places": 17,
@@ -1916,12 +2488,6 @@
    "batiments": 2,
    "places": 13,
    "surface_m2": 414,
-   "type": "NameLocal"
-  },
-  "Local_PassoSanAndres": {
-   "batiments": 3,
-   "places": 13,
-   "surface_m2": 476,
    "type": "NameLocal"
   },
   "Local_PlatoDeCayo": {
@@ -1952,6 +2518,12 @@
    "batiments": 1,
    "places": 7,
    "surface_m2": 23,
+   "type": "NameLocal"
+  },
+  "Local_PassoSanAndres": {
+   "batiments": 2,
+   "places": 5,
+   "surface_m2": 279,
    "type": "NameLocal"
   },
   "Local_IslaDeVictoria": {
