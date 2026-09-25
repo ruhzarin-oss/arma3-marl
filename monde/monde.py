@@ -10,6 +10,9 @@ except ImportError:                # sans lui, le monde tourne en Python, a l id
     COEUR = None
 
 CATEGORIES_PUBLIQUES = ("hopitaux", "armee", "reserve", "population")
+# le journal du moteur en memoire : les 200 000 derniers evenements ( ~285 octets chacun ; le fichier du journal, lui,
+# garde tout ). Lecteurs : les 400 a 600 derniers ( patrouilles annulees ), la derniere decision du gouvernement.
+EVENEMENTS_MAX = 200_000
 SALAIRE_PAR_ROLE = np.array([0.0] + [float(P.SALAIRE_HORAIRE.get(r, 0)) for r in P.ROLES])   # code du role + 1
 
 
@@ -205,6 +208,7 @@ class Monde:
     def noter(self, type_, **champs):
         e = {"jour": self.jour, "heure": round(self.heure, 2), "type": type_, **champs}
         self.evenements.append(e)
+        if len(self.evenements) > EVENEMENTS_MAX: del self.evenements[:len(self.evenements) - EVENEMENTS_MAX // 2]
         if self.journal_fichier:
             with open(self.journal_fichier, "a") as f: f.write(json.dumps(e, ensure_ascii=False) + "\n")
 

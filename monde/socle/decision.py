@@ -30,6 +30,12 @@ MODES = ("regle", "appris", "fige", "hasard", "temoin")
 HORIZON_DEFAUT = 3
 ECHANTILLON_MAX = 200_000   # notes murees gardees une a une pour le test par permutation ( memoire bornee )
 HORIZON_MAX = 365           # un pret, une recolte, une grossesse se lisent en mois : 30 jours ne suffisaient pas ( banques, 23/09 )
+# Un choix n avance que les jours ou son agent est note ( une machine : les jours ou son atelier ouvre ). Un agent qui
+# decide chaque jour sans etre jamais note ( un atelier vide ) empilait ses choix sans fin : 47 000 machines par ile
+# a un million, un choix par jour chacune, 0,11 Go de plus par jour sur l archipel ( sonde du 25/09 ). Au-dela de
+# ATTENTE_MAX_HORIZONS fois l horizon, le plus ancien choix en attente est abandonne sans note : en regime normal
+# ( 5 jours ouvres sur 7, 30 jours d horizon -> 42 choix ) la borne n est jamais atteinte.
+ATTENTE_MAX_HORIZONS = 2
 NOM_VALIDE = re.compile(r"^[a-z][a-z0-9_]{0,39}$")
 
 
@@ -95,7 +101,7 @@ class Attente:
 
 class Decideur:
     """Fait vivre un point de decision pour un groupe d agents ( une cle par agent )."""
-    __slots__ = ("point", "mode", "doctrine", "rng", "attentes", "stats", "n_decisions", "echantillon")
+    __slots__ = ("point", "mode", "doctrine", "rng", "attentes", "stats", "n_decisions", "echantillon", "abandonnes")
 
     def __init__(self, point, mode="regle", doctrine=None, rng=None, graine=0, epsilon=0.1, alpha=0.02):
         if mode not in MODES: raise ValueError(f"mode inconnu {mode!r} : {MODES}")
@@ -112,6 +118,7 @@ class Decideur:
         self.attentes = {}      # cle d agent -> Attente
         self.stats = {}         # ( jour, action ) -> [ nombre, somme, somme des carres ] des notes murees ce jour-la
         self.n_decisions = 0
+        self.abandonnes = 0     # choix jamais notes, abandonnes a la borne ATTENTE_MAX_HORIZONS x horizon
         self.echantillon = collections.deque(maxlen=ECHANTILLON_MAX)   # ( jour, action, note ) : pour la permutation
 
     @property
@@ -138,6 +145,8 @@ class Decideur:
         att = self.attentes.get(cle)
         if att is None: att = self.attentes[cle] = Attente()
         att.poser(x, int(a))
+        if len(att.choix) > ATTENTE_MAX_HORIZONS * self.point.horizon_j:
+            del att.choix[0]; self.abandonnes += 1
         self.n_decisions += 1
         return int(a)
 
