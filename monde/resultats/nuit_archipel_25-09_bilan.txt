@@ -1,0 +1,12 @@
+evenements : [('depart', 0), ('instantane', 5), ('depart', 720), ('instantane', 10), ('instantane_saute', 15), ('instantane_saute', 20), ('instantane_saute', 25), ('instantane_saute', 30), ('instantane_saute', 35), ('instantane_saute', 40), ('instantane_saute', 45), ('instantane_saute', 50), ('instantane_saute', 55), ('instantane_saute', 60), ('arret_memoire', 64)]
+jours : 1 -> 64 ( 64 ) ; secondes par jour : mediane 172, max 7384
+conservation tenue tous les jours, partout : True
+decisions de gouvernement : 384 ; Qwen indisponible 17 ; actions acceptees 1316 / 2381
+jour   1  16.4 Go | Altis 1,000,022 faim 0% 1.149€ 602e | Malden 999,995 faim 0% 1.149€ 584e | Strati 999,990 faim 0% 1.149€ 601e | Tanoa 1,000,009 faim 0% 1.149€ 637e | Enoch 1,000,042 faim 0% 1.149€ 632e | Sara 1,000,038 faim 0% 1.149€ 561e
+jour  10  34.8 Go | Altis 1,000,076 faim 73% 1.133€ 1475e | Malden 999,978 faim 71% 1.133€ 1457e | Strati 1,000,078 faim 71% 1.133€ 1381e | Tanoa 1,000,153 faim 72% 1.133€ 1494e | Enoch 1,000,149 faim 72% 1.133€ 1486e | Sara 1,000,113 faim 71% 1.133€ 1430e
+jour  20  38.5 Go | Altis 1,000,018 faim 73% 1.133€ 1350e | Malden 999,981 faim 71% 1.133€ 1405e | Strati 999,944 faim 71% 1.133€ 1382e | Tanoa 1,000,088 faim 72% 1.133€ 1358e | Enoch 1,000,019 faim 72% 1.133€ 1281e | Sara 999,944 faim 71% 1.133€ 1409e
+jour  30  39.2 Go | Altis 1,000,023 faim 37% 1.118€ 1213e | Malden 999,981 faim 71% 1.118€ 1205e | Strati 999,847 faim 71% 1.118€ 1327e | Tanoa 1,000,041 faim 29% 1.118€ 1279e | Enoch 999,920 faim 72% 1.118€ 1231e | Sara 999,920 faim 43% 1.118€ 1212e
+jour  40  39.0 Go | Altis 1,000,161 faim 37% 1.118€ 1187e | Malden 999,838 faim 71% 1.118€ 1116e | Strati 999,769 faim 71% 1.118€ 1103e | Tanoa 1,000,065 faim 30% 1.118€ 1152e | Enoch 999,822 faim 72% 1.118€ 1138e | Sara 999,986 faim 44% 1.118€ 1152e
+jour  50  39.2 Go | Altis 1,000,292 faim 38% 1.116€ 1024e | Malden 999,815 faim 71% 1.116€ 940e | Strati 999,595 faim 71% 1.116€ 957e | Tanoa 1,000,203 faim 34% 1.116€ 986e | Enoch 999,732 faim 72% 1.116€ 956e | Sara 999,972 faim 43% 1.116€ 1018e
+jour  60  41.3 Go | Altis 1,000,359 faim 40% 1.093€ 849e | Malden 999,630 faim 71% 1.093€ 726e | Strati 999,540 faim 71% 1.093€ 799e | Tanoa 1,000,275 faim 37% 1.093€ 837e | Enoch 999,653 faim 72% 1.093€ 755e | Sara 999,965 faim 47% 1.093€ 813e
+jour  64  42.1 Go | Altis 1,000,385 faim 40% 1.104€ 762e | Malden 999,663 faim 71% 1.104€ 725e | Strati 999,442 faim 71% 1.104€ 729e | Tanoa 1,000,312 faim 41% 1.104€ 758e | Enoch 999,638 faim 72% 1.104€ 729e | Sara 999,973 faim 50% 1.104€ 785e
