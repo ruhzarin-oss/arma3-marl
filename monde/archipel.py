@@ -174,8 +174,10 @@ class Archipel:
     def resumes(self): return self._envoyer_a_tous(lambda n: ("resume",))
 
     def instantane(self, dossier):
+        """Une ile APRES l autre : 25/09, six sauvegardes simultanees d iles d un million d habitants ont depasse la
+        memoire de WSL ( 47 Go ) et fige la station - chaque sauvegarde a son propre pic."""
         os.makedirs(dossier, exist_ok=True)
-        self._envoyer_a_tous(lambda n: ("instantane", os.path.join(dossier, f"{n}.pkl")))
+        for n in self.noms: self.commande(n, "instantane", os.path.join(dossier, f"{n}.pkl"))
         with open(os.path.join(dossier, "pont.pkl"), "wb") as f:
             pickle.dump({"pas": self.pas, "mer": self.mer, "journal": self.journal, "noms": self.noms,
                          "graine": self.graine, "echelle": self.echelle}, f)

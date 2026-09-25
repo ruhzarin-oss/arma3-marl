@@ -12,6 +12,10 @@ from .archipel import Archipel
 
 INSTANTANE_J = 5
 REPRISES_MAX = 5
+# la garde memoire ( 25/09 : WSL plein a 47 Go a fige la station ) : pas d instantane au-dessus de SANS_INSTANTANE_GO,
+# arret propre au-dessus de ARRET_GO - la station ne doit jamais se figer
+SANS_INSTANTANE_GO = 38.0
+ARRET_GO = 42.0
 
 
 def rss_go(pid):
@@ -55,7 +59,14 @@ def main():
                                     f"{'ok' if e['conservation'] else 'ROMPUE'} {e['etrangers']}e"
                                     + (f" gouv {e['gouvernement']['acceptees']}/{e['gouvernement']['actions']}" if e['gouvernement'] else "")
                                     for n, e in etats.items()))
-                if jour % INSTANTANE_J == 0:
+                total = sum(v or 0 for v in mem.values())
+                if total > ARRET_GO:
+                    ecrire(d, {"evenement": "arret_memoire", "jour": jour, "memoire_go": total},
+                           f"== ARRET : {total:.1f} Go de memoire ( garde a {ARRET_GO} Go ), arret propre avant de figer la station")
+                    arc.fermer(); return 2
+                if jour % INSTANTANE_J == 0 and total > SANS_INSTANTANE_GO:
+                    ecrire(d, {"evenement": "instantane_saute", "jour": jour}, f"   instantane saute ( {total:.1f} Go )")
+                elif jour % INSTANTANE_J == 0:
                     tmp = inst + ".tmp"; shutil.rmtree(tmp, ignore_errors=True)
                     arc.instantane(tmp); shutil.rmtree(inst, ignore_errors=True); os.replace(tmp, inst)
                     ecrire(d, {"evenement": "instantane", "jour": jour}, f"   instantane du jour {jour}")
