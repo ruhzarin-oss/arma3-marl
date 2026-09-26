@@ -130,12 +130,16 @@ def main():
             # E5 photos
             ph = pq.read_table(os.path.join(dossier, n, "habitants")).select(["jour"]).to_pydict()["jour"] if os.path.isdir(os.path.join(dossier, n, "habitants")) else []
             jours_ph = sorted(set(ph))
+            dm = os.path.join(dossier, n, "marches")
+            ok_eco = os.path.isdir(dm) and all(
+                pq.read_table(os.path.join(dm, f"jour={j:05d}")).num_rows == len(w.marches) for j in range(JOURS)) \
+                and all(os.path.isdir(os.path.join(dossier, n, t, f"jour={j:05d}")) for t in ("entreprises", "etat") for j in range(JOURS))
             if bavard:
                 print(f"   {n:8s} argent {len(lu):7,} lignes, {len(attendu)} cles, ecarts {len(mauvais)} | biens ecarts {len(mauvais_b)} | "
                       f"choix {len(dec):7,} ecarts {mauvais_d[:3]} | notes {sum(nn.values()):6,} ecarts {mauvais_n[:3]} | "
-                      f"evenements moteur {n_mot}/{att_mot} journal {n_jou}/{att_jou} | photos jours {jours_ph}", flush=True)
+                      f"evenements moteur {n_mot}/{att_mot} journal {n_jou}/{att_jou} | photos jours {jours_ph} | economie {ok_eco}", flush=True)
             bon &= not mauvais and not mauvais_b and not mauvais_d and not mauvais_n and n_mot == att_mot \
-                and n_jou == att_jou and jours_ph == list(range(JOURS)) and len(ph) >= JOURS * 1
+                and n_jou == att_jou and jours_ph == list(range(JOURS)) and len(ph) >= JOURS * 1 and ok_eco
         return bon
 
     dire(verifier(), "E2-E5 l enregistrement retombe sur le grand livre, les decideurs, les journaux et les photos")

@@ -13,6 +13,9 @@ Tables :
   comptes     type, nombre, somme ( les evenements comptes du journal du socle, par jour )
   habitants   toutes les colonnes de la table des habitants ( photo du soir )
   menages     toutes les colonnes de la table des menages ( photo du soir )
+  marches     un marche par ligne : caisse, echelle, marge, et pour chaque bien prix, stock, demande, offre ( photo du soir )
+  entreprises une entreprise par ligne : type, lieu, caisse, activite, et le stock de chaque bien ( photo du soir )
+  etat        une ligne : caisse de l Etat, TVA, impot sur le revenu, lois en vigueur ( json ), cours de l or ( photo du soir )
 Le jour est dans le nom du dossier ( jour=00012 ) : pyarrow et DuckDB le rendent comme une colonne.
 
 L enregistreur LIT seulement : il ne tire aucun hasard et ne touche aucun etat ( porte_enregistreur : le monde
@@ -147,10 +150,38 @@ class Enregistreur:
                 ecrivain.write_table(t)
             if ecrivain is not None: ecrivain.close()
 
+    def photo_economie(self, jour):
+        """Les marches, les entreprises et l Etat du soir : les prix, les stocks et les caisses que le grand livre ne
+        dit pas ( lui ne voit que les mouvements )."""
+        w = self.w
+        from . import config as C
+        biens = list(C.BIENS)
+        L = []
+        for mid, m in w.marches.items():
+            r = {"marche": str(mid), "caisse": float(m.caisse), "echelle": float(getattr(m, "echelle", 1.0)), "marge": float(m.marge)}
+            for b in biens:
+                r[f"prix_{b}"] = float(m.prix.get(b, 0.0)); r[f"stock_{b}"] = float(m.stocks.get(b, 0.0))
+                r[f"demande_{b}"] = float(m.demande.get(b, 0.0)); r[f"offre_{b}"] = float(m.offre.get(b, 0.0))
+            L.append(r)
+        if L: pq.write_table(pa.Table.from_pylist(L), self._chemin("marches", jour), compression="zstd")
+        L = []
+        for eid, e in w.entreprises.items():
+            r = {"entreprise": str(eid), "type": str(e.type), "caisse": float(e.caisse),
+                 "activite": float(getattr(e, "activite", 1.0))}
+            for b in biens: r[f"stock_{b}"] = float(e.stocks.get(b, 0.0))
+            L.append(r)
+        if L: pq.write_table(pa.Table.from_pylist(L), self._chemin("entreprises", jour), compression="zstd")
+        g = w.gouv; o = getattr(w, "etalon_or", {}) or {}
+        r = {"caisse": float(g.caisse), "tva": float(g.tva), "impot_revenu": float(g.impot_revenu),
+             "lois": json.dumps(getattr(g, "lois", {}), ensure_ascii=False, default=str),
+             "euros_par_unite": float(o.get("dernier_taux") or 0.0), "or_euros_g": float(o.get("cours") or 0.0)}
+        pq.write_table(pa.Table.from_pylist([r]), self._chemin("etat", jour), compression="zstd")
+
     def fin_de_jour(self, jour):
         for t in SCHEMAS: self._ecrire(t)
         self._ecrire_lots()
         self.photo(jour)
+        self.photo_economie(jour)
 
     def fermer(self):
         for t in SCHEMAS: self._ecrire(t)
