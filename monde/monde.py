@@ -10,6 +10,9 @@ except ImportError:                # sans lui, le monde tourne en Python, a l id
     COEUR = None
 
 CATEGORIES_PUBLIQUES = ("hopitaux", "armee", "reserve", "population")
+# le monde E1 : 500 habitants, trois marches, ~167 par marche. Ses stocks de depart ( 600 de nourriture = 3,6 jours ),
+# la caisse d un marche et le fonds qu il garde avant de verser son benefice ( 20 000 ) etaient faits pour eux
+POP_MARCHE_E1 = 500 / 3
 # le journal du moteur en memoire : les 200 000 derniers evenements ( ~285 octets chacun ; le fichier du journal, lui,
 # garde tout ). Lecteurs : les 400 a 600 derniers ( patrouilles annulees ), la derniere decision du gouvernement.
 EVENEMENTS_MAX = 200_000
@@ -136,6 +139,15 @@ class Monde:
         for m in self.marches.values():
             m.stocks.update({"nourriture": 600.0, "carburant": 300.0, "remedes": 40.0, "fer": 100.0, "zinc": 60.0,
                              "petrole": 200.0, "outils": 10.0})
+        # ! 26/09 : les stocks, la caisse et le fonds de roulement d un marche suivent la population qu il sert ( au moins
+        # ceux du monde E1 ). Fixes, ils donnaient 0,06 jour de nourriture au marche unique de Malden a 10 000 habitants,
+        # presque rien a un million : le pays demarrait sans nourriture ni carburant, et le cercle ( pas de carburant ->
+        # pas de camion -> pas de recolte au marche -> pas de caisse -> pas de carburant ) tenait 12 jours.
+        pop = self._population_des_marches()
+        for m in self.marches.values():
+            m.echelle = max(1.0, pop.get(m.lieu.id, 0) / POP_MARCHE_E1)
+            for b in m.stocks: m.stocks[b] *= m.echelle
+            m.caisse *= m.echelle
         self.reseau = E.Reseau()
         self.gouv = G.Gouvernement()
         self.gouv.membres = [h for h in self.habitants if h.role in ("chef_gouvernement", "ministre")]
@@ -486,6 +498,16 @@ class Monde:
         self._compte_role["enfant"] = max(0, self._compte_role.get("enfant", 1) - 1)
         self._travail_ajouts.setdefault(self._cle_travail(h.travail, role), []).append(h.id)
         self.noter("entree_vie_active", habitant=h.id, role=role, lieu=getattr(h.travail, "id", None))
+
+    def _population_des_marches(self):
+        """Les vivants de chaque marche, comptes au marche du domicile de leur menage ( comme `indexer` )."""
+        t, n = self.table, self.table.n
+        vivant = t.vivant[:n] == 1
+        mt = t.menages
+        mm = P.menages_inscrits(t, n)
+        marche = self._marche_du_lieu[mt.domicile[:mt.n][mm[vivant & (mm >= 0)]]]
+        comptes = np.bincount(marche[marche >= 0], minlength=len(self.carte.par_n))
+        return {self.carte.par_n[k].id: int(comptes[k]) for k in np.nonzero(comptes)[0]}
 
     def indexer(self):
         """Les index du pays, refaits une fois par jour, SUR LES COLONNES : population de chaque marche, habitants par
@@ -1050,7 +1072,7 @@ class Monde:
         # les marchands : la moitie du benefice du marche au-dessus de sa caisse de depart, en salaire
         for m in self.marches.values():
             marchands = self.au_travail_de(m.lieu, "marchand")
-            exces = m.caisse - 20000.0
+            exces = m.caisse - 20000.0 * getattr(m, "echelle", 1.0)
             if exces > 0 and marchands:
                 for p in marchands:
                     brut = self.transferer(m, p.menage, 0.5 * exces / len(marchands), "benefice marchand")

@@ -13,3 +13,13 @@ LA FAIM DES ILES A UN MARCHE ( enquete du 26/09, archipel ouvert, 6 x 10 000 hab
    week-end ). Avant la correction : 71 % tous les jours.
 5. Reste le demarrage ( jours 3 a 12 ) : les stocks de depart d un marche etaient fixes ( 600 de nourriture, 300 de
    carburant : 3,6 jours pour les ~167 habitants d un marche du monde E1, 0,06 jour pour les 10 000 de Malden ).
+
+6. Correction « echelle » ( commit suivant ) : stocks, caisse et fonds de roulement d un marche proportionnels a la
+   population qu il sert ( au moins ceux du monde E1, ~167 habitants par marche ). Essai 6 x 10 000, 20 jours : faim
+   0 a 3 % des le jour 1 ( contre 71 % des jours 3 a 12 ) ; creux ponctuels jours 14-19 ( un jour et demi de reserve
+   dans les garde-mangers ). Porte G1 ( chaque ile seule, 30 jours ), faim moyenne avant -> apres : Altis 7,2 -> 5,5 %,
+   Malden 24,6 -> 6,6, Stratis 24,7 -> 10,0, Tanoa 3,6 -> 12,7, Enoch 22,7 -> 7,8, Sara 7,0 -> 10,9.
+   Trois portes du pays de plus en echec ( a trancher ) : travail.test_accepter_emploi ( 4 jours ou chaque action a
+   2 notes, il en faut 5 ), immobilier.test_decision_loyer ( p permutation 0,060 pour 0,05 ), economie.test_credit
+   ( la pharmacie videe au jour 4 demande son credit au jour 5 : le marche, a sa caisse d echelle, la paie
+   probablement assez pour la paie du soir ). Conservation tenue partout.
