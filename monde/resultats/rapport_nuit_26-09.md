@@ -10,11 +10,16 @@
    demande de carburant x13 000, pas d import, pas de camion, recoltes bloquees aux fermes.
 4. **Faim, cause 2** ( 87dfca5, a7ad896 ) : stocks, caisse et fonds de roulement des marches fixes ( faits pour 167
    habitants par marche ) -> proportionnels a la population servie ( moteur ET domaine du travail ).
+5. **Lenteur du premier jour ouvre** ( c20cf31 ) : chaque demande de credit reparcourait tout le portefeuille des
+   banques ( 2 069 s au jour 5 a 6 x 1 M ). Somme exacte tenue par banque : identique au bit ( 11 148 demandes, 0 ecart ;
+   controle positif 10 177 ecarts ), jour 5 a 200 000 habitants 102 s -> 21 s. La nuit en cours ( 7fab129 ) ne l a
+   pas : son jour 5 a pris 34 minutes, les autres ~2 a 3 minutes.
 
 ## Resultat a un million d habitants par pays ( 6 pays, Qwen )
 | | nuit du 25 ( ancien code ) | nuit du 26 ( code 7fab129 ) |
 |---|---|---|
 | faim jours 3-4 | 71 a 73 % | 2 a 3 % |
+| faim jours 5-12 | 71 a 73 % ( jusqu au jour 17 ) | 0 % |
 | conservation | tenue | tenue |
 
 ## Decisions prises a ta place ( « copier le reel » )
