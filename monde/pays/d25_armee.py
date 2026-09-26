@@ -436,10 +436,13 @@ DEMI_VIE_MORAL = 0.9                        # la part propre du moral s eteint d
 FATIGUE_LOURDE, MORAL_EPUISE = 0.7, 0.03
 MORAL_REF = 0.60                            # le moral d un pays ordinaire, quand la culture n est pas la ( domaine 23 )
 K_STRESS_MORAL = 0.15
-# Perception : l oeil fatigue voit moins ( -50 % a fatigue pleine, a calibrer ) ; de nuit, detection mediane a 36 m
-# sans jumelles ( mesure dans Arma, 13/09 ) ; de jour, ~ 300 m ( a calibrer ). La detection d une unite est celle de
-# son meilleur guetteur : `knowsAbout` est une connaissance de CAMP ( 02/08 ).
-DETECTION_JOUR_M, DETECTION_NUIT_M = 300.0, 36.0
+# Perception : l oeil fatigue voit moins ( -50 % a fatigue pleine, a calibrer ). La portee est celle d un homme DEBOUT
+# REGARDE ( le domaine 26 y applique la posture de la cible, le cone du regard et le balayage ), copiee sur Arma, nuit du
+# 19/09 : de nuit ~ 85 % des cibles debout vues a 250 m, mediane 300 a 450 m -> 300 m ; de jour >= 67 % a 550 m -> 550 m.
+# Les 36 m du 13/09 etaient la mediane des rencontres NATURELLES ( cibles accroupies, guetteurs qui balaient ) : les
+# prendre ici comptait deux fois la posture et le regard ( 300 x 0,42 x 0,5 = 63 m, du meme ordre ) ; corrige le 27/09.
+# La detection d une unite est celle de son meilleur guetteur : `knowsAbout` est une connaissance de CAMP ( 02/08 ).
+DETECTION_JOUR_M, DETECTION_NUIT_M = 550.0, 300.0
 
 # ================================================================== la decision
 HORIZON = 3
@@ -1940,7 +1943,7 @@ def blesser_soldat(p, hid, zone, arme):
 
 def perception(p, ids, nuit=False):
     """Domaine 26 : la perception effective de chaque soldat ( la fatigue la reduit de moitie au plus ) et sa distance
-    de detection en metres ( de jour ~ 300 m, de nuit 36 m sans jumelles : mesure Arma, a calibrer )."""
+    de detection en metres ( debout regarde : de jour 550 m, de nuit 300 m sans jumelles, Arma 19/09 )."""
     E = _dom(p).eff; r = _rangs(p, ids)
     eff = E["perception"][r] * (1.0 - 0.5 * E["fatigue"][r])
     return eff, eff * 2.0 * (DETECTION_NUIT_M if nuit else DETECTION_JOUR_M)

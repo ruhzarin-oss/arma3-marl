@@ -899,7 +899,8 @@ def _fin_de_phase(p, m):
 
 def _adverse_en_zone(p, m):
     """Le declenchement : un element adverse CONNU du camp ( vu par les guetteurs, domaine 26 ) dont la position crue
-    est dans la zone de destruction. Jamais la verite : de nuit, sans vision nocturne, on ne le voit qu a 36 m."""
+    est dans la zone de destruction. Jamais la verite : de nuit, sans vision nocturne, un homme accroupi n est vu qu a
+    ~ 126 m ( domaines 25 et 26 )."""
     bx, by = m.elts[0].x, m.elts[0].y
     for e in m.elts:
         if e.side != 1: continue
@@ -1587,7 +1588,7 @@ def _observer(ctx): return ctx.traits
 
 
 def _regle(x, ctx):
-    """Ce que dit la doctrine : sans rien savoir, droit la nuit ( on ne voit qu a 36 m ), par bonds le jour ; une
+    """Ce que dit la doctrine : sans rien savoir, droit la nuit ( un homme accroupi n y est vu qu a ~ 126 m ), par bonds le jour ; une
     patrouille qui passe, on l attend si la fenetre le permet ; loin de l itineraire, droit ; connu avec precision, de
     jour, a six au moins : l appui et le mouvement ; sinon le contournement si le temps le permet ; sinon le bond."""
     if x[T_CONNU] < 0.5: return DIRECT if x[T_NUIT] >= 0.5 else BOND

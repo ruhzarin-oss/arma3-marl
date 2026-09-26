@@ -142,6 +142,12 @@ def poser_gouvernement(w, nom, source):
 
 
 def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False, llm=False, enregistrer=None, gouv=None):
+    # 27/09 : le domaine 22 fait des produits de matrices ( faits x lieux x lieux ) ; six iles qui prennent chacune tous
+    # les coeurs se marchent dessus ( 120 fils pour 20 coeurs ). Chaque ile garde sa part ( HMT_FILS_PAR_ILE pour forcer ) ;
+    # le nombre de fils ne change pas les resultats ( porte des 27 domaines identique a 3 fils et a 20 )
+    from threadpoolctl import threadpool_limits
+    n_iles = max(1, len(noms) if noms else 1)
+    threadpool_limits(int(os.environ.get("HMT_FILS_PAR_ILE", max(1, (os.cpu_count() or 1) // n_iles))), user_api="blas")
     w = pickle.load(open(reprise, "rb")) if reprise else creer_ile(nom, graine, echelle, llm)
     poser_gouvernement(w, nom, gouv)
     if ouvert: w.archipel = {"noms": tuple(noms), "ouvert": True}

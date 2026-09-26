@@ -15,6 +15,7 @@ porte "socle"          "14 / 14 portes du socle"            $PY -m monde.socle.t
 porte "monde"          "15 / 15 portes du monde"             $PY -m monde.tests
 porte "colonnes"       "PORTE DES COLONNES : FRANCHIE"       $PY -m monde.porte_colonnes
 porte "domaines"       "PORTE DES DOMAINES : FRANCHIE"       $PY -m monde.porte_domaines --comparer $REF/ref_domaines.json
+porte "domaines (27)"  "PORTE DES DOMAINES : FRANCHIE"       $PY -m monde.porte_domaines --comparer $REF/ref_domaines_tous.json
 porte "identite"       "PORTE DE L IDENTITE : FRANCHIE"      $PY -m monde.porte_identite
 porte "iles (G1)"      "PORTE G1 .* FRANCHIE"                $PY -m monde.porte_iles
 porte "archipel (G2G3)" "PORTES G2 ET G3 : FRANCHIES"        $PY -m monde.porte_archipel

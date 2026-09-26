@@ -301,7 +301,8 @@ def test_connaissance_de_camp():
     camp national ( source observation, observateur = ce soldat, et la cellule du camp au domaine 22 croit le fait,
     source renseignement ) ; les deux autres ne le sont PAS : `connaissance` rend None ( une absence, pas un zero ).
     Individuelle : ce soldat l a vue, aucun autre. Le vert n en sait rien, ni au domaine 26 ni dans sa cellule, meme un
-    jour plus tard ( la rumeur ne sort pas d un etat-major ). La meme scene de nuit : rien n est connu a 150 m."""
+    jour plus tard ( la rumeur ne sort pas d un etat-major ). La meme scene de nuit ( Arma, 19/09 ) : un homme debout a
+    150 m devant est connu, un homme accroupi a 200 m ne l est pas ( 27/09 : l ancien seuil de 36 m ne voyait rien )."""
     w, p = _monde(1)
     d = p.domaine(M.DOMAINE)
     _jusqu_a(w, 10.0)
@@ -332,16 +333,18 @@ def test_connaissance_de_camp():
     M.poser_camp(p2, "rouge", {lieu.id: 1.0}, 30)
     _, ids2 = _guetteurs(p2, x)
     en = M.poser_entite(p2, "rouge", x0 + 150.0, y0, ile)
+    ac = M.poser_entite(p2, "rouge", x0 + 200.0, y0, ile, "accroupi")
     M.observer(p2, M.CAMP_NATIONAL, ids2, np.tile([x0, y0], (len(ids2), 1)), np.zeros(len(ids2)))
-    nuit = M.connaissance(p2, M.CAMP_NATIONAL, en)
+    nuit = M.connaissance(p2, M.CAMP_NATIONAL, en); nuit_ac = M.connaissance(p2, M.CAMP_NATIONAL, ac)
     portee_jour = float(A.perception(p, ids[ig:ig + 1])[1][0])
     ok = (c1 is not None and c1["source"] == "observation" and c1["observateur"] == guetteur and c2 is None and c3 is None
           and len(indiv) == 1 and indiv[0][1] == e1 and not autres and len(nat22) == 1 and nat22[0]["source"] == "renseignement"
-          and vert26 is None and not vert22 and nuit is None and len(vus) == 1)
+          and vert26 is None and not vert22 and nuit is not None and nuit_ac is None and len(vus) == 1)
     return ok, (f"guetteur a {portee_jour:.0f} m de jour ; a 150 m devant : {'connue' if c1 else 'INCONNUE'} "
                 f"( {c1['source'] if c1 else '-'}, erreur {M.erreur_position(p, 0, e1) if c1 else float('nan'):.1f} m ) ; flanc 50 m : "
                 f"{c2} ; 900 m : {c3} ; vue par {len(indiv)} guetteur, {len(autres)} autre(s) ; cellule nationale : {len(nat22)} "
-                f"croyance ( {nat22[0]['source'] if nat22 else '-'} ) ; camp vert : {vert26}, {len(vert22)} croyance ; de nuit a 150 m : {nuit}")
+                f"croyance ( {nat22[0]['source'] if nat22 else '-'} ) ; camp vert : {vert26}, {len(vert22)} croyance ; de nuit, debout a 150 m : "
+                f"{'connu' if nuit else 'INCONNU'}, accroupi a 200 m : {'CONNU' if nuit_ac else 'inconnu'}")
 
 
 def test_erreur_position():

@@ -195,14 +195,15 @@ RAYON_BASE_M = 300.0                 # une unite revenue a moins de 300 m de sa 
 SOURCES = ("aucune", "observation", "patrouille", "radio", "population", "medias")
 AUCUNE, OBSERVATION, PATROUILLE, RADIO_S, POPULATION, MEDIAS = range(6)
 POSTURES_CIBLE = ("debout", "accroupi", "vehicule")
-# La portee d un guetteur ( domaine 25 `perception` : ~ 300 m de jour, 36 m de nuit, moins avec la fatigue ) vaut pour
+# La portee d un guetteur ( domaine 25 `perception` : 550 m de jour, 300 m de nuit, moins avec la fatigue ) vaut pour
 # un homme DEBOUT REGARDE ; accroupi ~ 0,42 ( nuit du 19/09 : fiable sous 125 m contre ~ 300 debout ), un vehicule
 # ~ 3 fois ( a calibrer ). Hors du cone du regard ( 70 degres, le banc P2 ), un dixieme ( 02/08 : rien a 50 m sur le
 # flanc ) ; un guetteur qui balaie sans regard impose, la moitie ( a calibrer : le levier est ou regarder et combien de
 # temps balayer, 18/09 ). La detection est binaire ( 04/08 : tout ou rien ), sans hasard.
 F_POSTURE = np.array([1.0, 0.42, 3.0])
 DEMI_CONE = math.radians(35.0)
-F_PERIPHERIE = 0.1
+F_PERIPHERIE = 0.04   # 27/09 : avec la portee d Arma ( 550 m de jour, 1 100 m au meilleur guetteur ), 0,1 voyait a 55-110 m
+                      # sur le flanc ; 0,04 garde la mesure du 02/08 ( rien a 50 m ) pour tout guetteur : 44 m au plus
 F_BALAYAGE = 0.5
 # L erreur de position ( a calibrer ) : 5 m, plus 10 % de la distance dans l axe ( l oeil estime mal les distances ),
 # 2 % en travers ; une goniometrie radio ~ 3 degres ( 5 % de la distance ) ; une rumeur donne un lieu ( ~ 1,5 km ).
@@ -215,7 +216,7 @@ CONF_SOURCE = {OBSERVATION: 0.95, PATROUILLE: 0.9, RADIO_S: 0.6}
 OUBLI_J = 7                          # une connaissance de plus de 7 jours est oubliee
 VUS_MAX = 50000
 RAYON_TEMOINS_M = 2000.0             # la population d un lieu voit passer ce qui passe a moins de 2 km
-PORTEE_ENTITE_M = (300.0, 36.0)      # la portee d un homme d un autre camp : celle d un soldat du domaine 25 moyen
+PORTEE_ENTITE_M = (550.0, 300.0)     # la portee d un homme d un autre camp : celle d un soldat du domaine 25 moyen
 CAMP_NATIONAL = "armee_nationale"
 SUJET_PRESENCE = "presence_militaire"
 SPEC_PRESENCE = (-0.6, True, 0.35, 0.10, "log", 20, "somme")   # sujet du domaine 22 ( valence ... ), a calibrer
@@ -1568,7 +1569,7 @@ def evacuer(p, hid, lieu=None, moyen="auto"):
         _sortir(p, d, "depot", d.national.k, "kerosene", kero, "vol_evasan", "brule")
         d.helico_libre[libre[0]] = w.pas + pas
     d.evacuations.append((w.pas, int(hid), m, minutes))
-    p.noter("evacuation", habitant=int(hid), moyen=m, minutes=round(minutes, 1))
+    p.noter("evacuation_sanitaire", habitant=int(hid), moyen=m, minutes=round(minutes, 1))
     return {"moyen": m, "minutes": minutes, "pas": pas, "passage": ps}
 
 
@@ -1628,7 +1629,7 @@ def installer(p):
     for m, nature in MOTIFS: L.declarer_motif(m, nature, DOMAINE)
     J = p.socle.journal
     J.declarer("convoi_militaire", DOMAINE, "individuel", ("de", "vers", "tonnes"))
-    J.declarer("evacuation", DOMAINE, "individuel", ("habitant", "moyen", "minutes"))
+    J.declarer("evacuation_sanitaire", DOMAINE, "individuel", ("habitant", "moyen", "minutes"))
     J.declarer(SUJET_PRESENCE, DOMAINE, "individuel", ("lieu", "camp", "taille"))
     for t in ("decision_ravitaillement", "demande_ravitaillement", "convoi_militaire_refuse", "livraison_militaire",
               "rupture_ravitaillement", "achat_militaire", "rotation_rations", "ordre_emis", "ordre_recu", "ordre_perdu",

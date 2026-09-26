@@ -219,7 +219,8 @@ def test_controles_positifs():
 # ================================================================== les regles d engagement et le tribunal militaire
 def test_regles_engagement():
     """Une violation va au tribunal militaire ; le respect ne tire pas. Au combat ( balles reelles ), 2 500 habitants,
-    23 h ( nuit : on ne voit qu a 36 m ). Un contact connu par la RUMEUR seulement ( source population ) a 150 m d une section en defense, feu libre,
+    23 h ( nuit : un homme accroupi n est vu qu a 252 m au plus, meilleur guetteur ). Un contact connu par la RUMEUR seulement
+    ( source population ) a 300 m d une section en defense ( 27/09 : 150 m avec l ancien seuil de 36 m ), feu libre,
     discipline forcee a 1 : aucune balle, aucune violation. Meme scene, le chef ORDONNE le feu sur le contact : des
     balles, une violation sans_identification du chef, une affaire militaire a son nom, un dossier au tribunal
     militaire ( le lendemain ). De jour, un adversaire OBSERVE ( identifie ) dans une ZONE INTERDITE : discipline 1, aucune balle ; ordre
@@ -233,8 +234,8 @@ def test_regles_engagement():
 
     def scene(feu_chef, roe=M.ROE_DEFAUT, source=S.POPULATION, conf=0.5, sigma=S.SIGMA_LIEU_M, seed=1):
         camp = M._camp(p, "adverse")
-        ent = S.poser_entite(p, camp, x0 + 150.0, y0, ile, "accroupi", 4, 0.0)
-        S._connaitre(p, d26, 0, ent, x0 + 160.0, y0, ile, sigma, 0.0, source, conf,
+        ent = S.poser_entite(p, camp, x0 + 300.0, y0, ile, "accroupi", 4, 0.0)
+        S._connaitre(p, d26, 0, ent, x0 + 310.0, y0, ile, sigma, 0.0, source, conf,
                      int(M._aptes(p, s)[0]) if source == S.OBSERVATION else -1, 4.0)
         cond = M.Conduite("fixe", posture="couche", regard="objectif", feu="aucun")
         m = M.nouvelle_mission(p, "defense", s, (x0, y0), (x0, y0), adverses=[(ent, 4, cond, [], math.pi)],

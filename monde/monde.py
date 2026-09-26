@@ -544,6 +544,9 @@ class Monde:
     def _par_travail(self): return ParTravail(self)
 
     def ids_au_travail(self, lieu, role):
+        # un metier inconnu ( un proprietaire sans metier, l Etat ou un menage : d14 ) : personne, comme l ancien moteur
+        # ( `_par_travail.get(( lieu, role ), [])` ) ; le moteur en colonnes levait KeyError ( 27/09 )
+        if role not in P.CODE_ROLE: return []
         cle = self._cle_travail(lieu, role)
         d, f = self._travail_tranches.get(cle, (0, 0))
         ids = self._travail_ordre[d:f].tolist()
@@ -557,6 +560,7 @@ class Monde:
         return [P.Habitant(t, i) for i in self.ids_au_travail(lieu, role)]
 
     def nombre_au_travail(self, lieu, role):
+        if role not in P.CODE_ROLE: return 0
         cle = self._cle_travail(lieu, role)
         d, f = self._travail_tranches.get(cle, (0, 0))
         return (f - d) - len(self._travail_retraits.get(cle, ())) + len(self._travail_ajouts.get(cle, []))
