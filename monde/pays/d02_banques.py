@@ -341,7 +341,7 @@ class Banques:
     """L etat du domaine."""
     __slots__ = ("banques", "bc", "decideur", "prets", "prets_de", "en_retard", "titres", "comptes", "suivi",
                  "avant_paie", "entree_jour", "ouvertes", "prochain_pret", "prochain_titre", "prochaine_demande",
-                 "emis_motif", "controle", "serie", "compte", "non_verse", "composantes")
+                 "emis_motif", "controle", "serie", "compte", "non_verse", "composantes", "rwa_cache")
 
     def __init__(self, banques, bc):
         self.banques, self.bc = banques, bc
@@ -355,6 +355,7 @@ class Banques:
         self.avant_paie = None   # caisses des menages a 17 h 50
         self.entree_jour = None  # ce que la paie du jour a verse a chaque menage
         self.ouvertes = {}       # cle de demande -> DecisionOuverte
+        self.rwa_cache = None    # ( pas, partiels exacts par banque ) : voir _rwa_a_jour
         self.prochain_pret = self.prochain_titre = self.prochaine_demande = 0
         self.emis_motif = {}     # motif -> monnaie emise moins detruite, lue dans les comptes clos du grand livre
         self.controle = {"jours": 0, "pire_bilan": 0.0, "pire_bc": 0.0, "dernier": None}
@@ -541,6 +542,7 @@ def inflation(p, jours=365):
 # ================================================================== les prets : octroi, echeances, recouvrement
 def _provisionner(p, d, pr):
     """Ajuste la provision du pret a son stade ; la dotation ( ou la reprise ) passe en fonds propres."""
+    d.rwa_cache = None
     b = d.banques[pr.banque]
     if pr.principal <= 0.0: cible = 0.0
     else:
@@ -582,8 +584,12 @@ def _debloquer(p, d, b, emp, montant, type_, duree, taux, demande=-1):
     d.prets[pr.id] = pr
     d.prets_de.setdefault(emp, []).append(pr.id)
     _poser_echeance(p, pr)
-    _provisionner(p, d, pr)
-    b.rwa += (pr.principal - pr.provision) * TYPES[type_][3]
+    cache = getattr(d, "rwa_cache", None)
+    _provisionner(p, d, pr)                     # ( ne touche que ce pret nouveau, absent des partiels )
+    x = (pr.principal - pr.provision) * TYPES[type_][3]
+    b.rwa += x
+    if cache is not None:
+        _msum_ajouter(cache[1][b.indice], x); d.rwa_cache = cache
     p.compter("pret_accorde", pr.montant)
     return pr
 
@@ -591,6 +597,7 @@ def _debloquer(p, d, b, emp, montant, type_, duree, taux, demande=-1):
 def _encaisser(p, d, pr):
     """Preleve ce qui est echu : les interets d abord ( transfert a la banque ), puis le principal ( detruit ). Met a
     jour le retard et la provision ; solde le pret s il est rembourse."""
+    d.rwa_cache = None
     L = p.socle.livre
     b = d.banques[pr.banque]; emp = pr.emprunteur
     s = d.suivi.get(emp)
@@ -618,6 +625,7 @@ def _encaisser(p, d, pr):
 
 
 def _retirer(d, pr):
+    d.rwa_cache = None
     del d.prets[pr.id]
     ids = d.prets_de[pr.emprunteur]; ids.remove(pr.id)
     if not ids: del d.prets_de[pr.emprunteur]
@@ -626,6 +634,7 @@ def _retirer(d, pr):
 
 def _solder(p, d, pr):
     """Pret rembourse : un reste d arrondi du principal est passe en perte ( fonds propres ), la provision reprise."""
+    d.rwa_cache = None
     b = d.banques[pr.banque]
     if pr.principal != 0.0:
         b.fonds_propres_emetteur -= pr.principal; pr.principal = 0.0; pr.du_principal = 0.0
@@ -667,6 +676,7 @@ def _defaut(p, d, pr):
 def _radier(p, d, pr):
     """Un an apres le defaut : le reste est perdu pour la banque ( fonds propres ) et devient une creance du socle,
     que le domaine 21 pourra recouvrer."""
+    d.rwa_cache = None
     b = d.banques[pr.banque]
     perte = pr.principal - pr.provision
     b.fonds_propres_emetteur -= perte; b.pertes += pr.principal
@@ -826,10 +836,41 @@ def _suivre_entreprises_matin(p, d):
         s.caisse_matin = e.caisse; s.distribue = 0.0; s.flux_pret = 0.0
 
 
-def _rwa(d):
+def _rwa(d, pas=None):
     acc = [[] for _ in d.banques]
     for pr in d.prets.values(): acc[pr.banque].append((pr.principal - pr.provision) * TYPES[pr.type][3])
     for b, v in zip(d.banques, acc): b.rwa = math.fsum(v)
+    if pas is not None:
+        partiels = []
+        for v in acc:
+            part = []
+            for x in v: _msum_ajouter(part, x)
+            partiels.append(part)
+        d.rwa_cache = (pas, partiels)
+
+
+def _msum_ajouter(partiels, x):
+    """Ajoute x a une somme EXACTE tenue en partiels sans chevauchement ( Shewchuk, la recette de math.fsum ) : fsum
+    des partiels rend alors, au bit pres, ce que rendrait fsum de toutes les valeurs ajoutees."""
+    i = 0
+    for y in partiels:
+        if abs(x) < abs(y): x, y = y, x
+        hi = x + y
+        lo = y - (hi - x)
+        if lo: partiels[i] = lo; i += 1
+        x = hi
+    partiels[i:] = [x]
+
+
+def _rwa_a_jour(p, d):
+    """Les actifs ponderes de chaque banque, AU BIT PRES comme _rwa, sans reparcourir tous les prets a chaque demande
+    ( 26/09 : 10 000 demandes de credit le premier jour ouvre, chacune reparcourait tout le portefeuille - 28 minutes
+    a un million d habitants ). Le cache tient une somme exacte par banque ; un pret accorde s y ajoute ; tout autre
+    changement de poids ( provision, remboursement, defaut, solde, radiation ) le fait tomber, et le pas suivant aussi."""
+    c = getattr(d, "rwa_cache", None)
+    if c is None or c[0] != p.w.pas:
+        _rwa(d, p.w.pas); return
+    for b, part in zip(d.banques, c[1]): b.rwa = math.fsum(part)
 
 
 def _guichet(p):
@@ -1180,7 +1221,7 @@ def demander_credit(p, emprunteur, montant, type_="conso", motif="projet", duree
     q = _nouvelle_demande(p, d, emprunteur, not _est_menage(emprunteur), type_, montant, motif)
     if q is None: return None
     if duree is not None: q.duree = int(duree)
-    _rwa(d)
+    _rwa_a_jour(p, d)
     return instruire(p, q)
 
 
@@ -1198,6 +1239,7 @@ def rembourser_par_anticipation(p, pret, montant=None):
     principal detruit."""
     d = p.domaine("banques")
     if d.prets.get(pret.id) is not pret: raise KeyError(f"pret {pret.id} inconnu ou solde")
+    d.rwa_cache = None
     _encaisser(p, d, pret)
     if pret.id not in d.prets or pret.defaut_j >= 0: return 0.0
     voulu = pret.principal - pret.du_principal if montant is None else min(montant, pret.principal - pret.du_principal)
