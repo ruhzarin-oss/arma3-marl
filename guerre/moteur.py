@@ -86,6 +86,24 @@ def _quarantaine_occupant(w):
             if l not in q: q.append(l)
 
 
+def _unites_du_lieu(p, lieux):
+    """Les groupes de production du domaine 11 ( centrales, parcs ) poses sur ces lieux."""
+    if not p.a("energie"): return []
+    return [u for u in p.domaine("energie").unites if u.lieu in set(lieux)]
+
+
+def _saisir_centrales(w, o, lieux):
+    """Une centrale tenue par l occupant ne produit plus pour le reseau de l ile : ses groupes passent EN PANNE, cause
+    « occupation », par le chemin des pannes du domaine 11 ( d11._panne : etat du Parc, evenement panne_centrale ), jusqu a
+    la liberation. ( 27/09 : G14 avait montre que les ouvriers ne passaient plus, mais qu une centrale produit selon la
+    demande du reseau, pas selon ses presents : -4 % seulement. )"""
+    from monde.pays import d11_energie as EN
+    p = w.pays
+    us = [u for u in _unites_du_lieu(p, lieux) if not u.en_panne]
+    for u in us: EN._panne(p, p.domaine("energie"), u, 1e7, "occupation")
+    o["unites"] = [u.id for u in us]
+
+
 def occuper(w, zone, lieux, actif):
     """Pose ( actif ) ou leve l occupation d une zone. Rend les zones occupees et ce que chacune tient."""
     p = w.pays
@@ -96,6 +114,7 @@ def occuper(w, zone, lieux, actif):
         occ[zone]["quarantaine"] = [l for l in lieux if l in w.carte.lieux and l not in q]
         occ[zone]["lieux"] = list(lieux)
         _quarantaine_occupant(w)
+    if actif and zone in occ and "unites" not in occ[zone]: _saisir_centrales(w, occ[zone], lieux)
     if actif and zone not in occ:
         fermes, moteur, hors = [], [], []
         for l in lieux:
@@ -113,10 +132,14 @@ def occuper(w, zone, lieux, actif):
         occ[zone] = {"fermes": fermes, "moteur": moteur, "non_couverts": hors, "choc": c, "lieux": list(lieux),
                      "quarantaine": [l for l in lieux if l in w.carte.lieux and l not in q]}
         _quarantaine_occupant(w)
+        _saisir_centrales(w, occ[zone], lieux)
         w.noter("occupation", zone=zone, fermes=len(fermes), sites_moteur=len(moteur), non_couverts=len(hors))
     elif not actif and zone in occ:
         o = occ.pop(zone)
         for l in o["fermes"]: _ferme(p, l).sequestre = False
+        if o.get("unites"):                            # les groupes saisis repartent a l heure suivante ( d11._reparer_et_casser )
+            for u in p.domaine("energie").unites:
+                if u.id in o["unites"] and u.en_panne: u.panne_jusqu = int(w.pas)
         levees = set(o.get("quarantaine", ())) - {l for x in occ.values() for l in x.get("quarantaine", ())}
         w.gouv.lois["quarantaine"] = [l for l in w.gouv.lois.get("quarantaine", []) if l not in levees]
         if o["choc"] is not None: o["choc"]["jours"] = max(0, int(w.jour) - o["choc"]["debut"])

@@ -50,6 +50,18 @@ G13 VILLES OCCUPEES ( 27/09, ecrite avant la mesure ) : la zone de La Trinite ( 
    moteur, 0 present, rapport impossible - La Trinite y tombait de 45 492 a 11 574 ), tombent sous 0,4 fois leur rapport d avant ; ils remontent au-dessus de 0,8 fois apres la liberation ;
    une quarantaine posee par le gouvernement lui-meme ( ailleurs ) reste ; le bulletin dit ville occupee et siege
    occupe ; la conservation tient.
+G14 USINES OCCUPEES ( 27/09, AMENDEE avant tout verdict : la premiere version mesurait la fonderie de Larche, mais
+   les fonderies de Malden ne produisent RIEN, en paix comme a 10 000 habitants - le controle positif a echoue, rien a
+   prouver ; la centrale, elle, produit ) : la zone de la centrale ( centrale01 ) occupee trois jours : ses ouvriers
+   presents, rapportes a une ferme temoin hors zone ( Dourdan ), tombent sous 0,4 fois leur rapport d avant ; sa
+   production tombe sous 0,5 fois ; tout remonte au-dessus de 0,8 fois apres la liberation. ( Deuxieme essai : ouvriers
+   0,75 -> 0,19, mais production 1 216 -> 1 169 par jour, -4 % : le domaine 11 fait produire une centrale selon la demande
+   du reseau. L occupation met desormais ses groupes EN PANNE, cause occupation - l etat des pannes du domaine 11.
+   Troisieme essai : production 1 216 -> 0 -> 1 184, mais ouvriers 0,56 apres contre 0,75 avant : la fenetre d apres
+   ( 4 jours ) contenait un dimanche, pas celle d avant. Fenetres portees a SEPT jours chacune : la meme semaine.
+   Quatrieme essai : production 1 184 -> 0 -> 1 171, ouvriers 0,76 -> 0,19 -> 0,19. Sonde : la quarantaine est bien
+   levee, mais l agenda ( domaine 5 ) planifie la semaine - les ouvriers reviennent 6 sur 21 le mercredi, les 21 le
+   mardi suivant. La reprise se juge donc sur la DEUXIEME semaine apres la liberation. )
 
    python -m guerre.porte_guerre"""
 import math, os, re, sys, time
@@ -359,6 +371,32 @@ def main():
     ok["G13 liberee, au-dessus de 0,8 fois ; la quarantaine du gouvernement reste ; bulletin ; conservation"] = (
         rap(ap) > 0.8 * rap(av) and gv and "Malden_C_LaTrinite" in b13["villes_occupees"] and b13["siege_du_gouvernement_occupe"]
         and bool(tenue13[0]))
+    # G14
+    z14 = zone_de["centrale01"]; l14 = next(z["lieux"] for z in zs if z["n"] == z14)
+    kc, kw = w13.carte.lieux["centrale01"].n, w13.carte.lieux["Malden_V_Dourdan"].n
+    def usine(jours):
+        pres, prod = [0, 0], 0.0
+        for _ in range(jours):
+            a0 = sum(w13.entreprises["centrale01"].produit_du_jour.values())
+            for _ in range(144):
+                arc13.un_pas(); n14 = t13.n
+                at = (t13.vivant[:n14] == 1) & (t13.poste[:n14] == PO13.CODE_POSTE["travail"])
+                pres[0] += int((at & (t13.lieu[:n14] == kc)).sum()); pres[1] += int((at & (t13.lieu[:n14] == kw)).sum())
+            a1 = sum(w13.entreprises["centrale01"].produit_du_jour.values())
+            prod += (a1 - a0) if a1 >= a0 else a1
+        return pres, prod / jours
+    pa, qa = usine(7)
+    arc13.commande("Malden", "occuper", z14, l14, True)
+    pp, qp = usine(7)
+    arc13.commande("Malden", "occuper", z14, l14, False)
+    usine(7)                                        # la semaine du retour ( l agenda planifie la semaine )
+    pl, ql = usine(7)
+    rp = lambda x: x[0] / max(1, x[1])
+    print(f"   usines occupees : ouvriers de la centrale / temoin avant {pa} ( {rp(pa):.2f} ), occupee {pp} ( {rp(pp):.2f} ), liberee {pl} "
+          f"( {rp(pl):.2f} ) ; production par jour {qa:.0f} -> {qp:.0f} -> {ql:.0f}", flush=True)
+    ok["G14 controle positif : la centrale travaillait ; occupee, ouvriers sous 0,4 fois, production sous 0,5 fois"] = (
+        pa[0] > 0 and pa[1] > 0 and pp[1] > 0 and qa > 0 and rp(pp) < 0.4 * rp(pa) and qp < 0.5 * qa)
+    ok["G14 liberee, au-dessus de 0,8 fois"] = rp(pl) > 0.8 * rp(pa) and ql > 0.8 * qa
     arc13.fermer()
     ok["G11 l ile sans code decide par les regles, sans bascule"] = (
         len(dec(ws)) >= 2 and all(e.get("cerveau") == "regles" and not str(e.get("motifs", "")).startswith("cerveau indisponible") for e in dec(ws)))
