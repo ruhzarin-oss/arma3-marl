@@ -28,7 +28,9 @@
 
 ## A trancher par toi
 - Deux portes du pays de plus en echec depuis les corrections : `economie.test_credit` ( mise en scene : la
-  pharmacie videe demande au jour 5, pas 4 ), `immobilier.test_decision_loyer` ( p 0,060 pour 0,05 ). Pays 132/145.
+  pharmacie videe au jour 4 n a travaille aucune heure ce jour-la - 0 drachme de salaires dus, 960 avant - car le
+  marche, a son stock d echelle, a assez de remedes ; sans paie due, pas de credit ; elle demande au jour 5, en
+  travaillant. Le mecanisme tient, le controle suppose un jour travaille ), `immobilier.test_decision_loyer` ( p 0,060 pour 0,05 ). Pays 132/145.
 - Les dettes impayees ( loyer, taxe locale, salaires ) grossissent sans fin : prescription ? faillite personnelle ?
 - Le garde-manger vise 1,5 jour : un jour d approvisionnement rate donne des creux de faim ponctuels.
 - Les references des portes sont hors du depot : `/mnt/data/hmt/ref_domaines.json` ( v4 ) et l ancien moteur temoin

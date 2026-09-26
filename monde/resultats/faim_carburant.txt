@@ -21,8 +21,9 @@ LA FAIM DES ILES A UN MARCHE ( enquete du 26/09, archipel ouvert, 6 x 10 000 hab
    Malden 24,6 -> 6,6, Stratis 24,7 -> 10,0, Tanoa 3,6 -> 12,7, Enoch 22,7 -> 7,8, Sara 7,0 -> 10,9.
    Trois portes du pays de plus en echec ( a trancher ) : travail.test_accepter_emploi ( 4 jours ou chaque action a
    2 notes, il en faut 5 ), immobilier.test_decision_loyer ( p permutation 0,060 pour 0,05 ), economie.test_credit
-   ( la pharmacie videe au jour 4 demande son credit au jour 5 : le marche, a sa caisse d echelle, la paie
-   probablement assez pour la paie du soir ). Conservation tenue partout.
+   ( la pharmacie videe au jour 4 demande son credit au jour 5 : VERIFIE le 26/09, elle n a travaille aucune
+   heure le jour 4 - 0 de salaires dus contre 960 avant - le marche ayant assez de remedes a son stock d echelle ;
+   sans paie due, pas de credit. Le mecanisme tient, le controle suppose un jour travaille ). Conservation tenue partout.
 
 7. Oubli de la correction « echelle » : le domaine du travail remplace la paie du moteur et gardait son propre seuil
    fixe de 20 000 avant le benefice des marchands. Au jour 0, les marches versaient la moitie de leur caisse d echelle
