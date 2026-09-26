@@ -22,7 +22,7 @@
 - Une commande publique = une demande ( un bon de commande ne se recompte pas chaque heure ).
 
 ## A trancher par toi
-- Trois portes du pays de plus en echec depuis les corrections : `economie.test_credit` ( mise en scene : la
+- Deux portes du pays de plus en echec depuis les corrections : `economie.test_credit` ( mise en scene : la
   pharmacie videe demande au jour 5, pas 4 ), `immobilier.test_decision_loyer` ( p 0,060 pour 0,05 ). Pays 132/145.
 - Les dettes impayees ( loyer, taxe locale, salaires ) grossissent sans fin : prescription ? faillite personnelle ?
 - Le garde-manger vise 1,5 jour : un jour d approvisionnement rate donne des creux de faim ponctuels.
