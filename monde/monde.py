@@ -936,7 +936,11 @@ class Monde:
             b, q, dest = cmd["bien"], cmd["quantite"], cmd["destination"]
             m = max(self.marches.values(), key=lambda x: x.stocks[b])
             q = min(q, m.stocks[b], C.CAPACITE_CAMION)
-            m.demande[b] += cmd["quantite"]
+            # ! 26/09 : une commande publique est UNE demande, comptee le jour ou le marche la voit. Recomptee a chaque
+            # heure et chaque jour tant qu elle n etait pas servie, elle gonflait la demande de carburant de Malden de
+            # 48 000 unites par jour ( 600 000 au jour 12 pour 10 000 habitants ) : le negoce commandait l impossible.
+            if not cmd.get("_demande_comptee"):
+                m.demande[b] += cmd["quantite"]; cmd["_demande_comptee"] = True
             if q < 1: continue
             lieu_dest = self.depot_armee if dest == "armee" else self.carte.gouvernement
             cout = q * m.prix[b]
