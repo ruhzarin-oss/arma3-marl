@@ -53,3 +53,12 @@ LA FAIM DES ILES A UN MARCHE ( enquete du 26/09, archipel ouvert, 6 x 10 000 hab
     demande d outils ne saute plus ) - a trancher.
 13. Nuit 6 ( code bc05f06, 6 x 1 M ) : rechute aux jours 16-21 ( 100 % des menages habites dans cinq iles au jour 17 ),
     resorbee seule au jour 22 ( 1-2 % partout ) ; arretee par la marge memoire au jour 22.
+
+14. La vraie cause de la rechute du jour 16 : le gazole est importe en entier dans les iles sans raffinerie, mais son
+    prix de depart etait le prix mondial ( 8,76 ) sous la parite a l import ( ~13,5 avec marges ). Le negoce n importait
+    qu une fois le prix remonte ( 8 % par jour ouvre ), le stock de depart s epuisait vers le jour 10, les camions
+    s arretaient : famine jours 14-21 ( six iles d un million, nuits du 26 ). Correction ( commit suivant ) : au depart,
+    un bien importe que la region ne produit pas est a sa parite ( cout rendu + marges du negoce et du detaillant ).
+    Essai 30 jours a 6 x 10 000, jours de faim totale : 24,4 ( debut de soiree ) -> 15,0 -> 12,0 -> 4,7.
+    G1 ( 30 jours, chaque ile seule ) : faim moyenne 1,2 a 3,5 % dans les six iles ( debut de soiree : 3,6 a 24,7 % ).
+    Pays 132/145 : importer et loyer repassent ; reste credit ( mise en scene ).

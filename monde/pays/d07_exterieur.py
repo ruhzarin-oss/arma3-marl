@@ -1201,8 +1201,23 @@ def installer(p):
     p.routine(21.5, 20, "exterieur", _contrebande)
     p.routine(23 + 40 / 60, 50, "exterieur", _soir_negoce)
     p.cloture("exterieur", _cloture)
+    _prix_de_depart_a_la_parite(p)
     _port_horaire(p)       # ce que les marches ont deja en trop part avant la premiere heure pleine
     return e
+
+
+def _prix_de_depart_a_la_parite(p):
+    """26/09 : un pays qui importe tout son gazole le vend a la pompe au cout rendu plus les marges, des le premier jour.
+    Au prix mondial ( 8,76 pour une parite de ~13,5 ), le negoce n importait qu une fois le prix remonte a 8 % par jour
+    ouvre ; le stock de depart s epuisait vers le jour 10, les camions s arretaient et la faim tenait du jour 14 au jour
+    21 ( six iles d un million ). Seulement les biens que la region du marche ne produit pas, et seulement a la hausse."""
+    w = p.w
+    for mid, m in w.marches.items():
+        for nom in BIENS_IMPORT:
+            if any(nom in e.produits for e in w.entreprises.values()
+                   if e.lieu.marche is not None and e.lieu.marche.id == mid): continue
+            parite = prix_import(p, _id(p, nom)) * (1.0 + MARGE_NEGOCE) / (1.0 - m.marge)
+            if parite > m.prix[nom]: m.prix[nom] = parite
 
 
 # ================================================================== API pour les autres domaines

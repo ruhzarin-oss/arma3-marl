@@ -20,6 +20,10 @@
 7. **Lissage mensuel de la demande d outils** ( ce commit ) : jours de faim a 6 x 10 000 sur 30 jours 15,0 -> 12,0 ;
    G1 : Tanoa 12,6 -> 2,0 %, Enoch 14,8 -> 2,1 %. En echange, `exterieur.test_decision_importer` tombe ( et
    `immobilier.test_decision_loyer` repasse ) : a trancher.
+8. **Prix de depart a la parite d import** ( ce commit ) : la vraie cause de la rechute ( le gazole importe partait au
+   prix mondial, sous sa parite ; le negoce n importait qu apres ~10 jours de hausse ). Jours de faim a 6 x 10 000 sur
+   30 jours : 24,4 en debut de soiree -> 4,7. G1 : 1,2 a 3,5 % dans les six iles. `exterieur.test_decision_importer`
+   repasse.
 
 ## La rechute du jour 16 ( nuit 5 ) - le chantier suivant
 Au jour 10, jour d achat des outils, les menages de Malden en achetent pour 109 millions ; le marche en rachete 6
@@ -44,12 +48,13 @@ au jour 22 ( 1-2 % partout ).
 - Une commande publique = une demande ( un bon de commande ne se recompte pas chaque heure ).
 - Le marche rachete d abord ce qui fait vivre et rouler ( la station et la quincaillerie ont chacune leur tresorerie ).
 - La demande d un bien durable se lit sur un mois ( un commercant ne commande pas dix jours d un pic mensuel ).
+- Un pays qui importe tout son gazole le vend a la parite d import des le premier jour.
 
 ## A trancher par toi
-- Deux portes du pays de plus en echec depuis les corrections : `economie.test_credit` ( mise en scene : la
+- Une seule porte du pays de plus en echec a la fin ( 132/145 ) : `economie.test_credit` ( mise en scene : la
   pharmacie videe au jour 4 n a travaille aucune heure ce jour-la - 0 drachme de salaires dus, 960 avant - car le
   marche, a son stock d echelle, a assez de remedes ; sans paie due, pas de credit ; elle demande au jour 5, en
-  travaillant. Le mecanisme tient, le controle suppose un jour travaille ), `immobilier.test_decision_loyer` ( p 0,060 pour 0,05 ). Pays 132/145.
+  travaillant. Le mecanisme tient, le controle suppose un jour travaille ). Le loyer et l import, tombes en route, repassent.
 - Les dettes impayees ( loyer, taxe locale, salaires ) grossissent sans fin : prescription ? faillite personnelle ?
 - Le garde-manger vise 1,5 jour : un jour d approvisionnement rate donne des creux de faim ponctuels.
 - Les references des portes sont hors du depot : `/mnt/data/hmt/ref_domaines.json` ( v4 ) et l ancien moteur temoin
