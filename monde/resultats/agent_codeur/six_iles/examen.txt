@@ -1,0 +1,12 @@
+   180/180 mondes
+
+60 mondes. Jours de faim moyens : code 0.424, regles 0.750, rien 0.662
+difference code - regles : -0.326 IC95 [-0.438 ; -0.223] ; le code fait mieux sur 100% des mondes
+   Altis    : -0.165 ( mieux 100% )
+   Malden   : -1.186 ( mieux 100% )
+   Stratis  : -0.330 ( mieux 100% )
+   Tanoa    : -0.089 ( mieux 100% )
+   Enoch    : -0.094 ( mieux 100% )
+   Sara     : -0.093 ( mieux 100% )
+dette moyenne : code 6.10 M, regles 5.44 M ; morts nets : code -7.1, regles -7.1 ; plantages 0, refus 0 ; conservation tenue partout : True
+EXAMEN : PASSE

@@ -33,11 +33,17 @@ def main():
     a.add_argument("--jours", type=int, default=30); a.add_argument("--echelle", type=float, default=20.0)
     a.add_argument("--travailleurs", type=int, default=4); a.add_argument("--sortie", default=None)
     x = a.parse_args()
-    source = open(x.code).read()
+    # --code : un .py ( le meme code sur toutes les iles ) ou un dossier <Ile>/meilleur.py ( le code de chaque ile )
+    if os.path.isdir(x.code):
+        codes = {ile: open(os.path.join(x.code, ile, "meilleur.py")).read() for ile in ILES
+                 if os.path.exists(os.path.join(x.code, ile, "meilleur.py"))}
+        sortie = x.sortie or os.path.join(x.code, "examen.jsonl")
+    else:
+        codes = {ile: open(x.code).read() for ile in ILES}
+        sortie = x.sortie or os.path.splitext(x.code)[0] + "_examen.jsonl"
     graines = GRAINES_EXAMEN[:x.graines]
-    taches = [(ile, g, s, nom, x.jours, x.echelle) for ile in ILES for g in graines
-              for nom, s in (("code", source), ("regles", AC.REGLES), ("rien", AC.RIEN))]
-    sortie = x.sortie or os.path.splitext(x.code)[0] + "_examen.jsonl"
+    taches = [(ile, g, s, nom, x.jours, x.echelle) for ile in codes for g in graines
+              for nom, s in (("code", codes[ile]), ("regles", AC.REGLES), ("rien", AC.RIEN))]
     print(f"examen de {x.code} : {len(ILES)} iles x {len(graines)} graines x 3 gouvernements = {len(taches)} mondes, "
           f"{x.jours} jours, {int(x.echelle * 500)} habitants", flush=True)
     res = []
@@ -58,7 +64,7 @@ def main():
     print(f"\n{len(mondes)} mondes. Jours de faim moyens : code {moy('code', 'faim'):.3f}, regles {moy('regles', 'faim'):.3f}, "
           f"rien {moy('rien', 'faim'):.3f}")
     print(f"difference code - regles : {d.mean():+.3f} IC95 [{lo:+.3f} ; {hi:+.3f}] ; le code fait mieux sur {mieux:.0%} des mondes")
-    for ile in ILES:
+    for ile in [i for i in ILES if i in codes]:
         di = [par[m]["code"]["faim"] - par[m]["regles"]["faim"] for m in mondes if m[0] == ile]
         print(f"   {ile:8s} : {np.mean(di):+.3f} ( mieux {np.mean(np.array(di) < 0):.0%} )")
     print(f"dette moyenne : code {moy('code', 'dette') / 1e6:.2f} M, regles {moy('regles', 'dette') / 1e6:.2f} M ; "
