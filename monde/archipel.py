@@ -105,8 +105,28 @@ class Ile:
         raise ValueError(ordre)
 
 
-def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False, llm=False, enregistrer=None):
+def gouvernements(spec, noms):
+    """{ ile : source } du gouvernement de chaque ile ( 26/09 : les decisions sont du code ). `spec` : None ( les
+    regles du domaine 6 ), un dict { ile : source }, le chemin d un .py ( le meme code partout ) ou d un dossier
+    ( <dossier>/<Ile>.py ; une ile sans fichier garde les regles )."""
+    if not spec: return {}
+    if isinstance(spec, dict): return dict(spec)
+    if os.path.isdir(spec):
+        return {n: open(os.path.join(spec, f"{n}.py")).read() for n in noms if os.path.exists(os.path.join(spec, f"{n}.py"))}
+    src = open(spec).read()
+    return {n: src for n in noms}
+
+
+def poser_gouvernement(w, nom, source):
+    """Le code gouverne le pays ( CerveauCode, bac a sable ) ; sans code, les regles."""
+    if source is None: return
+    from . import agent_codeur as AC                   # ( import tardif : agent_codeur importe archipel )
+    w.cerveau = AC.CerveauCode(source, nom=nom)
+
+
+def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False, llm=False, enregistrer=None, gouv=None):
     w = pickle.load(open(reprise, "rb")) if reprise else creer_ile(nom, graine, echelle, llm)
+    poser_gouvernement(w, nom, gouv)
     if ouvert: w.archipel = {"noms": tuple(noms), "ouvert": True}
     if enregistrer: ENR.brancher(w, enregistrer, nom)
     ile = Ile(nom, w)
@@ -123,8 +143,10 @@ def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False
 # ------------------------------------------------------------------ le pont
 class Archipel:
     def __init__(self, iles=C.ILES_ARCHIPEL, graine=C.GRAINE, echelle=4.0, parallele=True, reprise=None, ouvert=False,
-                 llm=False, enregistrer=None):
-        """`enregistrer` : un dossier ou chaque ile ecrit tout ce qui s y passe ( monde/enregistreur.py )."""
+                 llm=False, enregistrer=None, gouvernement=None):
+        """`enregistrer` : un dossier ou chaque ile ecrit tout ce qui s y passe ( monde/enregistreur.py ).
+        `gouvernement` : le code qui gouverne chaque ile ( voir gouvernements() ) ; sans, les regles ou le LLM."""
+        gv = gouvernements(gouvernement, tuple(iles))
         self.noms, self.graine, self.echelle, self.parallele, self.ouvert = tuple(iles), graine, echelle, parallele, ouvert
         self.pas = 0
         self.mer = []                      # ( pas d arrivee, ile d origine, n d ordre, destination, message )
@@ -139,7 +161,7 @@ class Archipel:
             self.tuyaux, self.proc = {}, {}
             for n in self.noms:
                 a, b = ctx.Pipe()
-                p = ctx.Process(target=_processus_ile, args=(n, graine, echelle, chemin(n), b, self.noms, ouvert, llm, enregistrer), daemon=True)
+                p = ctx.Process(target=_processus_ile, args=(n, graine, echelle, chemin(n), b, self.noms, ouvert, llm, enregistrer, gv.get(n)), daemon=True)
                 p.start(); self.tuyaux[n], self.proc[n] = a, p
             for n in self.noms: assert self.tuyaux[n].recv() == ("pret", n)
         else:
@@ -149,6 +171,7 @@ class Archipel:
                 for i in self.iles.values(): i.w.archipel = {"noms": self.noms, "ouvert": True}
             if enregistrer:
                 for n, i in self.iles.items(): ENR.brancher(i.w, enregistrer, n)
+            for n, i in self.iles.items(): poser_gouvernement(i.w, n, gv.get(n))
 
     # --- la vitesse : temps reel si un humain est la ---
     def temps_reel(self): return os.path.exists(HUMAIN)

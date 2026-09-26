@@ -12,6 +12,7 @@ Garde-fous :
 
    python -m monde.agent_codeur --ile Malden --tours 12 --jours 30 --echelle 20"""
 import argparse, ast, builtins, copy, hashlib, json, math, os, re, signal, sys, time, urllib.request
+from multiprocessing import get_context
 from . import config as C
 from .archipel import Archipel
 from .pays import d06_etat as ET
@@ -126,6 +127,33 @@ def evaluer(source, ile="Malden", echelle=20.0, jours=30, graine=C.GRAINE):
     return m
 
 
+GRAINES_ENTRAINEMENT = tuple(range(2001, 2051))     # jamais celles de l examen ( 1001-1050 ) ni C.GRAINE
+
+
+def _evaluer_un(args):
+    source, ile, echelle, jours, graine = args
+    try: return evaluer(source, ile, echelle, jours, graine)
+    except (CodeRefuse, SyntaxError) as ex: return {"erreur": f"{type(ex).__name__}: {ex}"}
+
+
+def evaluer_plusieurs(source, mondes, echelle, jours, travailleurs=4):
+    """La moyenne sur plusieurs mondes ( ile, graine ) : un code ne peut plus apprendre UN monde par coeur ( 26/09 ).
+    Rend les mesures moyennes, la faim moyenne jour par jour, et le detail de chaque monde."""
+    taches = [(source, i, echelle, jours, g) for i, g in mondes]
+    with get_context("fork").Pool(min(travailleurs, len(taches))) as pool: res = pool.map(_evaluer_un, taches)
+    err = [r["erreur"] for r in res if "erreur" in r]
+    if err: raise CodeRefuse(err[0])
+    moy = lambda k: round(sum(r[k] for r in res) / len(res), 3)
+    m = {"jours_de_faim": moy("jours_de_faim"), "morts_nets": moy("morts_nets"), "dette": moy("dette"),
+         "caisse_etat": moy("caisse_etat"), "refus": sum(r["refus"] for r in res), "jours_joues_par_les_regles":
+         sum(r["jours_joues_par_les_regles"] for r in res), "conservation": all(r["conservation"] for r in res),
+         "faim_par_jour": [round(sum(r["faim_par_jour"][j] for r in res) / len(res), 4) for j in range(jours)],
+         "raisons_refus": {k: v for r in res for k, v in r["raisons_refus"].items()},
+         "par_monde": {f"{i}/{g}": r["jours_de_faim"] for (i, g), r in zip(mondes, res)}}
+    m["score"] = score(m)
+    return m
+
+
 def score(m):
     """Plus haut = mieux. La faim d abord ( un jour ou tous les menages habites ont faim vaut 100 points ), puis les
     morts, puis les jours ou le code a plante ( joues par les regles ), puis les actions refusees."""
@@ -193,17 +221,23 @@ def historique(versions, k=HISTORIQUE_K):
         m = v["mesures"]
         out.append(f"### version {v['n']} - score {m['score']} ( jours de faim {m['jours_de_faim']}, morts {m['morts_nets']}, "
                    f"plantages {m['jours_joues_par_les_regles']}, refus {m['refus']} {m['raisons_refus']}, dette {m['dette']} )\n"
-                   f"faim par jour : {m['faim_par_jour']}\n```python\n{v['source']}```")
+                   f"faim par jour ( moyenne des mondes ) : {m['faim_par_jour']}\n"
+                   + (f"jours de faim par monde : {m['par_monde']}\n" if m.get("par_monde") else "")
+                   + f"```python\n{v['source']}```")
     return "\n\n".join(out)
 
 
-def boucle(ile, tours, jours, echelle, graine):
-    d = os.path.join(DOSSIER, ile); os.makedirs(d, exist_ok=True)
+def boucle(ile, tours, jours, echelle, graine, mondes=None, travailleurs=4, dossier=None, depart=None):
+    """`mondes` : la liste des ( ile, graine ) sur lesquels chaque version est notee ( la moyenne ) ; sans, le seul
+    monde ( ile, graine ) du premier essai."""
+    mondes = mondes or [(ile, graine)]
+    evalue = lambda s: evaluer_plusieurs(s, mondes, echelle, jours, travailleurs)
+    d = dossier or os.path.join(DOSSIER, ile); os.makedirs(d, exist_ok=True)
     journal = open(os.path.join(d, "journal.jsonl"), "a")
     def noter(x): journal.write(json.dumps(x, ensure_ascii=False) + "\n"); journal.flush()
     t0 = time.time()
-    temoin = evaluer(REGLES, ile, echelle, jours, graine)
-    rien = evaluer(RIEN, ile, echelle, jours, graine)
+    temoin = evalue(REGLES)
+    rien = evalue(RIEN)
     print(f"temoin ( regles ) : score {temoin['score']} faim {temoin['jours_de_faim']} | rien : score {rien['score']} "
           f"faim {rien['jours_de_faim']} ( {time.time() - t0:.0f} s )", flush=True)
     noter({"temoin": temoin, "rien": rien})
@@ -216,6 +250,10 @@ def boucle(ile, tours, jours, echelle, graine):
     for l in open(os.path.join(d, "journal.jsonl")):
         x = json.loads(l)
         if "n" in x and "erreur" not in x["mesures"] and x["mesures"].get("jours_de_faim") is not None: versions.append(x)
+    if depart and not versions:                # un point de depart deja examine ( version 0 )
+        src = open(depart).read(); v0 = {"n": 0, "source": src, "mesures": evalue(src), "secondes": 0, "pensee": 0, "depart": depart}
+        versions.append(v0); noter(v0)
+        print(f"depart ( {depart} ) : score {v0['mesures']['score']} faim {v0['mesures']['jours_de_faim']}", flush=True)
     debut = max([v["n"] for v in versions], default=0) + 1
     if versions: print(f"reprise : {len(versions)} versions notees, meilleure {max(v['mesures']['score'] for v in versions)}", flush=True)
     for n in range(debut, debut + tours):
@@ -228,7 +266,7 @@ def boucle(ile, tours, jours, echelle, graine):
         texte, pensee = demander(prompt)
         source = extraire_code(texte)
         try:
-            mes = evaluer(source, ile, echelle, jours, graine)
+            mes = evalue(source)
         except (CodeRefuse, SyntaxError) as ex:
             mes = {"score": -1e9, "jours_de_faim": None, "faim_par_jour": [], "morts_nets": 0, "dette": None, "caisse_etat": None,
                    "refus": 0, "raisons_refus": {}, "jours_joues_par_les_regles": jours, "conservation": None,
@@ -240,6 +278,10 @@ def boucle(ile, tours, jours, echelle, graine):
         print(f"version {n} : score {mes['score']} faim {mes['jours_de_faim']} plantages {mes['jours_joues_par_les_regles']} "
               f"refus {mes['refus']} {'BAT LE TEMOIN' if bat else ''} {mes.get('erreur', '')[:120]} ( {v['secondes']} s )", flush=True)
     meilleure = max(versions, key=lambda v: v["mesures"]["score"])
+    with open(os.path.join(d, "meilleur.py"), "w") as f: f.write(meilleure["source"])
+    with open(os.path.join(d, "meilleur.json"), "w") as f:
+        json.dump({"version": meilleure["n"], "mesures": meilleure["mesures"], "temoin": temoin["score"], "rien": rien["score"],
+                   "mondes": mondes}, f, ensure_ascii=False)
     print(f"\nmeilleure : version {meilleure['n']}, score {meilleure['mesures']['score']} ( temoin {temoin['score']}, rien {rien['score']} )")
     return meilleure, temoin, rien
 
@@ -249,8 +291,13 @@ def main():
     a.add_argument("--ile", default="Malden"); a.add_argument("--tours", type=int, default=12)
     a.add_argument("--jours", type=int, default=30); a.add_argument("--echelle", type=float, default=20.0)
     a.add_argument("--graine", type=int, default=C.GRAINE)
+    a.add_argument("--mondes", type=int, default=0, help="nombre de graines d entrainement ( 0 : le seul monde --graine )")
+    a.add_argument("--travailleurs", type=int, default=4)
+    a.add_argument("--dossier", default=None)
+    a.add_argument("--depart", default=None, help="un code deja examine, note comme version 0")
     x = a.parse_args()
-    boucle(x.ile, x.tours, x.jours, x.echelle, x.graine)
+    mondes = [(x.ile, g) for g in GRAINES_ENTRAINEMENT[:x.mondes]] if x.mondes else None
+    boucle(x.ile, x.tours, x.jours, x.echelle, x.graine, mondes, x.travailleurs, x.dossier, x.depart)
     return 0
 
 

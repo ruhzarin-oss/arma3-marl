@@ -38,6 +38,17 @@ def main():
     finally: AC.BUILTINS.pop("REGLES", None)
     dire(m["faim_par_jour"] == regles["faim_par_jour"] and m["caisse_etat"] == regles["caisse_etat"] and m["morts_nets"] == regles["morts_nets"],
          f"A5 le code qui recopie les regles = les regles ( caisse {m['caisse_etat']} / {regles['caisse_etat']} )")
+    # A6 : un archipel gouverne par du code ( option gouvernement de l Archipel, comme la nuit ) tourne, tient sa
+    # conservation et journalise que c est le code qui decide
+    from .archipel import Archipel
+    code = "def gouverner(b, memoire):\n    memoire['n'] = memoire.get('n', 0) + 1\n    return [{'type': 'rien'}]\n"
+    arc = Archipel(iles=("Malden", "Tanoa"), echelle=2.0, ouvert=True, parallele=True, gouvernement={"Malden": code})
+    arc.jours(2)
+    e = arc._envoyer_a_tous(lambda n: ("etat",))
+    tenue = all(arc.commande(n, "tenue")[0] for n in ("Malden", "Tanoa"))
+    arc.fermer()
+    dire(tenue and str(e["Malden"]["gouvernement"]["cerveau"]).startswith("code:") and e["Tanoa"]["gouvernement"]["cerveau"] == "regles",
+         f"A6 archipel : Malden gouverne par {e['Malden']['gouvernement']['cerveau']}, Tanoa par {e['Tanoa']['gouvernement']['cerveau']}, conservation {tenue}")
     print(f"PORTE DE L AGENT CODEUR : {'FRANCHIE' if ok else 'REFUSEE'}")
     return 0 if ok else 1
 

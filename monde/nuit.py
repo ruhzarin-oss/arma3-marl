@@ -55,6 +55,8 @@ def main():
     a = argparse.ArgumentParser()
     a.add_argument("--echelle", type=float, default=2000)
     a.add_argument("--llm", action="store_true")
+    a.add_argument("--gouvernement", default=None,
+                   help="le code qui gouverne : un .py ( partout ) ou un dossier <Ile>.py ( 26/09 : les decisions sont du code )")
     a.add_argument("--dossier", default="/mnt/data/hmt/archipel/nuit")
     a.add_argument("--enregistrer", default=None, help="dossier ou chaque ile ecrit tout ce qui s y passe ( Parquet )")
     x = a.parse_args()
@@ -65,10 +67,11 @@ def main():
         try:
             t0 = time.time()
             reprise = inst if os.path.exists(os.path.join(inst, "pont.pkl")) else None
-            arc = Archipel(echelle=x.echelle, ouvert=True, llm=x.llm, reprise=reprise, enregistrer=x.enregistrer)
+            arc = Archipel(echelle=x.echelle, ouvert=True, llm=x.llm, reprise=reprise, enregistrer=x.enregistrer,
+                           gouvernement=x.gouvernement)
             ecrire(d, {"evenement": "depart", "reprise": bool(reprise), "pas": arc.pas, "secondes": round(time.time() - t0)},
                    f"== archipel {'repris au pas ' + str(arc.pas) if reprise else 'cree'} en {time.time() - t0:.0f} s "
-                   f"( {x.echelle * 500:,.0f} habitants par pays, gouvernements {'Qwen' if x.llm else 'regles'} )")
+                   f"( {x.echelle * 500:,.0f} habitants par pays, gouvernements {'Qwen' if x.llm else ('code ' + os.path.basename(x.gouvernement)) if x.gouvernement else 'regles'} )")
             while not os.path.exists(stop):
                 t0 = time.time(); arc.jours(1); dt = time.time() - t0
                 etats = arc._envoyer_a_tous(lambda n: ("etat",))
