@@ -54,7 +54,9 @@ class HorlogeDeGuerre:
         self.relever_gouvernements()
         for ile in self.camps.values():
             r = self.arc.commande(ile, "guerre_releve")
-            if ile == self.champ: self.occupees = set(r["occupees"])
+            if ile == self.champ:
+                self.occupees = set(r["occupees"])
+                for n in sorted(self.occupees): self.arc.commande(ile, "occuper", n, self.lieux[n], True)   # a jour ( villes )
         if self.suivre and hasattr(self.arma, "identifier"): self.identifies = self.identifier()
         self.t0 = self.horloge()
         self.prochain = self.t0 + self.periode

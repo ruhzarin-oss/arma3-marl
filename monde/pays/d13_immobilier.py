@@ -1016,7 +1016,69 @@ def _changer_de_lieu(p, mg, lieu):
         if rentre and h.poste == "maison": h.lieu = lieu
 
 
+def _capacites(surface):
+    """capacite() sur un tableau de surfaces, au bit pres ( floor_divide de numpy = // de Python sur les flottants )."""
+    s = np.asarray(surface, dtype=np.float64)
+    return np.where(s < 9.0, 0, np.where(s < 16.0, 1, 2 + np.floor_divide(s - 16.0, 9.0))).astype(np.int64)
+
+
 def _apparier(p, d, offres, chercheurs):
+    """_apparier_reference, en tableaux ( 27/09, la guerre des iles : a 100 000 habitants, au jour 220, la version
+    Python prenait 75 % d une journee du moteur, 40 millions d acces a la table ). MEME regle, MEMES calculs dans le meme
+    ordre, MEME departage ( score, batiment, lieu ) : seule la boucle sur les logements offerts devient une operation
+    sur des tableaux ; tout ce qui change le monde ( liberer, signer, demenager ) reste appele comme avant, dans le meme
+    ordre. Porte : guerre/porte_immobilier.py, identite au bit avec la reference."""
+    T = d.B; w = p.w
+    log = p.col("menage", "im_logement"); st = p.col("menage", "im_statut")
+    inc = p.col("menage", "incidents") if "incidents" in p.colonnes["menage"] else None
+    libres = {k: np.array([b for b in lst if T["prix"][b] > 0], dtype=np.int64) for k, lst in offres.items()}
+    tous = sorted((m for lst in chercheurs.values() for m in lst),
+                  key=lambda m: (0 if log[m] < 0 or st[m] == ABRI else 1, d.cherche[m][0], m))
+    for mid in tous:
+        mg = w.menages[mid]
+        n = _n_vivants(mg)
+        if n == 0 or mg.domicile is None: continue
+        k = d.k_lieu[mg.domicile.id]
+        siens = [b for b in sorted(d.par_proprio.get(("M", mid), ())) if T["occupant"][b] < 0 and _habitable(T, b)
+                 and T["chantier"][b] < 0 and T["lieu"][b] == k and capacite(T["surface"][b]) >= n and T["bail"][b] < 0]
+        if siens:
+            b = max(siens, key=lambda x: (T["surface"][x], -x))
+            lk = libres.get(k)
+            if lk is not None and (lk == b).any(): libres[k] = lk[lk != b]
+            _liberer(p, d, mg, "demenagement"); _occuper(p, d, mg, b, PROPRIETAIRE)
+            p.compter("emmenagement_proprietaire"); continue
+        plafond = EFFORT_MAX * revenu_mensuel(p, mg)
+        actuel = int(log[mid])
+        s_act = T["surface"][actuel] if actuel >= 0 and st[mid] != ABRI else 0.0
+        libre_choix = s_act == 0.0 or MOTIFS_RECHERCHE[d.cherche[mid][1]] == "fin_bail"
+        utile = surface_min(n) + 30.0
+        bb, kk, kmm = [], [], []
+        for km, k2 in _voisins(p, d, k):
+            a2 = libres.get(k2)
+            if a2 is None or not len(a2): continue
+            bb.append(a2); kk.append(np.full(len(a2), k2, dtype=np.int64)); kmm.append(np.full(len(a2), km, dtype=np.float64))
+        choix = []
+        if bb:
+            bs = np.concatenate(bb); ks = np.concatenate(kk); kms = np.concatenate(kmm)
+            pr = T["prix"][bs]; sf = T["surface"][bs]
+            ok = (pr <= plafond) & (_capacites(sf) >= n) & (libre_choix | (sf > s_act))
+            if ok.any():
+                bs, ks, kms, pr, sf = bs[ok], ks[ok], kms[ok], pr[ok], sf[ok]
+                sc = -np.minimum(sf, utile) / pr / (1.0 + kms / RAYON_RECHERCHE_KM)
+                ordre = np.lexsort((ks, bs, sc))[:3]
+                choix = [(int(bs[o]), int(ks[o])) for o in ordre]
+        for b, k2 in choix:
+            loyer = float(T["prix"][b])
+            if (inc is not None and inc[mid] >= INCIDENTS_MAX) or mg.caisse < loyer or proprietaire(p, b) is mg:
+                d.stats["candidats_refuses"] += 1; p.compter("candidat_refuse"); continue
+            _liberer(p, d, mg, "demenagement")
+            _changer_de_lieu(p, mg, w.carte.lieux[d.lieux[k2]])
+            _signer(p, d, b, mg, loyer)
+            libres[k2] = libres[k2][libres[k2] != b]
+            break
+
+
+def _apparier_reference(p, d, offres, chercheurs):
     """Chaque chercheur ( les sans-logis et les menages en abri d abord, puis par anciennete de recherche ) prend, dans
     son lieu ou un lieu voisin de sa zone ( moins de 25 km ), le logement offert au meilleur rapport surface utile sur
     loyer ( rabattu de la distance ), sous 40 % de son revenu ; le bailleur l accepte s il a moins de deux incidents

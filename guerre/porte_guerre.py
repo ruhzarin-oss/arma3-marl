@@ -44,6 +44,12 @@ G12 LE CONSEIL DE GUERRE ( sans Qwen ; ecrite avant la mesure ) : le scenario lu
    positifs ; un petit Malden en guerre ( 3 jours ) gouverne par le code de Qwen voit des soldats au front, paie des
    armes, a sa ferme occupee sous sequestre, tient sa conservation et rend une note ; dans un archipel, la releve d un
    gouvernement par le conseil change qui decide des le lendemain ; un code interdit ( import ) est refuse.
+G13 VILLES OCCUPEES ( 27/09, ecrite avant la mesure ) : la zone de La Trinite ( capitale et siege du gouvernement )
+   occupee trois jours dans un petit Malden : les presents au travail a La Trinite, rapportes a ceux d un lieu temoin
+   ( la ferme de Dourdan ; AMENDE apres le premier essai : la ville de Larche, prise d abord, n a aucun emploi dans le
+   moteur, 0 present, rapport impossible - La Trinite y tombait de 45 492 a 11 574 ), tombent sous 0,4 fois leur rapport d avant ; ils remontent au-dessus de 0,8 fois apres la liberation ;
+   une quarantaine posee par le gouvernement lui-meme ( ailleurs ) reste ; le bulletin dit ville occupee et siege
+   occupe ; la conservation tient.
 
    python -m guerre.porte_guerre"""
 import math, os, re, sys, time
@@ -323,6 +329,37 @@ def main():
     ok["G12 la releve change qui decide ; un code interdit est refuse"] = (
         avant == "regles" and apres.startswith("code:") and d12 and str(d12[-1].get("cerveau", "")).startswith("code:") and refuse12)
     arc12.fermer()
+    # G13
+    from monde import population as PO13
+    arc13 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False)
+    w13 = arc13.iles["Malden"].w; t13 = w13.table
+    zt = next(z["n"] for z in zs if "Malden_C_LaTrinite" in z["lieux"]); lt = next(z["lieux"] for z in zs if z["n"] == zt)
+    kt, kl = w13.carte.lieux["Malden_C_LaTrinite"].n, w13.carte.lieux["Malden_V_Dourdan"].n
+    w13.gouv.lois.setdefault("quarantaine", []).append("Malden_V_Goisse")       # la quarantaine du gouvernement, ailleurs
+    def au_travail(jours):
+        tot = [0, 0]
+        for _ in range(jours * 144):
+            arc13.un_pas(); n13 = t13.n
+            at = (t13.vivant[:n13] == 1) & (t13.poste[:n13] == PO13.CODE_POSTE["travail"])
+            tot[0] += int((at & (t13.lieu[:n13] == kt)).sum()); tot[1] += int((at & (t13.lieu[:n13] == kl)).sum())
+        return tot
+    av = au_travail(3)
+    arc13.commande("Malden", "occuper", zt, lt, True)
+    b13 = GM.bulletin_guerre(w13)
+    pe = au_travail(3)
+    arc13.commande("Malden", "occuper", zt, lt, False)
+    ap = au_travail(4)
+    rap = lambda x: x[0] / max(1, x[1])
+    gv = "Malden_V_Goisse" in w13.gouv.lois["quarantaine"] and "Malden_C_LaTrinite" not in w13.gouv.lois["quarantaine"]
+    tenue13 = arc13.commande("Malden", "tenue")
+    print(f"   villes occupees : presents La Trinite / Dourdan avant {av} ( {rap(av):.2f} ), occupee {pe} ( {rap(pe):.2f} ), "
+          f"liberee {ap} ( {rap(ap):.2f} ) ; bulletin {b13['villes_occupees']} siege {b13['siege_du_gouvernement_occupe']}", flush=True)
+    ok["G13 controle positif : La Trinite travaillait avant ; occupee, sous 0,4 fois son rapport au temoin"] = (
+        av[0] > 0 and av[1] > 0 and pe[1] > 0 and rap(pe) < 0.4 * rap(av))
+    ok["G13 liberee, au-dessus de 0,8 fois ; la quarantaine du gouvernement reste ; bulletin ; conservation"] = (
+        rap(ap) > 0.8 * rap(av) and gv and "Malden_C_LaTrinite" in b13["villes_occupees"] and b13["siege_du_gouvernement_occupe"]
+        and bool(tenue13[0]))
+    arc13.fermer()
     ok["G11 l ile sans code decide par les regles, sans bascule"] = (
         len(dec(ws)) >= 2 and all(e.get("cerveau") == "regles" and not str(e.get("motifs", "")).startswith("cerveau indisponible") for e in dec(ws)))
     arc11.fermer()

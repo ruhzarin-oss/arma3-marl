@@ -14,9 +14,16 @@
    ( 26/09 : la quarantaine, essayee d abord, ne retient pas un paysan qui travaille chez lui - la porte G4 l a vu. )
    La liberation leve le sequestre et ferme le choc au jour de la releve.
 
-CE QUE L OCCUPATION NE FAIT PAS ENCORE ( v0 ) : l envahisseur ne recoit pas ce que la zone produisait ( la voie :
-d09.requisitionner ) ; les fonderies et la centrale ne s arretent pas ; les villes occupees n ont aucun effet ; un
-soldat tue dans Arma ne meurt pas dans le moteur."""
+   ( 27/09, Younes : « au plus proche du reel » ) Tous les lieux de la zone, VILLES comprises, passent en plus sous les
+   RESTRICTIONS DE CIRCULATION de l occupant ( la quarantaine du moteur, respectee par l agenda ) : habitants et
+   travailleurs du lieu restent chez eux, sauf les 20 % indociles. Une capitale occupee perd le personnel de son
+   marche, de son hopital et de ses ministeres qui vit ailleurs ; le bulletin du gouvernement le dit ( villes occupees,
+   siege du gouvernement occupe ).
+
+CE QUE L OCCUPATION NE FAIT PAS ENCORE : l envahisseur ne recoit pas ce que la zone produisait ( la voie :
+d09.requisitionner ) ; les fonderies et la centrale ne s arretent pas ; les gens du dehors peuvent encore venir faire
+leurs courses au marche d une ville occupee ( l agenda ne bloque que domicile et travail ) ; le gouvernement ne
+demenage pas son siege."""
 import math
 from monde import population as PO
 
@@ -42,6 +49,7 @@ def militaires(w):
 
 
 def releve_de_guerre(w):
+    _quarantaine_occupant(w)
     e = _etat(w)
     serie = list(e.tresor.serie)
     dernier = getattr(w, "guerre_dernier_jour", None)
@@ -68,11 +76,26 @@ def _ferme(p, lieu):
     return AG.exploitation_de(p, lieu) if p.a("agriculture") else None
 
 
+def _quarantaine_occupant(w):
+    """L occupant tient ses lieux : RESTRICTIONS DE CIRCULATION ( la quarantaine du moteur, que l agenda respecte ) -
+    ceux qui y habitent et ceux qui y travaillent restent chez eux, sauf la part indocile ( config.QUARANTAINE_VIOLEE ).
+    Remise a chaque releve si le gouvernement la leve ; une quarantaine du gouvernement n est jamais retiree ici."""
+    q = w.gouv.lois.setdefault("quarantaine", [])
+    for o in getattr(w, "occupations", {}).values():
+        for l in o.get("quarantaine", ()):
+            if l not in q: q.append(l)
+
+
 def occuper(w, zone, lieux, actif):
     """Pose ( actif ) ou leve l occupation d une zone. Rend les zones occupees et ce que chacune tient."""
     p = w.pays
     occ = w.__dict__.setdefault("occupations", {})
     zone = int(zone)
+    if actif and zone in occ and "quarantaine" not in occ[zone]:          # une occupation d avant le 27/09 : les villes aussi
+        q = w.gouv.lois.setdefault("quarantaine", [])
+        occ[zone]["quarantaine"] = [l for l in lieux if l in w.carte.lieux and l not in q]
+        occ[zone]["lieux"] = list(lieux)
+        _quarantaine_occupant(w)
     if actif and zone not in occ:
         fermes, moteur, hors = [], [], []
         for l in lieux:
@@ -86,14 +109,20 @@ def occuper(w, zone, lieux, actif):
             else: hors.append(f"{l}:{dom}")
         c = {"debut": int(w.jour), "jours": JAMAIS, "lieux": tuple(moteur), "facteur": 0.0, "occupation": zone} if moteur else None
         if c is not None: w.chocs.append(c)
-        occ[zone] = {"fermes": fermes, "moteur": moteur, "non_couverts": hors, "choc": c}
+        q = w.gouv.lois.setdefault("quarantaine", [])
+        occ[zone] = {"fermes": fermes, "moteur": moteur, "non_couverts": hors, "choc": c, "lieux": list(lieux),
+                     "quarantaine": [l for l in lieux if l in w.carte.lieux and l not in q]}
+        _quarantaine_occupant(w)
         w.noter("occupation", zone=zone, fermes=len(fermes), sites_moteur=len(moteur), non_couverts=len(hors))
     elif not actif and zone in occ:
         o = occ.pop(zone)
         for l in o["fermes"]: _ferme(p, l).sequestre = False
+        levees = set(o.get("quarantaine", ())) - {l for x in occ.values() for l in x.get("quarantaine", ())}
+        w.gouv.lois["quarantaine"] = [l for l in w.gouv.lois.get("quarantaine", []) if l not in levees]
         if o["choc"] is not None: o["choc"]["jours"] = max(0, int(w.jour) - o["choc"]["debut"])
         w.noter("liberation", zone=zone)
     return {"occupees": sorted(occ), "fermes": sorted(l for o in occ.values() for l in o["fermes"]),
+            "lieux_sous_occupation": sorted(l for o in occ.values() for l in o.get("quarantaine", ())),
             "sites_moteur": sorted(l for o in occ.values() for l in o["moteur"]),
             "non_couverts": sorted(l for o in occ.values() for l in o["non_couverts"])}
 
@@ -213,6 +242,10 @@ def bulletin_guerre(w):
             "cout_guerre_total": round(getattr(w, "guerre_paye", 0.0)),
             "cout_guerre_30j": round(math.fsum(x for j, x in pay if j >= int(w.jour) - 30)),
             "zones_occupees": len(occ), "fermes_sous_sequestre": sum(len(o.get("fermes", ())) for o in occ.values()),
+            "lieux_sous_occupation": sorted(l for o in occ.values() for l in o.get("quarantaine", ())),
+            "villes_occupees": sorted(l for o in occ.values() for l in o.get("quarantaine", ())
+                                      if w.carte.lieux[l].type in ("capitale", "ville")),
+            "siege_du_gouvernement_occupe": any(w.carte.gouvernement.id in o.get("quarantaine", ()) for o in occ.values()),
             "source": "etat-major et Tresor, le jour meme"}
 
 
