@@ -18,7 +18,8 @@ recevoir_courrier : arrivee, retour, refoule ).
    python -m monde.archipel --jours 2 --echelle 4"""
 import argparse, hashlib, os, pickle, sys, time
 import multiprocessing as mp
-from . import monde as W, tests as T, config as C, or_reel as OR, enregistreur as ENR
+import numpy as np
+from . import monde as W, tests as T, config as C, or_reel as OR, enregistreur as ENR, population as PO
 from .pays import pays as P
 from .porte_domaines import LIVRES, empreinte
 
@@ -81,8 +82,13 @@ class Ile:
             tenue, msg = w.pays.socle.conservation.tenue() if getattr(w, "pays", None) else (True, "")
             dec = next((e for e in reversed(w.evenements) if e.get("type") == "decision_gouvernement"), None)
             o = getattr(w, "etalon_or", {})
+            # la faim sur les menages qui ont un vivant ( ~29 % de la liste sont vides : 71 % sur la liste = 100 % des
+            # menages vivants, 26/09 ) ; « faim_liste » garde l ancien rapport pour comparer aux nuits d avant
+            ins = PO.menages_inscrits(t, n)
+            habites = int((np.bincount(ins[(t.vivant[:n] == 1) & (ins >= 0)], minlength=len(w.menages)) > 0).sum())
+            sans = w.stats_jour.get("menages_sans_nourriture", 0)
             return {"ile": self.nom, "jour": w.jour, "vivants": int(t.vivant[:n].sum()), "habitants": n,
-                    "faim": w.stats_jour.get("menages_sans_nourriture", 0) / max(1, len(w.menages)),
+                    "faim": sans / max(1, habites), "faim_liste": sans / max(1, len(w.menages)), "menages_habites": habites,
                     "conservation": bool(tenue), "monnaie": o.get("monnaie"), "euros_par_unite": o.get("dernier_taux"),
                     "or_euros_g": o.get("cours"), "etrangers": len(w.etrangers), "absents": len(w.absents),
                     "gouvernement": None if dec is None else {"cerveau": dec.get("cerveau"), "motifs": str(dec.get("motifs"))[:160],
