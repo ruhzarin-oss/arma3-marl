@@ -1218,7 +1218,7 @@ def _independants(p, d, agg):
     w = p.w; L = p.socle.livre; g = w.gouv; col = p.colonnes["habitant"]; tb = w.table
     for m in w.marches.values():
         marchands = _ids_filtres(w, m.lieu, "marchand")
-        exces = m.caisse - 20000.0
+        exces = m.caisse - 20000.0 * getattr(m, "echelle", 1.0)     # le fonds de roulement du marche ( moteur, 26/09 )
         if exces > 0 and marchands:
             for i in marchands:
                 mg = _menage_de(tb, i)

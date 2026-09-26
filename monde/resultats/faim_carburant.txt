@@ -23,3 +23,12 @@ LA FAIM DES ILES A UN MARCHE ( enquete du 26/09, archipel ouvert, 6 x 10 000 hab
    2 notes, il en faut 5 ), immobilier.test_decision_loyer ( p permutation 0,060 pour 0,05 ), economie.test_credit
    ( la pharmacie videe au jour 4 demande son credit au jour 5 : le marche, a sa caisse d echelle, la paie
    probablement assez pour la paie du soir ). Conservation tenue partout.
+
+7. Oubli de la correction « echelle » : le domaine du travail remplace la paie du moteur et gardait son propre seuil
+   fixe de 20 000 avant le benefice des marchands. Au jour 0, les marches versaient la moitie de leur caisse d echelle
+   ( 63 millions a Malden a 1 M, vu dans la matrice de la nuit ) : le fonds de roulement disparaissait. Corrige ( meme
+   echelle ). Controle : 10 000 habitants, premier benefice 623 257 -> 33 257 drachmes ( la moitie de l exces sur le
+   fonds ). Porte G1, faim moyenne : Altis 7,3 %, Malden 19,4, Stratis 10,8, Tanoa 12,6, Enoch 14,8, Sara 3,5.
+   Pays 132/145 ( emploi repasse ; restent credit et loyer, voir 6 ).
+8. Nuit 6 x 1 M ( code 87dfca5, avant ce correctif ) : faim 2 a 3 % aux jours 3 et 4 dans les six pays, contre 71 a 73 %
+   la nuit precedente ( code b01c0da ) aux memes jours.
