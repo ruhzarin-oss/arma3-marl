@@ -17,6 +17,9 @@
 
 6. **Priorite des biens vitaux** ( ce commit ) : le marche rachete d abord nourriture, remedes, carburant.
    Partiel : voir la rechute ci-dessous.
+7. **Lissage mensuel de la demande d outils** ( ce commit ) : jours de faim a 6 x 10 000 sur 30 jours 15,0 -> 12,0 ;
+   G1 : Tanoa 12,6 -> 2,0 %, Enoch 14,8 -> 2,1 %. En echange, `exterieur.test_decision_importer` tombe ( et
+   `immobilier.test_decision_loyer` repasse ) : a trancher.
 
 ## La rechute du jour 16 ( nuit 5 ) - le chantier suivant
 Au jour 10, jour d achat des outils, les menages de Malden en achetent pour 109 millions ; le marche en rachete 6
@@ -33,9 +36,14 @@ A trancher avec toi ( c est le coeur de l economie ) : detail dans monde/resulta
 | faim jours 16-18 | 71 a 73 % | 21 a 73 % ( rechute : voir plus haut ) |
 | conservation | tenue | tenue |
 
+Nuit 6 ( bc05f06 ) : la rechute du jour 16 a eu lieu ( 100 % dans cinq iles au jour 17 ) et s est resorbee seule
+au jour 22 ( 1-2 % partout ).
+
 ## Decisions prises a ta place ( « copier le reel » )
 - Stocks et caisse d un marche proportionnels a sa population ( un pays reel demarre avec ses stations pleines ).
 - Une commande publique = une demande ( un bon de commande ne se recompte pas chaque heure ).
+- Le marche rachete d abord ce qui fait vivre et rouler ( la station et la quincaillerie ont chacune leur tresorerie ).
+- La demande d un bien durable se lit sur un mois ( un commercant ne commande pas dix jours d un pic mensuel ).
 
 ## A trancher par toi
 - Deux portes du pays de plus en echec depuis les corrections : `economie.test_credit` ( mise en scene : la

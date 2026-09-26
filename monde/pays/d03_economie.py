@@ -161,6 +161,11 @@ BIENS_PRIX = tuple(COUVERTURE_CIBLE_J)
 KAPPA_PRIX = 0.08               # au plus 8 % de hausse ou de baisse par jour sur l ecart de stock ( a calibrer )
 BETA_COUT = 0.05                # rappel vers le prix de revient des producteurs de la region, par jour
 ALPHA_DEMANDE = 0.25            # demande lissee sur ~ 4 jours
+# un bien durable s achete par a-coups ( un renouvellement d un coup, le meme jour pour beaucoup de menages ) : lisse
+# sur quatre jours, le pic du jour 10 ( 109 millions d outils a Malden a un million d habitants ) devenait dix jours de
+# stock a racheter, le marche et le negoce vidaient leur caisse en importations, et le carburant n etait plus achete
+# ( faim au jour 16, 26/09 ). Comme un vrai commercant pour un bien durable : la demande se lit sur un mois
+ALPHA_DEMANDE_BIEN = {"outils": 1.0 / 30.0}
 DEMANDE_MIN = 0.1               # unites par jour : sous ce plancher, personne ne demande
 PLANCHER, PLAFOND = 0.25, 2.5   # bornes en prix mondial ( au-dela : importation, domaine 7 ; en deca : personne ne vend )
 PARITE_EXPORT = 0.8             # le moteur exporte les surplus de nourriture a 0,8 fois le prix mondial ( monde.py, expedier )
@@ -767,7 +772,8 @@ def _ajuster_prix(p, mid):
         if ferme_hier: pass                        # commerces fermes hier : ni ventes, ni prix nouveau
         elif b in COUVERTURE_CIBLE_J:
             cible = COUVERTURE_CIBLE_J[b]
-            em.demande_lisse[b] = (1.0 - ALPHA_DEMANDE) * em.demande_lisse[b] + ALPHA_DEMANDE * m.demande[b]
+            al = ALPHA_DEMANDE_BIEN.get(b, ALPHA_DEMANDE)
+            em.demande_lisse[b] = (1.0 - al) * em.demande_lisse[b] + al * m.demande[b]
             dem = max(DEMANDE_MIN, em.demande_lisse[b])
             couv = max(0.0, m.stocks[b]) / dem
             em.couverture[b] = couv
