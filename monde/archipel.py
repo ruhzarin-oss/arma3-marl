@@ -100,6 +100,23 @@ class Ile:
             return self.w.pays.socle.conservation.tenue() if getattr(self.w, "pays", None) else (True, "sans socle")
         if ordre == "frontiere":                    # ( ouverte, iles refusees )
             self.w.frontiere = {"ouverte": args[0], "refuses": set(args[1])}; return True
+        if ordre == "guerre_releve":                # la guerre des iles ( guerre/ ) : ce que l Etat a percu depuis la releve
+            from guerre import moteur as GM
+            return GM.releve_de_guerre(self.w)
+        if ordre == "occuper":                      # une zone tenue par l envahisseur dans Arma : ses sites ne produisent plus
+            from guerre import moteur as GM
+            return GM.occuper(self.w, *args)
+        if ordre == "guerre_gouverner":             # le conseil de guerre a adopte un nouveau gouvernement ( guerre/conseil.py )
+            from guerre import moteur as GM
+            return GM.gouverner_par(self.w, *args)
+        if ordre == "guerre_voir":                  # le gouvernement de l ile voit la guerre dans son bulletin ( guerre/moteur.py )
+            from guerre import moteur as GM
+            return GM.voir_la_guerre(self.w)
+        if ordre in ("guerre_mobiliser", "guerre_suivre", "guerre_morts", "guerre_payer"):   # soldats au front, achats ( guerre/moteur.py )
+            from guerre import moteur as GM
+            f = {"guerre_mobiliser": GM.mobiliser, "guerre_suivre": GM.suivre, "guerre_morts": GM.morts_au_combat,
+                 "guerre_payer": GM.payer_la_guerre}[ordre]
+            return f(self.w, *args)
         if ordre == "perturber":                    # controle positif des portes : un milliardieme de drachme
             self.w.table.menages.caisse[0] += 1e-9; return True
         raise ValueError(ordre)

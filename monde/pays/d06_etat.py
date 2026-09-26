@@ -1250,6 +1250,7 @@ def _cloture(p, comptes):
         elif m == "electricite": parts = {("industrie", "achats"): s}
         elif m == "subvention": parts = {("subventions", "transferts"): s}
         elif m in ("interet_titre", "interet_avance_bc"): parts = {("dette", "interets"): s}
+        elif m == "import_armement": parts = {("defense", "achats"): s}     # la guerre des iles ( guerre/moteur.py ), 26/09
         else: parts = {("autres", "achats"): s}
         for k, x in parts.items(): dep[k] = dep.get(k, 0.0) + x
     tr.base = None
@@ -1279,7 +1280,10 @@ def _cloture(p, comptes):
     a.poids_salaires = {}
     a.convois = {}
     _publier(p, e, comptes, dep, rec)
-    if p.jour >= e.fisc.fin: _nouvel_exercice(p, e)
+    # la cloture tourne apres minuit ( pays.pas_suivant : le pas de 23 h 50 fait passer l horloge au lendemain ) : p.jour
+    # est le jour SUIVANT celui qu on clot. « >= » ouvrait l exercice suivant le soir du 30 decembre, et le controle
+    # fiscal du 31 tombait au jour 0 de l exercice ( ValueError, l ile meurt ; trouve par la guerre des iles, 26/09 ).
+    if p.jour > e.fisc.fin: _nouvel_exercice(p, e)
     _chrono(e, "cloture", t0)
 
 

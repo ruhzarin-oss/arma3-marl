@@ -1,0 +1,4 @@
+hostname = "HMT-GUERRE-10";
+maxPlayers = 8;
+persistent = 1;
+class Missions { class M1 { template = "GuerreIles.Malden"; difficulty = "veteran"; }; };

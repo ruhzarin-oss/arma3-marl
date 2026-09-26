@@ -1,0 +1,22 @@
+// GuerreIles.Malden : le Warlords officiel de Malden (MP_Warlords_04_large), sans son argent.
+// Les Params ci-dessous remplacent les attributs du module d init (fn_WLInit.sqf, en multijoueur).
+#include "\A3\Missions_F_Warlords\defaultDescription.inc"
+
+class Header
+{
+	gameType = Warlords;
+	minPlayers = 1;
+	maxPlayers = 32;
+};
+
+class Params
+{
+	// Malden (west) tient 75 % des zones au depart, Stratis (east) debarque avec sa seule base
+	class BIS_WLProgress { title = "Zones de depart"; values[] = {12}; texts[] = {"west 75 %, east 0 %"}; default = 12; };
+	// plus aucun point ne nait dans Arma : ni au depart, ni par les zones, ni par les primes
+	class BIS_WLStartCP { title = "Points de depart"; values[] = {0}; texts[] = {"0"}; default = 0; };
+	class BIS_WLCPMultiplier { title = "Revenu des zones"; values[] = {0}; texts[] = {"0"}; default = 0; };
+	class BIS_WLMaxCP { title = "Plafond des points"; values[] = {0}; texts[] = {"0"}; default = 0; };
+	// sans joueur, l IA vote la cible de son camp
+	class BIS_WLAIVoting { title = "Vote de l IA"; values[] = {1}; texts[] = {"oui"}; default = 1; };
+};
