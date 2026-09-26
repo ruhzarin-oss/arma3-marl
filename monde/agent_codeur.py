@@ -17,6 +17,10 @@ from .archipel import Archipel
 from .pays import d06_etat as ET
 
 MODELE = "qwen3.8:27b"
+# 32 768 jetons tiennent sur la RTX 3090 avec le modele ( 17 Go ) ; a 49 152 le modele ne tenait plus ( 26/09 ). La
+# consigne ( ~9 000 caracteres ), l historique et la reflexion doivent y tenir ensemble : sinon, reponse vide
+CONTEXTE = 32768
+HISTORIQUE_K = 3
 HOTE = "http://localhost:11434"
 DOSSIER = "/mnt/data/hmt/agent_codeur"
 SECONDES_PAR_APPEL = 1.0
@@ -159,12 +163,20 @@ Exemple de bulletin ( JSON ) :
 Reponds par UN SEUL bloc ```python contenant la fonction gouverner ( et ses aides si tu veux ), rien d autre."""
 
 
-def demander(prompt, penser=True, jetons=12000):
-    corps = {"model": MODELE, "stream": False, "think": penser, "prompt": prompt,
-             "options": {"temperature": 0.4, "num_predict": jetons, "num_ctx": 32768}}
-    req = urllib.request.Request(HOTE + "/api/generate", data=json.dumps(corps).encode(), headers={"Content-Type": "application/json"})
-    r = json.loads(urllib.request.urlopen(req, timeout=1800).read())
-    return r.get("response", ""), r.get("thinking", "")
+def demander(prompt, penser=True, jetons=16000):
+    """Une reponse de l agent. S il a reflechi jusqu a epuiser sa sortie sans ecrire de code ( 26/09 : versions 5 et 6,
+    40 000 caracteres de reflexion et rien d autre ), on lui redemande le code, sans reflexion cette fois."""
+    def appel(texte, pense, n):
+        corps = {"model": MODELE, "stream": False, "think": pense, "prompt": texte,
+                 "options": {"temperature": 0.4, "num_predict": n, "num_ctx": CONTEXTE}}
+        req = urllib.request.Request(HOTE + "/api/generate", data=json.dumps(corps).encode(), headers={"Content-Type": "application/json"})
+        return json.loads(urllib.request.urlopen(req, timeout=3600).read())
+    r = appel(prompt, penser, jetons)
+    texte, pensee = r.get("response", ""), r.get("thinking", "")
+    if "def gouverner" not in texte:
+        r = appel(prompt + "\n\nEcris MAINTENANT le code, sans rien expliquer : un seul bloc ```python.", False, 8000)
+        texte = r.get("response", "")
+    return texte, pensee
 
 
 def extraire_code(texte):
@@ -172,7 +184,7 @@ def extraire_code(texte):
     return (max(m, key=len) if m else texte).strip() + "\n"
 
 
-def historique(versions, k=4):
+def historique(versions, k=HISTORIQUE_K):
     """Ce que l agent a deja essaye : les k meilleures versions et la derniere, avec leurs mesures."""
     choix = sorted(versions, key=lambda v: -v["mesures"]["score"])[:k]
     if versions and versions[-1] not in choix: choix.append(versions[-1])
@@ -200,7 +212,13 @@ def boucle(ile, tours, jours, echelle, graine):
     exemple = ET.sitrep(arc.iles[ile].w.pays)
     base = consigne(ile, exemple)
     versions = []
-    for n in range(1, tours + 1):
+    # reprise : les versions deja ecrites et notees ( sur le meme monde ) restent dans l historique de l agent
+    for l in open(os.path.join(d, "journal.jsonl")):
+        x = json.loads(l)
+        if "n" in x and "erreur" not in x["mesures"] and x["mesures"].get("jours_de_faim") is not None: versions.append(x)
+    debut = max([v["n"] for v in versions], default=0) + 1
+    if versions: print(f"reprise : {len(versions)} versions notees, meilleure {max(v['mesures']['score'] for v in versions)}", flush=True)
+    for n in range(debut, debut + tours):
         t1 = time.time()
         prompt = base
         if versions:
