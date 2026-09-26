@@ -32,3 +32,8 @@ tri par croissance entre le jour 40 et le jour 96 :
   moteur.socle.creances.actives                                5,296 5,100 8,732 13,461 15,552 19,470 25,254 44,642 63,235 79,543 102,457 139,880
   socle.creances.actives                                       5,296 5,100 8,732 13,461 15,552 19,470 25,254 44,642 63,235 79,543 102,457 139,880
   socle.creances.par_debiteur[*]                               5,296 5,100 8,732 13,461 15,552 19,470 25,254 44,642 63,235 79,543 102,457 139,880
+
+== CORRECTION ( 26/09 ) : les ateliers ne se vident PAS. Sonde jour par jour a 6 x 10 000 : ils ouvrent chaque semaine
+   ( fermes le week-end et quelques periodes ) ; un choix murit en 30 jours OUVRES, soit ~42-47 jours de calendrier, et
+   la file d une machine plafonne vers 45 ( 55-60 apres une longue fermeture ). La borne rogne ces pics, ce n est pas
+   une fuite. Ce qui accelere apres le jour 48 : les creances ( loyer, taxe locale, salaires ) et les demandes de credit.
