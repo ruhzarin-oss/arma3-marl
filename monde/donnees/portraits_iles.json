@@ -1,0 +1,962 @@
+{
+ "Altis": {
+  "terre_km2": 269.1,
+  "taille_km": 30.72,
+  "aeroports": 6,
+  "arbres": 263630,
+  "vegetation": {
+   "arbres": 263630,
+   "petits_arbres": 0,
+   "buissons": 747193,
+   "rocher": 5483,
+   "rochers": 0,
+   "foret": 0
+  },
+  "routes": 732316,
+  "routes_m": {
+   "TRACK": 578216,
+   "ROAD": 104219,
+   "MAIN ROAD": 49881,
+   "HIDE": 0
+  },
+  "altitude_max": 343,
+  "places_interieures": 60815,
+  "objets": 20270,
+  "par_fonction": {
+   "logement": 7555,
+   "inclasse": 3721,
+   "energie": 2870,
+   "commerce": 2853,
+   "culte": 1247,
+   "industrie": 707,
+   "militaire": 552,
+   "port": 221,
+   "carburant": 165,
+   "eau": 97,
+   "agriculture": 92,
+   "hangar": 68,
+   "administration": 45,
+   "epave": 41,
+   "communication": 23,
+   "aeroport": 6,
+   "sante": 3,
+   "ruine": 3,
+   "tourisme": 1
+  },
+  "sols": {
+   "#GdtDirt": 0.498,
+   "#GdtGrassDry": 0.155,
+   "#GdtGrassGreen": 0.123,
+   "#GdtThorn": 0.094,
+   "#GdtSoil": 0.033,
+   "#GdtBeach": 0.021,
+   "#GdtForestPine": 0.017,
+   "#GdtGrassWild": 0.016
+  },
+  "inclasses_principaux": [
+   [
+    "ironpipes_f.p3d",
+    374
+   ],
+   [
+    "treebin_f.p3d",
+    282
+   ],
+   [
+    "cargobox_v1_f.p3d",
+    281
+   ],
+   [
+    "cargo20_brick_red_f.p3d",
+    198
+   ],
+   [
+    "unfinished_building_01_f.p3d",
+    165
+   ],
+   [
+    "cargo_addon01_v1_f.p3d",
+    163
+   ],
+   [
+    "cargo_addon01_v2_f.p3d",
+    162
+   ],
+   [
+    "cargo20_light_blue_f.p3d",
+    141
+   ],
+   [
+    "cargo_addon02_v2_f.p3d",
+    130
+   ],
+   [
+    "cargo20_blue_f.p3d",
+    127
+   ],
+   [
+    "tbox_f.p3d",
+    96
+   ],
+   [
+    "unfinished_building_02_f.p3d",
+    93
+   ],
+   [
+    "cargo20_grey_f.p3d",
+    69
+   ],
+   [
+    "cargo_addon02_v1_f.p3d",
+    61
+   ],
+   [
+    "cargo40_light_blue_f.p3d",
+    60
+   ],
+   [
+    "cargo20_white_f.p3d",
+    57
+   ],
+   [
+    "cargo40_blue_f.p3d",
+    55
+   ],
+   [
+    "calvary_02_v2_f.p3d",
+    49
+   ],
+   [
+    "calvary_01_v1_f.p3d",
+    49
+   ],
+   [
+    "calvary_02_v1_f.p3d",
+    48
+   ],
+   [
+    "ancientpillar_damaged_f.p3d",
+    45
+   ],
+   [
+    "cargo40_brick_red_f.p3d",
+    41
+   ],
+   [
+    "indpipe1_20m_f.p3d",
+    41
+   ],
+   [
+    "indpipe2_big_18_f.p3d",
+    37
+   ],
+   [
+    "goal_f.p3d",
+    36
+   ]
+  ],
+  "lieux_nommes": 176,
+  "fin": {
+   "objets_annonces": 20270,
+   "cases": 256,
+   "secondes": 292,
+   "lieux": 176
+  }
+ },
+ "Malden": {
+  "terre_km2": 57.2,
+  "taille_km": 12.8,
+  "aeroports": 2,
+  "arbres": 101960,
+  "vegetation": {
+   "arbres": 101960,
+   "petits_arbres": 0,
+   "buissons": 288461,
+   "rocher": 3512,
+   "rochers": 0,
+   "foret": 0
+  },
+  "routes": 119626,
+  "routes_m": {
+   "TRACK": 66594,
+   "ROAD": 28106,
+   "HIDE": 0,
+   "MAIN ROAD": 24926
+  },
+  "altitude_max": 506,
+  "places_interieures": 13822,
+  "objets": 7711,
+  "par_fonction": {
+   "energie": 3524,
+   "logement": 1451,
+   "inclasse": 918,
+   "commerce": 680,
+   "culte": 314,
+   "militaire": 182,
+   "industrie": 143,
+   "eau": 119,
+   "agriculture": 101,
+   "port": 85,
+   "carburant": 82,
+   "transport": 45,
+   "epave": 23,
+   "hangar": 19,
+   "administration": 17,
+   "communication": 7,
+   "aeroport": 1
+  },
+  "sols": {
+   "#GdtGrassGreen": 0.518,
+   "#GdtGrassDry": 0.272,
+   "#GdtStony": 0.116,
+   "#GdtDesert": 0.033,
+   "#GdtBeach": 0.023,
+   "#GdtForestMalden": 0.023,
+   "#GdtConcrete": 0.01,
+   "#GdtSoil": 0.004
+  },
+  "inclasses_principaux": [
+   [
+    "woodenplanks_01_pine_f.p3d",
+    70
+   ],
+   [
+    "ironpipes_f.p3d",
+    59
+   ],
+   [
+    "calvary_01_v1_f.p3d",
+    42
+   ],
+   [
+    "calvary_02_v2_f.p3d",
+    39
+   ],
+   [
+    "calvary_02_v1_f.p3d",
+    38
+   ],
+   [
+    "tbox_f.p3d",
+    35
+   ],
+   [
+    "cargo20_grey_f.p3d",
+    33
+   ],
+   [
+    "shed_08_brown_f.p3d",
+    29
+   ],
+   [
+    "indpipe1_20m_f.p3d",
+    27
+   ],
+   [
+    "treebin_f.p3d",
+    26
+   ],
+   [
+    "woodenplanks_01_messy_pine_f.p3d",
+    25
+   ],
+   [
+    "indpipe1_ground_f.p3d",
+    25
+   ],
+   [
+    "cargo20_white_f.p3d",
+    21
+   ],
+   [
+    "unfinished_building_01_f.p3d",
+    21
+   ],
+   [
+    "cargo20_blue_f.p3d",
+    18
+   ],
+   [
+    "unfinished_building_02_f.p3d",
+    16
+   ],
+   [
+    "timbers_f.p3d",
+    16
+   ],
+   [
+    "cmp_tower_f.p3d",
+    15
+   ],
+   [
+    "cargo20_sand_f.p3d",
+    14
+   ],
+   [
+    "cargo20_brick_red_f.p3d",
+    14
+   ],
+   [
+    "cargo_addon02_v2_f.p3d",
+    13
+   ],
+   [
+    "cargo_addon01_v1_f.p3d",
+    13
+   ],
+   [
+    "cargo_addon01_v2_f.p3d",
+    13
+   ],
+   [
+    "cargo_addon02_v1_f.p3d",
+    13
+   ],
+   [
+    "indpipe1_valve_f.p3d",
+    13
+   ]
+  ],
+  "lieux_nommes": 122,
+  "fin": {
+   "objets_annonces": 7711,
+   "cases": 49,
+   "secondes": 101,
+   "lieux": 122
+  }
+ },
+ "Stratis": {
+  "terre_km2": 19.2,
+  "taille_km": 8.192,
+  "aeroports": 1,
+  "arbres": 40109,
+  "vegetation": {
+   "arbres": 40109,
+   "petits_arbres": 0,
+   "buissons": 47974,
+   "rocher": 807,
+   "rochers": 0,
+   "foret": 0
+  },
+  "routes": 43634,
+  "routes_m": {
+   "TRACK": 40675,
+   "ROAD": 2959,
+   "HIDE": 0
+  },
+  "altitude_max": 231,
+  "places_interieures": 1723,
+  "objets": 716,
+  "par_fonction": {
+   "militaire": 175,
+   "inclasse": 142,
+   "logement": 117,
+   "commerce": 67,
+   "port": 37,
+   "energie": 36,
+   "hangar": 29,
+   "industrie": 23,
+   "carburant": 20,
+   "culte": 18,
+   "agriculture": 16,
+   "epave": 11,
+   "communication": 11,
+   "administration": 10,
+   "eau": 3,
+   "aeroport": 1
+  },
+  "sols": {
+   "#GdtStratisGreenGrass": 0.552,
+   "#GdtStratisDryGrass": 0.231,
+   "#GdtStratisRocky": 0.066,
+   "#GdtStratisForestPine": 0.048,
+   "#GdtStratisDirt": 0.047,
+   "#GdtStratisThistles": 0.028,
+   "#GdtStratisBeach": 0.016,
+   "#GdtStratisConcrete": 0.011
+  },
+  "inclasses_principaux": [
+   [
+    "cargo20_grey_f.p3d",
+    29
+   ],
+   [
+    "ironpipes_f.p3d",
+    16
+   ],
+   [
+    "communication_anchor_f.p3d",
+    16
+   ],
+   [
+    "indpipe1_ground_f.p3d",
+    12
+   ],
+   [
+    "indpipe1_20m_f.p3d",
+    10
+   ],
+   [
+    "cargobox_v1_f.p3d",
+    10
+   ],
+   [
+    "indpipe1_valve_f.p3d",
+    5
+   ],
+   [
+    "indpipe1_90degl_f.p3d",
+    5
+   ],
+   [
+    "bc_basket_f.p3d",
+    5
+   ],
+   [
+    "indpipe1_90degr_f.p3d",
+    5
+   ],
+   [
+    "tbox_f.p3d",
+    4
+   ],
+   [
+    "treebin_f.p3d",
+    4
+   ],
+   [
+    "calvary_01_v1_f.p3d",
+    3
+   ],
+   [
+    "cargo_addon01_v1_f.p3d",
+    3
+   ],
+   [
+    "cargo_addon01_v2_f.p3d",
+    3
+   ],
+   [
+    "cargo_addon02_v2_f.p3d",
+    2
+   ],
+   [
+    "cargo20_cyan_f.p3d",
+    2
+   ],
+   [
+    "indpipe1_uup_f.p3d",
+    2
+   ],
+   [
+    "scaffolding_f.p3d",
+    2
+   ],
+   [
+    "unfinished_building_01_f.p3d",
+    2
+   ],
+   [
+    "slide_f.p3d",
+    1
+   ],
+   [
+    "unfinished_building_02_f.p3d",
+    1
+   ]
+  ],
+  "lieux_nommes": 41,
+  "fin": {
+   "objets_annonces": 716,
+   "cases": 25,
+   "secondes": 26,
+   "lieux": 41
+  }
+ },
+ "Tanoa": {
+  "terre_km2": 99.2,
+  "taille_km": 15.36,
+  "aeroports": 5,
+  "arbres": 506993,
+  "vegetation": {
+   "arbres": 506993,
+   "petits_arbres": 0,
+   "buissons": 754347,
+   "rocher": 8909,
+   "rochers": 0,
+   "foret": 0
+  },
+  "routes": 407159,
+  "routes_m": {
+   "HIDE": 0,
+   "TRACK": 207999,
+   "TRAIL": 100050,
+   "ROAD": 29545,
+   "MAIN ROAD": 69565
+  },
+  "altitude_max": 435,
+  "places_interieures": 49347,
+  "objets": 19821,
+  "par_fonction": {
+   "inclasse": 5955,
+   "energie": 4061,
+   "logement": 2205,
+   "rail": 2138,
+   "commerce": 1956,
+   "port": 1052,
+   "culte": 1004,
+   "industrie": 450,
+   "carburant": 326,
+   "eau": 223,
+   "militaire": 174,
+   "epave": 58,
+   "agriculture": 54,
+   "administration": 51,
+   "hangar": 44,
+   "tourisme": 35,
+   "aeroport": 19,
+   "communication": 16
+  },
+  "sols": {
+   "#GdtGrassTall": 0.439,
+   "#GdtForest": 0.287,
+   "#GdtGrassShort": 0.123,
+   "#GdtRedDirt": 0.086,
+   "#GdtBeach": 0.027,
+   "#GdtVolcano": 0.015,
+   "#GdtAsphalt": 0.013,
+   "#GdtRock": 0.009
+  },
+  "inclasses_principaux": [
+   [
+    "woodenplanks_01_f.p3d",
+    716
+   ],
+   [
+    "shed_04_f.p3d",
+    443
+   ],
+   [
+    "shed_02_f.p3d",
+    388
+   ],
+   [
+    "scf_01_pipe_8m_high_f.p3d",
+    374
+   ],
+   [
+    "shed_05_f.p3d",
+    370
+   ],
+   [
+    "railwaycar_01_sugarcane_empty_f.p3d",
+    336
+   ],
+   [
+    "sy_01_block_f.p3d",
+    307
+   ],
+   [
+    "pot_02_f.p3d",
+    219
+   ],
+   [
+    "shed_03_f.p3d",
+    209
+   ],
+   [
+    "basaltwall_01_8m_f.p3d",
+    195
+   ],
+   [
+    "shed_01_f.p3d",
+    185
+   ],
+   [
+    "canal_dutch_01_15m_f.p3d",
+    162
+   ],
+   [
+    "shed_06_f.p3d",
+    140
+   ],
+   [
+    "woodenshelter_01_f.p3d",
+    138
+   ],
+   [
+    "railwaycar_01_sugarcane_f.p3d",
+    102
+   ],
+   [
+    "woodenplanks_01_messy_f.p3d",
+    101
+   ],
+   [
+    "shed_07_f.p3d",
+    85
+   ],
+   [
+    "metalshelter_01_f.p3d",
+    78
+   ],
+   [
+    "canal_dutch_01_plate_f.p3d",
+    78
+   ],
+   [
+    "basaltwall_01_d_left_f.p3d",
+    77
+   ],
+   [
+    "scf_01_pipe_8m_f.p3d",
+    76
+   ],
+   [
+    "cargo40_blue_f.p3d",
+    67
+   ],
+   [
+    "walkover_01_f.p3d",
+    66
+   ],
+   [
+    "metalshelter_02_f.p3d",
+    54
+   ],
+   [
+    "scf_01_pipe_curve_f.p3d",
+    51
+   ]
+  ],
+  "lieux_nommes": 138,
+  "fin": {
+   "objets_annonces": 19821,
+   "cases": 64,
+   "secondes": 288,
+   "lieux": 138
+  }
+ },
+ "Enoch": {
+  "terre_km2": 194.9,
+  "taille_km": 12.8,
+  "aeroports": 1,
+  "arbres": 1881627,
+  "vegetation": {
+   "arbres": 1881627,
+   "petits_arbres": 0,
+   "buissons": 473540,
+   "rocher": 744,
+   "rochers": 0,
+   "foret": 0
+  },
+  "routes": 459036,
+  "routes_m": {
+   "ROAD": 121165,
+   "TRACK": 286273,
+   "MAIN ROAD": 51598
+  },
+  "altitude_max": 437,
+  "places_interieures": 16691,
+  "objets": 12006,
+  "par_fonction": {
+   "energie": 2740,
+   "logement": 2242,
+   "inclasse": 2223,
+   "agriculture": 873,
+   "rail": 843,
+   "eau": 749,
+   "culte": 679,
+   "industrie": 525,
+   "militaire": 436,
+   "commerce": 351,
+   "carburant": 145,
+   "administration": 74,
+   "transport": 73,
+   "hangar": 20,
+   "communication": 16,
+   "port": 8,
+   "aeroport": 5,
+   "epave": 4
+  },
+  "sols": {
+   "#GdtKLGrass1": 0.483,
+   "#GdtKLGrass2": 0.216,
+   "#GdtKLForestCon": 0.134,
+   "#GdtKlField": 0.111,
+   "#GdtKLForestDec": 0.027,
+   "#GdtKlSoil": 0.02,
+   "#GdtKlTarmac": 0.005,
+   "#GdtKlWeatheredTarmac": 0.003
+  },
+  "inclasses_principaux": [
+   [
+    "shed_09_f.p3d",
+    229
+   ],
+   [
+    "shed_10_f.p3d",
+    209
+   ],
+   [
+    "shed_11_f.p3d",
+    205
+   ],
+   [
+    "shed_14_f.p3d",
+    185
+   ],
+   [
+    "feedrack_01_f.p3d",
+    161
+   ],
+   [
+    "scf_01_pipe_8m_f.p3d",
+    141
+   ],
+   [
+    "shed_12_f.p3d",
+    95
+   ],
+   [
+    "calvary_03_f.p3d",
+    87
+   ],
+   [
+    "feedshack_01_f.p3d",
+    76
+   ],
+   [
+    "woodenplanks_01_messy_pine_f.p3d",
+    66
+   ],
+   [
+    "calvary_04_f.p3d",
+    57
+   ],
+   [
+    "woodenplanks_01_pine_f.p3d",
+    51
+   ],
+   [
+    "busstop_02_shelter_f.p3d",
+    41
+   ],
+   [
+    "v3s_wreck_f.p3d",
+    39
+   ],
+   [
+    "caravan_01_rust_f.p3d",
+    31
+   ],
+   [
+    "shed_06_f.p3d",
+    29
+   ],
+   [
+    "scf_01_pipe_curve_f.p3d",
+    29
+   ],
+   [
+    "scf_01_pipe_24m_f.p3d",
+    28
+   ],
+   [
+    "caravan_01_green_f.p3d",
+    27
+   ],
+   [
+    "scf_01_pipe_end_f.p3d",
+    26
+   ],
+   [
+    "scf_01_pipe_8m_high_f.p3d",
+    24
+   ],
+   [
+    "shed_07_f.p3d",
+    23
+   ],
+   [
+    "busstop_02_shelter_ruins_f.p3d",
+    23
+   ],
+   [
+    "tbox_f.p3d",
+    22
+   ],
+   [
+    "scf_01_pipe_up_f.p3d",
+    19
+   ]
+  ],
+  "lieux_nommes": 64,
+  "fin": {
+   "objets_annonces": 12006,
+   "cases": 49,
+   "secondes": 464,
+   "lieux": 64
+  }
+ },
+ "Sara": {
+  "terre_km2": 102.0,
+  "taille_km": 20.48,
+  "aeroports": 4,
+  "arbres": 232049,
+  "vegetation": {
+   "arbres": 187606,
+   "petits_arbres": 44443,
+   "buissons": 272588,
+   "rocher": 6888,
+   "rochers": 0,
+   "foret": 0
+  },
+  "routes": 160582,
+  "routes_m": {
+   "ROAD": 157072,
+   "HIDE": 2320,
+   "MAIN ROAD": 1190
+  },
+  "altitude_max": 754,
+  "places_interieures": 17228,
+  "objets": 3763,
+  "par_fonction": {
+   "logement": 1942,
+   "inclasse": 836,
+   "militaire": 214,
+   "eau": 171,
+   "energie": 164,
+   "agriculture": 124,
+   "transport": 86,
+   "carburant": 56,
+   "industrie": 48,
+   "culte": 43,
+   "port": 24,
+   "hangar": 19,
+   "communication": 16,
+   "tourisme": 10,
+   "sante": 8,
+   "ruine": 2
+  },
+  "sols": {
+   "#Grass": 0.46,
+   "#GrassSouth": 0.168,
+   "#sand": 0.151,
+   "#RockNorth": 0.14,
+   "#CityGround": 0.025,
+   "#RockSouth": 0.025,
+   "#ForestNeedles": 0.02,
+   "#ForestLeaves": 0.009
+  },
+  "inclasses_principaux": [
+   [
+    "kontejner.p3d",
+    170
+   ],
+   [
+    "popelnice.p3d",
+    125
+   ],
+   [
+    "bouda_plech.p3d",
+    81
+   ],
+   [
+    "bouda2_vnitrek.p3d",
+    60
+   ],
+   [
+    "nasypka.p3d",
+    38
+   ],
+   [
+    "bouda3.p3d",
+    35
+   ],
+   [
+    "zastavka_sever.p3d",
+    32
+   ],
+   [
+    "zavora_2_a1.p3d",
+    27
+   ],
+   [
+    "dulni_bs.p3d",
+    26
+   ],
+   [
+    "kontejner_sklo.p3d",
+    25
+   ],
+   [
+    "hlidac_budka.p3d",
+    25
+   ],
+   [
+    "kontejner_plasty.p3d",
+    23
+   ],
+   [
+    "kontejner_papir.p3d",
+    23
+   ],
+   [
+    "deutshe.p3d",
+    19
+   ],
+   [
+    "strazni_vez.p3d",
+    16
+   ],
+   [
+    "stanice.p3d",
+    16
+   ],
+   [
+    "zavora.p3d",
+    15
+   ],
+   [
+    "orlhot.p3d",
+    14
+   ],
+   [
+    "deutshe_mini.p3d",
+    13
+   ],
+   [
+    "vez_ropa.p3d",
+    10
+   ],
+   [
+    "majak_podesta.p3d",
+    9
+   ],
+   [
+    "bouda1.p3d",
+    7
+   ],
+   [
+    "hospoda_mesto.p3d",
+    6
+   ],
+   [
+    "kasarna.p3d",
+    5
+   ],
+   [
+    "afbarabizna.p3d",
+    4
+   ]
+  ],
+  "lieux_nommes": 255,
+  "fin": {
+   "objets_annonces": 3763,
+   "cases": 121,
+   "secondes": 125,
+   "lieux": 255
+  }
+ }
+}

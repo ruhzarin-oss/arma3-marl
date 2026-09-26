@@ -1,0 +1,9 @@
+moteur : 1,000,000 habitants crees en 69 s | memoire 0.3 Go
+pays ( 12 domaines ) installe en 168 s | memoire 1.0 Go
+jour 1 : 72 s | 854,864 decisions ( 42,464,633 par heure de calcul ) | conservation TENUE | vivants 1,000,008 | memoire 2.2 Go
+   par point : sortir 799,968, entretenir_machine 46,905, controle_fiscal 4,623, accepter_emploi 3,265, importer 63, octroi_credit 25, delestage_zone 14, niveau_activite 1
+jour 2 : 55 s | 854,939 decisions ( 55,816,321 par heure de calcul ) | conservation TENUE | vivants 1,000,051 | memoire 2.9 Go
+   par point : sortir 799,969, entretenir_machine 46,905, controle_fiscal 3,895, accepter_emploi 2,556, consulter 1,250, prescrire 253, importer 63, vendre_recolte 27, delestage_zone 14, migrer 6, niveau_activite 1
+jour 3 : 49 s | 943,694 decisions ( 68,774,234 par heure de calcul ) | conservation TENUE | vivants 1,000,081 | memoire 3.2 Go
+   par point : sortir 800,017, migrer 76,202, entretenir_machine 46,905, consulter 13,944, controle_fiscal 3,890, accepter_emploi 1,931, prescrire 733, importer 63, delestage_zone 8, niveau_activite 1
+FIN

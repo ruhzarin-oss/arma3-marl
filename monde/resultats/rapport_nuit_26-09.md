@@ -1,0 +1,61 @@
+# Nuit du 25 au 26 septembre : ce qui a ete trouve, repare, verifie
+
+## Repare ( chaque correction : ses portes, un controle positif, un commit )
+1. **Memoire** ( 86dd806 ) : borne de 2 horizons sur les choix en attente, journal du moteur a 200 000 evenements.
+   Mon premier diagnostic ( « ateliers vides » ) etait faux : la file d entretien monte puis plafonne vers 45.
+2. **Enregistreur** ( 8656b6e, 7fab129 ) : TOUT en Parquet ( paiements, biens, choix, notes, evenements, photos du soir
+   des habitants, menages, marches, entreprises, Etat ). ~75 Mo par ile et par jour a un million. Lecture : pyarrow
+   ( DuckDB n est pas installe : a installer si tu le veux ).
+3. **Faim, cause 1** ( 06d3d50 ) : une commande publique non servie etait recomptee comme demande a chaque heure ->
+   demande de carburant x13 000, pas d import, pas de camion, recoltes bloquees aux fermes.
+4. **Faim, cause 2** ( 87dfca5, a7ad896 ) : stocks, caisse et fonds de roulement des marches fixes ( faits pour 167
+   habitants par marche ) -> proportionnels a la population servie ( moteur ET domaine du travail ).
+5. **Lenteur du premier jour ouvre** ( c20cf31 ) : chaque demande de credit reparcourait tout le portefeuille des
+   banques ( 2 069 s au jour 5 a 6 x 1 M ). Somme exacte tenue par banque : identique au bit ( 11 148 demandes, 0 ecart ;
+   controle positif 10 177 ecarts ), jour 5 a 200 000 habitants 102 s -> 21 s. La nuit en cours ( 7fab129 ) ne l a
+   pas : son jour 5 a pris 34 minutes, les autres ~2 a 3 minutes.
+
+6. **Priorite des biens vitaux** ( ce commit ) : le marche rachete d abord nourriture, remedes, carburant.
+   Partiel : voir la rechute ci-dessous.
+7. **Lissage mensuel de la demande d outils** ( ce commit ) : jours de faim a 6 x 10 000 sur 30 jours 15,0 -> 12,0 ;
+   G1 : Tanoa 12,6 -> 2,0 %, Enoch 14,8 -> 2,1 %. En echange, `exterieur.test_decision_importer` tombe ( et
+   `immobilier.test_decision_loyer` repasse ) : a trancher.
+8. **Prix de depart a la parite d import** ( ce commit ) : la vraie cause de la rechute ( le gazole importe partait au
+   prix mondial, sous sa parite ; le negoce n importait qu apres ~10 jours de hausse ). Jours de faim a 6 x 10 000 sur
+   30 jours : 24,4 en debut de soiree -> 4,7. G1 : 1,2 a 3,5 % dans les six iles. `exterieur.test_decision_importer`
+   repasse.
+
+## La rechute du jour 16 ( nuit 5 ) - le chantier suivant
+Au jour 10, jour d achat des outils, les menages de Malden en achetent pour 109 millions ; le marche en rachete 6
+millions d unites au negoce ( 2 vendues ), le negoce les importe : les deux caisses tombent a 0, plus d import de
+carburant, plus de camion, faim 71 % au jour 16. Cause dans le domaine 3 : les outils ne s usent jamais et le
+rachat se fait d un coup sous 80 % de la cible ( achats synchronises ), et le marche extrapole ce pic a 10 jours.
+A trancher avec toi ( c est le coeur de l economie ) : detail dans monde/resultats/faim_carburant.txt ( 9-11 ).
+
+## Resultat a un million d habitants par pays ( 6 pays, Qwen )
+| | nuit du 25 ( ancien code ) | nuit du 26 ( code 7fab129 ) |
+|---|---|---|
+| faim jours 3-4 | 71 a 73 % | 2 a 3 % |
+| faim jours 5-12 | 71 a 73 % ( jusqu au jour 17 ) | 0 % |
+| faim jours 16-18 | 71 a 73 % | 21 a 73 % ( rechute : voir plus haut ) |
+| conservation | tenue | tenue |
+
+Nuit 6 ( bc05f06 ) : la rechute du jour 16 a eu lieu ( 100 % dans cinq iles au jour 17 ) et s est resorbee seule
+au jour 22 ( 1-2 % partout ).
+
+## Decisions prises a ta place ( « copier le reel » )
+- Stocks et caisse d un marche proportionnels a sa population ( un pays reel demarre avec ses stations pleines ).
+- Une commande publique = une demande ( un bon de commande ne se recompte pas chaque heure ).
+- Le marche rachete d abord ce qui fait vivre et rouler ( la station et la quincaillerie ont chacune leur tresorerie ).
+- La demande d un bien durable se lit sur un mois ( un commercant ne commande pas dix jours d un pic mensuel ).
+- Un pays qui importe tout son gazole le vend a la parite d import des le premier jour.
+
+## A trancher par toi
+- Une seule porte du pays de plus en echec a la fin ( 132/145 ) : `economie.test_credit` ( mise en scene : la
+  pharmacie videe au jour 4 n a travaille aucune heure ce jour-la - 0 drachme de salaires dus, 960 avant - car le
+  marche, a son stock d echelle, a assez de remedes ; sans paie due, pas de credit ; elle demande au jour 5, en
+  travaillant. Le mecanisme tient, le controle suppose un jour travaille ). Le loyer et l import, tombes en route, repassent.
+- Les dettes impayees ( loyer, taxe locale, salaires ) grossissent sans fin : prescription ? faillite personnelle ?
+- Le garde-manger vise 1,5 jour : un jour d approvisionnement rate donne des creux de faim ponctuels.
+- Les references des portes sont hors du depot : `/mnt/data/hmt/ref_domaines.json` ( v4 ) et l ancien moteur temoin
+  `/mnt/data/hmt/ref/monde_ancien` ( corrige des memes lignes, sauvegardes a cote ).

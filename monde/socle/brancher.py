@@ -31,6 +31,7 @@ MOTIFS_E1 = {
     "commande publique": "achat", "achat intrant": "achat", "vente": "achat", "commerce": "achat",
     "nourriture": "achat", "remede": "achat", "electricite": "achat", "carburant du convoi": "achat",
     "fret maritime": "achat",
+    "passeport": "achat",                         # P.11 : un service vendu par l Etat ( archipel, 24/09 )
 }
 
 

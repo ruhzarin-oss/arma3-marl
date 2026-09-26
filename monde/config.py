@@ -35,6 +35,25 @@ assert sum(v[0] for v in ROLES.values()) == 500
 
 MINISTERES = ["finances", "sante", "interieur", "defense", "education", "industrie"]
 
+# --- l archipel ( 24/09 ) : six pays, chacun une ile. Le code d une ile ( son rang ici ) entre dans le numero de chaque
+# personne nee chez elle : ne jamais changer cet ordre, les numeros deja donnes changeraient de sens.
+ILES_ARCHIPEL = ("Altis", "Malden", "Stratis", "Tanoa", "Enoch", "Sara")
+BITS_NUMERO_LOCAL = 40                   # numero d archipel = ( code de l ile << 40 ) | numero local : 10^12 par ile
+# le passeport, delivre par l Etat de chaque ile ( a calibrer : ordre de grandeur grec, ~84 euros, 1 drachme = 1,15 euro )
+FRAIS_PASSEPORT = 73.0                   # drachmes
+DELAI_PASSEPORT_J = 7                    # jours entre la demande et la remise
+VALIDITE_PASSEPORT_ANS = (5, 10)         # ( mineur, adulte )
+PART_PASSEPORT_DEPART = 0.4              # adultes qui en ont deja un au debut du monde ( a calibrer )
+# la traversee ( archipel, phase E ; a calibrer ) : 120 km de port a port a 25 km/h ; l avion pour Livonia
+MER_PORT_A_PORT_KM = 120.0
+AIR_MINUTES = 90                          # embarquement, vol, debarquement
+PAR_AIR_SEULEMENT = ("Enoch",)            # Livonia n a pas de mer ( decision de Younes, 24/09 )
+TAUX_VOYAGE_JOUR = 0.002                  # part des adultes munis d un passeport qui partent en visite chaque jour
+TAUX_DEMANDE_PASSEPORT_JOUR = 0.001       # part des adultes sans passeport qui en demandent un chaque jour
+SEJOUR_JOURS = (1, 4)
+# les monnaies ( phase F1, decisions de Younes le 25/09 ) : chacune est un poids d or ( monde/or_reel.py )
+MONNAIES = {"Altis": "drachme", "Malden": "franc", "Stratis": "obole", "Tanoa": "dollar", "Enoch": "zloty", "Sara": "dinar"}
+
 # --- les biens ---
 BIENS = ["nourriture", "fer", "zinc", "or", "petrole", "carburant", "electricite", "outils", "remedes"]
 MONNAIE = "drachme"

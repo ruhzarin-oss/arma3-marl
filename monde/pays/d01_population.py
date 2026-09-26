@@ -585,10 +585,12 @@ class _TirageRecensement:
 
 # ================================================================== la journee demographique ( a l aube )
 def _demographie(p):
+    """EN COLONNES ( 24/09 ) : les ages et les filtres se lisent dans la table du moteur ; seuls les habitants qu un
+    evenement touche ( retraite, vie active, ecole ) passent par la logique habitant par habitant, dans l ordre des
+    numeros. La porte d identite des domaines ( monde/porte_domaines.py ) le tient pour identique."""
     w = p.w; d = p.domaine("population")
-    H = w.habitants; n = len(H)
-    vivant = np.fromiter((h.vivant for h in H), dtype=bool, count=n)
-    ids = np.nonzero(vivant)[0]
+    H = w.habitants; tb = w.table; n = tb.n
+    ids = np.nonzero((tb.vivant[:n] == 1) & (tb.statut[:n] != P.ABSENT))[0]   # archipel : l absent vit ailleurs
     col = p.colonnes["habitant"]
     sexe = col["sexe"][ids].astype(np.int64)
     age = _age_ans(p, ids)
@@ -597,10 +599,14 @@ def _demographie(p):
     for i in ids[tirer_deces(d.mortalite, sexe, age, u)].tolist(): deceder(p, H[i], "naturelle")
     # 2. vieillir : l age du moteur suit la date de naissance ; l ecole a 6 ans, le metier a 16, la retraite a 65
     nj = col["naissance_j"]
-    for i in ids.tolist():
+    ids = ids[tb.vivant[ids] == 1]
+    tb.age[ids] = (p.jour - nj[ids].astype(np.int64)) / JOURS_AN
+    age, role = tb.age[ids], tb.role[ids]
+    enfant, retraite = role == P.CODE_ROLE["enfant"], role == P.CODE_ROLE["retraite"]
+    touches = ids[((age >= C.AGE_RETRAITE) & ~enfant & ~retraite)
+                  | (enfant & ((age >= C.AGE_TRAVAIL) | ((age >= AGE_ECOLE) & (tb.horaire[ids] == P.CODE_HORAIRE[None]))))]
+    for i in touches.tolist():
         h = H[i]
-        if not h.vivant: continue
-        h.age = (p.jour - int(nj[i])) / JOURS_AN
         if h.age >= C.AGE_RETRAITE and h.role not in ("retraite", "enfant"):
             w.noter("retraite", habitant=h.id, age=round(h.age, 1), ancien_role=h.role)
             h.role, h.travail, h.horaire = "retraite", None, None
@@ -608,8 +614,7 @@ def _demographie(p):
             if h.age >= C.AGE_TRAVAIL: w.embaucher(h)
             elif h.age >= AGE_ECOLE and h.horaire is None: h.horaire, h.travail = "ecole", h.domicile.marche
     # 3. les conceptions, puis une fois par semaine les unions et les divorces
-    vivant = np.fromiter((h.vivant for h in H), dtype=bool, count=n)
-    ids = np.nonzero(vivant)[0]
+    ids = np.nonzero((tb.vivant[:n] == 1) & (tb.statut[:n] != P.ABSENT))[0]   # archipel : l absent vit ailleurs
     sexe = col["sexe"][ids].astype(np.int64); age = _age_ans(p, ids)
     _concevoir(p, d, ids, age, sexe)
     if p.jour % 7 == 0: _unions_et_divorces(p, d, ids, age, sexe)
@@ -647,16 +652,23 @@ def _soir(p):
     w = p.w; d = p.domaine("population")
     f7 = p.col("menage", "faim7"); dis = p.col("menage", "dissous"); dem = p.col("menage", "demenage_j")
     nourri = w.nourri_menage
-    for mg in w.menages:
-        if dis[mg.id]: continue
-        a_faim = 0 if nourri.get(mg.id, True) else 1
-        f7[mg.id] = ((int(f7[mg.id]) << 1) | a_faim) & 0x7F
+    M = len(w.menages)
+    # la memoire de la faim, EN COLONNES ( 24/09 ) : un menage hors du tableau des repas ( ne apres ) compte nourri
+    nour = np.ones(M, bool)
+    v = getattr(nourri, "v", None)
+    if v is not None: nour[:min(M, len(v))] = v[:min(M, len(v))]
+    else: nour[:] = [nourri.get(k, True) for k in range(M)]
+    garde = dis[:M] == 0
+    f7[:M][garde] = ((f7[:M][garde].astype(np.int64) << 1) | (~nour[garde]).astype(np.int64)) & 0x7F
     dec = d.decideur
     for cle in [k for k, a in dec.attentes.items() if a.choix]:
         dec.noter(cle, 1.0 if nourri.get(cle, True) else 0.0, p.jour)
     for cle in [k for k, a in dec.attentes.items() if not a.choix]: del dec.attentes[cle]
-    for mg in w.menages:
-        if dis[mg.id] or not f7[mg.id] or (mg.id - p.jour) % 7 or p.jour - dem[mg.id] < DELAI_ENTRE_MIGRATIONS_J: continue
+    k = np.arange(M)
+    candidats = np.nonzero(garde & (f7[:M] != 0) & (np.mod(k - p.jour, 7) == 0)
+                           & (p.jour - dem[:M] >= DELAI_ENTRE_MIGRATIONS_J))[0]
+    for k in candidats.tolist():
+        mg = w.menages[k]
         adultes = adultes_vivants(p, mg)
         if not adultes: continue
         ici = w.marches[mg.domicile.marche.id]
@@ -704,13 +716,20 @@ def _recensement(p, d, rng):
     for m in w.menages:
         for x in m.membres:
             if col["sexe"][x.id] == FEMME and x.age >= 36: meres.setdefault(m.domicile.id, []).append(x)
+    # les candidates de chaque lieu en tableaux, dans l ordre de la liste ( 24/09 : le filtre relisait le menage de
+    # chaque candidate pour chaque jeune - un cout en carre de la population, des heures a un million d habitants )
+    tb = w.table
+    meres_ids = {lid: np.array([x.id for x in xs], np.int64) for lid, xs in meres.items()}
+    meres_age = {lid: tb.age[v] for lid, v in meres_ids.items()}
     for h in w.habitants:
         r = next((v for a, v in reversed(FOYER_PARENTAL) if h.age >= a), 0.0) if h.age >= AGE_MAJEUR else 0.0
         if col["conjoint"][h.id] >= 0 or d.enfants_de.get(h.id) or rng.random() >= r: continue
-        cands = [x for x in meres.get(h.domicile.id, ()) if 18 <= x.age - h.age <= 45 and x.menage is not h.menage
-                 and not d.enfants_de.get(h.id)]
-        if not cands or not _peut_partir(p, h, ()): continue
-        mere = cands[int(rng.integers(0, len(cands)))]
+        ids_l = meres_ids.get(h.domicile.id)
+        if ids_l is None: continue
+        ecart = meres_age[h.domicile.id] - h.age
+        cands = ids_l[(ecart >= 18) & (ecart <= 45) & (tb.menage[ids_l] != tb.menage[h.id])]
+        if not len(cands) or not _peut_partir(p, h, ()): continue
+        mere = w.habitants[int(cands[int(rng.integers(0, len(cands)))])]
         _rejoindre(p, h, mere.menage, "mise_en_commun")
         col["mere"][h.id] = mere.id; d.enfants_de.setdefault(mere.id, []).append(h.id)
         c = int(col["conjoint"][mere.id])

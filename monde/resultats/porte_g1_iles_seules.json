@@ -1,0 +1,89 @@
+{
+ "controle_positif": "une ile sans capitale echoue bien ( ValueError )",
+ "iles": [
+  {
+   "ile": "Altis",
+   "ok": true,
+   "habitants": 10000,
+   "vivants_fin": 10011,
+   "nes": 24,
+   "morts": 13,
+   "faim_moyenne": 0.07164613571758302,
+   "faim_max": 0.7251126587464154,
+   "rompus": [],
+   "installation_s": 4.0,
+   "jour_s": 1.09,
+   "gouvernement": "Kavala"
+  },
+  {
+   "ile": "Malden",
+   "ok": true,
+   "habitants": 10000,
+   "vivants_fin": 10018,
+   "nes": 25,
+   "morts": 7,
+   "faim_moyenne": 0.24633946827572886,
+   "faim_max": 0.7072238153762119,
+   "rompus": [],
+   "installation_s": 3.7,
+   "jour_s": 0.92,
+   "gouvernement": "Malden_C_LaTrinite"
+  },
+  {
+   "ile": "Stratis",
+   "ok": true,
+   "habitants": 10000,
+   "vivants_fin": 10007,
+   "nes": 22,
+   "morts": 15,
+   "faim_moyenne": 0.24704982915470733,
+   "faim_max": 0.7100914925576949,
+   "rompus": [],
+   "installation_s": 3.9,
+   "jour_s": 0.89,
+   "gouvernement": "Agia_Marina"
+  },
+  {
+   "ile": "Tanoa",
+   "ok": true,
+   "habitants": 10000,
+   "vivants_fin": 10014,
+   "nes": 26,
+   "morts": 12,
+   "faim_moyenne": 0.03628642148416135,
+   "faim_max": 0.7225180936774546,
+   "rompus": [],
+   "installation_s": 3.9,
+   "jour_s": 1.03,
+   "gouvernement": "Georgetown01"
+  },
+  {
+   "ile": "Enoch",
+   "ok": true,
+   "habitants": 10000,
+   "vivants_fin": 10014,
+   "nes": 21,
+   "morts": 7,
+   "faim_moyenne": 0.22694829211594822,
+   "faim_max": 0.7181482998770995,
+   "rompus": [],
+   "installation_s": 3.7,
+   "jour_s": 0.95,
+   "gouvernement": "Nadbor"
+  },
+  {
+   "ile": "Sara",
+   "ok": true,
+   "habitants": 10000,
+   "vivants_fin": 10018,
+   "nes": 25,
+   "morts": 7,
+   "faim_moyenne": 0.06970535543543478,
+   "faim_max": 0.7140516181892667,
+   "rompus": [],
+   "installation_s": 3.9,
+   "jour_s": 1.0,
+   "gouvernement": "Sara_Bagango"
+  }
+ ]
+}

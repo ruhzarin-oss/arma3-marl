@@ -55,6 +55,7 @@ import numpy as np
 from .. import config as C
 from ..socle import decision as D
 from . import d01_population as POP
+from .. import population as MPOP      # les colonnes du moteur ( monde.table ) : l agenda y lit et y ecrit directement
 
 # ================================================================== le temps du domaine
 MINUTE_AUBE = 6 * 60          # la journee du monde va de l aube du moteur ( Monde.aube, 6 h ) au lendemain 6 h
@@ -70,6 +71,8 @@ HORS = -1                     # mort, ou pas encore place
 ACTIVITES = ("maison", "trajet", "travail", "ecole", "courses", "loisir", "culte", "hopital", "voyage")
 # le poste du moteur : l ecole reste `travail`, comme dans Monde.deplacer ( la bulle y cherche le batiment du role )
 POSTES = ("maison", "trajet", "travail", "travail", "courses", "loisir", "culte", "hopital", "voyage")
+CODE_POSTE_MOTEUR = np.array([MPOP.CODE_POSTE[x] for x in POSTES], np.uint8)     # activite -> code du poste du moteur
+POSTE_VOYAGE = MPOP.CODE_POSTE["voyage"]
 NA = len(ACTIVITES)
 # une destination : un indice de lieu ( >= 0 ), ou un lieu relu sur l habitant au moment ou il part ( un demenagement
 # ou une embauche du jour sont alors suivis sans refaire le plan )
@@ -85,6 +88,8 @@ MODES = ("marche", "vehicule")
 # ================================================================== les horaires du moteur, et les jours ou ils ouvrent
 HORAIRES = ("jour", "bureau", "ecole", "marche", "garde", "nuit")      # code = rang + 1 ; 0 : aucun horaire
 CODE_HORAIRE = {None: 0, **{h: k + 1 for k, h in enumerate(HORAIRES)}}
+HORAIRE_DU_MOTEUR = np.array([CODE_HORAIRE.get(MPOP.HORAIRE_DE_CODE[c], 0) for c in range(-1, max(MPOP.HORAIRE_DE_CODE) + 1)],
+                             np.float64)
 SEMAINE = ("jour", "bureau", "ecole")    # fermes le samedi, le dimanche et les jours feries
 DU_LUNDI_AU_SAMEDI = ("marche",)          # hors jours feries
 CONTINUS = ("garde", "nuit")             # tous les jours : trois equipes de 8 h, ou la nuit
@@ -148,6 +153,9 @@ ETAT_E, ETAT_I = 1, 2
 ENFANT, RETRAITE, PUBLIC = 1, 2, 4
 ROLES = {r: (ENFANT if r == "enfant" else RETRAITE if r == "retraite" else 0) | (PUBLIC if v[2] else 0)
          for r, v in C.ROLES.items()}
+# codes du moteur -> codes de l agenda ( indice : code du moteur + 1, le -1 du moteur voulant dire « aucun » )
+ROLE_DU_MOTEUR = np.array([0] + [ROLES.get(r, 0) for r in MPOP.ROLES], np.float64)
+ETAT_DU_MOTEUR = np.array([ETATS[e] for e in MPOP.ETATS], np.float64)
 
 
 # ================================================================== le calendrier d une journee du monde
@@ -247,6 +255,9 @@ class Agenda:
     def __init__(self, w, decideur):
         self.lieux = list(w.carte.lieux.values())
         self.index_lieu = {l.id: k for k, l in enumerate(self.lieux)}
+        # l indice d un lieu dans l agenda EST son numero dans les colonnes du moteur ( Carte.par_n, meme ordre ) :
+        # l agenda ecrit `lieu` et lit `domicile`, `travail` sans traduction
+        if any(l.n != k for k, l in enumerate(self.lieux)): raise RuntimeError("lieux de l agenda hors de l ordre du moteur")
         self.L = L = len(self.lieux)
         self.pos = np.array([l.pos[:2] for l in self.lieux], dtype=float)
         self.ile = [l.ile for l in self.lieux]
@@ -351,34 +362,43 @@ def _resoudre(a, h, code):
 
 def _appliquer(p, a, pl, ids, t):
     """Pose les habitants `ids` la ou le plan les met a la minute `t`. Un mort, un voyageur en mer, un visiteur en sejour
-    sur une autre ile ne sont pas touches : le moteur les tient."""
+    sur une autre ile ne sont pas touches : le moteur les tient. EN COLONNES ( 24/09 ) : l agenda ecrit le lieu et le
+    poste dans la table du moteur, sans fabriquer un habitant par personne ( 4,3 s par jour a 10 000 habitants en vues,
+    profil du 24/09 ) ; la porte d identite des domaines ( monde/porte_domaines.py ) le tient pour identique."""
     if len(ids) == 0: return
     act, dest = _etat(pl, ids, t)
-    w = p.w; H = w.habitants; sej = w.sejours; lieux = a.lieux; il = a.index_lieu
-    pub = pl.public; publics = a.publics
-    qi, ql, qa = [], [], []
-    for i, ac, de in zip(ids.tolist(), act.tolist(), dest.tolist()):
-        h = H[i]
-        if not h.vivant or h.poste == "voyage" or i in sej:
-            qi.append(i); publics.discard(i)
-            if not h.vivant: ql.append(-1); qa.append(HORS)
-            elif h.poste == "voyage": ql.append(-1); qa.append(VOYAGE)
-            else: ql.append(il[h.lieu.id] if h.lieu is not None else -1); qa.append(MAISON)
-            continue
-        if de >= 0: l = lieux[de]
-        elif de == DOMICILE: l = h.domicile
-        elif de == MARCHE: l = h.domicile.marche
-        else:
-            l = h.travail
-            if l is None: l, ac = h.domicile, MAISON        # plus de travail depuis 6 h ( retraite, depart )
-        h.lieu = l; h.poste = POSTES[ac]
-        qi.append(i); ql.append(il[l.id]); qa.append(ac)
-        if pub[i]:
-            if ac == TRAVAIL: publics.add(i)
-            else: publics.discard(i)
+    w = p.w; tb = w.table; publics = a.publics
+    ids = np.asarray(ids, np.int64)
+    act = act.astype(np.int64); dest = dest.astype(np.int64)
+    vivant = tb.vivant[ids] == 1
+    en_mer = tb.poste[ids] == POSTE_VOYAGE
+    sejour = np.isin(ids, np.fromiter(w.sejours, np.int64, len(w.sejours))) if w.sejours else np.zeros(len(ids), bool)
+    hors = ~vivant | en_mer | sejour
+    ql = np.full(len(ids), -1, np.int64)
+    qa = np.full(len(ids), MAISON, np.int64)
+    qa[~vivant] = HORS
+    qa[vivant & en_mer] = VOYAGE
+    m = vivant & ~en_mer & sejour
+    ql[m] = tb.lieu[ids[m]]
+    if hors.any(): publics.difference_update(ids[hors].tolist())
+    ok = ~hors
+    if ok.any():
+        ii, ac, de = ids[ok], act[ok], dest[ok]
+        dom, trav = tb.domicile[ii].astype(np.int64), tb.travail[ii].astype(np.int64)
+        au_travail = (de < 0) & (de != DOMICILE) & (de != MARCHE)
+        sans = au_travail & (trav < 0)               # plus de travail depuis 6 h ( retraite, depart ) : a la maison
+        l = np.where(de >= 0, de, np.where(de == DOMICILE, dom, np.where(de == MARCHE, a.marche[dom], trav)))
+        l = np.where(sans, dom, l)
+        ac = np.where(sans, MAISON, ac)
+        tb.lieu[ii] = l
+        tb.poste[ii] = CODE_POSTE_MOTEUR[ac]
+        ql[ok], qa[ok] = l, ac
+        pub = np.frombuffer(pl.public, np.uint8)[ii] > 0
+        publics.difference_update(ii[pub & (ac != TRAVAIL)].tolist())
+        publics.update(ii[pub & (ac == TRAVAIL)].tolist())
     col = p.colonnes["habitant"]
-    col["agenda_lieu"][qi] = ql
-    col["agenda_activite"][qi] = qa
+    col["agenda_lieu"][ids] = ql
+    col["agenda_activite"][ids] = qa
 
 
 # ================================================================== le pas
@@ -412,10 +432,10 @@ def _fin_des_sejours(w):
 def _accumuler(p, a, k):
     """Ce que chaque pas laisse : l heure payee des fonctionnaires presents ( Monde.deplacer ), les pas de travail faits
     ( la note de `sortir` ), et a l heure pleine - quand la contagion du moteur passe - les presences par lieu et cadre."""
-    H = p.w.habitants
-    for i in a.publics:
-        h = H[i]
-        if h.vivant: h.heures_jour += PAS_H
+    if a.publics:
+        tb = p.w.table
+        ids = np.fromiter(a.publics, np.int64, len(a.publics))
+        tb.heures[ids[tb.vivant[ids] == 1]] += PAS_H
     col = p.colonnes["habitant"]
     n = a.plan.n
     act = col["agenda_activite"][:n]
@@ -428,14 +448,17 @@ def _accumuler(p, a, k):
 
 # ================================================================== le plan du jour
 def _rassembler(p, a):
-    w = p.w; H = w.habitants; n = len(H)
-    il = a.index_lieu; sej = w.sejours; ch = CODE_HORAIRE; et = ETATS; ro = ROLES
-    t = np.array([(h.vivant, h.poste == "voyage" or h.id in sej,
-                   il[h.domicile.id] if h.domicile is not None else -1,
-                   il[h.travail.id] if h.travail is not None else -1,
-                   ch.get(h.horaire, 0), h.equipe % 3, h.decalage,
-                   h.menage.id if h.menage is not None else -1,
-                   et.get(h.etat, 0), h.gravite, h.faim, ro.get(h.role, 0)) for h in H], dtype=float).reshape(n, 12)
+    w = p.w; tb = w.table; n = tb.n
+    # le releve du matin, lu dans les colonnes du moteur ( 24/09 ; il fabriquait un habitant par personne )
+    hors = tb.poste[:n] == POSTE_VOYAGE
+    if w.sejours: hors[np.fromiter((i for i in w.sejours if i < n), np.int64)] = True
+    t = np.empty((n, 12))
+    t[:, 0] = tb.vivant[:n]; t[:, 1] = hors
+    t[:, 2] = tb.domicile[:n]; t[:, 3] = tb.travail[:n]
+    t[:, 4] = HORAIRE_DU_MOTEUR[tb.horaire[:n].astype(np.int64) + 1]
+    t[:, 5] = np.mod(tb.equipe[:n], 3); t[:, 6] = tb.decalage[:n]; t[:, 7] = tb.menage[:n]
+    t[:, 8] = ETAT_DU_MOTEUR[tb.etat[:n]]; t[:, 9] = tb.gravite[:n]; t[:, 10] = tb.faim[:n]
+    t[:, 11] = ROLE_DU_MOTEUR[tb.role[:n].astype(np.int64) + 1]
     g = Releve()
     g.n = n
     g.vivant = t[:, 0] > 0
@@ -624,14 +647,41 @@ def _decider(p, a, pl, g, ai, sympt, quar, indoc):
     M = len(w.menages)
     viv_m = np.bincount(g.menage[g.vivant & (g.menage >= 0)], minlength=M)
     prix = {mid: m.prix["nourriture"] * (1 + w.gouv.tva) for mid, m in w.marches.items()}
-    caisse = np.fromiter((mg.caisse for mg in w.menages), float, M)
-    pm = np.fromiter((prix.get(mg.domicile.marche.id, C.PRIX_MONDE["nourriture"]) if mg.domicile is not None
-                      else C.PRIX_MONDE["nourriture"] for mg in w.menages), float, M)
+    caisse = w.table.menages.caisse[:M].copy()
+    prix_n = np.full(len(w.carte.par_n), float(C.PRIX_MONDE["nourriture"]))
+    for mid, v in prix.items(): prix_n[w.carte.lieux[mid].n] = v
+    dm = w.table.menages.domicile[:M].astype(np.int64)
+    pm = np.where(dm >= 0, prix_n[w._marche_du_lieu[np.maximum(dm, 0)]], float(C.PRIX_MONDE["nourriture"]))
     jours = caisse / np.maximum(1e-6, pm * C.NOURRITURE_PAR_JOUR * np.maximum(1, viv_m))
     cj = np.minimum(1.0, jours / JOURS_CAISSE_PLEINS)[g.menage[ai]]
     x = np.column_stack([sympt[ai], rum, quar[ai], faim, cj, pl.actif[ai, T_TRAVAIL]]).astype(float)
+    if _decideur_simple(dec) and ((x >= 0.0) & (x <= 1.0)).all():
+        # EN COLONNES ( 24/09 ) : la regle ( ou le temoin, qui ne tire rien ) appliquee a tous d un coup, puis chaque
+        # choix pose dans son attente exactement comme Decideur.decider le ferait ( traits bornes : verifies ci-dessus ;
+        # hors bornes, le chemin un par un leve l erreur du decideur )
+        if dec.mode == "regle": out = np.where((x[:, 0] >= 0.5) | ((x[:, 2] >= 0.5) & ~indoc[ai]), 0, 1)
+        else: out = np.ones(len(ai), np.int64)
+        attentes = dec.attentes; Attente = D.Attente
+        for i, r, act in zip(ai.tolist(), x.tolist(), out.tolist()):
+            r.append(1.0)
+            att = attentes.get(i)
+            if att is None: att = attentes[i] = Attente()
+            att.choix.append([r, act, 0, 0.0])
+        dec.n_decisions += len(ai)
+        e = getattr(dec, "enregistreur", None)
+        if e is not None: e.decisions_lot(dec.point.nom, ai, np.column_stack([x, np.ones(len(ai))]), out)
+        return out.astype(np.int8)
     out = [dec.decider(i, ContexteSortie(tuple(r), bool(d))) for i, r, d in zip(ai.tolist(), x.tolist(), indoc[ai].tolist())]
     return np.array(out, np.int8)
+
+
+def _decideur_simple(dec):
+    """Le decideur du point `sortir` en mode regle ou temoin, tel que le socle le fait : sa decision se calcule en
+    colonnes ( la regle ne lit que les traits et l indocilite ; le temoin rend toujours `sortir` sans tirer )."""
+    pt = POINT_SORTIR
+    return (type(dec) is D.Decideur and dec.point is pt and dec.mode in ("regle", "temoin")
+            and pt.observer is _observer_sortir and pt.regle is _regle_sortir and pt.temoin is _temoin_sortir
+            and type(dec).observer is D.Decideur.observer and len(pt.traits) == 6)
 
 
 def _courses(p, a, pl, g, jt, libre, Ti, mi, Tm, mm):
@@ -736,14 +786,73 @@ def _noter_sorties(p, a, g, fen):
         fait = np.bincount(mg, weights=col["agenda_pas_travail"][:n][v], minlength=M)
         prevu = np.bincount(mg, weights=col["agenda_pas_prevus"][:n][v], minlength=M)
         nourri = p.w.nourri_menage
-        for c in cles:
-            if c >= n or not v[c]: r = 0.0
+        cl = np.array(cles)
+        if cl.dtype.kind in "iu" and cl.min() >= 0:
+            # EN COLONNES ( 24/09 ) : la note de chaque menage calculee d un coup ( memes operations, meme ordre ;
+            # des np.float64 comme les lectures une a une ), puis notee cle par cle dans l ordre des attentes
+            cl = cl.astype(np.int64)
+            vi = np.nonzero(cl < n)[0]
+            vi = vi[v[cl[vi]]]
+            mv = g.menage[cl[vi]].astype(np.int64)
+            fm, pm_ = fait[mv], prevu[mv]
+            trav = np.where(pm_ > 0, np.minimum(1.0, fm / np.where(pm_ > 0, pm_, 1.0)), 1.0)
+            nou = _nourris(nourri, mv)
+            rv = (sains[mv] / np.maximum(1, vivants[mv]) + trav + nou) / 3.0
+            rs = [0.0] * len(cles)
+            for j, r in zip(vi.tolist(), rv): rs[j] = r
+            if type(dec) is D.Decideur and type(dec).noter is D.Decideur.noter \
+                    and D.Attente.jour is _JOUR_ATTENTE:
+                _noter_tous(dec, cles, rs, fen - 1)
             else:
-                m = int(g.menage[c])
-                trav = min(1.0, fait[m] / prevu[m]) if prevu[m] > 0 else 1.0
-                r = (sains[m] / max(1, vivants[m]) + trav + (1.0 if nourri.get(m, True) else 0.0)) / 3.0
-            dec.noter(c, r, fen - 1)
+                for c, r in zip(cles, rs): dec.noter(c, r, fen - 1)
+        else:
+            for c in cles:
+                if c >= n or not v[c]: r = 0.0
+                else:
+                    m = int(g.menage[c])
+                    trav = min(1.0, fait[m] / prevu[m]) if prevu[m] > 0 else 1.0
+                    r = (sains[m] / max(1, vivants[m]) + trav + (1.0 if nourri.get(m, True) else 0.0)) / 3.0
+                dec.noter(c, r, fen - 1)
     for c in [c for c, att in dec.attentes.items() if not att.choix]: del dec.attentes[c]
+
+
+_JOUR_ATTENTE = D.Attente.jour
+
+
+def _nourris(nourri, mg):
+    """`1.0 if nourri.get( m, True ) else 0.0` pour chaque menage de `mg`, lu dans le tableau de `Monde.nourri_menage`
+    ( ParMenage : hors du tableau, la valeur par defaut ) ; un autre objet est lu menage par menage."""
+    from .. import monde as MW
+    if type(nourri) is MW.ParMenage and isinstance(nourri.v, np.ndarray):
+        v = nourri.v
+        dans = (mg >= 0) & (mg < len(v))
+        nou = np.ones(len(mg))
+        nou[dans] = np.where(v[mg[dans]].astype(bool), 1.0, 0.0)
+        return nou
+    return np.array([1.0 if nourri.get(m, True) else 0.0 for m in mg.tolist()])
+
+
+def _noter_tous(dec, cles, rs, jour):
+    """`Decideur.noter( c, r, jour )` pour chaque cle, dans l ordre, sans ses deux appels par cle ( Decideur.noter puis
+    Attente.jour, recopies ici a l identique : memes operations, meme ordre ). 24/09 : la moitie du plan du matin."""
+    horizon = dec.point.horizon_j; apprend = dec.apprend
+    attentes = dec.attentes; stats = dec.stats; ech = dec.echantillon
+    for c, r in zip(cles, rs):
+        att = attentes.get(c)
+        if att is None: continue
+        if type(att) is not D.Attente:
+            dec.noter(c, r, jour); continue
+        murs, restent = [], []
+        for e in att.choix:
+            e[2] += 1; e[3] += r
+            (murs if e[2] >= horizon else restent).append(e)
+        att.choix = restent
+        for x, a, note in [(x, a, s / horizon) for x, a, j, s in murs]:
+            if apprend: dec.doctrine.apprendre(x, a, note)
+            st = stats.get((jour, a))
+            if st is None: stats[(jour, a)] = [1, note, note * note]
+            else: st[0] += 1; st[1] += note; st[2] += note * note
+            ech.append((jour, a, note))
 
 
 def _planifier(p, a, fen, k):
@@ -869,7 +978,7 @@ def _revision_du_soir(p, a, pl, k):
                      & (pl.cand[:, RET].astype(np.int32) > t))[0]
     if not len(idx): return
     H = p.w.habitants
-    epuise = np.fromiter((H[i].faim > C.ABSENCE_FAIM for i in idx.tolist()), bool, len(idx))
+    epuise = p.w.table.faim[idx] > C.ABSENCE_FAIM
     change = idx[epuise != pl.epuise[idx]]
     if not len(change): return
     for i in change.tolist():

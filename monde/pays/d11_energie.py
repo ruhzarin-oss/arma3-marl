@@ -647,8 +647,31 @@ def _membres_batteries(w): return w.pays.domaines["energie"].batteries
 
 
 def _travailleurs(p, e):
-    """Les ouvriers de l entreprise `e` presents a leur poste : h.poste == travail, sur le lieu du site."""
-    return [h for h in p.w.au_travail_de(e.lieu, e.role) if h.vivant and h.poste == "travail" and h.lieu is e.lieu]
+    """Les ouvriers de l entreprise `e` presents a leur poste : h.poste == travail, sur le lieu du site. Leurs NUMEROS,
+    dans l ordre de l index du moteur, lus dans les colonnes ( 24/09 : une vue par ouvrier et par heure coutait )."""
+    w = p.w; tb = w.table; lieu = e.lieu
+    ids = w.ids_au_travail(lieu, e.role)
+    if not ids: return []
+    n = lieu.n
+    if n < 0 or n >= len(tb.par_n) or tb.par_n[n] is not lieu: return []      # h.lieu is e.lieu : jamais vrai
+    a = np.array(ids, dtype=np.int64)
+    ok = (tb.vivant[a] != 0) & (tb.poste[a] == _CODE_TRAVAIL) & (tb.lieu[a] == n)
+    return a[ok].tolist()
+
+
+_CODE_TRAVAIL = PO.CODE_POSTE["travail"]
+
+
+def _vivants_au_travail(w, lieu, role):
+    """len([h for h in w.au_travail_de(lieu, role) if h.vivant]), lu dans la colonne."""
+    ids = w.ids_au_travail(lieu, role)
+    if not ids: return 0
+    return int(np.count_nonzero(w.table.vivant[np.array(ids, dtype=np.int64)]))
+
+
+def _crediter_heures(p, ids, x):
+    """x.heures_jour += x pour chaque ouvrier, dans l ordre ( add.at : sequentiel, doublons compris )."""
+    if ids: np.add.at(p.w.table.heures, np.array(ids, dtype=np.int64), x)
 
 
 def _prix_unitaire(p, E, bien, lieu=None):
@@ -745,20 +768,32 @@ def _debut_de_jour(p, E):
 
 
 def _recenser(p, E):
-    """Les habitants de chaque zone ( une passe sur les menages ), et la zone de chaque menage pour sa facture."""
+    """Les habitants de chaque zone ( une passe sur les menages ), et la zone de chaque menage pour sa facture. En
+    colonnes : les membres vivants de la LISTE de chaque menage ( menages_inscrits ), la zone par domicile."""
     w = p.w
     n = len(w.menages)
     p.colonnes["menage"].assurer(n)
     rang = {c.lieu: k for k, c in enumerate(E.zones)}
     mz = np.full(n, -1, np.int64); mv = np.zeros(n)
-    hab = np.zeros(len(E.zones))
-    for mg in w.menages:
-        if mg.domicile is None: continue
-        k = rang.get(mg.domicile.id)
-        if k is None: continue
-        v = sum(1 for x in mg.membres if x.vivant)
-        if v == 0: continue
-        mz[mg.id] = k; mv[mg.id] = v; hab[k] += v
+    nz = len(E.zones)
+    tb = w.table; mt = tb.menages
+    if n > 0 and nz > 0:
+        nh = tb.n
+        mi = PO.menages_inscrits(tb, nh)
+        sel = (mi >= 0) & (tb.vivant[:nh] != 0)
+        viv = np.bincount(mi[sel], minlength=n)[:n]
+        dom = mt.domicile[:n]
+        zone_n = {}
+        for dn in np.unique(dom[dom >= 0]).tolist():
+            k = rang.get(mt.par_n[dn].id)
+            if k is not None: zone_n[dn] = k
+        if zone_n:
+            carte = np.full(int(dom.max()) + 1, -1, np.int64)
+            for dn, k in zone_n.items(): carte[dn] = k
+            z = np.where(dom >= 0, carte[np.maximum(dom, 0)], -1)
+            ok = (z >= 0) & (viv > 0)
+            mz[ok] = z[ok]; mv[ok] = viv[ok]
+    hab = np.bincount(mz[mz >= 0], weights=mv[mz >= 0], minlength=nz)[:nz] if nz else np.zeros(0)
     for k, c in enumerate(E.zones): c.hab = float(hab[k])
     E.mg_zone, E.mg_viv = mz, mv
 
@@ -802,12 +837,12 @@ def _sites_nominal_kw(p, E, R):
     w = p.w; kw = 0.0
     for e in R.sites_moteur:
         q = e.intrants.get("electricite", 0.0)
-        n = len([h for h in w.au_travail_de(e.lieu, e.role) if h.vivant])
+        n = _vivants_au_travail(w, e.lieu, e.role)
         kw += n * q * KWH_UNITE * (1.0 / 3.0 if PO.TRAVAIL.get(e.role, ((), None))[1] == "garde" else 1.0)
     for c in R.charges:
         if c.type != SITE: continue
         e = c.entreprise
-        n = len([h for h in w.au_travail_de(e.lieu, e.role) if h.vivant])
+        n = _vivants_au_travail(w, e.lieu, e.role)
         if e.type == "raffinerie": kw += n * DEBIT_OUVRIER_H * COMBUSTIBLES["petrole"].masse_kg / 1000.0 * ELEC_RAFFINAGE_KWH_T
         else: kw += n / 3.0 * PETROLE_PETROLIER_H * ELEC_PUITS_KWH
     return kw
@@ -1208,7 +1243,7 @@ def _appliquer(p, E, R, h, gr, plan, res3, besoin0, besoin, ens_del):
     _oleoduc(p, E)
     for e in R.centrales:
         if e.id in actifs:
-            for x in _travailleurs(p, e): x.heures_jour += 1.0
+            _crediter_heures(p, _travailleurs(p, e), 1.0)
     # ---- le journal de l heure et les cumuls
     servi = res + ter + ecl + sites + contrats + moteur
     cut = sum(c.d_cut for c in R.charges)
@@ -1254,7 +1289,7 @@ def _produire_site(p, E, c, alimente):
             g.en_declin = True
             p.noter("gisement_en_declin", lieu=e.lieu.id, reste=round(g.reste), depart=round(g.depart))
         frac = 1.0
-    for x in c.ouvriers: x.heures_jour += frac
+    _crediter_heures(p, c.ouvriers, frac)
 
 
 def _oleoduc(p, E):
@@ -2017,11 +2052,11 @@ def installer(p):
     _contourner_neutralisation(p)
     # le gisement et le nominal de la raffinerie
     if E.puits is not None:
-        n = len([h for h in w.au_travail_de(E.puits.lieu, E.puits.role) if h.vivant])
+        n = _vivants_au_travail(w, E.puits.lieu, E.puits.role)
         E.nominal_puits_j = n * PETROLE_PETROLIER_H * 8.0
         E.gisement = Gisement(max(1.0, E.nominal_puits_j) * JOURS_AN * RESERVES_ANNEES)
     if E.raffinerie is not None:
-        n = len([h for h in w.au_travail_de(E.raffinerie.lieu, E.raffinerie.role) if h.vivant])
+        n = _vivants_au_travail(w, E.raffinerie.lieu, E.raffinerie.role)
         E.nominal_brut_j = n * DEBIT_OUVRIER_H * 8.0
     reg = p.socle.registre
     reg.inscrire("gestionnaires_reseau", "entreprises", _membres_gestionnaires, "caisse", "stock", "GestionnaireReseau")

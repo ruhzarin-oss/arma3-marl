@@ -1,0 +1,3062 @@
+[
+ {
+  "id": "Sara_Rashidah",
+  "type": "NameVillage",
+  "pos": [
+   9586.0,
+   11109.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Balmopan",
+  "type": "NameVillage",
+  "pos": [
+   8036.0,
+   9456.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Estrella",
+  "type": "NameVillage",
+  "pos": [
+   6785.0,
+   8140.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Chantico",
+  "type": "NameCity",
+  "pos": [
+   8222.0,
+   9088.0
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "Sara_Cedras",
+  "type": "NameVillage",
+  "pos": [
+   7379.0,
+   8688.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Ambergris",
+  "type": "NameVillage",
+  "pos": [
+   7670.0,
+   9182.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Ortego",
+  "type": "NameCity",
+  "pos": [
+   12356.0,
+   7096.0
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "Sara_Cayo",
+  "type": "NameCity",
+  "pos": [
+   9325.0,
+   5983.0
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "Sara_Iguana",
+  "type": "NameCity",
+  "pos": [
+   10730.0,
+   4828.0
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "Sara_Dolores",
+  "type": "NameCity",
+  "pos": [
+   11614.0,
+   6019.0
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "Sara_Parato",
+  "type": "NameVillage",
+  "pos": [
+   11368.0,
+   5291.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Tiberia",
+  "type": "NameVillage",
+  "pos": [
+   9406.0,
+   5146.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Geraldo",
+  "type": "NameVillage",
+  "pos": [
+   13277.0,
+   6966.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_SelvaDeCresta",
+  "type": "VegetationFir",
+  "pos": [
+   7475.0,
+   16815.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Corazol",
+  "type": "NameCity",
+  "pos": [
+   13192.0,
+   8794.0
+  ],
+  "rayon": [
+   300.0,
+   300.0
+  ]
+ },
+ {
+  "id": "Forest_SelvaDeCaza",
+  "type": "VegetationFir",
+  "pos": [
+   9504.0,
+   16382.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Gulan",
+  "type": "NameVillage",
+  "pos": [
+   8804.0,
+   7734.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Somato",
+  "type": "NameVillage",
+  "pos": [
+   9200.0,
+   8274.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Bonanza",
+  "type": "NameVillage",
+  "pos": [
+   11212.0,
+   8858.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Corinto",
+  "type": "NameVillage",
+  "pos": [
+   11568.0,
+   9144.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Yoro",
+  "type": "NameVillage",
+  "pos": [
+   9751.0,
+   8724.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Pesto",
+  "type": "NameVillage",
+  "pos": [
+   10180.0,
+   8432.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Assombracao",
+  "type": "VegetationFir",
+  "pos": [
+   13449.0,
+   15014.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Paraiso",
+  "type": "NameCityCapital",
+  "pos": [
+   10612.0,
+   9413.0
+  ],
+  "rayon": [
+   300.0,
+   300.0
+  ]
+ },
+ {
+  "id": "Sara_Arcadia",
+  "type": "NameVillage",
+  "pos": [
+   7601.0,
+   6436.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_MatoGrosso",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   10045.0,
+   13710.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Masbete",
+  "type": "NameCity",
+  "pos": [
+   17231.0,
+   14339.0
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "Sara_Pita",
+  "type": "NameVillage",
+  "pos": [
+   18941.0,
+   13889.0
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "Sara_Bagango",
+  "type": "NameCityCapital",
+  "pos": [
+   14240.0,
+   12534.0
+  ],
+  "rayon": [
+   300.0,
+   300.0
+  ]
+ },
+ {
+  "id": "Sara_Eponia",
+  "type": "NameCity",
+  "pos": [
+   12448.0,
+   15099.0
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "Sara_Everon",
+  "type": "NameVillage",
+  "pos": [
+   16514.0,
+   9300.0
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "Sara_Hunapu",
+  "type": "NameVillage",
+  "pos": [
+   7738.0,
+   15756.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Pacamac",
+  "type": "NameVillage",
+  "pos": [
+   9713.0,
+   14449.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Tlaloc",
+  "type": "NameVillage",
+  "pos": [
+   10858.0,
+   12629.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Obregan",
+  "type": "NameCity",
+  "pos": [
+   14520.0,
+   10878.0
+  ],
+  "rayon": [
+   300.0,
+   300.0
+  ]
+ },
+ {
+  "id": "Sara_Carmen",
+  "type": "NameVillage",
+  "pos": [
+   12436.0,
+   13303.0
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "Sara_Ixel",
+  "type": "NameVillage",
+  "pos": [
+   17481.0,
+   13565.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "Sara_Mercalillo",
+  "type": "NameCity",
+  "pos": [
+   13250.0,
+   11293.0
+  ],
+  "rayon": [
+   250.0,
+   250.0
+  ]
+ },
+ {
+  "id": "Sara_Modesta",
+  "type": "NameVillage",
+  "pos": [
+   14372.0,
+   9428.0
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "Forest_Boscas",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   13170.0,
+   12715.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_MatoVirgo",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   17012.0,
+   10153.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Valor",
+  "type": "NameVillage",
+  "pos": [
+   15343.0,
+   9896.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Gaula",
+  "type": "NameVillage",
+  "pos": [
+   14504.0,
+   8539.0
+  ],
+  "rayon": [
+   200.0,
+   200.0
+  ]
+ },
+ {
+  "id": "Forest_Hiccoras",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   12021.0,
+   9318.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Mataredo",
+  "type": "NameVillage",
+  "pos": [
+   10653.0,
+   16265.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Benoma",
+  "type": "NameVillage",
+  "pos": [
+   15383.0,
+   13769.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Tandag",
+  "type": "NameVillage",
+  "pos": [
+   11856.0,
+   14418.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "Hill_SierraCresta",
+  "type": "Hill",
+  "pos": [
+   7492.0,
+   16549.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_MonteAcequero",
+  "type": "Hill",
+  "pos": [
+   7381.0,
+   16029.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_PuntoPrecito",
+  "type": "Hill",
+  "pos": [
+   8777.0,
+   15872.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_Rocaloso",
+  "type": "Hill",
+  "pos": [
+   9143.0,
+   15417.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_PuntoPacamac",
+  "type": "Hill",
+  "pos": [
+   9900.0,
+   14894.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_BicoDoPapageo",
+  "type": "Hill",
+  "pos": [
+   10021.0,
+   13429.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_PuntoMorton",
+  "type": "Hill",
+  "pos": [
+   11108.0,
+   13382.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_PicoDeRevolucion",
+  "type": "Hill",
+  "pos": [
+   13119.0,
+   16529.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_PicoDePerez",
+  "type": "Hill",
+  "pos": [
+   14260.0,
+   15182.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_MonteLiberacion",
+  "type": "Hill",
+  "pos": [
+   15624.0,
+   11386.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_MonteValor",
+  "type": "Hill",
+  "pos": [
+   16203.0,
+   10347.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_SanEsteban",
+  "type": "Hill",
+  "pos": [
+   11430.0,
+   8584.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_MontePesto",
+  "type": "Hill",
+  "pos": [
+   10700.0,
+   8268.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_MonteYorito",
+  "type": "Hill",
+  "pos": [
+   9390.0,
+   8669.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_PlayaRiscal",
+  "type": "NameMarine",
+  "pos": [
+   6499.0,
+   8134.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_PlayaDePalomas",
+  "type": "NameLocal",
+  "pos": [
+   8351.0,
+   9718.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_AbraDaBoca",
+  "type": "NameMarine",
+  "pos": [
+   11603.0,
+   10974.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_BahiaCorazol",
+  "type": "NameMarine",
+  "pos": [
+   12736.0,
+   9378.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_BahiaGatun",
+  "type": "NameMarine",
+  "pos": [
+   13536.0,
+   8428.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_BahiaSeca",
+  "type": "NameMarine",
+  "pos": [
+   13043.0,
+   6134.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_GolfoDeDolores",
+  "type": "NameMarine",
+  "pos": [
+   11933.0,
+   5995.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_CalaDeIguana",
+  "type": "NameMarine",
+  "pos": [
+   10876.0,
+   4619.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_AnconEverone",
+  "type": "NameMarine",
+  "pos": [
+   16859.0,
+   9267.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_AnconDePita",
+  "type": "NameMarine",
+  "pos": [
+   19424.0,
+   13707.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_AnconDeAmanitas",
+  "type": "NameMarine",
+  "pos": [
+   15698.0,
+   15177.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_PortoDePerolas",
+  "type": "NameMarine",
+  "pos": [
+   10843.0,
+   16595.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_GolfoValiente",
+  "type": "NameMarine",
+  "pos": [
+   6465.0,
+   17140.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_AnconDeHunapu",
+  "type": "NameMarine",
+  "pos": [
+   7411.0,
+   15283.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_EstrechoDeTrelobada",
+  "type": "NameMarine",
+  "pos": [
+   7745.0,
+   14702.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_PlayaGyron",
+  "type": "NameMarine",
+  "pos": [
+   10215.0,
+   13192.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_CaboValiente",
+  "type": "NameLocal",
+  "pos": [
+   6204.0,
+   17399.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_IslaDeMatey",
+  "type": "NameLocal",
+  "pos": [
+   5811.0,
+   16138.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_Trelobada",
+  "type": "NameLocal",
+  "pos": [
+   7590.0,
+   14400.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_PassoSanAndres",
+  "type": "NameLocal",
+  "pos": [
+   10714.0,
+   14237.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_PuntasOccidental",
+  "type": "NameLocal",
+  "pos": [
+   8959.0,
+   15609.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_CaboJuventudo",
+  "type": "NameLocal",
+  "pos": [
+   7801.0,
+   17794.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_CaboIndice",
+  "type": "NameLocal",
+  "pos": [
+   10574.0,
+   17190.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_IslaDeVictoria",
+  "type": "NameLocal",
+  "pos": [
+   11207.0,
+   16885.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_IslaDesCompadres",
+  "type": "NameLocal",
+  "pos": [
+   10689.0,
+   16764.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_Pesadas",
+  "type": "NameLocal",
+  "pos": [
+   11663.0,
+   15366.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_PassoEpone",
+  "type": "NameLocal",
+  "pos": [
+   13626.0,
+   15537.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_SierraMasbete",
+  "type": "NameLocal",
+  "pos": [
+   15114.0,
+   14710.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_TerraMarismo",
+  "type": "NameLocal",
+  "pos": [
+   14039.0,
+   13909.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_ValleDeCarmen",
+  "type": "NameLocal",
+  "pos": [
+   13160.0,
+   13428.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_PuntasOriental",
+  "type": "NameLocal",
+  "pos": [
+   11416.0,
+   13059.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_IslaDeLibertad",
+  "type": "NameLocal",
+  "pos": [
+   12522.0,
+   10926.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_IslaVerda",
+  "type": "NameLocal",
+  "pos": [
+   12385.0,
+   10296.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_BajoValor",
+  "type": "NameLocal",
+  "pos": [
+   15505.0,
+   8890.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_IslasGatunas",
+  "type": "NameLocal",
+  "pos": [
+   13953.0,
+   8009.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_SierraDeLosPinos",
+  "type": "NameLocal",
+  "pos": [
+   16774.0,
+   11163.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_TresValles",
+  "type": "NameLocal",
+  "pos": [
+   17696.0,
+   11920.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_SierraPita",
+  "type": "NameLocal",
+  "pos": [
+   18357.0,
+   13221.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_SanPeregrino",
+  "type": "NameLocal",
+  "pos": [
+   6325.0,
+   7384.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_CalhetaDeCedras",
+  "type": "NameLocal",
+  "pos": [
+   7032.0,
+   8495.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_CaboCanino",
+  "type": "NameLocal",
+  "pos": [
+   7813.0,
+   9692.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_Matas",
+  "type": "NameLocal",
+  "pos": [
+   9772.0,
+   10650.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_ValleAzul",
+  "type": "NameLocal",
+  "pos": [
+   10973.0,
+   7554.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_Vallejo",
+  "type": "NameLocal",
+  "pos": [
+   10261.0,
+   7084.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_SierraMadre",
+  "type": "NameLocal",
+  "pos": [
+   11078.0,
+   8347.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_PlatoDeCayo",
+  "type": "NameLocal",
+  "pos": [
+   8703.0,
+   6071.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_TerraAcorcha",
+  "type": "NameLocal",
+  "pos": [
+   10158.0,
+   5852.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_CalhaDeCayo",
+  "type": "NameLocal",
+  "pos": [
+   8393.0,
+   5388.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_CalhetaSeca",
+  "type": "NameLocal",
+  "pos": [
+   13108.0,
+   6434.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Tiberia",
+  "type": "VegetationVineyard",
+  "pos": [
+   9153.0,
+   5396.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Parato",
+  "type": "VegetationVineyard",
+  "pos": [
+   11303.0,
+   5422.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Ortego",
+  "type": "VegetationVineyard",
+  "pos": [
+   11886.0,
+   6956.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Yoro_1",
+  "type": "VegetationVineyard",
+  "pos": [
+   9716.0,
+   8532.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Yoro_2",
+  "type": "VegetationVineyard",
+  "pos": [
+   9774.0,
+   8999.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Peregrino_1",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   6159.0,
+   7399.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_SanEsteban",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   12006.0,
+   8286.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Mercalillo",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   12004.0,
+   11911.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Pacamac",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   9511.0,
+   14901.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Hunapu_1",
+  "type": "VegetationFir",
+  "pos": [
+   7469.0,
+   16130.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Hunapu_2",
+  "type": "VegetationFir",
+  "pos": [
+   8205.0,
+   15941.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Revolucion_1",
+  "type": "VegetationFir",
+  "pos": [
+   13750.0,
+   16418.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Revolucion_2",
+  "type": "VegetationFir",
+  "pos": [
+   14947.0,
+   15955.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_LosPinos_2",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   18480.0,
+   10927.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_LosPinos_1",
+  "type": "VegetationFir",
+  "pos": [
+   17890.0,
+   12162.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Boscas_2",
+  "type": "VegetationFir",
+  "pos": [
+   13328.0,
+   12741.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_SelvaDeCresta_2",
+  "type": "VegetationFir",
+  "pos": [
+   8000.0,
+   17401.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_SelvaDeCresta_3",
+  "type": "VegetationFir",
+  "pos": [
+   8807.0,
+   16798.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_PuntasOccidental_2",
+  "type": "VegetationFir",
+  "pos": [
+   8461.0,
+   15278.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_PuntasOccidental_1",
+  "type": "VegetationFir",
+  "pos": [
+   9564.0,
+   14723.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Rocaloso",
+  "type": "VegetationFir",
+  "pos": [
+   9832.0,
+   15640.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_PassoSanAndres_1",
+  "type": "VegetationFir",
+  "pos": [
+   10721.0,
+   14813.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_PassoSanAndres_2",
+  "type": "VegetationFir",
+  "pos": [
+   11402.0,
+   14284.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Boscas_3",
+  "type": "VegetationFir",
+  "pos": [
+   13263.0,
+   12515.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Boscas_4",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   13508.0,
+   12404.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Bagango",
+  "type": "VegetationFir",
+  "pos": [
+   14666.0,
+   12841.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Benoma",
+  "type": "VegetationFir",
+  "pos": [
+   15097.0,
+   13505.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Assombracao_2",
+  "type": "VegetationFir",
+  "pos": [
+   12784.0,
+   15800.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Assombracao_3",
+  "type": "VegetationFir",
+  "pos": [
+   14228.0,
+   14695.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Arcadia",
+  "type": "VegetationPalm",
+  "pos": [
+   7893.0,
+   6082.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Peregrino_2",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   7071.0,
+   7572.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Vallejo_1",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   9866.0,
+   7245.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Somato",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   9625.0,
+   8002.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Bonanza_1",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   10918.0,
+   8615.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Paraiso",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   10017.0,
+   9625.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_ValleAzul",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   11462.0,
+   7839.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Bonanza_3",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   10320.0,
+   8784.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Tiberia_2",
+  "type": "VegetationVineyard",
+  "pos": [
+   9461.0,
+   5303.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Matas",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   10329.0,
+   10526.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Chantico",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   8899.0,
+   9097.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Peregrino_3",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   6826.0,
+   6872.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Vallejo_2",
+  "type": "VegetationBroadleaf",
+  "pos": [
+   9194.0,
+   7231.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_PlayaDePalomas",
+  "type": "VegetationPalm",
+  "pos": [
+   8350.0,
+   9628.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Tiberia_3",
+  "type": "VegetationVineyard",
+  "pos": [
+   9473.0,
+   5260.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Tiberia_4",
+  "type": "VegetationVineyard",
+  "pos": [
+   9261.0,
+   5438.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Tiberia_5",
+  "type": "VegetationVineyard",
+  "pos": [
+   9299.0,
+   5386.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Parato_2",
+  "type": "VegetationVineyard",
+  "pos": [
+   11493.0,
+   5504.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Parato_3",
+  "type": "VegetationVineyard",
+  "pos": [
+   11437.0,
+   5500.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Parato_5",
+  "type": "VegetationVineyard",
+  "pos": [
+   11371.0,
+   5459.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Parato_4",
+  "type": "VegetationVineyard",
+  "pos": [
+   11215.0,
+   5347.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Ortego_2",
+  "type": "VegetationVineyard",
+  "pos": [
+   12034.0,
+   7029.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Ortego_3",
+  "type": "VegetationVineyard",
+  "pos": [
+   12032.0,
+   6940.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Yoro_3",
+  "type": "VegetationVineyard",
+  "pos": [
+   9644.0,
+   8623.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vineyard_Yoro_4",
+  "type": "VegetationVineyard",
+  "pos": [
+   9671.0,
+   8448.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_LaCorona",
+  "type": "Hill",
+  "pos": [
+   9913.0,
+   4932.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_CaboDeFidel",
+  "type": "NameLocal",
+  "pos": [
+   5677.0,
+   16463.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "View_Dolores",
+  "type": "ViewPoint",
+  "pos": [
+   12028.0,
+   6255.0
+  ],
+  "rayon": [
+   50.0,
+   50.0
+  ]
+ },
+ {
+  "id": "View_CaboCanino",
+  "type": "ViewPoint",
+  "pos": [
+   7865.0,
+   9722.0
+  ],
+  "rayon": [
+   50.0,
+   50.0
+  ]
+ },
+ {
+  "id": "Marine_BahiaSanGeraldo",
+  "type": "NameMarine",
+  "pos": [
+   13578.0,
+   6865.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_CalhetaDemiseca",
+  "type": "NameLocal",
+  "pos": [
+   12383.0,
+   6244.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_CalaDeParato",
+  "type": "NameMarine",
+  "pos": [
+   11500.0,
+   5120.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Balmopan",
+  "type": "VegetationPalm",
+  "pos": [
+   8133.0,
+   9449.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "View_Ortego",
+  "type": "ViewPoint",
+  "pos": [
+   11982.0,
+   7181.0
+  ],
+  "rayon": [
+   50.0,
+   50.0
+  ]
+ },
+ {
+  "id": "Local_RocaDror",
+  "type": "NameLocal",
+  "pos": [
+   14101.0,
+   17033.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Border_1",
+  "type": "BorderCrossing",
+  "pos": [
+   13255.0,
+   8987.0
+  ],
+  "rayon": [
+   50.0,
+   50.0
+  ]
+ },
+ {
+  "id": "Border_2",
+  "type": "BorderCrossing",
+  "pos": [
+   13309.0,
+   8849.0
+  ],
+  "rayon": [
+   50.0,
+   50.0
+  ]
+ },
+ {
+  "id": "Border_3",
+  "type": "BorderCrossing",
+  "pos": [
+   13378.0,
+   8753.0
+  ],
+  "rayon": [
+   50.0,
+   50.0
+  ]
+ },
+ {
+  "id": "View_MontePesto",
+  "type": "ViewPoint",
+  "pos": [
+   10679.0,
+   8390.0
+  ],
+  "rayon": [
+   50.0,
+   50.0
+  ]
+ },
+ {
+  "id": "Local_PassoSanMarco",
+  "type": "NameLocal",
+  "pos": [
+   15061.0,
+   12393.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "View_Ortego02",
+  "type": "ViewPoint",
+  "pos": [
+   13988.0,
+   13069.0
+  ],
+  "rayon": [
+   50.0,
+   50.0
+  ]
+ },
+ {
+  "id": "Hill_PuntoArgente",
+  "type": "Hill",
+  "pos": [
+   8060.0,
+   16268.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "RockArea_Hunapu",
+  "type": "RockArea",
+  "pos": [
+   7611.0,
+   15925.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_SCaza",
+  "type": "RockArea",
+  "pos": [
+   9675.0,
+   16292.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Merc",
+  "type": "RockArea",
+  "pos": [
+   12903.0,
+   11672.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Valor",
+  "type": "RockArea",
+  "pos": [
+   14781.0,
+   10015.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "Hill_CerroObrego",
+  "type": "Hill",
+  "pos": [
+   14799.0,
+   10054.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "RockArea_MonteLiber01",
+  "type": "RockArea",
+  "pos": [
+   15714.0,
+   11163.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_MonteLiber02",
+  "type": "RockArea",
+  "pos": [
+   15665.0,
+   11475.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_MonteLiber03",
+  "type": "RockArea",
+  "pos": [
+   15990.0,
+   11391.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_MonteLiber04",
+  "type": "RockArea",
+  "pos": [
+   16397.0,
+   11461.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_MonteLiber05",
+  "type": "RockArea",
+  "pos": [
+   16187.0,
+   11584.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_SierraPinos01",
+  "type": "RockArea",
+  "pos": [
+   16888.0,
+   11207.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_SierraPinos02",
+  "type": "RockArea",
+  "pos": [
+   17346.0,
+   10972.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_SierraPinos03",
+  "type": "RockArea",
+  "pos": [
+   17696.0,
+   10864.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_SierraPinos04",
+  "type": "RockArea",
+  "pos": [
+   17889.0,
+   10989.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_SierraPinos05",
+  "type": "RockArea",
+  "pos": [
+   18089.0,
+   11261.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_SierraPinos06",
+  "type": "RockArea",
+  "pos": [
+   18265.0,
+   11458.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_SierraPinos07",
+  "type": "RockArea",
+  "pos": [
+   18341.0,
+   11400.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_SierraPinos08",
+  "type": "RockArea",
+  "pos": [
+   18013.0,
+   11469.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Victoria01",
+  "type": "RockArea",
+  "pos": [
+   12681.0,
+   17945.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Victoria02",
+  "type": "RockArea",
+  "pos": [
+   11688.0,
+   17735.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Victoria03",
+  "type": "RockArea",
+  "pos": [
+   11696.0,
+   17340.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Victoria04",
+  "type": "RockArea",
+  "pos": [
+   12177.0,
+   17017.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Ortego01",
+  "type": "RockArea",
+  "pos": [
+   13020.0,
+   7718.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Ortego02",
+  "type": "RockArea",
+  "pos": [
+   12807.0,
+   7905.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Ortego03",
+  "type": "RockArea",
+  "pos": [
+   12976.0,
+   7079.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Ortego04",
+  "type": "RockArea",
+  "pos": [
+   12620.0,
+   7530.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Acorcha01",
+  "type": "RockArea",
+  "pos": [
+   10382.0,
+   6595.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Acorcha02",
+  "type": "RockArea",
+  "pos": [
+   10595.0,
+   6236.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Acorcha03",
+  "type": "RockArea",
+  "pos": [
+   10111.0,
+   6157.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Acorcha04",
+  "type": "RockArea",
+  "pos": [
+   10514.0,
+   5695.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Acorcha05",
+  "type": "RockArea",
+  "pos": [
+   9711.0,
+   5617.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Acorcha06",
+  "type": "RockArea",
+  "pos": [
+   9301.0,
+   6282.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Iguana01",
+  "type": "RockArea",
+  "pos": [
+   10821.0,
+   5128.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Bonanza",
+  "type": "RockArea",
+  "pos": [
+   11455.0,
+   8914.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_Hiccoras",
+  "type": "RockArea",
+  "pos": [
+   11976.0,
+   8923.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "Local_IslaDeVida",
+  "type": "NameLocal",
+  "pos": [
+   5221.0,
+   15943.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_IslaDeVassal",
+  "type": "NameLocal",
+  "pos": [
+   4459.0,
+   15180.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_MonteGalassi",
+  "type": "NameLocal",
+  "pos": [
+   4799.0,
+   14985.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "View_Vallejo",
+  "type": "ViewPoint",
+  "pos": [
+   10760.0,
+   7005.0
+  ],
+  "rayon": [
+   50.0,
+   50.0
+  ]
+ },
+ {
+  "id": "RockArea_PMarco2",
+  "type": "RockArea",
+  "pos": [
+   15107.0,
+   12278.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "RockArea_PMarco1",
+  "type": "RockArea",
+  "pos": [
+   15096.0,
+   12406.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "Marine_GolaYennda",
+  "type": "NameMarine",
+  "pos": [
+   5124.0,
+   16272.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_CaboSantaLucia",
+  "type": "NameLocal",
+  "pos": [
+   12215.0,
+   18350.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_CaboGavio",
+  "type": "NameLocal",
+  "pos": [
+   9772.0,
+   4484.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_Alcazar",
+  "type": "NameLocal",
+  "pos": [
+   14727.0,
+   13979.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "View_Mercalillo",
+  "type": "ViewPoint",
+  "pos": [
+   12918.0,
+   11606.0
+  ],
+  "rayon": [
+   50.0,
+   50.0
+  ]
+ },
+ {
+  "id": "Forest_MatoVirgo2",
+  "type": "VegetationFir",
+  "pos": [
+   16335.0,
+   10656.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_PassoParadiso",
+  "type": "NameLocal",
+  "pos": [
+   10133.0,
+   15480.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_Parvulo",
+  "type": "NameLocal",
+  "pos": [
+   2237.0,
+   18810.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_Rocara",
+  "type": "NameLocal",
+  "pos": [
+   1760.0,
+   17908.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_CimasD",
+  "type": "NameLocal",
+  "pos": [
+   1622.0,
+   17136.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_Gordo",
+  "type": "NameLocal",
+  "pos": [
+   16023.0,
+   4045.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_IslaZorra",
+  "type": "NameLocal",
+  "pos": [
+   16485.0,
+   4665.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_IslaTojos",
+  "type": "NameLocal",
+  "pos": [
+   17624.0,
+   4797.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_Asharah",
+  "type": "NameLocal",
+  "pos": [
+   17982.0,
+   3163.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_GolaLaras",
+  "type": "NameMarine",
+  "pos": [
+   17143.0,
+   4462.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_RioPallido",
+  "type": "NameMarine",
+  "pos": [
+   17477.0,
+   18561.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_Antigua",
+  "type": "NameLocal",
+  "pos": [
+   17887.0,
+   18325.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_Virgo",
+  "type": "Hill",
+  "pos": [
+   17539.0,
+   17941.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_Vieja",
+  "type": "Hill",
+  "pos": [
+   17414.0,
+   18075.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_IslaCaja",
+  "type": "NameLocal",
+  "pos": [
+   1511.0,
+   1691.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_IslaArimar",
+  "type": "NameLocal",
+  "pos": [
+   1545.0,
+   2296.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Local_SanTomas",
+  "type": "NameLocal",
+  "pos": [
+   9456.0,
+   3510.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_AngraCaridad",
+  "type": "NameMarine",
+  "pos": [
+   1931.0,
+   1991.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_CalaBarca",
+  "type": "NameMarine",
+  "pos": [
+   2844.0,
+   1880.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Marine_CalaMarisca",
+  "type": "NameMarine",
+  "pos": [
+   2707.0,
+   3251.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Desert1",
+  "type": "VegetationPalm",
+  "pos": [
+   2444.0,
+   3023.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Desert2",
+  "type": "VegetationPalm",
+  "pos": [
+   2716.0,
+   2147.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Forest_Desert3",
+  "type": "VegetationPalm",
+  "pos": [
+   2942.0,
+   2924.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sara_Rahmadi",
+  "type": "NameVillage",
+  "pos": [
+   2931.0,
+   2799.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_CerraBorra",
+  "type": "Hill",
+  "pos": [
+   3368.0,
+   2933.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Hill_Tapial",
+  "type": "Hill",
+  "pos": [
+   5967.0,
+   16431.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "RockArea_Hunapu2",
+  "type": "RockArea",
+  "pos": [
+   6704.0,
+   16029.0
+  ],
+  "rayon": [
+   40.0,
+   40.0
+  ]
+ },
+ {
+  "id": "Marine_BajoEstrecho",
+  "type": "NameMarine",
+  "pos": [
+   9432.0,
+   4116.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ }
+]

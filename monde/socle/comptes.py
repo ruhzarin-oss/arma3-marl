@@ -63,7 +63,7 @@ class GrandLivre:
     """Le seul chemin de l argent et des biens. `flux` et `ext` peuvent etre ceux d un Monde E1 : moteur et domaines
     nouveaux comptent alors dans les memes cumuls ( brancher.py )."""
     __slots__ = ("catalogue", "motifs", "strict", "flux", "ext", "monnaie", "jour_argent", "jour_biens", "impayes",
-                 "non_declares", "net_cumule", "n_transferts")
+                 "non_declares", "net_cumule", "n_transferts", "enregistreur")
 
     def __init__(self, catalogue, flux=None, ext=None, strict=True):
         self.catalogue = catalogue
@@ -81,6 +81,7 @@ class GrandLivre:
         self.non_declares = {}     # motif -> nombre d usages ( mode non strict ), cumule
         self.net_cumule = {}       # classe -> recu - paye, cumule aux clotures
         self.n_transferts = 0
+        self.enregistreur = None   # monde/enregistreur.py : chaque ecriture, une ligne ( lit seulement )
 
     # ------------------------------------------------------------------ les motifs
     def declarer_motif(self, nom, nature, domaine):
@@ -112,6 +113,8 @@ class GrandLivre:
         paye = max(0.0, min(montant, de.caisse))
         de.caisse -= paye; vers.caisse += paye
         self._ranger(motif, type(de).__name__, type(vers).__name__, paye)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.argent(motif, de, vers, paye)
         if montant - paye > TOLERANCE_IMPAYE: self._impaye(motif, montant - paye)
         self.n_transferts += 1
         return paye
@@ -131,6 +134,8 @@ class GrandLivre:
         if not 0.0 <= montant < math.inf: raise ValueError(f"montant exterieur invalide : {montant!r}")
         vers.caisse += montant; self.ext["entree"] += montant
         self._ranger(motif, EXTERIEUR, type(vers).__name__, montant)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.argent(motif, EXTERIEUR, vers, montant)
         return montant
 
     def payer_l_exterieur(self, de, montant, motif):
@@ -140,6 +145,8 @@ class GrandLivre:
         paye = max(0.0, min(montant, de.caisse))
         de.caisse -= paye; self.ext["sortie"] += paye
         self._ranger(motif, type(de).__name__, EXTERIEUR, paye)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.argent(motif, de, EXTERIEUR, paye)
         if montant - paye > TOLERANCE_IMPAYE: self._impaye(motif, montant - paye)
         return paye
 
@@ -150,6 +157,8 @@ class GrandLivre:
         if not 0.0 <= montant < math.inf: raise ValueError(f"montant emis invalide : {montant!r}")
         vers.caisse += montant; self.monnaie["emise"] += montant
         self._ranger(motif, EMISSION, type(vers).__name__, montant)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.argent(motif, EMISSION, vers, montant)
         return montant
 
     def detruire_monnaie(self, de, montant, motif):
@@ -157,6 +166,8 @@ class GrandLivre:
         paye = max(0.0, min(montant, de.caisse))
         de.caisse -= paye; self.monnaie["detruite"] += paye
         self._ranger(motif, type(de).__name__, EMISSION, paye)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.argent(motif, de, EMISSION, paye)
         return paye
 
     # ------------------------------------------------------------------ les biens
@@ -170,6 +181,8 @@ class GrandLivre:
         pris = de._retirer(bien, q)
         if pris > 0.0: vers._ajouter(bien, pris)
         self._ranger_bien("deplace", motif, bien, pris)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.bien("deplace", motif, bien, pris, de, vers)
         return pris
 
     def source(self, vers, bien, q, nature, motif):
@@ -179,6 +192,8 @@ class GrandLivre:
         f, nom = self.flux[nature], self.catalogue.biens[bien].nom      # un bien declare apres coup entre a zero
         f[nom] = f.get(nom, 0.0) + q
         self._ranger_bien(nature, motif, bien, q)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.bien(nature, motif, bien, q, None, vers)
         return q
 
     def puits(self, de, bien, q, nature, motif):
@@ -189,6 +204,8 @@ class GrandLivre:
         f, nom = self.flux[nature], self.catalogue.biens[bien].nom
         f[nom] = f.get(nom, 0.0) + pris
         self._ranger_bien(nature, motif, bien, pris)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.bien(nature, motif, bien, pris, de, None)
         return pris
 
     def produire(self, vers, bien, q, motif): return self.source(vers, bien, q, "produit", motif)
@@ -236,10 +253,22 @@ class Creance:
         self.motif, self.nee, self.echeance = motif, nee, echeance
 
 
+# les motifs dont chaque terme impaye reste une dette a part : le domaine 13 compte les mois de loyer impayes ( litige,
+# expulsion ) en comptant ses creances ; ceux-la sont bornes par l expulsion, pas par le compte d arrieres
+UN_PAR_TERME = ("loyer",)
+
+
+def _ident(o):
+    """L identite stable d un detenteur : sa classe et son numero ( une vue de menage recreee reste le meme menage ),
+    sinon l objet lui-meme ( Etat, caisses : uniques )."""
+    i = getattr(o, "id", None)
+    return (type(o).__name__, i) if isinstance(i, (int, str)) else (type(o).__name__, id(o))
+
+
 class Creances:
     """Les dettes entre detenteurs. Une creance n est PAS de la monnaie : elle ne compte pas dans la conservation de
     l argent, elle dit qu un paiement est du. Le domaine 2 y ajoutera l interet ; le domaine 21 le recouvrement."""
-    __slots__ = ("actives", "par_debiteur", "prochain_id", "reglees", "abandonnees")
+    __slots__ = ("actives", "par_debiteur", "prochain_id", "reglees", "abandonnees", "par_compte")
 
     def __init__(self):
         self.actives = {}          # id -> Creance
@@ -247,18 +276,33 @@ class Creances:
         self.prochain_id = 0
         self.reglees = 0           # nombre de creances soldees
         self.abandonnees = {}      # raison -> montant perdu par les creanciers
+        self.par_compte = {}       # ( creancier, debiteur, motif ) -> id : UN compte d arrieres par triplet
 
     def constater(self, creancier, debiteur, montant, motif, jour, echeance=None):
         if not 0.0 < montant < math.inf: raise ValueError(f"montant de creance invalide : {montant!r}")
         if echeance is not None and echeance < jour: raise ValueError("echeance anterieure a la naissance de la dette")
+        # 26/09 : comme un bailleur tient UN compte d arrieres par locataire et le fisc UN par contribuable et par impot,
+        # un nouvel impaye du meme creancier, du meme debiteur et du meme motif s ajoute au compte ouvert ( sa date de
+        # naissance reste la plus ancienne, son echeance la plus proche ). Une dette par impaye ne grossissait plus que
+        # la memoire : 141 000 creances a 6 x 50 000 habitants au jour 96, et en acceleration.
+        cle = (_ident(creancier), _ident(debiteur), motif)
+        i = self.par_compte.get(cle) if motif not in UN_PAR_TERME else None
+        c = self.actives.get(i) if i is not None else None
+        if c is not None:
+            c.montant += float(montant)
+            if echeance is not None and (c.echeance is None or echeance < c.echeance): c.echeance = echeance
+            return c
         c = Creance(self.prochain_id, creancier, debiteur, float(montant), motif, jour, echeance)
         self.prochain_id += 1
         self.actives[c.id] = c
         self.par_debiteur.setdefault(debiteur, []).append(c.id)
+        if motif not in UN_PAR_TERME: self.par_compte[cle] = c.id
         return c
 
     def _retirer(self, c):
         del self.actives[c.id]
+        cle = (_ident(c.creancier), _ident(c.debiteur), c.motif)
+        if getattr(self, "par_compte", {}).get(cle) == c.id: del self.par_compte[cle]
         ids = self.par_debiteur[c.debiteur]
         ids.remove(c.id)
         if not ids: del self.par_debiteur[c.debiteur]

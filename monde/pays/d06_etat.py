@@ -530,7 +530,26 @@ def _net_gouv(p):
     return p.socle.livre.net_par_classe().get("Gouvernement", 0.0)
 
 
-def _vivants(mg): return sum(1 for x in mg.membres if x.vivant)
+def _vivants(mg):
+    """Les membres vivants d un menage : sa LISTE ( `mg.membres` ) lue par numeros, sans fabriquer de vues ( 24/09 )."""
+    mt = mg._mt
+    if type(mt) is not PO.TableMenages: return sum(1 for x in mg.membres if x.vivant)
+    v = mt.h.vivant
+    return sum(1 for i in mt.membres_ids(mg.id) if v[i])
+
+
+def _vivants_par_menage(w):
+    """Par menage ( lignes [ : n ] ) : le nombre de membres vivants de sa LISTE, ce que compte `mg.membres` ( les
+    habitants retires de la liste mais qui pointent encore vers le menage n y sont pas ), une passe sur les colonnes."""
+    tb = w.table; n = tb.n; nm = tb.menages.n
+    mm = PO.menages_inscrits(tb, n)
+    sel = (tb.vivant[:n] != 0) & (mm >= 0) & (mm < nm)
+    return np.bincount(mm[sel], minlength=nm)[:nm]
+
+
+def _marche_des_lieux(w):
+    """Le numero du marche de chaque lieu ( -1 : aucun ), relu sur la carte ( `lieu.marche` ), par numero de lieu."""
+    return np.array([l.marche.n if l.marche is not None else -1 for l in w.carte.par_n] + [-1], dtype=np.int64)
 
 
 def _saisissable(p, deb):
@@ -575,12 +594,14 @@ def _ministere(h):
 # ================================================================== les roles, en tableaux
 ROLES = tuple(C.ROLES)
 ROLE_IDX = {r: k + 1 for k, r in enumerate(ROLES)}
+if ROLES != PO.ROLES: raise RuntimeError("les roles de l Etat ne suivent plus les codes du moteur")
 SAL_ROLE = np.array([0.0] + [float(PO.SALAIRE_HORAIRE.get(r, 0)) for r in ROLES])
 PUB_ROLE = np.array([False] + [bool(C.ROLES[r][2]) for r in ROLES])
 # categorie de revenu : 0 aucun, 1 salarie, 2 retraite, 3 non salarie ( paysan, marchand, patron )
 CAT_ROLE = np.array([0] + [2 if r == "retraite" else 3 if r in NON_SALARIAUX else 1 if PO.SALAIRE_HORAIRE.get(r, 0) > 0
                            else 0 for r in ROLES], dtype=np.int64)
 I_MINISTRE = ROLE_IDX["ministre"]
+HEURES_CODE = np.array([HEURES_HORAIRE.get(PO.HORAIRE_DE_CODE[c], 8.0) for c in range(-1, max(PO.HORAIRE_DE_CODE) + 1)])
 MIN_ROLE = np.array([LIGNES.index("autres")] + [LIGNES.index(MINISTERE_DU_ROLE.get(r, "autres")) for r in ROLES],
                     dtype=np.int64)
 
@@ -684,8 +705,9 @@ def _photo_paie(p, cle, donnees):
     chacun avant la paie de 18 h ; et la paie du soir assuree dans la caisse du Tresor."""
     t0 = time.perf_counter()
     e = _etat(p); f = e.fisc; w = p.w
-    f.caisse_1750 = np.fromiter((m.caisse for m in w.menages), np.float64, len(w.menages))
-    f.heures_1750 = np.fromiter((h.heures_jour if h.vivant else 0.0 for h in w.habitants), np.float64, len(w.habitants))
+    f.caisse_1750 = w.table.menages.caisse[:len(w.menages)].copy()
+    tb = w.table
+    f.heures_1750 = np.where(tb.vivant[:tb.n] == 1, tb.heures[:tb.n], 0.0)      # colonnes du moteur ( 24/09 )
     p.poser(C.PAS_PAR_JOUR - 1, "etat_photo_paie", 0)     # servie apres le pas : w.pas est deja le suivant
     paie = e.tresor.paie_hier if e.tresor.paie_hier > 0 else _paie_prevue(p)
     assurer(p, 1.25 * paie + 0.5 * e.tresor.depense_moyenne)
@@ -694,13 +716,16 @@ def _photo_paie(p, cle, donnees):
 
 def _paie_prevue(p):
     """La paie publique d une journee pleine : salaires publics et pensions ( la prevision du budget )."""
-    w = p.w; tot = 0.0
-    for h in w.habitants:
-        if not h.vivant: continue
-        if h.role == "retraite": tot += PO.PENSION_JOUR
-        elif C.ROLES.get(h.role, (0, "", False))[2]:
-            tot += PO.SALAIRE_HORAIRE.get(h.role, 0) * HEURES_HORAIRE.get(h.horaire, 8.0) * w.gouv.facteur_salaire_public
-    return tot
+    w = p.w; tb = w.table; nh = tb.n
+    # colonnes du moteur ( 24/09 ) : les memes termes, ajoutes dans l ordre des habitants ( cumsum sequentielle )
+    rid = tb.role[:nh].astype(np.int64) + 1
+    retr = (tb.vivant[:nh] != 0) & (rid == ROLE_IDX["retraite"])
+    pub = (tb.vivant[:nh] != 0) & ~retr & PUB_ROLE[rid]
+    sel = retr | pub
+    if not sel.any(): return 0.0
+    terme = np.where(retr, float(PO.PENSION_JOUR),
+                     SAL_ROLE[rid] * HEURES_CODE[tb.horaire[:nh].astype(np.int64) + 1] * w.gouv.facteur_salaire_public)
+    return float(np.cumsum(terme[sel])[-1])
 
 
 def _paie_fiscale(p):
@@ -711,14 +736,15 @@ def _paie_fiscale(p):
     e = _etat(p); f = e.fisc; w = p.w
     if f.caisse_1750 is None: return
     n = len(f.caisse_1750)
-    maintenant = np.fromiter((w.menages[i].caisse for i in range(n)), np.float64, n)
+    maintenant = w.table.menages.caisse[:n].copy()
     entree = np.maximum(0.0, maintenant - f.caisse_1750)
     f.caisse_1750 = None
     H = w.habitants; nh = len(f.heures_1750)
-    mid = np.fromiter((H[i].menage.id if H[i].vivant and H[i].menage is not None and H[i].menage.id < n else -1
-                       for i in range(nh)), np.int64, nh)
-    rid = np.fromiter((ROLE_IDX.get(H[i].role, 0) for i in range(nh)), np.int64, nh)
-    atw = np.fromiter((H[i].poste == "travail" for i in range(nh)), bool, nh)
+    tb = w.table                                   # colonnes du moteur ( 24/09 ) : ROLE_IDX = code du moteur + 1
+    mm = tb.menage[:nh].astype(np.int64)
+    mid = np.where((tb.vivant[:nh] == 1) & (mm >= 0) & (mm < n), mm, -1)
+    rid = tb.role[:nh].astype(np.int64) + 1
+    atw = tb.poste[:nh] == PO.CODE_POSTE["travail"]
     ok = mid >= 0
     ms = np.where(ok, mid, 0)
     cat = np.where(ok, CAT_ROLE[rid], 0); pub = PUB_ROLE[rid]
@@ -802,9 +828,10 @@ def _compter_enfants(p):
     enf = p.col("habitant", "fisc_enfants")
     nj = p.col("habitant", "naissance_j")
     enf[:nh] = 0
+    viv = w.table.vivant[:nh]          # colonnes du moteur ( 24/09 ) ; un numero negatif se lit depuis la fin, comme la liste
     for parent, enfants in d.enfants_de.items():
         if parent >= nh: continue
-        k = sum(1 for c in enfants if c < nh and w.habitants[c].vivant and p.jour - nj[c] < POP.AGE_MAJEUR * POP.JOURS_AN)
+        k = sum(1 for c in enfants if c < nh and viv[c] and p.jour - nj[c] < POP.AGE_MAJEUR * POP.JOURS_AN)
         enf[parent] = min(20, k)
 
 
@@ -819,8 +846,7 @@ def _nouvel_exercice(p, e):
     if len(idx):
         elude = (np.asarray(impot_annuel(Y[idx] + Ca[idx], Ys[idx], enf[idx], f.taux_ir, f.tranches_ir))
                  - np.asarray(impot_annuel(Y[idx], Ys[idx], enf[idx], f.taux_ir, f.tranches_ir)))
-        mid = np.fromiter((w.habitants[i].menage.id if w.habitants[i].menage is not None else -1 for i in idx.tolist()),
-                          np.int64, len(idx))
+        mid = w.table.menage[idx].astype(np.int64)
         ok = (mid >= 0) & (mid < n)
         np.add.at(p.col("menage", "fisc_arrieres"), mid[ok], elude[ok])
     for c in ("fisc_revenu", "fisc_sal", "fisc_retenu", "fisc_cache"): ch[c][:nh] = 0.0
@@ -868,12 +894,20 @@ def _mois_fiscal(p):
 # ================================================================== le controle fiscal ( 10 h )
 def _regions_menages(p):
     """Les menages habites de chaque region ( le marche de leur domicile ), une passe."""
-    w = p.w; dis = p.col("menage", "dissous")
-    out = {}
-    for mg in w.menages:
-        if dis[mg.id] or mg.domicile is None or mg.domicile.marche is None or not any(x.vivant for x in mg.membres): continue
-        out.setdefault(mg.domicile.marche.id, []).append(mg.id)
-    return {k: np.array(v, dtype=np.int64) for k, v in out.items()}
+    w = p.w; mt = w.table.menages; n = mt.n
+    # colonnes du moteur ( 24/09 ) : les menages dans l ordre des numeros, les regions dans l ordre de leur premier menage
+    dis = p.col("menage", "dissous")[:n].astype(bool)
+    dom = mt.domicile[:n].astype(np.int64)
+    reg = _marche_des_lieux(w)[dom]                     # domicile -1 : la derniere case, -1
+    ids = np.nonzero(~dis & (reg >= 0) & (_vivants_par_menage(w) > 0))[0].astype(np.int64)
+    r = reg[ids]
+    ordre = np.argsort(r, kind="stable")
+    uniques, debuts = np.unique(r[ordre], return_index=True)
+    fins = np.append(debuts[1:], len(ordre))
+    par = [(int(ordre[d]), u, ids[np.sort(ordre[d:f_])]) for u, d, f_ in zip(uniques.tolist(), debuts, fins)]
+    par.sort(key=lambda z: z[0])
+    par_n = w.carte.par_n
+    return {par_n[u].id: v for _, u, v in par}
 
 
 def _medianes_menages(p, regions):
@@ -919,13 +953,16 @@ def _traits_unite(c, dos, med, jour):
 
 def _controleurs(p):
     """Les policiers presents a leur poste, par identifiant ; une part d entre eux controle."""
-    w = p.w
+    w = p.w; tb = w.table; travail = PO.CODE_POSTE["travail"]
     presents = []
-    for cap in w.carte.capitales:
-        presents += [h for h in w.au_travail_de(cap, "policier") if h.vivant and h.poste == "travail"]
-    presents.sort(key=lambda h: h.id)
+    for cap in w.carte.capitales:        # par numeros ( 24/09 ) : les vues des seuls controleurs retenus
+        ids = w.ids_au_travail(cap, "policier")
+        if not ids: continue
+        a = np.asarray(ids, dtype=np.int64)
+        presents += a[(tb.vivant[a] != 0) & (tb.poste[a] == travail)].tolist()
+    presents.sort()
     k = int(math.ceil(_etat(p).fisc.part_controleurs * len(presents)))
-    return presents[:k]
+    return [PO.Habitant(tb, i) for i in presents[:k]]
 
 
 def _controles_du_jour(p):
@@ -982,7 +1019,8 @@ def controler(p, controleur, cible, cle=None, action=-1):
     o = ControleOuvert(cle, controleur.id if controleur is not None else -1, (genre, getattr(x, "id", None)), p.jour, action)
     if genre == "menage":
         mg = x; debiteur = mg
-        ids = np.array([h.id for h in mg.membres], dtype=np.int64)
+        ids = np.array(mg._mt.membres_ids(mg.id) if type(mg._mt) is PO.TableMenages else [h.id for h in mg.membres],
+                       dtype=np.int64)
         ch = p.colonnes["habitant"]
         d, duree = f.jours_exercice(p.jour)
         Y, Ys, Ca, enf = ch["fisc_revenu"][ids], ch["fisc_sal"][ids], ch["fisc_cache"][ids], ch["fisc_enfants"][ids]
@@ -1035,10 +1073,11 @@ def _recouvrer(p):
     actives = K.actives
     par_cr = {}
     for o in f.controles.values():
-        for cr in o.creances: par_cr[cr.id] = o
-    garde = []
+        for cr in o.creances: par_cr.setdefault(cr.id, o)
+    garde = []; vues = set()
     for cr in f.creances:
-        if actives.get(cr.id) is not cr: continue
+        if actives.get(cr.id) is not cr or cr.id in vues: continue       # un compte d arrieres une fois ( 26/09 )
+        vues.add(cr.id)
         deb = cr.debiteur
         if type(deb) is PO.Menage and p.col("menage", "dissous")[deb.id]:
             K.abandonner(cr, "dissolution"); continue
@@ -1123,21 +1162,33 @@ def _voter_budget(p, e, debut, fin):
     for l in LIGNES:
         for nat in NATURES_DEPENSE: cred[(l, nat)] = 0.0
     eff = {l: 0 for l in LIGNES}
-    salaires_prives = 0.0; n_sal = 0
-    for h in w.habitants:
-        if not h.vivant: continue
-        if h.role == "retraite": cred[("pensions", "transferts")] += PO.PENSION_JOUR * jours; continue
-        s = PO.SALAIRE_HORAIRE.get(h.role, 0) * _heures_jour(h)
-        if C.ROLES.get(h.role, (0, "", False))[2]:
-            l = _ministere(h); eff[l] += 1
-            cred[(l, "personnel")] += s * w.gouv.facteur_salaire_public * jours
-        elif s > 0: salaires_prives += s * jours; n_sal += 1
+    # colonnes du moteur ( 24/09 ) : chaque somme garde ses termes et leur ordre ( celui des habitants, cumsum sequentielle )
+    tb = w.table; nh = tb.n
+    rid = tb.role[:nh].astype(np.int64) + 1
+    viv = tb.vivant[:nh] != 0
+    retr = viv & (rid == ROLE_IDX["retraite"])
+    n_retr = int(retr.sum())
+    if n_retr: cred[("pensions", "transferts")] += float(np.cumsum(np.full(n_retr, float(PO.PENSION_JOUR * jours)))[-1])
+    s = SAL_ROLE[rid] * HEURES_CODE[tb.horaire[:nh].astype(np.int64) + 1]
+    autres = viv & ~retr
+    ids_pub = np.nonzero(autres & PUB_ROLE[rid])[0]
+    lig = MIN_ROLE[rid[ids_pub]].copy()
+    for j in np.nonzero(rid[ids_pub] == I_MINISTRE)[0].tolist():
+        lig[j] = LIGNES.index(_ministere(PO.Habitant(tb, int(ids_pub[j]))))
+    val = s[ids_pub] * w.gouv.facteur_salaire_public * jours
+    for k, l in enumerate(LIGNES):
+        m = lig == k
+        c = int(m.sum())
+        if c: eff[l] += c; cred[(l, "personnel")] += float(np.cumsum(val[m])[-1])
+    vp = s[autres & ~PUB_ROLE[rid] & (s > 0)] * jours
+    salaires_prives = float(np.cumsum(vp)[-1]) if len(vp) else 0.0
+    n_sal = len(vp)
     e.admin.effectifs = eff
     for l in LIGNES:
         cred[(l, "achats")] += PROVISION_ACHATS * cred[(l, "personnel")]
     carb = sum(w.besoin_patrouille(b) for b in w.carte.de_type("base"))
     cred[("defense", "achats")] += carb * w.prix_moyen("carburant") * 1.1 * jours
-    vivants = sum(1 for h in w.habitants if h.vivant)
+    vivants = int(viv.sum())
     cred[("sante", "achats")] += REMEDES_PAR_HABITANT_AN * vivants * w.prix_moyen("remedes") * 1.1 * jours / JOURS_AN
     masse = sum(v for (l, n), v in cred.items() if n == "personnel")
     cred[("subventions", "transferts")] = PROVISION_SUBVENTIONS * masse
@@ -1235,8 +1286,9 @@ def _cloture(p, comptes):
 # ================================================================== la statistique publique
 def cadre_enquete(p):
     """Les menages habites ( la base de sondage : le repertoire des logements ), identifiants."""
-    w = p.w; dis = p.col("menage", "dissous")
-    return np.array([m.id for m in w.menages if not dis[m.id] and any(x.vivant for x in m.membres)], dtype=np.int64)
+    w = p.w; n = w.table.menages.n
+    dis = p.col("menage", "dissous")[:n].astype(bool)          # colonnes du moteur ( 24/09 )
+    return np.nonzero(~dis & (_vivants_par_menage(w) > 0))[0].astype(np.int64)
 
 
 def repondre(p, ids):
@@ -1295,7 +1347,7 @@ def _publier(p, e, comptes, dep, rec):
            "deces": int(ec.deces - st.base_deces)}
     st.population.append((p.jour, pop["inscrits"], pop["naissances"], pop["deces"]))
     H = w.habitants; nh = len(H)
-    hop = np.fromiter((h.vivant and h.poste == "hopital" for h in H), bool, nh)
+    hop = (w.table.vivant[:nh] == 1) & (w.table.poste[:nh] == PO.CODE_POSTE["hopital"])
     ids = set(np.nonzero(hop)[0].tolist())
     admissions = len(ids - st.hospitalises); sorties = len(st.hospitalises - ids)
     st.hospitalises = ids
@@ -1685,7 +1737,7 @@ def infliger_amende(p, debiteur, montant, motif="amende"):
 def creances_de_l_etat(p):
     """Les creances fiscales et amendes actives de l Etat ( domaine 21 : recouvrement force, prescription )."""
     K = p.socle.creances
-    return [c for c in _etat(p).fisc.creances if K.actives.get(c.id) is c]
+    return list({c.id: c for c in _etat(p).fisc.creances if K.actives.get(c.id) is c}.values())   # un compte une fois ( 26/09 )
 
 
 def recouvrer(p, creance, montant=None):
@@ -1703,12 +1755,21 @@ def voter_budget(p, credits=None):
 
 
 # ================================================================== installation
+def _menages_non_salaries(w):
+    """Par menage : un membre vivant de sa liste est paysan, marchand ou patron ( colonnes du moteur, 24/09 )."""
+    tb = w.table; nh = tb.n; nm = tb.menages.n
+    mm = PO.menages_inscrits(tb, nh)
+    codes = [PO.CODE_ROLE[r] for r in NON_SALARIAUX]
+    sel = (tb.vivant[:nh] != 0) & (mm >= 0) & (mm < nm) & np.isin(tb.role[:nh], codes)
+    return np.bincount(mm[sel], minlength=nm)[:nm] > 0
+
+
 def _tirer_propensions(p, e):
     w = p.w
     rng = p.hasard("etat_fraude")
     n = len(w.menages)
     u = rng.random(n); bta = rng.beta(*BETA_MENAGES, n)
-    ns = np.array([any(x.vivant and x.role in NON_SALARIAUX for x in m.membres) for m in w.menages], dtype=bool)
+    ns = _menages_non_salaries(w)
     p.col("menage", "fisc_propension")[:n] = np.where(ns & (u >= PART_HONNETES_MENAGES), bta, 0.0)
     p.col("menage", "fisc_controle_j")[:n] = p.jour - (rng.random(n) * PASSE_MAX_ANS * JOURS_AN).astype(np.int32)
     for c in p.domaine("economie").unites:
@@ -1769,7 +1830,8 @@ def installer(p):
     st.base_naissances, st.base_deces = ec.naissances, ec.deces
     col = p.colonnes["habitant"]; nh = len(w.habitants)
     st.base_morts_maladie = int(((col["deces_declare"][:nh] == 1) & (col["cause_deces"][:nh] == POP.CAUSES.index("maladie"))).sum())
-    st.hospitalises = {h.id for h in w.habitants if h.vivant and h.poste == "hopital"}
+    tb = w.table
+    st.hospitalises = set(np.nonzero((tb.vivant[:nh] != 0) & (tb.poste[:nh] == PO.CODE_POSTE["hopital"]))[0].tolist())
     st.n_menages = len(cadre_enquete(p))
     st.publie = {"jour": p.jour - 1,
                  "population": {"inscrits": int(ec.population_connue()), "naissances": 0, "deces": 0},
@@ -1785,7 +1847,7 @@ def installer(p):
     if isinstance(w.cerveau, G.CerveauLLM): w.cerveau = CerveauEtat(w.cerveau.modele, w.cerveau.hote)
     # la caisse du Tresor proportionnee a la population ( par l emprunt : la monnaie ne nait que par la banque centrale )
     if PROPORTIONNER_TRESORERIE:
-        cible = TRESORERIE_PAR_HABITANT * sum(1 for h in w.habitants if h.vivant)
+        cible = TRESORERIE_PAR_HABITANT * int((w.table.vivant[:w.table.n] != 0).sum())
         if cible > w.gouv.caisse + LOT_MIN_BONS:
             tr.ouverture = cible - w.gouv.caisse
             emprunter(p, tr.ouverture)

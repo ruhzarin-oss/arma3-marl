@@ -1,0 +1,28 @@
+"""Le pays complet ( 12 domaines ) a un million d habitants : installation, journees, decisions, memoire."""
+import resource, sys, time
+from monde import monde as W, tests as T
+from monde.pays import pays as P, d16_medecine as MED
+from monde.porte_domaines import LIVRES
+# MESURE SEULEMENT, non committe : le bogue d interface du domaine 4 ( blesser "accident_travail", 0,3 | 1 )
+_b = MED.blesser
+def _bt(p, h, type_, gravite, *a, **k):
+    if type_ == "accident_travail": type_, gravite = "travail", (75 if gravite >= 1.0 else 5)
+    return _b(p, h, type_, gravite, *a, **k)
+MED.blesser = _bt
+ech = float(sys.argv[1]); jours = int(sys.argv[2])
+mo = lambda: resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
+t0 = time.perf_counter(); w = W.Monde(echelle=ech)
+print(f"moteur : {len(w.habitants):,} habitants crees en {time.perf_counter() - t0:.0f} s | memoire {mo():.1f} Go", flush=True)
+t0 = time.perf_counter(); P.installer(w, LIVRES)
+print(f"pays ( {len(LIVRES)} domaines ) installe en {time.perf_counter() - t0:.0f} s | memoire {mo():.1f} Go", flush=True)
+p = w.pays
+for j in range(jours):
+    avant = {k: d.n_decisions for k, d in p.decideurs.items()}
+    t0 = time.perf_counter(); T.jours(w, 1); dt = time.perf_counter() - t0
+    dec = {k: d.n_decisions - avant.get(k, 0) for k, d in p.decideurs.items()}
+    tot = sum(dec.values())
+    tenue, msg = p.socle.conservation.tenue()
+    print(f"jour {w.jour} : {dt:.0f} s | {tot:,} decisions ( {tot / dt * 3600:,.0f} par heure de calcul ) | "
+          f"conservation {'TENUE' if tenue else 'ROMPUE'} | vivants {int(w.table.vivant[:w.table.n].sum()):,} | memoire {mo():.1f} Go", flush=True)
+    print("   par point : " + ", ".join(f"{k} {v:,}" for k, v in sorted(dec.items(), key=lambda x: -x[1]) if v), flush=True)
+print("FIN", flush=True)

@@ -132,6 +132,12 @@ PART_STOCK_EXPORT = 0.1           # ... ou un dixieme du stock, pour un bien que
 # jours de demande par jour, transmettait un choc de +60 % au gazole ( x 1,46 ) mais vidait la raffinerie de son brut :
 # plus de gazole au jour 21, plus de convois, 100 % des menages sans nourriture au jour 25.
 PROTEGES_EXPORT = ESSENTIELS + ("carburant", "petrole")
+# 26/09 : le marche rachete d abord ce qui fait vivre ( nourriture, remedes ) et rouler ( le gazole de ses camions ),
+# puis le reste. Une seule caisse pour tous les biens : a un million d habitants, les outils rachetes au jour 10
+# ( 104 puis 124 millions ) vidaient la caisse, le gazole n etait plus rachete, les camions s arretaient et la
+# nourriture restait aux fermes ( faim 71 % au jour 16 ). Dans le reel, la station et la quincaillerie ont chacune
+# leur tresorerie.
+PRIORITE_RACHAT = ESSENTIELS + ("carburant",)
 URGENCE_J = 1.0                   # sous un jour de stock, un bien essentiel est rachete meme a perte
 SEUIL_MOTEUR = 50.0               # monde.expedier exporte le surplus de nourriture au-dela de 3 jours + 50 unites
 MARGE_SURETE_MOTEUR = 25.0
@@ -779,7 +785,7 @@ def _vendre_aux_marches(p):
     e = _ext(p); w = p.w; L = p.socle.livre; cat = p.socle.catalogue
     for neg in e.negociants:
         m = w.marches[neg.marche_id]
-        for b, lots in neg.lots.items():
+        for b, lots in sorted(neg.lots.items(), key=lambda kv: cat[kv[0]].nom not in PRIORITE_RACHAT):   # tri stable
             if not lots: continue
             nom = cat[b].nom
             dem = _demande(p, neg.marche_id, nom)
@@ -934,12 +940,12 @@ def emigrer(p, gens, motif_journal="emigration"):
 
 def _emigration(p, e):
     w = p.w; H = w.habitants; n = len(H)
-    vivant = np.fromiter((h.vivant for h in H), bool, n)
+    vivant = w.table.vivant[:n] == 1
     ids = np.nonzero(vivant)[0]
     if not len(ids): return
     age = POP._age_ans(p, ids)
     f7 = p.col("menage", "faim7")
-    mids = np.fromiter((H[i].menage.id for i in ids.tolist()), np.int64, len(ids))
+    mids = w.table.menage[ids].astype(np.int64)
     faim = _POPCOUNT[f7[mids].astype(np.int64) & 0x7F] / 7.0
     hz = taux_emigration_jour(age, e.facteur_migration) * (1.0 + FACTEUR_FAIM_EMIGRATION * faim)
     hz = np.where(age >= EMIGRATION_AN[0][0], hz, 0.0)
@@ -1195,8 +1201,23 @@ def installer(p):
     p.routine(21.5, 20, "exterieur", _contrebande)
     p.routine(23 + 40 / 60, 50, "exterieur", _soir_negoce)
     p.cloture("exterieur", _cloture)
+    _prix_de_depart_a_la_parite(p)
     _port_horaire(p)       # ce que les marches ont deja en trop part avant la premiere heure pleine
     return e
+
+
+def _prix_de_depart_a_la_parite(p):
+    """26/09 : un pays qui importe tout son gazole le vend a la pompe au cout rendu plus les marges, des le premier jour.
+    Au prix mondial ( 8,76 pour une parite de ~13,5 ), le negoce n importait qu une fois le prix remonte a 8 % par jour
+    ouvre ; le stock de depart s epuisait vers le jour 10, les camions s arretaient et la faim tenait du jour 14 au jour
+    21 ( six iles d un million ). Seulement les biens que la region du marche ne produit pas, et seulement a la hausse."""
+    w = p.w
+    for mid, m in w.marches.items():
+        for nom in BIENS_IMPORT:
+            if any(nom in e.produits for e in w.entreprises.values()
+                   if e.lieu.marche is not None and e.lieu.marche.id == mid): continue
+            parite = prix_import(p, _id(p, nom)) * (1.0 + MARGE_NEGOCE) / (1.0 - m.marge)
+            if parite > m.prix[nom]: m.prix[nom] = parite
 
 
 # ================================================================== API pour les autres domaines

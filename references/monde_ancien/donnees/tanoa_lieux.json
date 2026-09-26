@@ -1,0 +1,1658 @@
+[
+ {
+  "id": "Sosovu01",
+  "type": "NameVillage",
+  "pos": [
+   2687.0,
+   9281.0
+  ],
+  "rayon": [
+   300.0,
+   100.0
+  ]
+ },
+ {
+  "id": "facility01",
+  "type": "NameLocal",
+  "pos": [
+   10099.0,
+   11818.0
+  ],
+  "rayon": [
+   413.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Katkoula01",
+  "type": "NameCity",
+  "pos": [
+   5685.0,
+   3994.0
+  ],
+  "rayon": [
+   400.0,
+   120.0
+  ]
+ },
+ {
+  "id": "Yanukka01",
+  "type": "NameVillage",
+  "pos": [
+   3051.0,
+   3449.0
+  ],
+  "rayon": [
+   300.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Balavu01",
+  "type": "NameCity",
+  "pos": [
+   2677.0,
+   7442.0
+  ],
+  "rayon": [
+   300.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Rautake01",
+  "type": "NameVillage",
+  "pos": [
+   3404.0,
+   6836.0
+  ],
+  "rayon": [
+   300.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Tavu01",
+  "type": "NameVillage",
+  "pos": [
+   974.0,
+   7654.0
+  ],
+  "rayon": [
+   300.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Muaceba01",
+  "type": "NameVillage",
+  "pos": [
+   1556.0,
+   8545.0
+  ],
+  "rayon": [
+   300.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Namuvaka01",
+  "type": "NameVillage",
+  "pos": [
+   2824.0,
+   5700.0
+  ],
+  "rayon": [
+   200.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Laikoro01",
+  "type": "NameVillage",
+  "pos": [
+   1628.0,
+   6191.0
+  ],
+  "rayon": [
+   200.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Leqa01",
+  "type": "NameVillage",
+  "pos": [
+   2364.0,
+   8237.0
+  ],
+  "rayon": [
+   200.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Airstrip01",
+  "type": "Airport",
+  "pos": [
+   2089.0,
+   3524.0
+  ],
+  "rayon": [
+   300.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Villa01",
+  "type": "NameLocal",
+  "pos": [
+   12383.0,
+   14135.0
+  ],
+  "rayon": [
+   300.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Airstrip02",
+  "type": "Airport",
+  "pos": [
+   11650.0,
+   13135.0
+  ],
+  "rayon": [
+   450.0,
+   100.0
+  ]
+ },
+ {
+  "id": "IndPort01",
+  "type": "NameCity",
+  "pos": [
+   13523.0,
+   12135.0
+  ],
+  "rayon": [
+   600.0,
+   100.0
+  ]
+ },
+ {
+  "id": "SurfaceMine01",
+  "type": "NameLocal",
+  "pos": [
+   11869.0,
+   10427.0
+  ],
+  "rayon": [
+   400.0,
+   120.0
+  ]
+ },
+ {
+  "id": "Vatukoula01",
+  "type": "NameVillage",
+  "pos": [
+   14057.0,
+   9956.0
+  ],
+  "rayon": [
+   300.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Airstrip03",
+  "type": "Airport",
+  "pos": [
+   11570.0,
+   3151.0
+  ],
+  "rayon": [
+   200.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Georgetown01",
+  "type": "NameCityCapital",
+  "pos": [
+   5396.0,
+   10335.0
+  ],
+  "rayon": [
+   500.0,
+   200.0
+  ]
+ },
+ {
+  "id": "Lijnhaven01",
+  "type": "NameCity",
+  "pos": [
+   11802.0,
+   2663.0
+  ],
+  "rayon": [
+   300.0,
+   100.0
+  ]
+ },
+ {
+  "id": "SugarcaneFactory01",
+  "type": "NameLocal",
+  "pos": [
+   8323.0,
+   10434.0
+  ],
+  "rayon": [
+   500.0,
+   100.0
+  ]
+ },
+ {
+  "id": "AirstripMain01",
+  "type": "Airport",
+  "pos": [
+   6953.0,
+   7400.0
+  ],
+  "rayon": [
+   450.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Airstrip04",
+  "type": "Airport",
+  "pos": [
+   1953.0,
+   13174.0
+  ],
+  "rayon": [
+   250.0,
+   100.0
+  ]
+ },
+ {
+  "id": "MilitaryBase01",
+  "type": "NameLocal",
+  "pos": [
+   2341.0,
+   13230.0
+  ],
+  "rayon": [
+   200.0,
+   70.0
+  ]
+ },
+ {
+  "id": "GsmStation01",
+  "type": "NameLocal",
+  "pos": [
+   3013.0,
+   13075.0
+  ],
+  "rayon": [
+   150.0,
+   40.0
+  ]
+ },
+ {
+  "id": "CampRemnants01",
+  "type": "NameLocal",
+  "pos": [
+   3822.0,
+   14036.0
+  ],
+  "rayon": [
+   300.0,
+   100.0
+  ]
+ },
+ {
+  "id": "VehicleRange01",
+  "type": "NameLocal",
+  "pos": [
+   3810.0,
+   13490.0
+  ],
+  "rayon": [
+   300.0,
+   60.0
+  ]
+ },
+ {
+  "id": "FiringRange01",
+  "type": "NameLocal",
+  "pos": [
+   3315.0,
+   12862.0
+  ],
+  "rayon": [
+   200.0,
+   50.0
+  ]
+ },
+ {
+  "id": "comms01",
+  "type": "NameLocal",
+  "pos": [
+   2723.0,
+   12318.0
+  ],
+  "rayon": [
+   150.0,
+   40.0
+  ]
+ },
+ {
+  "id": "Tuvanaka01",
+  "type": "NameCity",
+  "pos": [
+   1579.0,
+   11938.0
+  ],
+  "rayon": [
+   300.0,
+   90.0
+  ]
+ },
+ {
+  "id": "Belfort01",
+  "type": "NameVillage",
+  "pos": [
+   3133.0,
+   10977.0
+  ],
+  "rayon": [
+   250.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Koumac01",
+  "type": "NameVillage",
+  "pos": [
+   1347.0,
+   2968.0
+  ],
+  "rayon": [
+   200.0,
+   80.0
+  ]
+ },
+ {
+  "id": "Maze01",
+  "type": "NameLocal",
+  "pos": [
+   4133.0,
+   12422.0
+  ],
+  "rayon": [
+   80.0,
+   40.0
+  ]
+ },
+ {
+  "id": "HarbourRemnants01",
+  "type": "NameLocal",
+  "pos": [
+   4215.0,
+   11668.0
+  ],
+  "rayon": [
+   300.0,
+   81.0
+  ]
+ },
+ {
+  "id": "Port01",
+  "type": "NameLocal",
+  "pos": [
+   13262.0,
+   13692.0
+  ],
+  "rayon": [
+   120.0,
+   60.0
+  ]
+ },
+ {
+  "id": "FortressRuins01",
+  "type": "NameLocal",
+  "pos": [
+   12055.0,
+   2468.0
+  ],
+  "rayon": [
+   300.0,
+   70.0
+  ]
+ },
+ {
+  "id": "Moddergat01",
+  "type": "NameCity",
+  "pos": [
+   9407.0,
+   4133.0
+  ],
+  "rayon": [
+   300.0,
+   90.0
+  ]
+ },
+ {
+  "id": "Doodstil01",
+  "type": "NameCity",
+  "pos": [
+   12862.0,
+   4691.0
+  ],
+  "rayon": [
+   300.0,
+   86.0
+  ]
+ },
+ {
+  "id": "Blerick01",
+  "type": "NameVillage",
+  "pos": [
+   10256.0,
+   2738.0
+  ],
+  "rayon": [
+   200.0,
+   80.0
+  ]
+ },
+ {
+  "id": "Harcourt01",
+  "type": "NameCity",
+  "pos": [
+   11123.0,
+   5343.0
+  ],
+  "rayon": [
+   250.0,
+   80.0
+  ]
+ },
+ {
+  "id": "ForestClearing01",
+  "type": "NameLocal",
+  "pos": [
+   12170.0,
+   3867.0
+  ],
+  "rayon": [
+   250.0,
+   50.0
+  ]
+ },
+ {
+  "id": "PortBoise01",
+  "type": "NameVillage",
+  "pos": [
+   12715.0,
+   3309.0
+  ],
+  "rayon": [
+   200.0,
+   80.0
+  ]
+ },
+ {
+  "id": "Tobakoro01",
+  "type": "NameVillage",
+  "pos": [
+   8741.0,
+   3556.0
+  ],
+  "rayon": [
+   200.0,
+   80.0
+  ]
+ },
+ {
+  "id": "Losi01",
+  "type": "NameVillage",
+  "pos": [
+   10201.0,
+   4964.0
+  ],
+  "rayon": [
+   200.0,
+   70.0
+  ]
+ },
+ {
+  "id": "Rereki01",
+  "type": "NameVillage",
+  "pos": [
+   13069.0,
+   2118.0
+  ],
+  "rayon": [
+   200.0,
+   90.0
+  ]
+ },
+ {
+  "id": "Cerebu01",
+  "type": "NameVillage",
+  "pos": [
+   2132.0,
+   4590.0
+  ],
+  "rayon": [
+   200.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Ferry01",
+  "type": "NameLocal",
+  "pos": [
+   4474.0,
+   5235.0
+  ],
+  "rayon": [
+   200.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Savaka01",
+  "type": "NameVillage",
+  "pos": [
+   7212.0,
+   4238.0
+  ],
+  "rayon": [
+   200.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Lailai01",
+  "type": "NameVillage",
+  "pos": [
+   3628.0,
+   2209.0
+  ],
+  "rayon": [
+   200.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Ferry02",
+  "type": "NameLocal",
+  "pos": [
+   4100.0,
+   5507.0
+  ],
+  "rayon": [
+   200.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Tanouka01",
+  "type": "NameCity",
+  "pos": [
+   9014.0,
+   10214.0
+  ],
+  "rayon": [
+   350.0,
+   150.0
+  ]
+ },
+ {
+  "id": "Lifou01",
+  "type": "NameCity",
+  "pos": [
+   7080.0,
+   8004.0
+  ],
+  "rayon": [
+   250.0,
+   80.0
+  ]
+ },
+ {
+  "id": "LaRochelle01",
+  "type": "NameCity",
+  "pos": [
+   9550.0,
+   13673.0
+  ],
+  "rayon": [
+   390.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Nicolet01",
+  "type": "NameCity",
+  "pos": [
+   6165.0,
+   12865.0
+  ],
+  "rayon": [
+   250.0,
+   90.0
+  ]
+ },
+ {
+  "id": "Regina01",
+  "type": "NameVillage",
+  "pos": [
+   4920.0,
+   8729.0
+  ],
+  "rayon": [
+   200.0,
+   80.0
+  ]
+ },
+ {
+  "id": "Lami01",
+  "type": "NameVillage",
+  "pos": [
+   7942.0,
+   7663.0
+  ],
+  "rayon": [
+   200.0,
+   80.0
+  ]
+ },
+ {
+  "id": "Kotomo01",
+  "type": "NameVillage",
+  "pos": [
+   10974.0,
+   6233.0
+  ],
+  "rayon": [
+   250.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Oumere01",
+  "type": "NameCity",
+  "pos": [
+   12984.0,
+   7322.0
+  ],
+  "rayon": [
+   250.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Murarua01",
+  "type": "NameVillage",
+  "pos": [
+   14041.0,
+   8308.0
+  ],
+  "rayon": [
+   300.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Savu01",
+  "type": "NameVillage",
+  "pos": [
+   8393.0,
+   13778.0
+  ],
+  "rayon": [
+   200.0,
+   80.0
+  ]
+ },
+ {
+  "id": "Buawa01",
+  "type": "NameVillage",
+  "pos": [
+   8317.0,
+   11132.0
+  ],
+  "rayon": [
+   150.0,
+   60.0
+  ]
+ },
+ {
+  "id": "Ovau01",
+  "type": "NameVillage",
+  "pos": [
+   12402.0,
+   12788.0
+  ],
+  "rayon": [
+   200.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Vagalala01",
+  "type": "NameVillage",
+  "pos": [
+   11069.0,
+   9748.0
+  ],
+  "rayon": [
+   250.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Plantations01",
+  "type": "NameLocal",
+  "pos": [
+   11043.0,
+   7946.0
+  ],
+  "rayon": [
+   250.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Nasua01",
+  "type": "NameVillage",
+  "pos": [
+   11418.0,
+   12360.0
+  ],
+  "rayon": [
+   200.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Lobaka01",
+  "type": "NameVillage",
+  "pos": [
+   6028.0,
+   8580.0
+  ],
+  "rayon": [
+   200.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Sawmill01",
+  "type": "NameLocal",
+  "pos": [
+   11761.0,
+   6950.0
+  ],
+  "rayon": [
+   200.0,
+   55.0
+  ]
+ },
+ {
+  "id": "Nandai01",
+  "type": "NameVillage",
+  "pos": [
+   14496.0,
+   8877.0
+  ],
+  "rayon": [
+   250.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Momea01",
+  "type": "NameVillage",
+  "pos": [
+   10424.0,
+   13252.0
+  ],
+  "rayon": [
+   250.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Ba01",
+  "type": "NameVillage",
+  "pos": [
+   14295.0,
+   11680.0
+  ],
+  "rayon": [
+   200.0,
+   180.0
+  ]
+ },
+ {
+  "id": "Galili01",
+  "type": "NameVillage",
+  "pos": [
+   8114.0,
+   11957.0
+  ],
+  "rayon": [
+   250.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Plantations02",
+  "type": "NameLocal",
+  "pos": [
+   12534.0,
+   7802.0
+  ],
+  "rayon": [
+   250.0,
+   100.0
+  ]
+ },
+ {
+  "id": "IleSaintGeorge01",
+  "type": "NameLocal",
+  "pos": [
+   13314.0,
+   5162.0
+  ],
+  "rayon": [
+   450.0,
+   150.0
+  ]
+ },
+ {
+  "id": "Baiedorange01",
+  "type": "NameMarine",
+  "pos": [
+   11076.0,
+   2089.0
+  ],
+  "rayon": [
+   450.0,
+   150.0
+  ]
+ },
+ {
+  "id": "BayYanukka01",
+  "type": "NameMarine",
+  "pos": [
+   3208.0,
+   4161.0
+  ],
+  "rayon": [
+   450.0,
+   150.0
+  ]
+ },
+ {
+  "id": "BayBelfort01",
+  "type": "NameMarine",
+  "pos": [
+   2596.0,
+   10610.0
+  ],
+  "rayon": [
+   450.0,
+   150.0
+  ]
+ },
+ {
+  "id": "MontTanoa01",
+  "type": "NameLocal",
+  "pos": [
+   9784.0,
+   12114.0
+  ],
+  "rayon": [
+   450.0,
+   170.0
+  ]
+ },
+ {
+  "id": "facility02",
+  "type": "NameLocal",
+  "pos": [
+   10979.0,
+   11500.0
+  ],
+  "rayon": [
+   450.0,
+   108.0
+  ]
+ },
+ {
+  "id": "SaintJulien01",
+  "type": "NameCity",
+  "pos": [
+   5809.0,
+   11213.0
+  ],
+  "rayon": [
+   300.0,
+   100.0
+  ]
+ },
+ {
+  "id": "hill01",
+  "type": "Hill",
+  "pos": [
+   10265.0,
+   12143.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "Dpp01",
+  "type": "NameLocal",
+  "pos": [
+   7271.0,
+   8391.0
+  ],
+  "rayon": [
+   400.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Lumberyard01",
+  "type": "NameLocal",
+  "pos": [
+   8917.0,
+   11949.0
+  ],
+  "rayon": [
+   300.0,
+   80.0
+  ]
+ },
+ {
+  "id": "hill11",
+  "type": "Hill",
+  "pos": [
+   10766.0,
+   8674.0
+  ],
+  "rayon": [
+   100.0,
+   100.0
+  ]
+ },
+ {
+  "id": "hill02",
+  "type": "Hill",
+  "pos": [
+   2646.0,
+   2635.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "hill03",
+  "type": "Hill",
+  "pos": [
+   4729.0,
+   2131.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "hill04",
+  "type": "Hill",
+  "pos": [
+   9552.0,
+   9109.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "hill05",
+  "type": "Hill",
+  "pos": [
+   11890.0,
+   11269.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "hill06",
+  "type": "Hill",
+  "pos": [
+   2182.0,
+   12584.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "hill07",
+  "type": "Hill",
+  "pos": [
+   2699.0,
+   12292.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "hill08",
+  "type": "Hill",
+  "pos": [
+   2967.0,
+   13085.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "hill09",
+  "type": "Hill",
+  "pos": [
+   8780.0,
+   12787.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "TempleRuins01",
+  "type": "NameLocal",
+  "pos": [
+   11003.0,
+   8422.0
+  ],
+  "rayon": [
+   400.0,
+   150.0
+  ]
+ },
+ {
+  "id": "Imone01",
+  "type": "NameVillage",
+  "pos": [
+   10488.0,
+   10614.0
+  ],
+  "rayon": [
+   300.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Plantations03",
+  "type": "NameLocal",
+  "pos": [
+   8939.0,
+   6628.0
+  ],
+  "rayon": [
+   350.0,
+   100.0
+  ]
+ },
+ {
+  "id": "PetitNicolet01",
+  "type": "NameVillage",
+  "pos": [
+   6813.0,
+   13440.0
+  ],
+  "rayon": [
+   250.0,
+   120.0
+  ]
+ },
+ {
+  "id": "Lumberyard02",
+  "type": "NameLocal",
+  "pos": [
+   5512.0,
+   11888.0
+  ],
+  "rayon": [
+   250.0,
+   100.0
+  ]
+ },
+ {
+  "id": "OuaOue01",
+  "type": "NameVillage",
+  "pos": [
+   5752.0,
+   12326.0
+  ],
+  "rayon": [
+   250.0,
+   100.0
+  ]
+ },
+ {
+  "id": "FuelDepot01",
+  "type": "NameLocal",
+  "pos": [
+   2263.0,
+   6333.0
+  ],
+  "rayon": [
+   250.0,
+   60.0
+  ]
+ },
+ {
+  "id": "Penelo01",
+  "type": "NameVillage",
+  "pos": [
+   10966.0,
+   13183.0
+  ],
+  "rayon": [
+   250.0,
+   120.0
+  ]
+ },
+ {
+  "id": "Ipota01",
+  "type": "NameVillage",
+  "pos": [
+   12318.0,
+   13929.0
+  ],
+  "rayon": [
+   250.0,
+   100.0
+  ]
+ },
+ {
+  "id": "SaintPaul01",
+  "type": "NameVillage",
+  "pos": [
+   7829.0,
+   13600.0
+  ],
+  "rayon": [
+   200.0,
+   50.0
+  ]
+ },
+ {
+  "id": "RailwayDepot01",
+  "type": "NameLocal",
+  "pos": [
+   4277.0,
+   8527.0
+  ],
+  "rayon": [
+   200.0,
+   75.0
+  ]
+ },
+ {
+  "id": "hill10",
+  "type": "Hill",
+  "pos": [
+   12935.0,
+   14090.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "hill12",
+  "type": "Hill",
+  "pos": [
+   13787.0,
+   10967.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "hill13",
+  "type": "Hill",
+  "pos": [
+   12824.0,
+   9416.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "hill14",
+  "type": "Hill",
+  "pos": [
+   9004.0,
+   9260.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "hill15",
+  "type": "Hill",
+  "pos": [
+   8174.0,
+   11657.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "hill16",
+  "type": "Hill",
+  "pos": [
+   6404.0,
+   11797.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "hill17",
+  "type": "Hill",
+  "pos": [
+   2443.0,
+   7261.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "hill18",
+  "type": "Hill",
+  "pos": [
+   3451.0,
+   12235.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "Saioko01",
+  "type": "NameVillage",
+  "pos": [
+   12404.0,
+   4570.0
+  ],
+  "rayon": [
+   200.0,
+   80.0
+  ]
+ },
+ {
+  "id": "Nani01",
+  "type": "NameVillage",
+  "pos": [
+   1955.0,
+   10727.0
+  ],
+  "rayon": [
+   250.0,
+   50.0
+  ]
+ },
+ {
+  "id": "ForbbidenVillage01",
+  "type": "NameLocal",
+  "pos": [
+   1698.0,
+   13211.0
+  ],
+  "rayon": [
+   200.0,
+   40.0
+  ]
+ },
+ {
+  "id": "Roadhouse01",
+  "type": "NameLocal",
+  "pos": [
+   8527.0,
+   12467.0
+  ],
+  "rayon": [
+   200.0,
+   70.0
+  ]
+ },
+ {
+  "id": "Lakatoro01",
+  "type": "NameVillage",
+  "pos": [
+   9214.0,
+   8741.0
+  ],
+  "rayon": [
+   150.0,
+   50.0
+  ]
+ },
+ {
+  "id": "Lumberyard03",
+  "type": "NameLocal",
+  "pos": [
+   9304.0,
+   7574.0
+  ],
+  "rayon": [
+   250.0,
+   80.0
+  ]
+ },
+ {
+  "id": "hill19",
+  "type": "Hill",
+  "pos": [
+   11866.0,
+   3927.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "hill20",
+  "type": "Hill",
+  "pos": [
+   10087.0,
+   3300.0
+  ],
+  "rayon": [
+   150.0,
+   150.0
+  ]
+ },
+ {
+  "id": "Buabua01",
+  "type": "NameVillage",
+  "pos": [
+   13255.0,
+   3020.0
+  ],
+  "rayon": [
+   250.0,
+   80.0
+  ]
+ },
+ {
+  "id": "LaFoa01",
+  "type": "NameVillage",
+  "pos": [
+   8825.0,
+   4778.0
+  ],
+  "rayon": [
+   250.0,
+   80.0
+  ]
+ },
+ {
+  "id": "Taga01",
+  "type": "NameVillage",
+  "pos": [
+   12255.0,
+   1880.0
+  ],
+  "rayon": [
+   250.0,
+   80.0
+  ]
+ },
+ {
+  "id": "SosovuIsland01",
+  "type": "NameLocal",
+  "pos": [
+   2707.0,
+   9121.0
+  ],
+  "rayon": [
+   500.0,
+   100.0
+  ]
+ },
+ {
+  "id": "YaniIslets01",
+  "type": "NameLocal",
+  "pos": [
+   6177.0,
+   6515.0
+  ],
+  "rayon": [
+   500.0,
+   100.0
+  ]
+ },
+ {
+  "id": "IleDouen01",
+  "type": "NameLocal",
+  "pos": [
+   742.0,
+   11166.0
+  ],
+  "rayon": [
+   500.0,
+   100.0
+  ]
+ },
+ {
+  "id": "DarwinBay",
+  "type": "NameMarine",
+  "pos": [
+   12034.0,
+   5969.0
+  ],
+  "rayon": [
+   600.0,
+   150.0
+  ]
+ },
+ {
+  "id": "IleSainteMarie01",
+  "type": "NameLocal",
+  "pos": [
+   5318.0,
+   14542.0
+  ],
+  "rayon": [
+   600.0,
+   100.0
+  ]
+ },
+ {
+  "id": "RavitaIsland01",
+  "type": "NameLocal",
+  "pos": [
+   12821.0,
+   14195.0
+  ],
+  "rayon": [
+   600.0,
+   150.0
+  ]
+ },
+ {
+  "id": "TuaduaIsland01",
+  "type": "NameLocal",
+  "pos": [
+   8368.0,
+   1335.0
+  ],
+  "rayon": [
+   600.0,
+   100.0
+  ]
+ },
+ {
+  "id": "ImuriIsland01",
+  "type": "NameLocal",
+  "pos": [
+   1522.0,
+   888.0
+  ],
+  "rayon": [
+   600.0,
+   100.0
+  ]
+ },
+ {
+  "id": "CoralReef01",
+  "type": "NameMarine",
+  "pos": [
+   8847.0,
+   14883.0
+  ],
+  "rayon": [
+   500.0,
+   100.0
+  ]
+ },
+ {
+  "id": "CoralReef02",
+  "type": "NameMarine",
+  "pos": [
+   6292.0,
+   14708.0
+  ],
+  "rayon": [
+   500.0,
+   100.0
+  ]
+ },
+ {
+  "id": "GeorgetownBay01",
+  "type": "NameMarine",
+  "pos": [
+   4928.0,
+   10615.0
+  ],
+  "rayon": [
+   600.0,
+   100.0
+  ]
+ },
+ {
+  "id": "YasaIsland01",
+  "type": "NameLocal",
+  "pos": [
+   3618.0,
+   9410.0
+  ],
+  "rayon": [
+   300.0,
+   100.0
+  ]
+ },
+ {
+  "id": "StraitMadman01",
+  "type": "NameMarine",
+  "pos": [
+   3125.0,
+   8508.0
+  ],
+  "rayon": [
+   500.0,
+   100.0
+  ]
+ },
+ {
+  "id": "DutchBay01",
+  "type": "NameMarine",
+  "pos": [
+   12210.0,
+   2700.0
+  ],
+  "rayon": [
+   600.0,
+   100.0
+  ]
+ },
+ {
+  "id": "ModdergatBay01",
+  "type": "NameMarine",
+  "pos": [
+   9482.0,
+   4644.0
+  ],
+  "rayon": [
+   400.0,
+   100.0
+  ]
+ },
+ {
+  "id": "HarcourtStrait01",
+  "type": "NameMarine",
+  "pos": [
+   11073.0,
+   5614.0
+  ],
+  "rayon": [
+   327.0,
+   100.0
+  ]
+ },
+ {
+  "id": "Ferry03",
+  "type": "NameLocal",
+  "pos": [
+   2270.0,
+   8653.0
+  ],
+  "rayon": [
+   200.0,
+   100.0
+  ]
+ }
+]
