@@ -63,7 +63,7 @@ class GrandLivre:
     """Le seul chemin de l argent et des biens. `flux` et `ext` peuvent etre ceux d un Monde E1 : moteur et domaines
     nouveaux comptent alors dans les memes cumuls ( brancher.py )."""
     __slots__ = ("catalogue", "motifs", "strict", "flux", "ext", "monnaie", "jour_argent", "jour_biens", "impayes",
-                 "non_declares", "net_cumule", "n_transferts")
+                 "non_declares", "net_cumule", "n_transferts", "enregistreur")
 
     def __init__(self, catalogue, flux=None, ext=None, strict=True):
         self.catalogue = catalogue
@@ -81,6 +81,7 @@ class GrandLivre:
         self.non_declares = {}     # motif -> nombre d usages ( mode non strict ), cumule
         self.net_cumule = {}       # classe -> recu - paye, cumule aux clotures
         self.n_transferts = 0
+        self.enregistreur = None   # monde/enregistreur.py : chaque ecriture, une ligne ( lit seulement )
 
     # ------------------------------------------------------------------ les motifs
     def declarer_motif(self, nom, nature, domaine):
@@ -112,6 +113,8 @@ class GrandLivre:
         paye = max(0.0, min(montant, de.caisse))
         de.caisse -= paye; vers.caisse += paye
         self._ranger(motif, type(de).__name__, type(vers).__name__, paye)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.argent(motif, de, vers, paye)
         if montant - paye > TOLERANCE_IMPAYE: self._impaye(motif, montant - paye)
         self.n_transferts += 1
         return paye
@@ -131,6 +134,8 @@ class GrandLivre:
         if not 0.0 <= montant < math.inf: raise ValueError(f"montant exterieur invalide : {montant!r}")
         vers.caisse += montant; self.ext["entree"] += montant
         self._ranger(motif, EXTERIEUR, type(vers).__name__, montant)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.argent(motif, EXTERIEUR, vers, montant)
         return montant
 
     def payer_l_exterieur(self, de, montant, motif):
@@ -140,6 +145,8 @@ class GrandLivre:
         paye = max(0.0, min(montant, de.caisse))
         de.caisse -= paye; self.ext["sortie"] += paye
         self._ranger(motif, type(de).__name__, EXTERIEUR, paye)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.argent(motif, de, EXTERIEUR, paye)
         if montant - paye > TOLERANCE_IMPAYE: self._impaye(motif, montant - paye)
         return paye
 
@@ -150,6 +157,8 @@ class GrandLivre:
         if not 0.0 <= montant < math.inf: raise ValueError(f"montant emis invalide : {montant!r}")
         vers.caisse += montant; self.monnaie["emise"] += montant
         self._ranger(motif, EMISSION, type(vers).__name__, montant)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.argent(motif, EMISSION, vers, montant)
         return montant
 
     def detruire_monnaie(self, de, montant, motif):
@@ -157,6 +166,8 @@ class GrandLivre:
         paye = max(0.0, min(montant, de.caisse))
         de.caisse -= paye; self.monnaie["detruite"] += paye
         self._ranger(motif, type(de).__name__, EMISSION, paye)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.argent(motif, de, EMISSION, paye)
         return paye
 
     # ------------------------------------------------------------------ les biens
@@ -170,6 +181,8 @@ class GrandLivre:
         pris = de._retirer(bien, q)
         if pris > 0.0: vers._ajouter(bien, pris)
         self._ranger_bien("deplace", motif, bien, pris)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.bien("deplace", motif, bien, pris, de, vers)
         return pris
 
     def source(self, vers, bien, q, nature, motif):
@@ -179,6 +192,8 @@ class GrandLivre:
         f, nom = self.flux[nature], self.catalogue.biens[bien].nom      # un bien declare apres coup entre a zero
         f[nom] = f.get(nom, 0.0) + q
         self._ranger_bien(nature, motif, bien, q)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.bien(nature, motif, bien, q, None, vers)
         return q
 
     def puits(self, de, bien, q, nature, motif):
@@ -189,6 +204,8 @@ class GrandLivre:
         f, nom = self.flux[nature], self.catalogue.biens[bien].nom
         f[nom] = f.get(nom, 0.0) + pris
         self._ranger_bien(nature, motif, bien, pris)
+        e = getattr(self, "enregistreur", None)
+        if e is not None: e.bien(nature, motif, bien, pris, de, None)
         return pris
 
     def produire(self, vers, bien, q, motif): return self.source(vers, bien, q, "produit", motif)

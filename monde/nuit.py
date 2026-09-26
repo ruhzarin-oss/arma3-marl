@@ -5,7 +5,7 @@ gouvernement ) et la memoire de chaque processus, dans journal.jsonl et nuit.txt
 tous les INSTANTANE_J jours ; un plantage -> reprise depuis le dernier instantane ( au plus REPRISES_MAX fois ).
 On l arrete en posant le fichier STOP dans le dossier de la nuit.
 
-   python -m monde.nuit --echelle 2000 --llm --dossier /mnt/data/hmt/archipel/nuit"""
+   python -m monde.nuit --echelle 2000 --llm --dossier /mnt/data/hmt/archipel/nuit [ --enregistrer /mnt/data/hmt/archipel/matrice ]"""
 import argparse, json, os, shutil, sys, time, traceback
 from . import config as C
 from .archipel import Archipel
@@ -16,6 +16,17 @@ REPRISES_MAX = 5
 # arret propre au-dessus de ARRET_GO - la station ne doit jamais se figer
 SANS_INSTANTANE_GO = 38.0
 ARRET_GO = 42.0
+# et la marge de toute la machine WSL ( 47 Go ) : les sondes du jour tournent a cote de la nuit ( 26/09 )
+MARGE_MIN_GO = 3.0          # moins que ca de memoire disponible : arret propre
+MARGE_INSTANTANE_GO = 8.0   # moins que ca : pas d instantane
+
+
+def disponible_go():
+    try:
+        for l in open("/proc/meminfo"):
+            if l.startswith("MemAvailable:"): return int(l.split()[1]) / 1e6
+    except Exception: pass
+    return None
 
 
 def rss_go(pid):
@@ -36,6 +47,7 @@ def main():
     a.add_argument("--echelle", type=float, default=2000)
     a.add_argument("--llm", action="store_true")
     a.add_argument("--dossier", default="/mnt/data/hmt/archipel/nuit")
+    a.add_argument("--enregistrer", default=None, help="dossier ou chaque ile ecrit tout ce qui s y passe ( Parquet )")
     x = a.parse_args()
     d = x.dossier; os.makedirs(d, exist_ok=True)
     stop, inst = os.path.join(d, "STOP"), os.path.join(d, "instantane")
@@ -44,7 +56,7 @@ def main():
         try:
             t0 = time.time()
             reprise = inst if os.path.exists(os.path.join(inst, "pont.pkl")) else None
-            arc = Archipel(echelle=x.echelle, ouvert=True, llm=x.llm, reprise=reprise)
+            arc = Archipel(echelle=x.echelle, ouvert=True, llm=x.llm, reprise=reprise, enregistrer=x.enregistrer)
             ecrire(d, {"evenement": "depart", "reprise": bool(reprise), "pas": arc.pas, "secondes": round(time.time() - t0)},
                    f"== archipel {'repris au pas ' + str(arc.pas) if reprise else 'cree'} en {time.time() - t0:.0f} s "
                    f"( {x.echelle * 500:,.0f} habitants par pays, gouvernements {'Qwen' if x.llm else 'regles'} )")
@@ -60,11 +72,16 @@ def main():
                                     + (f" gouv {e['gouvernement']['acceptees']}/{e['gouvernement']['actions']}" if e['gouvernement'] else "")
                                     for n, e in etats.items()))
                 total = sum(v or 0 for v in mem.values())
+                dispo = disponible_go()
+                if dispo is not None and dispo < MARGE_MIN_GO:
+                    ecrire(d, {"evenement": "arret_marge", "jour": jour, "disponible_go": dispo},
+                           f"== ARRET : {dispo:.1f} Go disponibles dans WSL ( marge {MARGE_MIN_GO} Go ), arret propre")
+                    arc.fermer(); return 2
                 if total > ARRET_GO:
                     ecrire(d, {"evenement": "arret_memoire", "jour": jour, "memoire_go": total},
                            f"== ARRET : {total:.1f} Go de memoire ( garde a {ARRET_GO} Go ), arret propre avant de figer la station")
                     arc.fermer(); return 2
-                if jour % INSTANTANE_J == 0 and total > SANS_INSTANTANE_GO:
+                if jour % INSTANTANE_J == 0 and (total > SANS_INSTANTANE_GO or (dispo is not None and dispo < MARGE_INSTANTANE_GO)):
                     ecrire(d, {"evenement": "instantane_saute", "jour": jour}, f"   instantane saute ( {total:.1f} Go )")
                 elif jour % INSTANTANE_J == 0:
                     tmp = inst + ".tmp"; shutil.rmtree(tmp, ignore_errors=True)

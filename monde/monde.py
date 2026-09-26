@@ -208,6 +208,8 @@ class Monde:
     def noter(self, type_, **champs):
         e = {"jour": self.jour, "heure": round(self.heure, 2), "type": type_, **champs}
         self.evenements.append(e)
+        r = getattr(self, "enregistreur", None)
+        if r is not None: r.evenement("moteur", e)
         if len(self.evenements) > EVENEMENTS_MAX: del self.evenements[:len(self.evenements) - EVENEMENTS_MAX // 2]
         if self.journal_fichier:
             with open(self.journal_fichier, "a") as f: f.write(json.dumps(e, ensure_ascii=False) + "\n")

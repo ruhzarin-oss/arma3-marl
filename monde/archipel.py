@@ -18,7 +18,7 @@ recevoir_courrier : arrivee, retour, refoule ).
    python -m monde.archipel --jours 2 --echelle 4"""
 import argparse, hashlib, os, pickle, sys, time
 import multiprocessing as mp
-from . import monde as W, tests as T, config as C, or_reel as OR
+from . import monde as W, tests as T, config as C, or_reel as OR, enregistreur as ENR
 from .pays import pays as P
 from .porte_domaines import LIVRES, empreinte
 
@@ -58,6 +58,8 @@ class Ile:
     def pas(self, entrant):
         for m in entrant: self.w.recevoir_courrier(m)
         self.w.pas_suivant()
+        e = getattr(self.w, "enregistreur", None)
+        if e is not None and self.w.pas % C.PAS_PAR_JOUR == 0: e.fin_de_jour((self.w.pas - 1) // C.PAS_PAR_JOUR)
         s, self.w.courrier_sortant = self.w.courrier_sortant, []
         return s
 
@@ -97,22 +99,26 @@ class Ile:
         raise ValueError(ordre)
 
 
-def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False, llm=False):
+def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False, llm=False, enregistrer=None):
     w = pickle.load(open(reprise, "rb")) if reprise else creer_ile(nom, graine, echelle, llm)
     if ouvert: w.archipel = {"noms": tuple(noms), "ouvert": True}
+    if enregistrer: ENR.brancher(w, enregistrer, nom)
     ile = Ile(nom, w)
     tuyau.send(("pret", nom))
     while True:
         m = tuyau.recv()
         if m[0] == "pas": tuyau.send(ile.pas(m[1]))
-        elif m[0] == "fin": tuyau.send("fin"); return
+        elif m[0] == "fin":
+            if getattr(w, "enregistreur", None) is not None: w.enregistreur.fermer()
+            tuyau.send("fin"); return
         else: tuyau.send(ile.commande(*m))
 
 
 # ------------------------------------------------------------------ le pont
 class Archipel:
     def __init__(self, iles=C.ILES_ARCHIPEL, graine=C.GRAINE, echelle=4.0, parallele=True, reprise=None, ouvert=False,
-                 llm=False):
+                 llm=False, enregistrer=None):
+        """`enregistrer` : un dossier ou chaque ile ecrit tout ce qui s y passe ( monde/enregistreur.py )."""
         self.noms, self.graine, self.echelle, self.parallele, self.ouvert = tuple(iles), graine, echelle, parallele, ouvert
         self.pas = 0
         self.mer = []                      # ( pas d arrivee, ile d origine, n d ordre, destination, message )
@@ -127,7 +133,7 @@ class Archipel:
             self.tuyaux, self.proc = {}, {}
             for n in self.noms:
                 a, b = ctx.Pipe()
-                p = ctx.Process(target=_processus_ile, args=(n, graine, echelle, chemin(n), b, self.noms, ouvert, llm), daemon=True)
+                p = ctx.Process(target=_processus_ile, args=(n, graine, echelle, chemin(n), b, self.noms, ouvert, llm, enregistrer), daemon=True)
                 p.start(); self.tuyaux[n], self.proc[n] = a, p
             for n in self.noms: assert self.tuyaux[n].recv() == ("pret", n)
         else:
@@ -135,6 +141,8 @@ class Archipel:
                          for n in self.noms}
             if ouvert:
                 for i in self.iles.values(): i.w.archipel = {"noms": self.noms, "ouvert": True}
+            if enregistrer:
+                for n, i in self.iles.items(): ENR.brancher(i.w, enregistrer, n)
 
     # --- la vitesse : temps reel si un humain est la ---
     def temps_reel(self): return os.path.exists(HUMAIN)
@@ -195,6 +203,9 @@ class Archipel:
         return self.iles[ile].commande("perturber")
 
     def fermer(self):
+        if not self.parallele:
+            for i in self.iles.values():
+                if getattr(i.w, "enregistreur", None) is not None: i.w.enregistreur.fermer()
         if self.parallele:
             for n in self.noms:
                 try: self.tuyaux[n].send(("fin",)); self.tuyaux[n].recv()

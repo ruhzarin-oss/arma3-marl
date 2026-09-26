@@ -27,7 +27,7 @@ class TypeEvenement:
 
 
 class Journal:
-    __slots__ = ("types", "recents", "comptes", "individuels_jour", "tampon", "fichier")
+    __slots__ = ("types", "recents", "comptes", "individuels_jour", "tampon", "fichier", "enregistreur")
 
     def __init__(self, fichier=None, recents_max=RECENTS_MAX):
         self.types = {}
@@ -36,6 +36,7 @@ class Journal:
         self.individuels_jour = {}     # type individuel -> nombre, du jour
         self.tampon = []               # lignes a ecrire a la cloture : un seul acces au fichier par jour
         self.fichier = fichier
+        self.enregistreur = None       # monde/enregistreur.py ( lit seulement )
 
     def declarer(self, nom, domaine, niveau="individuel", champs=()):
         if niveau not in NIVEAUX: raise ValueError(f"niveau inconnu {niveau!r} : {NIVEAUX}")
@@ -54,6 +55,8 @@ class Journal:
             raise ValueError(f"{type_} : un champ nomme {RESERVES} ecraserait la cle du journal ( bogue du 23/09 )")
         e = {"jour": jour, "heure": round(heure, 2), "type": type_, **champs}
         self.recents.append(e)
+        r = getattr(self, "enregistreur", None)
+        if r is not None: r.evenement("journal", e)
         self.individuels_jour[type_] = self.individuels_jour.get(type_, 0) + 1
         if self.fichier: self.tampon.append(json.dumps(e, ensure_ascii=False))
 
@@ -68,6 +71,8 @@ class Journal:
     def cloturer_jour(self, jour):
         """Rend { type : ( nombre, somme ) } pour les comptes et { type : nombre } pour les individuels du jour ;
         ecrit le tampon et une ligne de bilan ; remet les compteurs du jour a zero."""
+        r = getattr(self, "enregistreur", None)
+        if r is not None: r.comptes(jour, self.comptes)
         bilan = {"jour": jour, "comptes": {t: (n, s) for t, (n, s) in sorted(self.comptes.items())},
                  "individuels": dict(sorted(self.individuels_jour.items()))}
         if self.fichier:

@@ -668,6 +668,8 @@ def _decider(p, a, pl, g, ai, sympt, quar, indoc):
             if att is None: att = attentes[i] = Attente()
             att.choix.append([r, act, 0, 0.0])
         dec.n_decisions += len(ai)
+        e = getattr(dec, "enregistreur", None)
+        if e is not None: e.decisions_lot(dec.point.nom, ai, np.column_stack([x, np.ones(len(ai))]), out)
         return out.astype(np.int8)
     out = [dec.decider(i, ContexteSortie(tuple(r), bool(d))) for i, r, d in zip(ai.tolist(), x.tolist(), indoc[ai].tolist())]
     return np.array(out, np.int8)
