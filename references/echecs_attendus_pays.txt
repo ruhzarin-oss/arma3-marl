@@ -1,0 +1,9 @@
+ECHOUE  agenda            test_travail_fait
+ECHOUE  agriculture       test_dimanche
+ECHOUE  banques           test_octroi_part_du_choix
+ECHOUE  economie          test_credit
+ECHOUE  exterieur         test_choc_petrolier
+ECHOUE  population        test_recensement
+ECHOUE  territoire        test_climat
+ECHOUE  travail           test_emploi_20_64
+ECHOUE  travail           test_inactifs_changent

@@ -14,8 +14,17 @@ INSTANTANE_J = 5
 REPRISES_MAX = 5
 # la garde memoire ( 25/09 : WSL plein a 47 Go a fige la station ) : pas d instantane au-dessus de SANS_INSTANTANE_GO,
 # arret propre au-dessus de ARRET_GO - la station ne doit jamais se figer
-SANS_INSTANTANE_GO = 38.0
-ARRET_GO = 42.0
+# ( 26/09, avant Ubuntu : en part de la memoire de la machine, plus en Go fixes - 0,77 et 0,85 des 49,3 Go que WSL
+# declare donnent les 38 et 42 d avant ; sur 64 Gio sans WSL ( 68,7 Go ), 53 et 58 )
+def _memoire_totale_go():
+    try:
+        for l in open("/proc/meminfo"):
+            if l.startswith("MemTotal:"): return int(l.split()[1]) / 1e6
+    except Exception: pass
+    return 47.0
+MEMOIRE_GO = _memoire_totale_go()
+SANS_INSTANTANE_GO = float(os.environ.get("HMT_SANS_INSTANTANE_GO", 0.77 * MEMOIRE_GO))
+ARRET_GO = float(os.environ.get("HMT_ARRET_GO", 0.85 * MEMOIRE_GO))
 # et la marge de toute la machine WSL ( 47 Go ) : les sondes du jour tournent a cote de la nuit ( 26/09 )
 MARGE_MIN_GO = 3.0          # moins que ca de memoire disponible : arret propre
 MARGE_INSTANTANE_GO = 8.0   # moins que ca : pas d instantane

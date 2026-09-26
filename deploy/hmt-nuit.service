@@ -1,0 +1,21 @@
+# La nuit de l archipel sous systemd ( remplace la tache planifiee Windows HMT_Archipel, 26/09 ).
+#   sudo cp deploy/hmt-nuit.service /etc/systemd/system/ && sudo systemctl daemon-reload
+#   sudo systemctl start hmt-nuit        ( arret propre : touch <dossier>/STOP ; systemctl stop coupe net )
+[Unit]
+Description=HARMATTAN - la nuit de l archipel ( six pays, tout enregistre )
+After=network-online.target ollama.service mnt-data.mount
+Requires=mnt-data.mount
+
+[Service]
+Type=simple
+User=younes
+WorkingDirectory=/mnt/data/hmt/archipel/code
+Environment=PYTHONPATH=/mnt/data/hmt/archipel/code
+ExecStart=/mnt/data/hmt/evogp/env/bin/python -u -m monde.nuit --echelle 2000 --dossier /mnt/data/hmt/archipel/nuit --enregistrer /mnt/data/hmt/archipel/matrice
+StandardOutput=append:/mnt/data/hmt/archipel/nuit/sortie.txt
+StandardError=inherit
+Restart=no
+# pas de limite de memoire ici : la garde de monde/nuit.py s arrete proprement avant ( part de la memoire de la machine )
+
+[Install]
+WantedBy=multi-user.target

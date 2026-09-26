@@ -3,8 +3,8 @@ coeur Rust ) doit rendre LE MEME MONDE que l ancien, au centime pres, habitant p
 
 L ancien moteur est une copie du depot avant la refonte, rangee sous le nom `monde_ancien` ( /mnt/data/hmt/ref ).
    python -m monde.porte_colonnes"""
-import sys, time
-sys.path.insert(0, "/mnt/data/hmt/ref")
+import os, sys, time
+sys.path.insert(0, os.path.join(os.environ.get("HMT_REF", "/mnt/data/hmt"), "ref"))   # references/refaire_references.sh
 import monde_ancien.monde as WA
 from . import monde as W, config as C, carte as K
 
