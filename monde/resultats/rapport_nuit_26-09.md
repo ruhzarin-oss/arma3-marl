@@ -15,11 +15,22 @@
    controle positif 10 177 ecarts ), jour 5 a 200 000 habitants 102 s -> 21 s. La nuit en cours ( 7fab129 ) ne l a
    pas : son jour 5 a pris 34 minutes, les autres ~2 a 3 minutes.
 
+6. **Priorite des biens vitaux** ( ce commit ) : le marche rachete d abord nourriture, remedes, carburant.
+   Partiel : voir la rechute ci-dessous.
+
+## La rechute du jour 16 ( nuit 5 ) - le chantier suivant
+Au jour 10, jour d achat des outils, les menages de Malden en achetent pour 109 millions ; le marche en rachete 6
+millions d unites au negoce ( 2 vendues ), le negoce les importe : les deux caisses tombent a 0, plus d import de
+carburant, plus de camion, faim 71 % au jour 16. Cause dans le domaine 3 : les outils ne s usent jamais et le
+rachat se fait d un coup sous 80 % de la cible ( achats synchronises ), et le marche extrapole ce pic a 10 jours.
+A trancher avec toi ( c est le coeur de l economie ) : detail dans monde/resultats/faim_carburant.txt ( 9-11 ).
+
 ## Resultat a un million d habitants par pays ( 6 pays, Qwen )
 | | nuit du 25 ( ancien code ) | nuit du 26 ( code 7fab129 ) |
 |---|---|---|
 | faim jours 3-4 | 71 a 73 % | 2 a 3 % |
 | faim jours 5-12 | 71 a 73 % ( jusqu au jour 17 ) | 0 % |
+| faim jours 16-18 | 71 a 73 % | 21 a 73 % ( rechute : voir plus haut ) |
 | conservation | tenue | tenue |
 
 ## Decisions prises a ta place ( « copier le reel » )

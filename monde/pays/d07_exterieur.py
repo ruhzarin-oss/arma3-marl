@@ -132,6 +132,12 @@ PART_STOCK_EXPORT = 0.1           # ... ou un dixieme du stock, pour un bien que
 # jours de demande par jour, transmettait un choc de +60 % au gazole ( x 1,46 ) mais vidait la raffinerie de son brut :
 # plus de gazole au jour 21, plus de convois, 100 % des menages sans nourriture au jour 25.
 PROTEGES_EXPORT = ESSENTIELS + ("carburant", "petrole")
+# 26/09 : le marche rachete d abord ce qui fait vivre ( nourriture, remedes ) et rouler ( le gazole de ses camions ),
+# puis le reste. Une seule caisse pour tous les biens : a un million d habitants, les outils rachetes au jour 10
+# ( 104 puis 124 millions ) vidaient la caisse, le gazole n etait plus rachete, les camions s arretaient et la
+# nourriture restait aux fermes ( faim 71 % au jour 16 ). Dans le reel, la station et la quincaillerie ont chacune
+# leur tresorerie.
+PRIORITE_RACHAT = ESSENTIELS + ("carburant",)
 URGENCE_J = 1.0                   # sous un jour de stock, un bien essentiel est rachete meme a perte
 SEUIL_MOTEUR = 50.0               # monde.expedier exporte le surplus de nourriture au-dela de 3 jours + 50 unites
 MARGE_SURETE_MOTEUR = 25.0
@@ -779,7 +785,7 @@ def _vendre_aux_marches(p):
     e = _ext(p); w = p.w; L = p.socle.livre; cat = p.socle.catalogue
     for neg in e.negociants:
         m = w.marches[neg.marche_id]
-        for b, lots in neg.lots.items():
+        for b, lots in sorted(neg.lots.items(), key=lambda kv: cat[kv[0]].nom not in PRIORITE_RACHAT):   # tri stable
             if not lots: continue
             nom = cat[b].nom
             dem = _demande(p, neg.marche_id, nom)

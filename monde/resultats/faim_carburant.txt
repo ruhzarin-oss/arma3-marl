@@ -33,3 +33,14 @@ LA FAIM DES ILES A UN MARCHE ( enquete du 26/09, archipel ouvert, 6 x 10 000 hab
    Pays 132/145 ( emploi repasse ; restent credit et loyer, voir 6 ).
 8. Nuit 6 x 1 M ( code 87dfca5, avant ce correctif ) : faim 2 a 3 % aux jours 3 et 4 dans les six pays, contre 71 a 73 %
    la nuit precedente ( code b01c0da ) aux memes jours.
+
+9. Rechute au jour 16 ( nuit 5, 6 x 1 M ) : faim 71-73 % dans quatre iles. Lu dans la matrice : au jour 10, jour d achat
+   des outils, les menages de Malden en achetent pour 109 millions ; le marche, qui vise 10 jours de stock sur une
+   demande lissee gonflee par ce pic, rachete ~6 millions d outils au negoce en deux jours ( 2 millions vendus ) et le
+   negoce les importe : les deux caisses tombent a 0, l argent part a l etranger, plus personne n importe carburant ni
+   nourriture, les camions s arretent ( offre de nourriture 1,5 M -> 50 000 par jour ).
+10. Correctif partiel ( commit suivant ) : le marche rachete d abord nourriture, remedes et carburant. Essai 30 jours
+   a 6 x 10 000 : la crise d Enoch ( jours 15-20 ) disparait, Altis et Sara s ameliorent ; celles de Malden ( 14-20 )
+   et Stratis ( 13-17 ) restent : le negoce lui-meme n a plus de caisse.
+11. A trancher ( domaine 3 ) : les outils ne s usent jamais ( aucune depreciation ) et un menage rachete tout l ecart
+   d un coup sous 80 % de sa cible -> achats synchronises ; le marche extrapole un pic mensuel a 10 jours de demande.
