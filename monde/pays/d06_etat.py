@@ -1073,10 +1073,11 @@ def _recouvrer(p):
     actives = K.actives
     par_cr = {}
     for o in f.controles.values():
-        for cr in o.creances: par_cr[cr.id] = o
-    garde = []
+        for cr in o.creances: par_cr.setdefault(cr.id, o)
+    garde = []; vues = set()
     for cr in f.creances:
-        if actives.get(cr.id) is not cr: continue
+        if actives.get(cr.id) is not cr or cr.id in vues: continue       # un compte d arrieres une fois ( 26/09 )
+        vues.add(cr.id)
         deb = cr.debiteur
         if type(deb) is PO.Menage and p.col("menage", "dissous")[deb.id]:
             K.abandonner(cr, "dissolution"); continue
@@ -1736,7 +1737,7 @@ def infliger_amende(p, debiteur, montant, motif="amende"):
 def creances_de_l_etat(p):
     """Les creances fiscales et amendes actives de l Etat ( domaine 21 : recouvrement force, prescription )."""
     K = p.socle.creances
-    return [c for c in _etat(p).fisc.creances if K.actives.get(c.id) is c]
+    return list({c.id: c for c in _etat(p).fisc.creances if K.actives.get(c.id) is c}.values())   # un compte une fois ( 26/09 )
 
 
 def recouvrer(p, creance, montant=None):
