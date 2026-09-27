@@ -791,12 +791,17 @@ def _vendre_aux_marches(p):
             if not lots: continue
             nom = cat[b].nom
             dem = _demande(p, neg.marche_id, nom)
+            # 27/09 : la veille d une fermeture ( samedi, veille de ferie ), le marche se garnit aussi pour les jours fermes,
+            # et un bien essentiel est rachete meme a perte s il manque pour ces jours-la. Sans cela, chaque samedi soir
+            # manquait ( les fermes ne livrent pas le samedi, les menages achetent deux jours ) : une rupture par semaine, et
+            # le prix de la nourriture montait d un cran a chaque fois, sans jamais redescendre.
+            fermes = 1.0 + EC._jours_sans_marche(p)
             while lots:
                 lot = lots[0]
-                besoin = _cible(nom) * dem - m.stocks[nom]
+                besoin = (_cible(nom) + fermes - 1.0) * dem - m.stocks[nom]
                 if besoin <= EPS: break
                 cession = lot[2] * (1.0 + MARGE_NEGOCE)
-                urgence = nom in ESSENTIELS and m.stocks[nom] < URGENCE_J * dem
+                urgence = nom in ESSENTIELS and m.stocks[nom] < URGENCE_J * fermes * dem
                 if m.prix[nom] * (1.0 - m.marge) < cession and not urgence: break
                 q = min(lot[1], besoin, max(0.0, m.caisse) / cession)
                 if q <= EPS: break

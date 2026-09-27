@@ -169,6 +169,22 @@ ALPHA_DEMANDE_BIEN = {"outils": 1.0 / 30.0}
 DEMANDE_MIN = 0.1               # unites par jour : sous ce plancher, personne ne demande
 PLANCHER, PLAFOND = 0.25, 2.5   # bornes en prix mondial ( au-dela : importation, domaine 7 ; en deca : personne ne vend )
 PARITE_EXPORT = 0.8             # le moteur exporte les surplus de nourriture a 0,8 fois le prix mondial ( monde.py, expedier )
+# 27/09 ( Younes : « au plus realiste » ; inflation x2 en 30 jours mesuree par la porte de ressemblance ) :
+# ( 1 ) la couverture que lit le marchand a l aube est celle du stock qu il AVAIT A OFFRIR la veille a 19 h, avant les
+# courses : il se reapprovisionne chez son negociant jusqu a sa cible a 18 h 50 ( domaine 7 ), et lisait son stock a
+# l aube, apres les courses - 1,3 jour pour une cible de 2, chaque jour, donc +3 % par jour jusqu au plafond ( 2,5 fois
+# le prix mondial en 35 jours ) avec des greniers pleins ; ( 2 ) au-dessus de la parite a l import, la concurrence des
+# importateurs rappelle le prix vers elle tant que la banque centrale fournit des devises ( loi du prix unique, guerre
+# des iles, vitesse a calibrer ) ; ( 3 ) un bien echangeable ne se vend pas chez soi sous ce que le monde en donne au
+# port : le carburant tombait a 0,25 fois le prix mondial pendant que le negoce exportait le stock du marche.
+BETA_PARITE = 0.2
+# ( 4 ) les prix sont collants ( Bils et Klenow 2004 : un prix de detail tient des mois ; l alimentaire bouge plus souvent,
+# par petits pas ) : tant que la couverture reste a moins de TOLERANCE_COUVERTURE de sa cible ( en part de la cible ), le
+# prix ne bouge qu au quart de la vitesse ; une rupture ( non servi ) ou un stock hors de la bande le fait bouger. Sans la bande, les fermes qui
+# livrent juste ce qu on mange ( 1 a 1,8 jour a 19 h pour une cible de 2 ) faisaient monter le prix de 0,5 % par jour jusqu a
+# la parite a l import, pour rien : le prix n apporte pas une ration de plus quand la recolte part deja en entier.
+TOLERANCE_COUVERTURE = 0.5
+LENTEUR_DANS_LA_BANDE = 0.25    # dans la bande, le prix bouge au quart de la vitesse : il redescend quand le stock est a l aise
 MARGE_PRODUCTEUR = 0.10         # marge d un producteur sur son prix de revient complet ( a calibrer )
 MARGE_COMMERCE = 0.05           # la regle de commerce du moteur exige 5 % de gain au-dela du transport ( monde.py, commerce_regle )
 ARBITRAGE_AU_DELA = 1.03        # la borne haute de la concurrence laisse passer l arbitrage ( 3 % au-dessus de son seuil )
@@ -220,10 +236,12 @@ class EtatMarche:
     voulu ET pu payer : la demande effective ), ce qu il n a pas pu servir faute de stock, la couverture qu il en tire.
     Ce qu un menage voulait sans pouvoir le payer est compte a part ( non_solvable ) : un prix qui monterait avec les
     envies des pauvres ne dirait rien de la rarete. Et ce qu il a vendu aux menages : l assiette de la TVA."""
-    __slots__ = ("id", "demande_lisse", "non_servi", "non_solvable", "couverture", "ventes_ht", "ventes_q", "ventes_jour")
+    __slots__ = ("id", "demande_lisse", "non_servi", "non_solvable", "couverture", "ventes_ht", "ventes_q", "ventes_jour",
+                 "stock_soir")
 
     def __init__(self, id, demande0):
         self.id = id
+        self.stock_soir = None                          # { bien : stock a 19 h, avant les courses } ( 27/09 )
         self.demande_lisse = dict(demande0)
         self.non_servi = {b: 0.0 for b in C.BIENS}      # voulu, payable, et pas servi faute de stock ( depuis l aube )
         self.non_solvable = {b: 0.0 for b in C.BIENS}   # voulu et pas payable : la pauvrete, cumul ( pas un signal de prix )
@@ -599,6 +617,8 @@ def _achats(p):
     masque = _acheteurs(p, n)
     achete = ok if masque is None else ok & masque
     marches = [w.marches[k] for k in d.ids_marches]
+    for m in marches:                                   # 27/09 : ce que le marche avait a offrir, lu par _ajuster_prix a l aube
+        d.marches[m.lieu.id].stock_soir = {b: m.stocks[b] for b in BIENS_PRIX}
     mi = _rang_marche_menages(w, d, n)
     tva = g.tva
     ration = g.lois["rationnement_nourriture"] or C.NOURRITURE_PAR_JOUR
@@ -781,17 +801,45 @@ def _ajuster_prix(p, mid):
             al = ALPHA_DEMANDE_BIEN.get(b, ALPHA_DEMANDE)
             em.demande_lisse[b] = (1.0 - al) * em.demande_lisse[b] + al * m.demande[b]
             dem = max(DEMANDE_MIN, em.demande_lisse[b])
-            couv = max(0.0, m.stocks[b]) / dem
+            ss = getattr(em, "stock_soir", None)         # 27/09 : le stock d hier 19 h, avant les courses ; sinon l aube
+            couv = max(0.0, ss[b] if ss is not None and b in ss else m.stocks[b]) / dem
             em.couverture[b] = couv
             x = max(-1.0, min(1.0, (cible - couv) / cible))
+            if abs(couv - cible) <= TOLERANCE_COUVERTURE * cible: x *= LENTEUR_DANS_LA_BANDE   # 27/09 : prix collants dans la bande
             if em.non_servi[b] > 0.0: x = max(x, min(1.0, em.non_servi[b] / dem))
             dlog = KAPPA_PRIX * x
             a = _ancrage(p, d, m, b)
             if a is not None and a > 0.0: dlog += BETA_COUT * (math.log(a) - math.log(m.prix[b]))
-            m.prix[b] = _borner(w, b, m.prix[b] * math.exp(dlog))
+            par = _parite_import(p, m, b)                # 27/09 : au-dessus de la parite a l import, les importateurs ramenent le prix
+            if par is not None and m.prix[b] > par: dlog += BETA_PARITE * (math.log(par) - math.log(m.prix[b]))
+            x = m.prix[b] * math.exp(dlog)
+            bas = _plancher_export(p, m, b)               # 27/09 : jamais sous ce que le monde en donne au port
+            if bas is not None: x = max(x, bas)
+            m.prix[b] = _borner(w, b, x)
         elif b == "or":
             m.prix[b] = PM[b]
         m.demande[b] = 0.0; m.offre[b] = 0.0; em.non_servi[b] = 0.0
+
+
+def _parite_import(p, m, b):
+    """Le prix de detail auquel l importation d un bien devient rentable ( cout rendu, marges du negoce et du detail ) ;
+    None si la banque centrale ne fournit pas de devises ou si le bien ne s importe pas ( guerre des iles, 27/09 )."""
+    if not p.a("exterieur"): return None
+    X = importlib.import_module(".d07_exterieur", __package__)
+    if b not in X.BIENS_IMPORT: return None
+    euros, _ = X.reserves_de_change(p)
+    if euros <= X.PLANCHER_RESERVES: return None
+    return X.prix_import(p, b) * (1.0 + X.MARGE_NEGOCE) / (1.0 - m.marge)
+
+
+def _plancher_export(p, m, b):
+    """Le prix de detail sous lequel le negoce exporterait le bien : ce que l etranger paie au port, moins la marge du
+    negoce, sur la marge du detaillant ( loi du prix unique, 27/09 ). La nourriture garde la borne du moteur
+    ( PARITE_EXPORT ) ; None sans negoce ou pour un bien qui ne s echange pas."""
+    if b == "nourriture" or not p.a("exterieur"): return None
+    X = importlib.import_module(".d07_exterieur", __package__)
+    if b not in X.BIENS_IMPORT: return None
+    return X.prix_export(p, b) * (1.0 - X.MARGE_NEGOCE) / (1.0 - m.marge)
 
 
 def _transport_unitaire(w, a, o):
