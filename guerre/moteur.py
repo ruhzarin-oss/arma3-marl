@@ -291,6 +291,19 @@ def bulletin_guerre(w):
             "source": "etat-major et Tresor, le jour meme"}
 
 
+def bulletin_famine(w):
+    """Les morts de faim ( domaine 1 ) d hier et des 30 derniers jours, les vivants : 27/09, 41 260 morts de faim a Malden
+    sans que son gouvernement le voie - la faim de son bulletin ne compte que les menages VIVANTS ( HMT-131 c )."""
+    p = getattr(w, "pays", None)
+    if p is None or not p.a("population"): return {}
+    from monde.pays import d01_population as D1
+    tb = w.table; n = tb.n; col = p.colonnes["habitant"]
+    faim = (col["cause_deces"][:n] == D1.CAUSES.index("faim")); dj = col["deces_j"][:n]
+    return {"morts_de_faim_hier": int((faim & (dj == int(w.jour) - 1)).sum()),
+            "morts_de_faim_30j": int((faim & (dj >= int(w.jour) - 30)).sum()), "vivants": int(tb.vivant[:n].sum()),
+            "source": "etat civil, le jour meme"}
+
+
 def bulletin_exterieur(w):
     """Ce que la banque centrale dit au gouvernement ( 27/09 ) : ses reserves de change et leur couverture en mois
     d importations, la parite. Sans devises, aucun import ne passe - ni les negociants, ni l Etat."""
@@ -326,7 +339,8 @@ class CerveauDeGuerre:
     def empreinte(self): return getattr(self.interieur, "empreinte", None)
 
     def __call__(self, bulletin, memoire=""):
-        bulletin = dict(bulletin, guerre=bulletin_guerre(self.w), exterieur=bulletin_exterieur(self.w), refus_hier=refus_hier(self.w))
+        bulletin = dict(bulletin, guerre=bulletin_guerre(self.w), exterieur=bulletin_exterieur(self.w), refus_hier=refus_hier(self.w),
+                        famine=bulletin_famine(self.w))
         if self.interieur is None:
             from monde.pays import d06_etat as ET
             return ET.decider_regles_etat(bulletin), "regles"
