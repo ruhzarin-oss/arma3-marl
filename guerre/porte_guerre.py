@@ -108,14 +108,27 @@ G18 LES CONVOIS A L ECHELLE DE L ILE ( 27/09, ecrite avant la mesure ) : la vrai
    32,39 millions d euros. La prediction etait fausse, pour une raison reelle, mesuree motif par motif : les fermes du
    temoin, qui ne peuvent pas envoyer leurs rations, vendent plus de grain et d huile a l etranger ( vente_negoce
    +127 000 ), et l ile mieux nourrie importe plus ( import_biens +149 000 ). Les reserves ne mesuraient pas le convoi ;
-   le critere est retire. )
+   le critere est retire. Depuis le 27/09 apres-midi, la reprise pose aussi la faim realiste et le revenu minimum :
+   G18 les eteint, elle ne juge que le convoi. )
 G20 LA FAIM AU PLUS REALISTE ( 27/09, Younes : « fait au plus realiste » ; ecrite avant la mesure ) : la loi de survie
    sans nourriture ( adulte : la moitie morte a 55 jours de deficit, moins de 8 % a 40, plus de 85 % a 70 ; un enfant de
    2 ans a 30 ) ; dans une petite Stratis, des habitants dont le deficit monte de 50 a 58 jours meurent de faim en nombre
    compatible avec la loi ( a 4 ecarts-types ), aucun si le deficit ne monte pas, aucun dans un monde sans faim
    realiste ; un jour nourri fait passer 52 jours de deficit a 38 ( 51 sans faim realiste ) ; le seuil de travail est de
    15 jours ( 1,5 sans ) ; la vraie Stratis affamee de l essai 15, reprise avec convois et faim realiste, voit ses fermes
-   relivrer dans les 8 jours et moins de 10 % de faim le huitieme.
+   relivrer dans les 8 jours et moins de 10 % de faim le huitieme. ( Le premier essai a ECHOUE : ses paysans ne
+   mangeaient pas le grain de leur ferme - l autoconsommation est ajoutee au domaine 9. Le deuxieme lisait les rations
+   livrees ( livre_j ) le lendemain a 9 h 10, apres leur remise a zero de 6 h 40 : toujours 0, un bogue du test ; la
+   serie du jour du domaine 9 est lue a la place. )
+G21 LE REVENU MINIMUM GARANTI ( KEA, 27/09, ecrite avant la mesure ) : dans une petite Stratis, un versement du jour
+   donne a chaque menage eligible exactement le seuil du jour ( 216 euros par mois a l echelle 1 + 0,5 par adulte de plus
+   + 0,25 par enfant ) moins son revenu lisse hors KEA ; rien a un menage au-dessus du seuil ni a un menage aux avoirs
+   au-dessus de la limite ; la caisse de l Etat baisse de la somme versee ; rien sans revenu_minimum. Sur 60 jours ( une
+   petite Stratis a l echelle 20 ), la faim moyenne des jours 51 a 60 baisse d au moins un quart avec le
+   KEA. ( AMENDEE apres le premier essai : aucun menage n etait eligible - le plancher du KEA, 216 euros par mois, 6,3
+   drachmes par jour, est sous les salaires, les pensions ( 20 par jour ) et les indemnites du moteur, et le revenu lisse
+   sur 60 jours ne tombe sous lui que des mois apres la perte d un revenu. Le versement se juge sur soixante menages
+   rendus eligibles a la main ; l effet sur la faim sur 200 jours, les 20 derniers, au meme seuil. )
 G19 L AVIS AUX VOYAGEURS ( 27/09, ecrite avant la mesure ) : a l ouverture de la guerre ( jouet cote Arma ), le
    tourisme de Malden ( champ de bataille ) passe au risque 0,15 et celui de Stratis ( belligerante ) a 0,5 ; deux jours
    plus tard, les recettes touristiques de Malden sont sous 20 % de celles d un Malden en paix ( meme graine ).
@@ -220,7 +233,9 @@ def _convois(echelle):
     from monde import tests as T
     w = pickle.load(open(os.path.join(INSTANTANE_AIDE, "Stratis.pkl"), "rb"))
     avant = "echelle_convois" in vars(w)
-    if echelle is not None: poser(w, echelle)
+    if echelle is not None:
+        poser(w, echelle)
+        w.faim_realiste = w.revenu_minimum = False     # G18 isole le convoi ( voir G20 et G21 )
     ile = Ile("Stratis", w); f = []
     for _ in range(2):
         T.jours(w, 1); f.append(round(ile.commande("etat")["faim"], 4))
@@ -249,10 +264,24 @@ def _faim_reelle(_):
     p = w.pays; A = p.domaine("agriculture"); ile = Ile("Stratis", w); v0 = int(w.table.vivant[:w.table.n].sum())
     f, livre = [], []
     for _ in range(8):
-        T.jours(w, 1); f.append(round(ile.commande("etat")["faim"], 4)); livre.append(round(sum(ex.livre_j for ex in A.liste)))
+        T.jours(w, 1); f.append(round(ile.commande("etat")["faim"], 4)); livre.append(round(A.serie[-1][1]) if A.serie else 0)
     col = p.colonnes["habitant"]; n = w.table.n
     morts = int(((col["cause_deces"][:n] == __import__("monde.pays.d01_population", fromlist=["x"]).CAUSES.index("faim")) & (col["deces_j"][:n] >= 0)).sum())
     return {"faim": f, "livre": livre, "morts_de_faim": morts, "vivants0": v0, "conservation": bool(p.socle.conservation.tenue()[0])}
+
+
+def _longue(arg):
+    """G21 : une petite Stratis ( echelle 20 ), `jours` jours, avec ou sans le revenu minimum."""
+    kea, jours = arg
+    from monde.archipel import creer_ile, Ile
+    from monde import tests as T
+    w = creer_ile("Stratis", 1, 20.0); w.revenu_minimum = kea
+    ile = Ile("Stratis", w); f = []
+    for _ in range(jours):
+        T.jours(w, 1); f.append(ile.commande("etat")["faim"])
+    cm = w.pays.colonnes["menage"]
+    return {"faim_fin": round(sum(f[-20:]) / 20, 4), "eligibles": int((cm["rmg_lisse"] > 0.01).sum()) if "rmg_lisse" in cm else 0,
+            "prix": round(w.marches["Agia_Marina"].prix["nourriture"], 2), "conservation": bool(w.pays.socle.conservation.tenue()[0])}
 
 
 def main():
@@ -641,6 +670,36 @@ def main():
     ok["G20 recuperation 52 -> 38 ( 51 sans ) ; seuil de travail 15 ( 1,5 sans )"] = recup and recup0 and seuils
     ok["G20 la vraie Stratis reprise : les fermes relivrent en 8 jours, faim sous 10 % le huitieme ; conservation"] = (
         max(re20["livre"]) > 0 and re20["faim"][-1] <= 0.10 and re20["conservation"])
+    # G21 : un versement du jour, verifie menage par menage
+    from monde.pays import d06_etat as ET21
+    w21 = creer_ile("Stratis", 1, 4.0); p21 = w21.pays; T20.jours(w21, 3)
+    tb21 = w21.table; n21 = tb21.n; M21 = len(w21.menages); cm = p21.colonnes["menage"]; ch21 = p21.colonnes["habitant"]
+    viv = np.nonzero((tb21.vivant[:n21] == 1) & (tb21.menage[:n21] >= 0))[0]; mid = tb21.menage[viv].astype(np.int64)
+    age = (p21.jour - ch21["naissance_j"][viv].astype(np.float64)) / 365.0
+    ad = np.bincount(mid[age >= 18], minlength=M21)[:M21].astype(float); en = np.bincount(mid[age < 18], minlength=M21)[:M21].astype(float)
+    ech = np.where(ad > 0, 1 + 0.5 * np.maximum(0, ad - 1) + 0.25 * en, 0.0)
+    seuil = 216.0 * ech / 30.0 / 1.15; rev = np.maximum(0.0, cm["eco_revenu"][:M21] - cm["rmg_lisse"][:M21]); avoirs = 7200.0 * ech / 1.15
+    cibles21 = np.nonzero((cm["dissous"][:M21] == 0) & (ad > 0))[0][:60]          # soixante menages sans revenu, presque sans avoirs
+    cm["eco_revenu"][cibles21] = 0.0; cm["rmg_lisse"][cibles21] = 0.0; w21.table.menages.caisse[cibles21] = 10.0
+    rev = np.maximum(0.0, cm["eco_revenu"][:M21] - cm["rmg_lisse"][:M21])
+    caisse0 = w21.table.menages.caisse[:M21].copy(); g0 = w21.gouv.caisse
+    attendu = np.where((cm["dissous"][:M21] == 0) & (ad > 0) & (caisse0 <= avoirs), np.maximum(0.0, seuil - rev), 0.0)
+    attendu[attendu <= 0.01] = 0.0
+    ET21._revenu_minimum(p21)
+    recu = w21.table.menages.caisse[:M21] - caisse0
+    kea_exact = bool(attendu.sum() > 0) and float(np.abs(recu - attendu).max()) < 1e-6
+    riche = (rev >= seuil) & (ad > 0); aise = caisse0 > avoirs
+    rien = float(np.abs(recu[riche | aise]).max(initial=0.0)) < 1e-9
+    etat = abs((g0 - w21.gouv.caisse) - float(recu.sum())) < 1e-6
+    w21.revenu_minimum = False; c1 = w21.table.menages.caisse[:M21].copy(); ET21._revenu_minimum(p21)
+    sans21 = float(np.abs(w21.table.menages.caisse[:M21] - c1).max()) < 1e-12
+    with get_context("fork").Pool(2) as pool:
+        tout, sans_kea = pool.map(_longue, [(True, 200), (False, 200)])
+    print(f"   revenu minimum : {int((attendu > 0).sum())} menages eligibles sur {M21}, {float(recu.sum()):.0f} verses ; exact {kea_exact}, "
+          f"rien aux riches et aux aises {rien}, Etat {etat}, sans le drapeau {sans21} ; 200 jours : avec KEA {tout} ; sans KEA {sans_kea}", flush=True)
+    ok["G21 le versement exact ; rien aux riches ni aux aises ; l Etat paie ; rien sans le drapeau"] = kea_exact and rien and etat and sans21
+    ok["G21 200 jours : la faim des 20 derniers jours baisse d au moins un quart avec le KEA ; conservation"] = (
+        tout["faim_fin"] <= 0.75 * sans_kea["faim_fin"] and tout["conservation"])
     # G19
     arc19 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False)
     h19_t = iter(x / 432.0 for x in range(10 ** 8))

@@ -78,6 +78,7 @@ import numpy as np
 from .. import config as C, population as PO, gouvernement as G
 from ..socle import decision as D
 from . import d01_population as POP, d02_banques as BQ, d03_economie as EC
+from .pays import EUROS_PAR_DRACHME
 
 JOURS_AN = 365.0
 EPS = 1e-9
@@ -729,6 +730,58 @@ def _paie_prevue(p):
     return float(np.cumsum(terme[sel])[-1])
 
 
+# ================================================================== le revenu minimum garanti ( 27/09, Younes : « au plus realiste » )
+# Le KEA grec ( loi 4389/2016, OPEKA ) : 216 euros par mois pour un adulte seul, echelle 1 + 0,5 par adulte de plus +
+# 0,25 par enfant ; le complement jusqu a ce seuil, sous condition de ressources ( revenu du menage ) et d avoirs ( depots
+# sous 7 200 euros a l echelle ). Pour les mondes qui portent `revenu_minimum` ( les iles de l archipel ). Verse chaque
+# jour a 18 h, par trentiemes, dans la fenetre ou le domaine 3 lit le revenu des menages : le menage le depense comme un
+# revenu ; le test de ressources retire du revenu lisse ce qui vient du KEA lui-meme ( sinon le droit oscillerait ).
+KEA_EUROS_MOIS = 216.0
+KEA_ADULTE, KEA_ENFANT = 0.5, 0.25
+KEA_AVOIRS_EUROS = 7200.0
+AGE_ADULTE_KEA = 18.0
+
+
+def _revenu_minimum(p):
+    w = p.w
+    if not getattr(w, "revenu_minimum", False) or not p.a("economie"): return
+    tb = w.table; n = tb.n; M = len(w.menages); L = p.socle.livre; g = w.gouv
+    cm = p.colonnes["menage"]; ch = p.colonnes["habitant"]
+    cm.assurer(M)
+    viv = np.nonzero((tb.vivant[:n] == 1) & (tb.menage[:n] >= 0))[0]
+    mid = tb.menage[viv].astype(np.int64); ok = mid < M; viv, mid = viv[ok], mid[ok]
+    age = (p.jour - ch["naissance_j"][viv].astype(np.float64)) / 365.0 if "naissance_j" in ch else np.full(len(viv), 30.0)
+    adultes = np.bincount(mid[age >= AGE_ADULTE_KEA], minlength=M)[:M].astype(np.float64)
+    enfants = np.bincount(mid[age < AGE_ADULTE_KEA], minlength=M)[:M].astype(np.float64)
+    echelle = np.where(adultes > 0, 1.0 + KEA_ADULTE * np.maximum(0.0, adultes - 1.0) + KEA_ENFANT * enfants, 0.0)
+    seuil_j = KEA_EUROS_MOIS * echelle / 30.0 / EUROS_PAR_DRACHME
+    rmg = cm["rmg_lisse"]
+    revenu = np.maximum(0.0, cm["eco_revenu"][:M] - rmg[:M])
+    avoirs = KEA_AVOIRS_EUROS * echelle / EUROS_PAR_DRACHME
+    dis = cm["dissous"][:M] if "dissous" in cm else np.zeros(M, np.int8)
+    du = np.where((dis == 0) & (adultes > 0) & (tb.menages.caisse[:M] <= avoirs), np.maximum(0.0, seuil_j - revenu), 0.0)
+    verse = np.zeros(M)
+    for k in np.nonzero(du > 0.01)[0].tolist():
+        verse[k] = L.transferer(g, w.menages[k], float(du[k]), "revenu_minimum")
+    rmg[:M] = rmg[:M] * (1.0 - EC.ALPHA_REVENU) + EC.ALPHA_REVENU * verse
+    s = float(verse.sum())
+    if s > 0: p.compter("revenu_minimum", s)
+    manque = float(du.sum()) - s
+    if manque > 0.01: p.compter("revenu_minimum_impaye", manque)
+
+
+def brancher_revenu_minimum(p):
+    """Pose le revenu minimum ( une fois ) : a l installation d un monde qui le porte, ou sur une ile reprise."""
+    cm = p.colonnes["menage"]
+    if "rmg_lisse" not in cm: cm.ajouter("rmg_lisse", np.float64, 0.0); cm.assurer(len(p.w.menages))
+    p.socle.livre.declarer_motif("revenu_minimum", "prestation", "etat")
+    J = p.socle.journal
+    for t in ("revenu_minimum", "revenu_minimum_impaye"):
+        if t not in getattr(J, "types", {}): J.declarer(t, "etat", "compte")
+    if not any(f is _revenu_minimum for _, _, f in p.routines.get(18 * 60, ())):
+        p.routine(18, 0, "etat", _revenu_minimum)
+
+
 def _paie_fiscale(p):
     """18 h, juste apres la paie du moteur : ce que chaque menage a recu ( sa caisse contre la photo de 17 h 50 ) est
     reparti entre ses membres - salaires et pensions prevus sur leurs heures, le reste aux non salaries - ; le revenu
@@ -1246,6 +1299,7 @@ def _cloture(p, comptes):
         if m == "remboursement_ir": rec["ir"] -= s; continue
         if m == "salaire public": parts = {(l, "personnel"): x for l, x in _ventiler(a.poids_salaires, s, "autres").items()}
         elif m == "pension": parts = {("pensions", "transferts"): s}
+        elif m == "revenu_minimum": parts = {("pensions", "transferts"): s}
         elif m == "commande publique": parts = {(l, "achats"): x for l, x in _ventiler(livraisons, s, "interieur").items()}
         elif m == "carburant du convoi": parts = {(l, "achats"): x for l, x in _ventiler(a.convois, s, "defense").items()}
         elif m == "electricite": parts = {("industrie", "achats"): s}
@@ -1865,6 +1919,7 @@ def installer(p):
     minute = w.minutes % (24 * 60)
     p.poser(((17 * 60 + 50 - minute) % (24 * 60)) // C.MINUTES_PAR_PAS, "etat_photo_paie", 0)
     p.routine(18, 1, "etat", _paie_fiscale)
+    if getattr(p.w, "revenu_minimum", False): brancher_revenu_minimum(p)
     p.routine(10, 40, "etat", _controles_du_jour)
     p.routine(10 + 10 / 60, 40, "etat", _mois_fiscal)
     p.routine(18 + 20 / 60, 40, "etat", _recouvrer)

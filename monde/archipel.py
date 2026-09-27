@@ -39,6 +39,7 @@ def creer_ile(ile, graine, echelle, llm=False):
     w = W.Monde(graine=graine_ile(graine, ile), iles=(ile,), echelle=echelle, cerveau="llm" if llm else "regles")
     w.echelle_convois = float(echelle)
     w.faim_realiste = True
+    w.revenu_minimum = True
     P.installer(w, LIVRES)
     OR.installer(w, w.pays)
     if llm and w.cerveau is not None and hasattr(w.cerveau, "consigne"):
@@ -55,11 +56,19 @@ def _convois(w, echelle):
     """Une ile reprise d un instantane d avant le 27/09 n a pas l echelle de ses convois ( celle de l archipel ) ni la
     faim realiste ( domaine 1 ) : les lui poser."""
     if "echelle_convois" not in vars(w): w.echelle_convois = float(echelle)
+    if "revenu_minimum" not in vars(w):
+        w.revenu_minimum = True
+        if getattr(w, "pays", None) is not None and w.pays.a("etat"):
+            from .pays import d06_etat as ET
+            ET.brancher_revenu_minimum(w.pays)
     if "faim_realiste" not in vars(w):
         w.faim_realiste = True
         if getattr(w, "pays", None) is not None and w.pays.a("population"):
             from .pays import d01_population as D1
             D1.brancher_faim_realiste(w.pays)
+        if getattr(w, "pays", None) is not None and w.pays.a("agriculture"):
+            from .pays import d09_agriculture as AG
+            AG.brancher_autoconsommation(w.pays)
     return w
 
 

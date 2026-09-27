@@ -931,6 +931,7 @@ class Monde:
     # 27/09 : la faim au plus realiste ( la recuperation, le seuil de travail, la mort de faim : domaine 1 ) - les iles de
     # l archipel ; False ailleurs, les mondes de reference ne changent pas
     faim_realiste = False
+    revenu_minimum = False           # 27/09 : le revenu minimum garanti ( KEA, domaine 6 ) - les iles de l archipel
 
     def expedier(self, h):
         cap = C.CAPACITE_CAMION * self.echelle_convois
