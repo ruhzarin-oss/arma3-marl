@@ -13,11 +13,14 @@ D2 LE CONTROLE POSITIF : le meme monde, ou UN paiement repasse en direct ( le fi
 D3 RIEN NE CHANGE TANT QUE LES RESERVES SUFFISENT : la meme Stratis sans y toucher, 10 jours : aucune devise refusee.
 D4 PLUSIEURS PAIEMENTS DU MEME PAS : reserves posees a 2,5 paiements, dix paiements a la suite ( sans pas entre eux ) :
    2,5 paiements passent, 7,5 sont refuses, les reserves ne passent pas sous le plancher.
+D6 LA PRIORITE ( HMT-131 b ) : reserves posees a un mois d importations, sous la reserve prioritaire de 3 mois : une
+   demande essentielle ( combustible ) est servie, la meme demande hors de l essentiel est refusee en entier.
+D7 SON CONTROLE POSITIF : reserve prioritaire a zero mois : la demande hors de l essentiel est servie.
 D5 CE QUI N EST PAS PAYE N ARRIVE PAS : dans le monde de D1, la valeur du combustible entre aux cuves ( quantites du
    grand livre x prix d import du domaine 11 ) egale ce qui a ete paye a l etranger pour lui ( a 1e-6 pres ).
 
    python -m monde.porte_devises"""
-import sys, time
+import math, sys, time
 from monde.archipel import creer_ile
 from monde.pays import d07_exterieur as X
 
@@ -83,6 +86,23 @@ def meme_pas(n=10, part=2.5):
             "restes": sum(1 for x in payes if 0 < x <= 1e-9 * un)}
 
 
+def priorite(mois_reserve=None):
+    """D6 / D7 : une demande essentielle et la meme hors de l essentiel, reserves a un mois d importations."""
+    w = creer_ile("Stratis", 1, 20.0); p = w.pays; e = X._ext(p); g = w.gouv
+    for _ in range((X.PRIORITE_APRES_J + 3) * 144): w.pas_suivant()          # apres la semaine d installation
+    ancien = X.RESERVE_PRIORITAIRE_MOIS
+    if mois_reserve is not None: X.RESERVE_PRIORITAIRE_MOIS = mois_reserve
+    try:
+        mois = math.fsum(list(e.imports_euros)[-30:])
+        X.reserves_de_change(p); e.reserves_euros = X.PLANCHER_RESERVES + 1.0 * mois
+        un = 0.01 * mois / e.taux                                   # un centieme de mois d importations, en monnaie de l ile
+        hors = X.payer_en_devises(p, g, un, "import_combustible", essentiel=False)
+        ess = X.payer_en_devises(p, g, un, "import_combustible", essentiel=True)
+        return {"mois_importations_euros": round(mois), "hors_essentiel_paye": round(hors / un, 6), "essentiel_paye": round(ess / un, 6)}
+    finally:
+        X.RESERVE_PRIORITAIRE_MOIS = ancien
+
+
 def main():
     t0 = time.time(); ok = {}
     liv = {"recu": [], "paye": 0.0}
@@ -100,6 +120,11 @@ def main():
     print(f"   D5 combustible : recu {valeur:,.2f} , paye {liv['paye']:,.2f} ( {len(liv['recu'])} livraisons )", flush=True)
     ok["D5 le combustible recu vaut ce qui a ete paye ( rien n arrive sans devises )"] = (
         len(liv["recu"]) > 0 and abs(valeur - liv["paye"]) <= 1e-6 * max(1.0, liv["paye"]))
+    if hasattr(X, "RESERVE_PRIORITAIRE_MOIS"):
+        d6 = priorite(); print("   D6 priorite :", d6, flush=True)
+        ok["D6 sous la reserve prioritaire : l essentiel servi, le reste refuse"] = d6["essentiel_paye"] == 1.0 and d6["hors_essentiel_paye"] == 0.0
+        d7 = priorite(0.0); print("   D7 controle positif ( reserve prioritaire nulle ) :", d7, flush=True)
+        ok["D7 controle positif : sans reserve prioritaire, le reste est servi"] = d7["hors_essentiel_paye"] == 1.0
     for k, v in ok.items(): print(("PASSE  " if v else "ECHOUE ") + k)
     print(f"PORTE DES DEVISES : {'FRANCHIE' if all(ok.values()) else 'REFUSEE'} ( {time.time() - t0:.0f} s )")
     return 0 if all(ok.values()) else 1
