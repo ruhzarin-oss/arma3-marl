@@ -20,7 +20,7 @@ du code a la demande, jamais adopte sur parole, jamais bloquant ).
 import argparse, json, math, os, sys, time
 import numpy as np
 from monde import agent_codeur as AC, config as C
-from monde.archipel import Archipel
+from monde.archipel import Archipel, charger
 from monde.pays import d07_exterieur as EXT, d06_etat as ET
 from . import moteur as GM, zones as Z
 
@@ -240,7 +240,7 @@ def evaluer_reel(source, instantane, ile, jours=JOURS_REEL):
     import pickle
     from monde.archipel import Ile
     from monde import tests as T
-    w = pickle.load(open(os.path.join(instantane, f"{ile}.pkl"), "rb"))
+    w = charger(os.path.join(instantane, f"{ile}.pkl"))
     w.cerveau = GM.CerveauDeGuerre(None if source == AC.REGLES else AC.CerveauCode(source), w)
     v0 = int(w.table.vivant[:w.table.n].sum())
     serie, refus, replis = [], 0, 0
@@ -276,6 +276,9 @@ def deux(sa, sb, instantane, ile, jours):
         return pool.map(_reel, [(sa, instantane, ile, jours), (sb, instantane, ile, jours)])
 
 
+MOINS_DE_FAIM = 0.005     # somme des parts de menages affames sur l examen : un demi-point de pourcentage de moins au moins
+
+
 def conseil_reel(ile, instantane, versions=6, dossier=None, penser=True):
     import pickle
     d = dossier or os.path.join("/mnt/data/hmt/guerre/conseil_reel", ile); os.makedirs(d, exist_ok=True)
@@ -285,7 +288,7 @@ def conseil_reel(ile, instantane, versions=6, dossier=None, penser=True):
     src0 = actuel(ile)
     t0 = time.time()
     en_place = evaluer_reel(src0, instantane, ile)
-    w = pickle.load(open(os.path.join(instantane, f"{ile}.pkl"), "rb"))
+    w = charger(os.path.join(instantane, f"{ile}.pkl"))
     exemple = dict(ET.sitrep(w.pays), guerre=GM.bulletin_guerre(w)); faim0 = GM.faim(w); jour0 = w.jour; del w
     print(f"{ile} ( etat reel, jour {jour0}, faim {faim0:.1%} ) : gouvernement en place score {en_place['score']} faim {en_place['faim_par_jour']} "
           f"( {time.time() - t0:.0f} s )", flush=True)
@@ -327,7 +330,10 @@ Le gouvernement en place ( a battre ) :
               f"{mes.get('erreur', '')[:100]} ( {v['secondes']} s )", flush=True)
         if not bat: continue
         ex_code, ex_place = deux(source, src0, instantane, ile, JOURS_EXAMEN_REEL)
-        passe = bool(ex_code.get("conservation")) and ex_code["score"] >= ex_place["score"] + marge
+        # 27/09 : et la faim doit BAISSER a l examen - Stratis avait adopte une version a faim identique au dix-millieme,
+        # gagnante d un point par des refus en moins ; au moins un demi-point de pourcentage de faim en moins sur 8 jours
+        moins_de_faim = sum(ex_place.get("faim_par_jour") or [0]) - sum(ex_code.get("faim_par_jour") or [0]) >= MOINS_DE_FAIM
+        passe = bool(ex_code.get("conservation")) and ex_code["score"] >= ex_place["score"] + marge and moins_de_faim
         noter({"examen": n, "code": ex_code, "en_place": ex_place, "passe": passe})
         print(f"{ile} v{n} : EXAMEN ( {JOURS_EXAMEN_REEL} jours ) {'PASSE' if passe else 'RATE'} ( code {ex_code['score']} faim {ex_code.get('faim_par_jour')}, "
               f"en place {ex_place['score']} faim {ex_place.get('faim_par_jour')} )", flush=True)
