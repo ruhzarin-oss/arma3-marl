@@ -182,7 +182,10 @@ class HorlogeDeGuerre:
 
 
 def texte_du_tour(l):
-    iles = " | ".join(f"{i} jour {r['jour']} +{r['jours_clos']} j faim {r.get('faim', 0):.1%} {str(r.get('gouvernement', ''))[:17]}, {r['points']:.0f} pts ( f {r['f']:.3f} ) front "
+    iles = " | ".join(f"{i} jour {r['jour']} +{r['jours_clos']} j faim {r.get('faim', 0):.1%} vivants {r.get('vivants', '?')}"
+                      + (f" MORTS DE FAIM {r['morts_de_faim']}" if r.get('morts_de_faim') else "")
+                      + (f" reserves {r['reserves_euros'] / 1e6:.1f} M€" if 'reserves_euros' in r else "")
+                      + f" {str(r.get('gouvernement', ''))[:17]}, {r['points']:.0f} pts ( f {r['f']:.3f} ) front "
                       f"{r['front']['reserve']}/{r['front']['front']}/{r['front']['mort']}" for i, r in l["iles"].items())
     z = l["arma"]["zones_par_camp"]
     em = " ".join(f"{c} {'ASSAUT' if e.get('assaut') else 'ralliement'} {e.get('reunis')}/{e.get('defenseurs')} garnison {e.get('garnison')}"
