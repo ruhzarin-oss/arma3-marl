@@ -125,6 +125,10 @@ JOURS_ETALONNAGE = 7        # R0 est defini sur les contacts REELS de ce pays : 
 ETALONNAGE_MAX = 200000     # au-dela, l etalonnage suit un echantillon d habitants ( memoire : 56 octets chacun )
 TAILLE_EQUIPE = 20
 TAILLE_CLASSE = 22          # classes grecques : ~20 eleves ( OCDE, Regards sur l education ), a calibrer
+TAILLE_CELLULE = 4          # detenus par cellule : les prisons grecques surpeuplees en mettent 3 a 6 ( ordre de
+                            # grandeur des rapports du CPT sur la Grece ), a calibrer
+HEURES_CELLULE = (20, 8)    # enfermes en cellule de 20 h a 8 h ; le reste du jour, toute la prison ( a calibrer )
+HEURES_GARDE = (8, 16)      # un gardien par jour de 8 h a 16 h dans sa prison ( les roulements reels couvrent 24 h : a calibrer )
 DECALAGE = 40
 BIT_LIEU = 1 << 39
 ACT_CADRE = {AG.MAISON: MAISON_C, AG.TRAVAIL: TRAVAIL_C, AG.ECOLE: ECOLE_C, AG.COURSES: COMMUN_C,
@@ -710,7 +714,7 @@ class Pharmacie:
 class IndexDuJour:
     """Ce que le domaine lit des habitants a 6 h, une fois par jour : groupes de contact, lieux, ages, faim."""
     __slots__ = ("n", "jour", "men", "equipe", "classe", "soignant", "enfant", "dom", "hop", "region", "age", "sexe",
-                 "faim", "vivant", "role", "enceinte", "pauvre")
+                 "faim", "vivant", "role", "enceinte", "pauvre", "detenu", "cellule")
 
 
 class Medecine:
@@ -1264,6 +1268,17 @@ def _cles_du_moment(p, med):
     for a, c in ((AG.COURSES, COMMUN_C), (AG.LOISIR, LOISIR_C), (AG.CULTE, CULTE_C), (AG.HOPITAL, HOPITAL_C)):
         m = (act == a) & (lieu >= 0)
         cle[m] = (c << DECALAGE) | lieu[m]
+    det = getattr(ix, "detenu", None)
+    h = int(round(w.heure)) % 24
+    if det is not None and det.any():          # la cellule la nuit, toute la prison le jour ( cles a part )
+        if h >= HEURES_CELLULE[0] or h < HEURES_CELLULE[1]: cle[det] = (MAISON_C << DECALAGE) | BIT_LIEU | ix.cellule[det]
+        else: cle[det] = (COMMUN_C << DECALAGE) | BIT_LIEU | ix.dom[det]
+    J = p.domaines.get("justice")
+    if J is not None and HEURES_GARDE[0] <= h < HEURES_GARDE[1]:
+        # les gardiens de service sont dans la prison : c est par eux que les maladies y entrent et en sortent
+        for pr in getattr(J, "prisons", ()):
+            g = np.asarray(pr.gardiens, np.int64); g = g[g < n]
+            cle[g] = (COMMUN_C << DECALAGE) | BIT_LIEU | int(pr.lieu_n)
     cle[p.col("habitant", "deces_j")[:n] >= 0] = -1
     return cle
 
@@ -1564,14 +1579,21 @@ def _index_du_jour(p, med):
     ro = tb.role[:n].astype(np.int64)
     role = ROLE_NOM[ro].tolist()
     vivant[:] = (tb.vivant[:n] == 1) & (tb.statut[:n] != MPOP.ABSENT)     # archipel : l absent est ailleurs
+    # les detenus ( domaine 21 ) sont ABSENTS pour le moteur ( ni repas ni travail chez eux ), mais leur corps est
+    # ICI, en prison : ils tombent malades et se contaminent entre eux ( la cellule la nuit, la prison le jour ),
+    # jamais avec leur menage ( 27/09 : avant, un detenu n attrapait rien )
+    detenu = np.zeros(n, bool)
+    if "ju_detenu" in p.colonnes["habitant"]:
+        detenu = (p.col("habitant", "ju_detenu")[:n] > 0) & (tb.vivant[:n] == 1)
+        vivant |= detenu
     v = np.nonzero(vivant)[0]
-    men[v] = tb.menage[v]
+    men[v] = tb.menage[v]; men[detenu] = -1
     d_ = tb.domicile[v].astype(np.int64); a_dom = d_ >= 0
     dv, dd = v[a_dom], d_[a_dom]
     marche = w._marche_du_lieu[dd]
     dom[dv] = dd; hop[dv] = marche; region[dv] = _region_par_numero(p, med)[marche]
     faim[v] = tb.faim[v]
-    soignant[v] = EST_SOIGNANT[ro[v]]
+    soignant[v] = EST_SOIGNANT[ro[v]]; soignant[detenu] = False     # un medecin detenu ne soigne plus
     enfant[v] = ro[v] == MPOP.CODE_ROLE["enfant"]
     trav = tb.travail[:n].astype(np.int64)
     equipe = np.full(n, -1, np.int64); classe = np.full(n, -1, np.int64)
@@ -1579,7 +1601,11 @@ def _index_du_jour(p, med):
     _numeroter(equipe, sel, (sel, RANG_DU_ROLE[ro[sel]], trav[sel]), 2, TAILLE_EQUIPE)
     sel = np.nonzero(vivant & enfant & (tb.horaire[:n] == MPOP.CODE_HORAIRE["ecole"]) & (trav >= 0))[0]
     _numeroter(classe, sel, (sel, age[sel], trav[sel]), 1, TAILLE_CLASSE)
+    cellule = np.full(n, -1, np.int64)
+    sel = np.nonzero(detenu)[0]
+    _numeroter(cellule, sel, (sel, dom[sel]), 1, TAILLE_CELLULE)
     ix.men, ix.dom, ix.hop, ix.region, ix.faim, ix.vivant = men, dom, hop, region, faim, vivant
+    ix.detenu, ix.cellule = detenu, cellule
     ix.soignant, ix.enfant, ix.equipe, ix.classe, ix.age = soignant, enfant, equipe, classe, age
     ix.sexe = p.col("habitant", "sexe")[:n].copy()
     ix.enceinte = p.col("habitant", "enceinte")[:n] == 1
@@ -1588,7 +1614,7 @@ def _index_du_jour(p, med):
     # ( en colonnes : les membres VIVANTS de la liste de chaque menage, sa caisse, le prix de son marche )
     mt = tb.menages; M = mt.n
     inscrit = MPOP.menages_inscrits(tb, n)
-    membres = np.nonzero(vivant & (inscrit >= 0))[0]
+    membres = np.nonzero(vivant & ~detenu & (inscrit >= 0))[0]     # la prison nourrit ses detenus
     nb = np.bincount(inscrit[membres], minlength=M)
     prix = np.full(len(w.carte.par_n), C.PRIX_MONDE["nourriture"])
     for mid, m in w.marches.items(): prix[w.carte.lieux[mid].n] = m.prix["nourriture"]

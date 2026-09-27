@@ -66,12 +66,19 @@ def test_calendrier():
     cale = abs(lj - C.LEVER) <= 0.25 and abs(cj - C.COUCHER) <= 0.25
     lo, co = cal.soleil("Altis", dt.date(2035, 10, 13))            # le jour 120 du monde
     le, ce = cal.soleil("Altis", dt.date(2035, 3, 20))
-    try: cal.soleil("Tanoa", dt.date(2035, 6, 15)); refuse = False
+    try: cal.soleil("Atlantide", dt.date(2035, 6, 15)); refuse = False
     except T.LatitudeInconnue: refuse = True
-    ok = connues and feries and depart and cale and co <= 19.0 and 11.9 <= ce - le <= 12.4 and refuse
+    # 27/09 : les six iles ont leur soleil ; Livonia ( 54,7 N ) a le jour le plus long a la mi-juin et le plus court a la
+    # mi-octobre, Tanoa ( 17,8 S ) est en hiver austral le 15 juin ( moins de 12 h de jour )
+    j_e = cal.soleil("Enoch", dt.date(2035, 6, 15)); j_o = cal.soleil("Enoch", dt.date(2035, 10, 13))
+    j_t = cal.soleil("Tanoa", dt.date(2035, 6, 15))
+    iles = j_e[1] - j_e[0] > cj - lj + 2 and j_o[1] - j_o[0] < co - lo and j_t[1] - j_t[0] < 12.0 \
+        and all(cal.soleil(i, dt.date(2035, 6, 15)) for i in ("Malden", "Sara"))
+    ok = connues and feries and depart and cale and co <= 19.0 and 11.9 <= ce - le <= 12.4 and refuse and iles
     return ok, (f"Paques 2024-26 justes : {connues} ; 15/06 : lever {lj:.2f} h coucher {cj:.2f} h ( moteur {C.LEVER} / "
                 f"{C.COUCHER} ) ; 13/10 : lever {lo:.2f} h coucher {co:.2f} h, soit {(lo - C.LEVER) + (C.COUCHER - co):.1f} h "
-                f"de jour en trop dans le moteur ; equinoxe {ce - le:.2f} h ; ile sans latitude refusee : {refuse}")
+                f"de jour en trop dans le moteur ; equinoxe {ce - le:.2f} h ; ile sans latitude refusee : {refuse} ; "
+                f"Livonia 15/06 {j_e[1] - j_e[0]:.1f} h de jour, 13/10 {j_o[1] - j_o[0]:.1f} h ; Tanoa 15/06 {j_t[1] - j_t[0]:.1f} h")
 
 
 # ================================================================== registre et conservation sur le moteur

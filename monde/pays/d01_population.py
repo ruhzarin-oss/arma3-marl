@@ -88,6 +88,26 @@ LIBRES = ("paysan", "mineur", "ouvrier", "convoyeur", "marchand", "petrolier")  
 
 CAUSES = ("inconnue", "naturelle", "maladie", "maternelle", "accident", "combat", "violence", "faim")
 
+# La faim qui tue ( 27/09, copie du reel ). Habitant.faim = deficit du corps en rations, apres adaptation
+# ( config.FAIM_ADAPTATION = 0,4 : le jeune total use 0,6 ration par jour ). Un adulte meurt de faim entre 45 et 73 jours
+# de jeune total ( grevistes irlandais de 1981 : 46 a 73 jours ; medecine : la mort vers 40 % du poids perdu ) ; les
+# moins de 5 ans et les plus de 70 ans tiennent ~60 % de ce temps, les 5-14 ans et les 65-69 ans ~80 % ( les famines
+# emportent d abord ces ages ). Risque du jour = PENTE x ( ( faim - F0 ) / ( F1 - F0 ) )^2 au-dela de F0, plafonne :
+# a 0,6 par jour, 10 % des adultes sont morts au jour 54, la moitie au jour 63, 90 % au jour 73 ; a demi-ration ( 0,1 par
+# jour ), F0 adulte n est atteint qu apres 260 jours - les 24 semaines de Minnesota se survivent, comme dans le reel.
+SEUILS_FAIM = ((5, (16.0, 28.0)), (15, (21.0, 37.0)), (65, (26.0, 46.0)), (70, (21.0, 37.0)), (AGE_MAX + 1, (16.0, 28.0)))
+PENTE_FAIM, PLAFOND_FAIM = 0.3, 0.5
+
+
+def risque_faim(faim, age):
+    """Le risque de mourir de faim aujourd hui, par deficit accumule ( Habitant.faim ) et par age. Fonction pure."""
+    faim = np.asarray(faim, float); age = np.asarray(age)
+    f0 = np.empty(faim.shape); f1 = np.empty(faim.shape); borne = 0
+    for lim, (a, b) in SEUILS_FAIM:
+        m = (age >= borne) & (age < lim); f0[m] = a; f1[m] = b; borne = lim
+    x = np.maximum(0.0, (faim - f0) / (f1 - f0))
+    return np.minimum(PLAFOND_FAIM, PENTE_FAIM * x * x)
+
 
 class TableDeMortalite:
     """q[sexe, age] : probabilite de mourir dans l annee, de 0 a 110 ans ( 1 a 110 )."""
@@ -446,9 +466,9 @@ def _placer(p, d, x, rng):
 
 def _reprendre_les_morts(p):
     """Chaque soir : les morts que le moteur E1 a causees sans passer par `deceder` ( l epidemie ) sont traitees."""
-    dj = p.col("habitant", "deces_j")
-    for h in p.w.habitants:
-        if not h.vivant and dj[h.id] < 0: _apres_deces(p, h, "maladie")
+    dj = p.col("habitant", "deces_j"); tb = p.w.table; n = tb.n
+    # EN COLONNES ( 27/09 ) : les seuls morts non traites, dans l ordre des habitants ( une passe sur 100 000 vues coutait 5 s )
+    for i in np.nonzero((tb.vivant[:n] != 1) & (dj[:n] < 0))[0].tolist(): _apres_deces(p, p.w.habitants[i], "maladie")
 
 
 # ================================================================== unions et divorces
@@ -597,6 +617,14 @@ def _demographie(p):
     # 1. les morts naturelles
     u = p.du_jour("population_mort").random(len(ids))
     for i in ids[tirer_deces(d.mortalite, sexe, age, u)].tolist(): deceder(p, H[i], "naturelle")
+    # 1 bis. la faim qui tue ( 27/09, SEUILS_FAIM ) : un flux a part, tire pour les seuls habitants dont le deficit
+    # depasse le seuil de leur age ; les autres tirages du jour ne bougent pas
+    vifs = ids[tb.vivant[ids] == 1]
+    r = risque_faim(tb.faim[vifs], _age_ans(p, vifs))
+    k = np.nonzero(r > 0.0)[0]
+    if k.size:
+        u = p.du_jour("population_faim").random(k.size)
+        for i in vifs[k[u < r[k]]].tolist(): deceder(p, H[i], "faim")
     # 2. vieillir : l age du moteur suit la date de naissance ; l ecole a 6 ans, le metier a 16, la retraite a 65
     nj = col["naissance_j"]
     ids = ids[tb.vivant[ids] == 1]
@@ -644,66 +672,6 @@ def demenager(p, mg, dest):
     p.domaine("population").migrations += 1
     p.noter("migration_interne", menage=mg.id, de=de.id, vers=dest.id, cout=round(cout, 2))
     return cout
-
-
-# ================================================================== la mort de faim ( 27/09, Younes : « au plus realiste » )
-# Habitant.faim : les rations manquees, en jours sans manger ( une demi-ration manquee compte une demi-journee ), que
-# chaque jour nourri efface en partie ( config.RECUPERATION_FAIM ). La survie sans nourriture, eau disponible : 45 a 75
-# jours pour un adulte en bonne sante ( greves de la faim de 1981 : morts entre 46 et 73 jours ) ; les jeunes enfants et
-# les personnes agees meurent les premiers ( famines du XXe siecle, Bengale 1943, Irlande 1847 ). Deficit mortel
-# log-normal : mediane par age, ecart log 0,2 ( adulte : 5,6 % des morts a 40 jours, la moitie a 55, 89 % a 70 ; a
-# calibrer ). On ne meurt de faim que les soirs ou le deficit monte encore : qui recoit a manger ne meurt plus de faim.
-FAIM_MORTELLE = ((5.0, 30.0), (15.0, 40.0), (70.0, 55.0), (1e9, 35.0))   # ( age limite, deficit median mortel en jours )
-SIGMA_FAIM_MORTELLE = 0.2
-FAIM_SANS_RISQUE = 10.0          # sous 10 jours de deficit, personne ne meurt de faim ( la loi y vaut moins de 1e-9 )
-
-
-def _phi(x):
-    return 0.5 * (1.0 + np.vectorize(math.erf)(np.asarray(x, dtype=np.float64) / math.sqrt(2.0)))
-
-
-def mediane_faim_mortelle(ages):
-    ages = np.asarray(ages, dtype=np.float64)
-    out = np.full(ages.shape, FAIM_MORTELLE[-1][1])
-    for lim, med in reversed(FAIM_MORTELLE): out[ages < lim] = med
-    return out
-
-
-def part_morte_de_faim(deficit, ages):
-    """La part d une population au deficit `deficit` ( jours ) qui en est morte, selon l age."""
-    d = np.maximum(np.asarray(deficit, dtype=np.float64), 1e-9)
-    return _phi(np.log(d / mediane_faim_mortelle(ages)) / SIGMA_FAIM_MORTELLE)
-
-
-def _faim_mortelle(p):
-    """20 h 10, apres le repas : ceux dont le deficit a monte ce soir risquent d en mourir, au risque instantane de la loi
-    ( ( F( ce soir ) - F( hier ) ) / ( 1 - F( hier ) ) ). Les absents ( au front, en mer ) ne mangent pas a la maison :
-    leur faim ne bouge pas."""
-    if not getattr(p.w, "faim_realiste", False): return
-    w = p.w; tb = w.table; n = tb.n; col = p.colonnes["habitant"]; col.assurer(n)
-    fh = col["faim_hier"]; f = tb.faim[:n].astype(np.float64)
-    ids = np.nonzero((tb.vivant[:n] == 1) & (f > fh[:n] + 1e-9) & (f > FAIM_SANS_RISQUE))[0]
-    if len(ids):
-        ages = (p.jour - col["naissance_j"][ids].astype(np.float64)) / JOURS_AN
-        f1 = part_morte_de_faim(f[ids], ages); f0 = part_morte_de_faim(fh[ids], ages)
-        risque = (f1 - f0) / np.maximum(1.0 - f0, 1e-9)
-        u = p.du_jour("population_faim").random(len(ids))
-        for i in ids[u < risque].tolist():
-            deceder(p, P.Habitant(tb, int(i)), "faim"); p.compter("mort_de_faim")
-    fh[:n] = f.astype(np.float32)
-
-
-def brancher_faim_realiste(p):
-    """Pose la mort de faim sur un pays dont le monde porte faim_realiste ( a l installation, ou sur une ile reprise d un
-    instantane d avant ) : sa colonne, son compte, sa routine - une fois."""
-    ch = p.colonnes["habitant"]
-    if "faim_hier" not in ch:
-        ch.ajouter("faim_hier", np.float32, 0.0); ch.assurer(len(p.w.habitants))
-        ch["faim_hier"][:p.w.table.n] = p.w.table.faim[:p.w.table.n]
-    J = p.socle.journal
-    if "mort_de_faim" not in getattr(J, "types", {}): J.declarer("mort_de_faim", "population", "compte")
-    if not any(f is _faim_mortelle for _, _, f in p.routines.get(20 * 60 + 10, ())):
-        p.routine(20 + 10 / 60, 20, "population", _faim_mortelle)
 
 
 def _soir(p):
@@ -853,7 +821,6 @@ def installer(p):
     w.demographie = RemplaceDemographie(p)
     p.routine(20 + 10 / 60, 10, "population", _soir)
     p.routine(23 + 50 / 60, 90, "population", _reprendre_les_morts)
-    if getattr(w, "faim_realiste", False): brancher_faim_realiste(p)
     return d
 
 

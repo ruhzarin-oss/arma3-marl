@@ -1,0 +1,725 @@
+{
+ "version": 1,
+ "ecrit_le": "2026-09-27",
+ "pays": "Grece",
+ "principe": "Valeurs reelles lues dans leur source (API Eurostat, OCDE sdmx, OTAN, ELSTAT, Banque de Grece), annee la plus recente (2024 sauf mention). Les bandes sont fixees sur la dispersion du reel (annees voisines, definitions concurrentes) AVANT toute mesure du monde par l instrument. Une valeur non confirmee porte a_verifier : elle est mesuree et affichee, mais ne compte pas dans le score. entree_du_modele : un parametre d un domaine est deja cale sur cette valeur ; la mesure verifie seulement que le monde la garde.",
+ "indicateurs": [
+  {
+   "id": "part_0_14",
+   "theme": "demographie",
+   "nom": "Part des 0-14 ans",
+   "definition": "Population de 0 a 14 ans au 1er janvier / population totale au 1er janvier. Monde : vivants de moins de 15 ans / vivants, a la fin de la fenetre.",
+   "unite": "%",
+   "valeur": 13.1,
+   "annee": 2024,
+   "source": "Eurostat demo_pjanind (PC_Y0_14)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_pjanind?geo=EL&indic_de=PC_Y0_14",
+   "bande": [
+    11.8,
+    14.4
+   ],
+   "justification": "+-10 % relatif : la serie va de 13,7 (2021) a 12,8 (2025), soit -0,2 point par an ; la bande garde ces annees et separe la Grece des pays jeunes (Irlande ~20 %).",
+   "a_verifier": false
+  },
+  {
+   "id": "part_15_64",
+   "theme": "demographie",
+   "nom": "Part des 15-64 ans",
+   "definition": "Population de 15 a 64 ans / population totale au 1er janvier (100 - PC_Y0_14 - PC_Y65_MAX, pas de code direct dans demo_pjanind).",
+   "unite": "%",
+   "valeur": 63.5,
+   "annee": 2024,
+   "source": "Eurostat demo_pjanind (calcul : 100 - 13,1 - 23,4)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_pjanind?geo=EL&time=2024",
+   "bande": [
+    60.5,
+    66.5
+   ],
+   "justification": "+-3 points : l UE va de ~61 a ~68 % ; la Grece est a 63,5 en 2024 et 2025.",
+   "a_verifier": false
+  },
+  {
+   "id": "part_65_plus",
+   "theme": "demographie",
+   "nom": "Part des 65 ans et plus",
+   "definition": "Population de 65 ans et plus / population totale au 1er janvier.",
+   "unite": "%",
+   "valeur": 23.4,
+   "annee": 2024,
+   "source": "Eurostat demo_pjanind (PC_Y65_MAX)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_pjanind?geo=EL&indic_de=PC_Y65_MAX",
+   "bande": [
+    21.1,
+    25.7
+   ],
+   "justification": "+-10 % relatif : 22,5 (2021) a 23,7 (2025), +0,3 point par an.",
+   "a_verifier": false
+  },
+  {
+   "id": "part_moins_5",
+   "theme": "demographie",
+   "nom": "Part des moins de 5 ans",
+   "definition": "Population de 0 a 4 ans / population totale au 1er janvier (395 215 / 10 375 764).",
+   "unite": "%",
+   "valeur": 3.8,
+   "annee": 2024,
+   "source": "Eurostat demo_pjanind (PC_Y0_4) ; demo_pjangroup (Y_LT5)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_pjangroup?geo=EL&age=Y_LT5&age=TOTAL&sex=T",
+   "bande": [
+    3.2,
+    4.4
+   ],
+   "justification": "+-15 % relatif : 3,88 (2023) a 3,73 (2025). Controle positif : le monde par defaut n a aucun enfant de moins de 6 ans.",
+   "a_verifier": false
+  },
+  {
+   "id": "age_median",
+   "theme": "demographie",
+   "nom": "Age median",
+   "definition": "Age median de la population au 1er janvier.",
+   "unite": "ans",
+   "valeur": 46.9,
+   "annee": 2024,
+   "source": "Eurostat demo_pjanind (MEDAGEPOP)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_pjanind?geo=EL&indic_de=MEDAGEPOP",
+   "bande": [
+    44.5,
+    49.3
+   ],
+   "justification": "+-5 % : 45,8 (2021) a 47,2 (2025) ; l UE va de ~39 a ~48.",
+   "a_verifier": false
+  },
+  {
+   "id": "rapport_masculinite",
+   "theme": "demographie",
+   "nom": "Rapport de masculinite",
+   "definition": "Hommes pour 100 femmes, population totale au 1er janvier (5 083 582 / 5 292 182).",
+   "unite": "hommes pour 100 femmes",
+   "valeur": 96.06,
+   "annee": 2024,
+   "source": "Eurostat demo_pjan (sex=M, F ; age=TOTAL)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_pjan?geo=EL&age=TOTAL&sex=M&sex=F",
+   "bande": [
+    93.0,
+    99.0
+   ],
+   "justification": "+-3 : 95,7 (2023) a 96,5 (2025) ; l UE va de ~92 (Baltes) a ~102 (Malte).",
+   "a_verifier": false
+  },
+  {
+   "id": "taille_menages",
+   "theme": "demographie",
+   "nom": "Taille moyenne des menages",
+   "definition": "Personnes des menages prives / nombre de menages (EU-SILC). Monde : vivants inscrits dans un menage / menages ayant au moins un vivant.",
+   "unite": "personnes",
+   "valeur": 2.4,
+   "annee": 2024,
+   "source": "Eurostat ilc_lvph01",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/ilc_lvph01?geo=EL",
+   "bande": [
+    2.2,
+    2.6
+   ],
+   "justification": "+-0,2 : la serie passe de 2,6 (2019-2022) a 2,4 (2023-2025), rupture probable de ponderation ; l UE va de 2,0 (Nord) a 3,0.",
+   "a_verifier": false
+  },
+  {
+   "id": "natalite",
+   "theme": "demographie",
+   "nom": "Taux brut de natalite",
+   "definition": "Naissances vivantes de l annee / population moyenne, pour 1000. Monde : naissances de la fenetre, annualisees sur la population moyenne de la fenetre.",
+   "unite": "pour 1000 par an",
+   "valeur": 6.6,
+   "annee": 2024,
+   "source": "Eurostat demo_gind (GBIRTHRT)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_gind?geo=EL&indic_de=GBIRTHRT",
+   "bande": [
+    5.6,
+    7.6
+   ],
+   "justification": "+-15 % : 6,9 (2023) a 6,3 (2025), en baisse ; 8,1 en 2021. A 10 000 habitants et 30 jours, le flux compte ~5 evenements : la surete le dit.",
+   "a_verifier": false
+  },
+  {
+   "id": "mortalite",
+   "theme": "demographie",
+   "nom": "Taux brut de mortalite",
+   "definition": "Deces de l annee / population moyenne, pour 1000. Monde : deces de toutes causes de la fenetre, annualises.",
+   "unite": "pour 1000 par an",
+   "valeur": 12.1,
+   "annee": 2024,
+   "source": "Eurostat demo_gind (GDEATHRT)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_gind?geo=EL&indic_de=GDEATHRT",
+   "bande": [
+    10.3,
+    13.9
+   ],
+   "justification": "+-15 % : 13,7 (2021, Covid) a 11,7 (2025).",
+   "a_verifier": false
+  },
+  {
+   "id": "taux_emploi_20_64",
+   "theme": "travail",
+   "nom": "Taux d emploi des 20-64 ans",
+   "definition": "Personnes de 20-64 ans en emploi / population de 20-64 ans (enquete sur les forces de travail). Monde : statut salarie, fonctionnaire ou independant du domaine travail.",
+   "unite": "%",
+   "valeur": 69.3,
+   "annee": 2024,
+   "source": "Eurostat lfsi_emp_a (EMP_LFS, Y20-64, PC_POP)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsi_emp_a?geo=EL&indic_em=EMP_LFS&age=Y20-64&sex=T&unit=PC_POP",
+   "bande": [
+    65.3,
+    73.3
+   ],
+   "justification": "+-4 points : 66,3 (2022) a 71,0 (2025), +1 a 2 points par an.",
+   "a_verifier": false
+  },
+  {
+   "id": "chomage_15_74",
+   "theme": "travail",
+   "nom": "Taux de chomage des 15-74 ans",
+   "definition": "Chomeurs de 15-74 ans / population active de 15-74 ans (BIT). Monde : statut CHOMEUR / (en emploi + CHOMEUR).",
+   "unite": "% des actifs",
+   "valeur": 10.1,
+   "annee": 2024,
+   "source": "Eurostat une_rt_a (Y15-74, PC_ACT)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/une_rt_a?geo=EL&age=Y15-74&sex=T&unit=PC_ACT",
+   "bande": [
+    7.6,
+    12.6
+   ],
+   "justification": "+-2,5 points : 12,5 (2022) a 8,9 (2025), -1 point par an.",
+   "a_verifier": false
+  },
+  {
+   "id": "part_emploi_public",
+   "theme": "travail",
+   "nom": "Part de l emploi public",
+   "definition": "Emploi des administrations publiques (S13) / emploi total. Monde : en emploi dans un metier public du moteur (gouvernement, armee, police, medecins, infirmiers, enseignants) / en emploi.",
+   "unite": "% de l emploi",
+   "valeur": 15.5,
+   "annee": 2023,
+   "source": "OCDE Government at a Glance 2025 (DF_GOV_EMPPS_REP_2025, EMPG, PT_EMP)",
+   "adresse": "https://sdmx.oecd.org/public/rest/data/OECD.GOV.GIP,DSD_GOV@DF_GOV_EMPPS_REP_2025,1.0/A.GRC.EMPG.PT_EMP?format=csvfile",
+   "bande": [
+    12.0,
+    19.0
+   ],
+   "justification": "+-3,5 points : 16,0 (2021), 18,35 (pic de 2011) ; la definition (S13 ou secteur public entier, 22 % a l OIT) fait varier de 5 a 7 points.",
+   "a_verifier": false
+  },
+  {
+   "id": "part_militaires",
+   "theme": "travail",
+   "nom": "Part des militaires dans la population",
+   "definition": "Personnel militaire (OTAN, tableau 7 : 110 800 en 2024, estimation) / population au 1er janvier. Monde : effectifs de l armee (domaine 25, ar_rang), sinon soldats et officiers du moteur.",
+   "unite": "% de la population",
+   "valeur": 1.07,
+   "annee": 2024,
+   "source": "OTAN, Defence Expenditure of NATO Countries 2014-2025, tableau 7 ; Eurostat demo_pjan",
+   "adresse": "https://www.nato.int/content/dam/nato/webready/documents/finance/def-exp-2025-en.pdf",
+   "bande": [
+    0.8,
+    1.45
+   ],
+   "justification": "La definition fait 30 % d ecart : OTAN 1,07 % ; Banque mondiale MS.MIL.TOTL.P1 147 000 (2020, paramilitaires compris) = 1,4 % ; la bande couvre les deux. Controle positif : le moteur nait a 12 %.",
+   "a_verifier": false
+  },
+  {
+   "id": "kaitz",
+   "theme": "travail",
+   "nom": "Salaire minimum sur salaire median",
+   "definition": "Salaire minimum legal / salaire median des salaries a temps plein (indice de Kaitz, OCDE serie MEDIAN). Monde : SMIC horaire brut du domaine travail / taux horaire brut median des salaries et fonctionnaires.",
+   "unite": "%",
+   "valeur": 48.7,
+   "annee": 2024,
+   "source": "OCDE, Minimum relative to average wages of full-time workers (DSD_EARNINGS@MIN2AVE, MEDIAN)",
+   "adresse": "https://sdmx.oecd.org/public/rest/data/OECD.ELS.SAE,DSD_EARNINGS@MIN2AVE,1.0/GRC.......?startPeriod=2019&format=csvfile",
+   "bande": [
+    43.7,
+    53.7
+   ],
+   "justification": "+-5 points : 45,3 (2022) a 50,1 (2025).",
+   "a_verifier": false
+  },
+  {
+   "id": "part_emploi_agricole",
+   "theme": "travail",
+   "nom": "Part de l emploi agricole",
+   "definition": "Emploi NACE A / emploi total, 15-74 ans (467,8 / 4 265,9 milliers). Monde : paysans en emploi / en emploi.",
+   "unite": "% de l emploi",
+   "valeur": 10.97,
+   "annee": 2024,
+   "source": "Eurostat lfsa_egan2 (NACE A)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsa_egan2?geo=EL&age=Y15-74&sex=T&unit=THS_PER&nace_r2=TOTAL&nace_r2=A",
+   "bande": [
+    8.5,
+    13.5
+   ],
+   "justification": "+-2,5 points : Banque mondiale (OIT) 10,99 en 2024 ; Eurostat 2025 9,19 (chute non signalee).",
+   "a_verifier": false
+  },
+  {
+   "id": "part_emploi_hebergement",
+   "theme": "travail",
+   "nom": "Part de l emploi dans l hebergement et la restauration",
+   "definition": "Emploi NACE I / emploi total, 15-74 ans (398,8 / 4 265,9 milliers). Monde : role hotellerie (domaine tourisme) en emploi / en emploi.",
+   "unite": "% de l emploi",
+   "valeur": 9.35,
+   "annee": 2024,
+   "source": "Eurostat lfsa_egan2 (NACE I)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsa_egan2?geo=EL&age=Y15-74&sex=T&unit=THS_PER&nace_r2=TOTAL&nace_r2=I",
+   "bande": [
+    7.5,
+    11.2
+   ],
+   "justification": "+-20 % relatif : 9,11 (2023) a 9,22 (2025) ; saisonnalite forte dans l annee (emploi d ete plus haut).",
+   "a_verifier": false
+  },
+  {
+   "id": "part_retraites",
+   "theme": "travail",
+   "nom": "Part des titulaires d une pension de vieillesse",
+   "definition": "Beneficiaires d une pension de vieillesse (SESPROS, sans double compte : 1 998 822) / population au 1er janvier 2025. Monde : vivants titulaires d une pension de vieillesse ou de l allocation des non-assures (domaine travail).",
+   "unite": "% de la population",
+   "valeur": 19.3,
+   "annee": 2024,
+   "source": "Eurostat spr_pns_ben ; demo_pjan",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/spr_pns_ben?geo=EL",
+   "bande": [
+    16.5,
+    22.1
+   ],
+   "justification": "+-2,8 points : stable (1,94 a 2,0 millions sur 2019-2024) ; toutes pensions comprises, 23,8 %.",
+   "a_verifier": false
+  },
+  {
+   "id": "part_alimentation",
+   "theme": "economie",
+   "nom": "Part de l alimentation dans le budget des menages",
+   "definition": "Alimentation et boissons non alcoolisees (COICOP 01) / depense d achats des menages (enquete budget des familles, sans loyers imputes). Monde : motif nourriture (TVA des marches repartie) / consommation des menages.",
+   "unite": "% de la consommation",
+   "valeur": 20.7,
+   "annee": 2024,
+   "source": "ELSTAT, Household Budget Survey 2024",
+   "adresse": "https://www.statistics.gr/documents/20181/2de55fc0-c2b5-c2ae-21d6-c31a98233a6e",
+   "bande": [
+    17.2,
+    24.2
+   ],
+   "justification": "+-3,5 points : 21,0 (enquete 2023 recalculee) ; comptes nationaux sans loyers imputes 17,3 (nama_10_co3_p3, 2023).",
+   "a_verifier": false
+  },
+  {
+   "id": "part_logement",
+   "theme": "economie",
+   "nom": "Part du logement dans le budget des menages",
+   "definition": "Logement, eau, electricite, gaz (COICOP 04) / depense d achats des menages (sans loyers imputes). Monde : loyers, factures d electricite et d eau / consommation des menages.",
+   "unite": "% de la consommation",
+   "valeur": 14.4,
+   "annee": 2024,
+   "source": "ELSTAT, Household Budget Survey 2024",
+   "adresse": "https://www.statistics.gr/documents/20181/2de55fc0-c2b5-c2ae-21d6-c31a98233a6e",
+   "bande": [
+    10.9,
+    17.9
+   ],
+   "justification": "+-3,5 points : comptes nationaux sans loyers imputes 11,3 (2023) ; avec loyers imputes 21,6 - le monde n en a pas.",
+   "a_verifier": false
+  },
+  {
+   "id": "part_transport",
+   "theme": "economie",
+   "nom": "Part du transport dans le budget des menages",
+   "definition": "Transport (COICOP 07) / depense d achats des menages. Monde : carburant, station, entretien, reparation, achat de vehicules, lecons de conduite / consommation des menages.",
+   "unite": "% de la consommation",
+   "valeur": 13.3,
+   "annee": 2024,
+   "source": "ELSTAT, Household Budget Survey 2024",
+   "adresse": "https://www.statistics.gr/documents/20181/2de55fc0-c2b5-c2ae-21d6-c31a98233a6e",
+   "bande": [
+    9.8,
+    16.8
+   ],
+   "justification": "+-3,5 points : 13,4 (2023) ; comptes nationaux sans loyers imputes 15,1.",
+   "a_verifier": false
+  },
+  {
+   "id": "depense_publique_pib",
+   "theme": "economie",
+   "nom": "Depense publique totale / PIB",
+   "definition": "Depense totale des administrations publiques (TE, S13) / PIB. Monde : depense consolidee des administrations sur les lignes du grand livre / PIB par la depense du domaine etat.",
+   "unite": "% du PIB",
+   "valeur": 48.1,
+   "annee": 2024,
+   "source": "Eurostat gov_10a_main (TE, S13, PC_GDP)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10a_main?geo=EL&na_item=TE&sector=S13&unit=PC_GDP",
+   "bande": [
+    43.1,
+    53.1
+   ],
+   "justification": "+-5 points : 49,5 (2023), 48,3 (2025) ; 53,1 (2022) ; 56,6 (2021, Covid) hors bande.",
+   "a_verifier": false
+  },
+  {
+   "id": "recettes_fiscales_pib",
+   "theme": "economie",
+   "nom": "Recettes fiscales et sociales / PIB",
+   "definition": "Impots et cotisations sociales nettes (D2+D5+D91+D611+D613-D995, S13_S212) / PIB. Monde : impots sur la production, sur le revenu et cotisations recus par les administrations (moins les remboursements) / PIB.",
+   "unite": "% du PIB",
+   "valeur": 41.7,
+   "annee": 2024,
+   "source": "Eurostat gov_10a_taxag (D2_D5_D91_D61_M_D995, PC_GDP)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10a_taxag?geo=EL&na_item=D2_D5_D91_D61_M_D995&sector=S13_S212&unit=PC_GDP",
+   "bande": [
+    38.2,
+    45.2
+   ],
+   "justification": "+-3,5 points : 40,6 (2023) a 42,8 (2022).",
+   "a_verifier": false
+  },
+  {
+   "id": "importations_pib",
+   "theme": "economie",
+   "nom": "Importations de biens et services / PIB",
+   "definition": "Importations (P7) / PIB, comptes nationaux. Monde : importations des comptes nationaux du domaine etat / PIB.",
+   "unite": "% du PIB",
+   "valeur": 47.7,
+   "annee": 2024,
+   "source": "Eurostat nama_10_gdp (P7, PC_GDP)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_gdp?geo=EL&na_item=P7&unit=PC_GDP",
+   "bande": [
+    40.0,
+    55.4
+   ],
+   "justification": "+-16 % relatif : tres volatil avec le prix de l energie, 58,9 (2022) a 44,0 (2025).",
+   "a_verifier": false
+  },
+  {
+   "id": "exportations_pib",
+   "theme": "economie",
+   "nom": "Exportations de biens et services / PIB",
+   "definition": "Exportations (P6) / PIB. Monde : exportations des comptes nationaux du domaine etat (recettes touristiques comprises) / PIB.",
+   "unite": "% du PIB",
+   "valeur": 42.1,
+   "annee": 2024,
+   "source": "Eurostat nama_10_gdp (P6, PC_GDP)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_gdp?geo=EL&na_item=P6&unit=PC_GDP",
+   "bande": [
+    35.0,
+    49.2
+   ],
+   "justification": "+-17 % relatif : 49,2 (2022) a 39,5 (2025).",
+   "a_verifier": false
+  },
+  {
+   "id": "recettes_tourisme_pib",
+   "theme": "economie",
+   "nom": "Recettes du tourisme international / PIB",
+   "definition": "Recettes de voyage de la balance des paiements (21 702 M euros) / PIB nominal (236 736 M euros). Monde : motif recette_touristique (Exterieur -> etablissements) / PIB.",
+   "unite": "% du PIB",
+   "valeur": 9.17,
+   "annee": 2024,
+   "source": "Banque de Grece (balance des paiements, via GTP) ; Eurostat nama_10_gdp (B1GQ)",
+   "adresse": "https://news.gtp.gr/2025/02/25/greece-hits-record-35-9-million-tourists-in-2024-travel-revenue-soars/",
+   "bande": [
+    7.2,
+    11.2
+   ],
+   "justification": "+-2 points : record en 2024 ; 2023 ~ 8,9 % ; la part directe du tourisme selon INSETE (~13 %) n est pas une valeur ajoutee directe.",
+   "a_verifier": false
+  },
+  {
+   "id": "inflation",
+   "theme": "economie",
+   "nom": "Inflation annuelle",
+   "definition": "Variation annuelle moyenne de l IPCH, tous postes. Monde : indice des prix de la banque centrale (domaine banques) sur la fenetre, annualise.",
+   "unite": "% par an",
+   "valeur": 3.0,
+   "annee": 2024,
+   "source": "Eurostat prc_hicp_aind (RCH_A_AVG, CP00)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_aind?geo=EL&unit=RCH_A_AVG&coicop=CP00",
+   "bande": [
+    0.0,
+    6.0
+   ],
+   "justification": "+-3 points : 4,2 (2023), 2,9 (2025) ; 9,3 (2022, choc energetique) hors bande. Une fenetre de 30 jours annualisee amplifie le bruit des prix.",
+   "a_verifier": false
+  },
+  {
+   "id": "taux_epargne",
+   "theme": "economie",
+   "nom": "Taux d epargne brute des menages",
+   "definition": "Epargne brute / (revenu disponible brut + D8), menages et ISBLSM. Monde : (revenu disponible - consommation) / revenu disponible, sur les lignes du grand livre.",
+   "unite": "% du revenu disponible",
+   "valeur": -2.51,
+   "annee": 2024,
+   "source": "Eurostat nasa_10_ki (SRG_S14_S15) = tec00131",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/tec00131?geo=EL",
+   "bande": [
+    -6.5,
+    1.5
+   ],
+   "justification": "+-4 points : -4,99 (2022), -2,44 (2023) ; +4,43 (2021, Covid) hors bande ; fortes revisions.",
+   "a_verifier": false
+  },
+  {
+   "id": "dette_publique_pib",
+   "theme": "economie",
+   "nom": "Dette publique / PIB",
+   "definition": "Dette brute consolidee des administrations (Maastricht) / PIB. Monde : dette nominale du domaine etat / PIB annualise de la fenetre.",
+   "unite": "% du PIB",
+   "valeur": 154.2,
+   "annee": 2024,
+   "source": "Eurostat gov_10dd_edpt1 (GD, S13, PC_GDP)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10dd_edpt1?geo=EL&na_item=GD&sector=S13&unit=PC_GDP",
+   "bande": [
+    134.2,
+    174.2
+   ],
+   "justification": "+-20 points : 164,3 (2023) a 146,1 (2025), -8 a -10 points par an.",
+   "a_verifier": false
+  },
+  {
+   "id": "pib_par_habitant",
+   "theme": "economie",
+   "nom": "PIB par habitant (en euros)",
+   "definition": "PIB aux prix du marche par habitant, euros courants. Monde : PIB annualise du domaine etat / population moyenne, converti a 1,15 euro la drachme (pays.EUROS_PAR_DRACHME) - un MONTANT, qui ne dit que le calage des prix.",
+   "unite": "euros par habitant",
+   "valeur": 22480,
+   "annee": 2024,
+   "source": "Eurostat nama_10_pc (B1GQ, CP_EUR_HAB)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_pc?geo=EL&na_item=B1GQ&unit=CP_EUR_HAB",
+   "bande": [
+    18000,
+    27000
+   ],
+   "justification": "+-20 % : 21 300 (2023) a 23 570 (2025) ; la conversion par un taux fixe ajoute l incertitude du calage des prix du monde.",
+   "a_verifier": false
+  },
+  {
+   "id": "lits_hopital",
+   "theme": "sante",
+   "nom": "Lits d hopital pour 1000 habitants",
+   "definition": "Lits disponibles dans les hopitaux (HP.1), tous types / population, pour 1000. Monde : lits et lits de reanimation des etablissements ouverts (domaine hopitaux).",
+   "unite": "pour 1000",
+   "valeur": 4.23,
+   "annee": 2024,
+   "source": "Eurostat hlth_rs_bds1 (HBEDT, P_HTHAB)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/hlth_rs_bds1?geo=EL&facility=HBEDT&unit=P_HTHAB",
+   "bande": [
+    3.6,
+    4.9
+   ],
+   "justification": "+-15 % : tres stable, 4,19 a 4,26 sur 2019-2024 ; l UE va de ~2,5 a ~8. Le domaine immobilier cale les lits a 4,2 pour 1000 a l installation : la mesure verifie qu il les garde.",
+   "a_verifier": false,
+   "entree_du_modele": "d13_immobilier.LITS_PAR_HABITANT = 4,2e-3"
+  },
+  {
+   "id": "medecins",
+   "theme": "sante",
+   "nom": "Medecins pour 1000 habitants",
+   "definition": "Medecins en exercice / population, pour 1000 (habilites a exercer : 6,74). Monde : role medecin en poste.",
+   "unite": "pour 1000",
+   "valeur": 6.27,
+   "annee": 2024,
+   "source": "Eurostat hlth_rs_prs2 (PHYS, en exercice) ; OCDE",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/hlth_rs_prs2?geo=EL&med_spec=PHYS&unit=P_HTHAB",
+   "bande": [
+    5.3,
+    7.3
+   ],
+   "justification": "+-1 : la categorie (en exercice 6,27, habilites 6,74) fait 0,5 d ecart ; la Grece a le taux le plus haut de l UE (moyenne ~4).",
+   "a_verifier": false
+  },
+  {
+   "id": "infirmiers",
+   "theme": "sante",
+   "nom": "Infirmiers pour 1000 habitants",
+   "definition": "Infirmiers en exercice a qualification reconnue par l UE / population, pour 1000 (Eurostat, drapeau definition differente). OCDE, infirmiers et aides-infirmiers : ~4,07 (calcul). Monde : role infirmier en poste.",
+   "unite": "pour 1000",
+   "valeur": 2.48,
+   "annee": 2024,
+   "source": "Eurostat hlth_rs_prs2 (NRS)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/hlth_rs_prs2?geo=EL&unit=P_HTHAB",
+   "bande": [
+    2.0,
+    4.2
+   ],
+   "justification": "Bande asymetrique : le champ va du simple au double selon la source (2,48 Eurostat, ~4,07 OCDE avec les aides) ; la bande couvre les deux.",
+   "a_verifier": false
+  },
+  {
+   "id": "hospitalisations",
+   "theme": "sante",
+   "nom": "Hospitalisations pour 1000 habitants par an",
+   "definition": "Sorties d hopital (patients hospitalises, toutes causes) / population, pour 1000 par an. Monde : sejours admis en lit arrives dans la fenetre, annualises.",
+   "unite": "pour 1000 par an",
+   "valeur": 170.0,
+   "annee": 2015,
+   "source": "Eurostat hlth_co_disch2 (INPAT) : la Grece manque apres 2015 (270,9 en 2015 apres 138 en 2014, rupture)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/hlth_co_disch2?geo=EL&icd10=A-T_Z_XNB&indic_he=INPAT&unit=P_HTHAB",
+   "bande": [
+    100.0,
+    280.0
+   ],
+   "justification": "NON CONFIRME : ordre de grandeur de l UE (~150-180) ; la serie grecque est rompue puis absente.",
+   "a_verifier": true
+  },
+  {
+   "id": "voitures",
+   "theme": "transport",
+   "nom": "Voitures particulieres pour 1000 habitants",
+   "definition": "Voitures particulieres immatriculees / population, pour 1000. Monde : voitures des menages habites (domaine transport ; les flottes d entreprise ne sont pas comptees).",
+   "unite": "pour 1000",
+   "valeur": 581,
+   "annee": 2024,
+   "source": "Eurostat road_eqs_carhab",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/road_eqs_carhab?geo=EL",
+   "bande": [
+    500,
+    660
+   ],
+   "justification": "+-14 % : +15 par an (566 en 2023, 597 en 2025) ; les voitures de societe, absentes du monde, font quelques pour cent.",
+   "a_verifier": false
+  },
+  {
+   "id": "morts_route",
+   "theme": "transport",
+   "nom": "Morts sur la route par million d habitants",
+   "definition": "Tues a 30 jours dans un accident de la route / population, par million et par an (664 morts). Monde : tues sur le coup (domaine transport) et morts des suites d une lesion de la route (domaine medecine), annualises.",
+   "unite": "par million et par an",
+   "valeur": 64,
+   "annee": 2024,
+   "source": "Eurostat tran_sf_roadus ; Commission europeenne, statistiques de securite routiere 2024",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/tran_sf_roadus?geo=EL&sex=T&age=TOTAL&pers_cat=TOTAL&unit=NR",
+   "bande": [
+    45,
+    85
+   ],
+   "justification": "+-30 % : 62 (2023), 54 (2020) ; l UE va de ~20 a ~80. A 10 000 habitants et 30 jours on attend 0,05 mort : la surete le dit.",
+   "a_verifier": false
+  },
+  {
+   "id": "electricite_par_habitant",
+   "theme": "energie",
+   "nom": "Electricite consommee par habitant",
+   "definition": "Consommation finale d electricite, usage energetique (FC_E, 49 519 GWh) / population moyenne. Monde : kWh servis par les reseaux du domaine energie (tous usages finals, hors pertes), annualises.",
+   "unite": "kWh par an",
+   "valeur": 4773,
+   "annee": 2024,
+   "source": "Eurostat nrg_bal_c (FC_E, E7000) ; Banque mondiale EG.USE.ELEC.KH.PC (4 686)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_bal_c?geo=EL&nrg_bal=FC_E&siec=E7000&unit=GWH",
+   "bande": [
+    4050,
+    5500
+   ],
+   "justification": "+-15 % : 4 410 (2023) ; ecart de +-7 % entre sources ; forte saison (climatisation l ete).",
+   "a_verifier": false
+  },
+  {
+   "id": "eleves_par_enseignant",
+   "theme": "education",
+   "nom": "Eleves par enseignant",
+   "definition": "Eleves / enseignants du primaire (CITE 1) ; secondaire inferieur 8,4, superieur 9,6. Monde : eleves de la maternelle au lycee (ed_cycle 1-5) / enseignants en poste.",
+   "unite": "eleves",
+   "valeur": 7.4,
+   "annee": 2024,
+   "source": "Eurostat educ_uoe_perp04 (ED1)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/educ_uoe_perp04?geo=EL&isced11=ED1&isced11=ED2&isced11=ED3",
+   "bande": [
+    6.0,
+    10.0
+   ],
+   "justification": "Le monde melange les niveaux : la bande couvre la Grece du primaire (7,4) au lycee (9,6), et les annees 2020-2024 (7,4 a 8,4 au primaire).",
+   "a_verifier": false
+  },
+  {
+   "id": "detenus",
+   "theme": "justice",
+   "nom": "Detenus pour 100 000 habitants",
+   "definition": "Personnes effectivement detenues / population, pour 100 000 (11 484). Monde : vivants detenus (domaine justice, ju_detenu).",
+   "unite": "pour 100 000",
+   "valeur": 110.68,
+   "annee": 2024,
+   "source": "Eurostat crim_pris_cap (PRIS_ACT_CAP)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/crim_pris_cap?geo=EL",
+   "bande": [
+    90,
+    130
+   ],
+   "justification": "+-18 % : 98,35 (2023) ; SPACE I / World Prison Brief 111 (janvier 2025). Le domaine justice tire le stock initial a 99 pour 100 000 : la mesure suit sa derive.",
+   "a_verifier": false,
+   "entree_du_modele": "d21_justice.DETENUS_PAR_100K = 99"
+  },
+  {
+   "id": "policiers",
+   "theme": "justice",
+   "nom": "Policiers pour 100 000 habitants",
+   "definition": "Policiers (CITP 5412) / population, pour 100 000 (58 020). Monde : role policier en poste.",
+   "unite": "pour 100 000",
+   "valeur": 559.19,
+   "annee": 2024,
+   "source": "Eurostat crim_just_job",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/crim_just_job?geo=EL",
+   "bande": [
+    450,
+    670
+   ],
+   "justification": "+-20 % : 507,5 (2019) a 543,7 (2023), +2 a 3 % par an.",
+   "a_verifier": false
+  },
+  {
+   "id": "homicides",
+   "theme": "justice",
+   "nom": "Homicides volontaires pour 100 000 habitants",
+   "definition": "Homicides volontaires enregistres (ICCS0101) / population, pour 100 000 par an (81). Monde : homicides commis (verite du domaine justice), annualises.",
+   "unite": "pour 100 000 par an",
+   "valeur": 0.78,
+   "annee": 2024,
+   "source": "Eurostat crim_off_cat (ICCS0101)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/crim_off_cat?geo=EL&iccs=ICCS0101",
+   "bande": [
+    0.4,
+    1.2
+   ],
+   "justification": "+-0,4 : 0,68 a 0,88 sur 2018-2024 ; ONUDC 1,12 (2022). A 10 000 habitants et 30 jours on attend 0,006 homicide : la surete le dit.",
+   "a_verifier": false
+  },
+  {
+   "id": "participation_electorale",
+   "theme": "politique",
+   "nom": "Participation aux elections legislatives",
+   "definition": "Votants / electeurs inscrits, elections legislatives de juin 2023 (chiffre du ministere de l Interieur repris par la presse ; 53,74 % sur une autre base d inscrits). Monde : votants / inscrits du dernier scrutin tenu.",
+   "unite": "% des inscrits",
+   "valeur": 52.8,
+   "annee": 2023,
+   "source": "Ministere de l Interieur (ypes), via International IDEA / IFES / presse",
+   "adresse": "https://www.electionguide.org/elections/id/4142/",
+   "bande": [
+    45.0,
+    65.0
+   ],
+   "justification": "La participation varie d un scrutin a l autre : 61,1 % en mai 2023, 52,8 % en juin 2023, 57,8 % en 2019 ; la bande couvre ces scrutins.",
+   "a_verifier": false
+  },
+  {
+   "id": "part_proprietaires",
+   "theme": "logement",
+   "nom": "Part des personnes logees chez leur menage proprietaire",
+   "definition": "Personnes vivant dans un logement dont le menage est proprietaire / population (EU-SILC). Monde : personnes des menages proprietaires (im_statut, domaine immobilier) / personnes des menages habites.",
+   "unite": "% de la population",
+   "valeur": 69.7,
+   "annee": 2024,
+   "source": "Eurostat ilc_lvho02 (tenure=OWN)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/ilc_lvho02?geo=EL&rskpovth=TOTAL&hhcomp=TOTAL&tenure=OWN",
+   "bande": [
+    64.7,
+    75.7
+   ],
+   "justification": "+-5 points : 75,4 (2019) a 69,4 (2025), saut de -3 points en 2023 (meme rupture que la taille des menages). Le domaine immobilier part de 73,5 %.",
+   "a_verifier": false,
+   "entree_du_modele": "d13_immobilier : part de depart 0,735"
+  }
+ ]
+}

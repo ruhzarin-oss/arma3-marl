@@ -231,5 +231,41 @@ def test_cout():
                 f"domaine {propre * 1000:.0f} ms par jour, soit {propre / n * 1e6:.1f} us par habitant")
 
 
+def test_faim_tue():
+    """La faim tue au rythme du reel ( SEUILS_FAIM, 27/09 ). Cohortes : un adulte qui ne mange plus meurt entre 45 et
+    80 jours ( 10 % avant le jour 58, la moitie vers 63, 90 % avant 80 ) ; un enfant de 3 ans avant 50 jours ( mediane ) ;
+    a demi-ration pendant 24 semaines ( Keys 1950 ), moins de 2 % meurent. Dans le monde : des adultes au deficit de 40
+    rations meurent a l aube, cause « faim » au journal et dans la colonne ; sans deficit, aucune mort de faim."""
+    rng = np.random.default_rng(3)
+    def cohorte(age, ration, jours, n=20000):
+        faim = np.zeros(n); mort = np.full(n, -1)
+        for j in range(1, jours + 1):
+            vivant = mort < 0
+            faim[vivant] += max(0.0, (1.0 - ration) - C.FAIM_ADAPTATION)
+            idx = np.nonzero(vivant)[0]
+            r = M.risque_faim(faim[idx], np.full(idx.size, age))
+            mort[idx[rng.random(idx.size) < r]] = j
+        return mort
+    a = cohorte(35, 0.0, 120); e = cohorte(3, 0.0, 120); k = cohorte(30, 0.5, 168)
+    q10, q50, q90 = np.percentile(a[a > 0], [10, 50, 90])
+    me = np.median(e[e > 0]); pk = (k > 0).mean()
+    cohortes = bool((a > 0).all()) and 45 <= q10 <= 58 and 55 <= q50 <= 70 and q90 <= 80 and me < 50 and pk < 0.02
+    # dans le monde
+    r = T.monde(["population"], graine=5); w = r[0] if isinstance(r, tuple) else r; p = w.pays
+    T.jours(w, 1)
+    t = w.table; n = t.n
+    ad = np.nonzero((t.vivant[:n] == 1) & (t.age[:n] >= 20) & (t.age[:n] < 60))[0]
+    def morts_de_faim(): return [x for x in p.socle.journal.recents if x["type"] == "deces" and x.get("cause") == "faim"]
+    T.jours(w, 1); temoin = len(morts_de_faim())
+    t.faim[ad] = 40.0; T.jours(w, 1); mf = morts_de_faim()
+    col = p.col("habitant", "cause_deces")
+    colonne = all(col[x["habitant"]] == M.CAUSES.index("faim") for x in mf)
+    attendu = M.PENTE_FAIM * ((40.0 - 26.0) / 20.0) ** 2 * len(ad)
+    monde_ok = temoin == 0 and 0.5 * attendu <= len(mf) <= 1.5 * attendu and colonne and len(mf) > 0
+    return cohortes and monde_ok, (f"jeune total, adulte : 10 % morts au jour {q10:.0f}, 50 % au jour {q50:.0f}, 90 % au jour "
+        f"{q90:.0f} ; enfant de 3 ans : mediane jour {me:.0f} ; demi-ration 24 semaines : {pk:.1%} de morts ; monde : {len(ad)} "
+        f"adultes a 40 rations de deficit -> {len(mf)} morts de faim ( attendu ~{attendu:.0f} ), temoin {temoin}, colonne : {colonne}")
+
+
 TESTS = [test_tables, test_mortalite_cohorte, test_fecondite_cohorte, test_recensement, test_personnes_et_familles,
-         test_etat_civil, test_heritage, test_migrer, test_pays_vivable, test_cout]
+         test_etat_civil, test_heritage, test_migrer, test_pays_vivable, test_cout, test_faim_tue]

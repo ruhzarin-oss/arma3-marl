@@ -52,6 +52,7 @@ FICHE
    le village de sa ferme, il y est donc compte le dimanche meme chez lui ( porte test_travail_fait, echec explique )."""
 import datetime as dt
 import numpy as np
+from .. import population as PO
 from .. import config as C
 from ..socle import decision as D
 from . import d01_population as POP
@@ -921,7 +922,7 @@ def _planifier(p, a, fen, k):
         _couper(pl, i, REPORT, PAS_MIN * k)
     # la faim empeche de travailler ; les agents travailleurs, s ils sont la, decident du travail a la place
     gt = w.agents.get("travailleurs")
-    pl.epuise = g.faim > seuil_travail(p)
+    pl.epuise = g.faim > C.ABSENCE_FAIM
     if gt:
         pl.gt = libre & (g.trav >= 0) & ((g.role & (ENFANT | RETRAITE)) == 0)
         qui = np.nonzero(pl.gt)[0]
@@ -970,12 +971,6 @@ def _couper(pl, i, s, t):
         pl.coupe[i, s] = True
 
 
-def seuil_travail(p):
-    """La faim ( jours sans manger ) au-dela de laquelle on ne va plus travailler : celle du moteur, ou celle d un
-    monde a la faim realiste ( config.ABSENCE_FAIM_REALISTE )."""
-    return C.ABSENCE_FAIM_REALISTE if getattr(p.w, "faim_realiste", False) else C.ABSENCE_FAIM
-
-
 def _revision_du_soir(p, a, pl, k):
     """20 h 10 : le repas de 20 h a change la faim. Monde.deplacer la relisait a chaque pas ; ici, seuls ceux dont le
     travail est encore a venir ou en cours sont relus, et leur plan corrige ( equipes de 14 h et de 22 h )."""
@@ -984,7 +979,7 @@ def _revision_du_soir(p, a, pl, k):
                      & (pl.cand[:, RET].astype(np.int32) > t))[0]
     if not len(idx): return
     H = p.w.habitants
-    epuise = p.w.table.faim[idx] > seuil_travail(p)
+    epuise = p.w.table.faim[idx] > C.ABSENCE_FAIM
     change = idx[epuise != pl.epuise[idx]]
     if not len(change): return
     for i in change.tolist():
@@ -1136,6 +1131,30 @@ def replanifier(p, h, rentrer=False):
     _appliquer(p, a, pl, np.array([i], np.int32), PAS_MIN * k)
     q, s = _reveils(pl, np.array([i], np.int32), PAS_MIN * k)
     for j in s.tolist(): pl.extra.setdefault(j, []).append(i)
+
+
+def replanifier_tous(p, hs, rentrer=False):
+    """`replanifier` pour plusieurs habitants d un coup ( 27/09 ) : une greve met 2 500 personnes a la maison ou les y
+    reprend, et chaque appel seul coutait un calcul numpy sur un element ( 2,3 s par jour a 100 000 habitants ). Memes
+    ecritures, dans le meme ordre : les reveils de chaque habitant entrent dans `pl.extra` dans l ordre donne, par pas
+    croissant, comme la version un par un. La porte des 28 domaines le tient pour identique."""
+    a = p.domaine("agenda"); pl = a.plan
+    if pl is None: return
+    ids = np.fromiter((h.id for h in hs if h.id < pl.n), np.int32)
+    if not len(ids): return
+    k = a.k; w = p.w; tb = w.table; t = PAS_MIN * k
+    sej = np.isin(ids, np.fromiter(w.sejours, np.int64, len(w.sejours))) if w.sejours else np.zeros(len(ids), bool)
+    hors = (tb.vivant[ids] != 1) | (tb.poste[ids] == POSTE_VOYAGE) | sej
+    pl.hors[ids] = hors
+    pl.hopital[ids] = ~hors & (tb.etat[ids] == PO.CODE_ETAT["I"]) & (tb.gravite[ids] > GRAVITE_HOPITAL)
+    if rentrer:
+        for i in ids.tolist():
+            for s in range(NS):
+                if pl.actif[i, s]: _couper(pl, i, s, t)
+    _appliquer(p, a, pl, ids, t)
+    q, s = _reveils(pl, ids, t)
+    ordre = {int(i): r for r, i in enumerate(ids.tolist())}
+    for i, j in sorted(zip(q.tolist(), s.tolist()), key=lambda qs: (ordre[qs[0]], qs[1])): pl.extra.setdefault(j, []).append(i)
 
 
 # ================================================================== controles ( pour les portes )

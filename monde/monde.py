@@ -215,7 +215,14 @@ class Monde:
     @property
     def heure(self): return (self.minutes % (24 * 60)) / 60.0
 
-    def nuit(self): return not (C.LEVER <= self.heure < C.COUCHER)
+    def nuit(self):
+        """Fait-il nuit ? Le soleil du calendrier du socle a la latitude de l ile ( 27/09 : a la mi-octobre, a Altis, le
+        soleil se couche avant 19 h ) ; sans socle, les heures fixes du moteur E1 ( la mi-juin toute l annee )."""
+        s = getattr(self, "socle", None)
+        if s is not None:
+            try: return s.calendrier.nuit(self.ile, self.pas)
+            except KeyError: pass                       # ile sans latitude connue
+        return not (C.LEVER <= self.heure < C.COUCHER)
 
     def noter(self, type_, **champs):
         e = {"jour": self.jour, "heure": round(self.heure, 2), "type": type_, **champs}
@@ -544,6 +551,9 @@ class Monde:
     def _par_travail(self): return ParTravail(self)
 
     def ids_au_travail(self, lieu, role):
+        # un metier inconnu ( un proprietaire sans metier, l Etat ou un menage : d14 ) : personne, comme l ancien moteur
+        # ( `_par_travail.get(( lieu, role ), [])` ) ; le moteur en colonnes levait KeyError ( 27/09 )
+        if role not in P.CODE_ROLE: return []
         cle = self._cle_travail(lieu, role)
         d, f = self._travail_tranches.get(cle, (0, 0))
         ids = self._travail_ordre[d:f].tolist()
@@ -557,6 +567,7 @@ class Monde:
         return [P.Habitant(t, i) for i in self.ids_au_travail(lieu, role)]
 
     def nombre_au_travail(self, lieu, role):
+        if role not in P.CODE_ROLE: return 0
         cle = self._cle_travail(lieu, role)
         d, f = self._travail_tranches.get(cle, (0, 0))
         return (f - d) - len(self._travail_retraits.get(cle, ())) + len(self._travail_ajouts.get(cle, []))
@@ -928,10 +939,6 @@ class Monde:
     # du 27/09 : a la charge de l echelle, 0 % en un jour, sans une importation ). Un convoi a l echelle 200 est une
     # flotte : meme chauffeur, meme gazole, au modele pres. L archipel la pose a l echelle de l ile ; 1 ailleurs.
     echelle_convois = 1.0
-    # 27/09 : la faim au plus realiste ( la recuperation, le seuil de travail, la mort de faim : domaine 1 ) - les iles de
-    # l archipel ; False ailleurs, les mondes de reference ne changent pas
-    faim_realiste = False
-    revenu_minimum = False           # 27/09 : le revenu minimum garanti ( KEA, domaine 6 ) - les iles de l archipel
 
     def expedier(self, h):
         cap = C.CAPACITE_CAMION * self.echelle_convois
@@ -1208,8 +1215,7 @@ class Monde:
         self.nourri_menage = ParMenage(~affame)
         k = mm[membres]
         faim = t.faim[membres]
-        recup = faim * (1.0 - C.RECUPERATION_FAIM) - 1.0 if self.faim_realiste else faim - 1.0
-        t.faim[membres] = np.where(affame[k], faim + manque[k] / np.maximum(v[k], 1), np.maximum(0.0, recup))
+        t.faim[membres] = np.where(affame[k], faim + np.maximum(0.0, manque[k] / np.maximum(v[k], 1) - C.FAIM_ADAPTATION), np.maximum(0.0, faim - 1))
         for nom, noter in (("travailleurs", R.noter_travailleurs), ("entreprises", R.noter_entreprises),
                            ("marches", R.noter_marches), ("commerce", R.noter_commerce),
                            ("fraudeurs", R.noter_fraudeurs), ("voyageurs", R.noter_voyageurs)):
@@ -1238,7 +1244,7 @@ class Monde:
                     for x, action, r in ag.journee(manque):
                         if self.apprentissage: self.doctrine.apprendre(x, action, r)
                         ag.recompenses.append(r)
-            for p in vivants: p.faim = p.faim + manque / len(vivants) if manque > 1e-6 else max(0.0, (p.faim * (1.0 - C.RECUPERATION_FAIM) if self.faim_realiste else p.faim) - 1)
+            for p in vivants: p.faim = p.faim + max(0.0, manque / len(vivants) - C.FAIM_ADAPTATION) if manque > 1e-6 else max(0.0, p.faim - 1)
         self.stats_jour["menages_sans_nourriture"] = sans
         self.faim_region = {k: affames_region.get(k, 0) / n for k, n in par_region.items()}
         for nom, noter in (("travailleurs", R.noter_travailleurs), ("entreprises", R.noter_entreprises),

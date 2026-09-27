@@ -1694,7 +1694,7 @@ def declencher_greve(p, lid, role, jours, motif="decision"):
         h.horaire = None
         if h.poste == "travail": h.lieu, h.poste = h.domicile, "maison"
         d.grevistes[h.id] = gv
-        if ag is not None: ag.replanifier(p, h, rentrer=True)
+    if ag is not None: ag.replanifier_tous(p, gens, rentrer=True)       # d un coup ( 27/09 ), memes ecritures
     _arreter_etablissement(p, gv)
     p.noter("greve_debut", greve=gv.id, lieu=lid, metier=role, motif=motif, grevistes=len(gens))
     return gv
@@ -1706,20 +1706,22 @@ def _arreter_etablissement(p, gv):
     if e is not None and e.role == gv.role: e.activite = 0.0
 
 
-def _sortir_de_greve(p, d, h):
+def _sortir_de_greve(p, d, h, replanifier=True):
+    """Rend l habitant s il a repris son horaire ( l agenda doit alors le replanifier ), sinon None."""
     gv = d.grevistes.pop(h.id, None)
-    if gv is None: return
+    if gv is None: return None
     hor = gv.horaires.pop(h.id, None)
     if h.vivant and h.travail is not None and h.horaire is None and (gv.lieu is None or h.travail.id == gv.lieu):
         h.horaire = hor
-        if p.a("agenda"): importlib.import_module(".d05_agenda", __package__).replanifier(p, h)
+        if replanifier and p.a("agenda"): importlib.import_module(".d05_agenda", __package__).replanifier(p, h)
+        return h
+    return None
 
 
 def _finir_greve(p, d, gv):
     col = p.colonnes["habitant"]; w = p.w
-    for i in list(gv.horaires):
-        h = w.habitants[i]
-        _sortir_de_greve(p, d, h)
+    repris = [x for x in (_sortir_de_greve(p, d, w.habitants[i], replanifier=False) for i in list(gv.horaires)) if x is not None]
+    if repris and p.a("agenda"): importlib.import_module(".d05_agenda", __package__).replanifier_tous(p, repris)   # d un coup ( 27/09 )
     gv.fin = p.jour
     d.en_greve.pop((gv.lieu, gv.role), None)
     if gv.motif == "pouvoir_achat": _negocier(p, d, gv)

@@ -19,8 +19,12 @@ MONDES = ((11, 4, 8, False, None), (23, 4, 8, False, None), (7, 2, 40, False, No
 # les evenements rares dont on affiche le compte : une branche jamais empruntee n est pas prouvee
 RARES = ("retraite", "fin_etudes", "entree_vie_active", "migration_interne", "naissance", "deces", "union",
          "divorce", "embauche", "licenciement", "faillite", "placement", "desherence", "fin_de_grossesse")
-# les domaines livres : ceux dont le module existe ( 13 livraisons sur 28 au 24/09 )
+# les domaines livres : ceux dont le module existe ( 13 livraisons sur 28 au 24/09, 27 sur 27 au 27/09 )
 LIVRES = [nom for nom, mod, _ in P.DOMAINES if importlib.util.find_spec(f"monde.pays.{mod}") is not None]
+# les 14 domaines de la reference d origine ( 5917fa8, ref_domaines.json v1 a v8 ) : une reference qui ne dit pas ses
+# domaines est jouee avec eux, pour que les domaines venus apres ne la changent pas ( 27/09 )
+ORIGINE = ("population", "banques", "economie", "travail", "agenda", "etat", "exterieur", "territoire", "agriculture",
+           "industrie", "energie", "services_publics", "immobilier", "medecine")
 # la reference du 26/09 n a pas le tourisme ( domaine 28, 27/09 ) : la porte d identite compare le pays SANS lui - elle
 # prouve que l ajouter ne change rien aux autres domaines ; le tourisme a ses propres portes. Les iles l installent ( LIVRES ).
 NOUVEAUX_APRES_REFERENCE = ("tourisme",)
@@ -67,16 +71,21 @@ def main():
     g = a.add_mutually_exclusive_group(required=True)
     g.add_argument("--ecrire"); g.add_argument("--comparer")
     a.add_argument("--saboter", action="store_true", help="controle positif : la porte doit echouer")
+    a.add_argument("--origine", action="store_true", help="--ecrire avec les 14 domaines d origine, pas tous les livres")
     x = a.parse_args()
+    # les domaines joues : ceux que la reference a ecrits ( cle _domaines ), sinon ceux d origine ; a l ecriture, tous
+    # les livres ( ou ceux d origine avec --origine ), notes dans la reference
+    ref = json.load(open(x.comparer)) if x.comparer else None
+    tous = list(ref.get("_domaines", ORIGINE)) if ref is not None else list(ORIGINE if x.origine else LIVRES)
     res = {}
-    print(f"{len(LIVRES)} domaines : {', '.join(LIVRES)}", flush=True)
+    print(f"{len(tous)} domaines : {', '.join(tous)}", flush=True)
     for graine, echelle, jours, secheresse, domaines in MONDES:
-        serie, dt, n, rares = jouer(graine, echelle, jours, secheresse, domaines, x.saboter)
+        serie, dt, n, rares = jouer(graine, echelle, jours, secheresse, domaines or tous, x.saboter)
         res[f"{graine}"] = serie
         print(f"monde {graine} : {n} habitants, {jours} jours, {dt:.2f} s par jour | evenements rares {rares}", flush=True)
     if x.ecrire:
+        res["_domaines"] = tous
         json.dump(res, open(x.ecrire, "w")); print("reference ecrite"); return 0
-    ref = json.load(open(x.comparer))
     ok = True
     for cle, serie in res.items():
         for j, (a_, b_) in enumerate(zip(ref[cle], serie)):

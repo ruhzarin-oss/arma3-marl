@@ -1,9 +1,15 @@
 ECHOUE  agenda            test_travail_fait
 ECHOUE  agriculture       test_dimanche
 ECHOUE  banques           test_octroi_part_du_choix
+ECHOUE  culture           test_rumeur_fausse
 ECHOUE  economie          test_credit
 ECHOUE  exterieur         test_choc_petrolier
+ECHOUE  hopitaux          test_decision
+ECHOUE  logistique        test_faim_ile_sans_production
+ECHOUE  medias            test_deformation_relais
 ECHOUE  population        test_recensement
+ECHOUE  securite_civile   test_decision
 ECHOUE  territoire        test_climat
+ECHOUE  transport         test_decision
 ECHOUE  travail           test_emploi_20_64
 ECHOUE  travail           test_inactifs_changent

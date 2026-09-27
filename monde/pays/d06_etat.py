@@ -733,7 +733,9 @@ def _paie_prevue(p):
 # ================================================================== le revenu minimum garanti ( 27/09, Younes : « au plus realiste » )
 # Le KEA grec ( loi 4389/2016, OPEKA ) : 216 euros par mois pour un adulte seul, echelle 1 + 0,5 par adulte de plus +
 # 0,25 par enfant ; le complement jusqu a ce seuil, sous condition de ressources ( revenu du menage ) et d avoirs ( depots
-# sous 7 200 euros a l echelle ). Pour les mondes qui portent `revenu_minimum` ( les iles de l archipel ). Verse chaque
+# sous 7 200 euros a l echelle ). BRANCHE DANS AUCUN MONDE ( chef de projet, 27/09 ) : sur 200 jours il faisait monter la
+# faim ( 18,1 % contre 8,4 %, le prix remontait a 9,4 ) - l offre ne repond pas au prix, ou le financement cree la monnaie ;
+# a remesurer ( porte_guerre G21 ) quand la correction des prix du domaine 3 sera dans le tronc. Verse chaque
 # jour a 18 h, par trentiemes, dans la fenetre ou le domaine 3 lit le revenu des menages : le menage le depense comme un
 # revenu ; le test de ressources retire du revenu lisse ce qui vient du KEA lui-meme ( sinon le droit oscillerait ).
 KEA_EUROS_MOIS = 216.0
@@ -744,7 +746,7 @@ AGE_ADULTE_KEA = 18.0
 
 def _revenu_minimum(p):
     w = p.w
-    if not getattr(w, "revenu_minimum", False) or not p.a("economie"): return
+    if not p.a("economie"): return
     tb = w.table; n = tb.n; M = len(w.menages); L = p.socle.livre; g = w.gouv
     cm = p.colonnes["menage"]; ch = p.colonnes["habitant"]
     cm.assurer(M)
@@ -771,7 +773,7 @@ def _revenu_minimum(p):
 
 
 def brancher_revenu_minimum(p):
-    """Pose le revenu minimum ( une fois ) : a l installation d un monde qui le porte, ou sur une ile reprise."""
+    """Pose le revenu minimum ( une fois ). Aucun monde ne l appelle encore ( voir plus haut ) ; les portes, si."""
     cm = p.colonnes["menage"]
     if "rmg_lisse" not in cm: cm.ajouter("rmg_lisse", np.float64, 0.0); cm.assurer(len(p.w.menages))
     p.socle.livre.declarer_motif("revenu_minimum", "prestation", "etat")
@@ -1919,7 +1921,6 @@ def installer(p):
     minute = w.minutes % (24 * 60)
     p.poser(((17 * 60 + 50 - minute) % (24 * 60)) // C.MINUTES_PAR_PAS, "etat_photo_paie", 0)
     p.routine(18, 1, "etat", _paie_fiscale)
-    if getattr(p.w, "revenu_minimum", False): brancher_revenu_minimum(p)
     p.routine(10, 40, "etat", _controles_du_jour)
     p.routine(10 + 10 / 60, 40, "etat", _mois_fiscal)
     p.routine(18 + 20 / 60, 40, "etat", _recouvrer)

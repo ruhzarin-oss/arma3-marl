@@ -38,8 +38,6 @@ def creer_ile(ile, graine, echelle, llm=False):
     sait de quel pays il est le gouvernement et dans quelle monnaie il compte."""
     w = W.Monde(graine=graine_ile(graine, ile), iles=(ile,), echelle=echelle, cerveau="llm" if llm else "regles")
     w.echelle_convois = float(echelle)
-    w.faim_realiste = True
-    w.revenu_minimum = True
     P.installer(w, LIVRES)
     OR.installer(w, w.pays)
     if llm and w.cerveau is not None and hasattr(w.cerveau, "consigne"):
@@ -53,22 +51,9 @@ def creer_ile(ile, graine, echelle, llm=False):
 
 
 def _convois(w, echelle):
-    """Une ile reprise d un instantane d avant le 27/09 n a pas l echelle de ses convois ( celle de l archipel ) ni la
-    faim realiste ( domaine 1 ) : les lui poser."""
+    """Une ile reprise d un instantane d avant le 27/09 n a pas l echelle de ses convois ( celle de l archipel ) : la lui
+    poser."""
     if "echelle_convois" not in vars(w): w.echelle_convois = float(echelle)
-    if "revenu_minimum" not in vars(w):
-        w.revenu_minimum = True
-        if getattr(w, "pays", None) is not None and w.pays.a("etat"):
-            from .pays import d06_etat as ET
-            ET.brancher_revenu_minimum(w.pays)
-    if "faim_realiste" not in vars(w):
-        w.faim_realiste = True
-        if getattr(w, "pays", None) is not None and w.pays.a("population"):
-            from .pays import d01_population as D1
-            D1.brancher_faim_realiste(w.pays)
-        if getattr(w, "pays", None) is not None and w.pays.a("agriculture"):
-            from .pays import d09_agriculture as AG
-            AG.brancher_autoconsommation(w.pays)
     return w
 
 
@@ -98,8 +83,13 @@ class Ile:
         if ordre == "corps":                        # le recensement de l archipel : qui a un corps ici, qui est absent
             t = self.w.table; n = t.n
             viv = t.vivant[:n] == 1
-            return {"residents": t.nia[:n][viv & (t.statut[:n] == 0)].tolist(),
-                    "absents": t.nia[:n][viv & (t.statut[:n] == 1)].tolist(), "etrangers": sorted(self.w.etrangers)}
+            ici = t.statut[:n] == 0
+            # un detenu ( domaine 21 ) est marque ABSENT pour que le moteur le sorte de son travail et de son menage,
+            # mais son corps est ICI, en prison ( 27/09 : la porte G4 le comptait absent, sans corps ailleurs )
+            p = getattr(self.w, "pays", None)
+            if p is not None and "ju_detenu" in p.colonnes["habitant"]: ici = ici | (p.col("habitant", "ju_detenu")[:n] > 0)
+            return {"residents": t.nia[:n][viv & ici].tolist(), "absents": t.nia[:n][viv & ~ici].tolist(),
+                    "etrangers": sorted(self.w.etrangers)}
         if ordre == "etat":                         # le bulletin de la nuit
             w = self.w; t = w.table; n = t.n
             tenue, msg = w.pays.socle.conservation.tenue() if getattr(w, "pays", None) else (True, "")
@@ -171,6 +161,12 @@ def poser_gouvernement(w, nom, source):
 
 
 def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False, llm=False, enregistrer=None, gouv=None):
+    # 27/09 : le domaine 22 fait des produits de matrices ( faits x lieux x lieux ) ; six iles qui prennent chacune tous
+    # les coeurs se marchent dessus ( 120 fils pour 20 coeurs ). Chaque ile garde sa part ( HMT_FILS_PAR_ILE pour forcer ) ;
+    # le nombre de fils ne change pas les resultats ( porte des 27 domaines identique a 3 fils et a 20 )
+    from threadpoolctl import threadpool_limits
+    n_iles = max(1, len(noms) if noms else 1)
+    threadpool_limits(int(os.environ.get("HMT_FILS_PAR_ILE", max(1, (os.cpu_count() or 1) // n_iles))), user_api="blas")
     w = _convois(pickle.load(open(reprise, "rb")), echelle) if reprise else creer_ile(nom, graine, echelle, llm)
     poser_gouvernement(w, nom, gouv)
     if ouvert: w.archipel = {"noms": tuple(noms), "ouvert": True}

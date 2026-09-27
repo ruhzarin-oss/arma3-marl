@@ -16,12 +16,21 @@ Tables :
   marches     un marche par ligne : caisse, echelle, marge, et pour chaque bien prix, stock, demande, offre ( photo du soir )
   entreprises une entreprise par ligne : type, lieu, caisse, activite, et le stock de chaque bien ( photo du soir )
   etat        une ligne : caisse de l Etat, TVA, impot sur le revenu, lois en vigueur ( json ), cours de l or ( photo du soir )
+L etat des 27 domaines ( 27/09, « il faut tout enregistrer » ; photo du soir, `photo_pays` ) :
+  pays_habitants, pays_menages   toutes les colonnes des domaines ( p.colonnes ), une ligne par entite ( id )
+  <domaine>__<table>             chaque table en colonnes d un domaine ( batiments, effectifs, entites... ), une ligne
+                                 par rang ( id ) ; une colonne 2D devient nom.0, nom.1, ...
+  tableaux    domaine, nom, forme, type, valeurs ( a plat ) : chaque tableau numpy d un domaine
+  objets      domaine, attribut, cle, valeur ( json ) : chaque attribut d un domaine qui n est ni tableau ni table ; un
+              dictionnaire, une liste ou un ensemble donne une ligne par entree ( baux, detentions, comptes, missions ) ;
+              le socle aussi ( creances, parc, stocks... ), sous le nom « socle.<partie> »
 Le jour est dans le nom du dossier ( jour=00012 ) : pyarrow et DuckDB le rendent comme une colonne.
 
 L enregistreur LIT seulement : il ne tire aucun hasard et ne touche aucun etat ( porte_enregistreur : le monde
 enregistre est identique au bit au monde nu, et les totaux enregistres retombent sur ceux du grand livre ). Il ne se
 sauvegarde pas avec le monde : un instantane repris n a plus d enregistreur, on en rebranche un."""
-import json, os
+import itertools, json, os
+from collections import deque
 import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -177,11 +186,84 @@ class Enregistreur:
              "euros_par_unite": float(o.get("dernier_taux") or 0.0), "or_euros_g": float(o.get("cours") or 0.0)}
         pq.write_table(pa.Table.from_pylist([r]), self._chemin("etat", jour), compression="zstd")
 
+    def _ecrire_colonnes(self, nom, jour, cols, n):
+        """Des colonnes numpy ( 1D, ou 2D a plat en nom.0, nom.1, ... ), lignes 0 .. n-1, avec leur rang ( l identifiant
+        de l habitant ou du menage pour les colonnes du pays ), par tranches."""
+        plates = {"rang": np.arange(n, dtype=np.int64)}
+        for c, a in cols.items():
+            if not isinstance(a, np.ndarray) or a.dtype == object or len(a) < n: continue
+            if a.ndim == 1: plates[c] = a
+            elif a.ndim >= 2:
+                a2 = a.reshape(a.shape[0], -1)
+                for j in range(a2.shape[1]): plates[f"{c}.{j}"] = a2[:, j]
+        ecrivain = None
+        for a in range(0, max(n, 1), PHOTO_TRANCHE):
+            t = pa.table({c: pa.array(v[a:min(n, a + PHOTO_TRANCHE)]) for c, v in plates.items()})
+            if ecrivain is None: ecrivain = pq.ParquetWriter(self._chemin(nom, jour), t.schema, compression="zstd")
+            ecrivain.write_table(t)
+        if ecrivain is not None: ecrivain.close()
+
+    def _ecrire_table(self, nom, jour, cols):
+        """Des colonnes pyarrow deja construites, en une fois ( les tables d objets : quelques centaines de milliers de
+        lignes au plus par ile )."""
+        pq.write_table(pa.table(cols), self._chemin(nom, jour), compression="zstd")
+
+    def photo_pays(self, jour, suffixe=""):
+        """L etat de chaque domaine du pays et du socle, tel quel : colonnes, tables, tableaux, objets ( voir le haut du
+        module ). Lecture seule : des attributs ( __slots__, __dict__ ), jamais une propriete ni une methode."""
+        p = getattr(self.w, "pays", None)
+        if p is None: return
+        tb = self.w.table
+        n_de = {"habitant": tb.n, "menage": getattr(getattr(tb, "menages", None), "n", 0)}
+        for g, C_ in p.colonnes.items():
+            self._ecrire_colonnes(f"pays_{g}s{suffixe}", jour, C_.cols, int(n_de.get(g, C_.cap)))
+        tableaux, objets = [], []
+        parties = [(nom, d) for nom, d in p.domaines.items()]
+        parties += [(f"socle.{k}", v) for k, v in attributs(p.socle) if k not in SOCLE_DEJA_ENREGISTRE]
+        for nom, d in parties:
+            for k, v in attributs(d):
+                if k in IGNORES: continue
+                if isinstance(v, np.ndarray):
+                    if v.dtype == object: objets.append((nom, k, "", en_json(v.tolist())))
+                    else: tableaux.append((nom, k, list(v.shape), str(v.dtype), np.asarray(v, np.float64).reshape(-1)))
+                elif est_table(v):
+                    self._ecrire_colonnes(f"{nom}__{k}{suffixe}", jour, v.cols, int(v.n))
+                    objets.append((nom, k, "", en_json({"table": f"{nom}__{k}", "n": int(v.n)})))
+                elif isinstance(v, (dict, list, tuple, set, frozenset, deque)):
+                    if isinstance(v, dict): cles, vals = [str(c) for c in v], list(v.values())
+                    else:
+                        vals = sorted(v, key=str) if isinstance(v, (set, frozenset)) else list(v)
+                        cles = [str(i) for i in range(len(vals))]
+                    if not vals: objets.append((nom, k, "", "{}" if isinstance(v, dict) else "[]")); continue
+                    # des entrees semblables ( nombres, ou objets d une meme classe ) : une table en colonnes, une colonne
+                    # par attribut ( bien plus rapide que le json, et lisible par DuckDB ) ; sinon une ligne json chacune
+                    cols = en_colonnes(vals)
+                    if cols is not None:
+                        self._ecrire_table(f"{nom}__{k}{suffixe}", jour, {"cle": pa.array(cles, pa.string()), **cols})
+                        objets.append((nom, k, "", en_json({"table": f"{nom}__{k}", "n": len(vals)})))
+                    else:
+                        for c, x in zip(cles, vals): objets.append((nom, k, c, en_json(x)))
+                else: objets.append((nom, k, "", en_json(v)))
+        if tableaux:
+            bouts = np.cumsum([0] + [len(x[4]) for x in tableaux]).astype(np.int64)
+            valeurs = pa.LargeListArray.from_arrays(pa.array(bouts), pa.array(np.concatenate([x[4] for x in tableaux])))
+            t = pa.table({"domaine": pa.array([x[0] for x in tableaux], pa.string()),
+                          "nom": pa.array([x[1] for x in tableaux], pa.string()),
+                          "forme": pa.array([x[2] for x in tableaux], pa.list_(pa.int64())),
+                          "type": pa.array([x[3] for x in tableaux], pa.string()),
+                          "valeurs": valeurs})
+            pq.write_table(t, self._chemin("tableaux" + suffixe, jour), compression="zstd")
+        if objets:
+            t = pa.table({c: pa.array([x[i] for x in objets], pa.string())
+                          for i, c in enumerate(("domaine", "attribut", "cle", "valeur"))})
+            pq.write_table(t, self._chemin("objets" + suffixe, jour), compression="zstd")
+
     def fin_de_jour(self, jour):
         for t in SCHEMAS: self._ecrire(t)
         self._ecrire_lots()
         self.photo(jour)
         self.photo_economie(jour)
+        self.photo_pays(jour)
 
     def fermer(self):
         for t in SCHEMAS: self._ecrire(t)
@@ -191,6 +273,132 @@ class Enregistreur:
 def PAS_PAR_JOUR():
     from . import config as C
     return C.PAS_PAR_JOUR
+
+
+# ------------------------------------------------------------------ lire l etat d un domaine sans le toucher
+# ce que photo_pays saute : ce qui est deja enregistre autrement ( flux du grand livre, journal, choix ), l enregistreur
+# lui-meme, et les generateurs de hasard ( leur etat se rejoue par la graine )
+IGNORES = frozenset(("enregistreur",))
+SOCLE_DEJA_ENREGISTRE = frozenset(("livre", "journal", "hasard", "enregistreur"))
+JSON_TABLEAU_MAX = 10_000          # un tableau DANS un objet : ses valeurs jusque-la, sa forme au-dela
+
+
+def attributs(o):
+    """Les attributs d un objet ( __slots__ de toute la hierarchie, puis __dict__ ), sans appeler aucune propriete."""
+    vus = set()
+    for cls in type(o).__mro__:
+        s = cls.__dict__.get("__slots__", ())
+        for k in ((s,) if isinstance(s, str) else s):
+            if k in vus or k in ("__dict__", "__weakref__"): continue
+            vus.add(k)
+            try: yield k, object.__getattribute__(o, k)
+            except AttributeError: pass
+    for k, v in getattr(o, "__dict__", {}).items():
+        if k not in vus: vus.add(k); yield k, v
+
+
+def est_table(v):
+    return isinstance(getattr(v, "cols", None), dict) and isinstance(getattr(v, "n", None), (int, np.integer))
+
+
+_TYPES_SIMPLES = frozenset((bool, int, float, str, type(None)))      # les types exacts : le cas de loin le plus frequent
+
+
+def _simple(x, prof=0):
+    t = type(x)
+    if t in _TYPES_SIMPLES: return x                                      # ( 27/09 : un test au lieu de la chaine d isinstance )
+    if prof < 3:                                                          # une liste ou un dict de scalaires : tel quel ( json
+        if t is list and set(map(type, x)) <= _TYPES_SIMPLES: return x   # les ecrit a l identique ), sans un appel par valeur
+        if t is dict and set(map(type, x)) <= {str} and set(map(type, x.values())) <= _TYPES_SIMPLES: return x
+    if x is None or isinstance(x, (bool, int, float, str)): return x
+    if isinstance(x, np.generic): return x.item()
+    if isinstance(x, np.ndarray):
+        return x.tolist() if x.size <= JSON_TABLEAU_MAX and x.dtype != object else {"tableau": list(x.shape), "type": str(x.dtype)}
+    if isinstance(x, dict): return {str(k): _simple(v, prof + 1) for k, v in x.items()} if prof < 3 else f"dict[{len(x)}]"
+    if isinstance(x, (list, tuple, deque)): return [_simple(v, prof + 1) for v in x] if prof < 3 else f"liste[{len(x)}]"
+    if isinstance(x, (set, frozenset)): return sorted((_simple(v, prof + 1) for v in x), key=str) if prof < 3 else f"ensemble[{len(x)}]"
+    if isinstance(x, np.random.Generator) or callable(x): return type(x).__name__
+    if prof >= 1:                      # un objet dans un objet : son identite, pas son contenu ( il a sa propre ligne )
+        i = getattr(x, "id", None)
+        return {"objet": type(x).__name__, "id": _simple(i, 9) if i is not None else None}
+    return {"objet": type(x).__name__, **{k: _simple(v, prof + 1) for k, v in attributs(x) if k not in IGNORES}}
+
+
+def en_json(x):
+    return json.dumps(_simple(x), ensure_ascii=False, default=str)
+
+
+SCALAIRES = (bool, int, float, str, np.generic, type(None))
+_NOMS_DE_CLASSE = {}
+
+
+def _noms(cls):
+    """Les attributs d une classe a __slots__ ( toute la hierarchie ), gardes une fois pour toutes."""
+    r = _NOMS_DE_CLASSE.get(cls)
+    if r is None:
+        r = []
+        for c in cls.__mro__:
+            s = c.__dict__.get("__slots__", ())
+            for k in ((s,) if isinstance(s, str) else s):
+                if k not in r and k not in ("__dict__", "__weakref__") and k not in IGNORES: r.append(k)
+        _NOMS_DE_CLASSE[cls] = r
+    return r
+
+
+def _types(vals): return set(map(type, vals))                # les types presents, en un passage C ( 27/09 )
+def _scalaires(tps): return all(issubclass(t, SCALAIRES) for t in tps)
+def _conteneurs_simples(tps): return all(issubclass(t, (list, tuple, set, frozenset)) for t in tps)
+
+
+def _listes_de_scalaires(vals, tps=None):
+    """`all( _liste_de_scalaires( x ) for x in vals )`, par les types ( memes reponses, un passage C )."""
+    if tps is None: tps = _types(vals)
+    return _conteneurs_simples(tps) and _scalaires(_types(itertools.chain.from_iterable(vals)))
+
+
+def _colonne(vals, tps=None):
+    """Une colonne pyarrow : telle quelle si elle est homogene, sinon ses objets par leur identite et ses conteneurs en
+    json, le tout en texte. 27/09 : les types se lisent en un passage ( set( map( type, ... ) ) ), plus une boucle Python
+    par valeur - la photo du soir des 27 domaines coutait 5 s par jour a 100 000 habitants."""
+    if tps is None: tps = _types(vals)
+    if _scalaires(tps):
+        v2 = [x.item() if isinstance(x, np.generic) else x for x in vals] if any(issubclass(t, np.generic) for t in tps) else vals
+        try: return pa.array(v2)
+        except (pa.ArrowInvalid, pa.ArrowTypeError, TypeError, OverflowError):
+            return pa.array([None if x is None else str(x) for x in v2], pa.string())
+    if _listes_de_scalaires(vals, tps):
+        v2 = [[y.item() if isinstance(y, np.generic) else y for y in (sorted(x, key=str) if isinstance(x, (set, frozenset)) else x)]
+              for x in vals]
+        try: return pa.array(v2)
+        except (pa.ArrowInvalid, pa.ArrowTypeError, TypeError, OverflowError): pass
+    out = []
+    for x in vals:
+        if x is None: out.append(None)
+        elif isinstance(x, SCALAIRES): out.append(str(x.item() if isinstance(x, np.generic) else x))
+        elif isinstance(x, CONTENEURS): out.append(json.dumps(_simple(x, 1), ensure_ascii=False, default=str))
+        else:                          # un objet dans un objet : « Classe:id » ( il a sa propre ligne ailleurs )
+            i = getattr(x, "id", None)
+            out.append(type(x).__name__ if i is None else f"{type(x).__name__}:{i}")
+    return pa.array(out, pa.string())
+
+
+CONTENEURS = (dict, list, tuple, set, frozenset, deque, np.ndarray)
+
+
+def _liste_de_scalaires(x):
+    return isinstance(x, (list, tuple, set, frozenset)) and all(isinstance(y, SCALAIRES) for y in x)
+
+
+def en_colonnes(vals):
+    """Des entrees semblables en colonnes : des nombres ou des textes, ou des listes de nombres ( une colonne
+    « valeur » ), ou des objets d une meme classe a __slots__ ( une colonne par attribut ) ; None sinon."""
+    tps = _types(vals)
+    if _scalaires(tps) or _listes_de_scalaires(vals, tps):
+        return {"valeur": _colonne(vals, tps)}
+    cls = type(vals[0])
+    if not _noms(cls) or getattr(cls, "__dict__", {}).get("__slots__") is None or tps != {cls}:
+        return None
+    return {f"a.{a}": _colonne([getattr(x, a, None) for x in vals]) for a in _noms(cls)}
 
 
 # ------------------------------------------------------------------ brancher sur un monde
@@ -205,6 +413,7 @@ def brancher(w, dossier, ile=None):
         if hasattr(p.socle, "journal"): p.socle.journal.enregistreur = e
         for dec in _decideurs(p): dec.enregistreur = e
     e.photo(w.jour, suffixe="_debut")       # l etat au branchement : ce que l installation a deja fait
+    e.photo_pays(w.jour, suffixe="_debut")
     return e
 
 

@@ -1089,6 +1089,29 @@ def _apparier_reference(p, d, offres, chercheurs):
     libres = {k: [b for b in lst if T["prix"][b] > 0] for k, lst in offres.items()}
     tous = sorted((m for lst in chercheurs.values() for m in lst),
                   key=lambda m: (0 if log[m] < 0 or st[m] == ABRI else 1, d.cherche[m][0], m))
+    # 27/09 : les candidats d un chercheur se calculent en colonnes, sur les offres de tous ses lieux voisins mises bout
+    # a bout ( une fois par lieu d origine ) ; un logement pris est marque dans `pris`. Memes flottants dans le meme
+    # ordre, memes departages ( score puis numero ) : le resultat est celui de la boucle d origine, au bit ( portes des
+    # domaines ) ; elle prenait 75 % du temps d une ile de 100 000 habitants ( guerre des iles, 26/09 ).
+    surf, prix = T["surface"], T["prix"]
+    pris = np.zeros(len(surf), bool)
+    offres_de = {}
+
+    def _offres_voisines(k):
+        r = offres_de.get(k)
+        if r is None:
+            bs, kms, k2s = [], [], []
+            for km, k2 in _voisins(p, d, k):
+                lst = libres.get(k2)
+                if lst: bs.append(np.asarray(lst, np.int64)); kms.append(np.full(len(lst), km)); k2s.append(np.full(len(lst), k2, np.int64))
+            if bs:
+                B = np.concatenate(bs); s = surf[B]
+                cap = np.where(s < 9.0, 0, np.where(s < 16.0, 1, 2 + np.floor_divide(s - 16.0, 9.0))).astype(np.int64)
+                r = (B, np.concatenate(kms), np.concatenate(k2s), cap)
+            else: r = ()
+            offres_de[k] = r
+        return r
+
     for mid in tous:
         mg = w.menages[mid]
         n = _n_vivants(mg)
@@ -1098,7 +1121,7 @@ def _apparier_reference(p, d, offres, chercheurs):
                  and T["chantier"][b] < 0 and T["lieu"][b] == k and capacite(T["surface"][b]) >= n and T["bail"][b] < 0]
         if siens:
             b = max(siens, key=lambda x: (T["surface"][x], -x))
-            if b in libres.get(k, ()): libres[k].remove(b)
+            if b in libres.get(k, ()): pris[b] = True
             _liberer(p, d, mg, "demenagement"); _occuper(p, d, mg, b, PROPRIETAIRE)
             p.compter("emmenagement_proprietaire"); continue
         plafond = EFFORT_MAX * revenu_mensuel(p, mg)
@@ -1106,19 +1129,24 @@ def _apparier_reference(p, d, offres, chercheurs):
         s_act = T["surface"][actuel] if actuel >= 0 and st[mid] != ABRI else 0.0
         libre_choix = s_act == 0.0 or MOTIFS_RECHERCHE[d.cherche[mid][1]] == "fin_bail"
         utile = surface_min(n) + 30.0
-        cands = []
-        for km, k2 in _voisins(p, d, k):
-            for b in libres.get(k2, ()):
-                if T["prix"][b] <= plafond and capacite(T["surface"][b]) >= n and (libre_choix or T["surface"][b] > s_act):
-                    cands.append((-min(T["surface"][b], utile) / T["prix"][b] / (1.0 + km / RAYON_RECHERCHE_KM), b, k2))
-        for _, b, k2 in sorted(cands)[:3]:
+        r = _offres_voisines(k)
+        if not r: continue
+        B, KM, K2, CAP = r
+        pb, sb = prix[B], surf[B]
+        ok = ~pris[B] & (pb <= plafond) & (CAP >= n)
+        if not libre_choix: ok &= sb > s_act
+        j = np.nonzero(ok)[0]
+        if not len(j): continue
+        score = -np.minimum(sb[j], utile) / pb[j] / (1.0 + KM[j] / RAYON_RECHERCHE_KM)
+        for i in j[np.lexsort((B[j], score))[:3]].tolist():
+            b, k2 = int(B[i]), int(K2[i])
             loyer = float(T["prix"][b])
             if (inc is not None and inc[mid] >= INCIDENTS_MAX) or mg.caisse < loyer or proprietaire(p, b) is mg:
                 d.stats["candidats_refuses"] += 1; p.compter("candidat_refuse"); continue
             _liberer(p, d, mg, "demenagement")
             _changer_de_lieu(p, mg, w.carte.lieux[d.lieux[k2]])
             _signer(p, d, b, mg, loyer)
-            libres[k2].remove(b)
+            pris[b] = True
             break
 
 
@@ -1401,7 +1429,7 @@ def _travail(p):
             for ch in cs:
                 for i in ch.ouvriers:
                     if (not tb.vivant[i] or tb.travail[i] >= 0 or (tb.etat[i] == ETAT_I and float(tb.gravite[i]) > 0.5)
-                            or float(tb.faim[i]) > (C.ABSENCE_FAIM_REALISTE if w.faim_realiste else C.ABSENCE_FAIM)): continue
+                            or float(tb.faim[i]) > C.ABSENCE_FAIM): continue
                     brut = 8.0 * PO.SALAIRE_HORAIRE["ouvrier"]
                     k = int(tb.menage[i])
                     mg = PO.Menage(k, mt) if k >= 0 else None
