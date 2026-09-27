@@ -92,6 +92,7 @@ def evaluer_en_guerre(source, ile, sc, echelle=ECHELLE, jours=JOURS, graine=C.GR
         appliquer_scenario(w, sc, rng)
         arc.jours(1)
         serie.append(round(arc.commande(ile, "etat")["faim"], 4))
+    patr = sum(1 for ev in w.evenements[n0:] if ev.get("type") == "patrouille_annulee")
     for ev in w.evenements[n0:]:
         if ev.get("type") != "decision_gouvernement": continue
         if str(ev.get("motifs", "")).startswith("cerveau indisponible"): replis += 1
@@ -100,7 +101,7 @@ def evaluer_en_guerre(source, ile, sc, echelle=ECHELLE, jours=JOURS, graine=C.GR
             if not a.get("acceptee"): refus += 1; raisons[motif_du_refus(a)] += 1
     tenue, _ = w.pays.socle.conservation.tenue()
     m = {"jours_de_faim": round(sum(serie), 3), "faim_par_jour": serie, "morts_nets": v0 - int(w.table.vivant[:w.table.n].sum()),
-         "dette": ET.sitrep(w.pays)["finances"].get("dette"), "refus": refus, "actions": actions,
+         "dette": ET.sitrep(w.pays)["finances"].get("dette"), "refus": refus, "actions": actions, "patrouilles_annulees": patr,
          "raisons_refus": dict(raisons.most_common(6)), "jours_joues_par_les_regles": replis, "conservation": bool(tenue), "guerre": GM.bulletin_guerre(w)}
     m["score"] = AC.score(m)
     arc.fermer()
@@ -128,6 +129,7 @@ def evaluer(source, ile, sc, graines, travailleurs=3):
     m = {"jours_de_faim": moy("jours_de_faim"), "morts_nets": moy("morts_nets"), "dette": moy("dette"),
          "refus": sum(r["refus"] for r in res), "jours_joues_par_les_regles": sum(r["jours_joues_par_les_regles"] for r in res),
          "conservation": all(r["conservation"] for r in res), "actions": sum(r.get("actions", 0) for r in res),
+         "patrouilles_annulees": sum(r.get("patrouilles_annulees", 0) for r in res),
          "raisons_refus": dict(sum((Counter(r.get("raisons_refus", {})) for r in res), Counter()).most_common(6)),
          "faim_par_jour": [round(sum(r["faim_par_jour"][j] for r in res) / len(res), 4) for j in range(len(res[0]["faim_par_jour"]))],
          "par_monde": {str(g): r["jours_de_faim"] for g, r in zip(graines, res)}}
@@ -258,6 +260,7 @@ def evaluer_reel(source, instantane, ile, jours=JOURS_REEL):
     for _ in range(jours):
         T.jours(w, 1)
         serie.append(round(ile_.commande("etat")["faim"], 4))
+    patr = sum(1 for ev in w.evenements[n0:] if ev.get("type") == "patrouille_annulee")
     for ev in w.evenements[n0:]:
         if ev.get("type") != "decision_gouvernement": continue
         if str(ev.get("motifs", "")).startswith("cerveau indisponible"): replis += 1
@@ -266,7 +269,7 @@ def evaluer_reel(source, instantane, ile, jours=JOURS_REEL):
             if not a.get("acceptee"): refus += 1; raisons[motif_du_refus(a)] += 1
     tenue, _ = w.pays.socle.conservation.tenue()
     m = {"jours_de_faim": round(sum(serie), 3), "faim_par_jour": serie, "morts_nets": v0 - int(w.table.vivant[:w.table.n].sum()),
-         "dette": ET.sitrep(w.pays)["finances"].get("dette"), "refus": refus, "actions": actions,
+         "dette": ET.sitrep(w.pays)["finances"].get("dette"), "refus": refus, "actions": actions, "patrouilles_annulees": patr,
          "raisons_refus": dict(raisons.most_common(6)), "jours_joues_par_les_regles": replis, "conservation": bool(tenue)}
     m["score"] = AC.score(m)
     return m
@@ -320,6 +323,9 @@ plus ), importer de la nourriture destination « population » ( l aide alimenta
 au port et elle est distribuee aux menages sans nourriture ; dans les credits interieur, que fixer_budget peut porter a
 trois fois le vote : chaque ligne de finances.budget porte son « plancher » et son « plafond », reste entre les deux ), subventionner, fixer les budgets ( la defense comprise ). Tout import passe par les devises de la
 banque centrale ( section « exterieur » du bulletin ) : sans reserves de change, il est refuse ; exporter_or en rapporte.
+Ton armee ne patrouille que si son depot a du carburant ( section « armee » du bulletin : carburant_depot,
+patrouilles_annulees_hier ) : c est a toi de l acheter ( acheter carburant, destination « armee », dans les credits de
+la defense ) - dans la guerre, tes gouvernements ne l achetaient plus, et chaque patrouille etait annulee.
 Le bulletin porte aussi « refus_hier » : les actions refusees a ta decision d hier, chacune avec sa raison ( souvent les
 bornes permises, par exemple « credits X hors [a ; b] » ). Ne rejoue jamais une action refusee telle quelle : lis sa raison
 et corrige-la ( reste dans les bornes ) ou choisis autre chose. Une action refusee ne fait rien et compte contre toi.
