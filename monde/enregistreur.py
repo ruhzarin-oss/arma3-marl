@@ -305,7 +305,11 @@ _TYPES_SIMPLES = frozenset((bool, int, float, str, type(None)))      # les types
 
 
 def _simple(x, prof=0):
-    if type(x) in _TYPES_SIMPLES: return x                                # ( 27/09 : un test au lieu de la chaine d isinstance )
+    t = type(x)
+    if t in _TYPES_SIMPLES: return x                                      # ( 27/09 : un test au lieu de la chaine d isinstance )
+    if prof < 3:                                                          # une liste ou un dict de scalaires : tel quel ( json
+        if t is list and set(map(type, x)) <= _TYPES_SIMPLES: return x   # les ecrit a l identique ), sans un appel par valeur
+        if t is dict and set(map(type, x)) <= {str} and set(map(type, x.values())) <= _TYPES_SIMPLES: return x
     if x is None or isinstance(x, (bool, int, float, str)): return x
     if isinstance(x, np.generic): return x.item()
     if isinstance(x, np.ndarray):
