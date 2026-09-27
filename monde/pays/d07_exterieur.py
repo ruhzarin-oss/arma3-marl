@@ -187,6 +187,7 @@ MOTIFS = {   # motif : ( nature SCN, ligne de la balance ou None si la douane le
     "export_or_etat": ("achat", None), "import_sante": ("achat", None), "import_vehicules": ("achat", None),
     "import_armement": ("achat", None),
     "fret_import": ("achat", "services"), "prime_reassurance": ("achat", "services"),
+    "recette_touristique": ("achat", "services"),      # domaine 28 : ce que les visiteurs etrangers paient
     "indemnite_reassurance": ("transfert_courant", "revenus_secondaires"),
     "vente_import": ("achat", None), "achat_export": ("achat", None),
     "transfert_migrant": ("transfert_capital", "capital"), "envoi_de_fonds": ("transfert_courant", "revenus_secondaires"),
@@ -611,10 +612,11 @@ class RemplaceImporter:
 
     def __init__(self, pays): self.pays = pays
 
-    def __call__(self, b, q, cout=None):
+    def __call__(self, b, q, cout=None, destination="reserve"):
         p = self.pays; w = p.w
-        q, paye = importer_au_port(p, w.gouv, StockE1(w.publics["reserve"], p.socle.catalogue), b, q, "import_etat")
+        q, paye = importer_au_port(p, w.gouv, StockE1(w.publics[destination], p.socle.catalogue), b, q, "import_etat")
         w.noter("import", bien=b, quantite=q, cout=round(paye))
+        return q
 
 
 class RemplaceExporterOr:

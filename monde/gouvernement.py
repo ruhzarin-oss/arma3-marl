@@ -25,6 +25,11 @@ class Gouvernement:
         """Applique UNE action du catalogue. Rend ( acceptee, raison ). Toute action hors catalogue ou hors bornes est
         refusee et journalisee : le gouvernement ne peut pas casser le monde."""
         t = action.get("type")
+        # les bornes d achat et d import suivent la taille du pays ( 27/09, la guerre des iles : 2 000 unites etaient faites
+        # pour le monde E1 de 500 habitants ; une ile de 100 000 en mange ~100 000 par jour ) - la meme echelle que les
+        # regles du domaine 6 ( decider_regles_etat : k = vivants / 500 ) et que les stocks des marches ( m.echelle ) ;
+        # a 500 habitants ou moins, rien ne change
+        k = max(1.0, float(monde.table.vivant[:monde.table.n].sum()) / 500.0) if getattr(monde, "table", None) is not None else 1.0
         try:
             if t == "fixer_impot":
                 n, v = action["nom"], float(action["valeur"])
@@ -38,7 +43,7 @@ class Gouvernement:
                 self.facteur_salaire_public = v; return True, ""
             if t == "acheter":
                 b, q = action["bien"], float(action["quantite"])
-                if b not in C.BIENS or q <= 0 or q > 2000: return False, f"achat invalide {b} {q}"
+                if b not in C.BIENS or q <= 0 or q > 2000 * k: return False, f"achat invalide {b} {q}"
                 dest = action.get("destination", "hopitaux" if b == "remedes" else "armee" if b == "carburant" else "reserve")
                 if dest not in ("hopitaux", "armee", "reserve", "population"): return False, f"destination inconnue {dest}"
                 cout = q * monde.prix_moyen(b) * 1.1
@@ -46,10 +51,22 @@ class Gouvernement:
                 self.commandes.append({"bien": b, "quantite": q, "destination": dest}); return True, ""
             if t == "importer":
                 b, q = action["bien"], float(action["quantite"])
-                if b not in C.BIENS or b == "or" or q <= 0 or q > 2000: return False, f"import invalide {b} {q}"
+                if b not in C.BIENS or b == "or" or q <= 0 or q > 2000 * k: return False, f"import invalide {b} {q}"
+                # l aide alimentaire ( 27/09 ) : un gouvernement face a la famine importe du grain et le distribue a ceux qui
+                # n ont plus rien - destination « population », la ration de l Etat ; sans destination, la reserve comme avant
+                dest = action.get("destination", "reserve")
+                if dest not in ("reserve", "population"): return False, f"destination inconnue {dest}"
+                if dest == "population" and b != "nourriture": return False, f"seule la nourriture va a la population ( {b} )"
                 cout = q * C.PRIX_MONDE[b] * 1.2
                 if cout > self.caisse: return False, "caisse insuffisante"
-                monde.importer(b, q, cout); return True, ""
+                recu = monde.importer(b, q, cout) if dest == "reserve" else monde.importer(b, q, cout, dest)
+                # le port ( domaine 7 ) rend ce qui est vraiment entre : sans devises a la banque centrale, rien n entre
+                # ( 27/09 : la vraie Stratis, reserves de change a -55 millions d euros, « acceptait » des imports vides )
+                if recu is not None and recu <= 1e-9:
+                    return False, f"import refuse : rien n est entre sur {q:.0f} ( devises de la banque centrale ou caisse de l Etat )"
+                if recu is not None and recu < q * (1.0 - 1e-9):
+                    return True, f"importe {recu:.0f} sur {q:.0f} ( devises de la banque centrale ou caisse de l Etat )"
+                return True, ""
             if t == "exporter_or":
                 q = float(action["quantite"])
                 return monde.exporter_or(q)

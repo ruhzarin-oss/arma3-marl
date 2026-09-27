@@ -56,6 +56,7 @@ DOMAINES = (   # dependances DURES seulement : celles dont le code du domaine ap
     ("armee", "d25_armee", ("travail", "industrie", "transport", "education")),
     ("armee_soutien", "d26_armee_soutien", ("armee", "logistique", "hopitaux", "medias")),
     ("armee_tactique", "d27_armee_tactique", ("armee_soutien", "justice")),
+    ("tourisme", "d28_tourisme", ("travail", "exterieur")),      # 27/09 : l exportation des iles ( guerre des iles )
 )
 MODULE = {nom: mod for nom, mod, _ in DOMAINES}
 DEPEND = {nom: dep for nom, _, dep in DOMAINES}

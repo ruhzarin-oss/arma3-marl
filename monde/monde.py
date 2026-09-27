@@ -264,9 +264,9 @@ class Monde:
     def prix_moyen(self, b): return sum(m.prix[b] for m in self.marches.values()) / len(self.marches)
 
     # ------------------------------------------------------------------ le port et l Etat
-    def importer(self, b, q, cout):
+    def importer(self, b, q, cout, destination="reserve"):
         self.gouv.caisse -= cout; self.ext["sortie"] += cout
-        self.publics["reserve"][b] += q; self.flux["importe"][b] += q
+        self.publics[destination][b] += q; self.flux["importe"][b] += q
         self.noter("import", bien=b, quantite=q, cout=round(cout))
 
     def exporter_or(self, q):
@@ -926,14 +926,22 @@ class Monde:
         chauffeur.heures_jour += 2 * duree * C.MINUTES_PAR_PAS / 60.0
         return True
 
+    # 27/09 : la charge d un convoi suit la taille du pays. Un convoi du moteur porte 60 unites, le chargement d un
+    # petit camion d un monde de 500 habitants ; a 100 000 habitants ( echelle 200 ), une ferme n envoyait que 24 x 60 =
+    # 1 440 rations par jour au marche : Stratis avait faim a 98 % avec 230 jours de vivres dans ses greniers ( mesure
+    # du 27/09 : a la charge de l echelle, 0 % en un jour, sans une importation ). Un convoi a l echelle 200 est une
+    # flotte : meme chauffeur, meme gazole, au modele pres. L archipel la pose a l echelle de l ile ; 1 ailleurs.
+    echelle_convois = 1.0
+
     def expedier(self, h):
+        cap = C.CAPACITE_CAMION * self.echelle_convois
         for e in self.entreprises.values():
             m = self.marches[e.lieu.marche.id]
             # vendre la production
             for b in e.produits:
                 if b == "electricite": continue
-                q = min(e.stocks[b], C.CAPACITE_CAMION)
-                if q >= (C.CAPACITE_CAMION * 0.5 if b != "or" else 0.5):
+                q = min(e.stocks[b], cap)
+                if q >= (cap * 0.5 if b != "or" else 0.5):
                     cargo = {b: q}
                     # ! 22/09 : c est l ACHETEUR ( le marche ) qui paie le carburant. Les fermes cooperatives partent sans caisse :
                     # quand le vendeur payait le transport, aucune recolte ne quittait jamais le village.
@@ -942,7 +950,7 @@ class Monde:
             for b, need in e.intrants.items():
                 if b == "electricite": continue
                 if e.stocks[b] < need * 8 and m.stocks[b] > 1:
-                    q = min(C.CAPACITE_CAMION, m.stocks[b]); cout = q * m.prix[b] * (1 + self.gouv.tva)
+                    q = min(cap, m.stocks[b]); cout = q * m.prix[b] * (1 + self.gouv.tva)
                     if e.caisse >= cout:
                         m.demande[b] += q
                         if self.lancer_convoi(m.lieu, e.lieu, {b: q}, e, "approvisionnement", m):
@@ -961,7 +969,7 @@ class Monde:
         for cmd in list(self.gouv.commandes):
             b, q, dest = cmd["bien"], cmd["quantite"], cmd["destination"]
             m = max(self.marches.values(), key=lambda x: x.stocks[b])
-            q = min(q, m.stocks[b], C.CAPACITE_CAMION)
+            q = min(q, m.stocks[b], cap)
             # ! 26/09 : une commande publique est UNE demande, comptee le jour ou le marche la voit. Recomptee a chaque
             # heure et chaque jour tant qu elle n etait pas servie, elle gonflait la demande de carburant de Malden de
             # 48 000 unites par jour ( 600 000 au jour 12 pour 10 000 habitants ) : le negoce commandait l impossible.

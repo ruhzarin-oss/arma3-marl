@@ -140,6 +140,7 @@ class FauxGuerre:
         self.zones = zones
         self.proprio = dict(proprio or {z["n"]: ("WEST" if z.get("camp_base") != 1 else "EAST") for z in zones})
         self.verse = {"EAST": 0.0, "WEST": 0.0}
+        self.depense = {"EAST": 0.0, "WEST": 0.0}      # points depenses en achats, fixes par le test
         self.tours = 0
         self.soldats = {"EAST": {}, "WEST": {}}      # numero -> ( x, y ) des vivants
         self.morts = {"EAST": [], "WEST": []}         # morts pas encore rapportes
@@ -163,5 +164,5 @@ class FauxGuerre:
         self.tours += 1
         return {"zones": dict(self.proprio),
                 "camps": {c: {"verse_total": v, "caisse": v, "vivants": len(self.soldats[c]), "groupes": 0, "pertes": 0,
-                              "depense": 0.0, "achats": 0, "cible": None} for c, v in self.verse.items()},
+                              "depense": self.depense[c], "achats": 0, "cible": None} for c, v in self.verse.items()},
                 "temps": self.tours * 60, "recu": {"rtt_ms": 0}}

@@ -112,7 +112,7 @@ def _un(args):
 
 def evaluer(source, ile, sc, graines, travailleurs=3):
     from multiprocessing import get_context
-    with get_context("fork").Pool(min(travailleurs, len(graines))) as pool:
+    with get_context("spawn").Pool(min(travailleurs, len(graines))) as pool:      # pas fork : voir deux()
         res = pool.map(_un, [(source, ile, sc, g) for g in graines])
     err = [r["erreur"] for r in res if "erreur" in r]
     if err: raise AC.CodeRefuse(err[0])
@@ -218,10 +218,128 @@ def main():
     a.add_argument("--ile", default=None, help="sans : l ile la plus en difficulte")
     a.add_argument("--versions", type=int, default=6)
     a.add_argument("--sans-reflexion", action="store_true")
+    a.add_argument("--reel", default=None, help="un instantane de la guerre : Qwen s entraine sur l etat reel de l ile")
     x = a.parse_args()
     ile = x.ile or ile_en_difficulte(x.guerre)
-    conseil(ile, x.guerre, x.versions, penser=not x.sans_reflexion)
+    if x.reel: conseil_reel(ile, x.reel, x.versions, penser=not x.sans_reflexion)
+    else: conseil(ile, x.guerre, x.versions, penser=not x.sans_reflexion)
     return 0
+
+
+
+# ------------------------------------------------------------------ 5. le conseil sur l etat reel ( 27/09 )
+# Le premier conseil s entrainait sur de petits pays NEUFS : 20 jours ou la faim reste vers 2 %, alors que la vraie
+# Malden du jour 250 a 38 % de faim ( et Stratis 98 % au jour 268 ). Qwen apprenait a gerer un pays qui va bien. Avec le
+# marche immobilier accelere ( x15 ), une copie de l ile reelle ( l instantane de la guerre ) se joue en ~15 s par jour :
+# chaque version est notee sur la VRAIE crise, contre le gouvernement en place, sur la meme copie ; examen = la meme
+# copie sur un horizon double.
+JOURS_REEL, JOURS_EXAMEN_REEL = 4, 8
+
+
+def evaluer_reel(source, instantane, ile, jours=JOURS_REEL):
+    import pickle
+    from monde.archipel import Ile
+    from monde import tests as T
+    w = pickle.load(open(os.path.join(instantane, f"{ile}.pkl"), "rb"))
+    w.cerveau = GM.CerveauDeGuerre(None if source == AC.REGLES else AC.CerveauCode(source), w)
+    v0 = int(w.table.vivant[:w.table.n].sum())
+    serie, refus, replis = [], 0, 0
+    n0 = len(w.evenements)
+    ile_ = Ile(ile, w)
+    for _ in range(jours):
+        T.jours(w, 1)
+        serie.append(round(ile_.commande("etat")["faim"], 4))
+    for ev in w.evenements[n0:]:
+        if ev.get("type") != "decision_gouvernement": continue
+        if str(ev.get("motifs", "")).startswith("cerveau indisponible"): replis += 1
+        refus += sum(1 for a in ev.get("actions", []) if not a.get("acceptee"))
+    tenue, _ = w.pays.socle.conservation.tenue()
+    m = {"jours_de_faim": round(sum(serie), 3), "faim_par_jour": serie, "morts_nets": v0 - int(w.table.vivant[:w.table.n].sum()),
+         "dette": ET.sitrep(w.pays)["finances"].get("dette"), "refus": refus, "raisons_refus": {},
+         "jours_joues_par_les_regles": replis, "conservation": bool(tenue)}
+    m["score"] = AC.score(m)
+    return m
+
+
+def _reel(args):
+    source, instantane, ile, jours = args
+    try: return evaluer_reel(source, instantane, ile, jours)
+    except (AC.CodeRefuse, SyntaxError) as ex: return {"erreur": f"{type(ex).__name__}: {ex}", "score": -1e9}
+
+
+def deux(sa, sb, instantane, ile, jours):
+    """La version et le gouvernement en place, sur deux copies de la meme ile, en parallele. Des processus NEUFS
+    ( spawn ) : le 27/09, apres les appels a Qwen, deux copies nees par fork ont attendu 30 minutes un verrou herite
+    ( futex ), sans calculer."""
+    from multiprocessing import get_context
+    with get_context("spawn").Pool(2) as pool:
+        return pool.map(_reel, [(sa, instantane, ile, jours), (sb, instantane, ile, jours)])
+
+
+def conseil_reel(ile, instantane, versions=6, dossier=None, penser=True):
+    import pickle
+    d = dossier or os.path.join("/mnt/data/hmt/guerre/conseil_reel", ile); os.makedirs(d, exist_ok=True)
+    os.makedirs(GOUVERNEMENTS, exist_ok=True)
+    journal = open(os.path.join(d, "journal.jsonl"), "a")
+    def noter(x): journal.write(json.dumps(x, ensure_ascii=False) + "\n"); journal.flush()
+    src0 = actuel(ile)
+    t0 = time.time()
+    en_place = evaluer_reel(src0, instantane, ile)
+    w = pickle.load(open(os.path.join(instantane, f"{ile}.pkl"), "rb"))
+    exemple = dict(ET.sitrep(w.pays), guerre=GM.bulletin_guerre(w)); faim0 = GM.faim(w); jour0 = w.jour; del w
+    print(f"{ile} ( etat reel, jour {jour0}, faim {faim0:.1%} ) : gouvernement en place score {en_place['score']} faim {en_place['faim_par_jour']} "
+          f"( {time.time() - t0:.0f} s )", flush=True)
+    noter({"instantane": instantane, "jour": jour0, "faim": faim0, "en_place": en_place, "source_en_place": src0})
+    base = AC.consigne(ile, exemple) + f"""
+
+TON PAYS EST EN CRISE ET EN GUERRE, AUJOURD HUI ( jour {jour0} ) : {faim0:.0%} des menages n ont pas mange hier. Le
+bulletin ci-dessus est le VRAI bulletin de ce matin, section « guerre » comprise. Ta version sera jouee sur une copie
+exacte du pays, {JOURS_REEL} jours, contre le gouvernement en place sur la meme copie ; puis {JOURS_EXAMEN_REEL} jours pour
+l examen. Le prix de la nourriture est a son plafond ( 10 ) : les marches manquent. Tes leviers : acheter de la
+nourriture pour la reserve population ( elle est distribuee a ceux qui n ont plus rien ; mais au marche il n y en a
+plus ), importer de la nourriture destination « population » ( l aide alimentaire : au prix mondial + 20 %, elle arrive
+au port et elle est distribuee aux menages sans nourriture ; dans les credits interieur, que fixer_budget peut porter a
+trois fois le vote ), subventionner, fixer les budgets ( la defense comprise ). Tout import passe par les devises de la
+banque centrale ( section « exterieur » du bulletin ) : sans reserves de change, il est refuse ; exporter_or en rapporte.
+
+Le gouvernement en place ( a battre ) :
+```python
+{src0 if src0 != AC.REGLES else '( les regles )'}```"""
+    faites = []
+    for n in range(1, versions + 1):
+        t1 = time.time()
+        prompt = base + (("\n\nTes versions precedentes, jouees sur la copie ( le gouvernement en place fait score "
+                          f"{en_place['score']}, faim par jour {en_place['faim_par_jour']} ) :\n\n" + AC.historique(faites)) if faites else "")
+        try: texte, pensee = AC.demander(prompt, penser=penser)
+        except Exception as ex:
+            print(f"{ile} v{n} : Qwen indisponible ( {ex} ), nouvel essai dans 60 s", flush=True); time.sleep(60); continue
+        source = AC.extraire_code(texte)
+        mes = _reel((source, instantane, ile, JOURS_REEL))
+        if "erreur" in mes:
+            mes.update({"jours_de_faim": None, "faim_par_jour": [], "morts_nets": 0, "dette": None, "refus": 0, "raisons_refus": {},
+                        "jours_joues_par_les_regles": JOURS_REEL, "conservation": None})
+        v = {"n": n, "source": source, "mesures": mes, "secondes": round(time.time() - t1), "pensee": len(pensee)}
+        faites.append(v); noter(v)
+        with open(os.path.join(d, f"v{n:03d}.py"), "w") as f: f.write(source)
+        marge = 1.0                                  # un point de score au moins : un souffle d avance n est pas une preuve
+        bat = bool(mes.get("conservation")) and mes["score"] >= en_place["score"] + marge
+        print(f"{ile} v{n} : score {mes['score']} faim {mes.get('faim_par_jour')} {'BAT LE GOUVERNEMENT EN PLACE' if bat else ''} "
+              f"{mes.get('erreur', '')[:100]} ( {v['secondes']} s )", flush=True)
+        if not bat: continue
+        ex_code, ex_place = deux(source, src0, instantane, ile, JOURS_EXAMEN_REEL)
+        passe = bool(ex_code.get("conservation")) and ex_code["score"] >= ex_place["score"] + marge
+        noter({"examen": n, "code": ex_code, "en_place": ex_place, "passe": passe})
+        print(f"{ile} v{n} : EXAMEN ( {JOURS_EXAMEN_REEL} jours ) {'PASSE' if passe else 'RATE'} ( code {ex_code['score']} faim {ex_code.get('faim_par_jour')}, "
+              f"en place {ex_place['score']} faim {ex_place.get('faim_par_jour')} )", flush=True)
+        if passe:
+            tmp = os.path.join(GOUVERNEMENTS, f".{ile}.py"); open(tmp, "w").write(source)
+            os.replace(tmp, os.path.join(GOUVERNEMENTS, f"{ile}.py"))
+            json.dump({"version": n, "adopte": time.strftime("%Y-%m-%d %H:%M:%S"), "mode": "reel", "jour": jour0,
+                       "copie": mes["score"], "examen": ex_code["score"], "en_place_examen": ex_place["score"]},
+                      open(os.path.join(GOUVERNEMENTS, f"{ile}.json"), "w"), ensure_ascii=False)
+            print(f"{ile} : version {n} ADOPTEE, l horloge la pose dans l ile au prochain tour", flush=True)
+            return v
+    return None
 
 
 if __name__ == "__main__":
