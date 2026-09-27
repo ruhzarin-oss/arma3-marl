@@ -259,7 +259,7 @@ class Contexte:
     def flux_demographiques(self):
         """( naissances, deces ) dates dans la fenetre, et la population moyenne sur la fenetre. Les naissances : des
         habitants nes du domaine 1 ( numero >= la population du recensement ) dont la date de naissance est dans la
-        fenetre ; les deces : la date de deces de l etat civil. La population du debut se reconstruit par
+        fenetre ; les deces : la date de deces de l etat civil, sans les emigres. La population du debut se reconstruit par
         fin - naissances + deces ( + emigres - immigres du domaine 7 ) : la moyenne est celle des deux bouts."""
         if self._flux is None:
             self.exiger("population")
@@ -268,11 +268,15 @@ class Contexte:
             ids = np.arange(self.n)
             n0 = int(self.p.domaine("population").vivants_depart)
             nes = int(((nj >= d0) & (ids >= n0)).sum())
-            morts = int((dj >= d0).sum())
             mig = 0
             if _a(self.p, "exterieur"):
                 em = self.col("habitant", "ext_emigre_j"); im = self.col("habitant", "ext_immigre_j")
                 mig = int((em >= d0).sum()) - int((im >= d0).sum())
+                # un emigre n est pas mort : le domaine 7 lui pose deces_j au jour de sa SORTIE ( pour que le domaine 1
+                # ne le reprenne pas ) ; le compter doublait la mortalite ( 27/09 : 16 emigres sur 27 « deces » )
+                morts = int(((dj >= d0) & (em < 0)).sum())
+            else:
+                morts = int((dj >= d0).sum())
             fin = self.population()
             debut = fin - nes + morts + mig
             self._flux = (nes, morts, 0.5 * (debut + fin))

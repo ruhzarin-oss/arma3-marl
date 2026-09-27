@@ -1,10 +1,10 @@
 # Ressemblance a la Grece : defaut
 
-Monde : graine 20260922, iles Altis, 10026 habitants crees ( 10000 demandes ), domaines tous (28), demographie du moteur. Chauffe 5 jours, mesure 30 jours (jours 5 a 35, du 20/06/2035 au 20/07/2035), 30 clotures suivies. Les references sont ANNUELLES : une fenetre d ete surestime les flux saisonniers (tourisme, emploi d ete, climatisation) et la ligne reste a lire avec sa saison. Installation 10.8 s ; 3.35 s par jour ; mesure 11 ms.
+Monde : graine 20260922, iles Altis, 10026 habitants crees ( 10000 demandes ), domaines tous (28), demographie du moteur. Chauffe 5 jours, mesure 30 jours (jours 5 a 35, du 20/06/2035 au 20/07/2035), 30 clotures suivies. Les references sont ANNUELLES : une fenetre d ete surestime les flux saisonniers (tourisme, emploi d ete, climatisation) et la ligne reste a lire avec sa saison. Installation 8.7 s ; 2.02 s par jour ; mesure 7 ms.
 
 References : `references/grece.json` (ecrites avant la mesure). Commande : `python -m monde.ressemblance --habitants 10000 --jours 30 --chauffe 5 --domaines tous --etiquette defaut`
 
-**Dans la bande : 10 sur 40 indicateurs mesures** (25 %) ; hors bande : 30 ; non mesurables : 1 ; a verifier (hors score) : 1. Sans les 4 verdicts fragiles : 8 sur 36 (22 %).
+**Dans la bande : 9 sur 40 indicateurs mesures** (22 %) ; hors bande : 31 ; non mesurables : 1 ; a verifier (hors score) : 1. Sans les 4 verdicts fragiles : 8 sur 36 (22 %).
 
 Ecart : en demi-bandes (0 = la valeur reelle, +-1 = le bord de la bande ; au-dela, hors bande). Surete : « fragile » quand l'intervalle a 95 % d'un flux compte deborde de part et d'autre d'un bord.
 
@@ -17,8 +17,8 @@ Ecart : en demi-bandes (0 = la valeur reelle, +-1 = le bord de la bande ; au-del
 | demographie | Age median | ans | 38.60 | 46.90 (2024) | 44.50 - 49.30 | hors bande | -3.5 |  | population | mediane des ages des vivants |
 | demographie | Rapport de masculinite | hommes pour 100 femmes | 197.2 | 96.06 (2024) | 93.00 - 99.00 | hors bande | +34.4 |  | population | 6647 hommes, 3370 femmes vivants |
 | demographie | Taille moyenne des menages | personnes | 1.88 | 2.40 (2024) | 2.20 - 2.60 | hors bande | -2.6 |  | moteur | 10017 vivants dans 5315 menages habites ( au moins un vivant ) |
-| demographie | Taux brut de natalite | pour 1000 par an | 7.29 | 6.60 (2024) | 5.60 - 7.60 | dans la bande | +0.7 | fragile ( 6 evenements ) | population | 6 naissances sur 823.0 personnes-annees |
-| demographie | Taux brut de mortalite | pour 1000 par an | 10.94 | 12.10 (2024) | 10.30 - 13.90 | dans la bande | -0.6 | fragile ( 9 evenements ) | population | 9 deces ( toutes causes ) sur 823.0 personnes-annees |
+| demographie | Taux brut de natalite | pour 1000 par an | 7.29 | 6.60 (2024) | 5.60 - 7.60 | dans la bande | +0.7 | fragile ( 6 evenements ) | population | 6 naissances sur 822.8 personnes-annees |
+| demographie | Taux brut de mortalite | pour 1000 par an | 4.86 | 12.10 (2024) | 10.30 - 13.90 | hors bande | -4.0 | fragile ( 4 evenements ) | population | 4 deces ( toutes causes ) sur 822.8 personnes-annees |
 | travail | Taux d emploi des 20-64 ans | % | 81.90 | 69.30 (2024) | 65.30 - 73.30 | hors bande | +3.1 |  | travail | 5995 en emploi ( salarie, fonctionnaire, independant ) sur 7320 vivants de 20-64 ans ; les militaires comptent en emploi |
 | travail | Taux de chomage des 15-74 ans | % des actifs | 1.95 | 10.10 (2024) | 7.60 - 12.60 | hors bande | -3.3 |  | travail | 120 chomeurs ( statut CHOMEUR ) sur 6151 actifs de 15-74 ans |
 | travail | Part de l emploi public | % de l emploi | 26.79 | 15.50 (2023) | 12.00 - 19.00 | hors bande | +3.2 |  | travail | 1616 en emploi dans un metier public du moteur ( config.ROLES ) sur 6031 en emploi |
@@ -38,18 +38,18 @@ Ecart : en demi-bandes (0 = la valeur reelle, +-1 = le bord de la bande ; au-del
 | economie | Inflation annuelle | % par an | 270 626 | 3.00 (2024) | 0.000 - 6.00 | hors bande | +90207.6 |  | banques | indice 105.02 -> 201.10 en 30 jours, annualise ( panier de 4 biens des marches ) |
 | economie | Taux d epargne brute des menages | % du revenu disponible | 35.37 | -2.51 (2024) | -6.50 - 1.50 | hors bande | +9.4 |  | economie | ( revenu disponible - consommation ) / revenu disponible ; 30 clotures du grand livre |
 | economie | Dette publique / PIB | % du PIB | 2.33 | 154.2 (2024) | 134.2 - 174.2 | hors bande | -7.6 |  | etat | dette nominale ( Maastricht, domaine 6 ) / PIB annualise sur 30 jours |
-| economie | PIB par habitant (en euros) | euros par habitant | 18 825 | 22 480 (2024) | 18 000 - 27 000 | dans la bande | -0.8 |  | etat | PIB annualise ( 30 jours ) par habitant, converti a 1.15 euro la drachme ( pays.EUROS_PAR_DRACHME ) : un MONTANT, le niveau des prix du monde est un choix de calibrage |
+| economie | PIB par habitant (en euros) | euros par habitant | 18 830 | 22 480 (2024) | 18 000 - 27 000 | dans la bande | -0.8 |  | etat | PIB annualise ( 30 jours ) par habitant, converti a 1.15 euro la drachme ( pays.EUROS_PAR_DRACHME ) : un MONTANT, le niveau des prix du monde est un choix de calibrage |
 | sante | Lits d hopital pour 1000 habitants | pour 1000 | 5.29 | 4.23 (2024) | 3.60 - 4.90 | hors bande | +1.6 |  | hopitaux | 53 lits de 4 etablissements ouverts, dont 2 de reanimation et 11 dans 1 hopitaux militaires ( sans eux : 4.19 ) |
 | sante | Medecins pour 1000 habitants | pour 1000 | 7.49 | 6.27 (2024) | 5.30 - 7.30 | hors bande | +1.2 |  | hopitaux | 75 medecins en poste ( role du moteur ) |
 | sante | Infirmiers pour 1000 habitants | pour 1000 | 6.69 | 2.48 (2024) | 2.00 - 4.20 | hors bande | +2.4 |  | hopitaux | 67 infirmiers en poste ( role du moteur ) |
-| sante | Hospitalisations pour 1000 habitants par an (a verifier) | pour 1000 par an | 35.24 | 170.0 (2015) | 100.0 - 280.0 | hors bande | -1.9 | sur ( 29 evenements ) | hopitaux | 29 sejours admis sur 823.0 personnes-annees |
+| sante | Hospitalisations pour 1000 habitants par an (a verifier) | pour 1000 par an | 35.24 | 170.0 (2015) | 100.0 - 280.0 | hors bande | -1.9 | sur ( 29 evenements ) | hopitaux | 29 sejours admis sur 822.8 personnes-annees |
 | transport | Voitures particulieres pour 1000 habitants | pour 1000 | 551.3 | 581.0 (2024) | 500.0 - 660.0 | dans la bande | -0.4 |  | transport | 5522 voitures des menages habites ( les flottes d entreprise ne sont pas comptees ) |
-| transport | Morts sur la route par million d habitants | par million et par an | 0.000 | 64.00 (2024) | 45.00 - 85.00 | hors bande | -3.4 | fragile ( 0 evenements ) | transport | 0 morts de la route ( sur le coup et des suites a l hopital ) sur 823.0 personnes-annees, sur la fenetre |
-| energie | Electricite consommee par habitant | kWh par an | 3 444 | 4 773 (2024) | 4 050 - 5 500 | hors bande | -1.8 |  | energie | 2834212 kWh servis par les reseaux ( tous usages finals, hors pertes ), annualises, sur la fenetre |
+| transport | Morts sur la route par million d habitants | par million et par an | 0.000 | 64.00 (2024) | 45.00 - 85.00 | hors bande | -3.4 | fragile ( 0 evenements ) | transport | 0 morts de la route ( sur le coup et des suites a l hopital ) sur 822.8 personnes-annees, sur la fenetre |
+| energie | Electricite consommee par habitant | kWh par an | 3 445 | 4 773 (2024) | 4 050 - 5 500 | hors bande | -1.8 |  | energie | 2834212 kWh servis par les reseaux ( tous usages finals, hors pertes ), annualises, sur la fenetre |
 | education | Eleves par enseignant | eleves | 16.41 | 7.40 (2024) | 6.00 - 10.00 | hors bande | +3.5 |  | education | 1821 eleves de la maternelle au lycee ( ed_cycle 1-5 ) pour 111 enseignants en poste |
 | justice | Detenus pour 100 000 habitants | pour 100 000 | 99.83 | 110.7 (2024) | 90.00 - 130.0 | dans la bande | -0.5 |  | justice | 10 detenus vivants ( provisoires et condamnes ) |
 | justice | Policiers pour 100 000 habitants | pour 100 000 | 2 875 | 559.2 (2024) | 450.0 - 670.0 | hors bande | +20.9 |  | justice | 288 policiers en poste ( role du moteur ) |
-| justice | Homicides volontaires pour 100 000 habitants | pour 100 000 par an | 0.000 | 0.780 (2024) | 0.400 - 1.20 | hors bande | -2.1 | fragile ( 0 evenements ) | justice | 0 homicides ( verite du domaine ) sur 823.0 personnes-annees, sur la fenetre |
+| justice | Homicides volontaires pour 100 000 habitants | pour 100 000 par an | 0.000 | 0.780 (2024) | 0.400 - 1.20 | hors bande | -2.1 | fragile ( 0 evenements ) | justice | 0 homicides ( verite du domaine ) sur 822.8 personnes-annees, sur la fenetre |
 | politique | Participation aux elections legislatives | % des inscrits | - | 52.80 (2023) | 45.00 - 65.00 | non mesurable |  |  |  | aucun scrutin tenu depuis l installation ( prochain prevu au jour 639 ) |
 | logement | Part des personnes logees chez leur menage proprietaire | % de la population | 73.33 | 69.70 (2024) | 64.70 - 75.70 | dans la bande | +0.6 |  | immobilier | personnes des menages proprietaires de leur logement / personnes des menages habites |
 
