@@ -128,6 +128,12 @@ G21 LE REVENU MINIMUM GARANTI ( KEA, 27/09, ecrite avant la mesure ) : dans une 
    drachmes par jour, est sous les salaires, les pensions ( 20 par jour ) et les indemnites du moteur, et le revenu lisse
    sur 60 jours ne tombe sous lui que des mois apres la perte d un revenu. Le versement se juge sur soixante menages
    rendus eligibles a la main ; l effet sur la faim sur 200 jours, les 20 derniers, au meme seuil. )
+   AMENDEE le 27/09 APRES avoir vu la mesure ( chef de projet ) : le critere etait ecrit sur un seul monde ; sur le
+   tronc 12d226b, les graines 1 a 4 ( exploration, au rapport ) donnaient -20, -25, -36 et -48 % ( 8,8 % contre 13,4 % en
+   moyenne ). Nouveau critere, juge sur 4 graines NEUVES ( 5 a 8 ) : petite Stratis a l echelle 20, 200 jours, la faim
+   moyenne des jours 181 a 200 avec le KEA, appariee graine par graine a celle sans, baisse en moyenne d au moins 25 % ET
+   baisse sur chaque graine ; montant inchange. Reserve : l effet grandit avec la derive de la faim de base ( -20 % a une
+   base de 10 %, -48 % a 17 % ) ; a remesurer apres le correctif du moteur ( HMT-124 ).
 G23 LES REFUS D HIER ( 27/09, ecrite avant la mesure ) : une decision du gouvernement de Malden avec une action refusee
    ( et sa raison ) ; le lendemain matin, le code qui gouverne recoit dans son bulletin la section refus_hier avec cette
    action et cette raison ; sans refus la veille, la liste est vide ( controle ).
