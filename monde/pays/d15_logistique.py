@@ -95,7 +95,7 @@ FICHE
 import math, time
 from collections import deque
 import numpy as np
-from .. import config as C, economie as E1, roles as RO
+from .. import config as C, economie as E1, population as PO, roles as RO
 from ..socle import decision as D, biens as BI
 from . import pays as PAYS, d03_economie as ECO, d06_etat as ET, d07_exterieur as EXT, d11_energie as ENE
 from . import d14_transport as T14
@@ -437,13 +437,27 @@ def au_poste(h):
     return h.poste == "travail" and h.travail is not None and h.lieu is h.travail
 
 
+def _au_poste_ids(w, lieu):
+    """Les convoyeurs de ce lieu ( numeros, dans l ordre de l index ) et, pour chacun, s il est vivant et a son poste
+    ( `au_poste` ), lus dans les colonnes ( 27/09 ) : aucune vue fabriquee."""
+    t = w.table
+    ids = np.asarray(w.ids_au_travail(lieu, "convoyeur"), np.int64)
+    if not ids.size: return ids, np.zeros(0, bool)
+    return ids, ((t.vivant[ids] == 1) & (t.poste[ids] == PO.CODE_POSTE["travail"]) & (t.travail[ids] >= 0)
+                 & (t.lieu[ids] == t.travail[ids]))
+
+
 def conducteur(p, capitale):
     """Un convoyeur de cette capitale libre, a son heure et A SON POSTE. Le moteur prenait le premier dont l horaire
-    ouvrait l heure, meme reste chez lui le dimanche."""
-    w = p.w; heure = w.heure; pas = w.pas; libre = w.conducteur_libre
-    for h in w.au_travail_de(capitale, "convoyeur"):
-        if h.vivant and libre.get(h.id, 0) <= pas and h.au_travail(heure) and au_poste(h) and h.id not in w.sejours:
-            return h
+    ouvrait l heure, meme reste chez lui le dimanche. EN COLONNES ( 27/09 ) : la version d avant fabriquait une vue par
+    convoyeur a chaque convoi - 2,1 millions de vues par jour a 100 000 habitants, 39 % d une journee du pays ; les
+    filtres se lisent dans la table, dans l ordre des habitants, et seuls les candidats passent par le dictionnaire des
+    chauffeurs partis. La porte des 28 domaines le tient pour identique."""
+    w = p.w; t = w.table; pas = w.pas; libre = w.conducteur_libre
+    ids, poste = _au_poste_ids(w, capitale)
+    if not ids.size: return None
+    for i in ids[poste].tolist():
+        if libre.get(i, 0) <= pas and PO.au_travail_ligne(t, i, w.heure) and i not in w.sejours: return PO.Habitant(t, i)
     return None
 
 
@@ -1220,7 +1234,7 @@ def _decider(p):
     veille = _veille_de_repos(p)
     for mid in sorted(w.marches):
         m = w.marches[mid]
-        if not any(h.vivant and au_poste(h) for h in w.au_travail_de(m.lieu, "convoyeur")): continue   # depot ferme
+        if not _au_poste_ids(w, m.lieu)[1].any(): continue   # depot ferme ( colonnes, 27/09 )
         for b in BIENS_DECISION:
             dem = _demande(p, mid, b)
             garde = (GARDE_J + (GARDE_VEILLE_J if veille else 0.0)) * dem

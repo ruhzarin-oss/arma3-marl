@@ -32,6 +32,7 @@ PENSION_JOUR = 20     # retraite versee par l Etat
 POSTES = ("maison", "travail", "hopital", "voyage", "trajet", "courses", "loisir", "culte", "ecole")
 CODE_POSTE = {p: i for i, p in enumerate(POSTES)}
 CODE_HORAIRE = {None: -1, "jour": 0, "bureau": 1, "nuit": 2, "ecole": 3, "marche": 4, "garde": 5}
+HORAIRES_NOMS = tuple(k for k in CODE_HORAIRE if k is not None)      # code -> nom ( au_travail_ligne )
 HORAIRE_DE_CODE = {c: h for h, c in CODE_HORAIRE.items()}
 RESIDENT, ABSENT = 0, 1                  # la colonne « statut »
 ETATS = ("S", "E", "I", "R")
@@ -392,6 +393,19 @@ class Habitant:
             return (heure - debut) % 24 < 8
         a, b = C.HORAIRES[self.horaire]
         return a <= heure < b if a < b else (heure >= a or heure < b)
+
+
+def au_travail_ligne(t, i, heure):
+    """`Habitant.au_travail` lu directement dans la table ( 27/09 ) : pour un domaine qui interroge un habitant a la fois,
+    sans fabriquer sa vue. Meme logique, memes nombres."""
+    heure = heure - float(t.decalage[i]) / 60.0
+    hor = int(t.horaire[i])
+    if hor < 0 or not t.vivant[i] or t.etat[i] == CODE_ETAT["I"] and float(t.gravite[i]) > 0.5: return False
+    if hor == CODE_HORAIRE["garde"]:        # trois equipes de 8 h : 6-14, 14-22, 22-6
+        debut = (6, 14, 22)[int(t.equipe[i]) % 3]
+        return (heure - debut) % 24 < 8
+    a, b = C.HORAIRES[HORAIRES_NOMS[hor]]
+    return a <= heure < b if a < b else (heure >= a or heure < b)
 
 
 class Menage:

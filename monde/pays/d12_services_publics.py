@@ -68,6 +68,7 @@ FICHE
 import math
 from collections import deque
 import numpy as np
+from .. import population as PO
 from .. import config as C
 from ..socle import decision as D
 from . import pays as P, d02_banques as BQ, d06_etat as ET, d08_territoire as TER
@@ -408,14 +409,14 @@ def _recenser(p):
     """Les habitants vivants de chaque lieu, et de chaque menage son lieu : une passe sur les menages par jour."""
     S = _sp(p); T = p.domaine("territoire"); w = p.w
     n = len(w.menages)
-    lieu = np.full(n, -1, np.int64); viv = np.zeros(n)
-    for i, mg in enumerate(w.menages):
-        if mg.domicile is None: continue
-        v = sum(1 for x in mg.membres if x.vivant)
-        if v == 0: continue
-        k = T.index_lieu.get(mg.domicile.id)
-        if k is None: continue
-        lieu[i] = k; viv[i] = v
+    # EN COLONNES ( 27/09 ) : une passe sur 40 000 menages et leurs vues coutait 15 s par jour a 100 000 habitants
+    tb = w.table; mm = PO.menages_inscrits(tb, tb.n)
+    v = np.bincount(mm[(tb.vivant[:tb.n] == 1) & (mm >= 0)], minlength=n)[:n]
+    dom = tb.menages.domicile[:n].astype(np.int64)
+    idx_of_n = np.array([T.index_lieu.get(l.id, -1) for l in w.carte.par_n] + [-1], np.int64)
+    k = idx_of_n[np.where(dom >= 0, dom, len(idx_of_n) - 1)]
+    ok = (dom >= 0) & (v > 0) & (k >= 0)
+    lieu = np.where(ok, k, -1); viv = np.where(ok, v, 0).astype(float)
     S.mg_lieu, S.mg_viv = lieu, viv
     hab = np.zeros(len(T.lieux))
     ok = lieu >= 0
