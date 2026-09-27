@@ -297,7 +297,7 @@ class Economie:
     __slots__ = ("marches", "ids_marches", "rang_marche", "comptes", "unites", "producteurs", "proprietaires",
                  "chomeurs", "offres", "decideur", "attente_region", "budget", "achats_serie", "credits", "serie",
                  "livre_clos", "livre_base", "base_moteur", "ecarts_livre", "pire_livre", "caisses_1750",
-                 "exceptionnelle", "recalibrage", "faillites")
+                 "exceptionnelle", "recalibrage", "faillites", "part_bien")
 
     def __init__(self):
         self.marches = {}          # id du marche -> EtatMarche
@@ -324,6 +324,10 @@ class Economie:
         self.exceptionnelle = None
         self.recalibrage = 0.0     # drachmes d epargne initiale versees aux menages a l installation
         self.faillites = []        # rapports de liquidation
+        # la part de chaque division servie aux marches, propre a CE pays quand un autre domaine la change pour un
+        # temps ( d14 : le transport de 18 h 50 a 19 h ) ; None : PART_BIEN ( 27/09 : le tableau du module etait
+        # modifie en place, et les iles de l archipel sequentiel se le partagent )
+        self.part_bien = None
 
 
 # ================================================================== petits outils
@@ -586,6 +590,8 @@ def _achats(p):
     if w.doctrine is not None:                     # l experience des menages appris ( agents.py ) garde sa regle
         type(w).achats(w); return
     d = p.domaine("economie"); L = p.socle.livre; g = w.gouv
+    part_bien = getattr(d, "part_bien", None)
+    if part_bien is None: part_bien = PART_BIEN
     n = len(w.menages)
     v, classe = _tableaux_menages(p)
     dis = p.col("menage", "dissous")[:n]
@@ -643,7 +649,7 @@ def _achats(p):
     jours = np.clip(p.jour - p.col("menage", "eco_dernier_achat")[:n], 1, JOURS_ACHAT_MAX).astype(float)
     reserve = RESERVE_ALIMENTAIRE_J * cout_n
     dispo_argent = np.where(achete, np.maximum(0.0, caisse - reserve), 0.0)
-    envies = [(k, b, np.where(achete, M[:, k] * PART_BIEN[k] * jours, 0.0)) for k, b in BIENS_COURANTS]
+    envies = [(k, b, np.where(achete, M[:, k] * part_bien[k] * jours, 0.0)) for k, b in BIENS_COURANTS]
     tot_env = sum(e for _, _, e in envies)
     f_argent = np.ones(n)
     np.divide(dispo_argent, tot_env, out=f_argent, where=tot_env > dispo_argent)
@@ -691,7 +697,7 @@ def _achats(p):
             E[i] += valeur
             p.compter("achat_durable", valeur)
     # --- ce que rien ne sert : demande en attente, epargne forcee
-    attente = M * (1.0 - PART_BIEN)[None, :]
+    attente = M * (1.0 - part_bien)[None, :]
     attente[:, I_ALIM] = 0.0; attente[:, I_EQUIP] = 0.0
     tot_att = attente.sum(axis=1) + non_servi_valeur
     p.col("menage", "eco_epargne_forcee")[:n] += tot_att

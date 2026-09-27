@@ -75,8 +75,13 @@ class Ile:
         if ordre == "corps":                        # le recensement de l archipel : qui a un corps ici, qui est absent
             t = self.w.table; n = t.n
             viv = t.vivant[:n] == 1
-            return {"residents": t.nia[:n][viv & (t.statut[:n] == 0)].tolist(),
-                    "absents": t.nia[:n][viv & (t.statut[:n] == 1)].tolist(), "etrangers": sorted(self.w.etrangers)}
+            ici = t.statut[:n] == 0
+            # un detenu ( domaine 21 ) est marque ABSENT pour que le moteur le sorte de son travail et de son menage,
+            # mais son corps est ICI, en prison ( 27/09 : la porte G4 le comptait absent, sans corps ailleurs )
+            p = getattr(self.w, "pays", None)
+            if p is not None and "ju_detenu" in p.colonnes["habitant"]: ici = ici | (p.col("habitant", "ju_detenu")[:n] > 0)
+            return {"residents": t.nia[:n][viv & ici].tolist(), "absents": t.nia[:n][viv & ~ici].tolist(),
+                    "etrangers": sorted(self.w.etrangers)}
         if ordre == "etat":                         # le bulletin de la nuit
             w = self.w; t = w.table; n = t.n
             tenue, msg = w.pays.socle.conservation.tenue() if getattr(w, "pays", None) else (True, "")

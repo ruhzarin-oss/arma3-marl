@@ -2478,16 +2478,18 @@ def _flotte_initiale(p, tr, rng, proprio, lieu, m, n, compte):
 
 def _avant_achats_d03(p):
     """18 h 50 : le gazole de marche ne sert plus la division transport des menages le temps de l achat de 19 h ( le
-    menage fait le plein a la station pour ses km reels ). Une donnee du domaine 3, reposee a 19 h."""
-    tr = _tr(p)
-    tr.part_d03 = float(EC.PART_BIEN[EC.I_TRANSPORT])
-    EC.PART_BIEN[EC.I_TRANSPORT] = 0.0
+    menage fait le plein a la station pour ses km reels ). Une donnee du domaine 3, reposee a 19 h. ( 27/09 : dans
+    l etat du domaine 3 de CE pays, plus dans le tableau du module `EC.PART_BIEN` : dans l archipel sequentiel, les six
+    iles alternent pas a pas dans un meme processus, et le moteur achete AVANT les routines du pas : l ile suivante
+    achetait avec la part reposee par la precedente - Malden differait des six processus des le jour 1, portes G3,
+    traversee et enregistreur. )"""
+    part = EC.PART_BIEN.copy(); part[EC.I_TRANSPORT] = 0.0
+    p.domaine("economie").part_bien = part
 
 
 def _apres_achats_d03(p):
-    tr = _tr(p)
-    if tr.part_d03 is not None: EC.PART_BIEN[EC.I_TRANSPORT] = tr.part_d03
-    tr.part_d03 = None
+    p.domaine("economie").part_bien = None
+    _tr(p).part_d03 = None
 
 
 def installer(p):

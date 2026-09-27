@@ -40,6 +40,43 @@ compte : seule la comparaison à méthode égale a un sens.
    à v8 ) est jouée avec les 14 d'origine. `portes.sh` a une porte de plus, `domaines (27)`, contre
    `$HMT_REF/ref_domaines_tous.json` ; `refaire_references.sh` la reconstruit depuis une extraction propre du commit.
 
+## Deuxième passe : une fuite entre îles ( d14 ), d13 en colonnes, règles remesurées
+
+**Fuite entre îles.** Le premier `portes.sh` complet du moteur fusionné ( f82eb1d ) a refusé 3 portes, les trois qui
+comparent l'archipel séquentiel aux six processus ( G3, traversée, enregistreur E1 ). Dichotomie sur les domaines :
+13 domaines passent, 14 échouent → d14. Seule Malden différait, dès le jour 1 ( marchés, caisses, équipement ).
+Cause : d14 mettait à 0 la part « transport » de `EC.PART_BIEN` — un tableau du MODULE d03 — de 18 h 50 à 19 h, puis
+reposait la valeur sauvée. Le moteur achète AVANT les routines du pas ; dans l'archipel séquentiel, les six îles
+alternent pas à pas dans un même processus : Altis reposait la part avant que Malden achète, puis Malden reposait le 0
+sauvé. Correctif : la fenêtre est dans l'état de d03 de CE pays ( `Economie.part_bien`, None hors fenêtre ; d03 la lit
+si elle existe ). Une île seule est identique au bit ( portes v8 et 27 domaines ) ; séquentiel = parallèle pour les six
+îles, à 14 et à 27 domaines. Reste un piège sans effet : `_declarer` écrit `c.modele` dans les `CARAC` du module, jamais
+relu.
+
+**Les détenus comptés absents.** La porte G4 ( un corps par personne, chaque soir ) échouait aussi — cachée par
+l'affichage de `portes.sh`, qui ne montre que les 8 dernières lignes : une personne par île, « absente » sans corps
+ailleurs. d21 marque ses DÉTENUS `statut = ABSENT` pour que le moteur les sorte du travail et du ménage ; or ABSENT veut
+dire « son corps est dans une autre île ou en mer ». Correctif du recensement de l'île ( `corps` ) : un détenu a son
+corps ICI. **À trancher** : le statut est surchargé ; d16 ( épidémies ) et d19 ( école ) sautent aussi les absents,
+donc les détenus n'attrapent aucune maladie en prison. Un statut « détenu » propre serait plus juste.
+
+**d13 `_apparier` en colonnes.** Les candidats d'un chercheur se calculent sur les offres de ses lieux voisins mises
+bout à bout, un logement pris est marqué dans un masque : mêmes flottants dans le même ordre, mêmes départages.
+Identique au bit : portes v8 et 27 domaines, 8/8 tests de d13, et 15 empreintes journalières identiques à 20 000
+habitants. Le gain n'est PAS mesuré ici : à 20 000 et 100 000 habitants sur 8 jours, `_apparier` ne coûte presque rien
+( 0,1 s en 15 jours ) ; les 75 % de la guerre des îles venaient d'un monde où beaucoup de ménages cherchent un logement.
+
+**Où va le temps à 100 000 habitants, 27 domaines** ( cProfile, jours 6 à 8 ; hors profil 15 à 18 s par jour sur la
+machine chargée ) : d15 logistique `conducteur` ~ 25 %, d14 transport ~ 19 % ( `_habitants`, `_reconcilier`,
+`_km_agenda` ), puis d03 achats, d16 médecine ( `r_reseau` ), d12 recensement, d17 hôpitaux, d04 paie. d14, d15 et d17
+travaillent encore par objets `Habitant` ( 5,7 millions créés en 3 jours ) : c'est le prochain chantier de vitesse.
+
+**Les deux règles réglées après la mesure, sur 10 graines neuves** ( 101-110, critère écrit avant,
+`regles_neuves.py` ) :
+- campagne ( d24, C_CAMP 0,10 → 0,25 ) : porte tenue 10/10 ( e2 0,29 à 0,39, p 0,005 ) → TIENT. Mais la règle de
+  campagne fait PIRE que le témoin ( rien ) sur les 10 graines : −0,196 IC95 [−0,197 ; −0,196]. À trancher.
+- ravitaillement ( d26, règle revue ) : bat le témoin 10/10, +0,008 IC95 [+0,005 ; +0,011] → TIENT.
+
 ## Les échecs nouveaux de la liste ( tous antérieurs ou expliqués )
 
 | Test | Cause |
@@ -56,6 +93,6 @@ compte : seule la comparaison à méthode égale a un sens.
   1 000 habitants ), six îles en parallèle se seraient marché dessus ( 120 fils pour 20 cœurs ). `archipel.py` borne
   maintenant les fils de chaque île à sa part des cœurs ( 20 ÷ 6 = 3 ; `HMT_FILS_PAR_ILE` pour forcer ) ; le nombre de
   fils ne change pas les résultats ( porte des 27 domaines identique à 3 fils ).
-- Ouvert, pour Younes : l'embuscade ( ci-dessus ) ; la décision d'achat de véhicule ( d14 ) trop faible pour sa porte ;
+- Ouvert, pour Younes : la règle de campagne pire que rien ( d24 ) ; l'embuscade ( ci-dessus ) ; la décision d'achat de véhicule ( d14 ) trop faible pour sa porte ;
   8,5 % de militaires dans le moteur E1 contre 1,37 % en Grèce ( d25 ) ; la faim de 37-39 % de la guerre des îles
   n'est pas dans le moteur fusionné sans guerre ( 2,3 jours de faim ) : elle vient de la guerre ou de l'échelle 200.
