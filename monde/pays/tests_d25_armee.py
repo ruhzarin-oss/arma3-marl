@@ -397,6 +397,54 @@ class _Chrono:
         t0 = time.perf_counter(); self.f(*a); self.t += time.perf_counter() - t0
 
 
+def test_loi_de_programmation():
+    """L armee du budget ( 27/09, « l Etat doit pouvoir construire une armee avec un budget, comme toute nation » ).
+    2 500 habitants. LOI : les soldes de la defense valent PART_PERSONNEL_DEFENSE de PART_DEFENSE_DEPENSES des depenses
+    publiques votees ( au centime pres ), et l effectif de carriere paye est ( soldes - appeles x solde d appele ) / cout
+    moyen. APPELE : un incorpore porte la solde de service ( SOLDE_CONSCRIT_HORAIRE, sous le SMIC ). DEPARTS : le 1er
+    juillet ( jour 16 ), le monde E1 a plus de militaires de carriere que la loi n en paie : il en part au moins un et au
+    plus 2 % ( arrondi ), les plus ages d abord. CONTROLES POSITIFS : une part doublee paie plus du double de carriere ;
+    une part de 50 % paie tout le monde, et personne ne part."""
+    w, p = _monde(0)
+    d = M._dom(p); b = p.domaine("etat").budget
+    autres = math.fsum(v for (l, _), v in b.credits.items() if l != "defense")
+    s = M.PART_DEFENSE_DEPENSES
+    ok_credits = abs(b.credits[("defense", "personnel")] - M.PART_PERSONNEL_DEFENSE * s / (1.0 - s) * autres) < 1e-6 * max(1.0, autres)
+    v = M.effectifs_vises(p)
+    moy = (1 - M.PART_OFFICIERS) * M.solde_annuelle(p, "soldat") + M.PART_OFFICIERS * M.solde_annuelle(p, "officier")
+    attendu = max(0.0, (d.loi["personnel_an"] - v["conscrits"] * M.solde_conscrit(p)) / moy)
+    ok_paye = v["budget"] and abs(v["carriere"] - attendu) < 1e-6
+    # controle positif : la meme loi a part double
+    try:
+        M.PART_DEFENSE_DEPENSES = 2.0 * s; d.loi_vue = None; M._loi_de_programmation(p, d)
+        double = M.effectifs_vises(p)["carriere"]
+    finally:
+        M.PART_DEFENSE_DEPENSES = s; d.loi_vue = None; M._loi_de_programmation(p, d)
+    ok_double = double > 2.0 * v["carriere"]
+    # l appele et le plan de departs
+    E = d.eff
+    car0 = int((E["conscrit"][M._lignes(d)] == 0).sum())
+    T.jours(w, 17)
+    rows = M._lignes(d)
+    appeles = E["hid"][rows[E["conscrit"][rows] == 1]]
+    ok_solde = len(appeles) > 0 and bool(np.all(np.abs(p.col("habitant", "tr_taux")[appeles] - M.SOLDE_CONSCRIT_HORAIRE) < 1e-12))
+    ok_departs = 1 <= d.departs <= max(1, int(M.DEPARTS_MAX_MOIS * car0))
+    # controle positif : une part de 50 % paie tout le monde, personne ne part
+    w2, p2 = _monde(0)
+    d2 = M._dom(p2)
+    try:
+        M.PART_DEFENSE_DEPENSES = 0.5; d2.loi_vue = None; M._loi_de_programmation(p2, d2)
+        T.jours(w2, 17)
+        riche = d2.departs
+    finally:
+        M.PART_DEFENSE_DEPENSES = s
+    ok = ok_credits and ok_paye and ok_double and ok_solde and ok_departs and riche == 0
+    return ok, (f"credits de soldes {b.credits[('defense', 'personnel')]:.0f} pour {M.PART_PERSONNEL_DEFENSE:.2f} x {s:.3f} des depenses : "
+                f"{ok_credits} ; carriere payee {v['carriere']:.1f} ( calcul {attendu:.1f} ), a part double {double:.1f} ; "
+                f"{len(appeles)} appeles a la solde de service {ok_solde} ; departs au 1er juillet {d.departs} sur {car0} de carriere "
+                f"( au plus {max(1, int(M.DEPARTS_MAX_MOIS * car0))} ) ; a 50 % : {riche} depart")
+
+
 def test_cout():
     """Coeur Rust. A 10 000 habitants, les routines du domaine ( et les patrouilles et le ravitaillement repris au
     moteur ) coutent au plus 25 % d une journee du moteur seul. Installer l armee a 100 000 habitants ( ses dependances
@@ -426,5 +474,5 @@ def test_cout():
                 f"{t100:.3f} s ( x{t100 / t10:.1f} )")
 
 
-TESTS = [test_effectifs_et_structure, test_portee_utile, test_conservation, test_instruction_et_repos,
+TESTS = [test_loi_de_programmation, test_effectifs_et_structure, test_portee_utile, test_conservation, test_instruction_et_repos,
          test_conscription, test_patrouilles, test_decision, test_api_26_27, test_pays_vivable, test_cout]
