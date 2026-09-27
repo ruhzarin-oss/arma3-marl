@@ -62,6 +62,13 @@ G14 USINES OCCUPEES ( 27/09, AMENDEE avant tout verdict : la premiere version me
    Quatrieme essai : production 1 184 -> 0 -> 1 171, ouvriers 0,76 -> 0,19 -> 0,19. Sonde : la quarantaine est bien
    levee, mais l agenda ( domaine 5 ) planifie la semaine - les ouvriers reviennent 6 sur 21 le mercredi, les 21 le
    mardi suivant. La reprise se juge donc sur la DEUXIEME semaine apres la liberation. )
+G15 LES LEVIERS SUIVENT LA TAILLE DU PAYS ( 27/09, ecrite avant la mesure ) : dans un pays de 2 000 habitants
+   ( k = 4 ), le gouvernement peut acheter 8 000 unites de nourriture et pas 8 001 ; il peut relever les credits de
+   subventions ( la ligne porte sur ses transferts ) puis verser une subvention qu il n aurait pas pu verser avant.
+   ( Sur la vraie Stratis du jour 301, « acheter 100 000 » etait refuse a 2 000 et « fixer_budget subventions » borne
+   a 3 000. Les regles plafonnent elles-memes a 2 000 : la porte d identite des domaines dit qu elles ne changent pas.
+   AMENDEE apres le premier essai : 8 001 y etait refuse faute de CREDITS de la ligne interieur, pas par la borne - le
+   test ne prouvait rien ; les credits sont maintenant larges, et le refus doit etre « achat invalide ». )
 
    python -m guerre.porte_guerre"""
 import math, os, re, sys, time
@@ -371,6 +378,23 @@ def main():
     ok["G13 liberee, au-dessus de 0,8 fois ; la quarantaine du gouvernement reste ; bulletin ; conservation"] = (
         rap(ap) > 0.8 * rap(av) and gv and "Malden_C_LaTrinite" in b13["villes_occupees"] and b13["siege_du_gouvernement_occupe"]
         and bool(tenue13[0]))
+    # G15
+    from monde.pays import d06_etat as ET15
+    arc15 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False)
+    w15 = arc15.iles["Malden"].w; p15 = w15.pays
+    w15.gouv.caisse = max(w15.gouv.caisse, 1e8)
+    b15 = ET15._etat(p15).budget
+    b15.credits[("interieur", "achats")] = b15.credits.get(("interieur", "achats"), 0.0) + 1e7    # la borne seule doit lier
+    a_ok = ET15.appliquer(p15, {"type": "acheter", "bien": "nourriture", "quantite": 8000, "destination": "population"})
+    a_non = ET15.appliquer(p15, {"type": "acheter", "bien": "nourriture", "quantite": 8001, "destination": "population"})
+    dispo0 = b15.credits.get(("subventions", "transferts"), 0.0) - b15.depenses.get(("subventions", "transferts"), 0.0)
+    s_avant = ET15.appliquer(p15, {"type": "subvention", "cible": "menages_pauvres", "montant": round(dispo0 + 5000)})
+    f15 = ET15.appliquer(p15, {"type": "fixer_budget", "ligne": "subventions", "montant": round(b15.depenses.get(("subventions", "transferts"), 0.0) + dispo0 + 10000)})
+    s_apres = ET15.appliquer(p15, {"type": "subvention", "cible": "menages_pauvres", "montant": round(dispo0 + 5000)})
+    print(f"   leviers : acheter 8 000 {a_ok} ; 8 001 {a_non} ; subvention avant {s_avant} ; fixer_budget {f15} ; subvention apres {s_apres}", flush=True)
+    ok["G15 acheter jusqu a 2 000 x k, pas au-dela ; subventions relevees puis versees"] = (
+        a_ok[0] and not a_non[0] and "achat invalide" in a_non[1] and not s_avant[0] and f15[0] and s_apres[0])
+    arc15.fermer()
     # G14
     z14 = zone_de["centrale01"]; l14 = next(z["lieux"] for z in zs if z["n"] == z14)
     kc, kw = w13.carte.lieux["centrale01"].n, w13.carte.lieux["Malden_V_Dourdan"].n

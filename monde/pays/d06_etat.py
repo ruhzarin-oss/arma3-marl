@@ -1589,12 +1589,17 @@ def appliquer(p, action):
             p.noter("loi_fiscale", quoi="is", ancien=f.taux_is, nouveau=v)
             f.taux_is = v; return True, ""
         if t == "fixer_budget":
+            # ( 27/09, la guerre des iles ) une loi de finances rectificative : la ligne subventions porte sur ce qu elle
+            # depense ( ses transferts, et non des achats qu elle ne fait pas ) ; le plancher de 1 000 suit la taille du
+            # pays, comme les regles ( k = vivants / 500 ) - a 500 habitants ou moins, rien ne change
             l, m = action["ligne"], float(action["montant"])
             if l not in LIGNES: return False, f"ligne inconnue {l}"
-            deja = b.depenses.get((l, "achats"), 0.0) + b.engage.get(l, 0.0)
-            haut = 3.0 * max(b.votes.get((l, "achats"), 0.0), 1000.0)
+            nat = "transferts" if l == "subventions" else "achats"
+            k = max(1.0, float(w.table.vivant[:w.table.n].sum()) / 500.0)
+            deja = b.depenses.get((l, nat), 0.0) + (b.engage.get(l, 0.0) if nat == "achats" else 0.0)
+            haut = 3.0 * max(b.votes.get((l, nat), 0.0), 1000.0 * k)
             if not deja <= m <= haut: return False, f"credits {m:.0f} hors [{deja:.0f} ; {haut:.0f}]"
-            b.credits[(l, "achats")] = m; return True, ""
+            b.credits[(l, nat)] = m; return True, ""
         if t == "emettre_dette":
             m, d = float(action["montant"]), int(action["duree_j"])
             if d not in DUREES_BONS: return False, f"duree {d} hors {DUREES_BONS}"
