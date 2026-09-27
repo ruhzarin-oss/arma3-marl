@@ -91,6 +91,7 @@ from .. import config as C, population as PO, roles as R
 from ..socle import decision as D, biens as B, objets as O
 from . import pays as P, d01_population as POP, d04_travail as TR, d07_exterieur as EXT, d10_industrie as IND
 from . import d11_energie as ENE, d13_immobilier as IM, d14_transport as TP, d19_education as ED
+from . import d02_banques as BQ, d06_etat as ET
 
 DOMAINE = "armee"
 EUROS = P.EUROS_PAR_DRACHME
@@ -397,6 +398,24 @@ PIECES_CIBLE_KM = 2000.0                  # l armurerie garde les pieces de 2 00
 PART_ACTIFS = 0.0137
 PART_CONSCRITS = 0.30
 PART_OFFICIERS = 0.12
+# La loi de programmation militaire ( 27/09, Younes : « l Etat doit etre capable de construire une armee avec un budget
+# militaire comme toute nation » ). A chaque loi de finances du domaine 6, la defense recoit une part des DEPENSES
+# PUBLIQUES votees ; ses credits de personnel paient les soldes, et l armee se DIMENSIONNE sur eux ( elle recrute quand
+# ils montent, elle reduit par un plan de departs quand ils baissent ) ; ses credits d achats paient munitions, pieces,
+# vehicules et carburant. Grece : ~ 6,6 % des depenses publiques ( SIPRI, military expenditure as a share of government
+# spending, 2023, a verifier ; ~ 3 % du PIB selon l OTAN ), dont ~ 55 % de personnel ( OTAN 2024, a verifier ). La part
+# du PIB n est pas la base : les comptes nationaux du modele sont negatifs les premieres semaines ( les importations du
+# depart ) puis oscillent ; le PIB est rapporte a cote. Sans domaine 6, le dimensionnement reste celui de la population.
+PART_DEFENSE_DEPENSES = 0.066
+PART_PERSONNEL_DEFENSE = 0.55
+PART_CONSO_PIB = 0.68                    # le PIB rapporte, avant tout compte national : la consommation des menages
+# La solde d un appele grec : ~ 8,80 euros par mois ( a verifier ), nourri et loge a la caserne ; le code du travail et son
+# SMIC ne s appliquent pas au service national. Avant le 27/09, le domaine 4 le payait au SMIC : ~ 14 000 drachmes par an
+# et par conscrit, qui mangeaient la moitie des soldes de la loi de programmation.
+SOLDE_CONSCRIT_MOIS_EUR = 8.80
+SOLDE_CONSCRIT_HORAIRE = SOLDE_CONSCRIT_MOIS_EUR * 12.0 / 365.0 / 8.0 / TR.EUROS_PAR_DRACHME
+DEPARTS_MAX_MOIS = 0.02                  # le plan de departs : 2 % des militaires de carriere par mois au plus ( a calibrer )
+MARGE_REDUCTION = 1.05                   # on ne reduit qu au-dela de 5 % au-dessus de l effectif paye
 # Service national ( loi 3421/2005 et loi 4361/2016, armee de terre 12 mois depuis 2021, a verifier ) : les hommes,
 # a partir de 19 ans ; sursis d etudes jusqu a la fin des etudes ( au plus ~ 28 ans ) ; les femmes volontaires
 # seulement. Exemptes ( sante, charge de famille ) : ~ 10 % d une classe ( a calibrer ).
@@ -546,6 +565,7 @@ class Armee:
     __slots__ = ("eff", "unites", "veh", "coll", "armureries", "par_base", "bases", "decideur", "activite", "imposee",
                  "compagnies", "patr_jour", "patr_hier", "ratelier", "mids", "idx_parc", "bids", "entrees", "sorties",
                  "stock0", "exemptes", "incorpores", "liberes", "depenses", "serie", "vise", "cmd_jour", "anomalies_vues",
+                 "loi", "loi_vue", "departs",
                  "ctx", "brigades", "armee_u", "patr_base", "dotes")
 
     def __init__(self):
@@ -575,6 +595,9 @@ class Armee:
         self.depenses = {"munitions": 0.0, "pieces": 0.0, "vehicules": 0.0, "armes": 0.0}
         self.serie = []
         self.vise = {}
+        self.loi = None            # la loi de programmation en vigueur ( credits annuels de la defense )
+        self.loi_vue = None        # ( exercice, debut ) de la loi de finances deja lue
+        self.departs = 0           # militaires de carriere partis au plan de departs
         self.cmd_jour = {}             # compagnie -> action decidee ce matin ( pour la note )
         self.anomalies_vues = 0
         self.ctx = {}
@@ -1137,15 +1160,15 @@ def _lits_libres(p, d):
 
 
 def _incorporer(p, d, i, b):
-    """L appele entre au service : CDD de service ( le domaine le liberera au bout de 12 mois ), au plus bas taux que
-    permet le domaine 4 ( le SMIC ; la solde reelle d un conscrit grec est ~ 9 euros par mois ), la compagnie
+    """L appele entre au service : CDD de service ( le domaine le liberera au bout de 12 mois ), a la solde d un appele
+    grec ( SOLDE_CONSCRIT_HORAIRE, sous le SMIC : service=True au domaine 4 ), la compagnie
     d instruction de sa base, le programme des recrues du domaine 19."""
     tb = p.w.table; col = p.colonnes["habitant"]; w = p.w
     h = PO.Habitant(tb, i)
     lieu = w.carte.par_n[b]
     age = float((p.jour - col["naissance_j"][i]) / POP.JOURS_AN)
     TR.embaucher_contrat(p, h, TR.Etablissement(lieu, "soldat"), "soldat", TR.CDD, DUREE_SERVICE_J + MARGE_CDD_J)
-    TR.fixer_taux(p, h, TR.SMIC_HORAIRE)
+    TR.fixer_taux(p, h, SOLDE_CONSCRIT_HORAIRE, service=True)
     col["ar_appel"][i] = APPELE
     rows = _ajouter_militaires(p, d, np.array([i], np.int64), b, False, 1, EN_INSTRUCTION, DEPART_RECRUE,
                                p.hasard("armee_recrues"))
@@ -1282,20 +1305,104 @@ def _synchroniser(p, d):
     _recommander(d)
 
 
+def pib_annuel(p):
+    """Le PIB annuel : les comptes nationaux du domaine 6 ( sa fenetre glissante ), sinon la consommation des menages
+    sur PART_CONSO_PIB ( le premier budget, avant tout compte )."""
+    st = getattr(p.domaines.get("etat"), "stat", None)
+    c = list(getattr(st, "comptes", ()) or ())[-ET.FENETRE_COMPTES_J:]
+    if c: return math.fsum(x["pib"] for _, x in c) * ET.JOURS_AN / len(c)
+    w = p.w
+    viv = int((w.table.vivant[:w.table.n] == 1).sum())
+    conso = viv * C.NOURRITURE_PAR_JOUR * w.prix_moyen("nourriture") * ET.JOURS_AN / BQ.POIDS_INDICE["nourriture"]
+    return conso / PART_CONSO_PIB
+
+
+def solde_annuelle(p, role):
+    """Ce que coute un an d un militaire au budget, compte comme le domaine 6 compte sa masse salariale publique :
+    salaire horaire du metier x heures de son horaire x facteur des salaires publics x 365."""
+    h = ET.HEURES_HORAIRE.get(PO.TRAVAIL[role][1], 8.0)
+    return float(ET.SAL_ROLE[ET.ROLE_IDX[role]] * h * p.w.gouv.facteur_salaire_public * ET.JOURS_AN)
+
+
+def solde_conscrit(p):
+    """Ce que coute un an d un conscrit : sa solde de service ( SOLDE_CONSCRIT_HORAIRE ) x les heures de garde."""
+    return float(SOLDE_CONSCRIT_HORAIRE * ET.HEURES_HORAIRE.get(PO.TRAVAIL["soldat"][1], 8.0) * ET.JOURS_AN)
+
+
+def _loi_de_programmation(p, d):
+    """A chaque loi de finances ( un nouvel exercice ou un nouveau vote du domaine 6 ) : la defense en part des depenses
+    publiques votees. Les
+    credits de personnel et d achats de la ligne defense sont poses ( les achats ne descendent jamais sous ce que le
+    domaine 6 avait deja prevu : le carburant des patrouilles ). Rend la loi en vigueur, ou None sans budget."""
+    b = getattr(p.domaines.get("etat"), "budget", None)
+    if b is None: return None
+    # la loi de finances se reconnait a son exercice, son debut et sa duree ( un nouveau vote en cours d annee a un autre
+    # debut ) ; jamais a son adresse en memoire, qui change quand le monde est repris d un instantane ( 27/09, porte G3 )
+    cle = (int(b.exercice), int(b.debut), int(b.jours))
+    if d.loi_vue == cle: return d.loi
+    autres = math.fsum(v for (l, _), v in b.credits.items() if l != "defense")
+    defense = PART_DEFENSE_DEPENSES / (1.0 - PART_DEFENSE_DEPENSES) * autres
+    pib = pib_annuel(p)
+    pers = PART_PERSONNEL_DEFENSE * defense
+    ach = max(b.credits.get(("defense", "achats"), 0.0), (1.0 - PART_PERSONNEL_DEFENSE) * defense)
+    b.credits[("defense", "personnel")] = b.votes[("defense", "personnel")] = pers
+    b.credits[("defense", "achats")] = b.votes[("defense", "achats")] = ach
+    d.loi_vue = cle
+    d.loi = {"exercice": int(b.exercice), "part_depenses": PART_DEFENSE_DEPENSES, "defense_an": defense * ET.JOURS_AN / b.jours,
+             "personnel_an": pers * ET.JOURS_AN / b.jours, "achats_an": ach * ET.JOURS_AN / b.jours, "pib_an": pib,
+             "part_pib": defense * ET.JOURS_AN / b.jours / pib if pib > 0 else None}
+    p.noter("loi_de_programmation", exercice=int(b.exercice), pib=round(pib, 2), personnel=round(pers, 2),
+            achats=round(ach, 2))
+    return d.loi
+
+
 def effectifs_vises(p, population=None):
-    """Le dimensionnement sur la population ( ratios grecs, IISS 2023 ) : { actifs, conscrits, carriere, officiers }."""
+    """Le dimensionnement. Avec une loi de programmation ( domaine 6 installe ) : les soldes que ses credits de personnel
+    paient - les conscrits presents d abord ( la loi les appelle, le budget les paie ), puis autant de militaires de
+    carriere que le reste en paie ( officiers PART_OFFICIERS ). Sans elle, ou pour une population donnee : les ratios
+    grecs ( IISS 2023 ). Rend { actifs, conscrits, carriere, officiers, soldats_carriere, budget }."""
     tb = p.w.table
     pop = int((tb.vivant[:tb.n] == 1).sum()) if population is None else int(population)
-    actifs = pop * PART_ACTIFS
-    carriere = actifs * (1.0 - PART_CONSCRITS)
-    return {"population": pop, "actifs": actifs, "conscrits": actifs * PART_CONSCRITS, "carriere": carriere,
-            "officiers": carriere * PART_OFFICIERS, "soldats_carriere": carriere * (1.0 - PART_OFFICIERS)}
+    d = p.domaines.get(DOMAINE)
+    loi = getattr(d, "loi", None) if d is not None and population is None else None
+    if loi is None:
+        actifs = pop * PART_ACTIFS
+        carriere = actifs * (1.0 - PART_CONSCRITS)
+        return {"population": pop, "actifs": actifs, "conscrits": actifs * PART_CONSCRITS, "carriere": carriere,
+                "officiers": carriere * PART_OFFICIERS, "soldats_carriere": carriere * (1.0 - PART_OFFICIERS),
+                "budget": False}
+    E = d.eff; rows = _lignes(d)
+    conscrits = int((E["conscrit"][rows] == 1).sum())
+    s_sol, s_off = solde_annuelle(p, "soldat"), solde_annuelle(p, "officier")
+    moyenne = (1.0 - PART_OFFICIERS) * s_sol + PART_OFFICIERS * s_off
+    carriere = max(0.0, (loi["personnel_an"] - conscrits * solde_conscrit(p)) / moyenne) if moyenne > 0 else 0.0
+    return {"population": pop, "actifs": carriere + conscrits, "conscrits": conscrits, "carriere": carriere,
+            "officiers": carriere * PART_OFFICIERS, "soldats_carriere": carriere * (1.0 - PART_OFFICIERS),
+            "budget": True}
+
+
+def _reduire(p, d, v):
+    """Le plan de departs : au-dela de MARGE_REDUCTION fois l effectif de carriere paye, des militaires de carriere
+    quittent l armee ( depart volontaire, fin de contrat non renouvelee ), DEPARTS_MAX_MOIS par mois au plus, les plus
+    anciens d abord ( le plus pres de la pension ). Le premier jour de chaque mois."""
+    if not v.get("budget") or p.socle.calendrier.date(p.w.pas).day != 1: return 0
+    E = d.eff; rows = _lignes(d)
+    car = rows[E["conscrit"][rows] == 0]
+    surplus = len(car) - int(math.ceil(MARGE_REDUCTION * v["carriere"]))
+    if surplus <= 0: return 0
+    n = min(surplus, max(1, int(DEPARTS_MAX_MOIS * len(car))))
+    ages = p.w.table.age[E["hid"][car]]
+    partent = car[np.lexsort((E["hid"][car], -ages))][:n]
+    for r in partent.tolist():
+        TR.rompre_contrat(p, PO.Habitant(p.w.table, int(E["hid"][r])), "reduction_effectifs", involontaire=False)
+    d.departs += n; p.compter("depart_militaire", float(n))
+    return n
 
 
 def _postes(p, d):
-    """Les postes ouverts au domaine 4 pour chaque base : la part de la base dans les effectifs vises de carriere,
-    plus ses conscrits. Au-dessus, personne n est remplace ( l armee du moteur E1 est ~ 7 fois l armee grecque : elle
-    decroit par les departs, sans licenciement )."""
+    """Les postes ouverts au domaine 4 pour chaque base : la part de la base dans les effectifs vises de carriere
+    ( ceux que la loi de programmation paie ), plus ses conscrits. Au-dessus, personne n est remplace, et le plan de
+    departs ( `_reduire` ) ramene l armee a ce que le budget paie."""
     v = effectifs_vises(p)
     E = d.eff; rows = _lignes(d)
     nb = max(1, len(d.bases))
@@ -1312,7 +1419,9 @@ def _matin(p):
     d = _dom(p)
     _synchroniser(p, d)
     _appeler(p, d)
+    _loi_de_programmation(p, d)
     _postes(p, d)
+    _reduire(p, d, d.vise)
     d.patr_hier = d.patr_base; d.patr_base = {}
     d.activite = {}; d.patr_jour = {}; d.cmd_jour = {}
     U = d.unites
@@ -1649,8 +1758,10 @@ def installer(p):
     J = p.socle.journal
     J.declarer("incorporation", DOMAINE, "individuel", ("habitant", "base", "age"))
     J.declarer("liberation_service", DOMAINE, "individuel", ("habitant", "jours"))
+    J.declarer("loi_de_programmation", DOMAINE, "individuel", ("exercice", "pib", "personnel", "achats"))
     for t in ("decision_activite", "tir_instruction", "tir_combat", "import_munitions", "panne_militaire",
-              "reparation_militaire", "maintenance_militaire", "appel_differe", "exemption_service", "arme_manquante"):
+              "reparation_militaire", "maintenance_militaire", "appel_differe", "exemption_service", "arme_manquante",
+              "depart_militaire"):
         J.declarer(t, DOMAINE, "compte")
     ch = p.colonnes["habitant"]
     for nom, dt, v in COLONNES_HABITANT: ch.ajouter(nom, dt, v)
@@ -1679,6 +1790,7 @@ def installer(p):
     _equipement_initial(p, d)
     d.decideur = p.decideur(POINT)
     _appeler(p, d, installation=True)
+    _loi_de_programmation(p, d)
     _postes(p, d)
     w.patrouilles = RemplacePatrouilles(p)
     w.ravitailler_bases = RemplaceRavitaillement(p)

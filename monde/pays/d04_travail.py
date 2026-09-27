@@ -1917,9 +1917,12 @@ def payer_prime(p, h, brut, payeur, motif=None):
     return agg["net_paye"]
 
 
-def fixer_taux(p, h, taux):
-    """Le domaine 25 ( soldes ) ou 6 ( grille publique ) pose le taux horaire brut du contrat de `h`."""
-    if not SMIC_HORAIRE - 1e-9 <= taux < 1e4: raise ValueError(f"taux hors [SMIC ; 10 000] : {taux!r}")
+def fixer_taux(p, h, taux, service=False):
+    """Le domaine 25 ( soldes ) ou 6 ( grille publique ) pose le taux horaire brut du contrat de `h`. `service` : la
+    solde du service national ( domaine 25 ), sous le SMIC - le code du travail ne s applique pas aux appeles ( 27/09 ).
+    """
+    bas = 0.0 if service else SMIC_HORAIRE - 1e-9
+    if not bas <= taux < 1e4: raise ValueError(f"taux hors [{'0' if service else 'SMIC'} ; 10 000] : {taux!r}")
     p.col("habitant", "tr_taux")[h.id] = taux
 
 
