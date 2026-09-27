@@ -466,9 +466,9 @@ def _placer(p, d, x, rng):
 
 def _reprendre_les_morts(p):
     """Chaque soir : les morts que le moteur E1 a causees sans passer par `deceder` ( l epidemie ) sont traitees."""
-    dj = p.col("habitant", "deces_j")
-    for h in p.w.habitants:
-        if not h.vivant and dj[h.id] < 0: _apres_deces(p, h, "maladie")
+    dj = p.col("habitant", "deces_j"); tb = p.w.table; n = tb.n
+    # EN COLONNES ( 27/09 ) : les seuls morts non traites, dans l ordre des habitants ( une passe sur 100 000 vues coutait 5 s )
+    for i in np.nonzero((tb.vivant[:n] != 1) & (dj[:n] < 0))[0].tolist(): _apres_deces(p, p.w.habitants[i], "maladie")
 
 
 # ================================================================== unions et divorces

@@ -120,7 +120,7 @@ FICHE
    du Parc ( ~ 4,4 Go pour 28 millions de vehicules individuels )."""
 import importlib, math
 import numpy as np
-from .. import config as C
+from .. import config as C, population as PO
 from ..socle import decision as D, objets as O, biens as BI
 from . import pays as PAYS, d01_population as POP, d02_banques as BQ, d03_economie as EC, d06_etat as ET
 from . import d07_exterieur as EXT, d10_industrie as IND, d11_energie as ENE
@@ -951,6 +951,18 @@ def prix_neuf(p, c):
     return c.ht * (1.0 + _tva(p)) + immat, c.ht, immat
 
 
+_PRIX_OCC = {"cle": None, "prix": {}}      # ( transporteur, pas, TVA ) -> { numero : prix TTC } : une occasion en stock ne
+                                            # change pas dans le pas ; 600 candidats par jour repricaient 52 000 fois ( 27/09 )
+
+
+def _prix_occasion_du_pas(p, tr, m, oid):
+    cle = (id(tr), p.w.pas, _tva(p))
+    if _PRIX_OCC["cle"] != cle: _PRIX_OCC["cle"], _PRIX_OCC["prix"] = cle, {}
+    v = _PRIX_OCC["prix"].get(oid)
+    if v is None: v = _PRIX_OCC["prix"][oid] = prix_occasion(p, CARAC[m], tr.fiches[oid])[0]
+    return v
+
+
 def _occasions_de(p, tr, conc, categories=None):
     """Les occasions en stock d une concession : [ ( prix TTC, numero, indice de modele ) ], tri par prix."""
     parc = p.socle.parc; out = []
@@ -959,7 +971,7 @@ def _occasions_de(p, tr, conc, categories=None):
         if o is None or o.etat != O.SERVICE: continue
         m = tr.idx_parc[o.modele]
         if categories is not None and CARAC[m].nom not in categories: continue
-        out.append((prix_occasion(p, CARAC[m], tr.fiches[oid])[0], oid, m))
+        out.append((_prix_occasion_du_pas(p, tr, m, oid), oid, m))
     out.sort()
     return out
 
@@ -1171,12 +1183,17 @@ def _ajouter_flotte(p, tr, proprio, lieu, m, ne, n=1):
 
 
 # ================================================================== la route : la journee des vehicules des menages
+_CLASSE_EC = np.array([EC.CLASSES.get(nom, 0) for nom in PO.CLASSES], np.int64)     # code de classe du moteur -> code d03
+
+
 def _habitants(p, tr):
     """Une passe par jour sur les habitants : menage de chaque vivant, age, permis ; rend ( vivants par menage, bits de
-    permis des adultes par menage, classe du menage )."""
-    w = p.w; H = w.habitants; n = len(w.menages)
-    mid = np.fromiter((h.menage.id if h.vivant and h.menage is not None else -1 for h in H), np.int64, len(H))
-    cl = np.fromiter((EC.CLASSES.get(h.classe, 0) if h.role != "enfant" else -1 for h in H), np.int64, len(H))
+    permis des adultes par menage, classe du menage ). EN COLONNES ( 27/09 ) : deux passes sur 100 000 vues coutaient
+    16 s par jour ; les memes faits se lisent dans la table."""
+    w = p.w; H = w.habitants; n = len(w.menages); tb = w.table; nh = len(H)
+    men = tb.menage[:nh].astype(np.int64)
+    mid = np.where((tb.vivant[:nh] == 1) & (men >= 0), men, -1)
+    cl = np.where(tb.role[:nh] == PO.CODE_ROLE["enfant"], -1, _CLASSE_EC[tb.classe[:nh].astype(np.int64)])
     ok = mid >= 0
     nj = p.col("habitant", "naissance_j")[:len(H)]
     adulte = ok & ((p.jour - nj) >= POP.AGE_MAJEUR * JOURS_AN)
@@ -1220,7 +1237,7 @@ def _km_agenda(p, n):
     AG = importlib.import_module(".d05_agenda", __package__)
     a = p.domaine("agenda"); pl = a.plan; w = p.w
     km = np.zeros(n)
-    hm = np.fromiter((h.menage.id if h.menage is not None else -1 for h in w.habitants), np.int64, len(w.habitants))
+    hm = w.table.menage[:w.table.n].astype(np.int64)          # -1 sans menage ( colonnes, 27/09 )
     for s in range(AG.NS):
         v = np.nonzero(pl.actif[:, s] & (pl.mode[:, s] == AG.EN_VEHICULE))[0]
         if not len(v): continue
@@ -1353,13 +1370,22 @@ def _victimes(p, tr, mg, k_places, tues, iss, lieu, conducteur_bit):
     return _frapper(p, tr, gens, tues, iss, lieu, rng)
 
 
+def _tiers_du_lieu(w, lieu, gens):
+    """Les vivants presents a ce lieu ( ni a l hopital, ni en voyage ), sauf `gens`, dans l ordre des habitants : lus
+    dans les colonnes ( 27/09 ), au lieu d une passe sur toutes les vues a chaque accident."""
+    t = w.table; n = t.n; k = w.carte.lieux[lieu].n
+    m = ((t.vivant[:n] == 1) & (t.lieu[:n] == k) & (t.poste[:n] != PO.CODE_POSTE["hopital"])
+         & (t.poste[:n] != PO.CODE_POSTE["voyage"]))
+    deja = {h.id for h in gens}
+    return [PO.Habitant(t, i) for i in np.nonzero(m)[0].tolist() if i not in deja]
+
+
 def _frapper(p, tr, gens, tues, iss, lieu, rng):
     """Complete les victimes par des tiers du lieu ( pietons, autres vehicules ), puis tue et blesse."""
     w = p.w
     besoin = tues + len(iss)
     if len(gens) < besoin:
-        tiers = [h for h in w.habitants if h.vivant and h.lieu is not None and h.lieu.id == lieu and h not in gens
-                 and h.poste not in ("hopital", "voyage")] if besoin - len(gens) > 0 else []
+        tiers = _tiers_du_lieu(w, lieu, gens) if besoin - len(gens) > 0 else []
         while len(gens) < besoin and tiers:
             gens.append(tiers.pop(int(rng.integers(0, len(tiers)))))
     med = p.a("medecine")
@@ -2033,7 +2059,7 @@ def _permis(p, tr):
     chance = np.zeros(len(H))
     for a, q in PASSAGE_PERMIS_AN:
         chance = np.where(age >= a, q, chance)
-    viv = np.fromiter((h.vivant for h in H), bool, len(H))
+    viv = w.table.vivant[:len(H)] == 1                          # colonnes ( 27/09 )
     u = p.du_jour("transport_permis").random((len(H), 2))
     cand = np.nonzero(viv & ((pm[:len(H)] & 1) == 0) & (u[:, 0] < chance / JOURS_AN))[0]
     for i in cand.tolist():
@@ -2090,9 +2116,17 @@ def _reconcilier(p, tr, n):
     S = _slots(p, n)
     M = np.stack([a[:n] for a in S["m"]])
     avec = (M >= 0).any(axis=0)
-    for i in np.nonzero(avec)[0].tolist():
+    # EN COLONNES ( 27/09 ) : seuls les menages eteints ou qui ont demenage passent par la boucle ; les autres ne
+    # faisaient rien, mais fabriquaient leurs vues ( 8 s par jour a 100 000 habitants )
+    tb = w.table; mm = PO.menages_inscrits(tb, tb.n)
+    viv_m = np.bincount(mm[(tb.vivant[:tb.n] == 1) & (mm >= 0)], minlength=n)[:n] > 0
+    dom = tb.menages.domicile[:n].astype(np.int64)
+    k_of_n = np.array([tr.k_lieu.get(l.id, -1) for l in w.carte.par_n] + [-1], np.int64)
+    k_now_all = k_of_n[np.where(dom >= 0, dom, len(k_of_n) - 1)]
+    a_voir = avec & ((dis[:n] != 0) | ~viv_m | (kl[:n] != k_now_all))
+    for i in np.nonzero(a_voir)[0].tolist():
         mg = w.menages[i]
-        vivant = any(x.vivant for x in mg.membres)
+        vivant = bool(viv_m[i])
         if dis[i] or not vivant:
             _succession(p, tr, mg)
             continue

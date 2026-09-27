@@ -102,6 +102,7 @@ DIMENSIONNEMENT ( ce que les portes verifient ) et CONCILIATION avec le moteur E
     que l hopital public ne peut coucher ( lits conventionnes par l EOPYY ) ; le malade y paie sa participation."""
 import collections, math
 import numpy as np
+from .. import population as PO
 from .. import config as C
 from ..socle import decision as D, biens as B
 from . import pays as PAYS, d01_population as POP, d16_medecine as M, d13_immobilier as IM, d10_industrie as IN
@@ -472,14 +473,14 @@ def _kit_dispo(p, e):
 # ================================================================== le personnel
 def _present(p, H, hid, now):
     """De garde a ce pas : son equipe ( trois fois 8 h, moteur ) ou un rappel en cours ; ni mort, ni alite, ni en greve."""
-    h = p.w.habitants[hid]
-    if not h.vivant or (h.etat == "I" and h.gravite > M.GRAVITE_ALITE): return False
+    w = p.w; t = w.table        # EN COLONNES ( 27/09 ) : 46 000 appels par jour a 100 000 habitants, sans vue
+    if t.vivant[hid] != 1 or (t.etat[hid] == PO.CODE_ETAT["I"] and float(t.gravite[hid]) > M.GRAVITE_ALITE): return False
     r = H.rappel.get(hid)
     if r is not None and r[0] <= now < r[1]: return True
     if p.a("travail"):
         from . import d04_travail as TV
-        if TV.en_greve(p, h): return False
-    return h.au_travail(p.heure)
+        if TV.en_greve(p, w.habitants[hid]): return False
+    return PO.au_travail_ligne(t, hid, p.heure)
 
 
 def _libres(p, H, e, specs, now):
@@ -548,8 +549,10 @@ def _affecter_personnel(p, H):
     if p.a("travail"):
         from . import d04_travail as TV
         qualif = TV.peut_exercer
-    for h in w.habitants:
-        if not h.vivant or h.role not in ("medecin", "infirmier"): continue
+    tb = w.table; nh = tb.n        # EN COLONNES ( 27/09 ) : les seuls soignants vivants, dans l ordre des habitants
+    soins = np.nonzero((tb.vivant[:nh] == 1) & np.isin(tb.role[:nh], [PO.CODE_ROLE["medecin"], PO.CODE_ROLE["infirmier"]]))[0]
+    for i in soins.tolist():
+        h = w.habitants[i]
         if qualif is not None and not qualif(p, h, h.role): continue      # un medecin sans diplome n exerce pas
         lieu = h.travail.id if h.travail is not None else h.domicile.marche.id
         par_lieu.setdefault((lieu, h.role), []).append(h.id)

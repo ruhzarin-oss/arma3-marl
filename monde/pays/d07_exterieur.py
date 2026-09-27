@@ -1015,7 +1015,7 @@ def _migrations(p):
     t0 = time.perf_counter()
     e = _ext(p); w = p.w; L = p.socle.livre
     _emigration(p, e)
-    vivants = sum(1 for h in w.habitants if h.vivant)
+    vivants = int((w.table.vivant[:w.table.n] == 1).sum())          # colonnes ( 27/09 )
     lam = IMMIGRATION_AN * vivants / JOURS_AN * e.facteur_migration
     e.attendu_immigration += lam
     rng = p.du_jour("exterieur_immigration")
