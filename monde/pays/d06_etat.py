@@ -1262,6 +1262,16 @@ def _voter_budget(p, e, debut, fin):
     return b
 
 
+def bornes_budget(p, l):
+    """( nature, plancher, plafond ) d une loi de finances rectificative sur la ligne l : pas sous ce qui est deja
+    depense ou engage, pas au-dela de trois fois le credit VOTE ( plancher de 1 000 par tranche de 500 vivants )."""
+    b = _etat(p).budget; w = p.w
+    nat = "transferts" if l == "subventions" else "achats"
+    k = max(1.0, float(w.table.vivant[:w.table.n].sum()) / 500.0)
+    deja = b.depenses.get((l, nat), 0.0) + (b.engage.get(l, 0.0) if nat == "achats" else 0.0)
+    return nat, deja, 3.0 * max(b.votes.get((l, nat), 0.0), 1000.0 * k)
+
+
 def execution_budget(p):
     """{ ( ligne, nature ) : ( credit, execute, ecart au prorata ) } et { categorie : ( prevu, encaisse ) }, et le solde."""
     e = _etat(p); b = e.budget
@@ -1534,6 +1544,13 @@ def sitrep(p):
     for (l, nat), (cr, exe, ec) in ex["depenses"].items():
         b = budget.setdefault(l, {"credit": 0.0, "execute": 0.0, "ecart": 0.0})
         b["credit"] = round(b["credit"] + cr); b["execute"] = round(b["execute"] + exe); b["ecart"] = round(b["ecart"] + ec)
+    # ( 27/09 ) les bornes de fixer_budget, arrondies VERS L INTERIEUR : le gouvernement de Qwen visait trois fois le
+    # credit AFFICHE, arrondi, et non le vote - 75 a 79 % de ses actions refusees dans la guerre, dont des milliers a un
+    # euro du plafond. Un ministre connait les limites que la loi lui laisse.
+    for l in LIGNES:
+        _, deja, haut = bornes_budget(p, l)
+        b = budget.setdefault(l, {"credit": 0.0, "execute": 0.0, "ecart": 0.0})
+        b["plancher"] = math.ceil(deja); b["plafond"] = math.floor(haut)
     s = {
         "jour": w.jour, "heure": round(w.heure, 1),
         "population": {"vivants": int(pop.get("inscrits", 0)), "morts": int(pop.get("deces", 0)),
@@ -1651,10 +1668,7 @@ def appliquer(p, action):
             # pays, comme les regles ( k = vivants / 500 ) - a 500 habitants ou moins, rien ne change
             l, m = action["ligne"], float(action["montant"])
             if l not in LIGNES: return False, f"ligne inconnue {l}"
-            nat = "transferts" if l == "subventions" else "achats"
-            k = max(1.0, float(w.table.vivant[:w.table.n].sum()) / 500.0)
-            deja = b.depenses.get((l, nat), 0.0) + (b.engage.get(l, 0.0) if nat == "achats" else 0.0)
-            haut = 3.0 * max(b.votes.get((l, nat), 0.0), 1000.0 * k)
+            nat, deja, haut = bornes_budget(p, l)
             if not deja <= m <= haut: return False, f"credits {m:.0f} hors [{deja:.0f} ; {haut:.0f}]"
             b.credits[(l, nat)] = m; return True, ""
         if t == "emettre_dette":
