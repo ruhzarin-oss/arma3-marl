@@ -184,6 +184,8 @@ BETA_PARITE = 0.2
 # livrent juste ce qu on mange ( 1 a 1,8 jour a 19 h pour une cible de 2 ) faisaient monter le prix de 0,5 % par jour jusqu a
 # la parite a l import, pour rien : le prix n apporte pas une ration de plus quand la recolte part deja en entier.
 TOLERANCE_COUVERTURE = 0.5
+ALPHA_COUVERTURE = 1.0 / 3.0    # la couverture que lit le marchand est lissee sur ~3 soirs : un seul creux de livraison ne
+                                # fait pas un prix ( HMT-125 : +4 % par mois sur la nourriture par des creux d un soir )
 LENTEUR_DANS_LA_BANDE = 0.25    # dans la bande, le prix bouge au quart de la vitesse : il redescend quand le stock est a l aise
 MARGE_PRODUCTEUR = 0.10         # marge d un producteur sur son prix de revient complet ( a calibrer )
 MARGE_COMMERCE = 0.05           # la regle de commerce du moteur exige 5 % de gain au-dela du transport ( monde.py, commerce_regle )
@@ -237,11 +239,12 @@ class EtatMarche:
     Ce qu un menage voulait sans pouvoir le payer est compte a part ( non_solvable ) : un prix qui monterait avec les
     envies des pauvres ne dirait rien de la rarete. Et ce qu il a vendu aux menages : l assiette de la TVA."""
     __slots__ = ("id", "demande_lisse", "non_servi", "non_solvable", "couverture", "ventes_ht", "ventes_q", "ventes_jour",
-                 "stock_soir")
+                 "stock_soir", "couv_lisse")
 
     def __init__(self, id, demande0):
         self.id = id
         self.stock_soir = None                          # { bien : stock a 19 h, avant les courses } ( 27/09 )
+        self.couv_lisse = {b: COUVERTURE_CIBLE_J.get(b, 0.0) for b in C.BIENS}   # couverture lissee sur ~3 jours ( HMT-125 )
         self.demande_lisse = dict(demande0)
         self.non_servi = {b: 0.0 for b in C.BIENS}      # voulu, payable, et pas servi faute de stock ( depuis l aube )
         self.non_solvable = {b: 0.0 for b in C.BIENS}   # voulu et pas payable : la pauvrete, cumul ( pas un signal de prix )
@@ -819,6 +822,9 @@ def _ajuster_prix(p, mid):
             ss = getattr(em, "stock_soir", None)         # 27/09 : le stock d hier 19 h, avant les courses ; sinon l aube
             couv = max(0.0, ss[b] if ss is not None and b in ss else m.stocks[b]) / dem
             em.couverture[b] = couv
+            cl = getattr(em, "couv_lisse", None)
+            if cl is None: cl = em.couv_lisse = {k: COUVERTURE_CIBLE_J.get(k, 0.0) for k in C.BIENS}
+            couv = cl[b] = (1.0 - ALPHA_COUVERTURE) * cl.get(b, couv) + ALPHA_COUVERTURE * couv
             x = max(-1.0, min(1.0, (cible - couv) / cible))
             if abs(couv - cible) <= TOLERANCE_COUVERTURE * cible: x *= LENTEUR_DANS_LA_BANDE   # 27/09 : prix collants dans la bande
             if em.non_servi[b] > 0.0: x = max(x, min(1.0, em.non_servi[b] / dem))
