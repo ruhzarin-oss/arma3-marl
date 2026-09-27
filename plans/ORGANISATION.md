@@ -22,7 +22,7 @@ intègre, tranche, et tient ce fichier à jour.
 |---|---|---|---|
 | Intégration, portes, références, **armée du budget** ( loi de programmation militaire, domaine 25 ) | Organisation du projet | `pays-sur-colonnes` ( tronc ), `armee-budget` | `/mnt/data/hmt/atelier-colonnes` |
 | Moteur réaliste et performant : vitesse, colonnes, identité au bit | Moteur plus réaliste et performant | `moteur-perf` | `/mnt/data/hmt/atelier-moteur` |
-| Le pays réel : ressemblance à la Grèce ( l'instrument ), faim réelle, population | à confirmer ( sessions `pays-reel-pop`, `pays-reel-porte` ) | `pays-reel-pop`, `pays-reel-porte` | `/mnt/data/hmt/atelier-reel-pop`, `/mnt/data/hmt/atelier-reel-porte` |
+| Le pays réel : ressemblance à la Grèce ( l'instrument, terminé : `ca0765b` ), population grecque à la naissance ( mode `demographie="grece"` ) | Classes d'un pays simulé | `pays-reel-pop` ( en cours ), `pays-reel-porte` ( terminée ) | `/mnt/data/hmt/atelier-reel-pop`, `/mnt/data/hmt/atelier-reel-porte` |
 | La guerre des îles ( Arma, archipel en guerre, conseil de guerre ) | Windows workstation en lab moteur | `guerre-des-iles` | `/mnt/data/hmt/atelier-guerre` |
 
 ## Ce qui est tranché
@@ -54,7 +54,12 @@ intègre, tranche, et tient ce fichier à jour.
 
 - Certifier `ca0765b` ( `portes.sh` complet ), puis y avancer `pays-sur-colonnes`.
 - `guerre-des-iles` : `a16fc92` + 6 fichiers non commités, à rebaser sur le tronc et le modèle de la faim du tronc.
-- `pays-reel-pop` : 9 fichiers non commités dans son atelier.
+- `pays-reel-pop` : 9 fichiers non commités = le travail EN COURS de la session « Classes » ( mode `demographie="grece"` :
+  pyramide, ménages familiaux, métiers neufs à la fin de `ROLES`, ~1,4 % de militaires à la naissance ) ; personne d'autre
+  n'y touche. Défaut identique au bit.
+- Les prix doublent entre les jours 5 et 35 puis montent d'environ 140 % par an ( d03 ) : signalé à la session du
+  moteur, à suivre.
 - Armée du budget ( chef de projet ) : la loi de programmation ( 6,6 % des dépenses publiques, SIPRI ; 55 % de soldes ),
-  l'effectif payé, le plan de départs, la solde réelle des appelés ; le surplus du moteur E1 ( 9,33 % de militaires
-  contre une bande de 0,80 - 1,45 % ) se corrige à l'installation de l'armée, jugé par l'indicateur `part_militaires`.
+  l'effectif payé, le plan de départs, la solde réelle des appelés. Partage convenu avec « Classes » : la part de
+  militaires À LA NAISSANCE vient de la population grecque ( ~1,4 %, contre 9,33 % dans le monde E1 par défaut ) ; d25
+  ne fait que la dynamique ( budget → effectif ), jugée par l'indicateur `part_militaires`.
