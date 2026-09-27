@@ -1374,7 +1374,7 @@ def _completer_flotte(p, tr):
     complet = all(sum(1 for v in tr.vehicules if v[0] == nom) >= n for nom, n in tr.cible.items())
     garde = FONDS_ROULEMENT + max(T14.caracteristiques(nom).prix_ttc for nom in tr.cible)
     if complet and not any(x > EPS for x in tr.acomptes.values()) and tr.caisse > 2 * garde:
-        L.payer_l_exterieur(tr, tr.caisse - garde, "rapatriement_capital")   # l avance des acomptes rentre chez l investisseur
+        EXT.payer_en_devises(p, tr, tr.caisse - garde, "rapatriement_capital")   # l avance des acomptes rentre chez l investisseur
 
 
 def _recompter_flotte(p, tr):
