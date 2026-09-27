@@ -21,9 +21,9 @@ intègre, tranche, et tient ce fichier à jour.
 | Chantier | Session | Branche | Atelier |
 |---|---|---|---|
 | Intégration, portes, références, **armée du budget** ( loi de programmation militaire, domaine 25 ) | Organisation du projet | `pays-sur-colonnes` ( tronc ), `armee-budget` | `/mnt/data/hmt/atelier-colonnes` |
-| Moteur réaliste et performant : vitesse, colonnes, identité au bit | Moteur plus réaliste et performant | `moteur-perf` | `/mnt/data/hmt/atelier-moteur` |
+| Moteur réaliste et performant : vitesse, colonnes, identité au bit ; **la correction des prix de d03** ( couverture mesurée avant les courses, ancrage de coût de la nourriture, demande de carburant des stations ) | Moteur plus réaliste et performant | `moteur-realiste` ( `moteur-perf` y est fusionnée ) | `/mnt/data/hmt/atelier-moteur` |
 | Le pays réel : ressemblance à la Grèce ( l'instrument, terminé : `ca0765b` ), population grecque à la naissance ( mode `demographie="grece"` ) | Classes d'un pays simulé | `pays-reel-pop` ( en cours ), `pays-reel-porte` ( terminée ) | `/mnt/data/hmt/atelier-reel-pop`, `/mnt/data/hmt/atelier-reel-porte` |
-| La guerre des îles ( Arma, archipel en guerre, conseil de guerre ) | Windows workstation en lab moteur | `guerre-des-iles` | `/mnt/data/hmt/atelier-guerre` |
+| La guerre des îles ( Arma, archipel en guerre, conseil de guerre ) ; l'autoconsommation des familles paysannes ( d09 ), le revenu minimum KEA ( d06 ), G18-G22 | Windows workstation en lab moteur | `guerre-des-iles` | `/mnt/data/hmt/atelier-guerre` |
 
 ## Ce qui est tranché
 
@@ -38,6 +38,12 @@ intègre, tranche, et tient ce fichier à jour.
    n'en fait sortir aucun sans le dire.
 3. **Dans le doute, copier le réel** ; une valeur sans source porte « à calibrer » ou « à vérifier ».
 4. **Tout est enregistré** ( enregistreur, porte E6 ) ; une nouvelle structure d'état d'un domaine doit y tomber.
+5. **Pas de drapeau d'île pour le réalisme** : un drapeau est un second modèle. Autoconsommation, prix, KEA valent pour
+   tous les mondes, chacun dans son commit, avec son correctif de référence et le tableau `ressemblance.py` avant/après.
+6. **La réparation de la faim reste « un jour nourri répare 1 ration »** : la réhabilitation du Minnesota ( Keys 1950 )
+   rend une partie de la force après 12 semaines, l'essentiel après ~20 ; la guerre mesure G20 sur ce modèle et rapporte.
+7. **Une faute, un seul titulaire** : les prix de d03 ont été diagnostiqués par trois sessions le même jour ; ils sont à
+   la session du moteur, la guerre lui passe son code et ses mesures de Stratis.
 
 ## Les règles techniques
 
@@ -47,6 +53,9 @@ intègre, tranche, et tient ce fichier à jour.
   instantanés.
 - Un changement du comportement des 14 domaines d'origine passe aussi dans `references/correctifs/` et
   `refaire_references.sh` ; les références se refont, jamais à la main.
+- **Seul le chef de projet réécrit les références partagées** de `/mnt/data/hmt` ( `ref_domaines*.json`,
+  `ref/monde_ancien` ), depuis un commit du tronc. Une branche qui change le comportement se teste avec `HMT_REF` pointé
+  sur un dossier à elle.
 - `portes.sh` n'affiche que les 8 dernières lignes d'une porte refusée : lire la sortie complète avant de conclure.
 - Messages de commit en français, avec « Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com> ».
 
