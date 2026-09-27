@@ -116,6 +116,16 @@ G20 LA VRAIE STRATIS AFFAMEE REPART ( 27/09, ecrite avant la mesure ; sur la fai
    conservation tient. ( Historique : le premier essai a ECHOUE, ses paysans ne mangeaient pas le grain de leur ferme -
    l autoconsommation est ajoutee au domaine 9 ; le deuxieme lisait livre_j apres sa remise a zero de 6 h 40, un bogue
    du test. Avec la faim de la branche, avant la fusion : fermes au jour 7, faim 1,6 % au jour 8, 13 012 morts de faim. )
+   AMENDEE le 27/09 au soir APRES mesure ( chef de projet ; plus severe, pas plus facile ) : sur le tronc, la Stratis de
+   l essai 15 perd 48 880 habitants de faim sur 100 312 a la premiere aube - ses 98 % de menages au-dela du seuil de mort
+   viennent de l ancien modele ( famine sans morts, fuite de devises ) et le modele du tronc les solde d un coup : un
+   artefact de transition, et la faim tombait sous 10 % parce que les affames etaient morts. Nouveau critere, ecrit avant
+   la prochaine mesure : les fermes relivrent en 8 jours, la faim passe sous 10 % le huitieme jour, ET les morts de faim
+   de ces 8 jours restent sous 1 % des vivants du depart ( premiere borne, a calibrer : l IPC classe une zone en famine
+   au-dela de 2 deces pour 10 000 par jour, soit 0,16 % en 8 jours - IPC, Guidance Note on Famine ). Nouveau monde : plus
+   l instantane de l essai 15, mais une famine produite par le code d aujourd hui ( apres HMT-131 a et b ) : une Stratis
+   stressee ( reserves a zero, importations coupees ) jusqu a la famine, puis relachee, et la reprise mesuree - les morts
+   viennent au fil des jours. Hors de la porte ( --sans G20 ) tant que d01._placer n est pas corrige ( HMT-130 ).
 G21 LE REVENU MINIMUM GARANTI ( KEA, 27/09, ecrite avant la mesure ) : dans une petite Stratis, un versement du jour
    donne a chaque menage eligible exactement le seuil du jour ( 216 euros par mois a l echelle 1 + 0,5 par adulte de plus
    + 0,25 par enfant ) moins son revenu lisse hors KEA ; rien a un menage au-dessus du seuil ni a un menage aux avoirs
