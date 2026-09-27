@@ -51,8 +51,12 @@ def creer_ile(ile, graine, echelle, llm=False):
 
 
 def _convois(w, echelle):
-    """Une ile reprise d un instantane d avant le 27/09 n a pas l echelle de ses convois : celle de l archipel."""
+    """Une ile reprise d un instantane d avant le 27/09 n a pas l echelle de ses convois ( celle de l archipel ) ni
+    l autoconsommation paysanne ( domaine 9 ) : les lui poser."""
     if "echelle_convois" not in vars(w): w.echelle_convois = float(echelle)
+    if getattr(w, "pays", None) is not None and w.pays.a("agriculture"):
+        from .pays import d09_agriculture as AG
+        AG.brancher_autoconsommation(w.pays)             # idempotent : une ile d avant le 27/09 ne l a pas
     return w
 
 
