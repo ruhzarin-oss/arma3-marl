@@ -50,6 +50,14 @@ G13 VILLES OCCUPEES ( 27/09, ecrite avant la mesure ) : la zone de La Trinite ( 
    moteur, 0 present, rapport impossible - La Trinite y tombait de 45 492 a 11 574 ), tombent sous 0,4 fois leur rapport d avant ; ils remontent au-dessus de 0,8 fois apres la liberation ;
    une quarantaine posee par le gouvernement lui-meme ( ailleurs ) reste ; le bulletin dit ville occupee et siege
    occupe ; la conservation tient.
+   AMENDEE le 28/09 ( chef de projet ; ecrite avant la mesure ) : la porte echouait a 0,785 pour 0,8 depuis 2a06924
+   ( bisection : 0,845 a 7bc0a5d, 0,785 a 2a06924 et a tous les commits d apres, identique au bit ). Le TEMOIN des memes
+   jours, sans aucune occupation, donnait 0,781 : les fenetres « avant » ( jours 0 a 2 : samedi, dimanche, lundi de
+   Pentecote orthodoxe ) et « liberee » ( jours 6 a 9 ) ne pesent pas les memes jours du calendrier de l agenda, entre
+   dans les iles avec 2a06924 ( feries, dimanches, fin de l annee scolaire ) - un artefact de mesure, ni d17 ni d19.
+   Nouvelle reference : le temoin apparie ( meme graine, memes jours, sans occupation ) ; occupee sous 0,4 fois le
+   rapport du temoin sur les jours d occupation ( controle positif ), liberee au-dessus de 0,8 fois celui du temoin sur
+   les jours d apres ; seuils inchanges ; jugee sur la graine neuve 2.
 G14 USINES OCCUPEES ( 27/09, AMENDEE avant tout verdict : la premiere version mesurait la fonderie de Larche, mais
    les fonderies de Malden ne produisent RIEN, en paix comme a 10 000 habitants - le controle positif a echoue, rien a
    prouver ; la centrale, elle, produit ) : la zone de la centrale ( centrale01 ) occupee trois jours : ses ouvriers
@@ -176,6 +184,13 @@ G24 LE FRET DES RECOLTES ( 27/09 au soir, ecrite avant la mesure ; remplace l il
    manque et que les fermes en ont. Controle positif : le fret du domaine 15 coupe ( sa routine _expedier ne lance plus
    rien ; les lots en route arrivent ) : la porte echoue. Une vraie suite de jours bloques est un goulot, pour la session
    du moteur ( d09 et d15 ).
+   AMENDEE le 28/09 ( chef de projet ; ecrite avant la mesure ) : sur la graine 1, le bras libre passait ( 0 jour bloque )
+   mais le controle positif ne savait pas echouer - fret coupe 30 jours, les rations pretes aux fermes ne montaient qu a
+   3,7 jours, jamais au-dela de 10, et le marche restait nourri ( negoce, autoconsommation ). Les « greniers pleins »
+   ( 2,4 millions de kg par ferme ) sont la recolte BRUTE du domaine 9, pas des rations bloquees. Nouveau critere : les
+   rations pretes aux fermes ne depassent pas 2 jours de demande, chaque jour des jours 5 a 30 ( libre : 1,1 au plus sur
+   la graine 1 ; coupe : 3,7 ). Jugee sur la graine neuve 2 ; la porte n est valide que si le bras libre PASSE et le bras
+   au fret coupe ECHOUE.
 G23 LES REFUS D HIER ( 27/09, ecrite avant la mesure ) : une decision du gouvernement de Malden avec une action refusee
    ( et sa raison ) ; le lendemain matin, le code qui gouverne recoit dans son bulletin la section refus_hier avec cette
    action et cette raison ; sans refus la veille, la liste est vide ( controle ).
@@ -285,7 +300,38 @@ def _echelle_a_la_reprise():
     return {"deja": avant, "echelle": w.echelle_convois}
 
 
-def _fret_recoltes(couper=False, jours=30):
+def _g13(occuper, graine):
+    """G13 : un petit Malden ( graine donnee ), La Trinite occupee du jour 3 au jour 6 ( ou non : le temoin apparie ) ;
+    les presents au travail a La Trinite et a Dourdan, avant ( jours 0 a 2 ), pendant ( 3 a 5 ), apres ( 6 a 9 )."""
+    from monde import population as PO13
+    from monde.archipel import Archipel
+    carte = Z.carte_de_guerre(open(os.path.join(MISSION, "mission.sqm"), encoding="latin-1").read(), "Malden")
+    zs = carte["zones"]
+    arc13 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False, graine=graine)
+    w13 = arc13.iles["Malden"].w; t13 = w13.table
+    zt = next(z["n"] for z in zs if "Malden_C_LaTrinite" in z["lieux"]); lt = next(z["lieux"] for z in zs if z["n"] == zt)
+    kt, kl = w13.carte.lieux["Malden_C_LaTrinite"].n, w13.carte.lieux["Malden_V_Dourdan"].n
+    w13.gouv.lois.setdefault("quarantaine", []).append("Malden_V_Goisse")       # la quarantaine du gouvernement, ailleurs
+    def au_travail(jours):
+        tot = [0, 0]
+        for _ in range(jours * 144):
+            arc13.un_pas(); n13 = t13.n
+            at = (t13.vivant[:n13] == 1) & (t13.poste[:n13] == PO13.CODE_POSTE["travail"])
+            tot[0] += int((at & (t13.lieu[:n13] == kt)).sum()); tot[1] += int((at & (t13.lieu[:n13] == kl)).sum())
+        return tot
+    av = au_travail(3)
+    if occuper: arc13.commande("Malden", "occuper", zt, lt, True)
+    b13 = GM.bulletin_guerre(w13)
+    pe = au_travail(3)
+    if occuper: arc13.commande("Malden", "occuper", zt, lt, False)
+    ap = au_travail(4)
+    gv = "Malden_V_Goisse" in w13.gouv.lois["quarantaine"] and "Malden_C_LaTrinite" not in w13.gouv.lois["quarantaine"]
+    tenue = bool(arc13.commande("Malden", "tenue")[0])
+    arc13.fermer()
+    return {"av": av, "pe": pe, "ap": ap, "gv": gv, "tenue": tenue, "villes": b13["villes_occupees"], "siege": b13["siege_du_gouvernement_occupe"]}
+
+
+def _fret_recoltes(couper=False, jours=30, graine=2):
     """G24 : une Stratis neuve, 30 jours ; chaque midi, la couverture du marche de la capitale et les vivres prets aux
     fermes, en jours de sa demande lissee. `couper` : la routine de fret du domaine 15 ne lance plus rien."""
     from monde.archipel import creer_ile
@@ -293,7 +339,7 @@ def _fret_recoltes(couper=False, jours=30):
     ancien = LG._expedier
     if couper: LG._expedier = lambda p, h: LG._avancer_lots(p, LG._lg(p))
     try:
-        w = creer_ile("Stratis", 1, 20.0); p = w.pays
+        w = creer_ile("Stratis", graine, 20.0); p = w.pays
         mid = w.carte.gouvernement.marche.id if getattr(w.carte.gouvernement, "marche", None) is not None else next(iter(w.marches))
         fermes = [e for e in w.entreprises.values() if e.type == "ferme"]
         cov, stock_fermes, bloque = [], [], []
@@ -307,7 +353,8 @@ def _fret_recoltes(couper=False, jours=30):
         suite = plus = 0
         for x in bloque:
             suite = suite + 1 if x else 0; plus = max(plus, suite)
-        return {"plus_longue_suite_bloquee": plus, "jours_bloques": sum(bloque), "couverture": cov[::3], "fermes_en_jours": stock_fermes[::3],
+        return {"plus_longue_suite_bloquee": plus, "jours_bloques": sum(bloque), "fermes_max_j5_30": max(stock_fermes[4:]),
+                "couverture": cov[::3], "fermes_en_jours": stock_fermes[::3],
                 "conservation": bool(p.socle.conservation.tenue()[0])}
     finally:
         LG._expedier = ancien
@@ -609,36 +656,17 @@ def main():
     ok["G12 la releve change qui decide ; un code interdit est refuse"] = (
         avant == "regles" and apres.startswith("code:") and d12 and str(d12[-1].get("cerveau", "")).startswith("code:") and refuse12)
     arc12.fermer()
-    # G13
-    from monde import population as PO13
-    arc13 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False)
-    w13 = arc13.iles["Malden"].w; t13 = w13.table
-    zt = next(z["n"] for z in zs if "Malden_C_LaTrinite" in z["lieux"]); lt = next(z["lieux"] for z in zs if z["n"] == zt)
-    kt, kl = w13.carte.lieux["Malden_C_LaTrinite"].n, w13.carte.lieux["Malden_V_Dourdan"].n
-    w13.gouv.lois.setdefault("quarantaine", []).append("Malden_V_Goisse")       # la quarantaine du gouvernement, ailleurs
-    def au_travail(jours):
-        tot = [0, 0]
-        for _ in range(jours * 144):
-            arc13.un_pas(); n13 = t13.n
-            at = (t13.vivant[:n13] == 1) & (t13.poste[:n13] == PO13.CODE_POSTE["travail"])
-            tot[0] += int((at & (t13.lieu[:n13] == kt)).sum()); tot[1] += int((at & (t13.lieu[:n13] == kl)).sum())
-        return tot
-    av = au_travail(3)
-    arc13.commande("Malden", "occuper", zt, lt, True)
-    b13 = GM.bulletin_guerre(w13)
-    pe = au_travail(3)
-    arc13.commande("Malden", "occuper", zt, lt, False)
-    ap = au_travail(4)
+    # G13 ( amendee le 28/09 : contre le temoin apparie des memes jours, graine neuve 2 )
+    oc13, te13 = _g13(True, 2), _g13(False, 2)
     rap = lambda x: x[0] / max(1, x[1])
-    gv = "Malden_V_Goisse" in w13.gouv.lois["quarantaine"] and "Malden_C_LaTrinite" not in w13.gouv.lois["quarantaine"]
-    tenue13 = arc13.commande("Malden", "tenue")
-    print(f"   villes occupees : presents La Trinite / Dourdan avant {av} ( {rap(av):.2f} ), occupee {pe} ( {rap(pe):.2f} ), "
-          f"liberee {ap} ( {rap(ap):.2f} ) ; bulletin {b13['villes_occupees']} siege {b13['siege_du_gouvernement_occupe']}", flush=True)
-    ok["G13 controle positif : La Trinite travaillait avant ; occupee, sous 0,4 fois son rapport au temoin"] = (
-        av[0] > 0 and av[1] > 0 and pe[1] > 0 and rap(pe) < 0.4 * rap(av))
-    ok["G13 liberee, au-dessus de 0,8 fois ; la quarantaine du gouvernement reste ; bulletin ; conservation"] = (
-        rap(ap) > 0.8 * rap(av) and gv and "Malden_C_LaTrinite" in b13["villes_occupees"] and b13["siege_du_gouvernement_occupe"]
-        and bool(tenue13[0]))
+    print(f"   villes occupees : La Trinite / Dourdan, occupee {oc13['av']} {oc13['pe']} {oc13['ap']} ; temoin {te13['av']} {te13['pe']} {te13['ap']} ; "
+          f"occupee / temoin {rap(oc13['pe']) / max(1e-9, rap(te13['pe'])):.3f}, liberee / temoin {rap(oc13['ap']) / max(1e-9, rap(te13['ap'])):.3f} ; "
+          f"bulletin {oc13['villes']} siege {oc13['siege']}", flush=True)
+    ok["G13 controle positif : La Trinite travaillait avant ; occupee, sous 0,4 fois le rapport du temoin des memes jours"] = (
+        oc13["av"][0] > 0 and oc13["av"][1] > 0 and oc13["pe"][1] > 0 and rap(oc13["pe"]) < 0.4 * rap(te13["pe"]))
+    ok["G13 liberee, au-dessus de 0,8 fois le temoin ; la quarantaine du gouvernement reste ; bulletin ; conservation"] = (
+        rap(oc13["ap"]) > 0.8 * rap(te13["ap"]) and oc13["gv"] and "Malden_C_LaTrinite" in oc13["villes"] and oc13["siege"]
+        and oc13["tenue"])
     # G15
     from monde.pays import d06_etat as ET15
     arc15 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False)
@@ -735,9 +763,9 @@ def main():
         fr24, cp24 = pool.map(_fret_recoltes, [False, True])
     print(f"   fret des recoltes : {fr24}", flush=True)
     print(f"   controle positif ( fret coupe ) : {cp24}", flush=True)
-    ok["G24 le fret des recoltes : jamais plus de 2 jours de suite marche vide et fermes pleines ( jours 5 a 30 ) ; conservation"] = (
-        fr24["plus_longue_suite_bloquee"] <= 2 and fr24["conservation"])
-    ok["G24 controle positif : fret du domaine 15 coupe, la porte echoue"] = cp24["plus_longue_suite_bloquee"] > 2
+    ok["G24 le fret des recoltes : les rations pretes aux fermes sous 2 jours de demande, jours 5 a 30 ( graine 2 ) ; conservation"] = (
+        fr24["fermes_max_j5_30"] <= 2.0 and fr24["conservation"])
+    ok["G24 controle positif : fret du domaine 15 coupe, la porte echoue"] = cp24["fermes_max_j5_30"] > 2.0
     # G20
     import numpy as np
     from monde.archipel import creer_ile
