@@ -457,6 +457,8 @@ def _placer(p, d, x, rng):
             deplacer_membre(p, x, c.menage); d.placements += 1
             p.noter("placement", enfant=x.id, menage=c.menage.id, lien=lien); return
     accueil = _accueil_colonnes(p, x)
+    if not accueil:                           # plus aucun adulte vivant dans le pays ( effondrement ) : l enfant reste chez lui
+        p.compter("placement_impossible"); return
     m = accueil[int(rng.integers(0, len(accueil)))]
     deplacer_membre(p, x, m); d.placements += 1
     p.noter("placement", enfant=x.id, menage=m.id, lien="accueil")
@@ -856,7 +858,8 @@ def installer(p):
                       ("placement", ("enfant", "menage", "lien")), ("desherence", ("menage", "montant")),
                       ("migration_interne", ("menage", "de", "vers"))):
         J.declarer(t, "population", "individuel", champs)
-    for t in ("conception", "fausse_couche", "heritage", "declaration_naissance", "declaration_deces", "migration_impossible"):
+    for t in ("conception", "fausse_couche", "heritage", "declaration_naissance", "declaration_deces", "migration_impossible",
+              "placement_impossible"):
         J.declarer(t, "population", "compte")
     p.echeance("fin_de_grossesse", _fin_de_grossesse)
     p.echeance("declarer_naissance", _declarer_naissance)
