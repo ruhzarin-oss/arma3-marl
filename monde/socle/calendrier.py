@@ -77,6 +77,9 @@ class Calendrier:
         self._soleil = {}           # ( ile, date ) -> ( lever, coucher ), calcule une fois par jour ( 27/09 )
 
     def __setstate__(self, etat):   # un instantane d avant le 27/09 n a pas le cache
+        # ... et une classe a __slots__ picklee sans __getstate__ rend ( None, { slots } ), pas un dictionnaire : les
+        # instantanes de la guerre des iles d avant le 27/09 ne se relisaient plus ( AttributeError, 27/09 )
+        if isinstance(etat, tuple): etat = {**(etat[0] or {}), **(etat[1] or {})}
         for k, v in etat.items(): setattr(self, k, v)
         if not hasattr(self, "_soleil"): self._soleil = {}
 
