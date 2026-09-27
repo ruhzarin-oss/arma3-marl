@@ -1336,7 +1336,9 @@ def _loi_de_programmation(p, d):
     domaine 6 avait deja prevu : le carburant des patrouilles ). Rend la loi en vigueur, ou None sans budget."""
     b = getattr(p.domaines.get("etat"), "budget", None)
     if b is None: return None
-    cle = (int(b.exercice), int(b.debut), id(b))
+    # la loi de finances se reconnait a son exercice, son debut et sa duree ( un nouveau vote en cours d annee a un autre
+    # debut ) ; jamais a son adresse en memoire, qui change quand le monde est repris d un instantane ( 27/09, porte G3 )
+    cle = (int(b.exercice), int(b.debut), int(b.jours))
     if d.loi_vue == cle: return d.loi
     autres = math.fsum(v for (l, _), v in b.credits.items() if l != "defense")
     defense = PART_DEFENSE_DEPENSES / (1.0 - PART_DEFENSE_DEPENSES) * autres
