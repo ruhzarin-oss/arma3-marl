@@ -1532,7 +1532,7 @@ def investir(p, unite, montant, fournisseur=None, motif="investissement"):
     """L unite achete du capital fixe : elle paie `fournisseur` ( un detenteur inscrit ) ou l exterieur ( machine
     importee ) ; le capital brut monte de ce qui est paye. Rend le montant paye."""
     L = p.socle.livre; c = comptes(p, unite)
-    paye = L.transferer(unite, fournisseur, montant, motif) if fournisseur is not None else L.payer_l_exterieur(unite, montant, motif)
+    paye = L.transferer(unite, fournisseur, montant, motif) if fournisseur is not None else importlib.import_module(".d07_exterieur", __package__).payer_en_devises(p, unite, montant, motif)
     c.capital_brut += paye; c.propres["investissement"] += paye
     return paye
 

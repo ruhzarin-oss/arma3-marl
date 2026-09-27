@@ -1010,7 +1010,8 @@ def _reapprovisionner(p, med):
                 continue
             voulu = STOCK_CIBLE_J * besoin - ph.stock[b]
             if voulu <= 0.5: continue
-            paye = L.payer_l_exterieur(w.gouv, voulu * mol.prix, "import_produits_sante")
+            from . import d07_exterieur as EX
+            paye = EX.payer_en_devises(p, w.gouv, voulu * mol.prix, "import_produits_sante", essentiel=True)
             q = paye / mol.prix
             if q <= 0:
                 p.noter("rupture_sante", bien=nom, lieu=ph.lieu); continue

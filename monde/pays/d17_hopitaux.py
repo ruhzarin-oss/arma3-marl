@@ -1280,7 +1280,8 @@ def _import_arrive(p, gid, donnees):
         recu, _ = EX.importer_au_port(p, g, g.stock, b, q, "import_sante")
     else:
         prix = p.socle.catalogue[b].prix_monde
-        paye = L.payer_l_exterieur(g, q * prix, "import_grossiste")
+        from . import d07_exterieur as EX
+        paye = EX.payer_en_devises(p, g, q * prix, "import_grossiste", essentiel=True)
         recu = paye / prix
         if recu > 0: L.importer(g.stock, b, recu, "import_grossiste")
     if recu > 0:

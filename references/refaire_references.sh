@@ -20,6 +20,8 @@ $PY $C/patch_dettes.py $ARBRE
 $PY $C/patch_faim.py $ARBRE
 $PY $C/patch_prix.py $ARBRE
 $PY $C/patch_autoconsommation.py $ARBRE/monde/pays/d09_agriculture.py
+$PY $C/patch_devises.py $ARBRE
+$PY $C/patch_priorite_devises.py $ARBRE
 $PY $C/patch_rupture.py $ARBRE
 $PY $C/patch_plafond.py $ARBRE
 $PY $C/patch_lissage.py $ARBRE
