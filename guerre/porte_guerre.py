@@ -331,6 +331,25 @@ def _g13(occuper, graine):
     return {"av": av, "pe": pe, "ap": ap, "gv": gv, "tenue": tenue, "villes": b13["villes_occupees"], "siege": b13["siege_du_gouvernement_occupe"]}
 
 
+def _monde_de_g14():
+    """G14 joue dans le monde ou jouait G13 avant son amendement du 28/09 : un petit Malden ( graine du moteur ), la
+    quarantaine du gouvernement a Goisse, La Trinite occupee du jour 3 au jour 6 puis liberee, 10 jours ; rejoue a
+    l identique pour que G14 ne change pas."""
+    from monde.archipel import Archipel
+    carte = Z.carte_de_guerre(open(os.path.join(MISSION, "mission.sqm"), encoding="latin-1").read(), "Malden")
+    zs = carte["zones"]
+    arc = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False)
+    w = arc.iles["Malden"].w
+    zt = next(z["n"] for z in zs if "Malden_C_LaTrinite" in z["lieux"]); lt = next(z["lieux"] for z in zs if z["n"] == zt)
+    w.gouv.lois.setdefault("quarantaine", []).append("Malden_V_Goisse")
+    for _ in range(3 * 144): arc.un_pas()
+    arc.commande("Malden", "occuper", zt, lt, True); GM.bulletin_guerre(w)
+    for _ in range(3 * 144): arc.un_pas()
+    arc.commande("Malden", "occuper", zt, lt, False)
+    for _ in range(4 * 144): arc.un_pas()
+    return arc, w, w.table
+
+
 def _fret_recoltes(couper=False, jours=30, graine=2):
     """G24 : une Stratis neuve, 30 jours ; chaque midi, la couverture du marche de la capitale et les vivres prets aux
     fermes, en jours de sa demande lissee. `couper` : la routine de fret du domaine 15 ne lance plus rien."""
@@ -684,7 +703,9 @@ def main():
     ok["G15 acheter jusqu a 2 000 x k, pas au-dela ; subventions relevees puis versees"] = (
         a_ok[0] and not a_non[0] and "achat invalide" in a_non[1] and not s_avant[0] and f15[0] and s_apres[0])
     arc15.fermer()
-    # G14
+    # G14 ( dans le monde ou G13 jouait avant son amendement, rejoue a l identique )
+    from monde import population as PO13
+    arc13, w13, t13 = _monde_de_g14()
     z14 = zone_de["centrale01"]; l14 = next(z["lieux"] for z in zs if z["n"] == z14)
     kc, kw = w13.carte.lieux["centrale01"].n, w13.carte.lieux["Malden_V_Dourdan"].n
     def usine(jours):
