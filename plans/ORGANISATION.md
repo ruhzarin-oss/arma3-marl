@@ -45,6 +45,12 @@ intègre, tranche, et tient ce fichier à jour.
 7. **Une faute, un seul titulaire** : les prix de d03 ont été diagnostiqués par trois sessions le même jour ; ils sont à
    la session du moteur, la guerre lui passe son code et ses mesures de Stratis.
 
+8. **Qwen coder est toujours actif** ( Younes, 27/09 ) : `qwen3.8:27b` reste chargé dans Ollama en permanence
+   ( keep_alive −1, ~17 Go de la 3090 ) ; la garde `/mnt/data/hmt/qwen/garde_qwen.sh` le recharge toutes les 5 minutes s'il
+   disparaît ( journal `garde.log` ). Aucune session ne le décharge ni ne prend la carte graphique pour autre chose sans
+   prévenir le chef de projet. Chaque run long et chaque nuit branche les gouvernements écrits par Qwen
+   ( `--gouvernement` ), et le service de code à la demande ( `plans/plan-code-a-la-demande.md` ) dès qu'il existe.
+
 ## Les règles techniques
 
 - Un domaine n'écrit JAMAIS dans une constante ou un tableau d'un autre module : les six îles de l'archipel séquentiel
