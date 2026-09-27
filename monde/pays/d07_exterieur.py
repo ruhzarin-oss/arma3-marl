@@ -187,6 +187,7 @@ MOTIFS = {   # motif : ( nature SCN, ligne de la balance ou None si la douane le
     "export_or_etat": ("achat", None), "import_sante": ("achat", None), "import_vehicules": ("achat", None),
     "import_armement": ("achat", None),
     "fret_import": ("achat", "services"), "prime_reassurance": ("achat", "services"),
+    "recette_touristique": ("achat", "services"),      # domaine 28 : ce que les visiteurs etrangers paient
     "indemnite_reassurance": ("transfert_courant", "revenus_secondaires"),
     "vente_import": ("achat", None), "achat_export": ("achat", None),
     "transfert_migrant": ("transfert_capital", "capital"), "envoi_de_fonds": ("transfert_courant", "revenus_secondaires"),

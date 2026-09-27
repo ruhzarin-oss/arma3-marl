@@ -15,10 +15,13 @@ TRAVAIL = {
     "paysan": (("village",), "jour"), "mineur": (("mine", "carriere"), "jour"), "petrolier": (("puits",), "garde"),
     "ouvrier": (("raffinerie", "centrale", "fonderie", "pharmacie"), "jour"), "convoyeur": (("capitale",), "jour"),
     "marchand": (("capitale",), "marche"), "enfant": (("capitale",), "ecole"), "retraite": ((), None),
+    "hotellerie": (("capitale", "ville", "village"), "garde"),   # un hotel tourne jour et nuit : trois equipes ( 27/09 :
+                                                                 # a l horaire du marche, 8 h - 19 h, le menage ne pouvait plus faire ses courses )
 }
 SALAIRE_HORAIRE = {   # drachmes par heure travaillee ( public : paye par l Etat ; prive : par l entreprise )
     "chef_gouvernement": 30, "ministre": 22, "officier": 16, "soldat": 7, "policier": 9, "medecin": 20, "infirmier": 10,
     "enseignant": 10, "ouvrier": 8, "mineur": 9, "petrolier": 9, "convoyeur": 7, "marchand": 0, "paysan": 0, "patron": 0,
+    "hotellerie": 6,     # 27/09 : salaire brut moyen de l hebergement et de la restauration, ~ 1 100 euros ( ERGANI 2023, a calibrer )
 }
 PENSION_JOUR = 20     # retraite versee par l Etat
 
@@ -578,6 +581,7 @@ def generer(carte, rng, echelle=1.0, table=None):
     mt = TableMenages(table); table.menages = mt
     H = Population(table)
     for role, (n, classe, _) in C.ROLES.items():
+        if n == 0: continue          # 27/09 : un metier ou l on n entre que par l embauche ( hotellerie ) ne nait pas avec le monde
         # archipel ( 24/09 ) : un pays sans le lieu d un metier n a pas ce metier ( pas de puits, pas de petroliers ) ;
         # ces gens exercent le metier de repli ( SUBSTITUTS ), avec sa classe. Sur Altis, rien ne change.
         vrai = role

@@ -117,6 +117,12 @@ class Ile:
             f = {"guerre_mobiliser": GM.mobiliser, "guerre_suivre": GM.suivre, "guerre_morts": GM.morts_au_combat,
                  "guerre_payer": GM.payer_la_guerre}[ordre]
             return f(self.w, *args)
+        if ordre == "tourisme_risque":              # l avis aux voyageurs de l ile ( domaine 28 ; guerre/horloge.py )
+            from monde.pays import d28_tourisme as TO
+            return TO.fixer_risque(self.w.pays, *args)
+        if ordre == "tourisme_etat":
+            from monde.pays import d28_tourisme as TO
+            return TO.etat_tourisme(self.w.pays)
         if ordre == "perturber":                    # controle positif des portes : un milliardieme de drachme
             self.w.table.menages.caisse[0] += 1e-9; return True
         raise ValueError(ordre)

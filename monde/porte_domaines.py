@@ -21,6 +21,10 @@ RARES = ("retraite", "fin_etudes", "entree_vie_active", "migration_interne", "na
          "divorce", "embauche", "licenciement", "faillite", "placement", "desherence", "fin_de_grossesse")
 # les domaines livres : ceux dont le module existe ( 13 livraisons sur 28 au 24/09 )
 LIVRES = [nom for nom, mod, _ in P.DOMAINES if importlib.util.find_spec(f"monde.pays.{mod}") is not None]
+# la reference du 26/09 n a pas le tourisme ( domaine 28, 27/09 ) : la porte d identite compare le pays SANS lui - elle
+# prouve que l ajouter ne change rien aux autres domaines ; le tourisme a ses propres portes. Les iles l installent ( LIVRES ).
+NOUVEAUX_APRES_REFERENCE = ("tourisme",)
+LIVRES_IDENTITE = [nom for nom in LIVRES if nom not in NOUVEAUX_APRES_REFERENCE]
 
 
 def _h(x):
@@ -46,7 +50,7 @@ def empreinte(w):
 
 def jouer(graine, echelle, jours, secheresse=False, domaines=None, saboter=False):
     w = AP.monde_epreuve(graine) if secheresse else W.Monde(graine=graine, echelle=echelle)
-    P.installer(w, list(domaines) if domaines else LIVRES)
+    P.installer(w, list(domaines) if domaines else LIVRES_IDENTITE)
     J = w.pays.socle.journal
     rares, serie, t0 = {}, [], time.perf_counter()
     for j in range(jours):
