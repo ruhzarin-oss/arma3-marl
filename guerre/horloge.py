@@ -204,6 +204,8 @@ def main():
     a.add_argument("--gouvernement", default=None, help="le code qui gouverne chaque ile ( un dossier <Ile>.py, l agent codeur ) ; sans : les regles")
     a.add_argument("--reprise", default=None, help="un instantane de l archipel ( --instantane d une guerre precedente )")
     a.add_argument("--instantane", default=None, help="ou sauver l archipel en fin de guerre, pour la reprendre")
+    a.add_argument("--frais", type=int, default=10, help="sauver aussi l archipel tous les N tours ( 0 : jamais ) : le conseil de Qwen "
+                   "examine l etat de la guerre d il y a moins de N tours, et une station tombee repart de la")
     x = a.parse_args()
     from monde.archipel import Archipel
     os.makedirs(x.dossier, exist_ok=True)
@@ -221,6 +223,9 @@ def main():
             n = h.tours
             h.boucle(tours=n + 1, stop=stop)
             if h.tours > n: print(texte_du_tour(h.derniere), flush=True)
+            if h.tours > n and x.frais and h.tours % x.frais == 0:
+                t1 = time.time(); arc.instantane(x.instantane or os.path.join(x.dossier, "instantane"))
+                print(f"instantane frais au tour {h.tours} ( pas {arc.pas}, {time.time() - t1:.0f} s )", flush=True)
     finally:
         arma.fermer()
         if x.instantane:
