@@ -897,7 +897,8 @@ def _solder(p, d, viv):
         _, p_int, p_ext, p_cach = TYPES_ETABLISSEMENT[e.type]
         e.verse_marche += _payer(p, d, e, _marche_du(p, d, e.lieu), p_int * ht, "approvisionnement_loisirs")
         if p_ext > 0:
-            x = L.payer_l_exterieur(e, p_ext * ht, "droits_films"); d.compte["droits_films"] += x; e.verse_exterieur += x
+            from . import d07_exterieur as EX
+            x = EX.payer_en_devises(p, e, p_ext * ht, "droits_films"); d.compte["droits_films"] += x; e.verse_exterieur += x
         art = [k for k in e.artistes if 0 <= k < len(viv) and viv[k] > 0]
         if p_cach > 0 and art:
             for k in art: e.cachets += _payer(p, d, e, _vue(tb, k), p_cach * ht / len(art), "cachet_artistes")

@@ -128,6 +128,15 @@ G21 LE REVENU MINIMUM GARANTI ( KEA, 27/09, ecrite avant la mesure ) : dans une 
    drachmes par jour, est sous les salaires, les pensions ( 20 par jour ) et les indemnites du moteur, et le revenu lisse
    sur 60 jours ne tombe sous lui que des mois apres la perte d un revenu. Le versement se juge sur soixante menages
    rendus eligibles a la main ; l effet sur la faim sur 200 jours, les 20 derniers, au meme seuil. )
+   AMENDEE le 27/09 APRES avoir vu la mesure ( chef de projet ) : le critere etait ecrit sur un seul monde ; sur le
+   tronc 12d226b, les graines 1 a 4 ( exploration, au rapport ) donnaient -20, -25, -36 et -48 % ( 8,8 % contre 13,4 % en
+   moyenne ). Nouveau critere, juge sur 4 graines NEUVES ( 5 a 8 ) : petite Stratis a l echelle 20, 200 jours, la faim
+   moyenne des jours 181 a 200 avec le KEA, appariee graine par graine a celle sans, baisse en moyenne d au moins 25 % ET
+   baisse sur chaque graine ; montant inchange. Reserve : l effet grandit avec la derive de la faim de base ( -20 % a une
+   base de 10 %, -48 % a 17 % ) ; a remesurer apres le correctif du moteur ( HMT-124 ).
+G23 LES REFUS D HIER ( 27/09, ecrite avant la mesure ) : une decision du gouvernement de Malden avec une action refusee
+   ( et sa raison ) ; le lendemain matin, le code qui gouverne recoit dans son bulletin la section refus_hier avec cette
+   action et cette raison ; sans refus la veille, la liste est vide ( controle ).
 G19 L AVIS AUX VOYAGEURS ( 27/09, ecrite avant la mesure ) : a l ouverture de la guerre ( jouet cote Arma ), le
    tourisme de Malden ( champ de bataille ) passe au risque 0,15 et celui de Stratis ( belligerante ) a 0,5 ; deux jours
    plus tard, les recettes touristiques de Malden sont sous 20 % de celles d un Malden en paix ( meme graine ).
@@ -258,7 +267,8 @@ def _faim_reelle(_):
     import pickle
     from monde.archipel import Ile, _convois as poser
     from monde import tests as T
-    w = poser(pickle.load(open(os.path.join(INSTANTANE_AIDE, "Stratis.pkl"), "rb")), 200.0)
+    from monde.archipel import charger
+    w = poser(charger(os.path.join(INSTANTANE_AIDE, "Stratis.pkl")), 200.0)
     p = w.pays; A = p.domaine("agriculture"); ile = Ile("Stratis", w); v0 = int(w.table.vivant[:w.table.n].sum())
     f, livre = [], []
     for _ in range(8):
@@ -268,7 +278,12 @@ def _faim_reelle(_):
     return {"faim": f, "livre": livre, "morts_de_faim": morts, "vivants0": v0, "conservation": bool(p.socle.conservation.tenue()[0])}
 
 
+SANS = ()                                          # les portes sautees : python -m guerre.porte_guerre --sans G20
+
+
 def main():
+    global SANS
+    if "--sans" in sys.argv: SANS = tuple(sys.argv[sys.argv.index("--sans") + 1].split(","))
     ok = {}
     if not os.path.exists(os.path.join(MISSION, "mission.sqm")):
         from . import fabriquer_mission as FM
@@ -619,11 +634,14 @@ def main():
     import numpy as np
     from monde.archipel import creer_ile
     from monde import tests as T20
-    with get_context("fork").Pool(1) as pool:
-        re20 = pool.map(_faim_reelle, [0])[0]
-    print(f"   vraie Stratis affamee, reprise ( faim du tronc ) : {re20}", flush=True)
-    ok["G20 la vraie Stratis reprise : les fermes relivrent en 8 jours, faim sous 10 % le huitieme ; conservation"] = (
-        max(re20["livre"]) > 0 and re20["faim"][-1] <= 0.10 and re20["conservation"])
+    if "G20" in SANS:                            # 27/09 : l aube du jour 350 dure ~70 min ( d01._placer, HMT-130 )
+        print("   G20 sautee ( --sans G20 ) : la porte n est pas complete", flush=True)
+    else:
+        with get_context("fork").Pool(1) as pool:
+            re20 = pool.map(_faim_reelle, [0])[0]
+        print(f"   vraie Stratis affamee, reprise ( faim du tronc ) : {re20}", flush=True)
+        ok["G20 la vraie Stratis reprise : les fermes relivrent en 8 jours, faim sous 10 % le huitieme ; conservation"] = (
+            max(re20["livre"]) > 0 and re20["faim"][-1] <= 0.10 and re20["conservation"])
     # G21 : un versement du jour, verifie menage par menage
     from monde.pays import d06_etat as ET21
     w21 = creer_ile("Stratis", 1, 4.0); p21 = w21.pays; ET21.brancher_revenu_minimum(p21); T20.jours(w21, 3)
@@ -650,6 +668,24 @@ def main():
     print(f"   revenu minimum : {int((attendu > 0).sum())} menages eligibles sur {M21}, {float(recu.sum()):.0f} verses ; exact {kea_exact}, "
           f"rien aux riches et aux aises {rien}, Etat {etat}, branche dans aucune ile {sans21}", flush=True)
     ok["G21 le versement exact ; rien aux riches ni aux aises ; l Etat paie ; branche dans aucune ile"] = kea_exact and rien and etat and sans21
+    # G23
+    arc23 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False); w23 = arc23.iles["Malden"].w
+    vus23 = []
+    class _Sonde23:
+        modele = "sonde"
+        def __call__(self, b, memoire=""): vus23.append(b.get("refus_hier")); return [], "sonde"
+    c23 = GM.CerveauDeGuerre(_Sonde23(), w23)
+    w23.noter("decision_gouvernement", motifs="", cerveau="sonde",
+              actions=[{"action": {"type": "fixer_budget", "ligne": "defense", "montant": 1e12}, "acceptee": False, "raison": "credits 1e12 hors [0 ; 1]"},
+                       {"action": {"type": "rien"}, "acceptee": True, "raison": ""}])
+    c23({}, "")
+    w23.noter("decision_gouvernement", motifs="", cerveau="sonde", actions=[{"action": {"type": "rien"}, "acceptee": True, "raison": ""}])
+    c23({}, "")
+    arc23.fermer()
+    print(f"   refus d hier : apres un refus {vus23[0]} ; sans refus {vus23[1]}", flush=True)
+    ok["G23 le code recoit les refus d hier avec leur raison ; liste vide sans refus"] = (
+        len(vus23) == 2 and len(vus23[0]) == 1 and vus23[0][0]["action"]["type"] == "fixer_budget" and "hors" in vus23[0][0]["raison"]
+        and vus23[1] == [])
     # G19
     arc19 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False)
     h19_t = iter(x / 432.0 for x in range(10 ** 8))
@@ -666,7 +702,7 @@ def main():
     arc11.fermer()
     for k, v in ok.items(): print(f"{'PASSE ' if v else 'ECHOUE'} {k}")
     passe = all(ok.values())
-    print(f"PORTES DE LA GUERRE : {'FRANCHIES' if passe else 'ECHOUEES'} ( {time.time() - t0:.0f} s )")
+    print(f"PORTES DE LA GUERRE : {'FRANCHIES' if passe else 'ECHOUEES'}{' ( SANS ' + ', '.join(SANS) + ' )' if SANS else ''} ( {time.time() - t0:.0f} s )")
     return 0 if passe else 1
 
 

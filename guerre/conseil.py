@@ -17,10 +17,11 @@ du code a la demande, jamais adopte sur parole, jamais bloquant ).
    en place.
 
    python -m guerre.conseil --guerre /mnt/data/hmt/guerre/essai10 [ --ile Malden ] [ --versions 6 ]"""
-import argparse, json, math, os, sys, time
+import argparse, json, math, os, re, sys, time
+from collections import Counter
 import numpy as np
 from monde import agent_codeur as AC, config as C
-from monde.archipel import Archipel
+from monde.archipel import Archipel, charger
 from monde.pays import d07_exterieur as EXT, d06_etat as ET
 from . import moteur as GM, zones as Z
 
@@ -85,23 +86,31 @@ def evaluer_en_guerre(source, ile, sc, echelle=ECHELLE, jours=JOURS, graine=C.GR
     GM.voir_la_guerre(w)
     rng = np.random.default_rng([graine, 7])
     v0 = int(w.table.vivant[:w.table.n].sum())
-    serie, refus, replis = [], 0, 0
+    serie, refus, replis, actions, raisons = [], 0, 0, 0, Counter()
     n0 = len(w.evenements)
     for _ in range(jours):
         appliquer_scenario(w, sc, rng)
         arc.jours(1)
         serie.append(round(arc.commande(ile, "etat")["faim"], 4))
+    patr = sum(1 for ev in w.evenements[n0:] if ev.get("type") == "patrouille_annulee")
     for ev in w.evenements[n0:]:
         if ev.get("type") != "decision_gouvernement": continue
         if str(ev.get("motifs", "")).startswith("cerveau indisponible"): replis += 1
-        refus += sum(1 for a in ev.get("actions", []) if not a.get("acceptee"))
+        for a in ev.get("actions", []):
+            actions += 1
+            if not a.get("acceptee"): refus += 1; raisons[motif_du_refus(a)] += 1
     tenue, _ = w.pays.socle.conservation.tenue()
     m = {"jours_de_faim": round(sum(serie), 3), "faim_par_jour": serie, "morts_nets": v0 - int(w.table.vivant[:w.table.n].sum()),
-         "dette": ET.sitrep(w.pays)["finances"].get("dette"), "refus": refus, "raisons_refus": {},
-         "jours_joues_par_les_regles": replis, "conservation": bool(tenue), "guerre": GM.bulletin_guerre(w)}
+         "dette": ET.sitrep(w.pays)["finances"].get("dette"), "refus": refus, "actions": actions, "patrouilles_annulees": patr,
+         "raisons_refus": dict(raisons.most_common(6)), "jours_joues_par_les_regles": replis, "conservation": bool(tenue), "guerre": GM.bulletin_guerre(w)}
     m["score"] = AC.score(m)
     arc.fermer()
     return m
+
+
+def motif_du_refus(a):
+    """« type : raison », les nombres effaces : les refus d un meme motif se comptent ensemble."""
+    return f"{(a.get('action') or {}).get('type')} : " + re.sub(r"[0-9][0-9.e+-]*", "N", str(a.get("raison", "")))[:70]
 
 
 def _un(args):
@@ -119,7 +128,9 @@ def evaluer(source, ile, sc, graines, travailleurs=3):
     moy = lambda k: round(sum(r[k] for r in res) / len(res), 3)
     m = {"jours_de_faim": moy("jours_de_faim"), "morts_nets": moy("morts_nets"), "dette": moy("dette"),
          "refus": sum(r["refus"] for r in res), "jours_joues_par_les_regles": sum(r["jours_joues_par_les_regles"] for r in res),
-         "conservation": all(r["conservation"] for r in res), "raisons_refus": {},
+         "conservation": all(r["conservation"] for r in res), "actions": sum(r.get("actions", 0) for r in res),
+         "patrouilles_annulees": sum(r.get("patrouilles_annulees", 0) for r in res),
+         "raisons_refus": dict(sum((Counter(r.get("raisons_refus", {})) for r in res), Counter()).most_common(6)),
          "faim_par_jour": [round(sum(r["faim_par_jour"][j] for r in res) / len(res), 4) for j in range(len(res[0]["faim_par_jour"]))],
          "par_monde": {str(g): r["jours_de_faim"] for g, r in zip(graines, res)}}
     m["score"] = AC.score(m)
@@ -240,23 +251,26 @@ def evaluer_reel(source, instantane, ile, jours=JOURS_REEL):
     import pickle
     from monde.archipel import Ile
     from monde import tests as T
-    w = pickle.load(open(os.path.join(instantane, f"{ile}.pkl"), "rb"))
+    w = charger(os.path.join(instantane, f"{ile}.pkl"))
     w.cerveau = GM.CerveauDeGuerre(None if source == AC.REGLES else AC.CerveauCode(source), w)
     v0 = int(w.table.vivant[:w.table.n].sum())
-    serie, refus, replis = [], 0, 0
+    serie, refus, replis, actions, raisons = [], 0, 0, 0, Counter()
     n0 = len(w.evenements)
     ile_ = Ile(ile, w)
     for _ in range(jours):
         T.jours(w, 1)
         serie.append(round(ile_.commande("etat")["faim"], 4))
+    patr = sum(1 for ev in w.evenements[n0:] if ev.get("type") == "patrouille_annulee")
     for ev in w.evenements[n0:]:
         if ev.get("type") != "decision_gouvernement": continue
         if str(ev.get("motifs", "")).startswith("cerveau indisponible"): replis += 1
-        refus += sum(1 for a in ev.get("actions", []) if not a.get("acceptee"))
+        for a in ev.get("actions", []):
+            actions += 1
+            if not a.get("acceptee"): refus += 1; raisons[motif_du_refus(a)] += 1
     tenue, _ = w.pays.socle.conservation.tenue()
     m = {"jours_de_faim": round(sum(serie), 3), "faim_par_jour": serie, "morts_nets": v0 - int(w.table.vivant[:w.table.n].sum()),
-         "dette": ET.sitrep(w.pays)["finances"].get("dette"), "refus": refus, "raisons_refus": {},
-         "jours_joues_par_les_regles": replis, "conservation": bool(tenue)}
+         "dette": ET.sitrep(w.pays)["finances"].get("dette"), "refus": refus, "actions": actions, "patrouilles_annulees": patr,
+         "raisons_refus": dict(raisons.most_common(6)), "jours_joues_par_les_regles": replis, "conservation": bool(tenue)}
     m["score"] = AC.score(m)
     return m
 
@@ -276,6 +290,9 @@ def deux(sa, sb, instantane, ile, jours):
         return pool.map(_reel, [(sa, instantane, ile, jours), (sb, instantane, ile, jours)])
 
 
+MOINS_DE_FAIM = 0.005     # somme des parts de menages affames sur l examen : un demi-point de pourcentage de moins au moins
+
+
 def conseil_reel(ile, instantane, versions=6, dossier=None, penser=True):
     import pickle
     d = dossier or os.path.join("/mnt/data/hmt/guerre/conseil_reel", ile); os.makedirs(d, exist_ok=True)
@@ -285,22 +302,37 @@ def conseil_reel(ile, instantane, versions=6, dossier=None, penser=True):
     src0 = actuel(ile)
     t0 = time.time()
     en_place = evaluer_reel(src0, instantane, ile)
-    w = pickle.load(open(os.path.join(instantane, f"{ile}.pkl"), "rb"))
-    exemple = dict(ET.sitrep(w.pays), guerre=GM.bulletin_guerre(w)); faim0 = GM.faim(w); jour0 = w.jour; del w
+    w = charger(os.path.join(instantane, f"{ile}.pkl"))
+    exemple = dict(ET.sitrep(w.pays), guerre=GM.bulletin_guerre(w), exterieur=GM.bulletin_exterieur(w), refus_hier=GM.refus_hier(w),
+                   famine=GM.bulletin_famine(w))
+    faim0 = GM.faim(w); jour0 = w.jour; del w
     print(f"{ile} ( etat reel, jour {jour0}, faim {faim0:.1%} ) : gouvernement en place score {en_place['score']} faim {en_place['faim_par_jour']} "
           f"( {time.time() - t0:.0f} s )", flush=True)
     noter({"instantane": instantane, "jour": jour0, "faim": faim0, "en_place": en_place, "source_en_place": src0})
+    px = [m["nourriture"]["prix"] for m in exemple.get("marches", {}).values() if "nourriture" in m]
+    px = sum(px) / len(px) if px else None
+    prix_nourriture = ("Le prix de la nourriture n est affiche sur aucun marche" if px is None else
+                       f"Le prix de la nourriture ce matin : {px:.2f}" + ( " ( son plafond : les marches manquent )" if px >= 9.99 else ""))
     base = AC.consigne(ile, exemple) + f"""
 
 TON PAYS EST EN CRISE ET EN GUERRE, AUJOURD HUI ( jour {jour0} ) : {faim0:.0%} des menages n ont pas mange hier. Le
 bulletin ci-dessus est le VRAI bulletin de ce matin, section « guerre » comprise. Ta version sera jouee sur une copie
 exacte du pays, {JOURS_REEL} jours, contre le gouvernement en place sur la meme copie ; puis {JOURS_EXAMEN_REEL} jours pour
-l examen. Le prix de la nourriture est a son plafond ( 10 ) : les marches manquent. Tes leviers : acheter de la
+l examen. {prix_nourriture}. Tes leviers : acheter de la
 nourriture pour la reserve population ( elle est distribuee a ceux qui n ont plus rien ; mais au marche il n y en a
 plus ), importer de la nourriture destination « population » ( l aide alimentaire : au prix mondial + 20 %, elle arrive
 au port et elle est distribuee aux menages sans nourriture ; dans les credits interieur, que fixer_budget peut porter a
-trois fois le vote ), subventionner, fixer les budgets ( la defense comprise ). Tout import passe par les devises de la
+trois fois le vote : chaque ligne de finances.budget porte son « plancher » et son « plafond », reste entre les deux ), subventionner, fixer les budgets ( la defense comprise ). Tout import passe par les devises de la
 banque centrale ( section « exterieur » du bulletin ) : sans reserves de change, il est refuse ; exporter_or en rapporte.
+La section « famine » compte tes morts de faim d hier et des 30 derniers jours : la faim du bulletin ne compte que les
+menages VIVANTS, elle baisse quand les affames meurent. Sous 3 mois d importations de reserves, la banque centrale ne
+sert plus que l essentiel ( nourriture, medicaments, energie ) : le reste de tes achats a l etranger attend, armes comprises.
+Ton armee ne patrouille que si son depot a du carburant ( section « armee » du bulletin : carburant_depot,
+patrouilles_annulees_hier ) : c est a toi de l acheter ( acheter carburant, destination « armee », dans les credits de
+la defense ) - dans la guerre, tes gouvernements ne l achetaient plus, et chaque patrouille etait annulee.
+Le bulletin porte aussi « refus_hier » : les actions refusees a ta decision d hier, chacune avec sa raison ( souvent les
+bornes permises, par exemple « credits X hors [a ; b] » ). Ne rejoue jamais une action refusee telle quelle : lis sa raison
+et corrige-la ( reste dans les bornes ) ou choisis autre chose. Une action refusee ne fait rien et compte contre toi.
 
 Le gouvernement en place ( a battre ) :
 ```python
@@ -327,7 +359,10 @@ Le gouvernement en place ( a battre ) :
               f"{mes.get('erreur', '')[:100]} ( {v['secondes']} s )", flush=True)
         if not bat: continue
         ex_code, ex_place = deux(source, src0, instantane, ile, JOURS_EXAMEN_REEL)
-        passe = bool(ex_code.get("conservation")) and ex_code["score"] >= ex_place["score"] + marge
+        # 27/09 : et la faim doit BAISSER a l examen - Stratis avait adopte une version a faim identique au dix-millieme,
+        # gagnante d un point par des refus en moins ; au moins un demi-point de pourcentage de faim en moins sur 8 jours
+        moins_de_faim = sum(ex_place.get("faim_par_jour") or [0]) - sum(ex_code.get("faim_par_jour") or [0]) >= MOINS_DE_FAIM
+        passe = bool(ex_code.get("conservation")) and ex_code["score"] >= ex_place["score"] + marge and moins_de_faim
         noter({"examen": n, "code": ex_code, "en_place": ex_place, "passe": passe})
         print(f"{ile} v{n} : EXAMEN ( {JOURS_EXAMEN_REEL} jours ) {'PASSE' if passe else 'RATE'} ( code {ex_code['score']} faim {ex_code.get('faim_par_jour')}, "
               f"en place {ex_place['score']} faim {ex_place.get('faim_par_jour')} )", flush=True)

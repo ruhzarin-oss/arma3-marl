@@ -138,6 +138,23 @@ PROTEGES_EXPORT = ESSENTIELS + ("carburant", "petrole")
 # nourriture restait aux fermes ( faim 71 % au jour 16 ). Dans le reel, la station et la quincaillerie ont chacune
 # leur tresorerie.
 PRIORITE_RACHAT = ESSENTIELS + ("carburant",)
+# La priorite des devises ( 27/09, HMT-131 b ) : sous RESERVE_PRIORITAIRE_MOIS mois d importations de reserves, la banque
+# centrale ne sert plus que l essentiel ; le reste n a que les reserves au-dessus de ce seuil. Copie du reel : en Grece,
+# pendant le controle des capitaux de 2015, des comites n approuvaient que 20 millions d euros d importations par jour,
+# en priorite les medicaments et la nourriture ( Financial Times, K. Hope, 04/08/2015, « Greek businesses left gasping as
+# capital controls bite » ; CNBC, 24/07/2015 : les importations pharmaceutiques ). L energie ( combustible des centrales,
+# gazole, petrole ) est comptee essentielle, A VERIFIER : absente de ces sources ; au Sri Lanka en 2022 la banque
+# centrale reservait ses dollars au carburant et au gaz de cuisine ( New Straits Times, 20/05/2022 ). L armement N EST
+# PAS essentiel ( chef de projet, 27/09 ) : c est le gouvernement qui dresse la liste des importations critiques ( Ukraine
+# 2022 : liste fixee par le Cabinet ) - une decision explicite a venir, journalisee. Le seuil de 3 mois
+# d importations : la regle usuelle d adequation des reserves ( FMI, a calibrer ), mesures sur les 30 derniers jours
+# d importations ; pas avant PRIORITE_APRES_J jours de vie du domaine : la semaine d installation achete les stocks de
+# depart ( 240 000 euros d un jour sur une Stratis de 10 000 habitants, contre 10 000 a 100 000 ensuite ) et la banque
+# centrale n a pas encore d historique des importations.
+RESERVE_PRIORITAIRE_MOIS = 3.0
+PRIORITE_APRES_J = 37
+BIENS_ESSENTIELS_DEVISES = ESSENTIELS + ("carburant", "petrole")
+MOTIFS_ESSENTIELS_DEVISES = ("import_sante",)
 URGENCE_J = 1.0                   # sous un jour de stock, un bien essentiel est rachete meme a perte
 SEUIL_MOTEUR = 50.0               # monde.expedier exporte le surplus de nourriture au-dela de 3 jours + 50 unites
 MARGE_SURETE_MOTEUR = 25.0
@@ -527,6 +544,54 @@ def _matin(p):
     _chrono(e, "prix", t0)
 
 
+# ================================================================== la sortie des devises ( 27/09, HMT-131 )
+def _plancher_devises(p, e, essentiel):
+    """Le plancher des reserves pour une demande : celui du controle pour l essentiel ; pour le reste, en plus,
+    RESERVE_PRIORITAIRE_MOIS fois les importations des 30 derniers jours - des PRIORITE_APRES_J jours de vie du domaine."""
+    if essentiel or p.jour - getattr(e, "jour_install", 0) < PRIORITE_APRES_J: return PLANCHER_RESERVES
+    return PLANCHER_RESERVES + RESERVE_PRIORITAIRE_MOIS * math.fsum(list(e.imports_euros)[-30:])
+
+
+def _dispo_euros(p, e, essentiel=True):
+    """Les reserves de ce moment moins le plancher de la demande, en LECTURE SEULE : les flux du grand livre depuis le
+    dernier suivi, convertis au taux du jour comme les rangerait _suivre_reserves, sans les ranger."""
+    L = p.socle.livre
+    return e.reserves_euros + (L.ext["entree"] - L.ext["sortie"] - e.ext_reserves) * e.taux - _plancher_devises(p, e, essentiel)
+
+
+def refuser_devises(p, montant):
+    """Compte une demande de devises refusee par un appelant qui a lu part_en_devises avant de payer."""
+    if montant > EPS: p.compter("devises_refusees", montant)
+
+
+def part_en_devises(p, montant, essentiel=False):
+    """La part de `montant` ( monnaie de l ile ) que la banque centrale fournirait maintenant, en LECTURE SEULE."""
+    if not p.a("exterieur") or montant <= EPS: return 1.0
+    e = _ext(p); euros = montant * e.taux; d = _dispo_euros(p, e, essentiel)
+    return 1.0 if d >= euros else max(0.0, d / euros)
+
+
+def payer_en_devises(p, de, montant, motif, essentiel=False, entier=False):
+    """TOUTE sortie d argent vers l etranger hors des imports de ce domaine passe ici ( 27/09, HMT-131 ). Tant que les
+    reserves suffisent, c est le paiement direct, a l identique ( lecture seule ). Sinon la banque centrale fournit ce
+    qu elle peut ( _controle_devises ) et le reste ne part pas ( compte devises_refusees, en demandes : un importateur
+    qui redemande chaque heure est compte chaque heure ). Ce qui n est pas paye n arrive pas : l appelant achete moins
+    ( fioul, medicaments, materiaux, machines, second oeuvre ), renonce a l objet ( entier : un abri importe ), ou garde
+    au pays le dividende, le capital, le transfert, les droits - le controle des capitaux grec de juin 2015. Chaque
+    paiement relit le grand livre : dix paiements du meme pas voient chacun les reserves laissees par le precedent.
+    `essentiel` : nourriture, medicaments, energie. Rend le paye."""
+    L = p.socle.livre
+    if not p.a("exterieur"): return L.payer_l_exterieur(de, montant, motif)
+    e = _ext(p)
+    euros = montant * e.taux
+    if _dispo_euros(p, e, essentiel) >= euros: return L.payer_l_exterieur(de, montant, motif)
+    part = _controle_devises(p, e, euros, essentiel)
+    if entier and part < 1.0: part = 0.0
+    refuse = montant * (1.0 - part)
+    if refuse > EPS: p.compter("devises_refusees", refuse)
+    return L.payer_l_exterieur(de, montant * part, motif) if part > 0.0 else 0.0
+
+
 # ================================================================== la douane
 def _declarer(p, e, sens, motif, bien, q, valeur, droit=0.0, declarant="exterieur"):
     e.douane.jour.append((sens, motif, bien, float(q), float(valeur), float(droit), declarant))
@@ -536,11 +601,12 @@ def _declarer(p, e, sens, motif, bien, q, valeur, droit=0.0, declarant="exterieu
     if sens == "import": e.import_jour_euros += valeur * e.taux
 
 
-def _controle_devises(p, e, euros):
-    """La banque centrale fournit-elle ces devises ? Rend la part fournie ( 0 a 1 )."""
+def _controle_devises(p, e, euros, essentiel=True):
+    """La banque centrale fournit-elle ces devises ? Rend la part fournie ( 0 a 1 ) ; hors de l essentiel, seulement
+    ce qui depasse la reserve prioritaire ( HMT-131 b )."""
     _suivre_reserves(p, e)
     if euros <= EPS: return 1.0
-    dispo = e.reserves_euros - PLANCHER_RESERVES
+    dispo = e.reserves_euros - _plancher_devises(p, e, essentiel)
     if dispo >= euros: return 1.0
     p.compter("controle_des_changes")
     return max(0.0, dispo / euros)
@@ -559,7 +625,7 @@ def importer_au_port(p, importateur, stock, bien, q, motif="import_biens", droit
     taux_droit = ET.taxes_import(p, nom, 1.0)[0] if droits and importateur is not w.gouv else 0.0
     unitaire = (fob + fret) * (1.0 + taux_droit)
     q = min(q, max(0.0, importateur.caisse) / unitaire * (1.0 - 1e-12)) if unitaire > 0 else 0.0
-    q *= _controle_devises(p, e, q * (fob + fret) * e.taux)
+    q *= _controle_devises(p, e, q * (fob + fret) * e.taux, nom in BIENS_ESSENTIELS_DEVISES or motif in MOTIFS_ESSENTIELS_DEVISES)
     if q <= EPS: return 0.0, 0.0
     paye = L.payer_l_exterieur(importateur, q * fob, motif)
     q = paye / fob
@@ -582,7 +648,7 @@ def declarer_import(p, importateur, valeur_fob, famille, motif="import_vehicules
     fret = valeur_fob * FRET.get(famille, 0.05)
     taux_droit = ET.DROITS_DOUANE.get(famille, 0.0) if importateur is not w.gouv else 0.0
     if importateur.caisse < (valeur_fob + fret) * (1.0 + taux_droit) - EPS: return 0.0
-    if _controle_devises(p, e, (valeur_fob + fret) * e.taux) < 1.0: return 0.0
+    if _controle_devises(p, e, (valeur_fob + fret) * e.taux, motif in MOTIFS_ESSENTIELS_DEVISES) < 1.0: return 0.0
     paye = L.payer_l_exterieur(importateur, valeur_fob, motif)
     f = L.payer_l_exterieur(importateur, fret, "fret_import")
     droit = ET.percevoir(p, importateur, (valeur_fob + fret) * taux_droit, "droit_de_douane")[0] if taux_droit > 0 else 0.0
@@ -865,7 +931,7 @@ def _contrebande(p):
             q = min(PART_CONTREBANDE * _demande(p, neg.marche_id, nom), max(0.0, cb.caisse) / cout,
                     max(0.0, m.caisse) / vente)
             if q <= EPS: continue
-            paye = L.payer_l_exterieur(cb, q * cout, "contrebande")
+            paye = payer_en_devises(p, cb, q * cout, "contrebande")
             q = L.importer(cb.stock, b, paye / cout, "contrebande")
             saisi = u < e.controle_douane
             if saisi:
@@ -929,7 +995,7 @@ def emigrer(p, gens, motif_journal="emigration"):
     partants = [g for g in gens if POP.age_de(p, g) >= POP.AGE_MAJEUR]
     vide = all((not x.vivant) or x in gens for x in mg.membres)
     part = mg.caisse if vide else mg.caisse * len(partants) / max(1, len(adultes))
-    x = L.payer_l_exterieur(mg, part, "transfert_migrant") if part > 0 else 0.0
+    x = payer_en_devises(p, mg, part, "transfert_migrant") if part > 0 else 0.0
     e.epargne_sortie += x
     if vide and mg.garde_manger > 0:
         L.exporter(GardeManger(mg), _id(p, "nourriture"), mg.garde_manger, "effets_migrants")
@@ -1160,7 +1226,7 @@ def installer(p):
                       ("saisie_douane", ("lieu", "bien", "quantite"))):
         J.declarer(t, "exterieur", "individuel", champs)
     for t in ("import_negoce", "export_negoce", "commande_annulee", "controle_des_changes", "contrebande_passee",
-              "envoi_de_fonds", "aide_ue", "depart_empeche"):
+              "envoi_de_fonds", "aide_ue", "depart_empeche", "devises_refusees"):
         J.declarer(t, "exterieur", "compte")
     ch = p.colonnes["habitant"]
     ch.ajouter("ext_emigre_j", np.int32, -1); ch.ajouter("ext_immigre_j", np.int32, -1)
@@ -1255,7 +1321,7 @@ def taux_de_change(p):
 def payer_reassurance(p, assureur, prime):
     """Domaine 20 : la prime cedee au reassureur etranger ( services d assurance )."""
     e = _ext(p)
-    if _controle_devises(p, e, prime * e.taux) < 1.0: return 0.0
+    if _controle_devises(p, e, prime * e.taux, False) < 1.0: return 0.0
     return p.socle.livre.payer_l_exterieur(assureur, prime, "prime_reassurance")
 
 
