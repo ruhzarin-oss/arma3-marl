@@ -3,7 +3,9 @@ ECHOUE  agriculture       test_dimanche
 ECHOUE  banques           test_octroi_part_du_choix
 ECHOUE  culture           test_rumeur_fausse
 ECHOUE  economie          test_credit
+ECHOUE  economie          test_prix_choc_de_demande
 ECHOUE  exterieur         test_choc_petrolier
+ECHOUE  exterieur         test_decision_importer
 ECHOUE  hopitaux          test_decision
 ECHOUE  logistique        test_faim_ile_sans_production
 ECHOUE  medias            test_deformation_relais
