@@ -50,6 +50,30 @@ def creer_ile(ile, graine, echelle, llm=False):
     return w
 
 
+# Les noms qu un instantane d avant la fusion du tronc ( 27/09 ) peut porter et qui n existent plus : la mort de faim de
+# la branche ( remplacee par celle du tronc, SEUILS_FAIM ). Relus comme une routine vide, puis retires des routines.
+DISPARUS = {("monde.pays.d01_population", "_faim_mortelle")}
+
+
+def _routine_disparue(p): return None
+
+
+class _Relecteur(pickle.Unpickler):
+    def find_class(self, module, nom):
+        if (module, nom) in DISPARUS: return _routine_disparue
+        return super().find_class(module, nom)
+
+
+def charger(chemin):
+    """Relit l instantane d une ile ; les routines disparues sont retirees de son pays."""
+    with open(chemin, "rb") as f: w = _Relecteur(f).load()
+    p = getattr(w, "pays", None)
+    if p is not None:
+        for m in list(p.routines):
+            p.routines[m] = [r for r in p.routines[m] if r[2] is not _routine_disparue]
+    return w
+
+
 def _convois(w, echelle):
     """Une ile reprise d un instantane d avant le 27/09 n a pas l echelle de ses convois ( celle de l archipel ) ni
     l autoconsommation paysanne ( domaine 9 ) : les lui poser."""
@@ -170,7 +194,7 @@ def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False
     from threadpoolctl import threadpool_limits
     n_iles = max(1, len(noms) if noms else 1)
     threadpool_limits(int(os.environ.get("HMT_FILS_PAR_ILE", max(1, (os.cpu_count() or 1) // n_iles))), user_api="blas")
-    w = _convois(pickle.load(open(reprise, "rb")), echelle) if reprise else creer_ile(nom, graine, echelle, llm)
+    w = _convois(charger(reprise), echelle) if reprise else creer_ile(nom, graine, echelle, llm)
     poser_gouvernement(w, nom, gouv)
     if ouvert: w.archipel = {"noms": tuple(noms), "ouvert": True}
     if enregistrer: ENR.brancher(w, enregistrer, nom)
@@ -210,7 +234,7 @@ class Archipel:
                 p.start(); self.tuyaux[n], self.proc[n] = a, p
             for n in self.noms: assert self.tuyaux[n].recv() == ("pret", n)
         else:
-            self.iles = {n: Ile(n, _convois(pickle.load(open(chemin(n), "rb")), echelle) if reprise else creer_ile(n, graine, echelle, llm))
+            self.iles = {n: Ile(n, _convois(charger(chemin(n)), echelle) if reprise else creer_ile(n, graine, echelle, llm))
                          for n in self.noms}
             if ouvert:
                 for i in self.iles.values(): i.w.archipel = {"noms": self.noms, "ouvert": True}
