@@ -43,10 +43,12 @@ conseil de guerre : Qwen réécrit le gouvernement de l'île en difficulté, jou
 | `monde/pays/d06_etat.py` | Le passage d'année corrigé (`>`), import_armement rangé sur la ligne défense, bornes de `fixer_budget` à l'échelle du pays. |
 | `monde/gouvernement.py`, `monde/monde.py`, `d07_exterieur.py` | Leviers à l'échelle (k = vivants / 500) ; `importer` vers la population (aide alimentaire distribuée) ; un import où rien n'entre est refusé, avec sa raison. |
 | `monde/pays/d13_immobilier.py` | `_apparier` en tableaux (×15), l'ancien gardé comme `_apparier_reference`. |
+| `monde/pays/d28_tourisme.py` | Le tourisme, première exportation des îles : lits, saison, recettes en euros (ligne services), personnel au métier `hotellerie` (domaine 4), avis aux voyageurs en guerre. Portes : `python -m monde.pays.tests tourisme` (9/9). |
+| `monde/monde.py` (`echelle_convois`), `monde/archipel.py` | La charge d'un convoi suit la taille de l'île (l'archipel la pose, aussi à la reprise) ; 1 ailleurs. |
 
-## Portes (`python -m guerre.porte_guerre`) : 17 franchies
+## Portes (`python -m guerre.porte_guerre`) : 19 franchies
 
-G1 zones · G2 bourse · G3 relevé · G4 occupation · G5 horloge · G6 pont · G7 mission · G8 passage d'année · G9 soldats suivis · G10 la guerre coûte au Trésor · G11 le gouvernement voit la guerre · G12 conseil de guerre · G13 villes occupées · G14 centrale occupée · G15 leviers à l'échelle · G16 aide alimentaire · G17 fournisseur impayé.
+G1 zones · G2 bourse · G3 relevé · G4 occupation · G5 horloge · G6 pont · G7 mission · G8 passage d'année · G9 soldats suivis · G10 la guerre coûte au Trésor · G11 le gouvernement voit la guerre · G12 conseil de guerre · G13 villes occupées · G14 centrale occupée · G15 leviers à l'échelle · G16 aide alimentaire · G17 fournisseur impayé · G18 convois à l'échelle de l'île · G19 avis aux voyageurs.
 
 La porte d'identité des domaines (`python -m monde.porte_domaines --comparer /mnt/data/hmt/ref_domaines.json`) reste franchie : tout ce qui change est nouveau ou ne joue qu'à grande échelle.
 
@@ -58,6 +60,7 @@ Quatre portes ont échoué d'abord, et chaque échec a appris quelque chose :
 - **G13, G14** : un lieu témoin sans emploi, puis une fonderie qui ne produit rien même en paix ; la centrale produit selon la demande du réseau, d'où la panne « occupation ».
 - **G15** : le refus venait des crédits, pas de la borne.
 - **G16** : l'import était « accepté » et rien n'arrivait. La banque centrale de Stratis n'avait plus de devises (voir Mesures).
+- **G18** : sur la Stratis affamée, la faim revenait au deuxième jour ; les paysans ont une dette de faim de 52 rations (voir Mesures). Et la prédiction « réserves plus hautes » était fausse : les fermes qui ne peuvent pas livrer exportent davantage.
 
 ## Leçons payées dans Arma
 
@@ -76,6 +79,8 @@ Quatre portes ont échoué d'abord, et chaque échec a appris quelque chose :
 - Conseil de Malden : les versions 1 à 4 ne font pas mieux. La version 4 battait le gouvernement en place de 0,2 point à l'entraînement, puis a raté l'examen.
 - **La famine de Stratis (98 %) est une crise de devises.** Au jour 349, ses réserves de change sont à −55 M€ (295 M€ au départ ; Malden : 0,68 M€). Le contrôle des changes bloque tout import, celui des négociants comme celui de l'État. Sur une copie, avec des réserves portées à 50 M€ et sans aide, la faim passe de 98 % à 46 %, puis à 0,8 % en deux jours.
 - Ce qui sort encore sans contrôle des changes, une fois les réserves à zéro : les abris d'urgence que l'État achète à l'étranger (266 000 par jour), la santé (37 000), les envois des migrants (60 000).
+- **La cause première, trouvée ensuite : les camions.** `Monde.expedier` envoie un convoi de 60 unités par ferme et par heure, la charge d'un monde de 500 habitants : 7 200 rations par jour pour 100 000 bouches sur Stratis, 368 000 rations et 230 jours de vivres bloqués dans ses fermes. Avec la charge à l'échelle de l'île : 98 % → 1,3 % le premier jour, sans une importation (G18). La branche `fusion-27-09` le règle par sa logistique (domaine 15).
+- **Deux pièges du moteur, à trancher par Younes.** La dette de faim : `faim` compte les rations manquées et ne baisse que d'une par jour nourri, et l'on ne travaille plus au-delà de 1,5 (`config.ABSENCE_FAIM`) ; les paysans de Stratis sont à 52, il leur faudrait 51 jours de repas pour retourner aux champs. Et personne ne meurt de faim : 98 % des ménages sans nourriture pendant des mois, population stable.
 - Le fond est structurel. L'île produit environ 8 000 rations par jour pour 61 000 mangées, et n'exporte rien. En paix (témoin, jour 190), il reste 186 M€ de réserves, mais la faim est déjà de 43 à 47 % : c'est la pauvreté (caisse médiane d'un ménage : 246 ; prix au plafond de 10).
 
 ## Ce qui n'est pas fait
@@ -83,9 +88,10 @@ Quatre portes ont échoué d'abord, et chaque échec a appris quelque chose :
 - L'envahisseur ne reçoit pas ce que produit la zone (la voie : `d09.requisitionner`).
 - Les blessés ne sont pas soignés au retour.
 - Deux camps seulement par serveur : 6 îles demanderont 3 fronts, donc 3 serveurs.
-- L'économie qui affame les îles (domaines 3, 4, 7, 9 : exportations, devises, prix plafond, pauvreté) : décision de Younes.
+- La pauvreté (prix plafond, caisses des ménages : domaines 3 et 4) et la dette de faim : décisions de Younes.
 - Les abris d'urgence de l'État passent à côté du contrôle des changes (d13).
-- Aucune voie pour faire entrer des devises : ni prêt extérieur, ni exportation.
+- Pas de pêche (aucun bateau sur Stratis ni sur Malden) ; pas de prêt extérieur.
+- Une guerre nouvelle, née avec le tourisme et les convois à l'échelle, n'a pas encore été jouée : les instantanés des essais 15 et 16 n'ont pas le tourisme.
 
 ## Lancer
 

@@ -109,6 +109,9 @@ G18 LES CONVOIS A L ECHELLE DE L ILE ( 27/09, ecrite avant la mesure ) : la vrai
    temoin, qui ne peuvent pas envoyer leurs rations, vendent plus de grain et d huile a l etranger ( vente_negoce
    +127 000 ), et l ile mieux nourrie importe plus ( import_biens +149 000 ). Les reserves ne mesuraient pas le convoi ;
    le critere est retire. )
+G19 L AVIS AUX VOYAGEURS ( 27/09, ecrite avant la mesure ) : a l ouverture de la guerre ( jouet cote Arma ), le
+   tourisme de Malden ( champ de bataille ) passe au risque 0,15 et celui de Stratis ( belligerante ) a 0,5 ; deux jours
+   plus tard, les recettes touristiques de Malden sont sous 20 % de celles d un Malden en paix ( meme graine ).
 
    python -m guerre.porte_guerre"""
 import math, os, re, sys, time
@@ -577,6 +580,17 @@ def main():
         and not ec18["deja"] and ec18["conservation"])
     ok["G18 ile neuve : attente 10 fois moindre, faim pas plus haute ; conservation"] = (
         ne18["attente"] * 10 <= nt18["attente"] and ne18["faim_21_30"] <= nt18["faim_21_30"] + 0.01 and ne18["conservation"])
+    # G19
+    arc19 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False)
+    h19_t = iter(x / 432.0 for x in range(10 ** 8))
+    h19 = HorlogeDeGuerre(arc19, A.FauxGuerre(zs), carte, periode_s=1.0, suivre=False, horloge=lambda: next(h19_t)).ouvrir()
+    paix19 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False)
+    h19.boucle(tours=1); paix19.jours(3)
+    r19 = arc19.commande("Malden", "tourisme_etat"); s19 = arc19.commande("Stratis", "tourisme_etat"); p19 = paix19.commande("Malden", "tourisme_etat")
+    print(f"   avis aux voyageurs : {h19.risques} ; recettes 7 jours Malden en guerre {r19['recettes_7j']}, en paix {p19['recettes_7j']}", flush=True)
+    ok["G19 risques poses a l ouverture ; recettes de Malden en guerre sous 20 % de la paix"] = (
+        r19["risque"] == 0.15 and s19["risque"] == 0.5 and p19["recettes_7j"] > 0 and r19["recettes_7j"] <= 0.2 * p19["recettes_7j"])
+    arc19.fermer(); paix19.fermer()
     ok["G11 l ile sans code decide par les regles, sans bascule"] = (
         len(dec(ws)) >= 2 and all(e.get("cerveau") == "regles" and not str(e.get("motifs", "")).startswith("cerveau indisponible") for e in dec(ws)))
     arc11.fermer()

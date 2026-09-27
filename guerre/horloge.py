@@ -58,11 +58,23 @@ class HorlogeDeGuerre:
             if ile == self.champ:
                 self.occupees = set(r["occupees"])
                 for n in sorted(self.occupees): self.arc.commande(ile, "occuper", n, self.lieux[n], True)   # a jour ( villes )
+        self.risques = self.avis_aux_voyageurs()
         if self.suivre and hasattr(self.arma, "identifier"): self.identifies = self.identifier()
         self.t0 = self.horloge()
         self.prochain = self.t0 + self.periode
         self.prochain_suivi = self.t0 + self.periode_suivi
         return self
+
+    def avis_aux_voyageurs(self):
+        """Le tourisme des iles en guerre ( domaine 28 ) : l ile ou l on se bat, et l ile belligerante qui ne se bat pas
+        chez elle. Une ile reprise d un instantane d avant le tourisme n a pas le domaine : on la laisse."""
+        from monde.pays import d28_tourisme as TO
+        out = {}
+        for ile in self.camps.values():
+            f = TO.RISQUE_CHAMP_DE_BATAILLE if ile == self.champ else TO.RISQUE_BELLIGERANT
+            try: out[ile] = self.arc.commande(ile, "tourisme_risque", f, "champ de bataille" if ile == self.champ else "belligerant")
+            except KeyError: out[ile] = None
+        return out
 
     def identifier(self):
         """Branchement en cours de bataille : les hommes deja poses sans numero recoivent chacun un soldat de leur ile.
