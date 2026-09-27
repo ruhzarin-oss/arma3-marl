@@ -22,6 +22,7 @@ porte "archipel (G2G3)" "PORTES G2 ET G3 : FRANCHIES"        $PY -m monde.porte_
 porte "traversee"      "PORTES DE LA TRAVERSEE : FRANCHIES"  $PY -m monde.porte_traversee
 porte "enregistreur"   "PORTE DE L ENREGISTREUR : FRANCHIE"  $PY -m monde.porte_enregistreur
 porte "agent codeur"   "PORTE DE L AGENT CODEUR : FRANCHIE"  $PY -m monde.porte_agent_codeur
+porte "devises"        "PORTE DES DEVISES : FRANCHIE"        $PY -m monde.porte_devises
 if [ "$1" != "--vite" ]; then
   # les portes du pays : les echecs de COMPORTEMENT doivent etre ceux de la liste connue ( les portes de cout
   # dependent de la charge de la machine et ne comptent pas ). Fichiers PRIVES a ce lancement : /tmp est partage par
