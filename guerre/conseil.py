@@ -289,7 +289,8 @@ def conseil_reel(ile, instantane, versions=6, dossier=None, penser=True):
     t0 = time.time()
     en_place = evaluer_reel(src0, instantane, ile)
     w = charger(os.path.join(instantane, f"{ile}.pkl"))
-    exemple = dict(ET.sitrep(w.pays), guerre=GM.bulletin_guerre(w)); faim0 = GM.faim(w); jour0 = w.jour; del w
+    exemple = dict(ET.sitrep(w.pays), guerre=GM.bulletin_guerre(w), exterieur=GM.bulletin_exterieur(w), refus_hier=GM.refus_hier(w))
+    faim0 = GM.faim(w); jour0 = w.jour; del w
     print(f"{ile} ( etat reel, jour {jour0}, faim {faim0:.1%} ) : gouvernement en place score {en_place['score']} faim {en_place['faim_par_jour']} "
           f"( {time.time() - t0:.0f} s )", flush=True)
     noter({"instantane": instantane, "jour": jour0, "faim": faim0, "en_place": en_place, "source_en_place": src0})
@@ -304,6 +305,9 @@ plus ), importer de la nourriture destination « population » ( l aide alimenta
 au port et elle est distribuee aux menages sans nourriture ; dans les credits interieur, que fixer_budget peut porter a
 trois fois le vote ), subventionner, fixer les budgets ( la defense comprise ). Tout import passe par les devises de la
 banque centrale ( section « exterieur » du bulletin ) : sans reserves de change, il est refuse ; exporter_or en rapporte.
+Le bulletin porte aussi « refus_hier » : les actions refusees a ta decision d hier, chacune avec sa raison ( souvent les
+bornes permises, par exemple « credits X hors [a ; b] » ). Ne rejoue jamais une action refusee telle quelle : lis sa raison
+et corrige-la ( reste dans les bornes ) ou choisis autre chose. Une action refusee ne fait rien et compte contre toi.
 
 Le gouvernement en place ( a battre ) :
 ```python

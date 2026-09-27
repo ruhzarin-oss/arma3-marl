@@ -285,6 +285,17 @@ def bulletin_exterieur(w):
     except (KeyError, AttributeError): return {}
 
 
+def refus_hier(w, fouille=5000):
+    """Les actions que le gouvernement a vues refusees a sa derniere decision, avec leur raison ( souvent les bornes
+    permises ) : un code qui les lit peut corriger au lieu de rejouer ( 27/09 : les gouvernements de Qwen rejouaient chaque
+    matin les memes actions refusees - fixer_budget hors bornes, importer sans credits )."""
+    ev = w.evenements
+    for e in reversed(ev[-fouille:]):
+        if e.get("type") == "decision_gouvernement":
+            return [{"action": a.get("action"), "raison": a.get("raison", "")} for a in e.get("actions", []) if not a.get("acceptee")]
+    return []
+
+
 class CerveauDeGuerre:
     def __init__(self, interieur, w):
         self.interieur, self.w = interieur, w
@@ -296,7 +307,7 @@ class CerveauDeGuerre:
     def empreinte(self): return getattr(self.interieur, "empreinte", None)
 
     def __call__(self, bulletin, memoire=""):
-        bulletin = dict(bulletin, guerre=bulletin_guerre(self.w), exterieur=bulletin_exterieur(self.w))
+        bulletin = dict(bulletin, guerre=bulletin_guerre(self.w), exterieur=bulletin_exterieur(self.w), refus_hier=refus_hier(self.w))
         if self.interieur is None:
             from monde.pays import d06_etat as ET
             return ET.decider_regles_etat(bulletin), "regles"

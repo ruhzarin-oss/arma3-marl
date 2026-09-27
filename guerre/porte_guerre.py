@@ -128,6 +128,9 @@ G21 LE REVENU MINIMUM GARANTI ( KEA, 27/09, ecrite avant la mesure ) : dans une 
    drachmes par jour, est sous les salaires, les pensions ( 20 par jour ) et les indemnites du moteur, et le revenu lisse
    sur 60 jours ne tombe sous lui que des mois apres la perte d un revenu. Le versement se juge sur soixante menages
    rendus eligibles a la main ; l effet sur la faim sur 200 jours, les 20 derniers, au meme seuil. )
+G23 LES REFUS D HIER ( 27/09, ecrite avant la mesure ) : une decision du gouvernement de Malden avec une action refusee
+   ( et sa raison ) ; le lendemain matin, le code qui gouverne recoit dans son bulletin la section refus_hier avec cette
+   action et cette raison ; sans refus la veille, la liste est vide ( controle ).
 G19 L AVIS AUX VOYAGEURS ( 27/09, ecrite avant la mesure ) : a l ouverture de la guerre ( jouet cote Arma ), le
    tourisme de Malden ( champ de bataille ) passe au risque 0,15 et celui de Stratis ( belligerante ) a 0,5 ; deux jours
    plus tard, les recettes touristiques de Malden sont sous 20 % de celles d un Malden en paix ( meme graine ).
@@ -258,7 +261,8 @@ def _faim_reelle(_):
     import pickle
     from monde.archipel import Ile, _convois as poser
     from monde import tests as T
-    w = poser(pickle.load(open(os.path.join(INSTANTANE_AIDE, "Stratis.pkl"), "rb")), 200.0)
+    from monde.archipel import charger
+    w = poser(charger(os.path.join(INSTANTANE_AIDE, "Stratis.pkl")), 200.0)
     p = w.pays; A = p.domaine("agriculture"); ile = Ile("Stratis", w); v0 = int(w.table.vivant[:w.table.n].sum())
     f, livre = [], []
     for _ in range(8):
@@ -650,6 +654,24 @@ def main():
     print(f"   revenu minimum : {int((attendu > 0).sum())} menages eligibles sur {M21}, {float(recu.sum()):.0f} verses ; exact {kea_exact}, "
           f"rien aux riches et aux aises {rien}, Etat {etat}, branche dans aucune ile {sans21}", flush=True)
     ok["G21 le versement exact ; rien aux riches ni aux aises ; l Etat paie ; branche dans aucune ile"] = kea_exact and rien and etat and sans21
+    # G23
+    arc23 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False); w23 = arc23.iles["Malden"].w
+    vus23 = []
+    class _Sonde23:
+        modele = "sonde"
+        def __call__(self, b, memoire=""): vus23.append(b.get("refus_hier")); return [], "sonde"
+    c23 = GM.CerveauDeGuerre(_Sonde23(), w23)
+    w23.noter("decision_gouvernement", motifs="", cerveau="sonde",
+              actions=[{"action": {"type": "fixer_budget", "ligne": "defense", "montant": 1e12}, "acceptee": False, "raison": "credits 1e12 hors [0 ; 1]"},
+                       {"action": {"type": "rien"}, "acceptee": True, "raison": ""}])
+    c23({}, "")
+    w23.noter("decision_gouvernement", motifs="", cerveau="sonde", actions=[{"action": {"type": "rien"}, "acceptee": True, "raison": ""}])
+    c23({}, "")
+    arc23.fermer()
+    print(f"   refus d hier : apres un refus {vus23[0]} ; sans refus {vus23[1]}", flush=True)
+    ok["G23 le code recoit les refus d hier avec leur raison ; liste vide sans refus"] = (
+        len(vus23) == 2 and len(vus23[0]) == 1 and vus23[0][0]["action"]["type"] == "fixer_budget" and "hors" in vus23[0][0]["raison"]
+        and vus23[1] == [])
     # G19
     arc19 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False)
     h19_t = iter(x / 432.0 for x in range(10 ** 8))
