@@ -3,7 +3,9 @@ d10 : le gazole des mines et des convois ; d15 : les intrants des entreprises. I
 import os, sys
 racine = sys.argv[1]
 def patch(f, subs, garde):
-    p = os.path.join(racine, "monde", "pays", f); s = open(p).read()
+    p = os.path.join(racine, "monde", "pays", f)
+    if not os.path.exists(p): print("absent ( archive sans ce domaine ) :", p); return
+    s = open(p).read()
     if garde in s: print("deja corrige :", p); return
     for a, b in subs:
         assert s.count(a) == 1, (f, a[:60], s.count(a)); s = s.replace(a, b)
