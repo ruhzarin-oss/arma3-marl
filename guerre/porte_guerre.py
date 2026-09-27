@@ -50,6 +50,14 @@ G13 VILLES OCCUPEES ( 27/09, ecrite avant la mesure ) : la zone de La Trinite ( 
    moteur, 0 present, rapport impossible - La Trinite y tombait de 45 492 a 11 574 ), tombent sous 0,4 fois leur rapport d avant ; ils remontent au-dessus de 0,8 fois apres la liberation ;
    une quarantaine posee par le gouvernement lui-meme ( ailleurs ) reste ; le bulletin dit ville occupee et siege
    occupe ; la conservation tient.
+   AMENDEE le 28/09 ( chef de projet ; ecrite avant la mesure ) : la porte echouait a 0,785 pour 0,8 depuis 2a06924
+   ( bisection : 0,845 a 7bc0a5d, 0,785 a 2a06924 et a tous les commits d apres, identique au bit ). Le TEMOIN des memes
+   jours, sans aucune occupation, donnait 0,781 : les fenetres « avant » ( jours 0 a 2 : samedi, dimanche, lundi de
+   Pentecote orthodoxe ) et « liberee » ( jours 6 a 9 ) ne pesent pas les memes jours du calendrier de l agenda, entre
+   dans les iles avec 2a06924 ( feries, dimanches, fin de l annee scolaire ) - un artefact de mesure, ni d17 ni d19.
+   Nouvelle reference : le temoin apparie ( meme graine, memes jours, sans occupation ) ; occupee sous 0,4 fois le
+   rapport du temoin sur les jours d occupation ( controle positif ), liberee au-dessus de 0,8 fois celui du temoin sur
+   les jours d apres ; seuils inchanges ; jugee sur la graine neuve 2.
 G14 USINES OCCUPEES ( 27/09, AMENDEE avant tout verdict : la premiere version mesurait la fonderie de Larche, mais
    les fonderies de Malden ne produisent RIEN, en paix comme a 10 000 habitants - le controle positif a echoue, rien a
    prouver ; la centrale, elle, produit ) : la zone de la centrale ( centrale01 ) occupee trois jours : ses ouvriers
@@ -87,6 +95,15 @@ G16 L AIDE ALIMENTAIRE ( 27/09, ecrite avant la mesure ) : la vraie Stratis de l
    controle « le temoin a faim chaque jour » ne pouvait plus tenir. Le temoin doit avoir faim AU DEPART, et l aide se
    juge le PREMIER jour : la population au moins 30 points sous le temoin ( 1,6 % contre 46 % ), la reserve a 2 points
    du temoin chaque jour. La famine de Stratis est une crise de devises. )
+   REBASEE le 27/09 au soir ( chef de projet ; ecrite avant la mesure ) : la Stratis de l essai 15 portait la dette de
+   faim de l ancien modele, et le modele du tronc la solde a la premiere aube ( 48 880 morts de faim sur 100 312, voir
+   G20 ) : le temoin du premier jour mesurait un artefact. Le monde est desormais LA famine produite par le code
+   d aujourd hui ( voir G20 : les fermes occupees, la banque centrale sans un euro ), copiee en memoire pour chaque bras.
+   Les trois copies recoivent le pret d urgence de 50 millions d euros ; l occupation des fermes reste. L aide :
+   deux jours de rations pour chaque vivant. Criteres : le temoin a faim au depart ( au moins 30 % ) ; sans devises
+   ( l etat produit ), l import est refuse et rien n entre ; avec, les deux imports arrivent dans le stock vise ; la
+   reserve ne nourrit personne ( a 2 points du temoin chaque jour ) ; la population, si : le premier jour, au plus la
+   moitie de la faim du temoin et au moins 15 points sous lui ; autre destination refusee ; conservation.
 G17 UN FOURNISSEUR IMPAYE NE LIVRE PLUS ( 27/09, ecrite avant la mesure ) : un petit archipel, Arma en jouet ; Malden
    ( WEST ) achete pour 1 150 points, et paie ; puis sa banque centrale n a plus de devises et Malden achete 1 150 points
    de plus : le paiement echoue ( 1 150 points impayes ) ; au tour suivant Malden ne recoit AUCUN point, Stratis en
@@ -109,6 +126,14 @@ G18 LES CONVOIS A L ECHELLE DE L ILE ( 27/09, ecrite avant la mesure ) : la vrai
    temoin, qui ne peuvent pas envoyer leurs rations, vendent plus de grain et d huile a l etranger ( vente_negoce
    +127 000 ), et l ile mieux nourrie importe plus ( import_biens +149 000 ). Les reserves ne mesuraient pas le convoi ;
    le critere est retire. )
+   ILE NEUVE RETIREE le 27/09 au soir ( chef de projet ) : depuis 2a06924 ( la fusion du tronc ca0765b : les 27 domaines
+   dans les iles ), la recolte appartient au domaine 9 et son fret au domaine 15 ; monde.expedier ne lance plus un seul
+   convoi de ferme et le plafond CAPACITE_CAMION x echelle_convois ne sert qu aux mondes sans eux - les deux bras etaient
+   identiques au bit ( 12 613 et 12 613 ), l attente ne mesurait plus rien. Le fret des recoltes se juge en G24.
+   REBASEE le 27/09 au soir ( chef de projet ) : la partie « vraie Stratis » est RETIREE - son temoin se jugeait apres la
+   premiere aube, qui solde la dette de faim de l ancien modele ( 48 880 morts, voir G20 ) ; le goulot des convois est
+   prouve sur l ile neuve. Reste de la vraie Stratis : une ile reprise d un instantane d avant le 27/09 recoit l echelle
+   de l archipel ( chargee, sans jouer un jour ).
 G20 LA VRAIE STRATIS AFFAMEE REPART ( 27/09, ecrite avant la mesure ; sur la faim du TRONC depuis la fusion de ca0765b :
    adaptation du corps de 40 %, travail jusqu a 12 rations de deficit, un jour nourri en repare 1, mort de faim au
    domaine 1 par SEUILS_FAIM - la loi et ses controles sont les portes du domaine 1 ) : la Stratis de l essai 15, reprise
@@ -116,6 +141,23 @@ G20 LA VRAIE STRATIS AFFAMEE REPART ( 27/09, ecrite avant la mesure ; sur la fai
    conservation tient. ( Historique : le premier essai a ECHOUE, ses paysans ne mangeaient pas le grain de leur ferme -
    l autoconsommation est ajoutee au domaine 9 ; le deuxieme lisait livre_j apres sa remise a zero de 6 h 40, un bogue
    du test. Avec la faim de la branche, avant la fusion : fermes au jour 7, faim 1,6 % au jour 8, 13 012 morts de faim. )
+   AMENDEE le 27/09 au soir APRES mesure ( chef de projet ; plus severe, pas plus facile ) : sur le tronc, la Stratis de
+   l essai 15 perd 48 880 habitants de faim sur 100 312 a la premiere aube - ses 98 % de menages au-dela du seuil de mort
+   viennent de l ancien modele ( famine sans morts, fuite de devises ) et le modele du tronc les solde d un coup : un
+   artefact de transition, et la faim tombait sous 10 % parce que les affames etaient morts. Nouveau critere, ecrit avant
+   la prochaine mesure : les fermes relivrent en 8 jours, la faim passe sous 10 % le huitieme jour, ET les morts de faim
+   de ces 8 jours restent sous 1 % des vivants du depart ( premiere borne, a calibrer : l IPC classe une zone en famine
+   au-dela de 2 deces pour 10 000 par jour, soit 0,16 % en 8 jours - IPC, Guidance Note on Famine ). Nouveau monde : plus
+   l instantane de l essai 15, mais une famine produite par le code d aujourd hui ( apres HMT-131 a et b ) : une Stratis
+   stressee ( reserves a zero, importations coupees ) jusqu a la famine, puis relachee, et la reprise mesuree - les morts
+   viennent au fil des jours. Hors de la porte ( --sans G20 ) tant que d01._placer n est pas corrige ( HMT-130 ).
+   PRECISEE apres l essai du blocus seul ( 27/09, 23 h 40 ) : 60 jours sans un euro de devises n affament pas une Stratis
+   neuve ( faim au plus 3,9 % au jour 31, aucun mort ) - l ile se nourrit de ses fermes. La famine vient donc de la
+   cause de la guerre : les fermes OCCUPEES ( guerre/moteur.occuper, toutes les fermes de l ile ) ET la banque centrale
+   sans un euro ; la relache leve les deux ; le controle positif garde les deux.
+   LIMITE ( chef de projet ) : cette famine est COURTE ( 30 % de faim en 6 jours, aucun mort ) : le critere « morts de faim
+   sous 1 % » y est tenu d office. La reprise apres une famine LONGUE, des habitants pres du seuil de mort, n est pas
+   testee ici : une porte a part, a venir.
 G21 LE REVENU MINIMUM GARANTI ( KEA, 27/09, ecrite avant la mesure ) : dans une petite Stratis, un versement du jour
    donne a chaque menage eligible exactement le seuil du jour ( 216 euros par mois a l echelle 1 + 0,5 par adulte de plus
    + 0,25 par enfant ) moins son revenu lisse hors KEA ; rien a un menage au-dessus du seuil ni a un menage aux avoirs
@@ -134,6 +176,21 @@ G21 LE REVENU MINIMUM GARANTI ( KEA, 27/09, ecrite avant la mesure ) : dans une 
    moyenne des jours 181 a 200 avec le KEA, appariee graine par graine a celle sans, baisse en moyenne d au moins 25 % ET
    baisse sur chaque graine ; montant inchange. Reserve : l effet grandit avec la derive de la faim de base ( -20 % a une
    base de 10 %, -48 % a 17 % ) ; a remesurer apres le correctif du moteur ( HMT-124 ).
+G24 LE FRET DES RECOLTES ( 27/09 au soir, ecrite avant la mesure ; remplace l ile neuve de G18 ) : une Stratis neuve
+   ( graine 1, echelle 20 ), 30 jours, releve chaque jour a midi : la couverture du marche de la capitale ( jours de
+   demande lissee, d15.couverture ) et les vivres aux fermes ( rations pretes dans les fermes du moteur, en jours de la
+   meme demande ). Un jour « bloque » : le marche tient moins d un jour ET les fermes plus de dix. Des jours 5 a 30 ( le
+   demarrage exclu ) : aucune suite de plus de 2 jours bloques - la nourriture arrive au marche en 2 jours quand il en
+   manque et que les fermes en ont. Controle positif : le fret du domaine 15 coupe ( sa routine _expedier ne lance plus
+   rien ; les lots en route arrivent ) : la porte echoue. Une vraie suite de jours bloques est un goulot, pour la session
+   du moteur ( d09 et d15 ).
+   AMENDEE le 28/09 ( chef de projet ; ecrite avant la mesure ) : sur la graine 1, le bras libre passait ( 0 jour bloque )
+   mais le controle positif ne savait pas echouer - fret coupe 30 jours, les rations pretes aux fermes ne montaient qu a
+   3,7 jours, jamais au-dela de 10, et le marche restait nourri ( negoce, autoconsommation ). Les « greniers pleins »
+   ( 2,4 millions de kg par ferme ) sont la recolte BRUTE du domaine 9, pas des rations bloquees. Nouveau critere : les
+   rations pretes aux fermes ne depassent pas 2 jours de demande, chaque jour des jours 5 a 30 ( libre : 1,1 au plus sur
+   la graine 1 ; coupe : 3,7 ). Jugee sur la graine neuve 2 ; la porte n est valide que si le bras libre PASSE et le bras
+   au fret coupe ECHOUE.
 G23 LES REFUS D HIER ( 27/09, ecrite avant la mesure ) : une decision du gouvernement de Malden avec une action refusee
    ( et sa raison ) ; le lendemain matin, le code qui gouverne recoit dans son bulletin la section refus_hier avec cette
    action et cette raison ; sans refus la veille, la liste est vide ( controle ).
@@ -203,18 +260,18 @@ class Scenario(A.FauxGuerre):
 INSTANTANE_AIDE = "/mnt/data/hmt/guerre/essai15/instantane"
 
 
-def _aide(args):
-    """G16 : une copie de la vraie Stratis, l import d aide ( ou rien ), deux jours."""
-    dest, q, jours = args
+def _aide(dest):
+    """G16 : une copie de la famine produite ( les fermes restent occupees ), le pret d urgence, l import d aide ( ou rien ),
+    deux jours. L aide : deux jours de rations pour chaque vivant."""
     import pickle
     from monde.archipel import Ile
     from monde import tests as T
-    from monde.pays import d06_etat as ET
-    w = pickle.load(open(os.path.join(INSTANTANE_AIDE, "Stratis.pkl"), "rb")); p = w.pays; ile = Ile("Stratis", w)
-    from monde.pays import d07_exterieur as X
+    from monde.pays import d06_etat as ET, d07_exterieur as X
+    w = pickle.loads(famine_produite()[0]); p = w.pays; ile = Ile("Stratis", w)
+    q = 2.0 * int(w.table.vivant[:w.table.n].sum()) * __import__("monde.config", fromlist=["x"]).NOURRITURE_PAR_JOUR
     bu = ET._etat(p).budget
     r = {"credits": ET.appliquer(p, {"type": "fixer_budget", "ligne": "interieur", "montant": 3.0 * bu.votes[("interieur", "achats")]}),
-         "faim0": round(GM.faim(w), 4)}
+         "faim0": round(GM.faim(w), 4), "q": q}
     if dest == "population":
         s0 = w.publics["population"]["nourriture"]
         r["sans_devises"] = ET.appliquer(p, {"type": "importer", "bien": "nourriture", "quantite": q, "destination": dest})
@@ -228,25 +285,98 @@ def _aide(args):
         r["refus"] = [ET.appliquer(p, {"type": "importer", "bien": "nourriture", "quantite": 10, "destination": "armee"}),
                       ET.appliquer(p, {"type": "importer", "bien": "remedes", "quantite": 10, "destination": "population"})]
     r["faim"] = []
-    for _ in range(jours):
+    for _ in range(2):
         T.jours(w, 1); r["faim"].append(round(ile.commande("etat")["faim"], 4))
     r["conservation"] = bool(p.socle.conservation.tenue()[0])
     return r
 
 
-def _convois(echelle):
-    """G18 : une copie de la vraie Stratis, convois a l echelle donnee, deux jours."""
-    import pickle
-    from monde.archipel import Ile, _convois as poser
-    from monde import tests as T
-    w = pickle.load(open(os.path.join(INSTANTANE_AIDE, "Stratis.pkl"), "rb"))
+def _echelle_a_la_reprise():
+    """G18 : une ile reprise d un instantane d avant le 27/09 recoit l echelle de l archipel - chargee, sans jouer un jour."""
+    from monde.archipel import _convois as poser, charger
+    w = charger(os.path.join(INSTANTANE_AIDE, "Stratis.pkl"))
     avant = "echelle_convois" in vars(w)
-    if echelle is not None:
-        poser(w, echelle)
-    ile = Ile("Stratis", w); f = []
-    for _ in range(2):
-        T.jours(w, 1); f.append(round(ile.commande("etat")["faim"], 4))
-    return {"faim": f, "echelle": w.echelle_convois, "deja": avant, "conservation": bool(w.pays.socle.conservation.tenue()[0])}
+    poser(w, 200.0)
+    return {"deja": avant, "echelle": w.echelle_convois}
+
+
+def _g13(occuper, graine):
+    """G13 : un petit Malden ( graine donnee ), La Trinite occupee du jour 3 au jour 6 ( ou non : le temoin apparie ) ;
+    les presents au travail a La Trinite et a Dourdan, avant ( jours 0 a 2 ), pendant ( 3 a 5 ), apres ( 6 a 9 )."""
+    from monde import population as PO13
+    from monde.archipel import Archipel
+    carte = Z.carte_de_guerre(open(os.path.join(MISSION, "mission.sqm"), encoding="latin-1").read(), "Malden")
+    zs = carte["zones"]
+    arc13 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False, graine=graine)
+    w13 = arc13.iles["Malden"].w; t13 = w13.table
+    zt = next(z["n"] for z in zs if "Malden_C_LaTrinite" in z["lieux"]); lt = next(z["lieux"] for z in zs if z["n"] == zt)
+    kt, kl = w13.carte.lieux["Malden_C_LaTrinite"].n, w13.carte.lieux["Malden_V_Dourdan"].n
+    w13.gouv.lois.setdefault("quarantaine", []).append("Malden_V_Goisse")       # la quarantaine du gouvernement, ailleurs
+    def au_travail(jours):
+        tot = [0, 0]
+        for _ in range(jours * 144):
+            arc13.un_pas(); n13 = t13.n
+            at = (t13.vivant[:n13] == 1) & (t13.poste[:n13] == PO13.CODE_POSTE["travail"])
+            tot[0] += int((at & (t13.lieu[:n13] == kt)).sum()); tot[1] += int((at & (t13.lieu[:n13] == kl)).sum())
+        return tot
+    av = au_travail(3)
+    if occuper: arc13.commande("Malden", "occuper", zt, lt, True)
+    b13 = GM.bulletin_guerre(w13)
+    pe = au_travail(3)
+    if occuper: arc13.commande("Malden", "occuper", zt, lt, False)
+    ap = au_travail(4)
+    gv = "Malden_V_Goisse" in w13.gouv.lois["quarantaine"] and "Malden_C_LaTrinite" not in w13.gouv.lois["quarantaine"]
+    tenue = bool(arc13.commande("Malden", "tenue")[0])
+    arc13.fermer()
+    return {"av": av, "pe": pe, "ap": ap, "gv": gv, "tenue": tenue, "villes": b13["villes_occupees"], "siege": b13["siege_du_gouvernement_occupe"]}
+
+
+def _monde_de_g14():
+    """G14 joue dans le monde ou jouait G13 avant son amendement du 28/09 : un petit Malden ( graine du moteur ), la
+    quarantaine du gouvernement a Goisse, La Trinite occupee du jour 3 au jour 6 puis liberee, 10 jours ; rejoue a
+    l identique pour que G14 ne change pas."""
+    from monde.archipel import Archipel
+    carte = Z.carte_de_guerre(open(os.path.join(MISSION, "mission.sqm"), encoding="latin-1").read(), "Malden")
+    zs = carte["zones"]
+    arc = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False)
+    w = arc.iles["Malden"].w
+    zt = next(z["n"] for z in zs if "Malden_C_LaTrinite" in z["lieux"]); lt = next(z["lieux"] for z in zs if z["n"] == zt)
+    w.gouv.lois.setdefault("quarantaine", []).append("Malden_V_Goisse")
+    for _ in range(3 * 144): arc.un_pas()
+    arc.commande("Malden", "occuper", zt, lt, True); GM.bulletin_guerre(w)
+    for _ in range(3 * 144): arc.un_pas()
+    arc.commande("Malden", "occuper", zt, lt, False)
+    for _ in range(4 * 144): arc.un_pas()
+    return arc, w, w.table
+
+
+def _fret_recoltes(couper=False, jours=30, graine=2):
+    """G24 : une Stratis neuve, 30 jours ; chaque midi, la couverture du marche de la capitale et les vivres prets aux
+    fermes, en jours de sa demande lissee. `couper` : la routine de fret du domaine 15 ne lance plus rien."""
+    from monde.archipel import creer_ile
+    from monde.pays import d15_logistique as LG
+    ancien = LG._expedier
+    if couper: LG._expedier = lambda p, h: LG._avancer_lots(p, LG._lg(p))
+    try:
+        w = creer_ile("Stratis", graine, 20.0); p = w.pays
+        mid = w.carte.gouvernement.marche.id if getattr(w.carte.gouvernement, "marche", None) is not None else next(iter(w.marches))
+        fermes = [e for e in w.entreprises.values() if e.type == "ferme"]
+        cov, stock_fermes, bloque = [], [], []
+        for j in range(jours):
+            for k in range(144):
+                w.pas_suivant()
+                if k == 6 * 6 - 1:                                    # midi ( le jour commence a 6 h )
+                    dem = LG._demande(p, mid, "nourriture")
+                    c = LG.couverture(p, mid, "nourriture"); sf = sum(e.stocks.get("nourriture", 0.0) for e in fermes) / dem
+                    cov.append(round(c, 2)); stock_fermes.append(round(sf, 1)); bloque.append(j >= 4 and c < 1.0 and sf > 10.0)
+        suite = plus = 0
+        for x in bloque:
+            suite = suite + 1 if x else 0; plus = max(plus, suite)
+        return {"plus_longue_suite_bloquee": plus, "jours_bloques": sum(bloque), "fermes_max_j5_30": max(stock_fermes[4:]),
+                "couverture": cov[::3], "fermes_en_jours": stock_fermes[::3],
+                "conservation": bool(p.socle.conservation.tenue()[0])}
+    finally:
+        LG._expedier = ancien
 
 
 def _neuve(echelle_convois):
@@ -262,20 +392,63 @@ def _neuve(echelle_convois):
             "conservation": bool(w.pays.socle.conservation.tenue()[0])}
 
 
-def _faim_reelle(_):
-    """G20 : la vraie Stratis affamee, reprise ( convois a l echelle et faim realiste ), huit jours."""
+ZONE_FAMINE = 99                                   # la zone fictive qui occupe toutes les fermes de l ile
+_FAMINE = {}
+
+
+def famine_produite(graine=1, echelle=20.0, faim_visee=0.30, blocus_max_j=60):
+    """LA famine des portes G16 et G20 ( 27/09 ), produite par le code d aujourd hui : une Stratis neuve joue 10 jours ;
+    puis toutes ses fermes sont occupees et, chaque matin, la banque centrale n a plus un euro ( reserves au plancher ),
+    jusqu a ce que la faim atteigne `faim_visee` ( au plus `blocus_max_j` jours ). Rend ( l ile en octets, le suivi ) :
+    chaque bras la recopie en memoire. Produite une fois par processus."""
+    cle = (graine, echelle, faim_visee, blocus_max_j)
+    if cle in _FAMINE: return _FAMINE[cle]
     import pickle
-    from monde.archipel import Ile, _convois as poser
-    from monde import tests as T
-    from monde.archipel import charger
-    w = poser(charger(os.path.join(INSTANTANE_AIDE, "Stratis.pkl")), 200.0)
-    p = w.pays; A = p.domaine("agriculture"); ile = Ile("Stratis", w); v0 = int(w.table.vivant[:w.table.n].sum())
+    from monde.archipel import creer_ile, Ile
+    w = creer_ile("Stratis", graine, echelle); ile = Ile("Stratis", w)
+    for _ in range(10): _jour_de_famine(w, ile, False)
+    fermes = sorted(l for l, x in w.entreprises.items() if x.type == "ferme")
+    GM.occuper(w, ZONE_FAMINE, fermes, True)
+    blocus = []
+    while len(blocus) < blocus_max_j and (not blocus or blocus[-1] < faim_visee): blocus.append(_jour_de_famine(w, ile, True))
+    _FAMINE[cle] = (pickle.dumps(w, protocol=pickle.HIGHEST_PROTOCOL), {"blocus_jours": len(blocus), "faim_blocus": blocus, "fermes": fermes})
+    return _FAMINE[cle]
+
+
+def _jour_de_famine(w, ile, blocus):
+    from monde.pays import d07_exterieur as X
+    p = w.pays; e = X._ext(p)
+    for k in range(144):
+        if blocus and k == 0: X.reserves_de_change(p); e.reserves_euros = X.PLANCHER_RESERVES
+        w.pas_suivant()
+    return round(ile.commande("etat")["faim"], 4)
+
+
+def _morts_de_faim(w):
+    from monde.pays import d01_population as D1
+    col = w.pays.colonnes["habitant"]; n = w.table.n
+    return int(((col["cause_deces"][:n] == D1.CAUSES.index("faim")) & (col["deces_j"][:n] >= 0)).sum())
+
+
+def _faim_produite(relacher=True, reprise_j=8):
+    """G20 : la famine produite, relachee ( occupation levee, devises revenues ) ou non ( le controle positif ), et la
+    reprise mesuree `reprise_j` jours : la faim, les livraisons des fermes, les morts de faim, la conservation."""
+    import pickle
+    from monde.archipel import Ile
+    octets, suivi = famine_produite()
+    w = pickle.loads(octets); p = w.pays; A = p.domaine("agriculture"); ile = Ile("Stratis", w); tb = w.table
+    if relacher: GM.occuper(w, ZONE_FAMINE, suivi["fermes"], False)
+    v0, m0 = int(tb.vivant[:tb.n].sum()), _morts_de_faim(w)
     f, livre = [], []
-    for _ in range(8):
-        T.jours(w, 1); f.append(round(ile.commande("etat")["faim"], 4)); livre.append(round(A.serie[-1][1]) if A.serie else 0)
-    col = p.colonnes["habitant"]; n = w.table.n
-    morts = int(((col["cause_deces"][:n] == __import__("monde.pays.d01_population", fromlist=["x"]).CAUSES.index("faim")) & (col["deces_j"][:n] >= 0)).sum())
-    return {"faim": f, "livre": livre, "morts_de_faim": morts, "vivants0": v0, "conservation": bool(p.socle.conservation.tenue()[0])}
+    for _ in range(reprise_j):
+        f.append(_jour_de_famine(w, ile, not relacher)); livre.append(round(A.serie[-1][1]) if A.serie else 0)
+    return {"blocus_jours": suivi["blocus_jours"], "faim_blocus": suivi["faim_blocus"][-1], "faim": f, "livre": livre,
+            "vivants0": v0, "morts_de_faim_reprise": _morts_de_faim(w) - m0, "conservation": bool(p.socle.conservation.tenue()[0])}
+
+
+def g20_passe(r):
+    return (max(r["livre"]) > 0 and r["faim"][-1] <= 0.10 and r["morts_de_faim_reprise"] < 0.01 * r["vivants0"]
+            and r["conservation"])
 
 
 SANS = ()                                          # les portes sautees : python -m guerre.porte_guerre --sans G20
@@ -502,36 +675,17 @@ def main():
     ok["G12 la releve change qui decide ; un code interdit est refuse"] = (
         avant == "regles" and apres.startswith("code:") and d12 and str(d12[-1].get("cerveau", "")).startswith("code:") and refuse12)
     arc12.fermer()
-    # G13
-    from monde import population as PO13
-    arc13 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False)
-    w13 = arc13.iles["Malden"].w; t13 = w13.table
-    zt = next(z["n"] for z in zs if "Malden_C_LaTrinite" in z["lieux"]); lt = next(z["lieux"] for z in zs if z["n"] == zt)
-    kt, kl = w13.carte.lieux["Malden_C_LaTrinite"].n, w13.carte.lieux["Malden_V_Dourdan"].n
-    w13.gouv.lois.setdefault("quarantaine", []).append("Malden_V_Goisse")       # la quarantaine du gouvernement, ailleurs
-    def au_travail(jours):
-        tot = [0, 0]
-        for _ in range(jours * 144):
-            arc13.un_pas(); n13 = t13.n
-            at = (t13.vivant[:n13] == 1) & (t13.poste[:n13] == PO13.CODE_POSTE["travail"])
-            tot[0] += int((at & (t13.lieu[:n13] == kt)).sum()); tot[1] += int((at & (t13.lieu[:n13] == kl)).sum())
-        return tot
-    av = au_travail(3)
-    arc13.commande("Malden", "occuper", zt, lt, True)
-    b13 = GM.bulletin_guerre(w13)
-    pe = au_travail(3)
-    arc13.commande("Malden", "occuper", zt, lt, False)
-    ap = au_travail(4)
+    # G13 ( amendee le 28/09 : contre le temoin apparie des memes jours, graine neuve 2 )
+    oc13, te13 = _g13(True, 2), _g13(False, 2)
     rap = lambda x: x[0] / max(1, x[1])
-    gv = "Malden_V_Goisse" in w13.gouv.lois["quarantaine"] and "Malden_C_LaTrinite" not in w13.gouv.lois["quarantaine"]
-    tenue13 = arc13.commande("Malden", "tenue")
-    print(f"   villes occupees : presents La Trinite / Dourdan avant {av} ( {rap(av):.2f} ), occupee {pe} ( {rap(pe):.2f} ), "
-          f"liberee {ap} ( {rap(ap):.2f} ) ; bulletin {b13['villes_occupees']} siege {b13['siege_du_gouvernement_occupe']}", flush=True)
-    ok["G13 controle positif : La Trinite travaillait avant ; occupee, sous 0,4 fois son rapport au temoin"] = (
-        av[0] > 0 and av[1] > 0 and pe[1] > 0 and rap(pe) < 0.4 * rap(av))
-    ok["G13 liberee, au-dessus de 0,8 fois ; la quarantaine du gouvernement reste ; bulletin ; conservation"] = (
-        rap(ap) > 0.8 * rap(av) and gv and "Malden_C_LaTrinite" in b13["villes_occupees"] and b13["siege_du_gouvernement_occupe"]
-        and bool(tenue13[0]))
+    print(f"   villes occupees : La Trinite / Dourdan, occupee {oc13['av']} {oc13['pe']} {oc13['ap']} ; temoin {te13['av']} {te13['pe']} {te13['ap']} ; "
+          f"occupee / temoin {rap(oc13['pe']) / max(1e-9, rap(te13['pe'])):.3f}, liberee / temoin {rap(oc13['ap']) / max(1e-9, rap(te13['ap'])):.3f} ; "
+          f"bulletin {oc13['villes']} siege {oc13['siege']}", flush=True)
+    ok["G13 controle positif : La Trinite travaillait avant ; occupee, sous 0,4 fois le rapport du temoin des memes jours"] = (
+        oc13["av"][0] > 0 and oc13["av"][1] > 0 and oc13["pe"][1] > 0 and rap(oc13["pe"]) < 0.4 * rap(te13["pe"]))
+    ok["G13 liberee, au-dessus de 0,8 fois le temoin ; la quarantaine du gouvernement reste ; bulletin ; conservation"] = (
+        rap(oc13["ap"]) > 0.8 * rap(te13["ap"]) and oc13["gv"] and "Malden_C_LaTrinite" in oc13["villes"] and oc13["siege"]
+        and oc13["tenue"])
     # G15
     from monde.pays import d06_etat as ET15
     arc15 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False)
@@ -549,7 +703,9 @@ def main():
     ok["G15 acheter jusqu a 2 000 x k, pas au-dela ; subventions relevees puis versees"] = (
         a_ok[0] and not a_non[0] and "achat invalide" in a_non[1] and not s_avant[0] and f15[0] and s_apres[0])
     arc15.fermer()
-    # G14
+    # G14 ( dans le monde ou G13 jouait avant son amendement, rejoue a l identique )
+    from monde import population as PO13
+    arc13, w13, t13 = _monde_de_g14()
     z14 = zone_de["centrale01"]; l14 = next(z["lieux"] for z in zs if z["n"] == z14)
     kc, kw = w13.carte.lieux["centrale01"].n, w13.carte.lieux["Malden_V_Dourdan"].n
     def usine(jours):
@@ -578,18 +734,19 @@ def main():
     arc13.fermer()
     # G16
     from multiprocessing import get_context
-    Q16 = 200000
+    famine_produite()                            # une fois, avant les copies ( le fork les herite )
     with get_context("fork").Pool(3) as pool:
-        re16, po16, te16 = pool.map(_aide, [("reserve", Q16, 2), ("population", Q16, 2), (None, Q16, 2)])
-    print(f"   aide alimentaire ( vraie Stratis ) : temoin {te16} ; reserve {re16} ; population {po16}", flush=True)
+        re16, po16, te16 = pool.map(_aide, ["reserve", "population", None])
+    Q16 = round(po16["q"])
+    print(f"   aide alimentaire ( famine produite ) : temoin {te16} ; reserve {re16} ; population {po16}", flush=True)
     ok["G16 controle positif : le temoin a faim au depart ; les deux imports acceptes, arrives dans le stock vise"] = (
-        te16["faim0"] >= 0.5 and te16["credits"][0] and re16["import"][0] and po16["import"][0]
+        te16["faim0"] >= 0.30 and te16["credits"][0] and re16["import"][0] and po16["import"][0]
         and re16["arrive"] == (Q16, 0) and po16["arrive"] == (0, Q16))
     ok["G16 sans devises ( l etat reel ) : l import est refuse, avec sa raison, et rien n entre"] = (
         not po16["sans_devises"][0] and "refuse" in po16["sans_devises"][1] and po16["sans_devises_arrive"] == 0)
     ok["G16 la reserve ne nourrit personne ; la population, si ; autre destination refusee ; conservation"] = (
         all(abs(a - b) <= 0.02 for a, b in zip(re16["faim"], te16["faim"]))
-        and po16["faim"][0] <= te16["faim"][0] - 0.30
+        and po16["faim"][0] <= 0.5 * te16["faim"][0] and po16["faim"][0] <= te16["faim"][0] - 0.15
         and not any(x[0] for x in po16["refus"]) and po16["conservation"])
     # G17
     from monde.pays import d07_exterieur as X17
@@ -619,17 +776,17 @@ def main():
         t5["iles"]["Malden"]["paiement"]["paye"] > 0 and t5["iles"]["Malden"]["paiement"]["dette_points"] == 0.0
         and t6["iles"]["Malden"]["points"] > 0 and bool(tenue17[0]))
     # G18
+    ec18 = _echelle_a_la_reprise()
+    print(f"   convois : echelle posee a la reprise {ec18}", flush=True)
+    ok["G18 une ile d avant le 27/09 recoit l echelle de l archipel a la reprise"] = (not ec18["deja"] and ec18["echelle"] == 200.0)
+    # G24
     with get_context("fork").Pool(2) as pool:
-        te18, ec18 = pool.map(_convois, [None, 200.0])
-    print(f"   convois : temoin {te18} ; a l echelle de l ile {ec18}", flush=True)
-    with get_context("fork").Pool(2) as pool:
-        nt18, ne18 = pool.map(_neuve, [1.0, 20.0])
-    print(f"   convois, ile neuve 30 jours : temoin {nt18} ; a l echelle {ne18}", flush=True)
-    ok["G18 vraie Stratis : temoin au-dessus de 90 %, convois a l echelle sous 5 % le premier jour ; echelle posee a la reprise ; conservation"] = (
-        min(te18["faim"]) >= 0.90 and ec18["faim"][0] <= 0.05 and te18["echelle"] == 1.0 and ec18["echelle"] == 200.0
-        and not ec18["deja"] and ec18["conservation"])
-    ok["G18 ile neuve : attente 10 fois moindre, faim pas plus haute ; conservation"] = (
-        ne18["attente"] * 10 <= nt18["attente"] and ne18["faim_21_30"] <= nt18["faim_21_30"] + 0.01 and ne18["conservation"])
+        fr24, cp24 = pool.map(_fret_recoltes, [False, True])
+    print(f"   fret des recoltes : {fr24}", flush=True)
+    print(f"   controle positif ( fret coupe ) : {cp24}", flush=True)
+    ok["G24 le fret des recoltes : les rations pretes aux fermes sous 2 jours de demande, jours 5 a 30 ( graine 2 ) ; conservation"] = (
+        fr24["fermes_max_j5_30"] <= 2.0 and fr24["conservation"])
+    ok["G24 controle positif : fret du domaine 15 coupe, la porte echoue"] = cp24["fermes_max_j5_30"] > 2.0
     # G20
     import numpy as np
     from monde.archipel import creer_ile
@@ -637,11 +794,12 @@ def main():
     if "G20" in SANS:                            # 27/09 : l aube du jour 350 dure ~70 min ( d01._placer, HMT-130 )
         print("   G20 sautee ( --sans G20 ) : la porte n est pas complete", flush=True)
     else:
-        with get_context("fork").Pool(1) as pool:
-            re20 = pool.map(_faim_reelle, [0])[0]
-        print(f"   vraie Stratis affamee, reprise ( faim du tronc ) : {re20}", flush=True)
-        ok["G20 la vraie Stratis reprise : les fermes relivrent en 8 jours, faim sous 10 % le huitieme ; conservation"] = (
-            max(re20["livre"]) > 0 and re20["faim"][-1] <= 0.10 and re20["conservation"])
+        re20 = _faim_produite(); te20 = _faim_produite(relacher=False)
+        print(f"   famine produite puis relachee : {re20}", flush=True)
+        print(f"   controle positif ( le blocus continue ) : {te20}", flush=True)
+        ok["G20 une famine du code d aujourd hui relachee : fermes en 8 jours, faim sous 10 % le huitieme, morts de faim sous 1 % ; conservation"] = (
+            re20["faim_blocus"] >= 0.30 and g20_passe(re20))
+        ok["G20 controle positif : sans relache, la meme porte echoue"] = not g20_passe(te20)
     # G21 : un versement du jour, verifie menage par menage
     from monde.pays import d06_etat as ET21
     w21 = creer_ile("Stratis", 1, 4.0); p21 = w21.pays; ET21.brancher_revenu_minimum(p21); T20.jours(w21, 3)
