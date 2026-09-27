@@ -723,6 +723,8 @@ def _soir(p):
 def _recensement(p, d, rng):
     """Le jour de l installation : sexe, date de naissance, couples et filiations du pays que le moteur a genere
     ( des adultes tous seuls, des enfants et des retraites repartis au hasard ). Un recensement, pas une histoire."""
+    rec = getattr(p.w.table, "recensement", None)          # une population copiee sur le reel : familles deja faites
+    if rec is not None: return _recensement_reel(p, d, rng, rec)
     w = p.w; col = p.colonnes["habitant"]
     for h in w.habitants:
         col["sexe"][h.id] = HOMME if rng.random() < PART_HOMMES.get(h.role, 0.5) else FEMME
@@ -782,6 +784,31 @@ def _recensement(p, d, rng):
             col["conception_j"][h.id] = p.jour - (int(GESTATION_J[0]) - reste); col["enceinte"][h.id] = 1
             p.poser(reste * C.PAS_PAR_JOUR + int(rng.integers(0, C.PAS_PAR_JOUR)), "fin_de_grossesse", h.id,
                     (1, int(col["conjoint"][h.id]), 2 if rng.random() < JUMEAUX else 1))
+
+
+def _recensement_reel(p, d, rng, rec):
+    """Le recensement d une population copiee sur le reel ( population.generer, `demographie` ) : les familles sont
+    faites, rien n est tire ni refait. Sexe, conjoint, mere et pere se LISENT ( table.recensement ) ; la date de
+    naissance tire le jour dans l annee, comme `_recensement` ; le petit enfant devient un enfant sans ecole ( il ira
+    a 6 ans ) ; les grossesses en cours comme en regime permanent."""
+    w = p.w; col = p.colonnes["habitant"]; tb = w.table; n = tb.n
+    for k in ("sexe", "conjoint", "mere", "pere"): col[k][:n] = rec[k]
+    col["inscrit"][:n] = 1
+    col["union_j"][:n][rec["conjoint"] >= 0] = p.jour
+    col["naissance_j"][:n] = p.jour - np.rint(tb.age[:n] * JOURS_AN).astype(np.int64) - rng.integers(0, 365, n)
+    tb.age[:n] = (p.jour - col["naissance_j"][:n].astype(np.int64)) / JOURS_AN
+    petit = np.nonzero(tb.role[:n] == P.CODE_ROLE["petit_enfant"])[0]
+    tb.role[petit] = P.CODE_ROLE["enfant"]; tb.horaire[petit] = P.CODE_HORAIRE[None]; tb.travail[petit] = -1
+    for k in ("mere", "pere"):
+        for i, x in zip(np.nonzero(rec[k] >= 0)[0].tolist(), rec[k][rec[k] >= 0].tolist()):
+            d.enfants_de.setdefault(x, []).append(i)
+    # grossesses en cours : autant qu en regime permanent, a un terme tire au hasard ( comme `_recensement` )
+    for i in np.nonzero((col["sexe"][:n] == FEMME) & (tb.age[:n] >= 15) & (tb.age[:n] < 50))[0].tolist():
+        if rng.random() < d.fecondite.asfr[int(tb.age[i])] * GESTATION_J[0] / JOURS_AN:
+            reste = int(rng.integers(1, int(GESTATION_J[0])))
+            col["conception_j"][i] = p.jour - (int(GESTATION_J[0]) - reste); col["enceinte"][i] = 1
+            p.poser(reste * C.PAS_PAR_JOUR + int(rng.integers(0, C.PAS_PAR_JOUR)), "fin_de_grossesse", i,
+                    (1, int(col["conjoint"][i]), 2 if rng.random() < JUMEAUX else 1))
 
 
 def installer(p):

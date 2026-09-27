@@ -1,6 +1,6 @@
 """Les 500 habitants : role, classe, age, famille, domicile, lieu de travail, horaire, sante, argent.
 Chaque habitant garde son identite pour toujours, qu il soit simule ( donnee ) ou incarne dans Arma ( la bulle, E2 )."""
-import weakref
+import importlib, weakref
 import numpy as np
 from . import config as C
 
@@ -17,6 +17,10 @@ TRAVAIL = {
     "marchand": (("capitale",), "marche"), "enfant": (("capitale",), "ecole"), "retraite": ((), None),
     "hotellerie": (("capitale", "ville", "village"), "garde"),   # un hotel tourne jour et nuit : trois equipes ( 27/09 :
                                                                  # a l horaire du marche, 8 h - 19 h, le menage ne pouvait plus faire ses courses )
+    # 27/09 ( population copiee sur le reel, `generer( ..., demographie=... )` ) : ceux qui ne travaillent pas. Le petit
+    # enfant ( 0-5 ans ) reste a la maison ; l etudiant ( 18 ans et plus ) va aux cours dans la capitale de son marche,
+    # comme l enfant a l ecole ; le chomeur et l inactif ( au foyer, decourage ) n ont ni lieu ni horaire de travail.
+    "petit_enfant": ((), None), "etudiant": (("capitale",), "ecole"), "chomeur": ((), None), "inactif": ((), None),
 }
 SALAIRE_HORAIRE = {   # drachmes par heure travaillee ( public : paye par l Etat ; prive : par l entreprise )
     "chef_gouvernement": 30, "ministre": 22, "officier": 16, "soldat": 7, "policier": 9, "medecin": 20, "infirmier": 10,
@@ -473,7 +477,7 @@ class Menage:
         self._mt.quitter(h.id, self.id)
 
     def adultes(self):
-        return [h for h in self.membres if h.role not in ("enfant",) and h.vivant]
+        return [h for h in self.membres if h.role not in ("enfant", "petit_enfant") and h.vivant]
 
 
 class Membres(list):
@@ -562,6 +566,9 @@ class Menages:
         mt.vues[k] = _Ref(m, mt._oubli, k)
 
 
+# l epargne de depart d un adulte selon sa classe, en drachmes ( monde E1 )
+EPARGNE_DEPART = {"aisee": 3000.0, "moyenne": 800.0, "populaire": 250.0}
+
 # le metier de repli d un metier sans lieu dans ce pays ( on descend la chaine jusqu a un metier possible )
 SUBSTITUTS = {"petrolier": "ouvrier", "mineur": "ouvrier", "ouvrier": "paysan", "soldat": "policier",
               "officier": "policier"}
@@ -574,9 +581,11 @@ def metier_possible(carte, role):
     return bool(carte.de_type(*types))
 
 
-def generer(carte, rng, echelle=1.0, table=None):
+def generer(carte, rng, echelle=1.0, table=None, demographie=None):
     """Cree la population et ses menages, deterministe a graine fixee. `echelle` multiplie chaque metier : le pays
-    garde ses proportions, il change de taille."""
+    garde ses proportions, il change de taille. `demographie` ( None : le monde E1 ) : une population copiee sur un
+    pays reel ( DEMOGRAPHIES ), voir `generer_reel`."""
+    if demographie is not None: return generer_reel(carte, rng, echelle, table, demographie)
     table = table if table is not None else Table(carte.par_n)
     mt = TableMenages(table); table.menages = mt
     H = Population(table)
@@ -625,9 +634,415 @@ def generer(carte, rng, echelle=1.0, table=None):
         h.decalage = float(rng.integers(-30, 31))
     # epargne de depart selon la classe
     for m in M:
-        m.caisse = sum({"aisee": 3000.0, "moyenne": 800.0, "populaire": 250.0}[x.classe] for x in m.adultes())
+        m.caisse = sum(EPARGNE_DEPART[x.classe] for x in m.adultes())
         m.garde_manger = 2.0 * len(m.membres)
     # l eleve : un enfant de la capitale du gouvernement ( Kavala sur Altis ), le plus jeune
     enfants = [h for h in H if h.role == "enfant" and h.domicile.id == carte.gouvernement.id] or [h for h in H if h.role == "enfant"]
     min(enfants, key=lambda h: (h.age, h.id)).eleve = True
     return H, M
+
+
+# ================================================================== une population copiee sur le reel ( 27/09 )
+# `generer( ..., demographie="grece" )` : la pyramide des ages, des menages qui sont des familles et l activite d un
+# pays reel ( cibles et sources : monde/demographie_grece.py ; portes : monde/porte_population_grece.py ). L economie
+# reste celle d E1 : `echelle` fixe les travailleurs CIVILS ( les metiers de config.ROLES a l echelle, meme arrondi que
+# `generer` ) ; la population est ce qu il faut autour d eux pour que le taux d emploi soit celui du pays.
+DEMOGRAPHIES = {"grece": "demographie_grece"}
+# le motif d un inactif ou d un retraite avant l age ( colonne « motif » du recensement ) : le domaine 4 en fait un statut
+MOTIFS = ("aucun", "au_foyer", "decourage", "invalide", "retraite_anticipee")
+CODE_MOTIF = {m: k for k, m in enumerate(MOTIFS)}
+HABITABLES = ("capitale", "ville", "village")
+MILITAIRES = ("soldat", "officier")
+# le metier cherche ( chomeur ) ou quitte ( inactif ) : un metier libre, au prorata des effectifs d E1 et du sexe
+METIERS_LIBRES = ("paysan", "mineur", "petrolier", "ouvrier", "convoyeur")
+AGE_MAJEUR, AGE_ECOLE = 18, 6          # comme au domaine 1 ( pays/d01_population.py )
+# les statuts de la generation ( internes ) : ils deviennent un metier et un motif
+(S_EMPLOI, S_CHOMAGE, S_ETUDES, S_FOYER, S_INVALIDE, S_RETRAITE_ANT, S_DECOURAGE, S_PETIT, S_ECOLE,
+ S_RETRAITE) = range(10)
+
+
+def _cibles(demographie):
+    if demographie not in DEMOGRAPHIES:
+        raise ValueError(f"demographie inconnue {demographie!r} : {tuple(DEMOGRAPHIES)}")
+    return importlib.import_module("." + DEMOGRAPHIES[demographie], __package__)
+
+
+def _quotas(total, poids):
+    """Le partage entier de `total` au prorata de `poids` : les plus forts restes, a egalite le premier. Sans tirage :
+    a toute taille, chaque part est a moins d une unite de sa cible."""
+    poids = np.asarray(poids, np.float64)
+    if total <= 0 or poids.sum() <= 0: return np.zeros(len(poids), np.int64)
+    x = total * poids / poids.sum()
+    q = np.floor(x).astype(np.int64)
+    reste = int(total) - int(q.sum())
+    if reste > 0: q[np.argsort(-(x - q), kind="stable")[:reste]] += 1
+    return q
+
+
+def _repli(carte, role):
+    while not metier_possible(carte, role): role = SUBSTITUTS[role]
+    return role
+
+
+def _pyramide(rng, n, R):
+    """Les ages et les sexes : chaque groupe de 5 ans de chaque sexe a son quota de la pyramide, l age tire
+    uniformement dans le groupe. Rend ( age, sexe ), dans l ordre des groupes."""
+    cellules = [(s, k) for s in (R.HOMME, R.FEMME) for k in range(len(R.GROUPES))]
+    q = _quotas(n, [R.PYRAMIDE[s][k] for s, k in cellules])
+    age = np.empty(n, np.int64); sexe = np.empty(n, np.int8); i = 0
+    for (s, k), m in zip(cellules, q.tolist()):
+        lo = R.GROUPES[k]
+        hi = R.GROUPES[k + 1] if k + 1 < len(R.GROUPES) else R.AGE_MAX_TIRE + 1
+        age[i:i + m] = lo + rng.integers(0, hi - lo, m); sexe[i:i + m] = s; i += m
+    return age, sexe
+
+
+def _asfr(R, ecart):
+    """La fecondite a l age `ecart` ( tableau ), par la table de groupes de 5 ans."""
+    ecart = np.asarray(ecart)
+    out = np.zeros(ecart.shape)
+    for a, f in R.ASFR.items(): out[(ecart >= a) & (ecart < a + 5)] = f
+    return out
+
+
+def _tirer_parents(rng, qui, age, cands, poids_cand, R, ecart_de, fratries=False):
+    """Pour chaque personne de `qui` ( dans l ordre ), une personne de `cands` tiree par age : l age de l ecart
+    ( `ecart_de( age du candidat, age de la personne )` ) pondere par la fecondite, fois le poids du candidat ; puis un
+    candidat de l age tire, au prorata de son poids. Avec `fratries`, ceux qui ont tire le meme age de parent et la meme
+    classe de poids sont groupes en fratries ( tailles FRATRIES ), une fratrie par parent : sans elles, un tirage
+    independant par enfant donne des familles de Poisson, trop de familles d un enfant et de quatre. Rend les numeros
+    tires ( -1 : aucun candidat ). Une passe par age : le cout suit la population, pas son carre."""
+    out = np.full(qui.size, -1, np.int64)
+    if not qui.size or not cands.size: return out
+    amax = int(age.max()) + 1
+    ac = age[cands]
+    ordre = np.lexsort((cands, ac))                     # candidats groupes par age
+    cands, ac, pc = cands[ordre], ac[ordre], poids_cand[ordre]
+    debut = np.searchsorted(ac, np.arange(amax + 1))
+    cumul = np.concatenate(([0.0], np.cumsum(pc)))
+    masse = cumul[debut[1:]] - cumul[debut[:-1]]        # poids total des candidats de chaque age
+    aq = age[qui]
+    tire = np.full(qui.size, -1, np.int64)              # la position tiree dans `cands`
+    age_tire = np.full(qui.size, -1, np.int64)
+    for a in np.unique(aq).tolist():
+        k = np.nonzero(aq == a)[0]
+        w = _asfr(R, ecart_de(np.arange(amax), a)) * masse
+        if w.sum() <= 0: continue
+        u = rng.random((k.size, 2))
+        x = np.minimum(np.searchsorted(np.cumsum(w), u[:, 0] * w.sum(), side="right"), amax - 1)
+        # dans l age tire, au prorata du poids : la position dans le cumul des poids de cet age
+        v = cumul[debut[x]] + u[:, 1] * masse[x]
+        tire[k] = np.clip(np.searchsorted(cumul, v, side="right") - 1, debut[x], debut[x + 1] - 1)
+        age_tire[k] = x
+    if fratries:
+        # par ( age du parent, poids du parent tire ) : les enfants en fratries, chaque fratrie chez un parent distinct
+        # de ce groupe, tire au prorata du poids ( sans remise tant qu il en reste )
+        ok = np.nonzero(tire >= 0)[0]
+        cle = age_tire[ok] * 1000003 + np.rint(pc[tire[ok]] * 1000).astype(np.int64)
+        ok = ok[np.argsort(cle, kind="stable")]; cle = np.sort(cle, kind="stable")
+        tailles, parts = np.array([t for t, _ in R.FRATRIES]), np.cumsum([q for _, q in R.FRATRIES])
+        for d, f in zip(*_tranches(cle)):
+            enfants = ok[d:f][rng.permutation(f - d)]
+            x = int(age_tire[enfants[0]])
+            dans = np.arange(debut[x], debut[x + 1])
+            dans = dans[np.rint(pc[dans] * 1000) == np.rint(pc[tire[enfants[0]]] * 1000)]
+            g = tailles[np.minimum(np.searchsorted(parts, rng.random(enfants.size), side="right"), len(tailles) - 1)]
+            bornes = np.minimum(np.cumsum(g), enfants.size)
+            bornes = bornes[:np.searchsorted(bornes, enfants.size) + 1]
+            parents = dans[rng.permutation(dans.size)]
+            debuts = np.concatenate(([0], bornes[:-1]))
+            for j, (b0, b1) in enumerate(zip(debuts.tolist(), bornes.tolist())):
+                tire[enfants[b0:b1]] = parents[j % parents.size]
+    ok = tire >= 0
+    out[ok] = cands[tire[ok]]
+    return out
+
+
+def _tranches(cle):
+    """Les ( debuts, fins ) des suites de valeurs egales d un tableau trie."""
+    if not cle.size: return np.zeros(0, np.int64), np.zeros(0, np.int64)
+    d = np.concatenate(([0], np.nonzero(np.diff(cle))[0] + 1))
+    return d, np.append(d[1:], cle.size)
+
+
+def _familles(rng, age, sexe, R):
+    """Les familles d une population ( ages et sexes ) : les couples, les mineurs chez leur mere, les jeunes adultes
+    chez leurs parents, des parents ages chez un enfant. Rend ( conjoint, mere, pere, hote, racine ) : `hote` est celui
+    chez qui l on vit ( -1 : chez soi ), `racine` le bout de cette chaine, qui fait le menage."""
+    n = len(age); F, M = R.FEMME, R.HOMME
+    conj = np.full(n, -1, np.int64); mere = np.full(n, -1, np.int64); pere = np.full(n, -1, np.int64)
+    hote = np.full(n, -1, np.int64)
+    ages = age.tolist()
+    amax = int(age.max()) + 1 if n else 1
+    # 1. les couples : chaque femme en couple ( sa part par age ) epouse l homme libre dont l age est le plus proche de
+    #    son age + ECART_AGE_COUPLE ( bruit normal ), a ECART_AGE_MAX ans pres ; l homme vit chez elle
+    f = np.nonzero((sexe == F) & (age >= AGE_MAJEUR))[0]
+    f = f[rng.random(f.size) < R.par_age(R.EN_COUPLE_FEMMES, age[f])]
+    f = f[rng.permutation(f.size)]
+    cible = np.rint(age[f] + R.ECART_AGE_COUPLE + rng.normal(0.0, R.ECART_AGE_SD, f.size)).astype(np.int64)
+    h = np.nonzero((sexe == M) & (age >= AGE_MAJEUR))[0]
+    seaux = [[] for _ in range(amax)]
+    for i in h[rng.permutation(h.size)].tolist(): seaux[ages[i]].append(i)
+    for i, t in zip(f.tolist(), cible.tolist()):
+        for d in range(R.ECART_AGE_MAX + 1):
+            j = next((x for x in ((t - d, t + d) if d else (t,)) if AGE_MAJEUR <= x < amax and seaux[x]), None)
+            if j is not None:
+                m = seaux[j].pop()
+                conj[i], conj[m], hote[m] = m, i, i
+                break
+    femmes = np.nonzero((sexe == F) & (age >= AGE_MAJEUR))[0]
+    poids = np.where(conj[femmes] >= 0, 1.0, R.FECONDITE_SOLO)
+
+    def filiation(qui, meres):
+        ok = meres >= 0
+        qui, meres = qui[ok], meres[ok]
+        mere[qui] = meres; hote[qui] = meres
+        c = conj[meres]
+        a_pere = (c >= 0) & (age[np.maximum(c, 0)] - age[qui] >= 18) & (age[np.maximum(c, 0)] - age[qui] <= 55)
+        pere[qui[a_pere]] = c[a_pere]
+
+    # 2. les mineurs : une mere de 15 a 49 ans a la naissance, selon la fecondite de cet age ( FECONDITE_SOLO pour une
+    #    femme sans conjoint ) ; son conjoint est le pere s il a de 18 a 55 ans de plus que l enfant ( comme au domaine 1 )
+    mineurs = np.nonzero(age < AGE_MAJEUR)[0]
+    filiation(mineurs, _tirer_parents(rng, mineurs, age, femmes, poids, R, lambda am, a: am - a, fratries=True))
+    # 3. les jeunes adultes hors couple chez leurs parents : la part publiee vaut pour TOUS les jeunes de l age ; elle se
+    #    reporte sur ceux qui vivent sans conjoint
+    jeunes = np.nonzero((age >= AGE_MAJEUR) & (R.par_age(R.CHEZ_LES_PARENTS, age) > 0))[0]
+    if jeunes.size:
+        cle = age[jeunes] * 2 + sexe[jeunes]
+        tous = np.bincount(cle, minlength=2 * amax)
+        seuls = np.bincount(cle[conj[jeunes] < 0], minlength=2 * amax)
+        part = np.where(tous[cle] > 0, seuls[cle] / np.maximum(tous[cle], 1), 1.0)
+        p = np.minimum(1.0, R.par_age(R.CHEZ_LES_PARENTS, age[jeunes]) / np.maximum(part, 1e-9))
+        jeunes = jeunes[(rng.random(jeunes.size) < p) & (conj[jeunes] < 0)]
+        # la situation d aujourd hui de la mere ne dit plus grand-chose de celle de la naissance ( veuve, divorcee ) :
+        # toutes les femmes pesent pareil
+        filiation(jeunes, _tirer_parents(rng, jeunes, age, femmes, np.ones(femmes.size), R, lambda am, a: am - a))
+    # 4. les parents ages, seuls et sans personne chez eux, vivent chez un enfant ( une part par age ) : un adulte chez
+    #    lui ou en couple, de 15 a 49 ans plus jeune ( 18 a 52 pour un pere ), tire comme une naissance a l envers
+    heberge = np.zeros(n, bool); heberge[hote[hote >= 0]] = True
+    vieux = np.nonzero((age >= 65) & (conj < 0) & (hote < 0) & ~heberge)[0]
+    vieux = vieux[rng.random(vieux.size) < R.par_age(R.CHEZ_UN_ENFANT, age[vieux])]
+    tetes = np.nonzero((age >= AGE_MAJEUR) & ((hote < 0) | ((conj >= 0) & (hote == conj))))[0]
+    tetes = tetes[~np.isin(tetes, vieux)]
+    for s, dec in ((F, 0), (M, 3)):
+        qui = vieux[sexe[vieux] == s]
+        enf = _tirer_parents(rng, qui, age, tetes, np.ones(tetes.size), R, lambda ae, a, dec=dec: a - ae - dec)
+        ok = enf >= 0
+        qui, enf = qui[ok], enf[ok]
+        hote[qui] = enf
+        lien = mere if s == F else pere
+        libre = lien[enf] < 0
+        lien[enf[libre]] = qui[libre]
+    # 5. le menage de chacun : le bout de la chaine des hotes ( les ages montent le long d une chaine d enfants et
+    #    descendent le long d une chaine de parents ages : aucune boucle )
+    racine = np.arange(n)
+    while True:
+        suivant = np.where(hote[racine] >= 0, hote[racine], racine)
+        if np.array_equal(suivant, racine): break
+        racine = suivant
+    return conj, mere, pere, hote, racine
+
+
+def _activite(rng, age, sexe, menage, n_emploi, R):
+    """Le statut de chacun ( S_... ). Les 0-5 ans sont petits enfants, les 6-17 ans a l ecole, les 65 ans et plus a la
+    retraite. De 18 a 64 ans, par sexe et groupe de 5 ans : `n_emploi` personnes en emploi au prorata des taux d emploi
+    ( quotas ), des chomeurs au taux de chomage, les autres inactifs par motif ( MOTIFS_INACTIFS ), tires."""
+    n = len(age)
+    statut = np.full(n, S_RETRAITE, np.int64)
+    statut[age < 18] = S_ECOLE
+    statut[age < AGE_ECOLE] = S_PETIT
+    cellules = [(s, k, a) for s in (R.HOMME, R.FEMME) for k, a in enumerate(R.GROUPES_ACTIFS)]
+    groupe = [int(((sexe == s) & (age >= a) & (age < a + 5)).sum()) for s, _, a in cellules]
+    emploi = _quotas(n_emploi, [g * R.EMPLOI[s][k] for g, (s, k, _) in zip(groupe, cellules)])
+    tu = np.array([R.CHOMAGE[s][k] for s, k, _ in cellules])
+    chomage = _quotas(int(round(float((emploi * tu / (1.0 - tu)).sum()))), emploi * tu / (1.0 - tu))
+    inactifs = []
+    for (s, k, a), e, c in zip(cellules, emploi.tolist(), chomage.tolist()):
+        ids = np.nonzero((sexe == s) & (age >= max(a, R.AGE_ACTIF)) & (age < a + 5))[0]
+        ids = ids[rng.permutation(ids.size)]
+        e = min(e, ids.size); c = min(c, ids.size - e)
+        statut[ids[:e]] = S_EMPLOI; statut[ids[e:e + c]] = S_CHOMAGE
+        inactifs.append(ids[e + c:])
+    inactifs = np.concatenate(inactifs) if inactifs else np.zeros(0, np.int64)
+    p = np.cumsum(R.motifs_inactifs(age[inactifs], sexe[inactifs]), axis=1)
+    m = (rng.random(inactifs.size)[:, None] >= p).sum(axis=1).clip(0, 4)
+    code = np.array([S_ETUDES, S_FOYER, S_INVALIDE, S_RETRAITE_ANT, S_DECOURAGE])[m]
+    adultes = np.bincount(menage[age >= AGE_MAJEUR], minlength=int(menage.max()) + 1)
+    code[(code == S_FOYER) & (adultes[menage[inactifs]] < 2)] = S_DECOURAGE     # au foyer : un autre adulte au menage
+    statut[inactifs] = code
+    return statut
+
+
+def _metiers_par_sexe(rng, postes, sexe, R):
+    """Les postes civils ( un metier par poste ) donnes aux personnes en emploi selon leur sexe : la part d hommes de
+    chaque metier ( PART_HOMMES ) est decalee d un meme ecart logistique pour que le compte des hommes tombe juste ;
+    hommes et femmes pris au hasard. Rend un code de metier par personne, dans l ordre de `sexe`."""
+    metiers = list(dict.fromkeys(postes))
+    nb = np.array([postes.count(m) for m in metiers], np.float64)
+    ph = np.clip(np.array([R.PART_HOMMES.get(m, 0.5) for m in metiers]), 0.01, 0.99)
+    lg = np.log(ph / (1.0 - ph))
+    hommes = np.nonzero(sexe == R.HOMME)[0]; femmes = np.nonzero(sexe != R.HOMME)[0]
+    lo, hi = -40.0, 40.0
+    for _ in range(80):
+        mi = 0.5 * (lo + hi)
+        if (nb / (1.0 + np.exp(-(lg + mi)))).sum() < hommes.size: lo = mi
+        else: hi = mi
+    nh = np.minimum(_quotas(hommes.size, nb / (1.0 + np.exp(-(lg + lo)))), nb.astype(np.int64))
+    manque = hommes.size - int(nh.sum())                  # un arrondi bute sur un metier plein : un autre le prend
+    for j in np.argsort(-(nb - nh), kind="stable").tolist():
+        if manque <= 0: break
+        k = min(manque, int(nb[j] - nh[j])); nh[j] += k; manque -= k
+    hommes = hommes[rng.permutation(hommes.size)]; femmes = femmes[rng.permutation(femmes.size)]
+    out = np.full(sexe.size, -1, np.int64)
+    ih = jf = 0
+    for m, k, kh in zip(metiers, nb.astype(np.int64).tolist(), nh.tolist()):
+        out[hommes[ih:ih + kh]] = CODE_ROLE[m]; out[femmes[jf:jf + k - kh]] = CODE_ROLE[m]
+        ih += kh; jf += k - kh
+    return out
+
+
+def _reserver(table, champs, n):
+    while table.capacite < n: _agrandir(table, champs)
+
+
+def generer_reel(carte, rng, echelle, table, demographie):
+    """La population d un pays reel autour des travailleurs civils du monde E1. Pose `table.recensement` : ce que la
+    generation sait et que les domaines relisent a leur recensement ( sexe, conjoint, mere, pere ; le metier cherche
+    ou quitte des chomeurs et des inactifs ; le motif des inactifs ). Deterministe : tous les tirages par `rng`, dans
+    un ordre fixe ; les habitants et les menages ecrits en colonnes, sans une vue."""
+    R = _cibles(demographie)
+    table = table if table is not None else Table(carte.par_n)
+    mt = TableMenages(table); table.menages = mt
+    # 1. les postes civils d E1 a l echelle, dans l ordre de config.ROLES ( le metier de repli du pays )
+    postes = []
+    for role, (k, _, _) in C.ROLES.items():
+        if k == 0 or role in ("enfant", "retraite") + MILITAIRES: continue
+        postes += [_repli(carte, role)] * max(1, int(round(k * echelle)))
+    # 2. la taille du pays : les civils sont les personnes en emploi que l armee laisse
+    n = int(round(len(postes) / (R.emploi_par_habitant() - R.PART_MILITAIRES)))
+    n_mil = int(round(R.PART_MILITAIRES * n))
+    age, sexe = _pyramide(rng, n, R)
+    conj, mere, pere, hote, racine = _familles(rng, age, sexe, R)
+    _, menage = np.unique(racine, return_inverse=True)
+    statut = _activite(rng, age, sexe, menage, len(postes) + n_mil, R)
+    # 3. les metiers : l armee d abord ( 19-54 ans, au prorata du sexe ), puis les postes civils selon le sexe
+    role = np.full(n, -1, np.int64); motif = np.zeros(n, np.int8); metier = np.full(n, -1, np.int64)
+    emploi = np.nonzero(statut == S_EMPLOI)[0]
+    a0, a1 = R.AGES_MILITAIRES
+    cand = emploi[(age[emploi] >= a0) & (age[emploi] < a1)]
+    ps = R.PART_HOMMES["soldat"]
+    cle = np.log(rng.random(cand.size)) / np.where(sexe[cand] == R.HOMME, ps, 1.0 - ps)   # tirage pondere sans remise
+    armee = cand[np.argsort(-cle, kind="stable")[:n_mil]]
+    n_off = int(round(armee.size * R.PART_OFFICIERS))
+    role[armee[:n_off]] = CODE_ROLE[_repli(carte, "officier")]
+    role[armee[n_off:]] = CODE_ROLE[_repli(carte, "soldat")]
+    civils = emploi[~np.isin(emploi, armee)]
+    if civils.size != len(postes):
+        raise ValueError(f"{demographie} : {civils.size} civils en emploi pour {len(postes)} postes ( armee {armee.size} "
+                         f"sur {n_mil} ) : la pyramide n a pas assez de personnes d age actif a cette echelle")
+    role[civils] = _metiers_par_sexe(rng, postes, sexe[civils], R)
+    for s, r in ((S_PETIT, "petit_enfant"), (S_ECOLE, "enfant"), (S_RETRAITE, "retraite"), (S_INVALIDE, "retraite"),
+                 (S_RETRAITE_ANT, "retraite"), (S_ETUDES, "etudiant"), (S_CHOMAGE, "chomeur"), (S_FOYER, "inactif"),
+                 (S_DECOURAGE, "inactif")):
+        role[statut == s] = CODE_ROLE[r]
+    for s, mo in ((S_FOYER, "au_foyer"), (S_DECOURAGE, "decourage"), (S_INVALIDE, "invalide"),
+                  (S_RETRAITE_ANT, "retraite_anticipee")):
+        motif[statut == s] = CODE_MOTIF[mo]
+    sans = np.nonzero(np.isin(statut, (S_CHOMAGE, S_FOYER, S_DECOURAGE)))[0]
+    w = np.array([[C.ROLES[m][0] * (R.PART_HOMMES[m] if s == R.HOMME else 1.0 - R.PART_HOMMES[m]) for m in METIERS_LIBRES]
+                  for s in (R.FEMME, R.HOMME)])
+    w = np.cumsum(w / w.sum(axis=1, keepdims=True), axis=1)
+    j = (rng.random(sans.size)[:, None] >= w[(sexe[sans] == R.HOMME).astype(np.int64)]).sum(axis=1).clip(0, len(METIERS_LIBRES) - 1)
+    metier[sans] = np.array([CODE_ROLE[_repli(carte, m)] for m in METIERS_LIBRES])[j]
+    # 4. l ordre des lignes : les menages dans un ordre tire, et dans chacun le chef, son conjoint, puis par age
+    n_m = int(menage.max()) + 1
+    rang_m = np.empty(n_m, np.int64); rang_m[rng.permutation(n_m)] = np.arange(n_m)
+    ids = np.arange(n)
+    place = np.where(ids == racine, 0, np.where(conj == racine, 1, 2))
+    ordre = np.lexsort((ids, -age, place, rang_m[menage]))        # ordre[ligne] = personne
+    ligne = np.empty(n, np.int64); ligne[ordre] = ids
+    mg = rang_m[menage][ordre]                                     # le menage de chaque ligne ( croissant )
+    ro = role[ordre]
+    # 5. la classe : celle du metier pour qui travaille ; celle du premier travailleur du menage pour les autres
+    #    ( un menage sans travailleur : populaire, comme les retraites d E1 )
+    code_classe = np.array([CODE_CLASSE[C.ROLES[r][1]] for r in ROLES], np.int64)
+    trav = np.isin(ro, [CODE_ROLE[r] for r in ROLES if TRAVAIL[r][0] and r not in ("enfant", "etudiant")])
+    tl = np.nonzero(trav)[0]
+    chefs_m, premier = np.unique(mg[tl], return_index=True)
+    chef = np.full(n_m, -1, np.int64); chef[chefs_m] = tl[premier]      # la ligne du premier travailleur du menage
+    classe_m = np.full(n_m, CODE_CLASSE["populaire"], np.int64); classe_m[chefs_m] = code_classe[ro[chef[chefs_m]]]
+    classe = np.where(trav, code_classe[np.maximum(ro, 0)], classe_m[mg])
+    # 6. les lieux de travail : les postes de chaque metier sont ceux de `generer` ( repartition equilibree ). Le
+    #    premier travailleur de chaque menage prend le poste suivant, et le menage vit au lieu habitable le plus proche ;
+    #    les autres travailleurs prennent le poste restant le plus proche de chez eux.
+    def candidats(r):
+        types, _ = TRAVAIL[r]
+        if types == ("gouvernement",): return [carte.gouvernement]
+        if r == "ouvrier": return [l for l in carte.de_type(*types) for _ in range(C.OUVRIERS_PAR_SITE[l.type])]
+        return carte.de_type(*types)
+    habitable = {}
+    def logis(l):
+        if l.n not in habitable:
+            habitable[l.n] = l if l.type in HABITABLES else carte.plus_proche(l, HABITABLES)
+        return habitable[l.n]
+    effectif = {ROLES[c]: int(k) for c, k in zip(*np.unique(ro[tl], return_counts=True))}
+    cands = {r: candidats(r) for r in effectif}
+    compteur = {r: 0 for r in effectif}
+    travail = np.full(n, -1, np.int64); equipe = np.zeros(n, np.int64)
+    domicile_m = np.full(n_m, -1, np.int64)
+    for k in chefs_m.tolist():
+        i = int(chef[k]); r = ROLES[ro[i]]
+        c = compteur[r]; l = cands[r][c % len(cands[r])]
+        travail[i], equipe[i] = l.n, c
+        compteur[r] = c + 1
+        domicile_m[k] = logis(l).n
+    restes = {}                                                     # role -> { lieu : [ equipes libres ] }
+    for r, tot in effectif.items():
+        d = restes[r] = {}
+        for c in range(compteur[r], tot): d.setdefault(cands[r][c % len(cands[r])].n, []).append(c)
+    proches = {}
+    for i in tl[np.isin(tl, chef[chefs_m], invert=True)].tolist():
+        r = ROLES[ro[i]]; dom = int(domicile_m[mg[i]])
+        cle = (r, dom)
+        if cle not in proches:
+            lieux = list(dict.fromkeys(l.n for l in cands[r]))
+            proches[cle] = sorted(lieux, key=lambda x: (carte.par_n[dom].distance(carte.par_n[x]), x))
+        x = next(x for x in proches[cle] if restes[r].get(x))
+        travail[i], equipe[i] = x, restes[r][x].pop(0)
+    # les menages sans travailleur vivent ou vivent les autres : le domicile d un menage de travailleurs tire au hasard
+    sans_trav = np.nonzero(domicile_m < 0)[0]
+    domicile_m[sans_trav] = domicile_m[chefs_m[rng.integers(0, chefs_m.size, sans_trav.size)]]
+    dom = domicile_m[mg]
+    marche = np.array([l.marche.n if l.marche is not None else -1 for l in carte.par_n], np.int64)
+    ecole = np.isin(ro, (CODE_ROLE["enfant"], CODE_ROLE["etudiant"]))
+    travail[ecole] = marche[dom[ecole]]                             # l ecole ( ou l universite ) de son marche
+    horaire = np.array([CODE_HORAIRE[TRAVAIL[r][1]] for r in ROLES], np.int64)[ro]
+    # 7. les colonnes des habitants et des menages
+    _reserver(table, Table.CHAMPS, n)
+    t = table; t.n = n
+    t.role[:n] = ro; t.public[:n] = np.array([1 if C.ROLES[r][2] else 0 for r in ROLES], np.uint8)[ro]
+    t.classe[:n] = classe; t.age[:n] = age[ordre]
+    t.menage[:n] = mg; t.rang[:n] = np.arange(n); t.rang_suivant = n
+    t.domicile[:n] = dom; t.hopital[:n] = marche[dom]; t.lieu[:n] = dom
+    t.travail[:n] = travail; t.horaire[:n] = horaire; t.equipe[:n] = equipe
+    t.decalage[:n] = rng.integers(-30, 31, n)
+    t.nia[:n] = (int(t.code_ile) << C.BITS_NUMERO_LOCAL) | np.arange(n, dtype=np.int64); t.nationalite[:n] = t.code_ile
+    _reserver(mt, TableMenages.CHAMPS, n_m)
+    mt.n = n_m
+    mt.domicile[:n_m] = domicile_m
+    epargne = np.array([EPARGNE_DEPART[c] for c in CLASSES])
+    adulte = (age[ordre] >= AGE_MAJEUR) & (ro != CODE_ROLE["enfant"]) & (ro != CODE_ROLE["petit_enfant"])
+    mt.caisse[:n_m] = np.bincount(mg, weights=np.where(adulte, epargne[classe], 0.0), minlength=n_m)
+    mt.garde_manger[:n_m] = 2.0 * np.bincount(mg, minlength=n_m)
+    # l eleve : l enfant le plus jeune de la capitale du gouvernement ( a defaut, du pays )
+    enf = np.nonzero(ro == CODE_ROLE["enfant"])[0]
+    ici = enf[dom[enf] == carte.gouvernement.n]
+    enf = ici if ici.size else enf
+    t.eleve[enf[np.lexsort((enf, t.age[enf]))[0]]] = 1
+    # ce que les domaines relisent a leur recensement ( une ligne par habitant )
+    vers = lambda x: np.where(x >= 0, ligne[np.maximum(x, 0)], -1).astype(np.int32)
+    table.recensement = {"demographie": demographie, "sexe": sexe[ordre].astype(np.int8), "conjoint": vers(conj[ordre]),
+                         "mere": vers(mere[ordre]), "pere": vers(pere[ordre]), "metier": metier[ordre].astype(np.int16),
+                         "motif": motif[ordre]}
+    return Population(table), Menages(mt)
