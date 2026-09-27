@@ -144,8 +144,9 @@ PRIORITE_RACHAT = ESSENTIELS + ("carburant",)
 # en priorite les medicaments et la nourriture ( Financial Times, K. Hope, 04/08/2015, « Greek businesses left gasping as
 # capital controls bite » ; CNBC, 24/07/2015 : les importations pharmaceutiques ). L energie ( combustible des centrales,
 # gazole, petrole ) est comptee essentielle, A VERIFIER : absente de ces sources ; au Sri Lanka en 2022 la banque
-# centrale reservait ses dollars au carburant et au gaz de cuisine ( New Straits Times, 20/05/2022 ). L armement aussi,
-# A VERIFIER : un pays en guerre sert d abord ses importations critiques ( Ukraine 2022 ). Le seuil de 3 mois
+# centrale reservait ses dollars au carburant et au gaz de cuisine ( New Straits Times, 20/05/2022 ). L armement N EST
+# PAS essentiel ( chef de projet, 27/09 ) : c est le gouvernement qui dresse la liste des importations critiques ( Ukraine
+# 2022 : liste fixee par le Cabinet ) - une decision explicite a venir, journalisee. Le seuil de 3 mois
 # d importations : la regle usuelle d adequation des reserves ( FMI, a calibrer ), mesures sur les 30 derniers jours
 # d importations ; pas avant PRIORITE_APRES_J jours de vie du domaine : la semaine d installation achete les stocks de
 # depart ( 240 000 euros d un jour sur une Stratis de 10 000 habitants, contre 10 000 a 100 000 ensuite ) et la banque
@@ -153,7 +154,7 @@ PRIORITE_RACHAT = ESSENTIELS + ("carburant",)
 RESERVE_PRIORITAIRE_MOIS = 3.0
 PRIORITE_APRES_J = 37
 BIENS_ESSENTIELS_DEVISES = ESSENTIELS + ("carburant", "petrole")
-MOTIFS_ESSENTIELS_DEVISES = ("import_sante", "import_armement")
+MOTIFS_ESSENTIELS_DEVISES = ("import_sante",)
 URGENCE_J = 1.0                   # sous un jour de stock, un bien essentiel est rachete meme a perte
 SEUIL_MOTEUR = 50.0               # monde.expedier exporte le surplus de nourriture au-dela de 3 jours + 50 unites
 MARGE_SURETE_MOTEUR = 25.0

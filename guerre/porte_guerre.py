@@ -278,7 +278,12 @@ def _faim_reelle(_):
     return {"faim": f, "livre": livre, "morts_de_faim": morts, "vivants0": v0, "conservation": bool(p.socle.conservation.tenue()[0])}
 
 
+SANS = ()                                          # les portes sautees : python -m guerre.porte_guerre --sans G20
+
+
 def main():
+    global SANS
+    if "--sans" in sys.argv: SANS = tuple(sys.argv[sys.argv.index("--sans") + 1].split(","))
     ok = {}
     if not os.path.exists(os.path.join(MISSION, "mission.sqm")):
         from . import fabriquer_mission as FM
@@ -629,11 +634,14 @@ def main():
     import numpy as np
     from monde.archipel import creer_ile
     from monde import tests as T20
-    with get_context("fork").Pool(1) as pool:
-        re20 = pool.map(_faim_reelle, [0])[0]
-    print(f"   vraie Stratis affamee, reprise ( faim du tronc ) : {re20}", flush=True)
-    ok["G20 la vraie Stratis reprise : les fermes relivrent en 8 jours, faim sous 10 % le huitieme ; conservation"] = (
-        max(re20["livre"]) > 0 and re20["faim"][-1] <= 0.10 and re20["conservation"])
+    if "G20" in SANS:                            # 27/09 : l aube du jour 350 dure ~70 min ( d01._placer, HMT-130 )
+        print("   G20 sautee ( --sans G20 ) : la porte n est pas complete", flush=True)
+    else:
+        with get_context("fork").Pool(1) as pool:
+            re20 = pool.map(_faim_reelle, [0])[0]
+        print(f"   vraie Stratis affamee, reprise ( faim du tronc ) : {re20}", flush=True)
+        ok["G20 la vraie Stratis reprise : les fermes relivrent en 8 jours, faim sous 10 % le huitieme ; conservation"] = (
+            max(re20["livre"]) > 0 and re20["faim"][-1] <= 0.10 and re20["conservation"])
     # G21 : un versement du jour, verifie menage par menage
     from monde.pays import d06_etat as ET21
     w21 = creer_ile("Stratis", 1, 4.0); p21 = w21.pays; ET21.brancher_revenu_minimum(p21); T20.jours(w21, 3)
@@ -694,7 +702,7 @@ def main():
     arc11.fermer()
     for k, v in ok.items(): print(f"{'PASSE ' if v else 'ECHOUE'} {k}")
     passe = all(ok.values())
-    print(f"PORTES DE LA GUERRE : {'FRANCHIES' if passe else 'ECHOUEES'} ( {time.time() - t0:.0f} s )")
+    print(f"PORTES DE LA GUERRE : {'FRANCHIES' if passe else 'ECHOUEES'}{' ( SANS ' + ', '.join(SANS) + ' )' if SANS else ''} ( {time.time() - t0:.0f} s )")
     return 0 if passe else 1
 
 

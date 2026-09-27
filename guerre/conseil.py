@@ -326,7 +326,7 @@ trois fois le vote : chaque ligne de finances.budget porte son « plancher » et
 banque centrale ( section « exterieur » du bulletin ) : sans reserves de change, il est refuse ; exporter_or en rapporte.
 La section « famine » compte tes morts de faim d hier et des 30 derniers jours : la faim du bulletin ne compte que les
 menages VIVANTS, elle baisse quand les affames meurent. Sous 3 mois d importations de reserves, la banque centrale ne
-sert plus que l essentiel ( nourriture, medicaments, energie, armement ) : le reste de tes achats a l etranger attend.
+sert plus que l essentiel ( nourriture, medicaments, energie ) : le reste de tes achats a l etranger attend, armes comprises.
 Ton armee ne patrouille que si son depot a du carburant ( section « armee » du bulletin : carburant_depot,
 patrouilles_annulees_hier ) : c est a toi de l acheter ( acheter carburant, destination « armee », dans les credits de
 la defense ) - dans la guerre, tes gouvernements ne l achetaient plus, et chaque patrouille etait annulee.

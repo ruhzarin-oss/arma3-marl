@@ -1,5 +1,5 @@
 """27/09 ( HMT-131 b ) : la priorite des devises au domaine 7. Sous RESERVE_PRIORITAIRE_MOIS mois d importations de
-reserves, la banque centrale ne sert plus que l essentiel ( nourriture, medicaments, energie, armement ) ; le reste
+reserves, la banque centrale ne sert plus que l essentiel ( nourriture, medicaments, energie ) ; le reste
 n a que les reserves au-dessus de ce seuil. A appliquer APRES patch_devises.py. Idempotent.
    python patch_priorite_devises.py racine_de_l_arbre"""
 import os, sys
@@ -22,8 +22,9 @@ remplacer(A[0] + "\n", A[0] + "\n" + '''# La priorite des devises ( 27/09, HMT-1
 # en priorite les medicaments et la nourriture ( Financial Times, K. Hope, 04/08/2015, « Greek businesses left gasping as
 # capital controls bite » ; CNBC, 24/07/2015 : les importations pharmaceutiques ). L energie ( combustible des centrales,
 # gazole, petrole ) est comptee essentielle, A VERIFIER : absente de ces sources ; au Sri Lanka en 2022 la banque
-# centrale reservait ses dollars au carburant et au gaz de cuisine ( New Straits Times, 20/05/2022 ). L armement aussi,
-# A VERIFIER : un pays en guerre sert d abord ses importations critiques ( Ukraine 2022 ). Le seuil de 3 mois
+# centrale reservait ses dollars au carburant et au gaz de cuisine ( New Straits Times, 20/05/2022 ). L armement N EST
+# PAS essentiel ( chef de projet, 27/09 ) : c est le gouvernement qui dresse la liste des importations critiques ( Ukraine
+# 2022 : liste fixee par le Cabinet ) - une decision explicite a venir, journalisee. Le seuil de 3 mois
 # d importations : la regle usuelle d adequation des reserves ( FMI, a calibrer ), mesures sur les 30 derniers jours
 # d importations ; pas avant PRIORITE_APRES_J jours de vie du domaine : la semaine d installation achete les stocks de
 # depart ( 240 000 euros d un jour sur une Stratis de 10 000 habitants, contre 10 000 a 100 000 ensuite ) et la banque
@@ -31,7 +32,7 @@ remplacer(A[0] + "\n", A[0] + "\n" + '''# La priorite des devises ( 27/09, HMT-1
 RESERVE_PRIORITAIRE_MOIS = 3.0
 PRIORITE_APRES_J = 37
 BIENS_ESSENTIELS_DEVISES = ESSENTIELS + ("carburant", "petrole")
-MOTIFS_ESSENTIELS_DEVISES = ("import_sante", "import_armement")
+MOTIFS_ESSENTIELS_DEVISES = ("import_sante",)
 ''')
 remplacer('''def _dispo_euros(p, e):
     """Les reserves de ce moment moins le plancher, en LECTURE SEULE : les flux du grand livre depuis le dernier suivi,
