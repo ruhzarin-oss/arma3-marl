@@ -1186,15 +1186,18 @@ def _atelier(p, A, f, ex, cible):
 
 # ================================================================== l autoconsommation ( 27/09, Younes : « au plus realiste » )
 def _autoconsommation(p):
-    """19 h 40, avant le repas de 20 h, dans les mondes a la faim realiste : le menage d un paysan dont le garde-manger
-    ne tient pas le repas du soir le prend au grenier de sa ferme - le moulin, le pressoir et le four de la ferme, comme
-    pour le marche. Les familles paysannes sont les dernieres a avoir faim ( autoconsommation : 10 a 20 % de la
-    production des exploitations grecques ). ( 27/09 : sans elle, la Stratis affamee de l essai 15 mourait de faim a
-    cote de 230 jours de vivres, ses paysans trop faibles pour travailler. ) Rien pour une ferme sous sequestre."""
+    """19 h 40, avant le repas de 20 h : le menage d un paysan dont le garde-manger ne tient pas le repas du soir le prend
+    au grenier de sa ferme - le moulin, le pressoir et le four de la ferme, comme pour le marche. Les familles paysannes
+    sont les dernieres a avoir faim ( autoconsommation : 10 a 20 % de la production des exploitations grecques ).
+    ( 27/09 : sans elle, la Stratis affamee de l essai 15 mourait de faim a cote de 230 jours de vivres, ses paysans trop
+    faibles pour travailler. ) Rien pour une ferme sous sequestre. Les sommes sont exactes ( math.fsum ) et l ordre est
+    celui des numeros de menage : le meme texte tourne a l identique sur l ancien moteur ( correctif de reference
+    patch_autoconsommation.py )."""
     w = p.w
-    if not getattr(w, "faim_realiste", False): return
     A = p.domaine("agriculture"); tb = w.table; n = tb.n; mt = tb.menages; M = mt.n
-    vivant = (tb.vivant[:n] == 1) & (tb.statut[:n] != PO_MOTEUR.ABSENT)
+    st = getattr(tb, "statut", None)
+    vivant = tb.vivant[:n] == 1
+    if st is not None: vivant = vivant & (st[:n] != getattr(PO_MOTEUR, "ABSENT", 1))
     mm = PO_MOTEUR.menages_inscrits(tb, n)
     bouches = np.bincount(mm[vivant & (mm >= 0)], minlength=M)[:M].astype(np.float64) * C.NOURRITURE_PAR_JOUR
     code = PO_MOTEUR.CODE_ROLE["paysan"]
@@ -1204,7 +1207,7 @@ def _autoconsommation(p):
         if not len(ids): continue
         mids = np.unique(mm[ids]); mids = mids[mids >= 0]
         besoin = np.maximum(0.0, bouches[mids] - mt.garde_manger[mids])
-        total = float(besoin.sum())
+        total = math.fsum(besoin.tolist())
         if total <= 1e-9: continue
         voulu = min(total, _livrable(A, ex))
         if voulu <= 1e-9: continue
@@ -1221,7 +1224,7 @@ def _autoconsommation(p):
 
 
 def brancher_autoconsommation(p):
-    """Pose l autoconsommation ( une fois ) : a l installation d un monde a la faim realiste, ou sur une ile reprise."""
+    """Pose l autoconsommation ( une fois ) : a l installation, ou sur une ile reprise d un instantane d avant."""
     J = p.socle.journal
     if "autoconsommation" not in getattr(J, "types", {}): J.declarer("autoconsommation", "agriculture", "compte")
     if not any(f is _autoconsommation for _, _, f in p.routines.get(19 * 60 + 40, ())):
@@ -1675,7 +1678,7 @@ def installer(p):
     p.routine(17 + 50 / 60, 20, "agriculture", _avant_paie)
     p.routine(18 + 10 / 60, 20, "agriculture", _apres_paie)
     p.routine(20 + 10 / 60, 20, "agriculture", _soir)
-    if getattr(p.w, "faim_realiste", False): brancher_autoconsommation(p)
+    brancher_autoconsommation(p)
     p.cloture("agriculture", _cloture)
     return A
 
