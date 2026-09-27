@@ -57,8 +57,7 @@ relu.
 l'affichage de `portes.sh`, qui ne montre que les 8 dernières lignes : une personne par île, « absente » sans corps
 ailleurs. d21 marque ses DÉTENUS `statut = ABSENT` pour que le moteur les sorte du travail et du ménage ; or ABSENT veut
 dire « son corps est dans une autre île ou en mer ». Correctif du recensement de l'île ( `corps` ) : un détenu a son
-corps ICI. **À trancher** : le statut est surchargé ; d16 ( épidémies ) et d19 ( école ) sautent aussi les absents,
-donc les détenus n'attrapent aucune maladie en prison. Un statut « détenu » propre serait plus juste.
+corps ICI. ( Leur santé en prison : réglée dans la troisième passe, plus bas. )
 
 **d13 `_apparier` en colonnes.** Les candidats d'un chercheur se calculent sur les offres de ses lieux voisins mises
 bout à bout, un logement pris est marqué dans un masque : mêmes flottants dans le même ordre, mêmes départages.
@@ -77,13 +76,54 @@ travaillent encore par objets `Habitant` ( 5,7 millions créés en 3 jours ) : c
   campagne fait PIRE que le témoin ( rien ) sur les 10 graines : −0,196 IC95 [−0,197 ; −0,196]. À trancher.
 - ravitaillement ( d26, règle revue ) : bat le témoin 10/10, +0,008 IC95 [+0,005 ; +0,011] → TIENT.
 
+## Troisième passe ( 27/09, « fait au plus réaliste », « il faut tout enregistrer » )
+
+**La règle de campagne n'est PAS pire que rien — ma lecture était fausse.** `regles_neuves.py` comparait un monde où
+TOUTES les listes suivent la règle à un monde où AUCUNE ne fait campagne ; les parts d'intention se partagent : si tout
+le monde fait campagne les gains s'annulent et les coûts restent ( d24 le disait : « les moyennes de mondes différents
+ne se comparent pas » ). La bonne question est celle d'une liste seule ( `campagne_seul.py`, critère écrit avant ) :
+les autres suivant la règle, la liste qui suit la règle finit 12 jours plus tard à **+3,07 points d'intention** de la
+même liste forcée à « rien » ( IC95 [+2,65 ; +3,49], 60 couples graine × liste sur 60 ). Rien à corriger dans d24.
+Réserve de réalisme, non corrigée faute de chiffre : les méta-analyses d'expériences de terrain ( Kalla et Broockman
+2018 ) trouvent un effet de persuasion des contacts de campagne proche de zéro dans les élections générales ; `C_CAMP`
+( 0,25, porté de 0,10 après la mesure ) est peut-être fort.
+
+**L'embuscade.** Deux causes, toutes deux corrigées.
+- La posture couchée n'existait pas pour la détection. Le moteur d'Arma donne à l'animation couchée une taille visible
+  de 0,15 contre 0,6 accroupi et 0,9 debout ( `visibleSize`, CfgMovesMaleSdr ) ; d26 garde le 0,42 MESURÉ de l'accroupi
+  et le rapport d'Arma : couché 0,105 ( ~ 58 m de jour pour un guetteur moyen, ~ 32 m de nuit ). d27 : nos éléments à
+  l'arrêt se montrent dans la posture de leur conduite ( ils gardaient celle de leur dernière marche : DEBOUT après une
+  occupation, accroupis après une infiltration ) ; les postes adverses gardent la posture où ils sont posés.
+- La cause qui empêchait le déclenchement : l'exercice ne donnait pas l'axe de la menace, les guetteurs regardaient dans
+  le sens de leur marche et TOURNAIENT LE DOS à la route de la patrouille ( 96° à 150° au plus près, 54 m ) ; seule la
+  vision périphérique, trop généreuse avant la mesure d'Arma, les faisait voir passer la patrouille. La patrouille est
+  « repérée » ( le code le dit ) : l'embuscade connaît son axe d'arrivée et le regarde. `test_resolveur` passe
+  ( exposition exécutée = déclarée ), 32/32 tests de l'armée.
+
+**Les détenus.** d21 les garde ABSENTS pour le moteur ( ni repas ni travail chez eux ) ; d16 les compte maintenant
+PRÉSENTS en prison : ils tombent malades, la nuit dans leur cellule ( 4 détenus, surpopulation grecque de 3 à 6, à
+calibrer ), le jour dans toute la prison avec les gardiens de service ( 8 h - 16 h, à calibrer ), jamais avec leur
+ménage, et ne comptent plus dans la nourriture de leur ménage. Expérience dirigée ( `prison_contagion.py`, 50 000
+habitants, UN détenu infecté du covid, 14 jours, même graine ) : avant, codétenus 0/48, gardiens 0/20, mais **6
+personnes de la ville** contaminées directement par le prisonnier ; après, codétenus 2/48, gardiens 1/20, ville 0 —
+l'épidémie circule dans la prison et en sort par un gardien. École : d21 n'incarcère que des majeurs ( 18 ans et plus ),
+aucun détenu n'est d'âge scolaire ; la formation en prison n'est pas modélisée ( pas de chiffre sourcé ).
+
+**Tout enregistrer.** La photo du soir ne prenait que les colonnes du MOTEUR ; l'état des domaines manquait ( 89
+colonnes par habitant, 68 par ménage, les tables des bâtiments, de l'armée, les maladies, les intentions de vote, les
+baux, les détentions, le parc… ). `photo_pays` écrit maintenant chaque soir : `pays_habitants`, `pays_menages`, chaque
+table en colonnes d'un domaine, chaque dictionnaire ou liste d'objets semblables en table ( une colonne par attribut ),
+`tableaux` ( chaque tableau numpy ) et `objets` ( le reste, en json ) ; le socle aussi ( créances, parc, stocks ). Porte
+E6 : chaque colonne du pays et CHAQUE attribut de chaque domaine se retrouve dans l'enregistrement ; contrôle positif :
+la justice oubliée à la lecture → refusée. Enregistrer ne change toujours pas le monde ( E1, séquentiel et parallèle ).
+
 ## Les échecs nouveaux de la liste ( tous antérieurs ou expliqués )
 
 | Test | Cause |
 |---|---|
 | transport `test_decision` | identique, au chiffre près, sur `socle-du-pays` seule ( p 0,134 ; « marginal » au commit ffb600c, mesuré avant que la branche reçoive pays-sur-colonnes ) |
 | logistique `test_faim_ile_sans_production`, hôpitaux `test_decision`, sécurité civile `test_decision`, médias `test_deformation_relais`, culture `test_rumeur_fausse` | annoncés par leurs commits ( c4693ae, f9946e3, b478e1c, 3bcb0c4, c1eaa79 ) |
-| armée tactique `test_resolveur` | conséquence de la détection d'Arma : l'EMBUSCADE ne se déclenche plus de jour. Le modèle n'a pas de posture « couché » : les tireurs couchés comptent comme accroupis, et la patrouille les voit à 550 × 0,42 = 231 m, avant la zone de destruction. Arma n'a mesuré l'accroupi que de nuit. **À trancher** : une posture couchée mesurée dans Arma, ou le couvert de l'embuscade |
+| armée tactique `test_resolveur` | RÉGLÉ dans la troisième passe ( posture couchée, axe de la menace ) : retiré de la liste |
 
 ## Pour le long run
 
@@ -93,6 +133,6 @@ travaillent encore par objets `Habitant` ( 5,7 millions créés en 3 jours ) : c
   1 000 habitants ), six îles en parallèle se seraient marché dessus ( 120 fils pour 20 cœurs ). `archipel.py` borne
   maintenant les fils de chaque île à sa part des cœurs ( 20 ÷ 6 = 3 ; `HMT_FILS_PAR_ILE` pour forcer ) ; le nombre de
   fils ne change pas les résultats ( porte des 27 domaines identique à 3 fils ).
-- Ouvert, pour Younes : la règle de campagne pire que rien ( d24 ) ; l'embuscade ( ci-dessus ) ; la décision d'achat de véhicule ( d14 ) trop faible pour sa porte ;
+- Ouvert, pour Younes : la décision d'achat de véhicule ( d14 ) trop faible pour sa porte ;
   8,5 % de militaires dans le moteur E1 contre 1,37 % en Grèce ( d25 ) ; la faim de 37-39 % de la guerre des îles
   n'est pas dans le moteur fusionné sans guerre ( 2,3 jours de faim ) : elle vient de la guerre ou de l'échelle 200.

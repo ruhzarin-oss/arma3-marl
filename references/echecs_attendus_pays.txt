@@ -1,6 +1,5 @@
 ECHOUE  agenda            test_travail_fait
 ECHOUE  agriculture       test_dimanche
-ECHOUE  armee_tactique    test_resolveur
 ECHOUE  banques           test_octroi_part_du_choix
 ECHOUE  culture           test_rumeur_fausse
 ECHOUE  economie          test_credit

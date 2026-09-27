@@ -194,13 +194,18 @@ RAYON_BASE_M = 300.0                 # une unite revenue a moins de 300 m de sa 
 # ================================================================== le renseignement
 SOURCES = ("aucune", "observation", "patrouille", "radio", "population", "medias")
 AUCUNE, OBSERVATION, PATROUILLE, RADIO_S, POPULATION, MEDIAS = range(6)
-POSTURES_CIBLE = ("debout", "accroupi", "vehicule")
+POSTURES_CIBLE = ("debout", "accroupi", "vehicule", "couche")
 # La portee d un guetteur ( domaine 25 `perception` : 550 m de jour, 300 m de nuit, moins avec la fatigue ) vaut pour
 # un homme DEBOUT REGARDE ; accroupi ~ 0,42 ( nuit du 19/09 : fiable sous 125 m contre ~ 300 debout ), un vehicule
 # ~ 3 fois ( a calibrer ). Hors du cone du regard ( 70 degres, le banc P2 ), un dixieme ( 02/08 : rien a 50 m sur le
 # flanc ) ; un guetteur qui balaie sans regard impose, la moitie ( a calibrer : le levier est ou regarder et combien de
 # temps balayer, 18/09 ). La detection est binaire ( 04/08 : tout ou rien ), sans hasard.
-F_POSTURE = np.array([1.0, 0.42, 3.0])
+# Couche : 0,105 ( 27/09 ). Le moteur d Arma donne a l animation couchee une taille visible de 0,15, contre 0,6
+# accroupi et 0,9 debout ( `visibleSize`, CfgMovesMaleSdr : AmovPpneMstpSrasWrflDnon, AmovPknlMwlkSrasWrflDf,
+# AmovPercMwlkSrasWrflDf ) ; on garde le 0,42 MESURE de l accroupi et le rapport d Arma couche / accroupi, 0,25 :
+# un homme couche est vu a ~ 58 m de jour par un guetteur moyen, ~ 32 m de nuit ( la doctrine place l embuscade a
+# 25-100 m de sa zone de destruction ).
+F_POSTURE = np.array([1.0, 0.42, 3.0, 0.42 * 0.15 / 0.6])
 DEMI_CONE = math.radians(35.0)
 F_PERIPHERIE = 0.04   # 27/09 : avec la portee d Arma ( 550 m de jour, 1 100 m au meilleur guetteur ), 0,1 voyait a 55-110 m
                       # sur le flanc ; 0,04 garde la mesure du 02/08 ( rien a 50 m ) pour tout guetteur : 44 m au plus

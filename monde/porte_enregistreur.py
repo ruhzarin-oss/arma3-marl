@@ -7,13 +7,16 @@
   E3  choix et notes : autant de choix enregistres que de decisions prises, autant de notes que de notes murees ;
   E4  evenements : autant de lignes que d evenements notes ( moteur et journal du socle ) ;
   E5  photos : une photo des habitants par jour, une ligne par habitant ;
-  controle positif : une ligne d argent retiree de la lecture -> E2 echoue ; un choix retire -> E3 echoue.
+  E6  l etat des domaines ( 27/09, « il faut tout enregistrer » ) : chaque colonne du pays ( habitants, menages ),
+      une ligne par entite, et CHAQUE attribut de chaque domaine et du socle, dans les objets, les tableaux ou une table ;
+  controle positif : une ligne d argent retiree de la lecture -> E2 echoue ; un choix retire -> E3 echoue ; un domaine
+  ( la justice ) retire de la lecture -> E6 echoue.
 
    python -m monde.porte_enregistreur"""
 import os, shutil, sys, tempfile
 from collections import defaultdict
 import pyarrow.parquet as pq
-from . import config as C
+from . import config as C, enregistreur as ENR
 from .archipel import Archipel
 from .socle import comptes as CO, journal as JO
 
@@ -81,7 +84,7 @@ def main():
     dire(not ecarts, f"E1 parallele enregistre = nu : ecarts {ecarts[:4]}")
     dire(all(os.path.isdir(os.path.join(dossier_p, n, "argent")) for n in ILES), "E1 chaque processus d ile ecrit son dossier")
 
-    def verifier(sabot_argent=False, sabot_choix=False, bavard=True):
+    def verifier(sabot_argent=False, sabot_choix=False, sabot_domaine=False, bavard=True):
         bon = True
         for n, i in arc.iles.items():
             w = i.w; p = w.pays; L = p.socle.livre
@@ -134,17 +137,44 @@ def main():
             ok_eco = os.path.isdir(dm) and all(
                 pq.read_table(os.path.join(dm, f"jour={j:05d}")).num_rows == len(w.marches) for j in range(JOURS)) \
                 and all(os.path.isdir(os.path.join(dossier, n, t, f"jour={j:05d}")) for t in ("entreprises", "etat") for j in range(JOURS))
+            # E6 l etat des domaines, le dernier soir
+            fin = f"jour={JOURS - 1:05d}"
+            ok6, detail6 = True, []
+            for g, nt in (("habitant", w.table.n), ("menage", w.table.menages.n)):
+                dg = os.path.join(dossier, n, f"pays_{g}s", fin)
+                if not os.path.isdir(dg): ok6 = False; detail6.append(f"pas de pays_{g}s"); continue
+                t = pq.read_table(dg)
+                noms = {c.split(".")[0] for c in t.column_names}
+                manque_c = set(p.colonnes[g].cols) - noms
+                ok6 &= t.num_rows == nt and not manque_c
+                detail6.append(f"{g}s {t.num_rows}/{nt} lignes, {len(p.colonnes[g].cols) - len(manque_c)}/{len(p.colonnes[g].cols)} colonnes")
+            vu6 = set()
+            for tab, cols in (("objets", ("domaine", "attribut")), ("tableaux", ("domaine", "nom"))):
+                dt_ = os.path.join(dossier, n, tab, fin)
+                if os.path.isdir(dt_):
+                    x = pq.read_table(dt_, columns=list(cols)).to_pydict(); vu6 |= set(zip(x[cols[0]], x[cols[1]]))
+            if sabot_domaine: vu6 = {x for x in vu6 if x[0] != "justice"}
+            parties = list(p.domaines.items()) + [(f"socle.{k}", v) for k, v in ENR.attributs(p.socle)
+                                                  if k not in ENR.SOCLE_DEJA_ENREGISTRE]
+            att6 = {(nom, k) for nom, d in parties for k, _ in ENR.attributs(d) if k not in ENR.IGNORES}
+            manque6 = sorted(att6 - vu6)
+            ok6 &= not manque6
+            detail6.append(f"{len({x[0] for x in att6})} parties, {len(att6) - len(manque6)}/{len(att6)} attributs")
+            if bavard and manque6: print(f"      etat non enregistre : {manque6[:6]}")
             if bavard:
+                print(f"   {n:8s} etat des domaines : {' ; '.join(detail6)}", flush=True)
                 print(f"   {n:8s} argent {len(lu):7,} lignes, {len(attendu)} cles, ecarts {len(mauvais)} | biens ecarts {len(mauvais_b)} | "
                       f"choix {len(dec):7,} ecarts {mauvais_d[:3]} | notes {sum(nn.values()):6,} ecarts {mauvais_n[:3]} | "
                       f"evenements moteur {n_mot}/{att_mot} journal {n_jou}/{att_jou} | photos jours {jours_ph} | economie {ok_eco}", flush=True)
             bon &= not mauvais and not mauvais_b and not mauvais_d and not mauvais_n and n_mot == att_mot \
-                and n_jou == att_jou and jours_ph == list(range(JOURS)) and len(ph) >= JOURS * 1 and ok_eco
+                and n_jou == att_jou and jours_ph == list(range(JOURS)) and len(ph) >= JOURS * 1 and ok_eco and ok6
         return bon
 
-    dire(verifier(), "E2-E5 l enregistrement retombe sur le grand livre, les decideurs, les journaux et les photos")
+    dire(verifier(), "E2-E6 l enregistrement retombe sur le grand livre, les decideurs, les journaux et les photos, et garde "
+                     "l etat de chaque domaine")
     dire(not verifier(sabot_argent=True, bavard=False), "controle positif : une ligne d argent en moins -> la porte echoue")
     dire(not verifier(sabot_choix=True, bavard=False), "controle positif : un choix en moins -> la porte echoue")
+    dire(not verifier(sabot_domaine=True, bavard=False), "controle positif : un domaine oublie ( justice ) -> la porte echoue")
     taille = sum(os.path.getsize(os.path.join(r, f)) for r, _, fs in os.walk(dossier) for f in fs)
     print(f"   ( {taille / 1e6:.1f} Mo pour six iles de {int(ECHELLE * 500)} habitants sur {JOURS} jours )")
     shutil.rmtree(dossier, ignore_errors=True); shutil.rmtree(dossier_p, ignore_errors=True)

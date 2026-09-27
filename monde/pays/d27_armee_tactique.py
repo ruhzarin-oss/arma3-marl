@@ -969,7 +969,12 @@ def _detecter(p, m, pts):
     for e in m.elts:
         e.vu = set()
         if e.ent >= 0 and E26["vivant"][e.ent]:
-            S.deplacer_entite(p, e.ent, e.x, e.y, SIGNATURE_FEU if e.fait_feu else e.posture_sig)
+            # nos elements a l arret se montrent dans la posture de leur conduite ( couches en embuscade, en defense ) ;
+            # en marche, dans celle de leur mode ( 27/09 : a l arret ils gardaient la signature de leur derniere marche -
+            # debout apres une occupation, accroupis apres une infiltration - et l embuscade couchee se voyait a 231 m de
+            # jour ; les postes adverses gardent la posture ou ils sont poses, accroupie comme les menaces d Arma )
+            fixe = e.side == 0 and e.cond is not None and e.cond.mode == "fixe"
+            S.deplacer_entite(p, e.ent, e.x, e.y, SIGNATURE_FEU if e.fait_feu else (e.cond.posture if fixe else e.posture_sig))
     bleus = [i for i, e in enumerate(m.elts) if e.side == 0]
     rouges = [i for i, e in enumerate(m.elts) if e.side == 1 and len(_actifs(m, i)) and E26["vivant"][e.ent]]
     if not rouges or not bleus: return
@@ -1448,6 +1453,10 @@ def situation_exercice(p, tactique, u, rng, rouge=None, taille=None, reperer=Fal
         cond = Conduite("simultane", "itineraire", regard="marche", feu="riposte")
         amb = (rx - 60.0 * ux, ry - 60.0 * uy)
         adv = [(ent, n_r, cond, chemin, None)]
+        # la patrouille a ete reperee : l embuscade connait son axe d arrivee et le regarde ( 27/09 : sans axe, les
+        # guetteurs regardaient dans le sens de leur marche et tournaient le dos a la route ; seule la vision
+        # peripherique, trop genereuse avant la mesure d Arma, les faisait voir la patrouille passer )
+        axe = S.azimut(amb[0], amb[1], px, py)
         return dep, amb, iti, adv, ent, "dur", axe
     if tactique == "defense":
         ent = S.poser_entite(p, camp, dep[0], dep[1], ile, "debout", n_r, 0.0)
