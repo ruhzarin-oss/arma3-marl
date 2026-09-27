@@ -456,12 +456,33 @@ def _placer(p, d, x, rng):
         if c.vivant and c.menage is not x.menage and age_de(p, c) >= AGE_MAJEUR and not p.col("menage", "dissous")[c.menage.id]:
             deplacer_membre(p, x, c.menage); d.placements += 1
             p.noter("placement", enfant=x.id, menage=c.menage.id, lien=lien); return
-    accueil = [m for m in w.menages if m.domicile is x.domicile and m is not x.menage and adultes_vivants(p, m)]
-    if not accueil:
-        accueil = [m for m in w.menages if m is not x.menage and adultes_vivants(p, m)]
+    accueil = _accueil_colonnes(p, x)
     m = accueil[int(rng.integers(0, len(accueil)))]
     deplacer_membre(p, x, m); d.placements += 1
     p.noter("placement", enfant=x.id, menage=m.id, lien="accueil")
+
+
+def _accueil_colonnes(p, x):
+    """Les familles d accueil possibles d un mineur, dans l ordre des numeros de menage : un menage de SON lieu, autre que le
+    sien, avec un adulte vivant ; a defaut, n importe ou. Lu dans les colonnes ( HMT-130 ) : `_accueil_reference` est la
+    version d origine, une vue par menage et par membre, gardee pour la porte d identite."""
+    w = p.w; tb = w.table; n = tb.n; mt = tb.menages; M = mt.n
+    mm = P.menages_inscrits(tb, n)
+    adulte = (tb.vivant[:n] == 1) & (mm >= 0) & ((p.jour - p.col("habitant", "naissance_j")[:n].astype(np.int64)) >= AGE_MAJEUR * 365)
+    avec_adulte = np.bincount(mm[adulte], minlength=M)[:M] > 0
+    avec_adulte[x.menage.id] = False
+    dom = mt.domicile[:M]
+    local = np.nonzero(avec_adulte & (dom == (x.domicile.n if x.domicile is not None else -2)))[0]
+    ids = local if len(local) else np.nonzero(avec_adulte)[0]
+    return [P.Menage(int(k), mt) for k in ids.tolist()]
+
+
+def _accueil_reference(p, x):
+    w = p.w
+    accueil = [m for m in w.menages if m.domicile is x.domicile and m is not x.menage and adultes_vivants(p, m)]
+    if not accueil:
+        accueil = [m for m in w.menages if m is not x.menage and adultes_vivants(p, m)]
+    return accueil
 
 
 def _reprendre_les_morts(p):
