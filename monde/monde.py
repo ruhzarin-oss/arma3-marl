@@ -215,7 +215,14 @@ class Monde:
     @property
     def heure(self): return (self.minutes % (24 * 60)) / 60.0
 
-    def nuit(self): return not (C.LEVER <= self.heure < C.COUCHER)
+    def nuit(self):
+        """Fait-il nuit ? Le soleil du calendrier du socle a la latitude de l ile ( 27/09 : a la mi-octobre, a Altis, le
+        soleil se couche avant 19 h ) ; sans socle, les heures fixes du moteur E1 ( la mi-juin toute l annee )."""
+        s = getattr(self, "socle", None)
+        if s is not None:
+            try: return s.calendrier.nuit(self.ile, self.pas)
+            except KeyError: pass                       # ile sans latitude connue
+        return not (C.LEVER <= self.heure < C.COUCHER)
 
     def noter(self, type_, **champs):
         e = {"jour": self.jour, "heure": round(self.heure, 2), "type": type_, **champs}
@@ -1208,7 +1215,7 @@ class Monde:
         self.nourri_menage = ParMenage(~affame)
         k = mm[membres]
         faim = t.faim[membres]
-        t.faim[membres] = np.where(affame[k], faim + manque[k] / np.maximum(v[k], 1), np.maximum(0.0, faim - 1))
+        t.faim[membres] = np.where(affame[k], faim + np.maximum(0.0, manque[k] / np.maximum(v[k], 1) - C.FAIM_ADAPTATION), np.maximum(0.0, faim - 1))
         for nom, noter in (("travailleurs", R.noter_travailleurs), ("entreprises", R.noter_entreprises),
                            ("marches", R.noter_marches), ("commerce", R.noter_commerce),
                            ("fraudeurs", R.noter_fraudeurs), ("voyageurs", R.noter_voyageurs)):
@@ -1237,7 +1244,7 @@ class Monde:
                     for x, action, r in ag.journee(manque):
                         if self.apprentissage: self.doctrine.apprendre(x, action, r)
                         ag.recompenses.append(r)
-            for p in vivants: p.faim = p.faim + manque / len(vivants) if manque > 1e-6 else max(0.0, p.faim - 1)
+            for p in vivants: p.faim = p.faim + max(0.0, manque / len(vivants) - C.FAIM_ADAPTATION) if manque > 1e-6 else max(0.0, p.faim - 1)
         self.stats_jour["menages_sans_nourriture"] = sans
         self.faim_region = {k: affames_region.get(k, 0) / n for k, n in par_region.items()}
         for nom, noter in (("travailleurs", R.noter_travailleurs), ("entreprises", R.noter_entreprises),

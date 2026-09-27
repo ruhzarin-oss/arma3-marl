@@ -88,6 +88,26 @@ LIBRES = ("paysan", "mineur", "ouvrier", "convoyeur", "marchand", "petrolier")  
 
 CAUSES = ("inconnue", "naturelle", "maladie", "maternelle", "accident", "combat", "violence", "faim")
 
+# La faim qui tue ( 27/09, copie du reel ). Habitant.faim = deficit du corps en rations, apres adaptation
+# ( config.FAIM_ADAPTATION = 0,4 : le jeune total use 0,6 ration par jour ). Un adulte meurt de faim entre 45 et 73 jours
+# de jeune total ( grevistes irlandais de 1981 : 46 a 73 jours ; medecine : la mort vers 40 % du poids perdu ) ; les
+# moins de 5 ans et les plus de 70 ans tiennent ~60 % de ce temps, les 5-14 ans et les 65-69 ans ~80 % ( les famines
+# emportent d abord ces ages ). Risque du jour = PENTE x ( ( faim - F0 ) / ( F1 - F0 ) )^2 au-dela de F0, plafonne :
+# a 0,6 par jour, 10 % des adultes sont morts au jour 54, la moitie au jour 63, 90 % au jour 73 ; a demi-ration ( 0,1 par
+# jour ), F0 adulte n est atteint qu apres 260 jours - les 24 semaines de Minnesota se survivent, comme dans le reel.
+SEUILS_FAIM = ((5, (16.0, 28.0)), (15, (21.0, 37.0)), (65, (26.0, 46.0)), (70, (21.0, 37.0)), (AGE_MAX + 1, (16.0, 28.0)))
+PENTE_FAIM, PLAFOND_FAIM = 0.3, 0.5
+
+
+def risque_faim(faim, age):
+    """Le risque de mourir de faim aujourd hui, par deficit accumule ( Habitant.faim ) et par age. Fonction pure."""
+    faim = np.asarray(faim, float); age = np.asarray(age)
+    f0 = np.empty(faim.shape); f1 = np.empty(faim.shape); borne = 0
+    for lim, (a, b) in SEUILS_FAIM:
+        m = (age >= borne) & (age < lim); f0[m] = a; f1[m] = b; borne = lim
+    x = np.maximum(0.0, (faim - f0) / (f1 - f0))
+    return np.minimum(PLAFOND_FAIM, PENTE_FAIM * x * x)
+
 
 class TableDeMortalite:
     """q[sexe, age] : probabilite de mourir dans l annee, de 0 a 110 ans ( 1 a 110 )."""
@@ -597,6 +617,14 @@ def _demographie(p):
     # 1. les morts naturelles
     u = p.du_jour("population_mort").random(len(ids))
     for i in ids[tirer_deces(d.mortalite, sexe, age, u)].tolist(): deceder(p, H[i], "naturelle")
+    # 1 bis. la faim qui tue ( 27/09, SEUILS_FAIM ) : un flux a part, tire pour les seuls habitants dont le deficit
+    # depasse le seuil de leur age ; les autres tirages du jour ne bougent pas
+    vifs = ids[tb.vivant[ids] == 1]
+    r = risque_faim(tb.faim[vifs], _age_ans(p, vifs))
+    k = np.nonzero(r > 0.0)[0]
+    if k.size:
+        u = p.du_jour("population_faim").random(k.size)
+        for i in vifs[k[u < r[k]]].tolist(): deceder(p, H[i], "faim")
     # 2. vieillir : l age du moteur suit la date de naissance ; l ecole a 6 ans, le metier a 16, la retraite a 65
     nj = col["naissance_j"]
     ids = ids[tb.vivant[ids] == 1]

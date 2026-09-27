@@ -23,9 +23,11 @@ FERIES_PAQUES = ((-48, "lundi_pur"), (-2, "vendredi_saint"), (1, "lundi_de_paque
 # Soleil : ( latitude en degres, nord positif ; heure du midi solaire moyen, en heure du monde ).
 # Latitudes : celles des iles reelles qui ont servi de modele ( Lemnos 39,9 N ; Agios Efstratios 39,5 N ).
 # Midi a 13,35 h : CALE sur les constantes du moteur, ( 6,0 + 20,7 ) / 2, soit l heure d ete grecque. A verifier en jeu.
-# Les quatre autres iles : latitude a lire dans CfgWorlds >> ile >> latitude ( signe inverse chez Arma ) AVANT usage.
-# En attendant, les demander leve LatitudeInconnue plutot que de leur preter le soleil d Altis.
-SOLEIL = {"Altis": (39.9, 13.35), "Stratis": (39.5, 13.35)}
+# Les quatre autres iles ( 27/09 ) : les latitudes des stations qui leur servent de normales climatiques ( pays/
+# d08_territoire.PROFILS : Ajaccio, Nadi, Vilnius, San Juan ), meme midi ( le pays vit a une seule heure ). Une ile
+# inconnue leve LatitudeInconnue plutot que de se voir preter le soleil d Altis.
+SOLEIL = {"Altis": (39.9, 13.35), "Stratis": (39.5, 13.35), "Malden": (41.9, 13.35), "Tanoa": (-17.8, 13.35),
+          "Enoch": (54.7, 13.35), "Sara": (18.4, 13.35)}
 HAUTEUR_LEVER_DEG = -0.833      # centre du soleil a l horizon apparent : refraction ( 34' ) + demi-diametre ( 16' )
 
 SAISONS_NORD = {12: "hiver", 1: "hiver", 2: "hiver", 3: "printemps", 4: "printemps", 5: "printemps",
@@ -66,12 +68,19 @@ def lever_coucher(latitude, jour_annee, midi_h):
 
 class Calendrier:
     """La date du monde a partir de son compteur de pas, et ce qu elle implique."""
-    __slots__ = ("origine", "minutes_par_pas", "_feries")
+    __slots__ = ("origine", "minutes_par_pas", "_feries", "_soleil")
 
     def __init__(self, origine=ORIGINE, minutes_par_pas=C.MINUTES_PAR_PAS):
         if not 1 <= minutes_par_pas <= 1440: raise ValueError(f"minutes par pas hors [1 ; 1440] : {minutes_par_pas}")
         self.origine, self.minutes_par_pas = origine, minutes_par_pas
         self._feries = {}           # annee -> { date : nom }, calcule une fois par annee
+        self._soleil = {}           # ( ile, date ) -> ( lever, coucher ), calcule une fois par jour ( 27/09 )
+
+    def __setstate__(self, etat):   # un instantane d avant le 27/09 n a pas le cache
+        for k, v in etat.items(): setattr(self, k, v)
+        if not hasattr(self, "_soleil"): self._soleil = {}
+
+    def __getstate__(self): return {k: getattr(self, k) for k in self.__slots__}
 
     def date(self, pas):
         return self.origine + dt.timedelta(minutes=pas * self.minutes_par_pas)
@@ -107,8 +116,12 @@ class Calendrier:
     def soleil(self, ile, jour):
         if ile not in SOLEIL: raise LatitudeInconnue(f"{ile} : latitude non verifiee ( CfgWorlds >> {ile} >> latitude )")
         if isinstance(jour, dt.datetime): jour = jour.date()
-        lat, midi = SOLEIL[ile]
-        return lever_coucher(lat, jour.timetuple().tm_yday, midi)
+        r = self._soleil.get((ile, jour))
+        if r is None:
+            lat, midi = SOLEIL[ile]
+            r = self._soleil[(ile, jour)] = lever_coucher(lat, jour.timetuple().tm_yday, midi)
+            if len(self._soleil) > 64: self._soleil.pop(next(iter(self._soleil)))
+        return r
 
     def nuit(self, ile, pas):
         d = self.date(pas)

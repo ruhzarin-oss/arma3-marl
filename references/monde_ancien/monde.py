@@ -735,7 +735,7 @@ class Monde:
                     for x, action, r in ag.journee(manque):
                         if self.apprentissage: self.doctrine.apprendre(x, action, r)
                         ag.recompenses.append(r)
-            for p in vivants: p.faim = p.faim + manque / len(vivants) if manque > 1e-6 else max(0.0, p.faim - 1)
+            for p in vivants: p.faim = p.faim + max(0.0, manque / len(vivants) - C.FAIM_ADAPTATION) if manque > 1e-6 else max(0.0, p.faim - 1)
         self.stats_jour["menages_sans_nourriture"] = sans
         self.faim_region = {k: affames_region.get(k, 0) / n for k, n in par_region.items()}
         for nom, noter in (("travailleurs", R.noter_travailleurs), ("entreprises", R.noter_entreprises),

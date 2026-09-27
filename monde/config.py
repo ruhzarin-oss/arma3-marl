@@ -118,5 +118,12 @@ TVA_TOLEREE = 0.12                   # au-dela, la fraude commence
 FRAUDE_PENTE = 2.0                   # part des achats qui echappe a la TVA, par point de taxe au-dessus du seuil
 FRAUDE_MAX = 0.7
 QUARANTAINE_VIOLEE = 0.2             # part des habitants qui sortent quand meme
-ABSENCE_FAIM = 1.5                   # au-dela de cette faim accumulee, on ne va plus travailler
+# 27/09 ( copie du reel ) : `Habitant.faim` est le deficit du corps, en rations, APRES adaptation. Un corps prive abaisse
+# sa depense d environ 40 % ( Keys 1950, experience du Minnesota : 24 semaines a demi-ration, metabolisme de base -40 %,
+# 25 % du poids perdu, aucun mort ). Une nuit a 70 % de la ration n use donc pas le corps ; le jeune total l use de 0,6
+# ration par jour. Un jour nourri repare 1 ration. On ne travaille plus au-dela de 12 ( ~20 jours de jeune total, ~120
+# jours a demi-ration ) ; avant ( 1,5 ), deux soirs sans manger arretaient le pays. La mort par la faim est au domaine 1
+# ( pays/d01_population.py, SEUILS_FAIM ).
+FAIM_ADAPTATION = 0.4
+ABSENCE_FAIM = 12.0
 CONTROLE_PAR_POLICIER = 0.2           # chance de controle par policier, pour dix menages de sa region
