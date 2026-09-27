@@ -37,6 +37,7 @@ def creer_ile(ile, graine, echelle, llm=False):
     """Un pays : son monde, ses domaines, son etalon-or ( F1 ) ; avec `llm`, son gouvernement est joue par Qwen, qui
     sait de quel pays il est le gouvernement et dans quelle monnaie il compte."""
     w = W.Monde(graine=graine_ile(graine, ile), iles=(ile,), echelle=echelle, cerveau="llm" if llm else "regles")
+    w.echelle_convois = float(echelle)
     P.installer(w, LIVRES)
     OR.installer(w, w.pays)
     if llm and w.cerveau is not None and hasattr(w.cerveau, "consigne"):
@@ -46,6 +47,12 @@ def creer_ile(ile, graine, echelle, llm=False):
                                         f"definie par un poids d or ; cinq autres iles-pays sont ses voisins ) :", 1)
         import hashlib
         c.empreinte = hashlib.sha256(c.consigne.encode()).hexdigest()[:12]
+    return w
+
+
+def _convois(w, echelle):
+    """Une ile reprise d un instantane d avant le 27/09 n a pas l echelle de ses convois : celle de l archipel."""
+    if "echelle_convois" not in vars(w): w.echelle_convois = float(echelle)
     return w
 
 
@@ -148,7 +155,7 @@ def poser_gouvernement(w, nom, source):
 
 
 def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False, llm=False, enregistrer=None, gouv=None):
-    w = pickle.load(open(reprise, "rb")) if reprise else creer_ile(nom, graine, echelle, llm)
+    w = _convois(pickle.load(open(reprise, "rb")), echelle) if reprise else creer_ile(nom, graine, echelle, llm)
     poser_gouvernement(w, nom, gouv)
     if ouvert: w.archipel = {"noms": tuple(noms), "ouvert": True}
     if enregistrer: ENR.brancher(w, enregistrer, nom)
@@ -188,7 +195,7 @@ class Archipel:
                 p.start(); self.tuyaux[n], self.proc[n] = a, p
             for n in self.noms: assert self.tuyaux[n].recv() == ("pret", n)
         else:
-            self.iles = {n: Ile(n, pickle.load(open(chemin(n), "rb")) if reprise else creer_ile(n, graine, echelle, llm))
+            self.iles = {n: Ile(n, _convois(pickle.load(open(chemin(n), "rb")), echelle) if reprise else creer_ile(n, graine, echelle, llm))
                          for n in self.noms}
             if ouvert:
                 for i in self.iles.values(): i.w.archipel = {"noms": self.noms, "ouvert": True}

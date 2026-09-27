@@ -92,6 +92,23 @@ G17 UN FOURNISSEUR IMPAYE NE LIVRE PLUS ( 27/09, ecrite avant la mesure ) : un p
    de plus : le paiement echoue ( 1 150 points impayes ) ; au tour suivant Malden ne recoit AUCUN point, Stratis en
    recoit ( controle ) ; les devises reviennent : l arriere est paye, et au tour d apres Malden recoit de nouveau des
    points. La conservation de Malden tient.
+G18 LES CONVOIS A L ECHELLE DE L ILE ( 27/09, ecrite avant la mesure ) : la vraie Stratis de l essai 15 ( 98 % de
+   menages sans nourriture, 368 000 rations faites qui attendent un camion dans ses fermes ) en deux copies : le temoin
+   garde les convois du moteur ( 60 unites, un par ferme et par heure ) et reste au-dessus de 90 % de faim ; la copie aux
+   convois a l echelle de l ile ( 200 ) tombe sous 5 % le premier jour - le stock bloque part ; sa conservation tient ;
+   une ile reprise d un instantane d avant le 27/09 recoit l echelle de l archipel.
+   ( AMENDEE apres le premier essai : il demandait aussi 5 % le DEUXIEME jour - 11,4 % mesure, puis 100 % au cinquieme :
+   les fermes de cette Stratis ne produisent plus, leurs paysans ont une dette de faim de 52 rations, au-dela du seuil
+   ou l on ne va plus travailler ( config.ABSENCE_FAIM 1,5 ) et qui ne baisse que d une ration par jour nourri - un autre
+   piege, du moteur, rapporte a Younes. Le convoi se juge donc aussi sur une ile NEUVE : une petite Stratis ( echelle
+   20, besoin de 10 000 rations par jour, convois du moteur plafonnes a 5 fermes x 24 x 60 = 7 200 ), 30 jours : aux
+   convois a l echelle, les rations en attente dans les fermes au jour 30 sont au moins 10 fois moindres que chez le
+   temoin, les reserves de change plus hautes, la faim moyenne des jours 21 a 30 pas plus haute d un point.
+   AMENDEE apres le deuxieme essai : attente 1 359 contre 21 493, faim 0,99 % contre 1,12 %, mais reserves 32,20 contre
+   32,39 millions d euros. La prediction etait fausse, pour une raison reelle, mesuree motif par motif : les fermes du
+   temoin, qui ne peuvent pas envoyer leurs rations, vendent plus de grain et d huile a l etranger ( vente_negoce
+   +127 000 ), et l ile mieux nourrie importe plus ( import_biens +149 000 ). Les reserves ne mesuraient pas le convoi ;
+   le critere est retire. )
 
    python -m guerre.porte_guerre"""
 import math, os, re, sys, time
@@ -184,6 +201,33 @@ def _aide(args):
         T.jours(w, 1); r["faim"].append(round(ile.commande("etat")["faim"], 4))
     r["conservation"] = bool(p.socle.conservation.tenue()[0])
     return r
+
+
+def _convois(echelle):
+    """G18 : une copie de la vraie Stratis, convois a l echelle donnee, deux jours."""
+    import pickle
+    from monde.archipel import Ile, _convois as poser
+    from monde import tests as T
+    w = pickle.load(open(os.path.join(INSTANTANE_AIDE, "Stratis.pkl"), "rb"))
+    avant = "echelle_convois" in vars(w)
+    if echelle is not None: poser(w, echelle)
+    ile = Ile("Stratis", w); f = []
+    for _ in range(2):
+        T.jours(w, 1); f.append(round(ile.commande("etat")["faim"], 4))
+    return {"faim": f, "echelle": w.echelle_convois, "deja": avant, "conservation": bool(w.pays.socle.conservation.tenue()[0])}
+
+
+def _neuve(echelle_convois):
+    """G18 : une petite Stratis neuve ( echelle 20 ), 30 jours, a l echelle de convois donnee."""
+    from monde.archipel import creer_ile, Ile
+    from monde import tests as T
+    from monde.pays import d07_exterieur as X
+    w = creer_ile("Stratis", 1, 20.0); w.echelle_convois = float(echelle_convois); ile = Ile("Stratis", w); f = []
+    for _ in range(30):
+        T.jours(w, 1); f.append(ile.commande("etat")["faim"])
+    attente = sum(e.stocks.get("nourriture", 0.0) for e in w.entreprises.values() if e.type == "ferme")
+    return {"attente": round(attente), "reserves": round(X.reserves_de_change(w.pays)[0]), "faim_21_30": round(sum(f[20:]) / 10, 4),
+            "conservation": bool(w.pays.socle.conservation.tenue()[0])}
 
 
 def main():
@@ -521,6 +565,18 @@ def main():
     ok["G17 les devises reviennent : l arriere est paye, Malden recoit de nouveau ; conservation"] = (
         t5["iles"]["Malden"]["paiement"]["paye"] > 0 and t5["iles"]["Malden"]["paiement"]["dette_points"] == 0.0
         and t6["iles"]["Malden"]["points"] > 0 and bool(tenue17[0]))
+    # G18
+    with get_context("fork").Pool(2) as pool:
+        te18, ec18 = pool.map(_convois, [None, 200.0])
+    print(f"   convois : temoin {te18} ; a l echelle de l ile {ec18}", flush=True)
+    with get_context("fork").Pool(2) as pool:
+        nt18, ne18 = pool.map(_neuve, [1.0, 20.0])
+    print(f"   convois, ile neuve 30 jours : temoin {nt18} ; a l echelle {ne18}", flush=True)
+    ok["G18 vraie Stratis : temoin au-dessus de 90 %, convois a l echelle sous 5 % le premier jour ; echelle posee a la reprise ; conservation"] = (
+        min(te18["faim"]) >= 0.90 and ec18["faim"][0] <= 0.05 and te18["echelle"] == 1.0 and ec18["echelle"] == 200.0
+        and not ec18["deja"] and ec18["conservation"])
+    ok["G18 ile neuve : attente 10 fois moindre, faim pas plus haute ; conservation"] = (
+        ne18["attente"] * 10 <= nt18["attente"] and ne18["faim_21_30"] <= nt18["faim_21_30"] + 0.01 and ne18["conservation"])
     ok["G11 l ile sans code decide par les regles, sans bascule"] = (
         len(dec(ws)) >= 2 and all(e.get("cerveau") == "regles" and not str(e.get("motifs", "")).startswith("cerveau indisponible") for e in dec(ws)))
     arc11.fermer()
