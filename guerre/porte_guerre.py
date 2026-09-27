@@ -118,6 +118,10 @@ G18 LES CONVOIS A L ECHELLE DE L ILE ( 27/09, ecrite avant la mesure ) : la vrai
    temoin, qui ne peuvent pas envoyer leurs rations, vendent plus de grain et d huile a l etranger ( vente_negoce
    +127 000 ), et l ile mieux nourrie importe plus ( import_biens +149 000 ). Les reserves ne mesuraient pas le convoi ;
    le critere est retire. )
+   ILE NEUVE RETIREE le 27/09 au soir ( chef de projet ) : depuis 2a06924 ( la fusion du tronc ca0765b : les 27 domaines
+   dans les iles ), la recolte appartient au domaine 9 et son fret au domaine 15 ; monde.expedier ne lance plus un seul
+   convoi de ferme et le plafond CAPACITE_CAMION x echelle_convois ne sert qu aux mondes sans eux - les deux bras etaient
+   identiques au bit ( 12 613 et 12 613 ), l attente ne mesurait plus rien. Le fret des recoltes se juge en G24.
    REBASEE le 27/09 au soir ( chef de projet ) : la partie « vraie Stratis » est RETIREE - son temoin se jugeait apres la
    premiere aube, qui solde la dette de faim de l ancien modele ( 48 880 morts, voir G20 ) ; le goulot des convois est
    prouve sur l ile neuve. Reste de la vraie Stratis : une ile reprise d un instantane d avant le 27/09 recoit l echelle
@@ -164,6 +168,14 @@ G21 LE REVENU MINIMUM GARANTI ( KEA, 27/09, ecrite avant la mesure ) : dans une 
    moyenne des jours 181 a 200 avec le KEA, appariee graine par graine a celle sans, baisse en moyenne d au moins 25 % ET
    baisse sur chaque graine ; montant inchange. Reserve : l effet grandit avec la derive de la faim de base ( -20 % a une
    base de 10 %, -48 % a 17 % ) ; a remesurer apres le correctif du moteur ( HMT-124 ).
+G24 LE FRET DES RECOLTES ( 27/09 au soir, ecrite avant la mesure ; remplace l ile neuve de G18 ) : une Stratis neuve
+   ( graine 1, echelle 20 ), 30 jours, releve chaque jour a midi : la couverture du marche de la capitale ( jours de
+   demande lissee, d15.couverture ) et les vivres aux fermes ( rations pretes dans les fermes du moteur, en jours de la
+   meme demande ). Un jour « bloque » : le marche tient moins d un jour ET les fermes plus de dix. Des jours 5 a 30 ( le
+   demarrage exclu ) : aucune suite de plus de 2 jours bloques - la nourriture arrive au marche en 2 jours quand il en
+   manque et que les fermes en ont. Controle positif : le fret du domaine 15 coupe ( sa routine _expedier ne lance plus
+   rien ; les lots en route arrivent ) : la porte echoue. Une vraie suite de jours bloques est un goulot, pour la session
+   du moteur ( d09 et d15 ).
 G23 LES REFUS D HIER ( 27/09, ecrite avant la mesure ) : une decision du gouvernement de Malden avec une action refusee
    ( et sa raison ) ; le lendemain matin, le code qui gouverne recoit dans son bulletin la section refus_hier avec cette
    action et cette raison ; sans refus la veille, la liste est vide ( controle ).
@@ -271,6 +283,34 @@ def _echelle_a_la_reprise():
     avant = "echelle_convois" in vars(w)
     poser(w, 200.0)
     return {"deja": avant, "echelle": w.echelle_convois}
+
+
+def _fret_recoltes(couper=False, jours=30):
+    """G24 : une Stratis neuve, 30 jours ; chaque midi, la couverture du marche de la capitale et les vivres prets aux
+    fermes, en jours de sa demande lissee. `couper` : la routine de fret du domaine 15 ne lance plus rien."""
+    from monde.archipel import creer_ile
+    from monde.pays import d15_logistique as LG
+    ancien = LG._expedier
+    if couper: LG._expedier = lambda p, h: LG._avancer_lots(p, LG._lg(p))
+    try:
+        w = creer_ile("Stratis", 1, 20.0); p = w.pays
+        mid = w.carte.gouvernement.marche.id if getattr(w.carte.gouvernement, "marche", None) is not None else next(iter(w.marches))
+        fermes = [e for e in w.entreprises.values() if e.type == "ferme"]
+        cov, stock_fermes, bloque = [], [], []
+        for j in range(jours):
+            for k in range(144):
+                w.pas_suivant()
+                if k == 6 * 6 - 1:                                    # midi ( le jour commence a 6 h )
+                    dem = LG._demande(p, mid, "nourriture")
+                    c = LG.couverture(p, mid, "nourriture"); sf = sum(e.stocks.get("nourriture", 0.0) for e in fermes) / dem
+                    cov.append(round(c, 2)); stock_fermes.append(round(sf, 1)); bloque.append(j >= 4 and c < 1.0 and sf > 10.0)
+        suite = plus = 0
+        for x in bloque:
+            suite = suite + 1 if x else 0; plus = max(plus, suite)
+        return {"plus_longue_suite_bloquee": plus, "jours_bloques": sum(bloque), "couverture": cov[::3], "fermes_en_jours": stock_fermes[::3],
+                "conservation": bool(p.socle.conservation.tenue()[0])}
+    finally:
+        LG._expedier = ancien
 
 
 def _neuve(echelle_convois):
@@ -689,12 +729,15 @@ def main():
     # G18
     ec18 = _echelle_a_la_reprise()
     print(f"   convois : echelle posee a la reprise {ec18}", flush=True)
-    with get_context("fork").Pool(2) as pool:
-        nt18, ne18 = pool.map(_neuve, [1.0, 20.0])
-    print(f"   convois, ile neuve 30 jours : temoin {nt18} ; a l echelle {ne18}", flush=True)
     ok["G18 une ile d avant le 27/09 recoit l echelle de l archipel a la reprise"] = (not ec18["deja"] and ec18["echelle"] == 200.0)
-    ok["G18 ile neuve : attente 10 fois moindre, faim pas plus haute ; conservation"] = (
-        ne18["attente"] * 10 <= nt18["attente"] and ne18["faim_21_30"] <= nt18["faim_21_30"] + 0.01 and ne18["conservation"])
+    # G24
+    with get_context("fork").Pool(2) as pool:
+        fr24, cp24 = pool.map(_fret_recoltes, [False, True])
+    print(f"   fret des recoltes : {fr24}", flush=True)
+    print(f"   controle positif ( fret coupe ) : {cp24}", flush=True)
+    ok["G24 le fret des recoltes : jamais plus de 2 jours de suite marche vide et fermes pleines ( jours 5 a 30 ) ; conservation"] = (
+        fr24["plus_longue_suite_bloquee"] <= 2 and fr24["conservation"])
+    ok["G24 controle positif : fret du domaine 15 coupe, la porte echoue"] = cp24["plus_longue_suite_bloquee"] > 2
     # G20
     import numpy as np
     from monde.archipel import creer_ile
