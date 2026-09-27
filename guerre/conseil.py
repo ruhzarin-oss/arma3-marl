@@ -112,7 +112,7 @@ def _un(args):
 
 def evaluer(source, ile, sc, graines, travailleurs=3):
     from multiprocessing import get_context
-    with get_context("fork").Pool(min(travailleurs, len(graines))) as pool:
+    with get_context("spawn").Pool(min(travailleurs, len(graines))) as pool:      # pas fork : voir deux()
         res = pool.map(_un, [(source, ile, sc, g) for g in graines])
     err = [r["erreur"] for r in res if "erreur" in r]
     if err: raise AC.CodeRefuse(err[0])
@@ -268,9 +268,11 @@ def _reel(args):
 
 
 def deux(sa, sb, instantane, ile, jours):
-    """La version et le gouvernement en place, sur deux copies de la meme ile, en parallele."""
+    """La version et le gouvernement en place, sur deux copies de la meme ile, en parallele. Des processus NEUFS
+    ( spawn ) : le 27/09, apres les appels a Qwen, deux copies nees par fork ont attendu 30 minutes un verrou herite
+    ( futex ), sans calculer."""
     from multiprocessing import get_context
-    with get_context("fork").Pool(2) as pool:
+    with get_context("spawn").Pool(2) as pool:
         return pool.map(_reel, [(sa, instantane, ile, jours), (sb, instantane, ile, jours)])
 
 
