@@ -1032,8 +1032,13 @@ def _acheter_gazole(p, D_):
         e = s.entreprise
         if besoin <= 0.0 or e.stocks["carburant"] >= 2.0 * besoin: continue
         m = w.marches[e.lieu.marche.id]
-        q = min(3.0 * besoin - e.stocks["carburant"], m.stocks["carburant"] - RESERVE_CARBURANT_MARCHE)
-        m.demande["carburant"] += max(0.0, q)
+        voulu = 3.0 * besoin - e.stocks["carburant"]
+        q = min(voulu, m.stocks["carburant"] - RESERVE_CARBURANT_MARCHE)
+        # 27/09 : la commande entiere est une demande, et ce que le marche ne peut pas servir est une rupture ( non servi ) :
+        # avant, une mine a sec devant un marche sous sa reserve ne laissait aucune trace, le prix ne bougeait pas, la
+        # raffinerie ne repartait pas, et la mine attendait
+        m.demande["carburant"] += voulu
+        _rupture(p, m, "carburant", voulu - max(0.0, q))
         if q <= 0.0: continue
         cout = q * m.prix["carburant"]
         if e.caisse < cout * (1.0 + g.tva): q = max(0.0, e.caisse / (m.prix["carburant"] * (1.0 + g.tva)))
@@ -1041,6 +1046,13 @@ def _acheter_gazole(p, D_):
         m.stocks["carburant"] -= q; e.stocks["carburant"] += q
         L.transferer(e, m, q * m.prix["carburant"], "achat intrant")
         L.transferer(e, g, q * m.prix["carburant"] * g.tva, "tva")
+
+
+def _rupture(p, m, b, q):
+    """Une demande que le marche n a pas pu servir faute de stock : le signal de prix du marchand ( domaine 3 )."""
+    if q > 0.0 and p.a("economie"):
+        em = p.domaine("economie").marches.get(m.lieu.id)
+        if em is not None: em.non_servi[b] += q
 
 
 def _besoin_site(s, b):
@@ -1077,7 +1089,7 @@ def _livraisons(p, D_):
                 gaz = 2.0 * km * C.CARBURANT_PAR_KM * math.ceil(q / CAMION_T)
                 m.demande["carburant"] += gaz
                 if m.stocks["carburant"] - RESERVE_CARBURANT_MARCHE < gaz:
-                    p.compter("livraison_sans_gazole"); break
+                    _rupture(p, m, "carburant", gaz); p.compter("livraison_sans_gazole"); break
                 m.stocks["carburant"] -= gaz; L.flux["brule"]["carburant"] += gaz
                 L.transferer(s.entreprise, m, gaz * m.prix["carburant"], "carburant du convoi")
                 duree = max(1, math.ceil(km / C.VITESSE_CONVOI_KMH * 60.0 / C.MINUTES_PAR_PAS))
