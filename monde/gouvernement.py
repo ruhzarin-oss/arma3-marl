@@ -52,9 +52,21 @@ class Gouvernement:
             if t == "importer":
                 b, q = action["bien"], float(action["quantite"])
                 if b not in C.BIENS or b == "or" or q <= 0 or q > 2000 * k: return False, f"import invalide {b} {q}"
+                # l aide alimentaire ( 27/09 ) : un gouvernement face a la famine importe du grain et le distribue a ceux qui
+                # n ont plus rien - destination « population », la ration de l Etat ; sans destination, la reserve comme avant
+                dest = action.get("destination", "reserve")
+                if dest not in ("reserve", "population"): return False, f"destination inconnue {dest}"
+                if dest == "population" and b != "nourriture": return False, f"seule la nourriture va a la population ( {b} )"
                 cout = q * C.PRIX_MONDE[b] * 1.2
                 if cout > self.caisse: return False, "caisse insuffisante"
-                monde.importer(b, q, cout); return True, ""
+                recu = monde.importer(b, q, cout) if dest == "reserve" else monde.importer(b, q, cout, dest)
+                # le port ( domaine 7 ) rend ce qui est vraiment entre : sans devises a la banque centrale, rien n entre
+                # ( 27/09 : la vraie Stratis, reserves de change a -55 millions d euros, « acceptait » des imports vides )
+                if recu is not None and recu <= 1e-9:
+                    return False, f"import refuse : rien n est entre sur {q:.0f} ( devises de la banque centrale ou caisse de l Etat )"
+                if recu is not None and recu < q * (1.0 - 1e-9):
+                    return True, f"importe {recu:.0f} sur {q:.0f} ( devises de la banque centrale ou caisse de l Etat )"
+                return True, ""
             if t == "exporter_or":
                 q = float(action["quantite"])
                 return monde.exporter_or(q)

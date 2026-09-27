@@ -264,9 +264,9 @@ class Monde:
     def prix_moyen(self, b): return sum(m.prix[b] for m in self.marches.values()) / len(self.marches)
 
     # ------------------------------------------------------------------ le port et l Etat
-    def importer(self, b, q, cout):
+    def importer(self, b, q, cout, destination="reserve"):
         self.gouv.caisse -= cout; self.ext["sortie"] += cout
-        self.publics["reserve"][b] += q; self.flux["importe"][b] += q
+        self.publics[destination][b] += q; self.flux["importe"][b] += q
         self.noter("import", bien=b, quantite=q, cout=round(cout))
 
     def exporter_or(self, q):

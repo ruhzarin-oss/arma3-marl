@@ -611,10 +611,11 @@ class RemplaceImporter:
 
     def __init__(self, pays): self.pays = pays
 
-    def __call__(self, b, q, cout=None):
+    def __call__(self, b, q, cout=None, destination="reserve"):
         p = self.pays; w = p.w
-        q, paye = importer_au_port(p, w.gouv, StockE1(w.publics["reserve"], p.socle.catalogue), b, q, "import_etat")
+        q, paye = importer_au_port(p, w.gouv, StockE1(w.publics[destination], p.socle.catalogue), b, q, "import_etat")
         w.noter("import", bien=b, quantite=q, cout=round(paye))
+        return q
 
 
 class RemplaceExporterOr:

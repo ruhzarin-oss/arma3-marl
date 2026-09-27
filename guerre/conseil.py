@@ -294,8 +294,11 @@ TON PAYS EST EN CRISE ET EN GUERRE, AUJOURD HUI ( jour {jour0} ) : {faim0:.0%} d
 bulletin ci-dessus est le VRAI bulletin de ce matin, section « guerre » comprise. Ta version sera jouee sur une copie
 exacte du pays, {JOURS_REEL} jours, contre le gouvernement en place sur la meme copie ; puis {JOURS_EXAMEN_REEL} jours pour
 l examen. Le prix de la nourriture est a son plafond ( 10 ) : les marches manquent. Tes leviers : acheter de la
-nourriture pour la reserve population ( elle est distribuee a ceux qui n ont plus rien ), importer, subventionner,
-fixer les budgets ( la defense comprise ).
+nourriture pour la reserve population ( elle est distribuee a ceux qui n ont plus rien ; mais au marche il n y en a
+plus ), importer de la nourriture destination « population » ( l aide alimentaire : au prix mondial + 20 %, elle arrive
+au port et elle est distribuee aux menages sans nourriture ; dans les credits interieur, que fixer_budget peut porter a
+trois fois le vote ), subventionner, fixer les budgets ( la defense comprise ). Tout import passe par les devises de la
+banque centrale ( section « exterieur » du bulletin ) : sans reserves de change, il est refuse ; exporter_or en rapporte.
 
 Le gouvernement en place ( a battre ) :
 ```python

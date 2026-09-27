@@ -228,7 +228,8 @@ CATALOGUE_ETAT = """Actions permises ( JSON, une liste ; toute action hors borne
 - {"type": "fixer_salaires_publics", "facteur": nombre}              ( 0,5-2,0 )
 - {"type": "acheter", "bien": bien, "quantite": nombre, "destination": "hopitaux" | "armee" | "reserve" | "population"}
       ( dans les credits d achats du ministere : hopitaux -> sante, armee -> defense, reserve et population -> interieur )
-- {"type": "importer", "bien": bien, "quantite": nombre}               ( prix mondial + 20 %, dans les credits )
+- {"type": "importer", "bien": bien, "quantite": nombre, "destination": "reserve" | "population"}
+      ( prix mondial + 20 %, dans les credits ; population : nourriture seulement, distribuee aux menages sans nourriture )
 - {"type": "exporter_or", "quantite": nombre}
 - {"type": "couvre_feu", "debut": heure, "fin": heure}  ou  {"type": "couvre_feu", "debut": null}
 - {"type": "quarantaine", "lieu": lieu, "levee": false}

@@ -45,6 +45,7 @@ class HorlogeDeGuerre:
         self.prochain_suivi = None
         self.suivis = 0
         self.dernier_suivi = None
+        self.impayes = {}              # ile -> points d armes livres et pas encore payes ( dette_points du dernier paiement )
 
     def ouvrir(self):
         """La guerre commence : la premiere releve de chaque ile ne paie pas le passe. Apres une reprise, les zones
@@ -126,12 +127,18 @@ class HorlogeDeGuerre:
         for camp, ile in self.camps.items():
             r = self.arc.commande(ile, "guerre_releve")
             pts, f, euros = B.points_de_la_minute(r["recettes"], r["part_defense"], r["euros_par_unite"], r["militaires"])
-            ligne["iles"][ile] = dict(r, camp=camp, f=f, euros=euros, points=pts)
+            # un fournisseur impaye ne livre plus ( 27/09 ) : tant que des armes deja livrees ne sont pas payees ( pas de
+            # devises a la banque centrale, ou pas de caisse ), l ile ne recoit plus de credit d achat dans Arma
+            imp = self.impayes.get(ile, 0.0)
+            if imp > 0: pts = 0.0
+            ligne["iles"][ile] = dict(r, camp=camp, f=f, euros=euros, points=pts, impayes_points=imp)
             ligne["points"][camp] = pts
         a = self.arma.tour(ligne["points"], self.reserves(ligne["iles"]) if self.suivre else None)
         for camp, ile in self.camps.items():             # l argent ne sort du Tresor qu a l achat
             dep = a["camps"].get(camp, {}).get("depense")
-            if dep is not None: ligne["iles"][ile]["paiement"] = self.arc.commande(ile, "guerre_payer", dep, B.EUROS_PAR_POINT)
+            if dep is not None:
+                pa = ligne["iles"][ile]["paiement"] = self.arc.commande(ile, "guerre_payer", dep, B.EUROS_PAR_POINT)
+                self.impayes[ile] = float(pa.get("dette_points", 0.0))
         tenues = {n for n, camp in a["zones"].items() if camp in self.envahisseurs and self.lieux.get(n)}
         for n in sorted(tenues - self.occupees): self.arc.commande(self.champ, "occuper", n, self.lieux[n], True)
         for n in sorted(self.occupees - tenues): self.arc.commande(self.champ, "occuper", n, self.lieux[n], False)
@@ -168,7 +175,8 @@ def texte_du_tour(l):
     z = l["arma"]["zones_par_camp"]
     em = " ".join(f"{c} {'ASSAUT' if e.get('assaut') else 'ralliement'} {e.get('reunis')}/{e.get('defenseurs')} garnison {e.get('garnison')}"
                   for c, e in ((c, v.get("em") or {}) for c, v in l["arma"]["camps"].items()) if e)
-    paye = " ".join(f"{i} paye {r['paiement']['paye']:.0f}" for i, r in l["iles"].items() if r.get("paiement"))
+    paye = " ".join(f"{i} paye {r['paiement']['paye']:.0f}" + (f" IMPAYE {r['paiement']['dette_points']:.0f} pts" if r['paiement'].get('dette_points') else "")
+                    for i, r in l["iles"].items() if r.get("paiement"))
     return (f"tour {l['tour']} a {l['t_mur_s']:.0f} s : {iles} | zones W {z['WEST']} E {z['EAST']} N {z['RESISTANCE']} | "
             f"occupees {l['occupations']['tenues']} | {em} | {paye}")
 

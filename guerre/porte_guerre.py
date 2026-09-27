@@ -69,6 +69,29 @@ G15 LES LEVIERS SUIVENT LA TAILLE DU PAYS ( 27/09, ecrite avant la mesure ) : da
    a 3 000. Les regles plafonnent elles-memes a 2 000 : la porte d identite des domaines dit qu elles ne changent pas.
    AMENDEE apres le premier essai : 8 001 y etait refuse faute de CREDITS de la ligne interieur, pas par la borne - le
    test ne prouvait rien ; les credits sont maintenant larges, et le refus doit etre « achat invalide ». )
+G16 L AIDE ALIMENTAIRE ( 27/09, ecrite avant la mesure ) : la vraie Stratis de l essai 15 ( jour 349, 98 % de menages
+   sans nourriture, marches vides, reserve vide ) en trois copies ; dans chacune le gouvernement porte ses credits
+   interieur ( achats ) a trois fois le vote ; puis il importe 200 000 unites de nourriture destination « reserve »
+   dans la premiere, « population » dans la deuxieme, rien dans la troisieme ( le temoin ). Deux jours. Controle
+   positif : le temoin a faim ( au moins 50 % chaque jour ). La reserve ne nourrit personne : a 2 points du temoin
+   chaque jour. La population, si : au moins 30 points sous le temoin chaque jour. Les deux imports sont acceptes,
+   l unite arrive dans le stock vise ; la conservation tient dans la copie aidee. Une autre destination, ou « population »
+   pour un autre bien que la nourriture, est refusee.
+   ( AMENDEE apres le premier essai : les deux imports etaient « acceptes » et RIEN n arrivait - les reserves de change
+   de Stratis sont a -55 millions d euros, le controle des changes ne laisse rien passer, et le moteur ne le disait pas.
+   Le refus est maintenant rendu. La porte teste donc le canal avec des devises - les reserves des trois copies sont
+   PORTEES a 50 millions d euros, comme un pret d urgence ( le deuxieme essai les AUGMENTAIT de 50 millions : -5,5
+   millions, toujours rien ) - et, AVANT, dans la copie aidee, l etat reel : l import est refuse, avec sa raison, et
+   rien n entre. AMENDEE apres le troisieme essai : les DEVISES SEULES nourrissent Stratis - le temoin, avec ses 50
+   millions et sans aide, passe de 98 % a 46 % puis 0,8 % de faim, parce que les negociants reimportent aussitot ; le
+   controle « le temoin a faim chaque jour » ne pouvait plus tenir. Le temoin doit avoir faim AU DEPART, et l aide se
+   juge le PREMIER jour : la population au moins 30 points sous le temoin ( 1,6 % contre 46 % ), la reserve a 2 points
+   du temoin chaque jour. La famine de Stratis est une crise de devises. )
+G17 UN FOURNISSEUR IMPAYE NE LIVRE PLUS ( 27/09, ecrite avant la mesure ) : un petit archipel, Arma en jouet ; Malden
+   ( WEST ) achete pour 1 150 points, et paie ; puis sa banque centrale n a plus de devises et Malden achete 1 150 points
+   de plus : le paiement echoue ( 1 150 points impayes ) ; au tour suivant Malden ne recoit AUCUN point, Stratis en
+   recoit ( controle ) ; les devises reviennent : l arriere est paye, et au tour d apres Malden recoit de nouveau des
+   points. La conservation de Malden tient.
 
    python -m guerre.porte_guerre"""
 import math, os, re, sys, time
@@ -127,6 +150,40 @@ class Scenario(A.FauxGuerre):
     def tour(self, points, reserves=None):
         for n, camp in self.script.get(self.tours + 1, {}).items(): self.proprio[n] = camp
         return super().tour(points, reserves)
+
+
+INSTANTANE_AIDE = "/mnt/data/hmt/guerre/essai15/instantane"
+
+
+def _aide(args):
+    """G16 : une copie de la vraie Stratis, l import d aide ( ou rien ), deux jours."""
+    dest, q, jours = args
+    import pickle
+    from monde.archipel import Ile
+    from monde import tests as T
+    from monde.pays import d06_etat as ET
+    w = pickle.load(open(os.path.join(INSTANTANE_AIDE, "Stratis.pkl"), "rb")); p = w.pays; ile = Ile("Stratis", w)
+    from monde.pays import d07_exterieur as X
+    bu = ET._etat(p).budget
+    r = {"credits": ET.appliquer(p, {"type": "fixer_budget", "ligne": "interieur", "montant": 3.0 * bu.votes[("interieur", "achats")]}),
+         "faim0": round(GM.faim(w), 4)}
+    if dest == "population":
+        s0 = w.publics["population"]["nourriture"]
+        r["sans_devises"] = ET.appliquer(p, {"type": "importer", "bien": "nourriture", "quantite": q, "destination": dest})
+        r["sans_devises_arrive"] = round(w.publics["population"]["nourriture"] - s0)
+    X.reserves_de_change(p); X._ext(p).reserves_euros = 5e7
+    if dest is not None:
+        s0 = (w.publics["reserve"]["nourriture"], w.publics["population"]["nourriture"])
+        r["import"] = ET.appliquer(p, {"type": "importer", "bien": "nourriture", "quantite": q, "destination": dest})
+        r["arrive"] = (round(w.publics["reserve"]["nourriture"] - s0[0]), round(w.publics["population"]["nourriture"] - s0[1]))
+    if dest == "population":
+        r["refus"] = [ET.appliquer(p, {"type": "importer", "bien": "nourriture", "quantite": 10, "destination": "armee"}),
+                      ET.appliquer(p, {"type": "importer", "bien": "remedes", "quantite": 10, "destination": "population"})]
+    r["faim"] = []
+    for _ in range(jours):
+        T.jours(w, 1); r["faim"].append(round(ile.commande("etat")["faim"], 4))
+    r["conservation"] = bool(p.socle.conservation.tenue()[0])
+    return r
 
 
 def main():
@@ -422,6 +479,48 @@ def main():
         pa[0] > 0 and pa[1] > 0 and pp[1] > 0 and qa > 0 and rp(pp) < 0.4 * rp(pa) and qp < 0.5 * qa)
     ok["G14 liberee, au-dessus de 0,8 fois"] = rp(pl) > 0.8 * rp(pa) and ql > 0.8 * qa
     arc13.fermer()
+    # G16
+    from multiprocessing import get_context
+    Q16 = 200000
+    with get_context("fork").Pool(3) as pool:
+        re16, po16, te16 = pool.map(_aide, [("reserve", Q16, 2), ("population", Q16, 2), (None, Q16, 2)])
+    print(f"   aide alimentaire ( vraie Stratis ) : temoin {te16} ; reserve {re16} ; population {po16}", flush=True)
+    ok["G16 controle positif : le temoin a faim au depart ; les deux imports acceptes, arrives dans le stock vise"] = (
+        te16["faim0"] >= 0.5 and te16["credits"][0] and re16["import"][0] and po16["import"][0]
+        and re16["arrive"] == (Q16, 0) and po16["arrive"] == (0, Q16))
+    ok["G16 sans devises ( l etat reel ) : l import est refuse, avec sa raison, et rien n entre"] = (
+        not po16["sans_devises"][0] and "refuse" in po16["sans_devises"][1] and po16["sans_devises_arrive"] == 0)
+    ok["G16 la reserve ne nourrit personne ; la population, si ; autre destination refusee ; conservation"] = (
+        all(abs(a - b) <= 0.02 for a, b in zip(re16["faim"], te16["faim"]))
+        and po16["faim"][0] <= te16["faim"][0] - 0.30
+        and not any(x[0] for x in po16["refus"]) and po16["conservation"])
+    # G17
+    from monde.pays import d07_exterieur as X17
+    arc17 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False)
+    faux17 = A.FauxGuerre(zs)
+    h17_t = iter(x / 432.0 for x in range(10 ** 8))
+    h17 = HorlogeDeGuerre(arc17, faux17, carte, periode_s=1.0, suivre=False, horloge=lambda: next(h17_t)).ouvrir()
+    p17 = arc17.iles["Malden"].w.pays
+    def devises(v): X17.reserves_de_change(p17); X17._ext(p17).reserves_euros = v
+    def un_tour(): h17.boucle(tours=h17.tours + 1); return h17.derniere
+    t1 = un_tour()
+    faux17.depense["WEST"] = 1150.0; t2 = un_tour()
+    devises(-1e9); faux17.depense["WEST"] = 2300.0; t3 = un_tour()
+    t4 = un_tour()
+    devises(1e9); t5 = un_tour()
+    t6 = un_tour()
+    tenue17 = arc17.commande("Malden", "tenue")
+    arc17.fermer()
+    m17 = lambda t: (round(t["iles"]["Malden"]["points"], 1), round(t["iles"]["Malden"]["paiement"]["paye"]), t["iles"]["Malden"]["paiement"]["dette_points"],
+                     round(t["iles"]["Stratis"]["points"], 1))
+    print(f"   fournisseur impaye ( points Malden, paye, impayes, points Stratis ) : {[m17(t) for t in (t2, t3, t4, t5, t6)]}", flush=True)
+    ok["G17 paye puis impaye : 1 150 points d arriere ; au tour suivant Malden ne recoit rien, Stratis si"] = (
+        t2["iles"]["Malden"]["paiement"]["paye"] > 0 and t3["iles"]["Malden"]["points"] > 0 and t3["iles"]["Malden"]["paiement"]["paye"] == 0
+        and t3["iles"]["Malden"]["paiement"]["dette_points"] == 1150.0 and t4["iles"]["Malden"]["points"] == 0.0
+        and t4["iles"]["Stratis"]["points"] > 0)
+    ok["G17 les devises reviennent : l arriere est paye, Malden recoit de nouveau ; conservation"] = (
+        t5["iles"]["Malden"]["paiement"]["paye"] > 0 and t5["iles"]["Malden"]["paiement"]["dette_points"] == 0.0
+        and t6["iles"]["Malden"]["points"] > 0 and bool(tenue17[0]))
     ok["G11 l ile sans code decide par les regles, sans bascule"] = (
         len(dec(ws)) >= 2 and all(e.get("cerveau") == "regles" and not str(e.get("motifs", "")).startswith("cerveau indisponible") for e in dec(ws)))
     arc11.fermer()

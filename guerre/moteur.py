@@ -272,6 +272,19 @@ def bulletin_guerre(w):
             "source": "etat-major et Tresor, le jour meme"}
 
 
+def bulletin_exterieur(w):
+    """Ce que la banque centrale dit au gouvernement ( 27/09 ) : ses reserves de change et leur couverture en mois
+    d importations, la parite. Sans devises, aucun import ne passe - ni les negociants, ni l Etat."""
+    p = getattr(w, "pays", None)
+    if p is None: return {}
+    try:
+        from monde.pays import d07_exterieur as X
+        euros, mois = X.reserves_de_change(p)
+        return {"reserves_de_change_euros": round(euros), "mois_d_importations": None if mois is None else round(mois, 2),
+                "euros_par_unite": round(X.taux_de_change(p), 6), "devaluations": len(X._ext(p).devaluations)}
+    except (KeyError, AttributeError): return {}
+
+
 class CerveauDeGuerre:
     def __init__(self, interieur, w):
         self.interieur, self.w = interieur, w
@@ -283,7 +296,7 @@ class CerveauDeGuerre:
     def empreinte(self): return getattr(self.interieur, "empreinte", None)
 
     def __call__(self, bulletin, memoire=""):
-        bulletin = dict(bulletin, guerre=bulletin_guerre(self.w))
+        bulletin = dict(bulletin, guerre=bulletin_guerre(self.w), exterieur=bulletin_exterieur(self.w))
         if self.interieur is None:
             from monde.pays import d06_etat as ET
             return ET.decider_regles_etat(bulletin), "regles"
