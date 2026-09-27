@@ -1,0 +1,5 @@
+# Tests du pays dont l issue suit le BRUIT ( puissance trop faible ) : portes.sh les ignore dans les deux sens ( ni leur
+# echec ni leur reussite ne refuse la porte ) et rapporte leur issue a part. Format : ECHOUE  domaine  test  # raison.
+# Le remede est un test plus grand ( echelle, jours, graines ), pas cette liste : chaque ligne est une dette ( Plane HMT-127 ).
+ECHOUE  justice           test_elucidation_et_effort   # 55 a 67 delits par bras, +-5 points de bruit de Poisson ; bascule quand l economie decale les tirages ( moteur, 27/09 )
+ECHOUE  exterieur         test_decision_importer       # 500 habitants, 16 jours : p 0,005 ou 0,08 selon la version, a la limite de l instrument ( moteur, 27/09 )

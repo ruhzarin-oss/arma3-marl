@@ -855,11 +855,13 @@ def _recensement(p, d, rng):
     w = p.w; tb = w.table; col = p.colonnes["habitant"]; mt = tb.menages
     sexe_c = col["sexe"]; nj = col["naissance_j"]
     jour = p.jour
+    rec = getattr(tb, "recensement", None)              # une population copiee sur le reel : son activite est faite
     for i in range(tb.n):
         if not tb.vivant[i]: continue
         age = (jour - int(nj[i])) / POP.JOURS_AN
         sexe = int(sexe_c[i]) if sexe_c[i] >= 0 else HOMME
         role = _role_de(tb, i)
+        if rec is not None and _recenser_reel(p, d, i, role, rec, rng, jour, age, sexe): continue
         q = 0
         if age >= 21 and rng.random() < SERVICE_MILITAIRE[sexe]: q |= BIT["formation_militaire"]
         if age >= 21 and rng.random() < PERMIS_POIDS_LOURD[sexe]: q |= BIT["permis_poids_lourd"]
@@ -879,7 +881,7 @@ def _recensement(p, d, rng):
             continue
         annees = _carriere_i(p, i, classe, rng, age, sexe, role)
         statut = SALARIE
-        if d.inactifs and role not in POLITIQUES + ("patron",) and C.AGE_TRAVAIL <= age < 65:
+        if d.inactifs and rec is None and role not in POLITIQUES + ("patron",) and C.AGE_TRAVAIL <= age < 65:
             ligne = next((t for a0, a1, t in STATUTS_RECENSEMENT if a0 <= age < a1), None)
             if ligne is not None:
                 e_, u_, s_, f_, i_, r_ = ligne[sexe]
@@ -935,6 +937,46 @@ def _recensement(p, d, rng):
         for j in np.argsort(premier, kind="stable").tolist():
             c = int(u[j]); r = c % nr1 - 1
             d.cible[(par_n[c // nr1].id, PO.ROLES[r] if r >= 0 else None)] = int(nb[j])
+
+
+def _recenser_reel(p, d, i, role, rec, rng, jour, age, sexe):
+    """Le recensement du travail d une population copiee sur le reel ( population.generer, `demographie` ) : le statut
+    vient de la generation, il n est pas tire. L etudiant devient un enfant aux etudes ( comme au recensement du
+    moteur ) ; le chomeur et l inactif prennent le metier qu ils cherchent ou ont quitte ( rec["metier"] ), sans poste,
+    et leur titre ; l invalide touche la pension d invalidite. Memes tirages, dans le meme ordre, que `_recensement`.
+    Rend vrai si la ligne est traitee ici ; les autres ( en emploi, enfants, retraites ) suivent `_recensement`."""
+    motif = PO.MOTIFS[int(rec["motif"][i])]
+    if role not in ("etudiant", "chomeur", "inactif") and not (role == "retraite" and motif == "invalide"): return False
+    col = p.colonnes["habitant"]; tb = p.w.table
+    h = PO.Habitant(tb, i)
+    if role in ("chomeur", "inactif"): h.role = role = PO.ROLES[int(rec["metier"][i])]
+    q = 0
+    if age >= 21 and rng.random() < SERVICE_MILITAIRE[sexe]: q |= BIT["formation_militaire"]
+    if age >= 21 and rng.random() < PERMIS_POIDS_LOURD[sexe]: q |= BIT["permis_poids_lourd"]
+    if role in EXIGE: q |= BIT[EXIGE[role]]
+    col["tr_qualifs"][i] = q
+    classe = PO.CLASSES[tb.classe[i]]
+    if role == "etudiant":
+        h.role, h.horaire, h.travail = "enfant", "ecole", h.domicile.marche
+        col["tr_statut"][i] = ETUDIANT
+        col["tr_fin_etudes"][i] = jour + int(round((_tirer_sortie_etudes(rng, age) - age) * JOURS_AN))
+    elif motif == "invalide":
+        _carriere_i(p, i, classe, rng, age, sexe, METIER_DE_CLASSE.get(classe, "ouvrier"))
+        col["tr_statut"][i] = INVALIDE
+        _liquider_i(p, d, i, age, "invalidite", ecrire=False)
+    else:
+        _carriere_i(p, i, classe, rng, age, sexe, role)
+        if motif == "aucun":                                 # le chomeur : inscrit, indemnise s il l est encore
+            duree = int(rng.integers(*DUREE_CHOMAGE_RECENSEMENT_J))
+            col["tr_statut"][i] = CHOMEUR
+            col["tr_chomage_j"][i] = jour - duree
+            p.domaine("economie").chomeurs[i] = [jour, None, role, "recensement"]
+            reste = 12 * MOIS_J - duree
+            if reste > 0: d.indemnites[i] = Indemnite(INDEMNITE_JOUR * (1.0 + MAJORATION_A_CHARGE * _a_charge(p, h)),
+                                                       jour, jour + reste - 1)
+        else:
+            col["tr_statut"][i] = AU_FOYER if motif == "au_foyer" else DECOURAGE
+    return True
 
 
 def _contrat_recensement(p, d, h, rng, annees):

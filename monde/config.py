@@ -33,6 +33,13 @@ ROLES = {
     # 27/09 ( domaine 28, tourisme ) : hotels et restaurants. Effectif 0 a la naissance du monde : on y entre par
     # l embauche. Toujours AJOUTER a la fin : le code d un metier est son rang, ecrit dans les tables et les instantanes.
     "hotellerie":        (0, "populaire", False),
+    # 27/09 ( population copiee sur le reel, monde/demographie_grece.py ) : ceux qui ne travaillent pas. Effectif 0 : le
+    # monde E1 n en a pas ; `population.generer( ..., demographie=... )` les cree. Le domaine 1 fait du petit enfant un
+    # enfant sans ecole, le domaine 4 de l etudiant un enfant aux etudes et du chomeur ou de l inactif un metier sans poste.
+    "petit_enfant":      (0, "populaire", False),
+    "etudiant":          (0, "populaire", False),
+    "chomeur":           (0, "populaire", False),
+    "inactif":           (0, "populaire", False),
 }
 assert sum(v[0] for v in ROLES.values()) == 500
 
