@@ -143,6 +143,9 @@ G20 LA VRAIE STRATIS AFFAMEE REPART ( 27/09, ecrite avant la mesure ; sur la fai
    neuve ( faim au plus 3,9 % au jour 31, aucun mort ) - l ile se nourrit de ses fermes. La famine vient donc de la
    cause de la guerre : les fermes OCCUPEES ( guerre/moteur.occuper, toutes les fermes de l ile ) ET la banque centrale
    sans un euro ; la relache leve les deux ; le controle positif garde les deux.
+   LIMITE ( chef de projet ) : cette famine est COURTE ( 30 % de faim en 6 jours, aucun mort ) : le critere « morts de faim
+   sous 1 % » y est tenu d office. La reprise apres une famine LONGUE, des habitants pres du seuil de mort, n est pas
+   testee ici : une porte a part, a venir.
 G21 LE REVENU MINIMUM GARANTI ( KEA, 27/09, ecrite avant la mesure ) : dans une petite Stratis, un versement du jour
    donne a chaque menage eligible exactement le seuil du jour ( 216 euros par mois a l echelle 1 + 0,5 par adulte de plus
    + 0,25 par enfant ) moins son revenu lisse hors KEA ; rien a un menage au-dessus du seuil ni a un menage aux avoirs
