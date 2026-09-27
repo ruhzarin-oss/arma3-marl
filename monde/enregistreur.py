@@ -29,7 +29,7 @@ Le jour est dans le nom du dossier ( jour=00012 ) : pyarrow et DuckDB le rendent
 L enregistreur LIT seulement : il ne tire aucun hasard et ne touche aucun etat ( porte_enregistreur : le monde
 enregistre est identique au bit au monde nu, et les totaux enregistres retombent sur ceux du grand livre ). Il ne se
 sauvegarde pas avec le monde : un instantane repris n a plus d enregistreur, on en rebranche un."""
-import json, os
+import itertools, json, os
 from collections import deque
 import numpy as np
 import pyarrow as pa
@@ -301,7 +301,11 @@ def est_table(v):
     return isinstance(getattr(v, "cols", None), dict) and isinstance(getattr(v, "n", None), (int, np.integer))
 
 
+_TYPES_SIMPLES = frozenset((bool, int, float, str, type(None)))      # les types exacts : le cas de loin le plus frequent
+
+
 def _simple(x, prof=0):
+    if type(x) in _TYPES_SIMPLES: return x                                # ( 27/09 : un test au lieu de la chaine d isinstance )
     if x is None or isinstance(x, (bool, int, float, str)): return x
     if isinstance(x, np.generic): return x.item()
     if isinstance(x, np.ndarray):
@@ -337,15 +341,28 @@ def _noms(cls):
     return r
 
 
-def _colonne(vals):
+def _types(vals): return set(map(type, vals))                # les types presents, en un passage C ( 27/09 )
+def _scalaires(tps): return all(issubclass(t, SCALAIRES) for t in tps)
+def _conteneurs_simples(tps): return all(issubclass(t, (list, tuple, set, frozenset)) for t in tps)
+
+
+def _listes_de_scalaires(vals, tps=None):
+    """`all( _liste_de_scalaires( x ) for x in vals )`, par les types ( memes reponses, un passage C )."""
+    if tps is None: tps = _types(vals)
+    return _conteneurs_simples(tps) and _scalaires(_types(itertools.chain.from_iterable(vals)))
+
+
+def _colonne(vals, tps=None):
     """Une colonne pyarrow : telle quelle si elle est homogene, sinon ses objets par leur identite et ses conteneurs en
-    json, le tout en texte."""
-    if all(isinstance(x, SCALAIRES) for x in vals):
-        v2 = [x.item() if isinstance(x, np.generic) else x for x in vals]
+    json, le tout en texte. 27/09 : les types se lisent en un passage ( set( map( type, ... ) ) ), plus une boucle Python
+    par valeur - la photo du soir des 27 domaines coutait 5 s par jour a 100 000 habitants."""
+    if tps is None: tps = _types(vals)
+    if _scalaires(tps):
+        v2 = [x.item() if isinstance(x, np.generic) else x for x in vals] if any(issubclass(t, np.generic) for t in tps) else vals
         try: return pa.array(v2)
         except (pa.ArrowInvalid, pa.ArrowTypeError, TypeError, OverflowError):
             return pa.array([None if x is None else str(x) for x in v2], pa.string())
-    if all(_liste_de_scalaires(x) for x in vals):
+    if _listes_de_scalaires(vals, tps):
         v2 = [[y.item() if isinstance(y, np.generic) else y for y in (sorted(x, key=str) if isinstance(x, (set, frozenset)) else x)]
               for x in vals]
         try: return pa.array(v2)
@@ -371,10 +388,11 @@ def _liste_de_scalaires(x):
 def en_colonnes(vals):
     """Des entrees semblables en colonnes : des nombres ou des textes, ou des listes de nombres ( une colonne
     « valeur » ), ou des objets d une meme classe a __slots__ ( une colonne par attribut ) ; None sinon."""
-    if all(isinstance(x, SCALAIRES) for x in vals) or all(_liste_de_scalaires(x) for x in vals):
-        return {"valeur": _colonne(vals)}
+    tps = _types(vals)
+    if _scalaires(tps) or _listes_de_scalaires(vals, tps):
+        return {"valeur": _colonne(vals, tps)}
     cls = type(vals[0])
-    if not _noms(cls) or getattr(cls, "__dict__", {}).get("__slots__") is None or any(type(x) is not cls for x in vals):
+    if not _noms(cls) or getattr(cls, "__dict__", {}).get("__slots__") is None or tps != {cls}:
         return None
     return {f"a.{a}": _colonne([getattr(x, a, None) for x in vals]) for a in _noms(cls)}
 

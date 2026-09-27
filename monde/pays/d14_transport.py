@@ -951,6 +951,18 @@ def prix_neuf(p, c):
     return c.ht * (1.0 + _tva(p)) + immat, c.ht, immat
 
 
+_PRIX_OCC = {"cle": None, "prix": {}}      # ( transporteur, pas, TVA ) -> { numero : prix TTC } : une occasion en stock ne
+                                            # change pas dans le pas ; 600 candidats par jour repricaient 52 000 fois ( 27/09 )
+
+
+def _prix_occasion_du_pas(p, tr, m, oid):
+    cle = (id(tr), p.w.pas, _tva(p))
+    if _PRIX_OCC["cle"] != cle: _PRIX_OCC["cle"], _PRIX_OCC["prix"] = cle, {}
+    v = _PRIX_OCC["prix"].get(oid)
+    if v is None: v = _PRIX_OCC["prix"][oid] = prix_occasion(p, CARAC[m], tr.fiches[oid])[0]
+    return v
+
+
 def _occasions_de(p, tr, conc, categories=None):
     """Les occasions en stock d une concession : [ ( prix TTC, numero, indice de modele ) ], tri par prix."""
     parc = p.socle.parc; out = []
@@ -959,7 +971,7 @@ def _occasions_de(p, tr, conc, categories=None):
         if o is None or o.etat != O.SERVICE: continue
         m = tr.idx_parc[o.modele]
         if categories is not None and CARAC[m].nom not in categories: continue
-        out.append((prix_occasion(p, CARAC[m], tr.fiches[oid])[0], oid, m))
+        out.append((_prix_occasion_du_pas(p, tr, m, oid), oid, m))
     out.sort()
     return out
 
