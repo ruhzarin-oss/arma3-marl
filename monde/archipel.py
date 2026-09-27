@@ -38,6 +38,7 @@ def creer_ile(ile, graine, echelle, llm=False):
     sait de quel pays il est le gouvernement et dans quelle monnaie il compte."""
     w = W.Monde(graine=graine_ile(graine, ile), iles=(ile,), echelle=echelle, cerveau="llm" if llm else "regles")
     w.echelle_convois = float(echelle)
+    w.faim_realiste = True
     P.installer(w, LIVRES)
     OR.installer(w, w.pays)
     if llm and w.cerveau is not None and hasattr(w.cerveau, "consigne"):
@@ -51,8 +52,14 @@ def creer_ile(ile, graine, echelle, llm=False):
 
 
 def _convois(w, echelle):
-    """Une ile reprise d un instantane d avant le 27/09 n a pas l echelle de ses convois : celle de l archipel."""
+    """Une ile reprise d un instantane d avant le 27/09 n a pas l echelle de ses convois ( celle de l archipel ) ni la
+    faim realiste ( domaine 1 ) : les lui poser."""
     if "echelle_convois" not in vars(w): w.echelle_convois = float(echelle)
+    if "faim_realiste" not in vars(w):
+        w.faim_realiste = True
+        if getattr(w, "pays", None) is not None and w.pays.a("population"):
+            from .pays import d01_population as D1
+            D1.brancher_faim_realiste(w.pays)
     return w
 
 

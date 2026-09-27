@@ -921,7 +921,7 @@ def _planifier(p, a, fen, k):
         _couper(pl, i, REPORT, PAS_MIN * k)
     # la faim empeche de travailler ; les agents travailleurs, s ils sont la, decident du travail a la place
     gt = w.agents.get("travailleurs")
-    pl.epuise = g.faim > C.ABSENCE_FAIM
+    pl.epuise = g.faim > seuil_travail(p)
     if gt:
         pl.gt = libre & (g.trav >= 0) & ((g.role & (ENFANT | RETRAITE)) == 0)
         qui = np.nonzero(pl.gt)[0]
@@ -970,6 +970,12 @@ def _couper(pl, i, s, t):
         pl.coupe[i, s] = True
 
 
+def seuil_travail(p):
+    """La faim ( jours sans manger ) au-dela de laquelle on ne va plus travailler : celle du moteur, ou celle d un
+    monde a la faim realiste ( config.ABSENCE_FAIM_REALISTE )."""
+    return C.ABSENCE_FAIM_REALISTE if getattr(p.w, "faim_realiste", False) else C.ABSENCE_FAIM
+
+
 def _revision_du_soir(p, a, pl, k):
     """20 h 10 : le repas de 20 h a change la faim. Monde.deplacer la relisait a chaque pas ; ici, seuls ceux dont le
     travail est encore a venir ou en cours sont relus, et leur plan corrige ( equipes de 14 h et de 22 h )."""
@@ -978,7 +984,7 @@ def _revision_du_soir(p, a, pl, k):
                      & (pl.cand[:, RET].astype(np.int32) > t))[0]
     if not len(idx): return
     H = p.w.habitants
-    epuise = p.w.table.faim[idx] > C.ABSENCE_FAIM
+    epuise = p.w.table.faim[idx] > seuil_travail(p)
     change = idx[epuise != pl.epuise[idx]]
     if not len(change): return
     for i in change.tolist():

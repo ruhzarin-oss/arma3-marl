@@ -1401,7 +1401,7 @@ def _travail(p):
             for ch in cs:
                 for i in ch.ouvriers:
                     if (not tb.vivant[i] or tb.travail[i] >= 0 or (tb.etat[i] == ETAT_I and float(tb.gravite[i]) > 0.5)
-                            or float(tb.faim[i]) > C.ABSENCE_FAIM): continue
+                            or float(tb.faim[i]) > (C.ABSENCE_FAIM_REALISTE if w.faim_realiste else C.ABSENCE_FAIM)): continue
                     brut = 8.0 * PO.SALAIRE_HORAIRE["ouvrier"]
                     k = int(tb.menage[i])
                     mg = PO.Menage(k, mt) if k >= 0 else None

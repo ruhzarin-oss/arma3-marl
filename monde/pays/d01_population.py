@@ -646,6 +646,66 @@ def demenager(p, mg, dest):
     return cout
 
 
+# ================================================================== la mort de faim ( 27/09, Younes : « au plus realiste » )
+# Habitant.faim : les rations manquees, en jours sans manger ( une demi-ration manquee compte une demi-journee ), que
+# chaque jour nourri efface en partie ( config.RECUPERATION_FAIM ). La survie sans nourriture, eau disponible : 45 a 75
+# jours pour un adulte en bonne sante ( greves de la faim de 1981 : morts entre 46 et 73 jours ) ; les jeunes enfants et
+# les personnes agees meurent les premiers ( famines du XXe siecle, Bengale 1943, Irlande 1847 ). Deficit mortel
+# log-normal : mediane par age, ecart log 0,2 ( adulte : 5,6 % des morts a 40 jours, la moitie a 55, 89 % a 70 ; a
+# calibrer ). On ne meurt de faim que les soirs ou le deficit monte encore : qui recoit a manger ne meurt plus de faim.
+FAIM_MORTELLE = ((5.0, 30.0), (15.0, 40.0), (70.0, 55.0), (1e9, 35.0))   # ( age limite, deficit median mortel en jours )
+SIGMA_FAIM_MORTELLE = 0.2
+FAIM_SANS_RISQUE = 10.0          # sous 10 jours de deficit, personne ne meurt de faim ( la loi y vaut moins de 1e-9 )
+
+
+def _phi(x):
+    return 0.5 * (1.0 + np.vectorize(math.erf)(np.asarray(x, dtype=np.float64) / math.sqrt(2.0)))
+
+
+def mediane_faim_mortelle(ages):
+    ages = np.asarray(ages, dtype=np.float64)
+    out = np.full(ages.shape, FAIM_MORTELLE[-1][1])
+    for lim, med in reversed(FAIM_MORTELLE): out[ages < lim] = med
+    return out
+
+
+def part_morte_de_faim(deficit, ages):
+    """La part d une population au deficit `deficit` ( jours ) qui en est morte, selon l age."""
+    d = np.maximum(np.asarray(deficit, dtype=np.float64), 1e-9)
+    return _phi(np.log(d / mediane_faim_mortelle(ages)) / SIGMA_FAIM_MORTELLE)
+
+
+def _faim_mortelle(p):
+    """20 h 10, apres le repas : ceux dont le deficit a monte ce soir risquent d en mourir, au risque instantane de la loi
+    ( ( F( ce soir ) - F( hier ) ) / ( 1 - F( hier ) ) ). Les absents ( au front, en mer ) ne mangent pas a la maison :
+    leur faim ne bouge pas."""
+    if not getattr(p.w, "faim_realiste", False): return
+    w = p.w; tb = w.table; n = tb.n; col = p.colonnes["habitant"]; col.assurer(n)
+    fh = col["faim_hier"]; f = tb.faim[:n].astype(np.float64)
+    ids = np.nonzero((tb.vivant[:n] == 1) & (f > fh[:n] + 1e-9) & (f > FAIM_SANS_RISQUE))[0]
+    if len(ids):
+        ages = (p.jour - col["naissance_j"][ids].astype(np.float64)) / JOURS_AN
+        f1 = part_morte_de_faim(f[ids], ages); f0 = part_morte_de_faim(fh[ids], ages)
+        risque = (f1 - f0) / np.maximum(1.0 - f0, 1e-9)
+        u = p.du_jour("population_faim").random(len(ids))
+        for i in ids[u < risque].tolist():
+            deceder(p, P.Habitant(tb, int(i)), "faim"); p.compter("mort_de_faim")
+    fh[:n] = f.astype(np.float32)
+
+
+def brancher_faim_realiste(p):
+    """Pose la mort de faim sur un pays dont le monde porte faim_realiste ( a l installation, ou sur une ile reprise d un
+    instantane d avant ) : sa colonne, son compte, sa routine - une fois."""
+    ch = p.colonnes["habitant"]
+    if "faim_hier" not in ch:
+        ch.ajouter("faim_hier", np.float32, 0.0); ch.assurer(len(p.w.habitants))
+        ch["faim_hier"][:p.w.table.n] = p.w.table.faim[:p.w.table.n]
+    J = p.socle.journal
+    if "mort_de_faim" not in getattr(J, "types", {}): J.declarer("mort_de_faim", "population", "compte")
+    if not any(f is _faim_mortelle for _, _, f in p.routines.get(20 * 60 + 10, ())):
+        p.routine(20 + 10 / 60, 20, "population", _faim_mortelle)
+
+
 def _soir(p):
     """20 h 10, apres le repas : la faim du jour entre dans la memoire de chaque menage, les choix de migration en
     attente recoivent leur note, et les menages affames de la semaine se demandent s ils partent."""
@@ -793,6 +853,7 @@ def installer(p):
     w.demographie = RemplaceDemographie(p)
     p.routine(20 + 10 / 60, 10, "population", _soir)
     p.routine(23 + 50 / 60, 90, "population", _reprendre_les_morts)
+    if getattr(w, "faim_realiste", False): brancher_faim_realiste(p)
     return d
 
 

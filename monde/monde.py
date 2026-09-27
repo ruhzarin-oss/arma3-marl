@@ -928,6 +928,9 @@ class Monde:
     # du 27/09 : a la charge de l echelle, 0 % en un jour, sans une importation ). Un convoi a l echelle 200 est une
     # flotte : meme chauffeur, meme gazole, au modele pres. L archipel la pose a l echelle de l ile ; 1 ailleurs.
     echelle_convois = 1.0
+    # 27/09 : la faim au plus realiste ( la recuperation, le seuil de travail, la mort de faim : domaine 1 ) - les iles de
+    # l archipel ; False ailleurs, les mondes de reference ne changent pas
+    faim_realiste = False
 
     def expedier(self, h):
         cap = C.CAPACITE_CAMION * self.echelle_convois
@@ -1204,7 +1207,8 @@ class Monde:
         self.nourri_menage = ParMenage(~affame)
         k = mm[membres]
         faim = t.faim[membres]
-        t.faim[membres] = np.where(affame[k], faim + manque[k] / np.maximum(v[k], 1), np.maximum(0.0, faim - 1))
+        recup = faim * (1.0 - C.RECUPERATION_FAIM) - 1.0 if self.faim_realiste else faim - 1.0
+        t.faim[membres] = np.where(affame[k], faim + manque[k] / np.maximum(v[k], 1), np.maximum(0.0, recup))
         for nom, noter in (("travailleurs", R.noter_travailleurs), ("entreprises", R.noter_entreprises),
                            ("marches", R.noter_marches), ("commerce", R.noter_commerce),
                            ("fraudeurs", R.noter_fraudeurs), ("voyageurs", R.noter_voyageurs)):
@@ -1233,7 +1237,7 @@ class Monde:
                     for x, action, r in ag.journee(manque):
                         if self.apprentissage: self.doctrine.apprendre(x, action, r)
                         ag.recompenses.append(r)
-            for p in vivants: p.faim = p.faim + manque / len(vivants) if manque > 1e-6 else max(0.0, p.faim - 1)
+            for p in vivants: p.faim = p.faim + manque / len(vivants) if manque > 1e-6 else max(0.0, (p.faim * (1.0 - C.RECUPERATION_FAIM) if self.faim_realiste else p.faim) - 1)
         self.stats_jour["menages_sans_nourriture"] = sans
         self.faim_region = {k: affames_region.get(k, 0) / n for k, n in par_region.items()}
         for nom, noter in (("travailleurs", R.noter_travailleurs), ("entreprises", R.noter_entreprises),

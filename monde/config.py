@@ -119,4 +119,10 @@ FRAUDE_PENTE = 2.0                   # part des achats qui echappe a la TVA, par
 FRAUDE_MAX = 0.7
 QUARANTAINE_VIOLEE = 0.2             # part des habitants qui sortent quand meme
 ABSENCE_FAIM = 1.5                   # au-dela de cette faim accumulee, on ne va plus travailler
+# 27/09 ( Younes : « au plus realiste » ), pour les mondes qui portent `faim_realiste` ( les iles de l archipel ) :
+# on travaille encore affaibli jusqu a une quinzaine de jours sans manger ( ~10 % du poids perdu ; la capacite de travail
+# s effondre sous un IMC de 16, apres 20 a 25 % du poids : a calibrer ) ; un jour nourri efface un quart du deficit et un
+# jour ( un paysan a 52 jours de deficit retourne aux champs en 9 jours, au lieu de 51 : a calibrer )
+ABSENCE_FAIM_REALISTE = 15.0
+RECUPERATION_FAIM = 0.25
 CONTROLE_PAR_POLICIER = 0.2           # chance de controle par policier, pour dix menages de sa region
