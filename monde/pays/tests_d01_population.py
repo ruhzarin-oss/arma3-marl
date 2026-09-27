@@ -277,7 +277,7 @@ def test_placement_en_colonnes():
     age = (p.jour - col["naissance_j"][:n]) / 365.0
     adultes = np.nonzero((tb.vivant[:n] == 1) & (age >= 25) & (age < 60))[0]
     rng = np.random.default_rng(1); cibles = np.sort(rng.choice(adultes, size=max(1, int(0.03 * adultes.size)), replace=False))
-    mm = PO.menages_inscrits(tb, n)
+    mm = M.P.menages_inscrits(tb, n)
     mineurs = np.nonzero((tb.vivant[:n] == 1) & (age < 18) & np.isin(mm, mm[cibles]))[0].tolist()
     ecarts = compares = 0
     for i in mineurs:
