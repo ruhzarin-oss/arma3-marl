@@ -7,9 +7,9 @@ from . import pays as P
 FAMILLES_HORS_LIVRE_E1 = ("gouvernement", "marches")   # importer, exporter_or, ventes au port : monde.py:136, 145, 516, 522
 
 
-def monde(domaines, graine=C.GRAINE, echelle=1.0, modes=None, iles=("Altis",)):
-    """Un Monde E1 avec ses domaines ( et leurs dependances ) installes."""
-    w = W.Monde(graine=graine, echelle=echelle, iles=iles)
+def monde(domaines, graine=C.GRAINE, echelle=1.0, modes=None, iles=("Altis",), demographie=None):
+    """Un Monde E1 avec ses domaines ( et leurs dependances ) installes. `demographie` : voir population.generer."""
+    w = W.Monde(graine=graine, echelle=echelle, iles=iles, demographie=demographie)
     return w, P.installer(w, domaines, modes)
 
 

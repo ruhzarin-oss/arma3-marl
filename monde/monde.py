@@ -107,7 +107,7 @@ class ParTravail:
 
 class Monde:
     def __init__(self, graine=C.GRAINE, cerveau="regles", epidemie_jour=2, journal=None, eleve=None, iles=("Altis",),
-                 echelle=1.0):
+                 echelle=1.0, demographie=None):
         self.rng = np.random.default_rng(graine)
         self.graine = graine
         self.carte = K.Carte(iles=tuple(iles))
@@ -116,7 +116,8 @@ class Monde:
         # le marche dont depend chaque lieu, par numero ( -1 : aucun ) - l index de la population par marche le lit
         self._marche_du_lieu = np.array([l.marche.n if l.marche is not None else -1 for l in self.carte.par_n], np.int64)
         self._ile_du_lieu = np.array([self.carte.iles.index(l.ile) for l in self.carte.par_n], np.int16)
-        self.habitants, self.menages = P.generer(self.carte, self.rng, echelle, self.table)
+        # demographie ( None : le monde E1 ) : une population copiee sur un pays reel, voir population.generer
+        self.habitants, self.menages = P.generer(self.carte, self.rng, echelle, self.table, demographie)
         self.utiliser_coeur = COEUR is not None
         self._travaille_pas = -1                        # le pas ou la colonne « travaille » a ete remplie
         self.pas = 0
