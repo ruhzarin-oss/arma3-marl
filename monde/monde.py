@@ -1213,7 +1213,9 @@ class Monde:
         tot = np.bincount(region[dans], minlength=len(self.carte.par_n))
         aff = np.bincount(region[dans & affame], minlength=len(self.carte.par_n))
         self.faim_region = {self.carte.par_n[k].id: int(aff[k]) / int(tot[k]) for k in np.nonzero(tot)[0]}
-        self.nourri_menage = ParMenage(~affame)
+        eteint = self._eteints_par_la_faim(v)                  # HMT-136 : un menage mort de faim n est pas « nourri »
+        self.stats_jour["menages_eteints_faim"] = int(eteint.sum())
+        self.nourri_menage = ParMenage(~(affame | eteint))
         k = mm[membres]
         faim = t.faim[membres]
         t.faim[membres] = np.where(affame[k], faim + np.maximum(0.0, manque[k] / np.maximum(v[k], 1) - C.FAIM_ADAPTATION), np.maximum(0.0, faim - 1))
@@ -1222,6 +1224,21 @@ class Monde:
                            ("fraudeurs", R.noter_fraudeurs), ("voyageurs", R.noter_voyageurs)):
             g = self.agents.get(nom)
             if g: noter(self, g)
+
+    def _eteints_par_la_faim(self, v):
+        """HMT-136 ( 28/09 ) : les menages sans aucun vivant a table ( `v` = 0 ) qui ont perdu au moins un membre par la
+        faim ( colonne `morts_faim` du domaine 1 ). Avant, un tel menage avait un besoin nul, donc aucun manque : il
+        comptait NOURRI dans chaque note et chaque mesure, et la faim « baissait » quand les affames mouraient. Un
+        menage vide pour une autre raison ( voyage, emigration, autre cause de mort ) reste neutre. Sans le domaine 1,
+        la faim ne tue pas : aucun menage."""
+        v = np.asarray(v)
+        p = getattr(self, "pays", None)
+        if p is None or not p.a("population"): return np.zeros(len(v), bool)
+        mf = p.col("menage", "morts_faim")
+        m = min(len(v), len(mf))
+        out = np.zeros(len(v), bool)
+        out[:m] = (v[:m] == 0) & (mf[:m] > 0)
+        return out
 
     def repas_python(self):
         sans = 0
@@ -1247,6 +1264,10 @@ class Monde:
                         ag.recompenses.append(r)
             for p in vivants: p.faim = p.faim + max(0.0, manque / len(vivants) - C.FAIM_ADAPTATION) if manque > 1e-6 else max(0.0, p.faim - 1)
         self.stats_jour["menages_sans_nourriture"] = sans
+        vv = np.array([sum(1 for p in mg.membres if p.vivant) for mg in self.menages], dtype=np.int64)
+        eteint = self._eteints_par_la_faim(vv)                  # HMT-136 : meme regle que la version en colonnes
+        for k in np.nonzero(eteint)[0].tolist(): self.nourri_menage[self.menages[k].id] = False
+        self.stats_jour["menages_eteints_faim"] = int(eteint.sum())
         self.faim_region = {k: affames_region.get(k, 0) / n for k, n in par_region.items()}
         for nom, noter in (("travailleurs", R.noter_travailleurs), ("entreprises", R.noter_entreprises),
                            ("marches", R.noter_marches), ("commerce", R.noter_commerce),

@@ -82,6 +82,9 @@ def _convois(w, echelle):
     if getattr(w, "pays", None) is not None and w.pays.a("agriculture"):
         from .pays import d09_agriculture as AG
         AG.brancher_autoconsommation(w.pays)             # idempotent : une ile d avant le 27/09 ne l a pas
+    if getattr(w, "pays", None) is not None and w.pays.a("exterieur"):
+        from .pays import d07_exterieur as X
+        X.brancher_devises(w.pays)                       # idempotent : une ile d avant HMT-131 n a pas devises_refusees
     return w
 
 
@@ -189,7 +192,16 @@ def poser_gouvernement(w, nom, source):
     w.cerveau = AC.CerveauCode(source, nom=nom)
 
 
-def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False, llm=False, enregistrer=None, gouv=None):
+def brancher_code(w, biblio):
+    """HMT-102 ( 28/09, regle 8 : Qwen toujours actif ) : les decideurs de l ile recoivent le code de Qwen en service
+    dans la bibliotheque `biblio` ( code_a_la_demande.brancher ) ; bibliotheque vide ou absente : rien ne change."""
+    if not biblio: return 0
+    from . import code_a_la_demande as CAD             # ( import tardif )
+    return CAD.brancher(w.pays, biblio)
+
+
+def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False, llm=False, enregistrer=None, gouv=None,
+                   code=None):
     # 27/09 : le domaine 22 fait des produits de matrices ( faits x lieux x lieux ) ; six iles qui prennent chacune tous
     # les coeurs se marchent dessus ( 120 fils pour 20 coeurs ). Chaque ile garde sa part ( HMT_FILS_PAR_ILE pour forcer ) ;
     # le nombre de fils ne change pas les resultats ( porte des 27 domaines identique a 3 fils et a 20 )
@@ -198,6 +210,7 @@ def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False
     threadpool_limits(int(os.environ.get("HMT_FILS_PAR_ILE", max(1, (os.cpu_count() or 1) // n_iles))), user_api="blas")
     w = _convois(charger(reprise), echelle) if reprise else creer_ile(nom, graine, echelle, llm)
     poser_gouvernement(w, nom, gouv)
+    brancher_code(w, code)
     if ouvert: w.archipel = {"noms": tuple(noms), "ouvert": True}
     if enregistrer: ENR.brancher(w, enregistrer, nom)
     ile = Ile(nom, w)
@@ -214,9 +227,11 @@ def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False
 # ------------------------------------------------------------------ le pont
 class Archipel:
     def __init__(self, iles=C.ILES_ARCHIPEL, graine=C.GRAINE, echelle=4.0, parallele=True, reprise=None, ouvert=False,
-                 llm=False, enregistrer=None, gouvernement=None):
+                 llm=False, enregistrer=None, gouvernement=None, code=None):
         """`enregistrer` : un dossier ou chaque ile ecrit tout ce qui s y passe ( monde/enregistreur.py ).
-        `gouvernement` : le code qui gouverne chaque ile ( voir gouvernements() ) ; sans, les regles ou le LLM."""
+        `gouvernement` : le code qui gouverne chaque ile ( voir gouvernements() ) ; sans, les regles ou le LLM.
+        `code` : la bibliotheque du code a la demande ( HMT-102 ) ; None pour les portes, qui ne dependent pas de son
+        etat ; les lanceurs ( nuit, guerre, run long ) la passent par defaut."""
         gv = gouvernements(gouvernement, tuple(iles))
         self.noms, self.graine, self.echelle, self.parallele, self.ouvert = tuple(iles), graine, echelle, parallele, ouvert
         self.pas = 0
@@ -232,7 +247,7 @@ class Archipel:
             self.tuyaux, self.proc = {}, {}
             for n in self.noms:
                 a, b = ctx.Pipe()
-                p = ctx.Process(target=_processus_ile, args=(n, graine, echelle, chemin(n), b, self.noms, ouvert, llm, enregistrer, gv.get(n)), daemon=True)
+                p = ctx.Process(target=_processus_ile, args=(n, graine, echelle, chemin(n), b, self.noms, ouvert, llm, enregistrer, gv.get(n), code), daemon=True)
                 p.start(); self.tuyaux[n], self.proc[n] = a, p
             for n in self.noms: assert self.tuyaux[n].recv() == ("pret", n)
         else:
@@ -242,7 +257,7 @@ class Archipel:
                 for i in self.iles.values(): i.w.archipel = {"noms": self.noms, "ouvert": True}
             if enregistrer:
                 for n, i in self.iles.items(): ENR.brancher(i.w, enregistrer, n)
-            for n, i in self.iles.items(): poser_gouvernement(i.w, n, gv.get(n))
+            for n, i in self.iles.items(): poser_gouvernement(i.w, n, gv.get(n)); brancher_code(i.w, code)
 
     # --- la vitesse : temps reel si un humain est la ---
     def temps_reel(self): return os.path.exists(HUMAIN)

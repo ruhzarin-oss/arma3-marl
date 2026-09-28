@@ -21,7 +21,12 @@ sans apprendre : l examen ), hasard, temoin. La doctrine est celle du moteur ( a
 partagee par le groupe ) ; le terme constant du bandit est ajoute ici, l observateur ne le fournit pas.
 
 `Attente` generalise roles.Memoire a un horizon quelconque ( celle-ci tient HORIZON = 3 en dur ) : roles.py pourra
-s appuyer sur elle quand il sera repris."""
+s appuyer sur elle quand il sera repris.
+
+LE BRAS DE CODE ( 27/09, « Qwen doit repondre a toutes les demandes du moteur » ; monde/code_a_la_demande.py ) : un
+`Decideur` peut porter un `bras` - une fonction ecrite par Qwen, en epreuve - qui decide pour une part des cles ( les
+autres gardent la regle ) ; chaque choix garde l etiquette de son bras et chaque note murie lui est rendue, pour juger le
+candidat contre la regle, jour par jour. Sans bras, rien ne change au bit ( aucune etiquette, aucun tirage )."""
 import collections, math, re
 import numpy as np
 from ..agents import Doctrine
@@ -81,8 +86,8 @@ class Attente:
     def __init__(self):
         self.choix = []
 
-    def poser(self, x, a):
-        self.choix.append([x, a, 0, 0.0])
+    def poser(self, x, a, bras=None):
+        self.choix.append([x, a, 0, 0.0] if bras is None else [x, a, 0, 0.0, bras])
 
     def ajouter(self, valeur):
         """Une consequence connue tout de suite ( une amende, une marge ) s ajoute au dernier choix."""
@@ -96,13 +101,13 @@ class Attente:
             e[2] += 1; e[3] += r
             (murs if e[2] >= horizon else restent).append(e)
         self.choix = restent
-        return [(x, a, s / horizon) for x, a, j, s in murs]
+        return [(e[0], e[1], e[3] / horizon, e[4] if len(e) > 4 else None) for e in murs]
 
 
 class Decideur:
     """Fait vivre un point de decision pour un groupe d agents ( une cle par agent )."""
     __slots__ = ("point", "mode", "doctrine", "rng", "attentes", "stats", "n_decisions", "echantillon", "abandonnes",
-                 "enregistreur")
+                 "enregistreur", "bras")
 
     def __init__(self, point, mode="regle", doctrine=None, rng=None, graine=0, epsilon=0.1, alpha=0.02):
         if mode not in MODES: raise ValueError(f"mode inconnu {mode!r} : {MODES}")
@@ -121,6 +126,7 @@ class Decideur:
         self.n_decisions = 0
         self.abandonnes = 0     # choix jamais notes, abandonnes a la borne ATTENTE_MAX_HORIZONS x horizon
         self.enregistreur = None   # monde/enregistreur.py : chaque choix et chaque note ( lit seulement )
+        self.bras = None           # un candidat de code en epreuve ( monde/code_a_la_demande.BrasCode ), ou rien
         self.echantillon = collections.deque(maxlen=ECHANTILLON_MAX)   # ( jour, action, note ) : pour la permutation
 
     @property
@@ -139,14 +145,21 @@ class Decideur:
 
     def decider(self, cle, contexte):
         x = self.observer(contexte)
-        if self.mode == "regle": a = self.point.regle(x[:-1], contexte)
+        bras = getattr(self, "bras", None)
+        etiquette = None
+        if bras is not None and self.mode == "regle":
+            etiquette = bras.prend(cle)
+            a = bras.decider(x[:-1], self.point) if etiquette != "regle" else None
+            if a is None: a = self.point.regle(x[:-1], contexte)
+            if etiquette != "regle" and bras.dernier_echec: etiquette = "repli"
+        elif self.mode == "regle": a = self.point.regle(x[:-1], contexte)
         elif self.mode == "temoin": a = self.point.temoin(x[:-1], contexte, self.rng)
         else: a = self.doctrine.choisir(x, explorer=self.mode != "fige")
         if not (isinstance(a, (int, np.integer)) and 0 <= a < len(self.point.actions)):
             raise ActionHorsCatalogue(f"{self.point.nom} : action {a!r} hors des {len(self.point.actions)} du catalogue")
         att = self.attentes.get(cle)
         if att is None: att = self.attentes[cle] = Attente()
-        att.poser(x, int(a))
+        att.poser(x, int(a), etiquette)
         e = getattr(self, "enregistreur", None)
         if e is not None: e.decision(self.point.nom, cle, x, a)
         if len(att.choix) > ATTENTE_MAX_HORIZONS * self.point.horizon_j:
@@ -164,7 +177,9 @@ class Decideur:
         att = self.attentes.get(cle)
         if att is None: return
         e = getattr(self, "enregistreur", None)
-        for x, a, note in att.jour(valeur, self.point.horizon_j):
+        bras = getattr(self, "bras", None)
+        for x, a, note, etiquette in att.jour(valeur, self.point.horizon_j):
+            if bras is not None and etiquette is not None: bras.noter(jour, etiquette, note)
             if self.apprend: self.doctrine.apprendre(x, a, note)
             if e is not None: e.note(self.point.nom, cle, a, note)
             s = self.stats.get((jour, a))
