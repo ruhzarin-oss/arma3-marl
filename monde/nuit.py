@@ -59,6 +59,9 @@ def main():
                    help="le code qui gouverne : un .py ( partout ) ou un dossier <Ile>.py ( 26/09 : les decisions sont du code )")
     a.add_argument("--dossier", default="/mnt/data/hmt/archipel/nuit")
     a.add_argument("--enregistrer", default=None, help="dossier ou chaque ile ecrit tout ce qui s y passe ( Parquet )")
+    a.add_argument("--code-a-la-demande", default="/mnt/data/hmt/qwen/bibliotheque",
+                   help="bibliotheque du code ecrit par Qwen ( regle 8 : branchee par defaut ) ; --sans-code pour s en passer")
+    a.add_argument("--sans-code", action="store_true")
     x = a.parse_args()
     d = x.dossier; os.makedirs(d, exist_ok=True)
     stop, inst = os.path.join(d, "STOP"), os.path.join(d, "instantane")
@@ -68,7 +71,7 @@ def main():
             t0 = time.time()
             reprise = inst if os.path.exists(os.path.join(inst, "pont.pkl")) else None
             arc = Archipel(echelle=x.echelle, ouvert=True, llm=x.llm, reprise=reprise, enregistrer=x.enregistrer,
-                           gouvernement=x.gouvernement)
+                           gouvernement=x.gouvernement, code=None if x.sans_code else x.code_a_la_demande)
             ecrire(d, {"evenement": "depart", "reprise": bool(reprise), "pas": arc.pas, "secondes": round(time.time() - t0)},
                    f"== archipel {'repris au pas ' + str(arc.pas) if reprise else 'cree'} en {time.time() - t0:.0f} s "
                    f"( {x.echelle * 500:,.0f} habitants par pays, gouvernements {'Qwen' if x.llm else ('code ' + os.path.basename(x.gouvernement)) if x.gouvernement else 'regles'} )")
