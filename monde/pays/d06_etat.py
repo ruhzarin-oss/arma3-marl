@@ -1110,6 +1110,11 @@ def _controles_du_jour(p):
     _chrono(e, "controles", t0)
 
 
+# Le rythme d impot elude d avant l installation se mesure sur au moins un trimestre ( periode de la TVA grecque ;
+# 28/09, a calibrer ) : quelques jours de demarrage extrapoles sur 5 ans faisaient des fraudes penales.
+OBSERVATION_MIN_J = 90
+
+
 def controler(p, controleur, cible, cle=None, action=-1):
     """Un controle : l impot elude du dossier est redresse ( creance de l Etat ), avec sa penalite ; ce que la caisse du
     contribuable permet est encaisse tout de suite. Le contribuable redresse cache ensuite moins. Rend le ControleOuvert."""
@@ -1130,7 +1135,7 @@ def controler(p, controleur, cible, cle=None, action=-1):
         arr = float(p.col("menage", "fisc_arrieres")[mg.id])
         # le passe : depuis le dernier controle d avant l installation, au rythme mesure depuis l installation
         avant = min(PASSE_MAX_ANS, max(0.0, (f.jour0 - int(p.col("menage", "fisc_controle_j")[mg.id])) / JOURS_AN))
-        ecoule = max(1, p.jour - f.jour0 + 1)
+        ecoule = max(OBSERVATION_MIN_J, p.jour - f.jour0 + 1)     # 28/09 : au moins un trimestre de pieces
         arr += float(elude_i.sum()) / ecoule * JOURS_AN * avant
         redr = float(elude_i.sum()) + arr
         taux = taux_penalite(float(elude_i.sum()), float(declare.sum()))

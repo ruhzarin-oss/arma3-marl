@@ -1458,6 +1458,7 @@ def licencier(p, h, motif="economique", inscrire=True):
     lst = w._par_travail.get((lieu.id, role))
     if lst is not None and h in lst: lst.remove(h)
     h.travail, h.horaire = None, None
+    h.heures_jour = 0.0                                  # la paie ne lui doit plus d heures ( ni celles du jour )
     if h.poste == "travail": h.lieu, h.poste = h.domicile, "maison"
     if inscrire:
         d.chomeurs[h.id] = [p.jour, lieu.id, role, motif]
