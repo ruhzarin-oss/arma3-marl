@@ -6,9 +6,8 @@ intègre, tranche, et tient ce fichier à jour.
 
 ## Le tronc
 
-- **Une seule branche de référence : `pays-sur-colonnes`** ( dépôt `/mnt/data/hmt/depot-colonnes` ). Au 27/09 13 h 50 elle
-  avance jusqu'à `ca0765b` ( `pays-reel-porte` ), qui contient la fusion des 27 domaines, `moteur-realiste` /
-  `moteur-perf`, `pays-reel-pop` et la guerre des îles jusqu'à G19.
+- **Une seule branche de référence : `pays-sur-colonnes`** ( dépôt `/mnt/data/hmt/depot-colonnes` ). Au 28/09 elle est certifiée à
+  `7b0be18` ( 27 domaines, prix de d03, armée du budget, population grecque, porte unique des devises, portes de la guerre ).
 - **Seul le chef de projet écrit dans le tronc**, après `bash portes.sh` = 0 porte refusée ( et `guerre/porte_guerre.py`
   pour ce qui touche la guerre ). Rien n'est poussé sur GitHub sans Younes.
 - Chaque session travaille sur **sa** branche et **son** atelier ( un worktree ), partis du tronc. Avant de demander
@@ -16,14 +15,14 @@ intègre, tranche, et tient ce fichier à jour.
   chef de projet le commit, la liste des portes et ce qui change dans le monde.
 - Un travail non commité n'existe pas pour les autres : commiter souvent, sur sa branche.
 
-## Les chantiers et qui les tient
+## Les chantiers et qui les tient ( 28/09 )
 
 | Chantier | Session | Branche | Atelier |
 |---|---|---|---|
-| Intégration, portes, références, **armée du budget** ( loi de programmation militaire, domaine 25 ) | Organisation du projet | `pays-sur-colonnes` ( tronc ), `armee-budget` | `/mnt/data/hmt/atelier-colonnes` |
-| Moteur réaliste et performant : vitesse, colonnes, identité au bit ; **la correction des prix de d03** ( couverture mesurée avant les courses, ancrage de coût de la nourriture, demande de carburant des stations ) | Moteur plus réaliste et performant | `moteur-realiste` ( `moteur-perf` y est fusionnée ) | `/mnt/data/hmt/atelier-moteur` |
-| Le pays réel : ressemblance à la Grèce ( l'instrument, terminé : `ca0765b` ), population grecque à la naissance ( mode `demographie="grece"` ) | Classes d'un pays simulé | `pays-reel-pop` ( en cours ), `pays-reel-porte` ( terminée ) | `/mnt/data/hmt/atelier-reel-pop`, `/mnt/data/hmt/atelier-reel-porte` |
-| La guerre des îles ( Arma, archipel en guerre, conseil de guerre ) ; l'autoconsommation des familles paysannes ( d09 ), le revenu minimum KEA ( d06 ), G18-G22 | Windows workstation en lab moteur | `guerre-des-iles` | `/mnt/data/hmt/atelier-guerre` |
+| Intégration, portes, références ; armée du budget ( d25 ) ; **code à la demande de Qwen** ; d17, d19 et les domaines sans titulaire ; la mesure de la faim des morts ( HMT-136 ) | Organisation du projet | `pays-sur-colonnes` ( tronc ), `qwen-service`, `faim-des-morts` | `atelier-colonnes`, `atelier-qwen`, `atelier-faim` |
+| Moteur réaliste et performant : vitesse, colonnes, identité au bit ; **prix de d03** ( plafond, inflation, ancre ) ; **d09** ( offre agricole, `test_temoin_affame`, `test_pays_nourri` ) ; d01 ( décès vectorisés ) ; le pic de faim du jour 17 | Moteur plus réaliste et performant | `moteur-realiste` | `atelier-moteur` ( + `atelier-plafond`, `atelier-deces` ) |
+| Le pays réel : ressemblance à la Grèce, population grecque ; **budgets et revenus des ménages** ( HMT-126 b à e : métiers selon les sites de l'île, émigration, épargne, ordre des dépenses ) ; l'inflation mesurée sur 90 jours ; les morts de faim dans `ressemblance.py` | Classes d'un pays simulé | `iles-metiers-emigration`, `menages-revenus` | `atelier-iles-metiers`, `atelier-menages-revenus` |
+| La guerre des îles ( Arma, archipel en guerre, conseil de Qwen ) ; **les devises** ( porte unique, priorité ) ; **HMT-126 a)** ( salarié non payé → chômeur → KEA ) ; KEA ; portes G11-G24 | Windows workstation en lab moteur | `guerre-des-iles` | `atelier-guerre` |
 
 ## Ce qui est tranché
 
@@ -51,6 +50,19 @@ intègre, tranche, et tient ce fichier à jour.
    prévenir le chef de projet. Chaque run long et chaque nuit branche les gouvernements écrits par Qwen
    ( `--gouvernement` ), et le service de code à la demande ( `plans/plan-code-a-la-demande.md` ) dès qu'il existe.
 
+9. **Une porte qui juge la faim, la pauvreté ou la santé compte les MORTS** ( 27-28/09 ). Les indicateurs ne comptaient
+   que les vivants : Malden a perdu 99 % de sa population pendant que la faim « baissait », et trois portes ont passé
+   grâce aux morts. Un ménage éteint par la faim compte affamé ( `monde.repas`, `T.faim`, HMT-136 ) ; le rapport d'un run
+   donne les morts de faim avant tout autre chiffre ; une guerre s'arrête d'elle-même au-delà de 0,5 % de morts de faim.
+10. **Une seule porte de sortie des devises** ( `d07.payer_en_devises`, HMT-131 ) : aucun paiement à l'étranger ne
+    contourne le contrôle des changes ; quand les réserves manquent, nourriture et médicaments d'abord ; l'armement n'est
+    pas essentiel par défaut ( choix à valider par Younes, HMT-132 ).
+11. **Un critère réglé après avoir vu la mesure se juge sur des graines NEUVES** ( KEA : −34 % sur les graines vues,
+    −21,6 % sur les neuves, porte refusée ). Un amendement qui rend une porte plus sévère n'en a pas besoin.
+12. **Un contrôle positif doit savoir échouer** : une porte dont le contrôle ne fait jamais échouer le critère n'est pas
+    une porte ( G24 ).
+
+
 ## Les règles techniques
 
 - Un domaine n'écrit JAMAIS dans une constante ou un tableau d'un autre module : les six îles de l'archipel séquentiel
@@ -64,17 +76,27 @@ intègre, tranche, et tient ce fichier à jour.
   sur un dossier à elle.
 - `portes.sh` n'affiche que les 8 dernières lignes d'une porte refusée : lire la sortie complète avant de conclure.
 - Messages de commit en français, avec « Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com> ».
+- **Charge de la station** : au plus DEUX gros calculs à la fois, toutes sessions confondues ( `portes.sh`, guerre dans
+  Arma, run long ), chacun annoncé au chef de projet. La station est tombée le 27/09 à 21 h 59 sous pleine charge.
+- **La station ne se met jamais en veille** : au réveil, le pilote NVIDIA ne répond plus avec Qwen chargé ( 28/09,
+  01 h 19 → 10 h 31 ). Le réglage est à Younes.
+- `portes.sh` écrit dans des fichiers PRIVÉS ( `mktemp` ) ; les tests dont l'issue suit le bruit vont dans
+  `references/tests_fragiles_pays.txt` ( ignorés dans les deux sens, rapportés à part, chacun est une dette HMT-127 ),
+  jamais dans `echecs_attendus_pays.txt`. Un test FAUX ( qui certifie des morts ) n'y va pas : il se corrige.
+- Les portes de la guerre ( `guerre/porte_guerre.py` ) et des devises sont dans `portes.sh` ( 28/09 ).
+- Lancer un calcul détaché sur la WS : `setsid nohup bash script > /dev/null 2>&1 < /dev/null &` ( sans `< /dev/null`, il
+  meurt avec la session ssh ).
+- Qwen : tâche Windows `HMT_QWEN` ( garde root sous `flock`, au démarrage puis toutes les 10 min ) ; elle relance Ollama
+  si Qwen est chargé hors de la carte graphique. Pour libérer la 3090 : prévenir le chef de projet et désactiver la tâche.
 
-## En cours ( tenu par le chef de projet )
 
-- Certifier `ca0765b` ( `portes.sh` complet ), puis y avancer `pays-sur-colonnes`.
-- `guerre-des-iles` : `a16fc92` + 6 fichiers non commités, à rebaser sur le tronc et le modèle de la faim du tronc.
-- `pays-reel-pop` : 9 fichiers non commités = le travail EN COURS de la session « Classes » ( mode `demographie="grece"` :
-  pyramide, ménages familiaux, métiers neufs à la fin de `ROLES`, ~1,4 % de militaires à la naissance ) ; personne d'autre
-  n'y touche. Défaut identique au bit.
-- Les prix doublent entre les jours 5 et 35 puis montent d'environ 140 % par an ( d03 ) : signalé à la session du
-  moteur, à suivre.
-- Armée du budget ( chef de projet ) : la loi de programmation ( 6,6 % des dépenses publiques, SIPRI ; 55 % de soldes ),
-  l'effectif payé, le plan de départs, la solde réelle des appelés. Partage convenu avec « Classes » : la part de
-  militaires À LA NAISSANCE vient de la population grecque ( ~1,4 %, contre 9,33 % dans le monde E1 par défaut ) ; d25
-  ne fait que la dynamique ( budget → effectif ), jugée par l'indicateur `part_militaires`.
+## En cours ( tenu par le chef de projet, 28/09 )
+
+Le détail vit dans Plane, module « Pays simulé — une seule direction » ( HMT-89 à HMT-137 ).
+
+- **Intégrer** la livraison du moteur ( rupture, plafond, lissage et ancre des prix, décès vectorisés ) quand son
+  `portes.sh` passe ; puis `faim-des-morts` ( HMT-136 ), `qwen-service` ( code à la demande branché par défaut dans la
+  nuit, HMT-101/102 ), `924b8b5` de la guerre ( reprise des îles d'avant les devises ).
+- **La guerre est arrêtée** ( essai22n, 562 morts de faim à Malden au jour 110, revenu fantôme ) jusqu'à HMT-126 a).
+- **Le run long** de Younes ( 100 000 habitants par île, mode grec, tout enregistré, Qwen branché ) attend HMT-126 a) et
+  la mesure des morts de faim : sans elles, il referait l'essai 21.

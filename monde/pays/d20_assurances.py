@@ -1294,8 +1294,8 @@ def _cloture(p, comptes):
     if ecoule > 0 and ecoule % DUREE_J == 0:              # le dividende annuel aux maisons meres
         for A in D.assureurs:
             if A.vivant and A.ratio > DIVIDENDE_RATIO and A.resultat > 0:
-                y = L.payer_l_exterieur(A, min(DIVIDENDE_PART * A.resultat, max(0.0, A.fp - DIVIDENDE_RATIO * A.scr)),
-                                        "dividende_assureur")
+                y = EXT.payer_en_devises(p, A, min(DIVIDENDE_PART * A.resultat, max(0.0, A.fp - DIVIDENDE_RATIO * A.scr)),
+                                         "dividende_assureur")
                 D.cpt["dividende_assureur"] += y
             A.resultat = 0.0
         _prix_elga(p, D)
@@ -1593,7 +1593,7 @@ def retirer_reassurance(p, assureur):
 def distribuer(p, assureur, montant):
     """Scenario : un dividende exceptionnel verse a la maison mere ( il reduit les fonds propres )."""
     D = _dom(p); A = D.assureurs[assureur]
-    y = p.socle.livre.payer_l_exterieur(A, montant, "dividende_assureur"); D.cpt["dividende_assureur"] += y
+    y = EXT.payer_en_devises(p, A, montant, "dividende_assureur"); D.cpt["dividende_assureur"] += y
     return y
 
 
