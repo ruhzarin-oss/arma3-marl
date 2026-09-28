@@ -137,7 +137,10 @@ class Nuit:
         return d
 
     def tourner(self):
-        signal.signal(signal.SIGTERM, lambda *a: setattr(self, "stop", True))
+        # TERM, HUP ( tmux kill-session ) et INT : la même sortie propre, table rase comprise ( 29/09 : un HUP sans
+        # gestionnaire tuait la nuit sans nettoyer ).
+        for sig in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
+            signal.signal(sig, lambda *a: setattr(self, "stop", True))
         canari_s, positions_s, point_s, patrouille_s = self.intervalles
         with CL.Labo(**self.labo_kw) as l:                # strict : le build doit être certifié
             self.noter("debut", version=l.version, journaux=taille_journaux(self.logs), memoire=memoire_command())
