@@ -83,9 +83,9 @@ def test_identite_comptable():
         if j == 6: BQ.rembourser_par_anticipation(p, pe, 1000.0)
         if j == 8: M.investir(p, e, 2000.0, fournisseur=ma)
         if j == 9: c1 = K_.constater(ma, e, 150.0, "achat intrant", p.jour)
-        if j == 11: K_.regler(c1, L)
+        if j == 11 and K_.actives.get(c1.id) is c1: K_.regler(c1, L)     # ( 28/09 : l entreprise a pu la regler elle-meme )
         if j == 12: c2 = K_.constater(ma, e, 80.0, "achat intrant", p.jour)
-        if j == 13: K_.abandonner(c2, "remise")
+        if j == 13 and K_.actives.get(c2.id) is c2: K_.abandonner(c2, "remise")
         if j == 14: M.apporter(p, e, patron, 500.0)
         if j == 15: M.reevaluer_capital(p, e, 100000.0)
         T.jours(w, 1)
@@ -344,9 +344,9 @@ def test_cout():
 
 
 def test_gerance_et_cessation():
-    """HMT-139, ecrite avant la mesure. GERANCE : une entreprise a patron, caisse de 10 000, aucun salaire en retard, paie
+    """HMT-139, ecrite avant la mesure. GERANCE : une entreprise a patron, caisse de 10 000 au-dela d une semaine de salaires, aucun salaire en retard, paie
     a son patron exactement la gerance du jour ( 3 521 euros par mois / 1,15 / 30 ), dont l impot sur le revenu va a l
-    Etat ; avec un arriere de salaire, rien ; avec 50 drachmes en caisse, 50. CESSATION ( loi 4738/2020 ) : un arriere de
+    Etat ; avec un arriere de salaire, rien ; avec 50 drachmes au-dela de la semaine de salaires, 50. CESSATION ( loi 4738/2020 ) : un arriere de
     salaire ne il y a 181 jours, au-dela de 30 000 euros et de 40 % des dettes, fait liquider l entreprise a la cloture,
     motif cessation_des_paiements, et son patron entre au registre des chomeurs ; controles : le meme ne il y a 179 jours,
     ou sous 30 000 euros, ou sous 40 % des dettes ( une dette recente plus grosse ), ne la fait pas tomber ; une ferme cooperative non plus. Conservation."""
@@ -364,7 +364,8 @@ def test_gerance_et_cessation():
             return c.unite.caisse, av_e - c.unite.caisse, h0.menage.caisse - av_m, g.caisse - av_g
         finally: d.proprietaires.update(garde)
     L = p.socle.livre
-    if e0.caisse < 10000.0: L.transferer(w.gouv, e0, 10000.0 - e0.caisse, "apport_capital")
+    plein = 10000.0 + M.RESERVE_REGLEMENT_J * c0.salaires_lisses       # la gerance se paie au-dela d une semaine de salaires
+    if e0.caisse < plein: L.transferer(w.gouv, e0, plein - e0.caisse, "apport_capital")
     _, verse, net, impot = payer_seul(c0)
     entier = abs(verse - jour) < 1e-9 and abs(net - jour * (1 - g.impot_revenu)) < 1e-9 and abs(impot - verse * g.impot_revenu) < 1e-6
     # 2. avec un arriere de salaire : rien
@@ -373,7 +374,7 @@ def test_gerance_et_cessation():
     _, verse2, _, _ = payer_seul(c0)
     K_.abandonner(cr, "test")
     # 3. caisse de 50 : 50
-    L.transferer(e0, w.gouv, e0.caisse - 50.0, "impot")
+    L.transferer(e0, w.gouv, e0.caisse - 50.0 - M.RESERVE_REGLEMENT_J * c0.salaires_lisses, "impot")
     _, verse3, _, _ = payer_seul(c0)
     gerance = entier and verse2 == 0.0 and abs(verse3 - 50.0) < 1e-9
     # 4. cessation des paiements

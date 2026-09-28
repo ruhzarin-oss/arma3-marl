@@ -45,9 +45,10 @@ sub('''def _apres_paie(p):
         h = d.proprietaires.get(c.id)
         if h is None or c.liquidee or c.nature != "entreprise" or not h.vivant or h.menage is None or dis[h.menage.id]: continue
         e = c.unite
-        if e.caisse <= 1.0: continue
+        libre = e.caisse - RESERVE_REGLEMENT_J * c.salaires_lisses     # le gerant ne vide pas la tresorerie : une semaine de
+        if libre <= 1.0: continue                                       # salaires reste ( comme pour regler les dettes )
         if any(cr.motif in MOTIFS_ARRIERES_SALAIRE for cr in K_.de(e)): continue
-        paye = L.transferer(e, h.menage, min(jour, e.caisse), "remuneration_gerance")
+        paye = L.transferer(e, h.menage, min(jour, libre), "remuneration_gerance")
         if paye > 0:
             L.transferer(h.menage, g, paye * g.impot_revenu, "impot")
             p.compter("remuneration_gerance", paye)
@@ -113,4 +114,10 @@ sub('''    L.declarer_motif("apport_capital", "financier", "economie")
 sub('''              "dividende_verse"):
 ''', '''              "dividende_verse", "remuneration_gerance"):
 ''')
+
+# 28/09 : l entreprise regle ses dettes echues
+sub('MOTIFS_ARRIERES_SALAIRE = ("salaire", "salaire public", "indemnite_licenciement")\n', 'MOTIFS_ARRIERES_SALAIRE = ("salaire", "salaire public", "indemnite_licenciement")\n# Une entreprise qui a de la caisse regle ses dettes echues ( 28/09, HMT-139 ) : chaque soir, apres les salaires, ce qui\n# depasse une semaine de salaires paie ses arrieres dans l ordre des privileges ( salaires et indemnites, puis l Etat et la\n# securite sociale, puis les fournisseurs ), les plus anciens d abord. Avant, les factures impayees un jour ( garage, TVA,\n# indemnites de licenciement ) ne l etaient jamais, meme caisse pleine : une centrale a 128 000 drachmes etait liquidee.\nRESERVE_REGLEMENT_J = 7\n')
+sub('def _gerance(p, d):', 'def _regler_dettes(p, d):\n    """18 h, apres les salaires ( et les arrieres de salaire que le domaine 4 regle a la paie ) : chaque entreprise vivante\n    regle ses dettes echues avec ce qui depasse RESERVE_REGLEMENT_J jours de salaires, par rang puis par anciennete."""\n    w = p.w; K_ = p.socle.creances; L = p.socle.livre\n    def rang(cr):\n        if cr.motif in MOTIFS_ARRIERES_SALAIRE: return 0\n        if cr.creancier is w.gouv or type(cr.creancier).__name__ == "CaisseSecuriteSociale": return 1\n        return 2\n    for c in d.unites:\n        if c.nature != "entreprise" or c.liquidee: continue\n        e = c.unite\n        dispo = e.caisse - RESERVE_REGLEMENT_J * c.salaires_lisses\n        if dispo <= 1.0: continue\n        for cr in sorted(K_.de(e), key=lambda x: (rang(x), x.nee, x.id)):\n            if dispo <= 1.0: break\n            x = K_.regler(cr, L, min(cr.montant, dispo)); dispo -= x\n            if x > 0: p.compter("dettes_reglees", x)\n\n\ndef _gerance(p, d):')
+sub('    w = p.w; d = p.domaine("economie")\n    _gerance(p, d)\n', '    w = p.w; d = p.domaine("economie")\n    _regler_dettes(p, d)\n    _gerance(p, d)\n')
+sub('              "dividende_verse", "remuneration_gerance"):\n', '              "dividende_verse", "remuneration_gerance", "dettes_reglees"):\n')
 open(f, "w").write(s); print("corrige :", f)

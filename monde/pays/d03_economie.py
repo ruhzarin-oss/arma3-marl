@@ -228,6 +228,11 @@ SEUIL_CESSATION_EUROS = 30000.0
 # permet et si aucun salaire n est en retard ( les salaires passent avant ) ; sinon le patron s en passe.
 GERANCE_EUROS_MOIS = 3521.0
 MOTIFS_ARRIERES_SALAIRE = ("salaire", "salaire public", "indemnite_licenciement")
+# Une entreprise qui a de la caisse regle ses dettes echues ( 28/09, HMT-139 ) : chaque soir, apres les salaires, ce qui
+# depasse une semaine de salaires paie ses arrieres dans l ordre des privileges ( salaires et indemnites, puis l Etat et la
+# securite sociale, puis les fournisseurs ), les plus anciens d abord. Avant, les factures impayees un jour ( garage, TVA,
+# indemnites de licenciement ) ne l etaient jamais, meme caisse pleine : une centrale a 128 000 drachmes etait liquidee.
+RESERVE_REGLEMENT_J = 7
 DECOTE_LIQUIDATION = 0.5
 INDEMNITE_JOURS = 15            # indemnite de licenciement : loi 4093/2012, ouvriers 7 a 105 jours de salaire selon
                                 # l anciennete, employes 2 a 12 mois ; l anciennete n est pas modelisee ( a calibrer )
@@ -1035,9 +1040,29 @@ def _avant_paie(p):
         c.mois["salaires_dus"] += dus; c.cumul["salaires_dus"] += dus
 
 
+def _regler_dettes(p, d):
+    """18 h, apres les salaires ( et les arrieres de salaire que le domaine 4 regle a la paie ) : chaque entreprise vivante
+    regle ses dettes echues avec ce qui depasse RESERVE_REGLEMENT_J jours de salaires, par rang puis par anciennete."""
+    w = p.w; K_ = p.socle.creances; L = p.socle.livre
+    def rang(cr):
+        if cr.motif in MOTIFS_ARRIERES_SALAIRE: return 0
+        if cr.creancier is w.gouv or type(cr.creancier).__name__ == "CaisseSecuriteSociale": return 1
+        return 2
+    for c in d.unites:
+        if c.nature != "entreprise" or c.liquidee: continue
+        e = c.unite
+        dispo = e.caisse - RESERVE_REGLEMENT_J * c.salaires_lisses
+        if dispo <= 1.0: continue
+        for cr in sorted(K_.de(e), key=lambda x: (rang(x), x.nee, x.id)):
+            if dispo <= 1.0: break
+            x = K_.regler(cr, L, min(cr.montant, dispo)); dispo -= x
+            if x > 0: p.compter("dettes_reglees", x)
+
+
 def _gerance(p, d):
-    """18 h, apres les salaires : chaque entreprise vivante paie a son patron sa remuneration de gerance du jour, si sa
-    caisse le permet et si elle ne doit aucun salaire ; l impot sur le revenu comme pour les dividendes."""
+    """18 h, apres les salaires et les dettes echues : chaque entreprise vivante paie a son patron sa remuneration de
+    gerance du jour, sur ce qui depasse une semaine de salaires et si elle ne doit aucun salaire ; l impot sur le revenu
+    comme pour les dividendes."""
     w = p.w; L = p.socle.livre; g = w.gouv; K_ = p.socle.creances
     dis = p.col("menage", "dissous")
     jour = GERANCE_EUROS_MOIS / _euros_par_drachme() / MOIS_J
@@ -1045,9 +1070,10 @@ def _gerance(p, d):
         h = d.proprietaires.get(c.id)
         if h is None or c.liquidee or c.nature != "entreprise" or not h.vivant or h.menage is None or dis[h.menage.id]: continue
         e = c.unite
-        if e.caisse <= 1.0: continue
+        libre = e.caisse - RESERVE_REGLEMENT_J * c.salaires_lisses     # le gerant ne vide pas la tresorerie : une semaine de
+        if libre <= 1.0: continue                                       # salaires reste ( comme pour regler les dettes )
         if any(cr.motif in MOTIFS_ARRIERES_SALAIRE for cr in K_.de(e)): continue
-        paye = L.transferer(e, h.menage, min(jour, e.caisse), "remuneration_gerance")
+        paye = L.transferer(e, h.menage, min(jour, libre), "remuneration_gerance")
         if paye > 0:
             L.transferer(h.menage, g, paye * g.impot_revenu, "impot")
             p.compter("remuneration_gerance", paye)
@@ -1065,6 +1091,7 @@ def _apres_paie(p):
     """18 h : ce que la paie a verse a chaque menage entre dans son revenu lisse ; une entreprise que la paie a videe a
     une tresorerie nulle. ( 28/09 : la gerance du patron est payee d abord, et entre dans son revenu lisse. )"""
     w = p.w; d = p.domaine("economie")
+    _regler_dettes(p, d)
     _gerance(p, d)
     if d.caisses_1750 is not None:
         n = len(d.caisses_1750)
@@ -1658,7 +1685,7 @@ def installer(p):
     J.declarer("licenciement", "economie", "individuel", ("habitant", "unite", "motif"))
     J.declarer("embauche", "economie", "individuel", ("habitant", "unite"))
     for t in ("achat_menages", "rupture_de_stock", "demande_en_attente", "achat_durable", "credit_economie",
-              "dividende_verse", "remuneration_gerance"):
+              "dividende_verse", "remuneration_gerance", "dettes_reglees"):
         J.declarer(t, "economie", "compte")
     cm = p.colonnes["menage"]
     for nom, dt, defaut in (("eco_revenu", np.float64, 0.0), ("eco_equipement", np.float64, 0.0),
