@@ -830,10 +830,11 @@ def main():
     rien = float(np.abs(recu[riche | aise]).max(initial=0.0)) < 1e-9
     etat = abs((g0 - w21.gouv.caisse) - float(recu.sum())) < 1e-6
     w0_21 = creer_ile("Stratis", 1, 4.0); T20.jours(w0_21, 3)
-    sans21 = not any(f is ET21._revenu_minimum for fs in w0_21.pays.routines.values() for _, _, f in fs)
+    # ( 28/09 ) le KEA est branche par defaut dans tous les mondes ( chef de projet ; la Grece l a depuis 2017 )
+    sans21 = any(f is ET21._revenu_minimum for fs in w0_21.pays.routines.values() for _, _, f in fs)
     print(f"   revenu minimum : {int((attendu > 0).sum())} menages eligibles sur {M21}, {float(recu.sum()):.0f} verses ; exact {kea_exact}, "
-          f"rien aux riches et aux aises {rien}, Etat {etat}, branche dans aucune ile {sans21}", flush=True)
-    ok["G21 le versement exact ; rien aux riches ni aux aises ; l Etat paie ; branche dans aucune ile"] = kea_exact and rien and etat and sans21
+          f"rien aux riches et aux aises {rien}, Etat {etat}, branche dans toute ile neuve {sans21}", flush=True)
+    ok["G21 le versement exact ; rien aux riches ni aux aises ; l Etat paie ; branche dans toute ile neuve"] = kea_exact and rien and etat and sans21
     # G23
     arc23 = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False); w23 = arc23.iles["Malden"].w
     vus23 = []
