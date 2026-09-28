@@ -1,6 +1,6 @@
 """28/09 ( HMT-139 ) : le patron d une entreprise tire une remuneration de gerance, charge d exploitation versee avant tout
 dividende ; une entreprise en cessation des paiements au sens de la loi grecque ( 4738/2020 ) est liquidee, et son patron
-entre au registre des chomeurs. Idempotent.   python patch_patrons.py <racine>"""
+entre au registre des chomeurs. Idempotent.   python patch_gerance_cessation.py <racine>"""
 import os, sys
 racine = sys.argv[1]
 f = os.path.join(racine, "monde", "pays", "d03_economie.py"); s = open(f).read()
