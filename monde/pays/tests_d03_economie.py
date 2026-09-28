@@ -343,5 +343,63 @@ def test_cout():
                 f"{propre / n * 1e6:.1f} us par habitant")
 
 
+def test_gerance_et_cessation():
+    """HMT-139, ecrite avant la mesure. GERANCE : une entreprise a patron, caisse de 10 000, aucun salaire en retard, paie
+    a son patron exactement la gerance du jour ( 3 521 euros par mois / 1,15 / 30 ), dont l impot sur le revenu va a l
+    Etat ; avec un arriere de salaire, rien ; avec 50 drachmes en caisse, 50. CESSATION ( loi 4738/2020 ) : un arriere de
+    salaire ne il y a 181 jours, au-dela de 30 000 euros et de 40 % des dettes, fait liquider l entreprise a la cloture,
+    motif cessation_des_paiements, et son patron entre au registre des chomeurs ; controles : le meme ne il y a 179 jours,
+    ou sous 30 000 euros, ou sous 40 % des dettes ( une dette recente plus grosse ), ne la fait pas tomber. Conservation."""
+    w, p = T.monde(["economie"]); T.jours(w, 1)
+    d = p.domaine("economie"); K_ = p.socle.creances; g = w.gouv
+    ents = [c for c in d.unites if c.nature == "entreprise" and d.proprietaires.get(c.id) is not None and not c.liquidee]
+    jour = M.GERANCE_EUROS_MOIS / M._euros_par_drachme() / M.MOIS_J
+    c0 = ents[0]; e0 = c0.unite; h0 = d.proprietaires[c0.id]
+    # 1. gerance entiere
+    def payer_seul(c):
+        garde = {x.id: d.proprietaires.pop(x.id) for x in ents if x is not c and x.id in d.proprietaires}
+        try:
+            av_m, av_g, av_e = h0.menage.caisse, g.caisse, c.unite.caisse
+            M._gerance(p, d)
+            return c.unite.caisse, av_e - c.unite.caisse, h0.menage.caisse - av_m, g.caisse - av_g
+        finally: d.proprietaires.update(garde)
+    L = p.socle.livre
+    if e0.caisse < 10000.0: L.transferer(w.gouv, e0, 10000.0 - e0.caisse, "apport_capital")
+    _, verse, net, impot = payer_seul(c0)
+    entier = abs(verse - jour) < 1e-9 and abs(net - jour * (1 - g.impot_revenu)) < 1e-9 and abs(impot - verse * g.impot_revenu) < 1e-6
+    # 2. avec un arriere de salaire : rien
+    creancier = next(m for m in w.menages if m is not h0.menage)
+    cr = K_.constater(creancier, e0, 100.0, "salaire", p.jour)
+    _, verse2, _, _ = payer_seul(c0)
+    K_.abandonner(cr, "test")
+    # 3. caisse de 50 : 50
+    L.transferer(e0, w.gouv, e0.caisse - 50.0, "impot")
+    _, verse3, _, _ = payer_seul(c0)
+    gerance = entier and verse2 == 0.0 and abs(verse3 - 50.0) < 1e-9
+    # 4. cessation des paiements
+    seuil = M.SEUIL_CESSATION_EUROS / M._euros_par_drachme()
+    def essai(age, montant, recente=0.0):
+        w2, p2 = T.monde(["economie"]); T.jours(w2, 1)
+        d2 = p2.domaine("economie"); K2 = p2.socle.creances
+        c = next(x for x in d2.unites if x.nature == "entreprise" and d2.proprietaires.get(x.id) is not None)
+        h = d2.proprietaires[c.id]
+        cr = next(m for m in w2.menages if m is not h.menage)
+        K2.constater(cr, c.unite, montant, "salaire", p2.jour - age)
+        if recente > 0: K2.constater(cr, c.unite, recente, "fournisseur", p2.jour)
+        M._faillites(p2, d2)
+        chom = h.id in d2.chomeurs and d2.chomeurs[h.id][3] == "faillite_de_son_entreprise"
+        return c.liquidee, chom and c.id not in d2.proprietaires, p2.socle.conservation.tenue()[0]
+    tombe, chomeur, tenue = essai(181, seuil * 1.01)
+    jeune = essai(179, seuil * 1.01)[0]
+    petit = essai(181, seuil * 0.99)[0]
+    minoritaire = essai(181, seuil * 1.01, recente=seuil * 2.0)[0]
+    tenue0 = p.socle.conservation.tenue()[0]
+    ok = gerance and tombe and chomeur and not jeune and not petit and not minoritaire and tenue and tenue0
+    return ok, (f"gerance : du jour {jour:.2f} dr, versee {verse:.2f}, net au menage {net:.2f}, impot {impot:.2f} ; avec un "
+                f"arriere de salaire {verse2:.2f} ; caisse de 50 : {verse3:.2f} | cessation : 181 j et {seuil * 1.01:.0f} dr -> "
+                f"liquidee {tombe}, patron chomeur {chomeur} ; 179 j -> {jeune} ; sous le seuil -> {petit} ; sous 40 % -> "
+                f"{minoritaire} ; conservation {tenue and tenue0}")
+
+
 TESTS = [test_budget_parts, test_identite_comptable, test_faillite, test_chomage, test_prix_choc_de_demande,
-         test_commerces_fermes, test_credit, test_recalibrage, test_part_du_choix, test_pays_vivable, test_cout]
+         test_commerces_fermes, test_credit, test_recalibrage, test_part_du_choix, test_pays_vivable, test_cout, test_gerance_et_cessation]
