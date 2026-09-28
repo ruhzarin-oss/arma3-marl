@@ -1549,11 +1549,22 @@ def _cotisations_independants(p, d, agg):
     """Fin de mois : chaque independant en activite paie sa categorie ; un impaye est une dette envers la caisse, et le
     mois n est credite qu a proportion de ce qui est paye."""
     w = p.w; col = p.colonnes["habitant"]; st = col["tr_statut"]; tb = w.table; n = tb.n
+    # HMT-126 : le menage paie sa cotisation sur ce qu il a au-dela de sa semaine de nourriture ( domaine 3,
+    # reserve_alimentaire ) ; le reste est une dette envers la caisse. Le reel : la cotisation minimale de l e-EFKA est due
+    # meme sans revenu, et les arrieres sont massifs - 49,3 milliards d euros de cotisations impayees fin 2024, ~2,1
+    # millions de debiteurs, recouvres par le KEAO ( rapport trimestriel du KEAO, via insider.gr ). Le patron ou
+    # l independant sans revenu s endette envers la caisse ; il ne saute pas ses repas.
+    res = ECO.plancher_discretionnaire(p)            # 7 jours ; 90 sans revenu qui nourrit ( HMT-126 e )
     # EN COLONNES ( 24/09 ) : les independants en activite trouves en vecteurs, payes dans l ordre des numeros
     for i in np.nonzero((tb.vivant[:n] == 1) & (st[:n] == INDEPENDANT) & (tb.travail[:n] >= 0))[0].tolist():
         m = COTISATION_INDEPENDANT_MOIS.get(_role_de(tb, i))
         if m is None: continue
-        paye, du = _payer(p, _menage_de(tb, i), d.caisse, m, "cotisation_independant")
+        mg = _menage_de(tb, i)
+        libre = max(0.0, mg.caisse - (float(res[mg.id]) if mg.id < len(res) else 0.0))
+        paye = p.socle.livre.transferer(mg, d.caisse, min(m, libre), "cotisation_independant")
+        du = m - paye
+        if du > TOL: p.socle.creances.constater(d.caisse, mg, du, "cotisation_independant", p.jour)
+        else: du = 0.0
         _cote(p, d, "cotisation_independant", paye)
         f = paye / m
         col["tr_jours_cotises"][i] += JOURS_ASSURANCE_MOIS * f

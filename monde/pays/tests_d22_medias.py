@@ -416,7 +416,47 @@ def test_cout():
                 f"{n10} habitants {t10:.2f} s, {n100} habitants {t100:.2f} s ( x{t100 / t10:.1f} )")
 
 
+def test_telephone_apres_nourriture():
+    """Porte ( HMT-126 e, seuils ecrits avant la mesure ) - controle positif : le jour de sa facture, un menage abonne au
+    revenu suffisant qui n a que 1 drachme au-dela de ses 14 jours de nourriture AU PRIX DE SON MARCHE ( domaine 3 ) paie
+    cette drachme, garde ses 14 jours et prend un mois de retard ; prix de la nourriture double a la main, la reserve
+    double avec lui ( a 4 drachmes fixes, elle ne bougeait pas ) ; un menage SANS revenu qui a 30 jours de nourriture en
+    caisse ne paie rien ( son plancher : 90 jours ) et prend un mois de retard. Falsificateur : un menage aise paie toute
+    sa facture."""
+    from . import d03_economie as EC
+    w, p = T.monde(["medias"])
+    d = M._dom(p); cm = p.colonnes["menage"]; L = p.socle.livre
+    T.jours(w, 1)
+    nm = len(w.menages)
+    ks = [k for k in range(nm) if k % M.MOIS_J == p.jour % M.MOIS_J and cm["tel_operateur"][k] >= 0
+          and any(x.vivant for x in w.menages[k].membres)]
+    A, B, C_ = ks[0], ks[1], ks[2]
+    for m in w.marches.values(): m.prix["nourriture"] *= 2.0
+    jour = EC.reserve_alimentaire(p, 1)
+    EC.revenu_recent(p, nm)                           # le revenu qui decide : celui des 30 derniers jours
+    for k, r in ((A, 10.0 * jour[A]), (B, 1000.0), (C_, 0.0)): cm["eco_revenu_30"][k] = r; cm["eco_revenu_30_n"][k] = 30
+    res = M.RESERVE_J * jour
+    mA, mB, mC = w.menages[A], w.menages[B], w.menages[C_]
+
+    def poser(mg, x):
+        if mg.caisse > x: L.transferer(mg, w.gouv, mg.caisse - x, "amende")
+        else: L.recevoir_de_l_exterieur(mg, x - mg.caisse, "epargne_initiale")
+    poser(mA, res[A] + 1.0); poser(mB, 100000.0); poser(mC, 30.0 * jour[C_])
+    ra, rb, rc, cb0, cc0 = int(cm["tel_retard"][A]), int(cm["tel_retard"][B]), int(cm["tel_retard"][C_]), mB.caisse, mC.caisse
+    M._facturer(p, d)
+    a_ok = abs(mA.caisse - res[A]) <= 1e-6 and int(cm["tel_retard"][A]) == ra + 1
+    b_ok = cb0 - mB.caisse > 1.0 and int(cm["tel_retard"][B]) == 0
+    c_ok = abs(mC.caisse - cc0) <= 1e-9 and int(cm["tel_retard"][C_]) == rc + 1
+    fixe = M.RESERVE_J * M.RATION_DR * sum(1 for x in mA.membres if x.vivant)
+    tenue, msg = p.socle.conservation.tenue()
+    ok = a_ok and b_ok and c_ok and res[A] > 1.5 * fixe and tenue
+    return ok, (f"prix double : reserve de 14 jours {res[A]:.1f} ( a 4 drachmes fixes : {fixe:.1f} ) ; revenu suffisant, 1 drachme "
+                f"de libre : reserve gardee {abs(mA.caisse - res[A]) <= 1e-6}, retard {int(cm['tel_retard'][A])} ; sans revenu, 30 "
+                f"jours en caisse : paye {cc0 - mC.caisse:.2f}, retard {int(cm['tel_retard'][C_])} ; menage aise : paye "
+                f"{cb0 - mB.caisse:.2f}, retard {int(cm['tel_retard'][B])} ; {msg}")
+
+
 TESTS = [test_equipement_et_contacts, test_vitesse_rumeur, test_deformation_relais, test_deformation_chaine,
          test_jamais_antidatee,
          test_individus_et_groupes, test_publication_accelere, test_credibilite_fausse_nouvelle, test_panne_coupe_telecom, test_decision,
-         test_facturation_et_argent, test_porte_commune, test_cout]
+         test_facturation_et_argent, test_porte_commune, test_cout, test_telephone_apres_nourriture]

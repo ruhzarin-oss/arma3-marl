@@ -16,7 +16,9 @@ FICHE
    pensions ), fisc_retenu ( impot preleve ou mis en recouvrement ), fisc_cache ( revenu non salarial NON declare :
    la verite cachee ), fisc_enfants ( enfants a charge ). Par menage : fisc_propension ( part du revenu non salarial
    que le menage ne declare pas : cachee ), fisc_arrieres ( impot elude des exercices clos : cache ), fisc_controle_j,
-   fisc_redresse, fisc_ns_n ( apporteurs non salaries ), fisc_nonsal_ema et fisc_revenu_ema ( declarations lissees ).
+   fisc_redresse, fisc_ns_n ( apporteurs non salaries ), fisc_nonsal_ema et fisc_revenu_ema ( declarations lissees ),
+   fisc_ins_mois, fisc_ins_debit, fisc_ins_laisse ( l insaisissable du mois : son mois civil, ce que le menage a debite
+   de sa caisse depuis sa premiere saisie du mois, ce que la derniere saisie lui a laisse ).
 2. Invariants. Le domaine ne DETIENT ni argent ni bien : le Tresor est la caisse du Gouvernement du moteur ( famille
    `gouvernement` du registre ) ; les titres et les avances sont des objets du domaine 2 ; les redressements et les
    impots impayes sont des creances du socle ( creancier : le Gouvernement ). Tout paiement passe par le grand livre.
@@ -210,7 +212,18 @@ def note_controle(net):
 REF_REVENU_J = 200.0              # drachmes par jour : un revenu declare au-dela est un gros dossier
 REF_CA_MOIS = 60000.0             # drachmes par mois : un chiffre d affaires au-dela est un gros dossier
 PART_SAISIE = 0.5                 # part de ce qui est saisissable prise chaque jour ( a calibrer )
-RESERVE_INSAISISSABLE_J = 7       # jours de nourriture laisses au menage
+# ( 28/09, HMT-126 e, decision du chef de projet ) L INSAISISSABLE COPIE LA LOI. Les depots en banque, sur un compte
+# individuel ou joint, sont insaisissables jusqu a 1 250 euros PAR MOIS, pour CHAQUE PERSONNE PHYSIQUE, dans une seule
+# banque ( Code de recouvrement des recettes publiques, KEDE, loi 4978/2022, art. 33 par. 2 ; le compte est declare a
+# l AADE ; l article 31 du code regle la procedure des saisies en banque ). Par mois : sous saisie, la banque laisse la
+# personne debiter au plus ce montant dans le mois civil et verse le reste au fisc. La caisse d un menage est faite des
+# depots de ses adultes : chacun y garde son insaisissable ( un menage sans adulte : chacun de ses membres ). Le salaire
+# saisi chez l employeur ( meme article, par. 1 : insaisissable sous 1 000 euros par mois, la moitie saisissable de
+# 1 000 a 1 500, le tout au-dela ) n est pas modelise : le fisc du monde saisit les caisses, pas les paies. Montant de
+# 2024, l annee des references ( annonce du 5 juin 2026 : 1 600 euros ). Avant ( 28/09 matin ) : une semaine de
+# nourriture, 90 jours sans revenu - un plancher de nourriture, pas la loi.
+INSAISISSABLE_EUROS_MOIS = 1250.0
+AGE_MAJEUR = 18.0                 # la majorite civile ( code civil, art. 127 ) : le titulaire d un compte a soi
 
 # ================================================================== le gouvernement : actions bornees
 BORNES_INTENSITE = (0.5, 3.0)
@@ -368,7 +381,7 @@ class Fisc:
         self.revenus = {k: 0.0 for k in ("salaires", "pensions", "non_salarial", "declare", "non_attribue")}
         self.compte = {k: 0.0 for k in ("retenue_ir", "remboursement_ir", "impot_societes", "is_elude", "dividendes",
                                          "redressements", "penalites", "recouvre", "controles", "controles_positifs")}
-        self.notes = deque(maxlen=20000)   # ( jour ou la note murit, critere, note, drachmes nettes ) : la mesure
+        self.notes = deque(maxlen=20000)   # ( jour ou la note murit, critere, note, drachmes nettes, saisissable ) : la mesure
 
     def jours_exercice(self, jour):
         return jour - self.debut + 1, self.fin - self.debut + 1
@@ -379,13 +392,14 @@ class ControleOuvert:
       encaisse, total   drachmes entrees depuis la derniere note ; depuis le controle ( notees )
       action            le dossier choisi ( indice ), -1 hors du point de decision"""
     __slots__ = ("cle", "controleur", "cible", "creances", "jour", "encaisse", "total", "jours", "redressement",
-                 "penalite", "action")
+                 "penalite", "action", "saisissable")
 
     def __init__(self, cle, controleur, cible, jour, action=-1):
         self.cle, self.controleur, self.cible, self.jour, self.action = cle, controleur, cible, jour, action
         self.creances = []
         self.encaisse = self.total = self.redressement = self.penalite = 0.0
         self.jours = 0
+        self.saisissable = 0.0      # ce que le fisc pouvait saisir chez la cible au moment du controle ( drachmes )
 
 
 class Tresor:
@@ -554,15 +568,67 @@ def _marche_des_lieux(w):
     return np.array([l.marche.n if l.marche is not None else -1 for l in w.carte.par_n] + [-1], dtype=np.int64)
 
 
-def _saisissable(p, deb):
-    """Ce que le fisc peut prendre aujourd hui : la moitie de la caisse, au-dela d une semaine de nourriture pour un menage."""
-    w = p.w
+def _saisissable(p, deb, armer=True):
+    """Ce que le fisc peut prendre aujourd hui : la moitie de ce qui depasse l insaisissable de la loi pour un menage
+    ( `insaisissable` ), la moitie de la caisse pour une entreprise. `armer` faux : une lecture, sans ouvrir le mois."""
     if type(deb) is PO.Menage:
         if p.col("menage", "dissous")[deb.id]: return 0.0
-        prix = w.marches[deb.domicile.marche.id].prix["nourriture"] * (1.0 + w.gouv.tva)
-        reserve = RESERVE_INSAISISSABLE_J * _vivants(deb) * C.NOURRITURE_PAR_JOUR * prix
-        return max(0.0, PART_SAISIE * (deb.caisse - reserve))
+        return max(0.0, PART_SAISIE * (deb.caisse - insaisissable(p, deb, armer)))
     return max(0.0, PART_SAISIE * deb.caisse)
+
+
+def _mois_civil(p):
+    d = _date(p, p.jour)
+    return d.year * 12 + d.month - 1
+
+
+def titulaires(p, mg):
+    """Les personnes dont les depots font la caisse d un menage : ses adultes vivants ; un menage sans adulte, ses
+    membres vivants ( KEDE art. 33 par. 2 : l insaisissable vaut pour chaque personne physique )."""
+    mt = mg._mt
+    if type(mt) is PO.TableMenages:
+        v = mt.h.vivant; ids = [i for i in mt.membres_ids(mg.id) if v[i]]
+    else: ids = [x.id for x in mg.membres if x.vivant]
+    ch = p.colonnes["habitant"]
+    if ids and "naissance_j" in ch:
+        age = (p.jour - ch["naissance_j"][np.asarray(ids, dtype=np.int64)].astype(np.float64)) / 365.0
+        adultes = int((age >= AGE_MAJEUR).sum())
+        if adultes > 0: return adultes
+    return len(ids)
+
+
+def insaisissable(p, mg, armer=True):
+    """Ce que la loi laisse a un menage sur sa caisse, aujourd hui : 1 250 euros ( convertis ) par titulaire pour le mois
+    civil, moins ce qu il a deja debite ce mois-ci depuis sa premiere saisie du mois ( `_compter_debits` ). La premiere
+    saisie d un mois ouvre le compte du mois ( `armer` )."""
+    cm = p.colonnes["menage"]; i = mg.id
+    plafond = INSAISISSABLE_EUROS_MOIS / EUROS_PAR_DRACHME * titulaires(p, mg)
+    mois = _mois_civil(p)
+    if int(cm["fisc_ins_mois"][i]) != mois:
+        if not armer: return plafond
+        cm["fisc_ins_mois"][i] = mois; cm["fisc_ins_debit"][i] = 0.0; cm["fisc_ins_laisse"][i] = np.nan
+    return max(0.0, plafond - float(cm["fisc_ins_debit"][i]))
+
+
+def _compter_debits(p, caisses):
+    """17 h 50, avant la paie : ce que chaque menage saisi ce mois-ci a debite de sa caisse depuis la saisie d hier soir
+    ( ce qu elle lui avait laisse, moins sa caisse ). Une entree hors paie dans la journee en cache une part : les
+    debits comptes sont une borne basse, a l avantage du menage."""
+    cm = p.colonnes["menage"]; n = len(caisses); cm.assurer(n)
+    laisse = cm["fisc_ins_laisse"][:n]
+    sel = (cm["fisc_ins_mois"][:n] == _mois_civil(p)) & ~np.isnan(laisse)
+    if sel.any():
+        debit = cm["fisc_ins_debit"][:n]
+        debit[sel] += np.maximum(0.0, laisse[sel] - caisses[sel])
+        laisse[sel] = np.nan
+
+
+def _noter_laisse(p):
+    """18 h 20, apres les saisies du fisc : ce que la caisse de chaque menage saisi ce mois-ci garde ( le depart de ses
+    debits jusqu a demain 17 h 50 )."""
+    w = p.w; cm = p.colonnes["menage"]; n = len(w.menages); cm.assurer(n)
+    sel = cm["fisc_ins_mois"][:n] == _mois_civil(p)
+    if sel.any(): cm["fisc_ins_laisse"][:n][sel] = w.table.menages.caisse[:n][sel]
 
 
 def _date(p, jour):
@@ -708,6 +774,7 @@ def _photo_paie(p, cle, donnees):
     t0 = time.perf_counter()
     e = _etat(p); f = e.fisc; w = p.w
     f.caisse_1750 = w.table.menages.caisse[:len(w.menages)].copy()
+    _compter_debits(p, f.caisse_1750)                     # l insaisissable du mois ( KEDE art. 33 par. 2 )
     tb = w.table
     f.heures_1750 = np.where(tb.vivant[:tb.n] == 1, tb.heures[:tb.n], 0.0)      # colonnes du moteur ( 24/09 )
     p.poser(C.PAS_PAR_JOUR - 1, "etat_photo_paie", 0)     # servie apres le pas : w.pas est deja le suivant
@@ -1110,6 +1177,11 @@ def _controles_du_jour(p):
     _chrono(e, "controles", t0)
 
 
+# Le rythme d impot elude d avant l installation se mesure sur au moins un trimestre ( periode de la TVA grecque ;
+# 28/09, a calibrer ) : quelques jours de demarrage extrapoles sur 5 ans faisaient des fraudes penales.
+OBSERVATION_MIN_J = 90
+
+
 def controler(p, controleur, cible, cle=None, action=-1):
     """Un controle : l impot elude du dossier est redresse ( creance de l Etat ), avec sa penalite ; ce que la caisse du
     contribuable permet est encaisse tout de suite. Le contribuable redresse cache ensuite moins. Rend le ControleOuvert."""
@@ -1130,7 +1202,7 @@ def controler(p, controleur, cible, cle=None, action=-1):
         arr = float(p.col("menage", "fisc_arrieres")[mg.id])
         # le passe : depuis le dernier controle d avant l installation, au rythme mesure depuis l installation
         avant = min(PASSE_MAX_ANS, max(0.0, (f.jour0 - int(p.col("menage", "fisc_controle_j")[mg.id])) / JOURS_AN))
-        ecoule = max(1, p.jour - f.jour0 + 1)
+        ecoule = max(OBSERVATION_MIN_J, p.jour - f.jour0 + 1)     # 28/09 : au moins un trimestre de pieces
         arr += float(elude_i.sum()) / ecoule * JOURS_AN * avant
         redr = float(elude_i.sum()) + arr
         taux = taux_penalite(float(elude_i.sum()), float(declare.sum()))
@@ -1151,6 +1223,7 @@ def controler(p, controleur, cible, cle=None, action=-1):
         if redr > EPS: dos.redresse += 1; dos.propension *= DISSUASION
     penal = taux * redr
     o.redressement, o.penalite = redr, penal
+    o.saisissable = _saisissable(p, debiteur, armer=False)
     for montant, motif in ((redr, "redressement_fiscal"), (penal, "penalite_fiscale")):
         if montant > 1e-6:
             cr = K.constater(w.gouv, debiteur, montant, motif, p.jour)
@@ -1188,6 +1261,7 @@ def _recouvrer(p):
             if o is not None: o.encaisse += x
         if actives.get(cr.id) is cr: garde.append(cr)
     f.creances = garde
+    _noter_laisse(p)
     dec = e.decideur
     H = dec.point.horizon_j
     for cle in list(f.controles):
@@ -1200,7 +1274,7 @@ def _recouvrer(p):
         note = note_controle(o.total - COUT_CONTROLE)
         dec.noter(cle, note * H if mur else 0.0, p.jour)
         if mur:
-            if o.action >= 0: f.notes.append((p.jour, o.action, note, o.total - COUT_CONTROLE))
+            if o.action >= 0: f.notes.append((p.jour, o.action, note, o.total - COUT_CONTROLE, o.saisissable))
             dec.attentes.pop(cle, None); del f.controles[cle]
     _chrono(e, "recouvrer", t0)
 
@@ -1816,14 +1890,16 @@ class RemplaceSitrep:
 
 
 # ================================================================== API pour les autres domaines
-def percevoir(p, payeur, montant, impot):
+def percevoir(p, payeur, montant, impot, plafond=None):
     """Un impot ou une redevance d un autre domaine ( enfia, taxe_locale, droits_permis, droit_de_douane, tva_import ),
-    paye a l Etat ; ce que la caisse ne couvre pas devient une creance de l Etat. Rend ( paye, creance ou None )."""
+    paye a l Etat ; ce que la caisse ne couvre pas devient une creance de l Etat. `plafond` : ce que le payeur peut y
+    mettre ( un menage garde sa semaine de nourriture, HMT-126 ) ; le reste devient aussi une creance. Rend ( paye,
+    creance ou None )."""
     if impot not in ("enfia", "taxe_locale", "droits_permis", "droit_de_douane", "tva_import"):
         raise ValueError(f"impot inconnu {impot!r}")
     if not 0.0 <= montant < math.inf: raise ValueError(f"montant invalide {montant!r}")
     e = _etat(p); w = p.w
-    paye = p.socle.livre.transferer(payeur, w.gouv, montant, impot)
+    paye = p.socle.livre.transferer(payeur, w.gouv, montant if plafond is None else min(montant, max(0.0, plafond)), impot)
     cr = None
     if montant - paye > 1e-6:
         cr = p.socle.creances.constater(w.gouv, payeur, montant - paye, impot, p.jour); e.fisc.creances.append(cr)
@@ -1926,7 +2002,8 @@ def installer(p):
     for nom, dt_, defaut in (("fisc_propension", np.float32, 0.0), ("fisc_arrieres", np.float64, 0.0),
                              ("fisc_controle_j", np.int32, -100000), ("fisc_redresse", np.int16, 0),
                              ("fisc_ns_n", np.int16, 0), ("fisc_nonsal_ema", np.float64, 0.0),
-                             ("fisc_revenu_ema", np.float64, 0.0)):
+                             ("fisc_revenu_ema", np.float64, 0.0), ("fisc_ins_mois", np.int32, -1),
+                             ("fisc_ins_debit", np.float64, 0.0), ("fisc_ins_laisse", np.float64, np.nan)):
         cm.ajouter(nom, dt_, defaut)
     ch.assurer(len(w.habitants)); cm.assurer(len(w.menages))
     debut = p.jour

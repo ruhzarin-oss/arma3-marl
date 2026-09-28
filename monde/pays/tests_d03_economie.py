@@ -61,6 +61,74 @@ def test_budget_parts():
                 + ", ".join(f"{x:.1%}" for x in q) + f" ( Engel x{engel:.1f} ) ; prix double : part {s1:.0%} -> {s2:.0%}")
 
 
+def test_services_marchands_et_usure():
+    """Porte ( HMT-126, seuils ecrits avant la mesure ). Fonction pure : trois menages, deux divisions ( habillement,
+    restauration ), parts marchandes 1 et 0,5 : l envie vaut 30 x 1 + 20 x 0,5 = 40 drachmes par jour, 80 pour deux jours ;
+    bornee a la caisse moins son plancher ( 200 - 150 = 50 ; 100 - 150 : rien ) ; rien pour qui ne fait pas
+    ses courses. Controle positif, le pays : seul le domaine 3 installe ( aucun fournisseur de logement, de loisirs, de
+    restauration ), tout le budget non servi est marchand ( parts 1 ) ; un jour ouvre, les menages achetent des biens et
+    services marchands, le commerce reverse a l Etat exactement ttc x t / ( 1 + t ) de TVA, et aucun menage qui en achete ne
+    descend sous sa semaine de nourriture ni sous son tampon de precaution ( sur son revenu permanent ) ; l equipement d un menage qui ne renouvelle pas perd 1 / 3 650 de sa valeur par
+    jour. Falsificateurs : avec les domaines fournisseurs, la part marchande de la restauration est 0,5, celle du
+    logement 0, celle de l habillement 1 ; un menage ramene a sa semaine de nourriture n achete rien de marchand."""
+    att = np.zeros((3, M.K)); ih, ir = M.NOMS_CATEGORIES.index("habillement"), M.NOMS_CATEGORIES.index("restauration")
+    att[:, ih] = 30.0; att[:, ir] = 20.0
+    pm = np.zeros(M.K); pm[ih] = 1.0; pm[ir] = 0.5
+    voulu, ttc = M.achats_marchands(att, pm, np.array([2.0, 1.0, 1.0]), np.array([True, True, False]),
+                                    np.array([200.0, 100.0, 500.0]), np.array([150.0, 150.0, 150.0]))
+    pur = list(voulu) == [80.0, 40.0, 0.0] and list(ttc) == [50.0, 0.0, 0.0]
+    w, p = T.monde(["economie"])
+    d = p.domaine("economie"); L = p.socle.livre; g = w.gouv
+    T.jours(w, 3)                                         # le 18 juin 2035, un lundi
+    _avancer(w, 12)                                       # 18 h : la paie est passee
+    n = len(w.menages); v, _ = M._tableaux_menages(p)
+    ok_m = (v > 0) & (p.col("menage", "dissous")[:n] == 0)
+    reserve = M.reserve_alimentaire(p)
+    ids = np.nonzero(ok_m)[0]
+    pauvre = int(ids[0])
+    L.transferer(w.menages[pauvre], g, max(0.0, w.menages[pauvre].caisse - float(reserve[pauvre])), "amende")
+    E = p.col("menage", "eco_equipement"); E0 = E[:n].copy(); r0 = p.col("menage", "eco_dernier_achat")[:n].copy()
+    par = {}
+
+    class Espion:                                         # qui paie quoi au marche sous le motif marchand ( lecture seule )
+        def __init__(self, suivant): self.suivant = suivant
+        def argent(self, motif, de, vers, montant):
+            if self.suivant is not None: self.suivant.argent(motif, de, vers, montant)
+            if motif == "services_marchands": par[de.id] = par.get(de.id, 0.0) + montant
+        def bien(self, *a):
+            if self.suivant is not None: self.suivant.bien(*a)
+    ancien = getattr(L, "enregistreur", None); L.enregistreur = Espion(ancien)
+    t0 = L.jour_argent.get(("tva", "Marche", "Gouvernement"), (0.0, 0))[0]
+    _avancer(w, 1 + 1 / 6)                                # 19 h 10 : les achats sont passes
+    L.enregistreur = ancien
+    tva = L.jour_argent.get(("tva", "Marche", "Gouvernement"), (0.0, 0))[0] - t0
+    vendu = math.fsum(par.values())
+    res = M.reserve_alimentaire(p)
+    _, classe = M._tableaux_menages(p)
+    tam = M.tampon_vise(classe, M._revenu_long(p, n))
+    garde = all(w.menages[i].caisse >= max(res[i], tam[i]) - 1e-6 for i in par)
+    pm0 = M.parts_marchandes(p)
+    seul = all(pm0[M.NOMS_CATEGORIES.index(x)] == 1.0 for x in ("logement", "restauration", "loisirs", "habillement"))
+    renouvele = p.col("menage", "eco_equipement")[:n] > E0 * (1.0 - 1.0 / 3650.0) + 1e-9
+    stables = [i for i in ids.tolist() if not renouvele[i] and E0[i] > 0]
+    usure = len(stables) > 10 and all(abs(E[i] - E0[i] * (1.0 - 1.0 / 3650.0)) <= 1e-9 * E0[i] for i in stables)
+    tva_ok = vendu > 0 and abs(tva - vendu * g.tva / (1.0 + g.tva)) <= 1e-6 * max(1.0, vendu)
+
+    class _P:
+        def a(self, x): return x in ("culture", "immobilier", "energie", "services_publics", "assurances", "medecine",
+                                     "hopitaux", "transport", "medias", "education")
+    pm2 = M.parts_marchandes(_P())
+    fournis = (pm2[ir] == 0.5 and pm2[M.NOMS_CATEGORIES.index("logement")] == 0.0 and pm2[ih] == 1.0)
+    rien_pauvre = pauvre not in par
+    tenue, msg = p.socle.conservation.tenue()
+    ok = pur and seul and tva_ok and garde and usure and fournis and rien_pauvre and len(par) >= 50 and tenue
+    return ok, (f"fonction pure {pur} ; seul le domaine 3 : {len(par)} menages achetent {vendu:.0f} drachmes de biens et services "
+                f"marchands, TVA reversee {tva:.4f} ( attendu {vendu * g.tva / (1.0 + g.tva):.4f} ), semaine de nourriture "
+                f"gardee {garde} ; usure d un jour sur {len(stables)} menages {usure} ; menage a sa reserve : rien {rien_pauvre} ; "
+                f"avec les fournisseurs : restauration {pm2[ir]}, logement {pm2[M.NOMS_CATEGORIES.index('logement')]}, habillement "
+                f"{pm2[ih]} ; {msg}")
+
+
 # ================================================================== les comptes des entreprises
 def test_identite_comptable():
     """Porte : 31 jours ( une fin de mois, ses dividendes ), un pret a une fonderie et a un marche, un remboursement
@@ -419,5 +487,47 @@ def test_gerance_et_cessation():
                 f"{minoritaire} ; ferme aux vieux arrieres epargnee {ferme_tient} ; presomption suspendue dans le monde {suspendue} ; conservation {tenue and tenue0}")
 
 
-TESTS = [test_budget_parts, test_identite_comptable, test_faillite, test_chomage, test_prix_choc_de_demande,
-         test_commerces_fermes, test_credit, test_recalibrage, test_part_du_choix, test_pays_vivable, test_cout, test_gerance_et_cessation]
+
+def test_plancher_sans_revenu():
+    """Porte ( HMT-126 e, seuils ecrits avant la mesure ) : le plancher des depenses que l on peut remettre vaut 7 jours de
+    nourriture pour un menage dont le revenu lisse couvre sa nourriture d un jour, JOURS_SANS_REVENU ( 90 ) sinon, a 1e-9.
+    Controle positif : un menage sans revenu qui a 30 jours de nourriture en caisse achete sa nourriture le soir mais
+    aucun bien ou service marchand, aucun equipement. Falsificateur : le meme soir, un menage aise avec un revenu en
+    achete ; et le plancher d un menage au revenu suffisant reste a 7 jours."""
+    w, p = T.monde(["economie"])
+    L = p.socle.livre; cm = p.colonnes["menage"]
+    T.jours(w, 3); _avancer(w, 12)                         # 18 h
+    jour = M.reserve_alimentaire(p, 1)
+    ids = [k for k in range(len(w.menages)) if jour[k] > 0]
+    A, B = ids[0], ids[1]
+    M.revenu_recent(p, len(w.menages))                 # le revenu qui decide : celui des 30 derniers jours
+    for k, r in ((A, 0.0), (B, 10.0 * jour[B])): cm["eco_revenu_30"][k] = r; cm["eco_revenu_30_n"][k] = 30
+    pl = M.plancher_discretionnaire(p)
+    valeurs = abs(pl[A] - M.JOURS_SANS_REVENU * jour[A]) <= 1e-9 * pl[A] and abs(pl[B] - M.RESERVE_ALIMENTAIRE_J * jour[B]) <= 1e-9 * pl[B]
+    mA, mB = w.menages[A], w.menages[B]
+    if mA.caisse > 30.0 * jour[A]: L.transferer(mA, w.gouv, mA.caisse - 30.0 * jour[A], "amende")
+    else: L.recevoir_de_l_exterieur(mA, 30.0 * jour[A] - mA.caisse, "epargne_initiale")
+    L.recevoir_de_l_exterieur(mB, 100000.0, "epargne_initiale")
+    par = {}
+
+    class Espion:
+        def __init__(self, suivant): self.suivant = suivant
+        def argent(self, motif, de, vers, montant):
+            if self.suivant is not None: self.suivant.argent(motif, de, vers, montant)
+            if type(de).__name__ == "Menage": par[(de.id, motif)] = par.get((de.id, motif), 0.0) + montant
+        def bien(self, *a):
+            if self.suivant is not None: self.suivant.bien(*a)
+    ancien = getattr(L, "enregistreur", None); L.enregistreur = Espion(ancien)
+    _avancer(w, 1 + 1 / 6)                                 # 19 h 10 : les achats sont passes
+    L.enregistreur = ancien
+    a_nourri = par.get((A, "nourriture"), 0.0) > 0.0
+    a_rien = par.get((A, "services_marchands"), 0.0) == 0.0 and par.get((A, "outils"), 0.0) == 0.0
+    b_achete = par.get((B, "services_marchands"), 0.0) > 0.0
+    tenue, msg = p.socle.conservation.tenue()
+    ok = valeurs and a_nourri and a_rien and b_achete and tenue
+    return ok, (f"plancher sans revenu {pl[A] / jour[A]:.0f} jours, avec revenu {pl[B] / jour[B]:.0f} jours ; sans revenu, 30 jours "
+                f"en caisse : nourriture {par.get((A, 'nourriture'), 0.0):.2f}, marchand {par.get((A, 'services_marchands'), 0.0):.2f}, "
+                f"equipement {par.get((A, 'outils'), 0.0):.2f} ; menage aise : marchand {par.get((B, 'services_marchands'), 0.0):.2f} ; {msg}")
+
+TESTS = [test_budget_parts, test_services_marchands_et_usure, test_identite_comptable, test_faillite, test_chomage, test_prix_choc_de_demande,
+         test_commerces_fermes, test_credit, test_recalibrage, test_part_du_choix, test_pays_vivable, test_cout, test_plancher_sans_revenu, test_gerance_et_cessation]

@@ -320,6 +320,16 @@ def _menages_vivants(p):
     return mg, np.bincount(mg[v], minlength=M)[:M], M
 
 
+def _plancher(p, cout):
+    """( 28/09, HMT-126 e ) Ce qu un menage garde au moins avant une sortie, une fete, un don ou une cotisation : rien de
+    plus que ses reserves propres s il a un revenu qui nourrit son menage ; JOURS_SANS_REVENU jours de nourriture
+    ( domaine 3 ) sinon - un menage sans nourriture assuree ne va pas au cafe. La guerre des iles, Altis, 90 jours : les
+    menages des enfants morts de faim avaient paye 802 drachmes de cafe et de taverne pour 2 590 de nourriture."""
+    if not p.a("economie"): return np.zeros(len(cout))
+    EC = __import__(__package__ + ".d03_economie", fromlist=["x"])
+    return EC.plancher_discretionnaire(p, cout)
+
+
 def _cout_jour(p, M, viv):
     """Le cout d un jour de nourriture de chaque menage, au prix TTC affiche de son marche."""
     w = p.w; tb = w.table
@@ -793,7 +803,7 @@ def _sorties(p, d, pl, mg, choix_m, caisse, cout, jours_loisir, jours_soir):
     mgs = mg[ids]
     ch = np.where(mgs >= 0, choix_m[np.maximum(mgs, 0)], -1)
     pr = np.where(ch == ECONOMISER, 0.0, pr)
-    reserve = np.where(choix_m == FETE, RESERVE_FETE_J, RESERVE_SORTIE_J) * cout
+    reserve = np.maximum(np.where(choix_m == FETE, RESERVE_FETE_J, RESERVE_SORTIE_J) * cout, _plancher(p, cout))   # HMT-126 e
     tot, par_m = _payer_par_couple(p, d, mgs, et, pr, d.etablissements, _motif_etablissement, reserve, caisse,
                                    _encaisser_sortie)
     payes = ids[np.isin(mgs, np.fromiter(par_m, np.int64, len(par_m)))] if par_m else np.zeros(0, np.int64)
@@ -808,7 +818,8 @@ def _sorties(p, d, pl, mg, choix_m, caisse, cout, jours_loisir, jours_soir):
         par = np.array([d.paroisse_de[l] for l in dom[vi].tolist()], np.int64)
         recu = collections.defaultdict(float)
         def _pani(o, y): recu[o.indice] += y; o.panigyri_total += y
-        pani, _ = _payer_par_couple(p, d, mgv, par, prix, d.paroisses, _motif_panigyri, RESERVE_DON_J * cout, caisse, _pani)
+        pani, _ = _payer_par_couple(p, d, mgv, par, prix, d.paroisses, _motif_panigyri,
+                                    np.maximum(RESERVE_DON_J * cout, _plancher(p, cout)), caisse, _pani)
         for l in d.panigyri_lieux:
             x = d.paroisses[int(d.paroisse_de[l])]
             r = recu.get(x.indice, 0.0)
@@ -850,7 +861,8 @@ def _dons(p, d, pl, mg, choix_m, caisse, cout, culte_ids):
     dom = pl.dom[ids].astype(np.int64)
     par = np.array([_indice_paroisse(d, l, c) for l, c in zip(dom.tolist(), conf.tolist())], np.int64)
     def _don(o, y): o.dons_mois += y; o.dons_total += y
-    tot, par_m = _payer_par_couple(p, d, mgs, par, don, d.paroisses, _motif_don, RESERVE_DON_J * cout, caisse, _don)
+    tot, par_m = _payer_par_couple(p, d, mgs, par, don, d.paroisses, _motif_don,
+                                   np.maximum(RESERVE_DON_J * cout, _plancher(p, cout)), caisse, _don)
     cd = p.col("menage", "cul_dons")
     for k, y in par_m.items(): cd[k] += y
     if tot > 0: p.compter("don_religieux", tot)
@@ -864,7 +876,8 @@ def _cotisations(p, d, mg, caisse, cout):
     if not len(ids): return 0.0
     def _cot(o, y): o.cotisations_mois += y; o.cotisations_total += y
     tot, _ = _payer_par_couple(p, d, mg[ids], club[ids].astype(np.int64), np.full(len(ids), COTISATION_EUR / EUROS),
-                               d.associations, _motif_cotisation, RESERVE_COTISATION_J * cout, caisse, _cot)
+                               d.associations, _motif_cotisation, np.maximum(RESERVE_COTISATION_J * cout, _plancher(p, cout)),
+                               caisse, _cot)
     if tot > 0: p.compter("cotisation_club", tot)
     return tot
 

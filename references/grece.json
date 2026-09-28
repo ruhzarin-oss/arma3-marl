@@ -158,6 +158,74 @@
    "a_verifier": false
   },
   {
+   "id": "deces_faim",
+   "theme": "demographie",
+   "nom": "Morts de faim pour 100 000 habitants par an",
+   "definition": "Deces dont la cause est le manque de nourriture ( CIM-10 X53, et malnutrition E40-E46 en cause initiale ) / population moyenne, pour 100 000 par an. Monde : deces de cause « faim » ( domaine 1, cause_deces ) dates dans la fenetre, hors emigres, annualises sur les personnes-annees de la fenetre.",
+   "unite": "pour 100 000 par an",
+   "valeur": 0.0,
+   "annee": 2021,
+   "source": "Eurostat hlth_cd_aro (causes de deces, Grece 2021 : pas de rubrique malnutrition ; E_OTH, autres maladies endocriniennes, nutritionnelles et metaboliques, 455 deces, borne haute) ; OMS CIM-10 (X53 manque de nourriture, E40-E46 malnutrition)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/hlth_cd_aro?geo=EL&time=2021&sex=T&age=TOTAL&resid=TOT_IN&unit=NR&icd10=E_OTH",
+   "bande": [
+    0.0,
+    1.0
+   ],
+   "justification": "Un pays de l UE en paix ne meurt pas de faim : la Grece n a pas de famine depuis l occupation ( 1941-1944 ). Eurostat ne publie pas les morts de malnutrition a part ; elles sont dans E_OTH ( 455 deces en 2021, 4,3 pour 100 000, avec la thyroide et les maladies du metabolisme : une borne haute tres large ). La bande garde au plus 1 pour 100 000 par an, soit ~0,1 mort par an pour 10 000 habitants : un seul mort de faim dans une annee du monde de 10 000 habitants la depasse deja, et c est voulu ( HMT-129 : deux iles de la guerre ont perdu presque toute leur population par la faim pendant que l indicateur de la faim, qui ne compte que les vivants, baissait ).",
+   "a_verifier": false
+  },
+  {
+   "id": "population_rapport",
+   "theme": "demographie",
+   "nom": "Population vivante sur population de depart (sur un an)",
+   "definition": "Population au 1er janvier de l annee suivante / population au 1er janvier. Monde : vivants / vivants a la naissance du monde ( domaine 1 ), sur toute la vie du monde ; ramene a un an ( puissance 365 / jours ) quand le monde a plus d un an, brut sinon. Morts et emigres font baisser le rapport, naissances et immigres le font monter.",
+   "unite": "rapport",
+   "valeur": 0.9997,
+   "annee": 2024,
+   "source": "Eurostat demo_gind (JAN : 10 375 764 au 1er janvier 2024, 10 372 335 au 1er janvier 2025)",
+   "adresse": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_gind?geo=EL&indic_de=JAN",
+   "bande": [
+    0.985,
+    1.01
+   ],
+   "justification": "Le solde naturel grec est d environ -5 pour 1000 par an ( ~70 000 naissances pour ~125 000 deces ) et le solde migratoire le compense en partie : de 2015 a 2025, le rapport annuel va de 0,991 ( 2021-2022 ) a 0,9997 ( 2024-2025 ). La bande laisse +-1 point de plus pour les migrations d une petite ile ( une ile de 10 000 habitants qui gagne ou perd 100 personnes dans l annee ). Sur moins d un an, le rapport reel est plus pres de 1 que sur un an : la bande le contient a fortiori.",
+   "a_verifier": false
+  },
+  {
+   "id": "taux_emigration",
+   "theme": "demographie",
+   "nom": "Taux d emigration",
+   "definition": "Emigrants de l annee ( residents partis vivre a l etranger pour 12 mois au moins ) / population au 1er janvier, en %. Monde : emigres du domaine 7 ( ext_emigre_j ) dates dans la fenetre, mineurs compris, annualises sur les personnes-annees de la fenetre.",
+   "unite": "% par an",
+   "valeur": 0.89,
+   "annee": 2019,
+   "source": "ELSTAT, Estimated Population (1.1.2020) and Migration Flows (2019), communique du 30/12/2020 : 95 020 emigrants pour 10 724 599 residents ; Eurostat migr_emi2 (revise : 111 603 en 2019, 78 014 en 2024)",
+   "adresse": "https://www.statistics.gr/documents/20181/8db90789-197d-04e0-9313-8343518637a0",
+   "bande": [
+    0.65,
+    1.1
+   ],
+   "justification": "95 020 / 10 724 599 = 0,89 % ( ELSTAT 2019, la valeur du domaine 7 ). Les annees voisines : 0,96 % ( 2018, 103 049 ), 1,04 % ( 2019 revise par Eurostat apres le recensement de 2021 ), 0,83 % ( 2023 ), 0,75 % ( 2024 ). La bande les garde toutes ; le double du reel ( ~1,8 %, mesure de 35 jours du 27/09 ) en sort.",
+   "a_verifier": false
+  },
+  {
+   "id": "taux_immigration",
+   "theme": "demographie",
+   "nom": "Taux d immigration",
+   "definition": "Immigrants de l annee / population au 1er janvier, en %. Monde : immigres du domaine 7 ( ext_immigre_j ) dates dans la fenetre, mineurs compris, annualises sur les personnes-annees de la fenetre.",
+   "unite": "% par an",
+   "valeur": 1.21,
+   "annee": 2019,
+   "source": "ELSTAT, Estimated Population (1.1.2020) and Migration Flows (2019), communique du 30/12/2020 : 129 459 immigrants pour 10 724 599 residents ; Eurostat migr_imm8 (132 149 en 2024)",
+   "adresse": "https://www.statistics.gr/documents/20181/8db90789-197d-04e0-9313-8343518637a0",
+   "bande": [
+    1.0,
+    1.45
+   ],
+   "justification": "129 459 / 10 724 599 = 1,21 % ( ELSTAT 2019, la valeur du domaine 7 ). Les annees voisines : 1,11 % ( 2018, 119 489 ), 1,12 % ( 2023, 116 591 ), 1,27 % ( 2024, 132 149 ). La bande les garde ; un tirage par menage au taux des personnes ( x1,6 ) en sort.",
+   "a_verifier": false
+  },
+  {
    "id": "taux_emploi_20_64",
    "theme": "travail",
    "nom": "Taux d emploi des 20-64 ans",
@@ -433,7 +501,7 @@
    "id": "inflation",
    "theme": "economie",
    "nom": "Inflation annuelle",
-   "definition": "Variation annuelle moyenne de l IPCH, tous postes. Monde : indice des prix de la banque centrale (domaine banques) sur la fenetre, annualise.",
+   "definition": "Variation annuelle moyenne de l IPCH, tous postes. Monde : indice des prix de la banque centrale (domaine banques) sur la fenetre, annualise ; 90 jours au moins ( entre 30 et 90 jours : fragile ; sous 30 : non mesurable ), intervalle a 95 % d une marche au hasard lue par semaines ( HMT-128 ).",
    "unite": "% par an",
    "valeur": 3.0,
    "annee": 2024,
@@ -443,7 +511,7 @@
     0.0,
     6.0
    ],
-   "justification": "+-3 points : 4,2 (2023), 2,9 (2025) ; 9,3 (2022, choc energetique) hors bande. Une fenetre de 30 jours annualisee amplifie le bruit des prix.",
+   "justification": "+-3 points : 4,2 (2023), 2,9 (2025) ; 9,3 (2022, choc energetique) hors bande. Une fenetre de 30 jours annualisee amplifie le bruit des prix. 27/09 ( HMT-128 ) : l indice du monde bouge de ~0,5 % par jour ; des fenetres de 30 jours voisines donnent de -60 a +125 % par an. La mesure demande 90 jours.",
    "a_verifier": false
   },
   {

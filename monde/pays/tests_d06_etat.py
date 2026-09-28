@@ -143,15 +143,31 @@ def test_comptes_nationaux():
 
 
 # ================================================================== le Tresor, le budget, la dette
+def _loi_en_deficit(p):
+    """Une loi de finances votee en DEFICIT, par construction : salaires publics doubles, TVA et impot sur le revenu a
+    leurs planchers ( actions du catalogue, dans leurs bornes ). ( 28/09, HMT-126 ) Le deficit ne depend plus de ce que
+    les menages consomment : depuis que la part du budget sans fournisseur installe s achete au commerce ( domaine 3 ),
+    un pays reduit a l Etat encaissait assez de TVA pour ne plus emprunter, et ces portes ne jugeaient plus rien. Rend
+    vrai si toutes les actions sont acceptees."""
+    acts = [{"type": "fixer_salaires_publics", "facteur": 2.0},
+            {"type": "fixer_tva", "categorie": "super_reduite", "valeur": 0.0},
+            {"type": "fixer_tva", "categorie": "reduite", "valeur": 0.05},
+            {"type": "fixer_tva", "categorie": "normale", "valeur": 0.15}]
+    acts += [{"type": "fixer_ir", "tranche": k, "taux": 0.0} for k in range(len(M._etat(p).fisc.taux_ir))]
+    return all(M.appliquer(p, a)[0] for a in acts)
+
+
 def test_solde_budgetaire():
-    """Porte : 40 jours, bons a 7 jours pour que des echeances tombent : chaque soir, recettes - depenses = - variation
-    de la dette nette ( dette brute lue a part - caisse ) a un demi-centime, et le cumul aussi ; aucun reste hors livre
-    non attribue. Doivent avoir joue : des bons emis ET rembourses, une vente d or ( ecrite a la main par le moteur,
-    attribuee ), une avance de la banque centrale posee a la main. Falsificateur : 100 drachmes retirees a la main de la
-    caisse du Tresor se voient le soir meme ( ecart de +100, reste non attribue de -100 )."""
+    """Porte : 40 jours, bons a 7 jours pour que des echeances tombent, sous une loi de finances votee en deficit
+    ( _loi_en_deficit ) : chaque soir, recettes - depenses = - variation de la dette nette ( dette brute lue a part -
+    caisse ) a un demi-centime, et le cumul aussi ; aucun reste hors livre non attribue. Doivent avoir joue : un solde
+    execute negatif, des bons emis ET rembourses, une vente d or ( ecrite a la main par le moteur, attribuee ), une avance
+    de la banque centrale posee a la main. Falsificateur : 100 drachmes retirees a la main de la caisse du Tresor se
+    voient le soir meme ( ecart de +100, reste non attribue de -100 )."""
     w, p = T.monde(["etat"])
     e = p.domaine("etat"); tr = e.tresor
     tr.duree_bons_j = 7
+    loi = _loi_en_deficit(p)
     remb = 0.0; or_ok = False
     for j in range(40):
         if j == 5: or_ok = M.appliquer(p, {"type": "exporter_or", "quantite": 1.0})[0]
@@ -169,8 +185,8 @@ def test_solde_budgetaire():
     vu = abs(der[7] - 100.0) <= 0.01 and abs(der[8] + 100.0) <= 0.01
     ex = M.execution_budget(p)
     dep = math.fsum(x[1] for x in ex["depenses"].values()); cred = math.fsum(x[0] for x in ex["depenses"].values())
-    ok = identite and joue and vu
-    return ok, (f"{len(serie)} soirs : pire ecart {pire:.2e}, cumul {cumul:+.2e}, reste hors livre non attribue {reste:.2e} ; "
+    ok = identite and joue and vu and loi and ex["solde"] < 0.0
+    return ok, (f"loi en deficit acceptee {loi} ; {len(serie)} soirs : pire ecart {pire:.2e}, cumul {cumul:+.2e}, reste hors livre non attribue {reste:.2e} ; "
                 f"{tr.n_bons} bons ( {tr.emis_bons:.0f} drachmes ), rembourses {remb:.0f}, "
                 f"vente d or {e.budget.recettes['vente_or']:.0f}, "
                 f"dette brute {M.dette_brute(p):.0f} ; budget execute {dep:.0f} sur {cred:.0f} de credits a "
@@ -193,13 +209,15 @@ def _vivre_pas_a_pas(w, p, jours):
 
 
 def test_tresor_jamais_a_sec():
-    """Porte : 1 500 habitants ( echelle 3, ou le Tresor du moteur est a sec vers le 25e jour ), 40 jours, pas a pas :
-    la caisse de l Etat ne descend jamais sous zero et aucun paiement que seul l Etat fait ( salaires publics, pensions,
-    commandes, subventions, remboursements d impot, interets ) n est impaye ; la caisse de depart vaut 400 drachmes par
-    habitant, empruntee ( la dette d ouverture l egale ). Controle positif : le meme monde sans financement et avec la
-    caisse du moteur ( 200 000 ) a des impayes de l Etat avant le 40e jour."""
+    """Porte : 1 500 habitants ( echelle 3 ), 40 jours, pas a pas, sous une loi de finances votee en deficit
+    ( _loi_en_deficit ) : la caisse de l Etat ne descend jamais sous zero, le deficit est finance par des bons du Tresor,
+    et aucun paiement que seul l Etat fait ( salaires publics, pensions, commandes, subventions, remboursements d impot,
+    interets ) n est impaye ; la caisse de depart vaut 400 drachmes par habitant, empruntee ( la dette d ouverture
+    l egale ). Controle positif : le meme monde, sous la meme loi, sans financement et avec la caisse du moteur
+    ( 200 000 ) a des impayes de l Etat avant le 40e jour."""
     w, p = T.monde(["etat"], echelle=3)
     e = p.domaine("etat")
+    loi = _loi_en_deficit(p)
     n = sum(1 for h in w.habitants if h.vivant)
     cible = M.TRESORERIE_PAR_HABITANT * n
     ouverture = abs(w.gouv.caisse - cible) <= 1e-6 * cible and abs(M.dette_brute(p) - e.tresor.ouverture) <= 1e-6 * cible
@@ -209,9 +227,10 @@ def test_tresor_jamais_a_sec():
     try: w2, p2 = T.monde(["etat"], echelle=3)
     finally: M.PROPORTIONNER_TRESORERIE = ancien
     p2.domaine("etat").tresor.financement = False
+    loi2 = _loi_en_deficit(p2)
     mini2, imp2, premier2 = _vivre_pas_a_pas(w2, p2, 40)
-    ok = ouverture and mini >= 0.0 and imp == 0.0 and imp2 > 0.0
-    return ok, (f"{n} habitants : caisse de depart {cible:.0f} ( dette d ouverture {e.tresor.ouverture:.0f} ) : {ouverture} ; "
+    ok = ouverture and loi and loi2 and mini >= 0.0 and imp == 0.0 and e.tresor.n_bons >= 1 and imp2 > 0.0
+    return ok, (f"{n} habitants, loi en deficit acceptee {loi and loi2} : caisse de depart {cible:.0f} ( dette d ouverture {e.tresor.ouverture:.0f} ) : {ouverture} ; "
                 f"40 jours finances : caisse minimale {mini:.0f}, impayes de l Etat {imp:.2f}, dette {M.dette_brute(p):.0f} "
                 f"( {e.tresor.n_bons} bons, avances {p.domaine('banques').bc.avances:.0f} ) ; sans financement : caisse "
                 f"minimale {mini2:.0f}, impayes {imp2:.0f} des le jour {premier2}")
@@ -319,36 +338,46 @@ def _instrument(notes):
 
 
 def test_controle_fiscal():
-    """Porte de la decision : 1 500 habitants, tous les policiers presents a 10 h controlent ( une vingtaine de
+    """Porte de la decision : 4 500 habitants, tous les policiers presents a 10 h controlent ( une soixantaine de
     decisions par jour ), en choisissant leur critere au hasard ( mode hasard ), 45 jours ( l IS du premier mois est
-    liquide au 30e ). La note doit dependre du choix ( conventions, section 4 ) : part du choix ( epsilon carre a jour
-    egal ) >= 0,01 ET p_permutation < 0,05 ; au moins 200 notes murees. La note est le logarithme signe du net
-    encaisse ( note_controle ) : les drachmes brutes, domineees par quelques arrieres geants, sont mesurees a cote
-    par le meme instrument ( 0,004 le 23/09 ). Falsificateur de l instrument : des notes tirees sans lien avec le choix,
-    aux memes jours et aux memes actions, ne passent pas. Au moins 10 controles qui redressent, la conservation tient."""
-    w, p = T.monde(["etat"], echelle=3, modes={"controle_fiscal": "hasard"})
+    liquide au 30e ). La note est le logarithme signe du net encaisse ( note_controle ). Depuis le 28/09 ( HMT-126 e ),
+    l insaisissable du fisc copie la loi ( 1 250 euros par personne et par mois, KEDE art. 33 par. 2 ) : la plupart des
+    menages n ont rien de saisissable, un controle chez eux redresse sans rien encaisser dans la semaine, et sa note ne
+    peut rien dire du critere. L intention de la porte - le controle rapporte la ou il y a de quoi saisir - se juge donc
+    sur les controles dont la cible avait, au moment du controle, quelque chose de saisissable ( une unite a caisse
+    positive, un menage au-dessus de son insaisissable ) : parmi eux, au moins 200 notes murees, part du choix ( epsilon
+    carre a jour egal ) >= 0,01 ET p_permutation < 0,05 ( conventions, section 4 ). Falsificateur de l instrument : des
+    notes tirees sans lien avec le choix, aux memes jours et aux memes actions que ces controles, ne passent pas. Au
+    moins 10 controles qui redressent, la conservation tient. Mesures a cote, sans juger : la part du choix sur tous les
+    controles, et en drachmes brutes ( dominees par quelques arrieres geants : 0,004 le 23/09 ). Taille : 1 500
+    habitants jusqu au 28/09 ; la, sur les 555 controles saisissables, part du choix 0,063 mais p = 0,29 : trop peu de
+    notes pour conclure sous des notes a queue lourde. Monde triple une fois, decide avant de mesurer, seuils inchanges."""
+    w, p = T.monde(["etat"], echelle=9, modes={"controle_fiscal": "hasard"})
     M.appliquer(p, {"type": "fixer_controle", "part": 1.0})
     T.jours(w, 45)
     e = p.domaine("etat"); dec = e.decideur; f = e.fisc
-    eps, pval, brute = dec.part_du_choix(), dec.p_permutation(n=200, graine=0), dec.part_du_choix_brute()
     notes = list(f.notes)
+    sais = [(j, a, x, net) for j, a, x, net, s in notes if s > 0.0]
+    eps, pval = _instrument([(j, a, x) for j, a, x, _ in sais])
     rng = np.random.default_rng(17)
-    eps_bruit, p_bruit = _instrument([(j, a, float(z)) for (j, a, _, _), z in zip(notes, rng.standard_normal(len(notes)))])
-    eps_dr, p_dr = _instrument([(j, a, net) for j, a, _, net in notes])
+    eps_bruit, p_bruit = _instrument([(j, a, float(z)) for (j, a, _, _), z in zip(sais, rng.standard_normal(len(sais)))])
+    eps_tous, p_tous = dec.part_du_choix(), dec.p_permutation(n=200, graine=0)
+    eps_dr, p_dr = _instrument([(j, a, net) for j, a, _, net, _ in notes])
     par = {}
-    for _, a, x, net in notes: par.setdefault(M.CRITERES[a], []).append((x, net))
+    for _, a, x, net in sais: par.setdefault(M.CRITERES[a], []).append((x, net))
     moy = ", ".join(f"{k} {np.mean([x for x, _ in v]):+.2f} ( {np.mean([n for _, n in v]):+.0f} dr, {len(v)} )"
                     for k, v in par.items())
     tenue, msg = p.socle.conservation.tenue()
-    ok = (len(notes) >= 200 and eps >= 0.01 and pval < 0.05 and not (eps_bruit >= 0.01 and p_bruit < 0.05)
+    ok = (len(sais) >= 200 and eps >= 0.01 and pval < 0.05 and not (eps_bruit >= 0.01 and p_bruit < 0.05)
           and f.compte["controles_positifs"] >= 10 and tenue)
-    return ok, (f"{dec.n_decisions} decisions, {len(notes)} notes murees ; note moyenne par critere ( drachmes nettes, "
-                f"nombre ) : {moy} ; part du choix {eps:.3f} ( epsilon carre ; eta carre brut {brute:.3f} ), p = {pval:.3f} ; "
-                f"en drachmes brutes : {eps_dr:.3f}, p = {p_dr:.3f} ; notes sans lien avec le choix : {eps_bruit:.3f}, "
-                f"p = {p_bruit:.3f} ; {f.compte['controles_positifs']:.0f} redressements sur {f.compte['controles']:.0f} "
-                f"controles, {f.compte['redressements']:.0f} drachmes redressees + {f.compte['penalites']:.0f} de "
-                f"penalites, {f.compte['recouvre']:.0f} recouvrees ; IS liquide {f.compte['impot_societes']:.0f}, elude "
-                f"{f.compte['is_elude']:.0f} ; {msg}")
+    return ok, (f"{dec.n_decisions} decisions, {len(notes)} notes murees, dont {len(sais)} sur une cible qui avait de "
+                f"quoi saisir ; parmi elles, note moyenne par critere ( drachmes nettes, nombre ) : {moy} ; part du choix "
+                f"{eps:.3f} ( epsilon carre ), p = {pval:.3f} ; notes sans lien avec le choix : {eps_bruit:.3f}, p = "
+                f"{p_bruit:.3f} ; a cote, tous les controles : {eps_tous:.3f}, p = {p_tous:.3f} ; en drachmes brutes : "
+                f"{eps_dr:.3f}, p = {p_dr:.3f} ; {f.compte['controles_positifs']:.0f} redressements sur "
+                f"{f.compte['controles']:.0f} controles, {f.compte['redressements']:.0f} drachmes redressees + "
+                f"{f.compte['penalites']:.0f} de penalites, {f.compte['recouvre']:.0f} recouvrees ; IS liquide "
+                f"{f.compte['impot_societes']:.0f}, elude {f.compte['is_elude']:.0f} ; {msg}")
 
 
 # ================================================================== le pays
@@ -419,6 +448,67 @@ def test_kea_revenu_declare():
                 f"jour 30 : m0 {cm['rmg_m0'][D_.id]:.0f}, m1 {cm['rmg_m1'][D_.id]:.0f}, m5 {cm['rmg_m5'][D_.id]:.0f} ; {msg}")
 
 
+def test_insaisissable():
+    """Porte ( HMT-126 e, 28/09 : la loi, KEDE art. 33 par. 2 ; seuils ecrits avant la mesure ). Un menage doit au fisc.
+    Controle positif : sa caisse a 90 % de son insaisissable, rien n est saisi au recouvrement du soir et sa dette reste
+    entiere. Falsificateurs : 1 ) 1 000 drachmes au-dessus de l insaisissable : la moitie ( PART_SAISIE ) est saisie, au
+    centime ; 2 ) l insaisissable vaut 1 250 euros convertis PAR ADULTE, les enfants n en ont pas : 1 250 / 1,15 pour un
+    menage d un adulte, le double pour un menage de deux adultes, au centime ; 3 ) PAR MOIS : le menage laisse a son
+    insaisissable debite D ( compte a 17 h 50 ), puis recoit Y > D : la moitie de Y est saisie, au centime ( une reserve
+    fixe n en prendrait que la moitie de Y - D ) ; 4 ) le mois suivant, l insaisissable revient entier."""
+    w, p = T.monde(["etat"])
+    T.jours(w, 1)
+    e = p.domaine("etat"); f = e.fisc; K = p.socle.creances; L = p.socle.livre; cm = p.colonnes["menage"]
+    ch = p.colonnes["habitant"]; tb = w.table
+    UN = M.INSAISISSABLE_EUROS_MOIS / M.EUROS_PAR_DRACHME
+
+    def compte(m):            # adultes et enfants vivants, relus a part sur la colonne des naissances
+        ages = [(p.jour - float(ch["naissance_j"][h.id])) / 365.0 for h in m.membres if h.vivant]
+        return sum(1 for a in ages if a >= 18.0), sum(1 for a in ages if a < 18.0)
+
+    libres = [m for m in w.menages if not p.col("menage", "dissous")[m.id] and not K.de(m) and M._vivants(m) >= 1]
+    uns = [m for m in libres if compte(m)[0] == 1]
+    un = next((m for m in uns if compte(m)[1] >= 1), uns[0] if uns else None)
+    deux = next((m for m in libres if compte(m)[0] == 2), None)
+    if un is None or deux is None: return False, "pas de menage d un adulte ou de deux adultes dans le monde d essai"
+
+    def mettre(m, x):
+        if m.caisse > x: L.transferer(m, w.gouv, m.caisse - x, "amende")
+        else: L.recevoir_de_l_exterieur(m, x - m.caisse, "epargne_initiale")
+
+    def neuf(m): cm["fisc_ins_mois"][m.id] = -1          # aucune saisie encore ce mois-ci
+
+    def saisie(m):
+        cr = K.constater(w.gouv, m, 50000.0, "redressement_fiscal", p.jour); f.creances.append(cr)
+        avant = cr.montant
+        M._recouvrer(p)
+        return cr, avant - (cr.montant if K.actives.get(cr.id) is cr else 0.0)
+
+    A1, A2 = M.insaisissable(p, un, armer=False), M.insaisissable(p, deux, armer=False)
+    neuf(un); mettre(un, 0.9 * A1); cr, pris0 = saisie(un)
+    ok_pos = pris0 == 0.0 and K.actives.get(cr.id) is cr and cr.montant == 50000.0
+    neuf(un); mettre(un, A1 + 1000.0); _, pris1 = saisie(un)
+    ok_x = abs(pris1 - M.PART_SAISIE * 1000.0) <= 1e-6
+    ok_n = abs(A1 - UN) <= 1e-9 and abs(A2 - 2.0 * UN) <= 1e-9
+    neuf(un); mettre(un, A1); _, pris2 = saisie(un)
+    D_, Y = 0.3 * A1, 0.5 * A1
+    L.transferer(un, w.gouv, D_, "amende")                                   # il debite D
+    M._compter_debits(p, tb.menages.caisse[:len(w.menages)].copy())          # 17 h 50
+    L.recevoir_de_l_exterieur(un, Y, "epargne_initiale")                     # la paie
+    _, pris3 = saisie(un)
+    ok_mois = pris2 == 0.0 and abs(pris3 - M.PART_SAISIE * Y) <= 1e-6
+    cm["fisc_ins_mois"][un.id] -= 1                                          # ce compte devient celui du mois passe
+    ok_suivant = abs(M.insaisissable(p, un) - A1) <= 1e-9
+    for c in list(K.de(un)): K.abandonner(c, "essai")
+    ok = ok_pos and ok_x and ok_n and ok_mois and ok_suivant
+    na, ne = compte(un)
+    return ok, (f"insaisissable {A1:.2f} dr pour un adulte ( {ne} enfant(s) ), {A2:.2f} pour deux ( attendu {UN:.2f} "
+                f"par adulte ) ; caisse a 90 % : saisi {pris0:.2f}, dette entiere {ok_pos} ; 1 000 au-dessus : saisi "
+                f"{pris1:.2f} ( attendu {M.PART_SAISIE * 1000.0:.2f} ) ; au mois : rien a l insaisissable ( {pris2:.2f} ), "
+                f"puis {D_:.2f} debites et {Y:.2f} recus : saisi {pris3:.2f} ( attendu {M.PART_SAISIE * Y:.2f}, une reserve "
+                f"fixe {M.PART_SAISIE * (Y - D_):.2f} ) ; le mois suivant {M.insaisissable(p, un, armer=False):.2f}")
+
+
 TESTS = [test_tva_par_categorie, test_ir_par_tranches, test_is_penalites_douanes, test_comptes_nationaux,
          test_solde_budgetaire, test_tresor_jamais_a_sec, test_sitrep_sans_verite_cachee, test_enquete_chomage,
-         test_controle_fiscal, test_kea_revenu_declare, test_pays_vivable, test_cout]
+         test_controle_fiscal, test_kea_revenu_declare, test_pays_vivable, test_cout, test_insaisissable]
