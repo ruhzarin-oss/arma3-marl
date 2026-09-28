@@ -603,6 +603,13 @@ def _tronquer(p, tr, cargo):
     return {b: q * f * (1.0 - 1e-9) for b, q in cargo.items()} if f < 1.0 else cargo
 
 
+def _rupture(p, m, b, q):
+    """Une demande d entreprise que le marche n a pas pu servir faute de stock : le signal de prix du marchand ( d03 )."""
+    if q > 0.0 and p.a("economie"):
+        em = p.domaine("economie").marches.get(m.lieu.id)
+        if em is not None: em.non_servi[b] += q
+
+
 def _compter(d, mid, b, q):
     x = d.setdefault(mid, {})
     x[b] = x.get(b, 0.0) + q
@@ -632,7 +639,8 @@ def _expedier(p, h):
                 ck, cm = capacite_libre(p, tr)
                 q = min(m.stocks[b], need * 8 * APPRO_J, ck / max(EPS, masse_kg(p, b)),
                         cm * 1000.0 / max(EPS, volume_l(p, b)) if volume_l(p, b) > 0 else math.inf)
-                if q <= EPS: m.demande[b] += need * 8; continue
+                if q <= EPS:
+                    m.demande[b] += need * 8; _rupture(p, m, b, need * 8); continue   # 27/09 : une rupture, pas un silence
                 cout = q * m.prix[b] * (1 + w.gouv.tva)
                 if e.caisse >= cout:
                     m.demande[b] += q

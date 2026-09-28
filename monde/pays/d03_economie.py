@@ -216,6 +216,13 @@ BETA_PARITE = 0.2
 # livrent juste ce qu on mange ( 1 a 1,8 jour a 19 h pour une cible de 2 ) faisaient monter le prix de 0,5 % par jour jusqu a
 # la parite a l import, pour rien : le prix n apporte pas une ration de plus quand la recolte part deja en entier.
 TOLERANCE_COUVERTURE = 0.5
+BETA_REF = 0.02                 # dans la bande, rappel vers la reference : le prix d installation indexe sur le prix mondial LISSE
+ALPHA_MONDIAL = 1.0 / 90.0      # ... lisse sur ~3 mois : le prix de detail ne suit qu une part lente des cours mondiaux ( transmission
+                                # partielle, 6 a 12 mois dans les etudes de la BCE ) ; le cours du jour ne fait pas le prix du rayon
+                                # ( HMT-125 : la bande laissait deriver la nourriture de +2 % et les remedes de +3 a 10 % par mois, sans
+                                # cause locale ; petite economie ouverte, loi du prix unique a une marge pres )
+ALPHA_COUVERTURE = 1.0 / 3.0    # la couverture que lit le marchand est lissee sur ~3 soirs : un seul creux de livraison ne
+                                # fait pas un prix ( HMT-125 : +4 % par mois sur la nourriture par des creux d un soir )
 LENTEUR_DANS_LA_BANDE = 0.25    # dans la bande, le prix bouge au quart de la vitesse : il redescend quand le stock est a l aise
 MARGE_PRODUCTEUR = 0.10         # marge d un producteur sur son prix de revient complet ( a calibrer )
 MARGE_COMMERCE = 0.05           # la regle de commerce du moteur exige 5 % de gain au-dela du transport ( monde.py, commerce_regle )
@@ -269,11 +276,13 @@ class EtatMarche:
     Ce qu un menage voulait sans pouvoir le payer est compte a part ( non_solvable ) : un prix qui monterait avec les
     envies des pauvres ne dirait rien de la rarete. Et ce qu il a vendu aux menages : l assiette de la TVA."""
     __slots__ = ("id", "demande_lisse", "non_servi", "non_solvable", "couverture", "ventes_ht", "ventes_q", "ventes_jour",
-                 "stock_soir")
+                 "stock_soir", "couv_lisse", "prix_ref")
 
     def __init__(self, id, demande0):
         self.id = id
         self.stock_soir = None                          # { bien : stock a 19 h, avant les courses } ( 27/09 )
+        self.couv_lisse = {b: COUVERTURE_CIBLE_J.get(b, 0.0) for b in C.BIENS}   # couverture lissee sur ~3 jours ( HMT-125 )
+        self.prix_ref = None                            # { bien : [ prix a l installation, cours mondial alors, cours mondial lisse ] }
         self.demande_lisse = dict(demande0)
         self.non_servi = {b: 0.0 for b in C.BIENS}      # voulu, payable, et pas servi faute de stock ( depuis l aube )
         self.non_solvable = {b: 0.0 for b in C.BIENS}   # voulu et pas payable : la pauvrete, cumul ( pas un signal de prix )
@@ -868,10 +877,25 @@ def _ancrage(p, d, m, b):
 
 
 def _borner(w, b, x):
-    bas = (PARITE_EXPORT if b == "nourriture" else PLANCHER) * PM[b]
-    x = min(PLAFOND * PM[b], max(bas, x))
+    # 27/09 ( guerre des iles, Stratis, HMT-123 ) : les bornes suivent le prix mondial du JOUR en monnaie de l ile ( domaine
+    # 7 : change et chocs compris ), non le prix du moteur, fixe en monnaie locale. Apres la devaluation de l obole, le
+    # plafond fixe ( 2,5 x 9 = 22,5 ) passait sous la parite a l import du gazole ( 28,1 ) : le negociant gardait dix jours
+    # de gazole en entrepot, le marche restait a zero, 36 ruptures par jour. Une borne technique n est pas un controle des
+    # prix : un vrai plafonnement est une loi ( prix_plafond, domaine 6 ), avec sa subvention ou sa penurie.
+    pm = _prix_mondial_du_jour(w, b)
+    bas = (PARITE_EXPORT if b == "nourriture" else PLANCHER) * pm
+    x = min(PLAFOND * pm, max(bas, x))
     plafond = w.gouv.lois.get("prix_plafond", {}).get(b)
     return min(x, float(plafond)) if plafond else x
+
+
+def _prix_mondial_du_jour(w, b):
+    """Le prix mondial d un bien echangeable au port, en monnaie de l ile, le jour meme ( domaine 7 : prix FOB a la parite
+    du jour ) ; sans negoce, ou pour un bien qui ne s echange pas, le prix du moteur."""
+    p = getattr(w, "pays", None)
+    if p is None or not p.a("exterieur"): return PM[b]
+    X = importlib.import_module(".d07_exterieur", __package__)
+    return X.prix_port(p, b) if b in X.BIENS_IMPORT else PM[b]
 
 
 def _ajuster_prix(p, mid):
@@ -893,10 +917,17 @@ def _ajuster_prix(p, mid):
             ss = getattr(em, "stock_soir", None)         # 27/09 : le stock d hier 19 h, avant les courses ; sinon l aube
             couv = max(0.0, ss[b] if ss is not None and b in ss else m.stocks[b]) / dem
             em.couverture[b] = couv
+            cl = getattr(em, "couv_lisse", None)
+            if cl is None: cl = em.couv_lisse = {k: COUVERTURE_CIBLE_J.get(k, 0.0) for k in C.BIENS}
+            couv = cl[b] = (1.0 - ALPHA_COUVERTURE) * cl.get(b, couv) + ALPHA_COUVERTURE * couv
             x = max(-1.0, min(1.0, (cible - couv) / cible))
-            if abs(couv - cible) <= TOLERANCE_COUVERTURE * cible: x *= LENTEUR_DANS_LA_BANDE   # 27/09 : prix collants dans la bande
+            dans_la_bande = abs(couv - cible) <= TOLERANCE_COUVERTURE * cible
+            if dans_la_bande: x *= LENTEUR_DANS_LA_BANDE                          # 27/09 : prix collants dans la bande
             if em.non_servi[b] > 0.0: x = max(x, min(1.0, em.non_servi[b] / dem))
             dlog = KAPPA_PRIX * x
+            if dans_la_bande and em.non_servi[b] <= 0.0:                            # HMT-125 : dans la bande, retour vers la reference
+                ref = _prix_de_reference(p, em, m, b)
+                if ref is not None and ref > 0.0: dlog += BETA_REF * (math.log(ref) - math.log(m.prix[b]))
             a = _ancrage(p, d, m, b)
             if a is not None and a > 0.0: dlog += BETA_COUT * (math.log(a) - math.log(m.prix[b]))
             par = _parite_import(p, m, b)                # 27/09 : au-dessus de la parite a l import, les importateurs ramenent le prix
@@ -908,6 +939,18 @@ def _ajuster_prix(p, mid):
         elif b == "or":
             m.prix[b] = PM[b]
         m.demande[b] = 0.0; m.offre[b] = 0.0; em.non_servi[b] = 0.0
+
+
+def _prix_de_reference(p, em, m, b):
+    """Le prix d installation du bien a ce marche, indexe sur le prix mondial du jour ( prix_port du domaine 7 ) : ce vers quoi
+    le prix revient quand rien ne manque ni ne deborde. None pour un bien qui ne s echange pas."""
+    if em.prix_ref is None: em.prix_ref = {}
+    pm = _prix_mondial_du_jour(p.w, b)
+    r = em.prix_ref.get(b)
+    if r is None: r = em.prix_ref[b] = [m.prix[b], pm, pm]          # prix d installation, cours mondial alors, cours lisse
+    r[2] = (1.0 - ALPHA_MONDIAL) * r[2] + ALPHA_MONDIAL * pm
+    prix0, pm0, pml = r
+    return prix0 * pml / pm0 if pm0 > 0.0 else prix0
 
 
 def _parite_import(p, m, b):

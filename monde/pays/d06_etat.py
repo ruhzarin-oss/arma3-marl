@@ -809,6 +809,20 @@ KEA_EUROS_MOIS = 216.0
 KEA_ADULTE, KEA_ENFANT = 0.5, 0.25
 KEA_AVOIRS_EUROS = 7200.0
 AGE_ADULTE_KEA = 18.0
+# 27/09 ( HMT-126 ) le test de ressources copie la loi ( art. 235 de la loi 4389/2016 ; decision ministerielle commune
+# 97046 du 6/11/2023 ) : « le revenu declare du menage des SIX derniers mois avant la demande », au plus six fois le
+# montant garanti ; la prestation du mois = montant garanti - ce revenu / 6 ; plafond de 972 euros par mois quel que soit
+# le menage ( 4,5 fois l adulte seul ). Le revenu lisse du domaine 3 ( moyenne mobile de 60 jours ) gardait des mois
+# durant la trace de l estimation faite a l installation : un salarie paye 0 depuis 190 jours y valait encore 1,9 drachme
+# par jour ( mesure de la guerre des iles, Stratis ) - un revenu FANTOME, et un KEA ampute d autant. Ici : six comptes
+# mensuels par menage ( rmg_m0, le dernier mois clos, a rmg_m5 ) et le mois en cours ( rmg_mois ), remplis chaque jour
+# de ce que la paie de 18 h a apporte au menage ( la fenetre que lit le domaine 3 ), KEA exclu. Le droit se recalcule
+# chaque mois sur les six derniers mois clos ( la loi le fixe a la demande, renouvelee tous les six mois : simplification
+# ecrite ). A l installation, les six mois passes valent le revenu estime par le domaine 3 : un menage qui vient de tout
+# perdre n a droit a rien tant que ses six derniers mois comptent son ancien revenu ( le decalage de la loi ).
+KEA_MOIS_TEST = 6
+KEA_PLAFOND_ECHELLE = 972.0 / 216.0
+KEA_COMPTES = tuple(f"rmg_m{k}" for k in range(KEA_MOIS_TEST))
 
 
 def _revenu_minimum(p):
@@ -822,10 +836,11 @@ def _revenu_minimum(p):
     age = (p.jour - ch["naissance_j"][viv].astype(np.float64)) / 365.0 if "naissance_j" in ch else np.full(len(viv), 30.0)
     adultes = np.bincount(mid[age >= AGE_ADULTE_KEA], minlength=M)[:M].astype(np.float64)
     enfants = np.bincount(mid[age < AGE_ADULTE_KEA], minlength=M)[:M].astype(np.float64)
-    echelle = np.where(adultes > 0, 1.0 + KEA_ADULTE * np.maximum(0.0, adultes - 1.0) + KEA_ENFANT * enfants, 0.0)
+    echelle = np.where(adultes > 0, np.minimum(KEA_PLAFOND_ECHELLE, 1.0 + KEA_ADULTE * np.maximum(0.0, adultes - 1.0)
+                                               + KEA_ENFANT * enfants), 0.0)
     seuil_j = KEA_EUROS_MOIS * echelle / 30.0 / EUROS_PAR_DRACHME
     rmg = cm["rmg_lisse"]
-    revenu = np.maximum(0.0, cm["eco_revenu"][:M] - rmg[:M])
+    revenu = _revenu_declare_6_mois(p, cm, M) / (KEA_MOIS_TEST * EC.MOIS_J)     # drachmes par jour, KEA exclu
     avoirs = KEA_AVOIRS_EUROS * echelle / EUROS_PAR_DRACHME
     dis = cm["dissous"][:M] if "dissous" in cm else np.zeros(M, np.int8)
     du = np.where((dis == 0) & (adultes > 0) & (tb.menages.caisse[:M] <= avoirs), np.maximum(0.0, seuil_j - revenu), 0.0)
@@ -839,10 +854,39 @@ def _revenu_minimum(p):
     if manque > 0.01: p.compter("revenu_minimum_impaye", manque)
 
 
+def _revenu_declare_6_mois(p, cm, M):
+    """Le revenu declare de chaque menage sur les six derniers mois clos ( drachmes ) : on ajoute d abord au mois en
+    cours ce que la paie de 18 h vient de lui apporter ( caisse contre celle de 17 h 50, relevee par le domaine 3 ), puis,
+    le premier jour d un mois, les comptes glissent d un mois."""
+    _poser_comptes_kea(p)
+    cm.assurer(M)
+    c1750 = getattr(p.domaine("economie"), "caisses_1750", None)
+    if c1750 is not None:
+        k = min(M, len(c1750))
+        cm["rmg_mois"][:k] += np.maximum(0.0, p.w.table.menages.caisse[:k] - c1750[:k])
+    if p.jour > 0 and p.jour % EC.MOIS_J == 0:
+        for a, b in zip(KEA_COMPTES[:0:-1], KEA_COMPTES[-2::-1]): cm[a][:M] = cm[b][:M]    # m5 <- m4 ... m1 <- m0
+        cm[KEA_COMPTES[0]][:M] = cm["rmg_mois"][:M]; cm["rmg_mois"][:M] = 0.0
+    return sum(cm[c][:M] for c in KEA_COMPTES)
+
+
+def _poser_comptes_kea(p):
+    """Les comptes du test de ressources ; les six mois passes valent le revenu estime par le domaine 3 ( un mois = 30
+    jours de son revenu lisse ), comme a l installation."""
+    cm = p.colonnes["menage"]
+    if "rmg_mois" in cm: return
+    M = len(p.w.menages)
+    for c in KEA_COMPTES + ("rmg_mois",): cm.ajouter(c, np.float64, 0.0)
+    cm.assurer(M)
+    rv = cm["eco_revenu"][:M] if "eco_revenu" in cm else np.zeros(M)
+    for c in KEA_COMPTES: cm[c][:M] = EC.MOIS_J * rv
+
+
 def brancher_revenu_minimum(p):
     """Pose le revenu minimum ( une fois ). Aucun monde ne l appelle encore ( voir plus haut ) ; les portes, si."""
     cm = p.colonnes["menage"]
     if "rmg_lisse" not in cm: cm.ajouter("rmg_lisse", np.float64, 0.0); cm.assurer(len(p.w.menages))
+    _poser_comptes_kea(p)
     p.socle.livre.declarer_motif("revenu_minimum", "prestation", "etat")
     J = p.socle.journal
     for t in ("revenu_minimum", "revenu_minimum_impaye"):
