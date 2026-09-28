@@ -15,7 +15,7 @@
 -- Codes du reçu : 0 exécutée, 1 erreur Lua pendant l'exécution, 2 le fichier ne compile pas, 3 refus ( detail =
 -- code de REFUS_LUA dans cmo_labo.py ).
 
-HMT_VERSION = 3
+HMT_VERSION = 4
 HMT_CAMPS = { 'Stratis', 'Malden' }                          -- = CAMPS de cmo_labo.py, dans le même ordre
 HMT_GENRES = { 'Air', 'Ship', 'Submarine', 'Facility' }      -- = GENRES de cmo_labo.py
 HMT_n = HMT_n or 0                                           -- dernière commande prise
@@ -187,12 +187,48 @@ function HMT_poser(R, camp, genre, dbid, numero, lat, lon, alt, loadout)
     R('POSE', { numero, camp, u.latitude, u.longitude })
 end
 
+-- Deux camps en guerre : chacun voit l'autre hostile ( la posture se règle dans les deux sens ). Rend 1 par sens
+-- relu hostile dans CMO.
+function HMT_hostiles(R, a, b)
+    if HMT_CAMPS[a] == nil or HMT_CAMPS[b] == nil or a == b then error('HMT_REFUS 1') end
+    ScenEdit_SetSidePosture(HMT_CAMPS[a], HMT_CAMPS[b], 'H')
+    ScenEdit_SetSidePosture(HMT_CAMPS[b], HMT_CAMPS[a], 'H')
+    local ab = ScenEdit_GetSidePosture(HMT_CAMPS[a], HMT_CAMPS[b]) == 'H'
+    local ba = ScenEdit_GetSidePosture(HMT_CAMPS[b], HMT_CAMPS[a]) == 'H'
+    R('HOSTILES', { a, b, ab and 1 or 0, ba and 1 or 0 })
+end
+
 function HMT_aller(R, numero, lat, lon)
     local e = registre()[numero]
     if e == nil or unite(e.guid) == nil then error('HMT_REFUS 5') end
     ScenEdit_SetUnit({ guid = e.guid,
                        course = { { latitude = lat, longitude = lon, TypeOf = 'ManualPlottedCourseWaypoint' } } })
     R('ORDRE', { numero, lat, lon })
+end
+
+-- LES LOTS : tous les ordres d'un tour en un seul envoi ( règle de Younes pour Arma ). Chaque élément est tenté à part :
+-- un refus ne fait pas tomber le lot, et le reçu dit ce qui a été fait ( POSE / ORDRE ) et ce qui ne l'a pas été
+-- ( REFUSE numéro code : code 0 = erreur Lua qui n'est pas un refus ; ABSENT numéro ).
+function HMT_poser_lot(R, camp, genre, dbid, alt, loadout, ...)
+    local t = { ... }
+    if #t % 3 ~= 0 then error('HMT_poser_lot : numéro, lat, lon par avion') end
+    for i = 1, #t, 3 do
+        local ok, err = pcall(HMT_poser, R, camp, genre, dbid, t[i], t[i + 1], t[i + 2], alt, loadout)
+        if not ok then R('REFUSE', { t[i], tonumber(string.match(tostring(err), 'HMT_REFUS (%d+)')) or 0 }) end
+    end
+end
+
+function HMT_aller_tous(R, lat, lon, ...)
+    for _, k in ipairs({ ... }) do
+        local e = registre()[k]
+        if e == nil or unite(e.guid) == nil then
+            R('ABSENT', { k })
+        else
+            ScenEdit_SetUnit({ guid = e.guid,
+                               course = { { latitude = lat, longitude = lon, TypeOf = 'ManualPlottedCourseWaypoint' } } })
+            R('ORDRE', { k, lat, lon })
+        end
+    end
 end
 
 -- Les vivants ( U camp numéro lat lon alt ) et les morts depuis le dernier relevé ( MORT camp numéro ).

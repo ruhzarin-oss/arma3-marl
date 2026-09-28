@@ -293,11 +293,19 @@ def p20_recharger_sans_console():
             assert l.version["version_lua"] == CL.VERSION_LUA
 
 
+def p21_hostiles():
+    with banc() as (f, l):
+        assert l.hostiles("Stratis", "Malden")["hostiles"]
+        assert f.lua("return FAUX.postures['Malden>Stratis']") == "H"
+        leve(CL.Refus, l.hostiles, "Stratis", "Stratis")
+
+
 TESTS = [p0_accords, p1_installer, p2_canaris, p3_poser_etat_positions, p4_morts_une_fois, p5_erreur_lua_certaine,
          p6_refus_deux_etages, p7_compilation, p8_pause_jamais_aucun, p9_rechargement_recalage, p10_un_seul_ecrivain,
          p11_recu_ecrit_lentement, p12_que_des_nombres, p13_build_non_certifie, p14_lecteur_runscript,
          p14b_runscript_qui_leve, p15_commande_non_prise_effacee, p16_gros_recu, p17_recu_tronque, p18_nettoyer_prouve,
-         p19_poser_apres_nettoyer, p20_recharger_sans_console]
+         p19_poser_apres_nettoyer, p20_recharger_sans_console,
+         p21_hostiles]
 
 
 def passer(tests):

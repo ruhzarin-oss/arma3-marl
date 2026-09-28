@@ -35,7 +35,7 @@ et le fait relire à CMO par le pont lui-même (CMO relit bien le fichier, il ne
 ## Prouver
 
 - `.venv/bin/python cmo/porte_cmo.py --controles` : le vrai Lua face à `faux_cmo.lua`, dans Lua 5.4 (lupa).
-  22 tests, un par garde, et 3 mutants qui doivent être tués. Hors du jeu, en quelques secondes.
+  23 tests, un par garde, et 3 mutants qui doivent être tués. Hors du jeu, en quelques secondes.
 - `.venv/bin/python cmo/banc_pont.py` : dans le vrai CMO, avec des critères écrits d'avance (100 canaris, deux
   F-15C posés, déplacés puis retirés, une erreur volontaire, un reçu de 3000 lignes, 10 min d'endurance).
   S'il passe, il **certifie le build** ; `cmo_labo` refuse ensuite tout autre build (`strict=True`) tant que le
@@ -59,6 +59,31 @@ et le fait relire à CMO par le pont lui-même (CMO relit bien le fichier, il ne
   soit environ 8 Mo par jour.
 - **Banc réel passé le 29/09 (5 critères sur 5)** : le build 1.10.1900.20 est certifié
   (`/mnt/data/hmt/etat/cmo_banc/20260929_003400.json`).
+
+## La guerre des îles dans CMO (`guerre_cmo.py`, hors jeu pour l'instant)
+
+`CmoGuerre` parle à l'horloge de guerre (`guerre/horloge.py`) la même langue qu'`ArmaGuerre` : `ouvrir`, `fermer`,
+`tour(points, reserves)` et `positions()`. C'est une guerre **aérienne** :
+- chaque île achète des avions avec les points de la bourse ;
+- chaque avion a pour pilote un habitant de son île ;
+- un avion abattu, c'est un pilote mort au combat ;
+- une zone est tenue par le camp qui a seul le ciel au-dessus d'elle.
+
+Un tour coûte 4 envois au plus : relevé, achats des deux camps, ordres, canari.
+`porte_guerre_cmo.py --controles` : 11 tests et 3 mutants. Le test `g10` fait tourner la **vraie** horloge avec un
+archipel de papier.
+
+Choix pris en copiant le réel, que Younes doit trancher. Ce sont des constantes en tête de `guerre_cmo.py` :
+- Stratis est posée sur Ágios Efstrátios (l'île réelle que Bohemia a copiée), et Malden sur Skyros (vraie base
+  aérienne) ; les deux sont à environ 75 km l'une de l'autre ;
+- un seul avion au catalogue, le F-15C, à 50 M€, soit 500 000 points ;
+- tenir le ciel dans un rayon de 5 km vaut tenir la zone. Dans le réel, une aviation interdit, elle n'occupe pas ;
+- 12 avions en vol au plus par camp, et pas d'avion sans pilote ;
+- pas encore de base aérienne dans CMO : un avion à court de carburant tombe.
+
+Les tests tournent sous Python 3.12, celui du moteur : `.venv312`, avec les paquets d'`evogp` rendus visibles par
+un lien et `lupa`. Le Lua v4 (`HMT_hostiles`, les lots) est dans le dépôt, mais pas encore dans CMO : le déployer
+avec `deployer.py --recharger` avant la première guerre.
 
 ## Le pont de juin (`cmo_bridge.py`, `cmo_bridge.lua`, `cmo_ping.lua`, `test_bridge.py`) est remplacé
 

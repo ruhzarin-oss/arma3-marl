@@ -77,6 +77,10 @@ function ScenEdit_DeleteUnit(t)
     return false
 end
 
+FAUX.postures = {}
+function ScenEdit_SetSidePosture(a, b, p) FAUX.postures[a .. '>' .. b] = p end
+function ScenEdit_GetSidePosture(a, b) return FAUX.postures[a .. '>' .. b] or 'N' end
+
 function GetBuildNumber() return FAUX.build end
 function ScenEdit_CurrentTime() return FAUX.temps end
 

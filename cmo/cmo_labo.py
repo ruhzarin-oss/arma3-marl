@@ -54,9 +54,10 @@ SORTIE = f"{CMO}/ImportExport"
 ETAT = "/mnt/data/hmt/etat"
 FICHIER_CERTIF = "cmo_build_certifie.json"
 
-VERSION_LUA = 3                     # = HMT_VERSION de lua/hmt_pont.lua
+VERSION_LUA = 4                     # = HMT_VERSION de lua/hmt_pont.lua
 CAMPS = ("Stratis", "Malden")       # = HMT_CAMPS, même ordre ; index Lua = index Python + 1
 GENRES = ("air", "navire", "sous_marin", "site")      # = HMT_GENRES ( Air, Ship, Submarine, Facility )
+NUMERO_MAX = 99_999_999             # guerre_cmo décale les numéros de front par camp : chaque île numérote depuis 1
 LECTEURS = {1: "loadfile", 2: "RunScript"}
 REFUS_LUA = {1: "camp inconnu", 2: "genre inconnu", 3: "numéro déjà tenu par une unité vivante",
              4: "CMO refuse d'ajouter l'unité (dbid, loadout ou position)", 5: "numéro inconnu ou unité détruite"}
@@ -382,8 +383,9 @@ class Labo:
         if build != certifie and self.strict:
             raise Incomplet(f"CMO en build {build}, le banc pontcmo a certifié {certifie} : Steam a mis CMO à jour. "
                             "Relancer cmo/banc_pont.py avant toute guerre.")
+        temps = next((v[0] for c, v in r["lignes"] if c == "TEMPS" and v), None)   # heure du scénario, UTC Unix
         return {"pont": "vivant", "actuateur_n": n_act, "version_lua": version, "build": build,
-                "build_certifie": certifie, "lecteur": LECTEURS.get(int(lecteur), "?"), "recu": r["recu"]}
+                "build_certifie": certifie, "lecteur": LECTEURS.get(int(lecteur), "?"), "temps": temps, "recu": r["recu"]}
 
     def etat_camps(self) -> dict:
         """Compte le JEU, pas une mémoire : relu dans CMO à chaque appel. total = -1 si CMO ne rend pas la liste."""
@@ -403,7 +405,7 @@ class Labo:
             raise Refus(f"genre {genre!r} inconnu ; permis : {list(GENRES)}")
         c, g = CAMPS.index(camp) + 1, GENRES.index(genre) + 1
         d = _ent(dbid, 1, 10_000_000, "dbid")
-        k = _ent(numero, 1, 999_999, "numero")
+        k = _ent(numero, 1, NUMERO_MAX, "numero")
         la, lo = _num(lat, -90, 90, "lat"), _num(lon, -180, 180, "lon")
         a = _num(alt, 0, 30000, "alt")
         lod = _ent(loadout, 0, 10_000_000, "loadout")
@@ -411,12 +413,71 @@ class Labo:
         k2, c2, la2, lo2 = _une(r["lignes"], "POSE", 4)
         return {"numero": int(k2), "camp": CAMPS[int(c2) - 1], "lat": la2, "lon": lo2, "recu": r["recu"]}
 
+    def hostiles(self, camp_a: str, camp_b: str) -> dict:
+        """Les deux camps se voient hostiles dans CMO ( relu, pas supposé )."""
+        if camp_a not in CAMPS or camp_b not in CAMPS or camp_a == camp_b:
+            raise Refus(f"deux camps distincts parmi {list(CAMPS)} : {camp_a!r}, {camp_b!r}")
+        r = self._exec(f"HMT_hostiles(R, {CAMPS.index(camp_a) + 1}, {CAMPS.index(camp_b) + 1})")
+        _, _, ab, ba = _une(r["lignes"], "HOSTILES", 4)
+        if not (ab and ba):
+            raise Incomplet(f"posture relue non hostile dans CMO ( {camp_a}->{camp_b} {ab}, {camp_b}->{camp_a} {ba} )")
+        return {"hostiles": True, "recu": r["recu"]}
+
     def aller(self, numero: int, lat: float, lon: float) -> dict:
-        k = _ent(numero, 1, 999_999, "numero")
+        k = _ent(numero, 1, NUMERO_MAX, "numero")
         la, lo = _num(lat, -90, 90, "lat"), _num(lon, -180, 180, "lon")
         r = self._exec(f"HMT_aller(R, {k}, {la:.7f}, {lo:.7f})")
         k2, la2, lo2 = _une(r["lignes"], "ORDRE", 3)
         return {"numero": int(k2), "lat": la2, "lon": lo2, "recu": r["recu"]}
+
+    def poser_lots(self, lots) -> dict:
+        """Plusieurs lots ( un par camp, par exemple ) en UN envoi. lots : [ ( camp, genre, dbid, [ ( numéro, lat, lon ) ],
+        alt, loadout ) ]. Rend les numéros posés et les refus { numéro : code REFUS_LUA, 0 = erreur Lua }."""
+        corps, n = [], 0
+        for camp, genre, dbid, poses, alt, loadout in lots:
+            if camp not in CAMPS or genre not in GENRES:
+                raise Refus(f"camp {camp!r} ou genre {genre!r} inconnu")
+            if not poses:
+                continue
+            c, g = CAMPS.index(camp) + 1, GENRES.index(genre) + 1
+            d, a = _ent(dbid, 1, 10_000_000, "dbid"), _num(alt, 0, 30000, "alt")
+            lod = _ent(loadout, 0, 10_000_000, "loadout")
+            args = []
+            for k, la, lo in poses:
+                args += [str(_ent(k, 1, NUMERO_MAX, "numero")), f"{_num(la, -90, 90, 'lat'):.7f}",
+                         f"{_num(lo, -180, 180, 'lon'):.7f}"]
+            corps.append(f"HMT_poser_lot(R, {c}, {g}, {d}, {a:.1f}, {lod}, {', '.join(args)})")
+            n += len(poses)
+        if not corps:
+            return {"poses": [], "refus": {}}
+        r = self._exec(" ".join(corps))
+        poses_ok = [int(v[0]) for k, v in r["lignes"] if k == "POSE"]
+        refus = {int(v[0]): int(v[1]) for k, v in r["lignes"] if k == "REFUSE"}
+        if len(poses_ok) + len(refus) != n:
+            raise Incomplet(f"lots de {n} unités : {len(poses_ok)} posées, {len(refus)} refusées")
+        return {"poses": poses_ok, "refus": refus, "recu": r["recu"]}
+
+    def poser_lot(self, camp: str, genre: str, dbid: int, poses, alt: float = 0.0, loadout: int = 0) -> dict:
+        """Un lot du même type en UN envoi. poses : [ ( numéro, lat, lon ) ]."""
+        return self.poser_lots([(camp, genre, dbid, poses, alt, loadout)])
+
+    def aller_tous(self, ordres) -> dict:
+        """Tous les ordres de déplacement d'un tour en UN envoi. ordres : [ ( lat, lon, [ numéros ] ) ]."""
+        corps, n = [], 0
+        for la, lo, ks in ordres:
+            if not ks:
+                continue
+            ks = [str(_ent(k, 1, NUMERO_MAX, "numero")) for k in ks]
+            corps.append(f"HMT_aller_tous(R, {_num(la, -90, 90, 'lat'):.7f}, {_num(lo, -180, 180, 'lon'):.7f}, {', '.join(ks)})")
+            n += len(ks)
+        if not corps:
+            return {"ordonnes": [], "absents": []}
+        r = self._exec(" ".join(corps))
+        out = {"ordonnes": [int(v[0]) for k, v in r["lignes"] if k == "ORDRE"],
+               "absents": [int(v[0]) for k, v in r["lignes"] if k == "ABSENT"], "recu": r["recu"]}
+        if len(out["ordonnes"]) + len(out["absents"]) != n:
+            raise Incomplet(f"{n} ordres envoyés, {len(out['ordonnes'])} faits, {len(out['absents'])} absents")
+        return out
 
     def positions(self) -> dict:
         """{ camp : [ ( numéro, lat, lon, alt ) ] } des vivants, et { camp : [ numéro ] } des morts depuis le dernier
