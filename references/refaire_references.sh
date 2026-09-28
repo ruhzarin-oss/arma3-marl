@@ -25,6 +25,7 @@ $PY $C/patch_priorite_devises.py $ARBRE
 $PY $C/patch_menages_e.py $ARBRE          # HMT-126 ( e ) : factures et cotisations apres la nourriture, coupure
 $PY $C/patch_menages_d.py $ARBRE          # HMT-126 ( d ) : la consommation des menages
 $PY $C/patch_menages_e2.py $ARBRE         # HMT-126 ( e, suite ) : plancher sans revenu, insaisissable du fisc
+$PY $C/patch_insaisissable.py $ARBRE       # HMT-126 ( e, 28/09 ) : l insaisissable du fisc copie la loi ( KEDE art. 33 par. 2 )
 ( cd $ARBRE && PYTHONPATH=$ARBRE $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines.json ]; then
   cmp -s $REF/ref_domaines_refaite.json $REF/ref_domaines.json && echo "REFERENCE DES DOMAINES REPRODUITE AU BIT" || echo "REFERENCE DES DOMAINES DIFFERENTE"

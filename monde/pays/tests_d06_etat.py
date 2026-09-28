@@ -338,36 +338,46 @@ def _instrument(notes):
 
 
 def test_controle_fiscal():
-    """Porte de la decision : 1 500 habitants, tous les policiers presents a 10 h controlent ( une vingtaine de
+    """Porte de la decision : 4 500 habitants, tous les policiers presents a 10 h controlent ( une soixantaine de
     decisions par jour ), en choisissant leur critere au hasard ( mode hasard ), 45 jours ( l IS du premier mois est
-    liquide au 30e ). La note doit dependre du choix ( conventions, section 4 ) : part du choix ( epsilon carre a jour
-    egal ) >= 0,01 ET p_permutation < 0,05 ; au moins 200 notes murees. La note est le logarithme signe du net
-    encaisse ( note_controle ) : les drachmes brutes, domineees par quelques arrieres geants, sont mesurees a cote
-    par le meme instrument ( 0,004 le 23/09 ). Falsificateur de l instrument : des notes tirees sans lien avec le choix,
-    aux memes jours et aux memes actions, ne passent pas. Au moins 10 controles qui redressent, la conservation tient."""
-    w, p = T.monde(["etat"], echelle=3, modes={"controle_fiscal": "hasard"})
+    liquide au 30e ). La note est le logarithme signe du net encaisse ( note_controle ). Depuis le 28/09 ( HMT-126 e ),
+    l insaisissable du fisc copie la loi ( 1 250 euros par personne et par mois, KEDE art. 33 par. 2 ) : la plupart des
+    menages n ont rien de saisissable, un controle chez eux redresse sans rien encaisser dans la semaine, et sa note ne
+    peut rien dire du critere. L intention de la porte - le controle rapporte la ou il y a de quoi saisir - se juge donc
+    sur les controles dont la cible avait, au moment du controle, quelque chose de saisissable ( une unite a caisse
+    positive, un menage au-dessus de son insaisissable ) : parmi eux, au moins 200 notes murees, part du choix ( epsilon
+    carre a jour egal ) >= 0,01 ET p_permutation < 0,05 ( conventions, section 4 ). Falsificateur de l instrument : des
+    notes tirees sans lien avec le choix, aux memes jours et aux memes actions que ces controles, ne passent pas. Au
+    moins 10 controles qui redressent, la conservation tient. Mesures a cote, sans juger : la part du choix sur tous les
+    controles, et en drachmes brutes ( dominees par quelques arrieres geants : 0,004 le 23/09 ). Taille : 1 500
+    habitants jusqu au 28/09 ; la, sur les 555 controles saisissables, part du choix 0,063 mais p = 0,29 : trop peu de
+    notes pour conclure sous des notes a queue lourde. Monde triple une fois, decide avant de mesurer, seuils inchanges."""
+    w, p = T.monde(["etat"], echelle=9, modes={"controle_fiscal": "hasard"})
     M.appliquer(p, {"type": "fixer_controle", "part": 1.0})
     T.jours(w, 45)
     e = p.domaine("etat"); dec = e.decideur; f = e.fisc
-    eps, pval, brute = dec.part_du_choix(), dec.p_permutation(n=200, graine=0), dec.part_du_choix_brute()
     notes = list(f.notes)
+    sais = [(j, a, x, net) for j, a, x, net, s in notes if s > 0.0]
+    eps, pval = _instrument([(j, a, x) for j, a, x, _ in sais])
     rng = np.random.default_rng(17)
-    eps_bruit, p_bruit = _instrument([(j, a, float(z)) for (j, a, _, _), z in zip(notes, rng.standard_normal(len(notes)))])
-    eps_dr, p_dr = _instrument([(j, a, net) for j, a, _, net in notes])
+    eps_bruit, p_bruit = _instrument([(j, a, float(z)) for (j, a, _, _), z in zip(sais, rng.standard_normal(len(sais)))])
+    eps_tous, p_tous = dec.part_du_choix(), dec.p_permutation(n=200, graine=0)
+    eps_dr, p_dr = _instrument([(j, a, net) for j, a, _, net, _ in notes])
     par = {}
-    for _, a, x, net in notes: par.setdefault(M.CRITERES[a], []).append((x, net))
+    for _, a, x, net in sais: par.setdefault(M.CRITERES[a], []).append((x, net))
     moy = ", ".join(f"{k} {np.mean([x for x, _ in v]):+.2f} ( {np.mean([n for _, n in v]):+.0f} dr, {len(v)} )"
                     for k, v in par.items())
     tenue, msg = p.socle.conservation.tenue()
-    ok = (len(notes) >= 200 and eps >= 0.01 and pval < 0.05 and not (eps_bruit >= 0.01 and p_bruit < 0.05)
+    ok = (len(sais) >= 200 and eps >= 0.01 and pval < 0.05 and not (eps_bruit >= 0.01 and p_bruit < 0.05)
           and f.compte["controles_positifs"] >= 10 and tenue)
-    return ok, (f"{dec.n_decisions} decisions, {len(notes)} notes murees ; note moyenne par critere ( drachmes nettes, "
-                f"nombre ) : {moy} ; part du choix {eps:.3f} ( epsilon carre ; eta carre brut {brute:.3f} ), p = {pval:.3f} ; "
-                f"en drachmes brutes : {eps_dr:.3f}, p = {p_dr:.3f} ; notes sans lien avec le choix : {eps_bruit:.3f}, "
-                f"p = {p_bruit:.3f} ; {f.compte['controles_positifs']:.0f} redressements sur {f.compte['controles']:.0f} "
-                f"controles, {f.compte['redressements']:.0f} drachmes redressees + {f.compte['penalites']:.0f} de "
-                f"penalites, {f.compte['recouvre']:.0f} recouvrees ; IS liquide {f.compte['impot_societes']:.0f}, elude "
-                f"{f.compte['is_elude']:.0f} ; {msg}")
+    return ok, (f"{dec.n_decisions} decisions, {len(notes)} notes murees, dont {len(sais)} sur une cible qui avait de "
+                f"quoi saisir ; parmi elles, note moyenne par critere ( drachmes nettes, nombre ) : {moy} ; part du choix "
+                f"{eps:.3f} ( epsilon carre ), p = {pval:.3f} ; notes sans lien avec le choix : {eps_bruit:.3f}, p = "
+                f"{p_bruit:.3f} ; a cote, tous les controles : {eps_tous:.3f}, p = {p_tous:.3f} ; en drachmes brutes : "
+                f"{eps_dr:.3f}, p = {p_dr:.3f} ; {f.compte['controles_positifs']:.0f} redressements sur "
+                f"{f.compte['controles']:.0f} controles, {f.compte['redressements']:.0f} drachmes redressees + "
+                f"{f.compte['penalites']:.0f} de penalites, {f.compte['recouvre']:.0f} recouvrees ; IS liquide "
+                f"{f.compte['impot_societes']:.0f}, elude {f.compte['is_elude']:.0f} ; {msg}")
 
 
 # ================================================================== le pays
@@ -394,35 +404,64 @@ def test_cout():
 
 
 def test_insaisissable():
-    """Porte ( HMT-126 e, seuils ecrits avant la mesure ) - controle positif : un menage sans revenu qui doit 5 000 drachmes
-    au fisc et n a que 30 jours de nourriture en caisse ne se voit rien saisir au recouvrement du soir ( son plancher :
-    90 jours de nourriture ) ; sa dette reste entiere. Falsificateur : le meme menage, avec un revenu qui le nourrit, se
-    voit saisir la moitie de ce qui depasse sa semaine de nourriture, au centime."""
-    from . import d03_economie as EC
+    """Porte ( HMT-126 e, 28/09 : la loi, KEDE art. 33 par. 2 ; seuils ecrits avant la mesure ). Un menage doit au fisc.
+    Controle positif : sa caisse a 90 % de son insaisissable, rien n est saisi au recouvrement du soir et sa dette reste
+    entiere. Falsificateurs : 1 ) 1 000 drachmes au-dessus de l insaisissable : la moitie ( PART_SAISIE ) est saisie, au
+    centime ; 2 ) l insaisissable vaut 1 250 euros convertis PAR ADULTE, les enfants n en ont pas : 1 250 / 1,15 pour un
+    menage d un adulte, le double pour un menage de deux adultes, au centime ; 3 ) PAR MOIS : le menage laisse a son
+    insaisissable debite D ( compte a 17 h 50 ), puis recoit Y > D : la moitie de Y est saisie, au centime ( une reserve
+    fixe n en prendrait que la moitie de Y - D ) ; 4 ) le mois suivant, l insaisissable revient entier."""
     w, p = T.monde(["etat"])
     T.jours(w, 1)
     e = p.domaine("etat"); f = e.fisc; K = p.socle.creances; L = p.socle.livre; cm = p.colonnes["menage"]
-    mg = next(m for m in w.menages if M._vivants(m) >= 1 and not p.col("menage", "dissous")[m.id] and not K.de(m))
-    jour = float(EC.reserve_alimentaire(p, 1)[mg.id])
-    EC.revenu_recent(p, len(w.menages))
+    ch = p.colonnes["habitant"]; tb = w.table
+    UN = M.INSAISISSABLE_EUROS_MOIS / M.EUROS_PAR_DRACHME
 
-    def essai(revenu):
-        cm["eco_revenu_30"][mg.id] = revenu; cm["eco_revenu_30_n"][mg.id] = 30
-        x = 30.0 * jour
-        if mg.caisse > x: L.transferer(mg, w.gouv, mg.caisse - x, "amende")
-        else: L.recevoir_de_l_exterieur(mg, x - mg.caisse, "epargne_initiale")
-        cr = K.constater(w.gouv, mg, 5000.0, "redressement_fiscal", p.jour); f.creances.append(cr)
+    def compte(m):            # adultes et enfants vivants, relus a part sur la colonne des naissances
+        ages = [(p.jour - float(ch["naissance_j"][h.id])) / 365.0 for h in m.membres if h.vivant]
+        return sum(1 for a in ages if a >= 18.0), sum(1 for a in ages if a < 18.0)
+
+    libres = [m for m in w.menages if not p.col("menage", "dissous")[m.id] and not K.de(m) and M._vivants(m) >= 1]
+    uns = [m for m in libres if compte(m)[0] == 1]
+    un = next((m for m in uns if compte(m)[1] >= 1), uns[0] if uns else None)
+    deux = next((m for m in libres if compte(m)[0] == 2), None)
+    if un is None or deux is None: return False, "pas de menage d un adulte ou de deux adultes dans le monde d essai"
+
+    def mettre(m, x):
+        if m.caisse > x: L.transferer(m, w.gouv, m.caisse - x, "amende")
+        else: L.recevoir_de_l_exterieur(m, x - m.caisse, "epargne_initiale")
+
+    def neuf(m): cm["fisc_ins_mois"][m.id] = -1          # aucune saisie encore ce mois-ci
+
+    def saisie(m):
+        cr = K.constater(w.gouv, m, 50000.0, "redressement_fiscal", p.jour); f.creances.append(cr)
         avant = cr.montant
         M._recouvrer(p)
-        pris = avant - (cr.montant if K.actives.get(cr.id) is cr else 0.0)
-        if K.actives.get(cr.id) is cr: K.abandonner(cr, "essai")
-        return pris
-    pris_sans = essai(0.0)
-    pris_avec = essai(10.0 * jour)
-    attendu = M.PART_SAISIE * (30.0 * jour - EC.RESERVE_ALIMENTAIRE_J * jour)
-    ok = pris_sans == 0.0 and abs(pris_avec - attendu) <= 1e-6 and attendu > 0.0
-    return ok, (f"30 jours de nourriture en caisse ( {30.0 * jour:.2f} ) : sans revenu, saisi {pris_sans:.2f} ; avec revenu, saisi "
-                f"{pris_avec:.2f} ( attendu {attendu:.2f} )")
+        return cr, avant - (cr.montant if K.actives.get(cr.id) is cr else 0.0)
+
+    A1, A2 = M.insaisissable(p, un, armer=False), M.insaisissable(p, deux, armer=False)
+    neuf(un); mettre(un, 0.9 * A1); cr, pris0 = saisie(un)
+    ok_pos = pris0 == 0.0 and K.actives.get(cr.id) is cr and cr.montant == 50000.0
+    neuf(un); mettre(un, A1 + 1000.0); _, pris1 = saisie(un)
+    ok_x = abs(pris1 - M.PART_SAISIE * 1000.0) <= 1e-6
+    ok_n = abs(A1 - UN) <= 1e-9 and abs(A2 - 2.0 * UN) <= 1e-9
+    neuf(un); mettre(un, A1); _, pris2 = saisie(un)
+    D_, Y = 0.3 * A1, 0.5 * A1
+    L.transferer(un, w.gouv, D_, "amende")                                   # il debite D
+    M._compter_debits(p, tb.menages.caisse[:len(w.menages)].copy())          # 17 h 50
+    L.recevoir_de_l_exterieur(un, Y, "epargne_initiale")                     # la paie
+    _, pris3 = saisie(un)
+    ok_mois = pris2 == 0.0 and abs(pris3 - M.PART_SAISIE * Y) <= 1e-6
+    cm["fisc_ins_mois"][un.id] -= 1                                          # ce compte devient celui du mois passe
+    ok_suivant = abs(M.insaisissable(p, un) - A1) <= 1e-9
+    for c in list(K.de(un)): K.abandonner(c, "essai")
+    ok = ok_pos and ok_x and ok_n and ok_mois and ok_suivant
+    na, ne = compte(un)
+    return ok, (f"insaisissable {A1:.2f} dr pour un adulte ( {ne} enfant(s) ), {A2:.2f} pour deux ( attendu {UN:.2f} "
+                f"par adulte ) ; caisse a 90 % : saisi {pris0:.2f}, dette entiere {ok_pos} ; 1 000 au-dessus : saisi "
+                f"{pris1:.2f} ( attendu {M.PART_SAISIE * 1000.0:.2f} ) ; au mois : rien a l insaisissable ( {pris2:.2f} ), "
+                f"puis {D_:.2f} debites et {Y:.2f} recus : saisi {pris3:.2f} ( attendu {M.PART_SAISIE * Y:.2f}, une reserve "
+                f"fixe {M.PART_SAISIE * (Y - D_):.2f} ) ; le mois suivant {M.insaisissable(p, un, armer=False):.2f}")
 
 
 TESTS = [test_tva_par_categorie, test_ir_par_tranches, test_is_penalites_douanes, test_comptes_nationaux,
