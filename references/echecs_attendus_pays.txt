@@ -12,6 +12,5 @@ ECHOUE  medias            test_deformation_relais
 ECHOUE  population        test_recensement
 ECHOUE  securite_civile   test_decision
 ECHOUE  territoire        test_climat
-ECHOUE  transport         test_decision
 ECHOUE  travail           test_emploi_20_64
 ECHOUE  travail           test_inactifs_changent
