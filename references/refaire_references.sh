@@ -22,6 +22,12 @@ $PY $C/patch_prix.py $ARBRE
 $PY $C/patch_autoconsommation.py $ARBRE/monde/pays/d09_agriculture.py
 $PY $C/patch_devises.py $ARBRE
 $PY $C/patch_priorite_devises.py $ARBRE
+$PY $C/patch_rupture.py $ARBRE
+$PY $C/patch_plafond.py $ARBRE
+$PY $C/patch_lissage.py $ARBRE
+$PY $C/patch_ancre.py $ARBRE
+$PY $C/patch_menages_a.py $ARBRE
+$PY $C/patch_marchands.py $ARBRE
 $PY $C/patch_gerance_cessation.py $ARBRE
 ( cd $ARBRE && PYTHONPATH=$ARBRE $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines.json ]; then
@@ -32,7 +38,7 @@ if [ -d $REF/ref/monde_ancien ]; then
   diff -rq -x __pycache__ -x "*.avant*" -x resultats $REF/ref/monde_ancien $REF/ref/monde_ancien.nouveau >/dev/null && echo "ANCIEN MOTEUR TEMOIN IDENTIQUE" || echo "ANCIEN MOTEUR TEMOIN DIFFERENT"
   rm -rf $REF/ref/monde_ancien.nouveau
 else mv $REF/ref/monde_ancien.nouveau $REF/ref/monde_ancien; echo "ancien moteur temoin pose"; fi
-TOUS=72f9afc
+TOUS=e32109f
 ARBRE2=$REF/ref_tous; rm -rf $ARBRE2 && mkdir -p $ARBRE2 && git -C $DEPOT archive $TOUS monde | tar -x -C $ARBRE2
 ( cd $ARBRE2 && PYTHONPATH=$ARBRE2 $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_tous_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines_tous.json ]; then

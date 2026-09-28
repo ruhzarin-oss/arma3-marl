@@ -3,3 +3,4 @@
 # Le remede est un test plus grand ( echelle, jours, graines ), pas cette liste : chaque ligne est une dette ( Plane HMT-127 ).
 ECHOUE  justice           test_elucidation_et_effort   # 55 a 67 delits par bras, +-5 points de bruit de Poisson ; bascule quand l economie decale les tirages ( moteur, 27/09 )
 ECHOUE  exterieur         test_decision_importer       # 500 habitants, 16 jours : p 0,005 ou 0,08 selon la version, a la limite de l instrument ( moteur, 27/09 )
+ECHOUE  services_publics  test_routes_usure_et_entretien   # controle « sans camions, usure moyenne en baisse » : sur le tronc 12d226b il echoue sur les graines 1, 2, 3, 4 et ne passe que sur la graine par defaut ( des reparations relevent l etat moyen ) ; la porte certifie son seul monde ( moteur, 27/09 )

@@ -374,6 +374,51 @@ def test_cout():
                 f"{detail} ms ), {propre / len(w.habitants) * 1e6:.1f} us par habitant")
 
 
+def test_kea_revenu_declare():
+    """Porte ( HMT-126, seuils ecrits avant la mesure ) : le revenu minimum ( KEA ) lit le revenu DECLARE des six derniers
+    mois clos ( art. 235 de la loi 4389/2016 ), pas le revenu lisse du domaine 3. Quatre menages d un adulte seul, caisse
+    videe ( sous la limite d avoirs ), le KEA appele hors de la fenetre de paie ( le seul mouvement de leur caisse ) :
+      A  six mois sans revenu, mais un revenu lisse du domaine 3 pose a 50 drachmes par jour ( le fantome qui, dans l ancien
+         test, ne donnait rien ) : recoit le montant garanti entier, 216 euros / 30 par jour, a 1e-9 ;
+      B  trois fois le montant garanti sur six mois : la moitie ; C  sept fois : rien ( falsificateur ) ;
+      D  glissement : le premier jour d un mois, le mois en cours devient le dernier mois clos et les comptes reculent
+         d un mois ( 100, 200 ... 600 -> ancien m0 en m1, ancien m4 en m5 ).
+    Conservation tenue."""
+    w, p = T.monde(["etat"])
+    T.jours(w, 2)
+    M.brancher_revenu_minimum(p)
+    cm = p.colonnes["menage"]; tb = w.table; nh = tb.n; Mn = len(w.menages)
+    age = (p.jour - p.col("habitant", "naissance_j")[:nh]) / 365.0
+    mid = tb.menage[:nh].astype(np.int64); viv = (tb.vivant[:nh] == 1) & (mid >= 0)
+    n_viv = np.bincount(mid[viv], minlength=Mn)[:Mn]; n_ad = np.bincount(mid[viv & (age >= 18)], minlength=Mn)[:Mn]
+    seuls = [k for k in range(Mn) if n_viv[k] == 1 and n_ad[k] == 1 and cm["dissous"][k] == 0][:4]
+    A, B, C_, D_ = (w.menages[k] for k in seuls)
+    g_mois = M.KEA_EUROS_MOIS / M.EUROS_PAR_DRACHME
+    for mg, tot in ((A, 0.0), (B, 3.0 * g_mois), (C_, 7.0 * g_mois)):
+        p.socle.livre.transferer(mg, w.gouv, mg.caisse, "amende")
+        for c in M.KEA_COMPTES: cm[c][mg.id] = tot / M.KEA_MOIS_TEST
+        cm["rmg_mois"][mg.id] = 0.0
+    cm["eco_revenu"][A.id] = 50.0
+    avant = {mg.id: mg.caisse for mg in (A, B, C_)}
+    M._revenu_minimum(p)                                   # 6 h : hors de la fenetre de paie, le seul mouvement
+    recu = {k: getattr(w.menages[k], "caisse") - v for k, v in avant.items()}
+    ea, eb = g_mois / 30.0, g_mois / 30.0 - 3.0 * g_mois / 180.0
+    montants = abs(recu[A.id] - ea) <= 1e-9 and abs(recu[B.id] - eb) <= 1e-9 and abs(recu[B.id] - ea / 2) <= 1e-9 \
+        and recu[C_.id] == 0.0
+    # le glissement des comptes, le premier jour d un mois ( le jour 30, a 18 h )
+    T.jours(w, 30 - p.jour)
+    for k, c in enumerate(M.KEA_COMPTES): cm[c][D_.id] = 100.0 * (k + 1)
+    cm["rmg_mois"][D_.id] = 777.0
+    T.jours(w, 1)
+    glisse = (cm["rmg_m1"][D_.id] == 100.0 and cm["rmg_m5"][D_.id] == 500.0 and cm["rmg_m0"][D_.id] >= 777.0
+              and cm["rmg_mois"][D_.id] < 777.0)
+    tenue, msg = p.socle.conservation.tenue()
+    ok = montants and glisse and tenue
+    return ok, (f"montant garanti {ea:.4f} dr/j : sans revenu declare ( revenu lisse fantome 50 ) {recu[A.id]:.4f} ; trois "
+                f"fois le garanti sur 6 mois {recu[B.id]:.4f} ( attendu {eb:.4f} ) ; sept fois {recu[C_.id]:.4f} ; comptes au "
+                f"jour 30 : m0 {cm['rmg_m0'][D_.id]:.0f}, m1 {cm['rmg_m1'][D_.id]:.0f}, m5 {cm['rmg_m5'][D_.id]:.0f} ; {msg}")
+
+
 TESTS = [test_tva_par_categorie, test_ir_par_tranches, test_is_penalites_douanes, test_comptes_nationaux,
          test_solde_budgetaire, test_tresor_jamais_a_sec, test_sitrep_sans_verite_cachee, test_enquete_chomage,
-         test_controle_fiscal, test_pays_vivable, test_cout]
+         test_controle_fiscal, test_kea_revenu_declare, test_pays_vivable, test_cout]

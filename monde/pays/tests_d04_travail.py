@@ -296,6 +296,8 @@ def test_accepter_emploi():
 # ================================================================== le chomage
 def test_indemnite_chomage():
     """Porte : un salarie licencie apres plus de 14 mois de contrat ouvre 12 mois d indemnite, apres 6 jours de carence,
+    ( HMT-126 ) comme un contrat du recensement de 30 jours sur une carriere assuree a plein ( ses contrats d avant ), mais
+    pas sur une carriere assuree a 30 % ;
     a 55 % du salaire minimum journalier de l ouvrier sur 25 jours ( + 10 % par mineur a charge ) ; une demission et un
     contrat de moins de 125 jours n ouvrent rien ; le premier jour du, la caisse verse ( s il n a pas retrouve
     d emploi : sinon l indemnite est close )."""
@@ -308,9 +310,18 @@ def test_indemnite_chomage():
     C_ = next(h for h in w.habitants if h.vivant and col["tr_statut"][h.id] == M.CHOMEUR and h.id not in (A.id, B.id))
     e = next(x for x in w.entreprises.values() if x.type == "fonderie")
     M.embaucher_contrat(p, C_, e, "ouvrier", M.CDI)
+    # HMT-126 : un contrat du recensement commence 30 jours avant le jour 0, sur une carriere de 10 ans assuree a plein
+    # ( D ) ouvre 12 mois par ses contrats d avant ; la meme a 30 % ( E ) n atteint pas les 125 jours
+    D, E_ = cands[2], cands[3]
+    for h, dens in ((D, 1.0), (E_, 0.3)):
+        col["tr_debut_j"][h.id] = -30; col["tr_carriere"][h.id] = 1; col["tr_carriere_j"][h.id] = -3650
+        col["tr_jours_cotises"][h.id] = dens * (p.jour + 3650) / 365.0 * 300.0
     ia = M.rompre_contrat(p, A, "economique")
     ib = M.rompre_contrat(p, B, "demission", involontaire=False)
     ic = M.rompre_contrat(p, C_, "economique")
+    id_ = M.rompre_contrat(p, D, "economique")
+    ie = M.rompre_contrat(p, E_, "economique")
+    avant_ok = id_ is not None and id_.fin == id_.debut + 12 * 30 - 1 and ie is None
     attendu = 0.55 * 37.07 / 1.15 * 25 * 12 / 365 * (1 + 0.10 * M._a_charge(p, A))
     ouverte = (ia is not None and abs(ia.jour - attendu) <= 1e-9 and ia.debut == p.jour + 6
                and ia.fin == ia.debut + 12 * 30 - 1 and ib is None and ic is None)
@@ -320,9 +331,106 @@ def test_indemnite_chomage():
         etat = "verse"
     else:
         verse = A.id not in d.indemnites; etat = "reembauche, indemnite close"
-    ok = ouverte and verse
+    ok = ouverte and verse and avant_ok
     return ok, (f"licencie apres plus de 14 mois : {ia.jour if ia else 0:.3f} drachmes par jour ( attendu {attendu:.3f} ) du jour {ia.debut if ia else -1} au "
-                f"{ia.fin if ia else -1} ; demission {ib} ; contrat d un jour {ic} ; jour {p.jour} : {etat} {verse}")
+                f"{ia.fin if ia else -1} ; demission {ib} ; contrat d un jour {ic} ; contrat du recensement de 30 jours sur une "
+                f"carriere pleine : {(id_.fin - id_.debut + 1) // 30 if id_ else 0} mois, a 30 % : {ie} ; jour {p.jour} : {etat} {verse}")
+
+
+# ================================================================== l employeur sans travail, l employeur qui ne paie pas
+def test_disponibilite():
+    """Porte ( HMT-126, seuils ecrits avant la mesure ) - controle positif : une fonderie mise a l arret a la main ( reprise
+    par un domaine qui ne produit rien ) ; ses salaries se presentent a leur poste sans travail ; chacun est mis en
+    disponibilite le jour de sa 5e presence sans travail ( compte a part par un espion de la paie : le bon jour, pour
+    tous ) ; chaque jour ou il se presente ensuite, il recoit un bulletin de la moitie de sa journee reguliere, au
+    centime ; quand ses 90 jours de l annee sont faits ( avances a la main a 88 ), il est licencie le matin : chomeur,
+    indemnite de licenciement du bareme de la loi 4093/2012 payee ou due au centime, poste disparu ( effectif vise a 0 ).
+    Falsificateurs : les salaries d une mine qui produit ne sont jamais sans travail ni en disponibilite ; un salarie de
+    la fonderie qui reste chez lui ( horaire vide ) n est jamais mis en disponibilite ; conservation tenue. 2 000
+    habitants ( au moins 5 salaries suivis ) ; l effectif vise de la fonderie tombe a celui qui reste."""
+    w, p = T.monde(["travail"], echelle=4)
+    d = p.domaine("travail"); col = p.colonnes["habitant"]; d.garder_bulletins = True
+    T.jours(w, 1)
+    e = next(x for x in sorted(w.entreprises.values(), key=lambda x: x.id) if x.type == "fonderie")
+    mine = next(x for x in sorted(w.entreprises.values(), key=lambda x: x.id) if x.type == "mine")
+    gens = [h for h in M._membres(p, e.lieu.id, e.role) if col["tr_statut"][h.id] == M.SALARIE]
+    reste = gens[0]; reste.horaire = None; reste.lieu, reste.poste = reste.domicile, "maison"
+    suivis = [h.id for h in gens[1:]]
+    mineurs = [h.id for h in M._membres(p, mine.lieu.id, mine.role) if col["tr_statut"][h.id] == M.SALARIE]
+    p.reprendre(e, "essai_arret")
+    vu = {i: [] for i in suivis}                     # l espion : les jours de presence sans travail, lus a la paie
+    orig = w.paie
+
+    def espion():
+        pt = col["tr_pointage"]; hr = w.table.heures
+        for i in suivis:
+            if pt[i] / 6.0 >= M.PRESENCE_MIN_H and hr[i] <= 0.0: vu[i].append(p.jour)
+        orig()
+    w.paie = espion
+    mine_propre, demis, attendu_ind = True, [], {}
+    for _ in range(12):
+        T.jours(w, 1)
+        mine_propre &= all(col["tr_sans_travail_j"][i] == 0 and col["tr_dispo_j"][i] < 0 for i in mineurs)
+        for b in d.bulletins:
+            if b[0] in suivis and col["tr_dispo_j"][b[0]] >= 0:
+                demis.append(abs(b[2] - round(M.PART_SALAIRE_DISPONIBILITE * float(col["tr_taux"][b[0]])
+                                               * float(col["tr_heures_prevues"][b[0]]), 2)))
+    w.paie = orig
+    en_dispo = [i for i in suivis if col["tr_dispo_j"][i] >= 0]
+    bon_jour = all(len(vu[i]) >= M.JOURS_AVANT_DISPONIBILITE and col["tr_dispo_j"][i] == vu[i][M.JOURS_AVANT_DISPONIBILITE - 1]
+                   for i in suivis)
+    reste_ok = col["tr_dispo_j"][reste.id] < 0
+    # la disponibilite epuisee : 88 jours faits, le licenciement tombe au plus tard 2 matins apres
+    for i in en_dispo:
+        attendu_ind[i] = M.indemnite_licenciement(p, i)
+        col["tr_dispo_an"][i] = 88
+    K = p.socle.creances
+    p.socle.livre.transferer(e, w.gouv, e.caisse, "amende")     # caisse vide : toute l indemnite devient due, au centime
+    du0 = math.fsum(c.montant for c in K.de(e) if c.motif == "indemnite_licenciement")
+    T.jours(w, 3)
+    licencies = [i for i in en_dispo if col["tr_statut"][i] == M.CHOMEUR and w.habitants[i].travail is None]
+    du1 = math.fsum(c.montant for c in K.de(e) if c.motif == "indemnite_licenciement")
+    ind_payee = 0.0
+    total_ind = math.fsum(attendu_ind.values())
+    ind_ok = abs((du1 - du0) - total_ind) <= 1e-6 * max(1.0, total_ind)
+    cible = d.cible.get((e.lieu.id, e.role), 0)
+    tenue, msg = p.socle.conservation.tenue()
+    ok = (len(suivis) >= 5 and len(en_dispo) == len(suivis) and bon_jour and len(demis) >= len(suivis)
+          and max(demis) <= 0.005 and len(licencies) == len(en_dispo) and ind_ok and total_ind > 0 and cible == 1
+          and mine_propre and len(mineurs) >= 3 and reste_ok and tenue)
+    return ok, (f"fonderie a l arret : {len(suivis)} salaries suivis, {len(en_dispo)} en disponibilite, au bon jour ( 5e "
+                f"presence sans travail ) {bon_jour} ; {len(demis)} bulletins de demi-journee, pire ecart {max(demis) if demis else -1:.3f} ; "
+                f"licencies a 90 jours {len(licencies)} / {len(en_dispo)}, indemnites de licenciement {ind_payee:.0f} payees + "
+                f"{du1 - du0:.0f} dues pour {total_ind:.0f} attendues, effectif vise {cible} ; mine ( {len(mineurs)} salaries ) "
+                f"jamais sans travail {mine_propre} ; reste chez lui jamais en disponibilite {reste_ok} ; {msg}")
+
+
+def test_salaires_impayes():
+    """Porte ( HMT-126, art. 58 de la loi 4635/2019 ) - controle positif : un salarie d une mine dont le compte d arrieres
+    de salaire est ouvert depuis 61 jours ( plus de deux mois ) est chomeur involontaire le matin suivant, son indemnite de
+    licenciement du bareme due au centime ( la mine n a plus rien en caisse ) ; falsificateurs : un autre, dont le compte
+    n a que 55 jours, reste salarie, et un salarie paye sans arrieres aussi."""
+    w, p = T.monde(["travail"])
+    d = p.domaine("travail"); col = p.colonnes["habitant"]; K = p.socle.creances
+    T.jours(w, 2)
+    e = next(x for x in sorted(w.entreprises.values(), key=lambda x: x.id) if x.type == "mine")
+    gens = [h for h in M._membres(p, e.lieu.id, e.role) if col["tr_statut"][h.id] == M.SALARIE]
+    seul = [h for h in gens if sum(1 for x in gens if x.menage.id == h.menage.id) == 1]
+    seul.sort(key=lambda h: (int(col["tr_debut_j"][h.id]), h.id))              # les plus anciens : une indemnite au bareme
+    A, B, C_ = seul[0], seul[1], seul[2]
+    K.constater(A.menage, e, 500.0, "salaire", p.jour - 61)
+    K.constater(B.menage, e, 500.0, "salaire", p.jour - 55)
+    p.socle.livre.transferer(e, w.gouv, e.caisse, "amende")        # la mine ne peut plus payer ses arrieres
+    ind_a = M.indemnite_licenciement(p, A.id)
+    _avancer(w, 1 / 3)                                              # 6 h 20 : les carrieres de 6 h 10 sont passees
+    a_part = col["tr_statut"][A.id] == M.CHOMEUR and A.travail is None
+    du = math.fsum(c.montant for c in K.de(e) if c.motif == "indemnite_licenciement" and c.creancier.id == A.menage.id)
+    ind_ok = abs(du - ind_a) <= 1e-6 * max(1.0, ind_a)
+    b_reste = col["tr_statut"][B.id] == M.SALARIE and B.travail is not None
+    c_reste = col["tr_statut"][C_.id] == M.SALARIE and C_.travail is not None
+    ok = a_part and ind_ok and ind_a > 0 and b_reste and c_reste
+    return ok, (f"compte d arrieres de 61 jours : chomeur {a_part}, indemnite de licenciement {ind_a:.2f} ( due {du:.2f} ) ; "
+                f"compte de 55 jours : reste salarie {b_reste} ; sans arrieres : reste {c_reste}")
 
 
 # ================================================================== carrieres, qualifications, syndicats
@@ -389,5 +497,5 @@ def test_cout():
 
 
 TESTS = [test_bulletins_au_centime, test_caisse_securite_sociale, test_emploi_20_64, test_inactifs_changent, test_greve,
-         test_retraite, test_heures_payees_travaillees, test_accepter_emploi, test_indemnite_chomage, test_carrieres,
-         test_pays_vivable, test_cout]
+         test_retraite, test_heures_payees_travaillees, test_accepter_emploi, test_indemnite_chomage, test_disponibilite,
+         test_salaires_impayes, test_carrieres, test_pays_vivable, test_cout]
