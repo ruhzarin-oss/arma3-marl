@@ -251,7 +251,8 @@ def brancher(p, biblio=None, part=PART_EPREUVE):
     n = 0
     for nom, dec in getattr(p, "decideurs", {}).items():
         n += _brancher_un(p, dec, part)
-    p.routine(23 + 50 / 60, 98, DOMAINE_JOURNAL, _juger)
+    if not any(f is _juger for _, _, f in p.routines.get(23 * 60 + 50, ())):     # la reprise rebranche : un seul juge
+        p.routine(23 + 50 / 60, 98, DOMAINE_JOURNAL, _juger)
     return n
 
 

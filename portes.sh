@@ -23,6 +23,7 @@ porte "traversee"      "PORTES DE LA TRAVERSEE : FRANCHIES"  $PY -m monde.porte_
 porte "enregistreur"   "PORTE DE L ENREGISTREUR : FRANCHIE"  $PY -m monde.porte_enregistreur
 porte "agent codeur"   "PORTE DE L AGENT CODEUR : FRANCHIE"  $PY -m monde.porte_agent_codeur
 porte "devises"        "PORTE DES DEVISES : FRANCHIE"        $PY -m monde.porte_devises
+porte "code a la demande" "PORTE DU CODE A LA DEMANDE : FRANCHIE" $PY -m monde.porte_code_a_la_demande
 porte "guerre"         "PORTES DE LA GUERRE : FRANCHIES"     $PY -m guerre.porte_guerre
 if [ "$1" != "--vite" ]; then
   # les portes du pays : les echecs de COMPORTEMENT doivent etre ceux de la liste connue ( les portes de cout

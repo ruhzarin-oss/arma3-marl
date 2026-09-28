@@ -12,6 +12,9 @@ Seuils ecrits avant la mesure.
   Q4  CONTROLE INVERSE : la regle « attendre », un candidat « trois jours » : RETIRE, et une nouvelle demande part a Qwen
       avec le verdict chiffre ;
   Q5  Ollama coupe : le service laisse la demande dans la file, ne publie rien, ne plante pas.
+  Q6  ( HMT-102, 28/09 ) branche dans l ARCHIPEL : deux iles avec une bibliotheque vide sont identiques au bit, 2 jours,
+      aux memes iles sans code ; avec un candidat en epreuve, chaque ile a son bras et le candidat decide ; apres un
+      instantane ( pickle ) et le rebranchement de la reprise, un seul juge du soir et le bras decide encore.
 
    python -m monde.porte_code_a_la_demande"""
 import glob, json, os, shutil, sys, tempfile
@@ -124,6 +127,34 @@ def main():
     reste = len(glob.glob(os.path.join(file, "*.json"))); publie = len(CAD.versions("importer", biblio))
     shutil.rmtree(biblio, ignore_errors=True); shutil.rmtree(file, ignore_errors=True)
     dire(reste == 1 and publie == 0, f"Q5 Ollama coupe : la demande reste dans la file ( {reste} ), rien de publie ( {publie} )")
+    # Q6 : l archipel
+    import pickle
+    from . import archipel as AR, config as CF
+    iles = CF.ILES_ARCHIPEL[:2]
+    vide = tempfile.mkdtemp(prefix="biblio_q6v_", dir="/mnt/data/hmt/qwen"); biblio = tempfile.mkdtemp(prefix="biblio_q6_", dir="/mnt/data/hmt/qwen")
+    CAD.publier("importer", BON, d, CAD.essayer(BON, d), "en_epreuve", biblio)
+    a0 = AR.Archipel(iles=iles, echelle=1.0, parallele=False)
+    a1 = AR.Archipel(iles=iles, echelle=1.0, parallele=False, code=vide)
+    a2 = AR.Archipel(iles=iles, echelle=1.0, parallele=False, code=biblio)
+    ecarts = []
+    for j in range(2):
+        for a in (a0, a1, a2):
+            for i in a.iles.values(): T.jours(i.w, 1)
+        for n in iles:
+            e0, e1 = empreinte(a0.iles[n].w), empreinte(a1.iles[n].w)
+            if e0 != e1: ecarts.append((n, j + 1))
+    bras = {n: a2.iles[n].w.pays.domaine("exterieur").decideur.bras for n in iles}
+    decide = all(b is not None and b.n["candidat"] > 0 for b in bras.values())
+    w = pickle.loads(pickle.dumps(a2.iles[iles[0]].w))
+    AR.brancher_code(w, biblio)
+    juges = sum(1 for _, _, f in w.pays.routines.get(23 * 60 + 50, ()) if f is CAD._juger)
+    b = w.pays.domaine("exterieur").decideur.bras; n0 = b.n["candidat"] if b is not None else -1
+    T.jours(w, 1)
+    encore = b is not None and w.pays.domaine("exterieur").decideur.bras is not None and w.pays.domaine("exterieur").decideur.bras.n["candidat"] > n0
+    shutil.rmtree(vide, ignore_errors=True); shutil.rmtree(biblio, ignore_errors=True)
+    dire(not ecarts and decide and juges == 1 and encore,
+         f"Q6 archipel : bibliotheque vide identique au bit 2 jours {ecarts[:2]} ; bras sur chaque ile et candidat qui decide "
+         f"{ {n: (x.n if x is not None else None) for n, x in bras.items()} } ; reprise : {juges} juge du soir, le bras decide encore : {encore}")
     print(f"PORTE DU CODE A LA DEMANDE : {'FRANCHIE' if ok_tout else 'REFUSEE'}")
     return 0 if ok_tout else 1
 
