@@ -629,6 +629,25 @@ ACCUEIL = {"paysan": 15.3, "marchand": 21.9 * 10156 / _G_I, "convoyeur": 21.9 * 
 POIDS_HOTELLERIE = {"capitale": 4, "ville": 2, "village": 1}
 
 
+# 28/09 ( HMT-126 b, suite ) : le patron du monde E1 possede une entreprise privee du moteur ( un site de production
+# hors ferme : Monde.__init__ les lui donne au tour de role ) ; son seul revenu est le dividende de ses entreprises
+# ( domaine 3, REVENU_PATRON_J pour le revenu attendu ). Huit patrons par unite d echelle pour les douze sites d Altis :
+# a l echelle 20, 160 patrons pour 12 entreprises, 148 sans rien, et 100 % payes 0. Un patron par entreprise au plus
+# ( un petit monde en a moins : un patron y possede plusieurs sites, comme Altis a l echelle 1, 8 pour 12 ) ; les
+# autres sont des commercants independants, des marchands. Le reel : les employeurs sont 7,3 % de l emploi grec
+# ( 312 600 sur 4 265 900 en 2024, Eurostat lfsa_egaps, SELF_S ), les independants sans salarie 19,7 % ; ce sont de
+# petites entreprises, surtout du commerce et de la restauration, que le moteur n a pas : son independant du commerce
+# est le marchand ( d04 : INDEPENDANTS ). Le compte des independants ( patrons, marchands, paysans ) ne change pas.
+#   https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsa_egaps?geo=EL&time=2024&sex=T&age=Y15-74&unit=THS_PER
+PATRON_SANS_ENTREPRISE = "marchand"
+
+
+def entreprises_privees(carte):
+    """Les entreprises privees du moteur sur cette carte : un site de production qui n est pas une ferme ( les memes que
+    Monde.__init__, qui en donne une a chaque patron au tour de role )."""
+    return len(carte.de_type(*[t for t in C.RECETTES if t != "ferme"]))
+
+
 def postes_des_sites(carte, role):
     """Les postes d un metier industriel sur cette carte, par unite d echelle : la somme des postes de ses sites."""
     par_site = POSTES_PAR_SITE[role]
@@ -654,8 +673,9 @@ def _vers_le_reel(c, w, total):
 def effectifs(carte, echelle, entiers=True):
     """{ metier de config.ROLES : effectif a la naissance } sur CETTE carte, a cette echelle ( sans tirage ). Chaque
     metier du monde E1 a son effectif a l echelle ( au moins 1, comme toujours ) ; un metier industriel a les postes de
-    ses sites ( 0 sans site ) ; la difference va aux metiers ouverts de l ile les plus en dessous de leur part reelle
-    ( ACCUEIL ), ou est prise a ceux qui sont le plus au-dessus ( _vers_le_reel ). La somme ne change pas : la taille du pays est celle de
+    ses sites ( 0 sans site ) ; un patron a au moins une entreprise privee, les autres sont marchands
+    ( PATRON_SANS_ENTREPRISE ) ; la difference de l industrie va aux metiers ouverts de l ile les plus en dessous de leur
+    part reelle ( ACCUEIL ), ou est prise a ceux qui sont le plus au-dessus ( _vers_le_reel ). La somme ne change pas : la taille du pays est celle de
     l echelle. Les metiers publics et militaires restent ceux d E1 ( SUBSTITUTS pour une ile sans base ). Avec
     `entiers=False`, les memes parts sans arrondi ( des poids : sur Altis, exactement les effectifs de config.ROLES )."""
     arrondi = (lambda x: max(1, int(round(x))) if x else 0) if entiers else float
@@ -665,6 +685,9 @@ def effectifs(carte, echelle, entiers=True):
         k = arrondi(postes_des_sites(carte, r) * echelle)
         surplus += eff[r] - k
         eff[r] = k
+    garde = min(eff["patron"], entreprises_privees(carte))      # un patron a au moins une entreprise ( 28/09 )
+    eff[PATRON_SANS_ENTREPRISE] += eff["patron"] - garde
+    eff["patron"] = garde
     ouverts = [r for r in ACCUEIL if metier_possible(carte, r)]
     if surplus and ouverts:
         c = [float(eff[r]) for r in ouverts]

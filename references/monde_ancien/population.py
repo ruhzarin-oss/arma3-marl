@@ -60,12 +60,22 @@ class Menage:
         return [h for h in self.membres if h.role not in ("enfant",) and h.vivant]
 
 
+def _effectif_patrons(carte, role, n, echelle):
+    """28/09 : l effectif d un metier a la naissance ; un patron a au moins une entreprise privee ( un site de production
+    hors ferme ), les patrons en trop naissent marchands ( patch_patrons.py ; population.effectifs dans le tronc )."""
+    k = max(1, int(round(n * echelle)))
+    if role not in ("patron", "marchand"): return k
+    p = max(1, int(round(C.ROLES["patron"][0] * echelle)))
+    garde = min(p, len(carte.de_type(*[t for t in C.RECETTES if t != "ferme"])))
+    return garde if role == "patron" else k + p - garde
+
+
 def generer(carte, rng, echelle=1.0):
     """Cree la population et ses menages, deterministe a graine fixee. `echelle` multiplie chaque metier : le pays
     garde ses proportions, il change de taille."""
     H = []
     for role, (n, classe, _) in C.ROLES.items():
-        for _ in range(max(1, int(round(n * echelle)))):
+        for _ in range(_effectif_patrons(carte, role, n, echelle)):
             age = int(rng.integers(6, 18)) if role == "enfant" else int(rng.integers(65, 86)) if role == "retraite" \
                 else int(rng.integers(20, 65))
             H.append(Habitant(len(H), role, classe, age))

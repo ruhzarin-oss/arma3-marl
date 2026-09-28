@@ -14,9 +14,16 @@ et pour la carte des six iles ouverte par Altis, au mode par defaut et au mode g
      hoteliers nes du surplus sont ou sont les lits ( POIDS_HOTELLERIE = domaine 28, POIDS_LIEU ), a l arrondi du tour
      de role pres ;
   5. Altis porte deja ses metiers : sur Altis et sur la carte des six iles ouverte par Altis, les effectifs sont ceux
-     de config.ROLES, sans surplus ( l identite au bit est prouvee par les portes des domaines et des colonnes ).
-Controle positif : une mine ajoutee a la carte de Stratis recoit ses 10 x echelle mineurs, pris au surplus.
-Falsificateur : l ancienne regle posee a la main ( le surplus rendu ouvrier a la fonderie ) est refusee.
+     de config.ROLES, sans surplus ( l identite au bit est prouvee par les portes des domaines et des colonnes ) - sauf
+     les patrons, au-dela de l echelle 1,5 ( regle 6 ) ;
+  6. ( 28/09 ) les patrons : dans le monde construit ( Monde.__init__ donne les entreprises ), chaque patron possede au
+     moins une entreprise privee ( un site de production hors ferme ) et chaque entreprise privee a un patron ; il y a
+     min( patrons d E1, entreprises ) patrons, les autres sont marchands ; sur Altis, 8 patrons a l echelle 1 et 12 a
+     l echelle 1,5, comme avant.
+Controle positif : une mine ajoutee a la carte de Stratis recoit ses 10 x echelle mineurs, pris au surplus ; une
+fonderie ajoutee a Stratis recoit son patron ( 1 -> 2 ).
+Falsificateur : l ancienne regle posee a la main ( le surplus rendu ouvrier a la fonderie ) est refusee ; l ancienne
+regle des patrons ( 160 patrons pour 12 entreprises a l echelle 20, les marchands en trop redevenus patrons ) aussi.
 
    python -m monde.porte_metiers"""
 import copy, sys, time
@@ -34,6 +41,16 @@ def generer(iles, demographie, echelle=ECHELLE, graine=1):
 
 
 def postes_des(carte, r): return PO.postes_des_sites(carte, r)
+
+
+def e1_patrons(carte, echelle):
+    """Les effectifs d E1 a l echelle, apres la regle 6 : min( patrons, entreprises privees ) patrons, les autres
+    marchands ( calcule ici sans population.effectifs )."""
+    e1 = {r: (max(1, int(round(k * echelle))) if k else 0) for r, (k, _, _) in C.ROLES.items()}
+    n = len(carte.de_type(*[t for t in C.RECETTES if t != "ferme"]))
+    garde = min(e1["patron"], n)
+    e1["marchand"] += e1["patron"] - garde; e1["patron"] = garde
+    return e1
 
 
 def verifier(carte, t, echelle, demographie):
@@ -75,7 +92,8 @@ def verifier(carte, t, echelle, demographie):
         # remplissage vers la structure reelle, verifie par sa propriete ( sans refaire le calcul ) : ceux qui recoivent
         # ( ou cedent ) finissent tous au meme niveau effectif / part reelle, a une personne pres, et ceux qui ne
         # recoivent pas ( ne cedent pas ) sont deja au-dessus ( au-dessous ) de ce niveau ; personne ne va contre le sens
-        e1 = {r: (max(1, int(round(C.ROLES[r][0] * echelle))) if C.ROLES[r][0] else 0) for r in ouverts}
+        base = e1_patrons(carte, echelle)
+        e1 = {r: base[r] for r in ouverts}
         sens = 1 if surplus > 0 else -1
         bouge = [r for r in ouverts if eff[r] != e1[r]]
         contre = [r for r in bouge if (eff[r] - e1[r]) * sens < 0]
@@ -104,6 +122,23 @@ def verifier(carte, t, echelle, demographie):
     return fautes, eff, surplus
 
 
+def fautes_patrons(w, echelle):
+    """Les fautes de la regle 6 dans un monde construit : patrons sans entreprise, entreprise privee sans patron,
+    compte des patrons different de min( E1, entreprises )."""
+    t = w.table; n = t.n
+    patrons = set(np.nonzero(t.role[:n] == PO.CODE_ROLE["patron"])[0].tolist())
+    privees = [e for e in w.entreprises.values() if e.type != "ferme"]
+    proprietaires = {e.proprietaire.id for e in privees if e.proprietaire is not None}
+    fautes = []
+    sans = patrons - proprietaires
+    if sans: fautes.append(f"{len(sans)} patrons sans entreprise")
+    orphelines = [e.id for e in privees if e.proprietaire is None]
+    if orphelines: fautes.append(f"entreprises sans patron {orphelines[:3]}")
+    vise = min(max(1, int(round(C.ROLES["patron"][0] * echelle))), len(privees))
+    if len(patrons) != vise: fautes.append(f"{len(patrons)} patrons pour {vise} attendus")
+    return fautes, len(patrons), len(privees)
+
+
 def main():
     t0 = time.perf_counter()
     ok = True
@@ -117,13 +152,26 @@ def main():
             fautes, eff, surplus = verifier(carte, t, ech, dem)
             nom = "+".join(i[:3] for i in iles) + f" x{ech:g}"
             if iles[0] == "Altis":        # 5. Altis porte deja ses metiers
-                e1 = {r: (max(1, int(round(k * ech))) if k else 0) for r, (k, _, _) in C.ROLES.items()}
+                e1 = e1_patrons(carte, ech)
                 if eff != e1 or surplus != 0: fautes.append(f"Altis : effectifs {eff} differents d E1 {e1}")
             ind = {r: eff[r] for r in PO.POSTES_PAR_SITE}
             acc = {r: eff[r] for r in PO.ACCUEIL}
             print(f"{'PASSE ' if not fautes else 'ECHOUE'} {nom:30s} {dem or 'defaut':6s} {t.n:6d} hab. | industrie {ind} "
                   f"| surplus {surplus:+d} | metiers ouverts {acc}" + (f" | FAUTES {fautes[:4]}" if fautes else ""),
                   flush=True)
+            ok &= not fautes
+    # 6. les patrons, dans les mondes construits
+    from . import monde as W
+    for ech, dem in ((ECHELLE, None), (ECHELLE, "grece"), (1.0, None), (1.5, None)):
+        for iles in [(i,) for i in ILES] + [tuple(ILES)]:
+            if ech < 2 and iles[0] != "Altis": continue
+            w = W.Monde(graine=1, iles=iles, echelle=ech, demographie=dem)
+            fautes, npat, nent = fautes_patrons(w, ech)
+            if iles[0] == "Altis" and ech <= 1.5 and npat != max(1, int(round(C.ROLES["patron"][0] * ech))):
+                fautes.append(f"Altis a l echelle {ech} : {npat} patrons, E1 en a {max(1, int(round(C.ROLES['patron'][0] * ech)))}")
+            nom = "+".join(i[:3] for i in iles) + f" x{ech:g}"
+            print(f"{'PASSE ' if not fautes else 'ECHOUE'} patrons {nom:30s} {dem or 'defaut':6s} {npat} patrons pour {nent} "
+                  f"entreprises privees" + (f" | FAUTES {fautes}" if fautes else ""), flush=True)
             ok &= not fautes
     # controle positif : une mine posee sur Stratis recoit ses mineurs
     reel = K.carte_du_pays
@@ -155,6 +203,33 @@ def main():
     fautes, _, _ = verifier(carte, t, ECHELLE, None)
     fa = bool(fautes)
     print(f"{'PASSE ' if fa else 'ECHOUE'} falsificateur : {ids.size} ouvriers de plus a {fonderie.id} ( l ancienne regle ) "
+          f"{'refuses' if fa else 'NON VUS'} : {fautes[:2]}")
+    ok &= fa
+    # controle positif des patrons : une fonderie posee sur Stratis recoit son patron
+    def avec_fonderie(ile):
+        c = reel(ile)
+        if c is not None and ile == "Stratis":
+            c = copy.deepcopy(c); f = next(l for l in c["lieux"] if l["type"] == "fonderie")
+            c["lieux"].append({"id": "fonderie_controle", "type": "fonderie", "pos": [f["pos"][0], f["pos"][1] + 500]})
+        return c
+    w0 = W.Monde(graine=1, iles=("Stratis",), echelle=ECHELLE)
+    K.carte_du_pays = avec_fonderie
+    try: w1 = W.Monde(graine=1, iles=("Stratis",), echelle=ECHELLE)
+    finally: K.carte_du_pays = reel
+    f0, n0, _ = fautes_patrons(w0, ECHELLE); f1, n1, _ = fautes_patrons(w1, ECHELLE)
+    neuve = w1.entreprises["fonderie_controle"].proprietaire
+    cp = not f0 and not f1 and (n0, n1) == (1, 2) and neuve is not None and neuve.role == "patron"
+    print(f"{'PASSE ' if cp else 'ECHOUE'} controle positif des patrons : une fonderie posee sur Stratis, patrons {n0} -> {n1}, "
+          f"la fonderie neuve a pour patron {getattr(neuve, 'id', None)} ( {getattr(neuve, 'role', None)} )")
+    ok &= cp
+    # falsificateur des patrons : l ancienne regle posee a la main ( 148 marchands redevenus patrons sur Altis x20 )
+    w = W.Monde(graine=1, iles=("Altis",), echelle=ECHELLE)
+    t = w.table
+    ids = np.nonzero(t.role[:t.n] == PO.CODE_ROLE["marchand"])[0][:148]
+    t.role[ids] = PO.CODE_ROLE["patron"]
+    fautes, npat, nent = fautes_patrons(w, ECHELLE)
+    fa = bool(fautes)
+    print(f"{'PASSE ' if fa else 'ECHOUE'} falsificateur des patrons : {npat} patrons pour {nent} entreprises ( l ancienne regle ) "
           f"{'refuses' if fa else 'NON VUS'} : {fautes[:2]}")
     ok &= fa
     print(f"PORTE DES METIERS DES ILES : {'FRANCHIE' if ok else 'NON FRANCHIE'} ( {time.perf_counter() - t0:.0f} s )")
