@@ -10,7 +10,8 @@ FICHE
    en objets picklables ). Par habitant, en COLONNES ( p.colonnes["habitant"] ) : tr_statut, tr_contrat, tr_debut_j,
    tr_fin_j, tr_taux, tr_heures_prevues, tr_carriere, tr_carriere_j, tr_echelon, tr_jours_cotises, tr_assiette,
    tr_qualifs, tr_syndique, tr_pointage, tr_solde_heures, tr_jours_mois, tr_imposable_an, tr_net_jour, tr_chomage_j,
-   tr_fin_etudes. Colonnes plutot que table eparse : contrat, carriere, titres concernent tous les adultes ( 40 % des
+   tr_fin_etudes ; et ( HMT-126 ) tr_sans_travail_j ( jours de suite a son poste sans travail ), tr_dispo_j ( debut de
+   la disponibilite, -1 ), tr_dispo_an ( jours de disponibilite de l annee civile ). Colonnes plutot que table eparse : contrat, carriere, titres concernent tous les adultes ( 40 % des
    habitants ont un emploi, 80 % une carriere ) ; ~ 75 octets par habitant en colonnes contre ~ 250 par entree de
    dictionnaire, et la paie se calcule en vecteurs. Les dates ne valent que sous leur drapeau ( tr_carriere, le type de
    contrat, le statut ) : une carriere reconstituee commence a une date negative. Tables eparses pour ce que peu
@@ -34,7 +35,10 @@ FICHE
    pour 10 % de plus a stabilite au moins egale, ou quand son CDD finit dans le mois. Temoin : tout accepter.
 4. Evenements. Individuels : retraite_liquidee, greve_debut, greve_fin, fin_etudes, accident_mortel. Comptes :
    offre_emploi, offre_acceptee, offre_refusee, promotion, fin_cdd, cdd_renouvele, indemnite_ouverte, accident_travail,
-   heures_non_travaillees, arrieres_salaire.
+   heures_non_travaillees, arrieres_salaire, mise_en_disponibilite, licenciement_economique, indemnite_licenciement,
+   indemnite_licenciement_due. L employeur sans travail a donner ( HMT-126, droit grec : bloc « l employeur sans
+   travail a donner » ) : disponibilite a demi-salaire au plus 90 jours par an, puis licenciement economique avec
+   l indemnite de la loi 4093/2012 ; deux mois de salaires impayes valent licenciement ( art. 58 loi 4635/2019 ).
 5. Liens. Lit la population ( sexe, naissance, conjoint : domaine 1 ), l economie ( embaucher, licencier, offres,
    comptes, capital par poste : domaine 3 ), l indice des prix et l avance au Tresor ( banques, domaine 2 ), l agenda
    s il est la ( replanifier ), la medecine si elle est la ( `blesser( p, h, cause, gravite )`, a confirmer par le
@@ -139,6 +143,41 @@ CARENCE_J = 6
 DUREES_INDEMNITE = ((125.0, 0), (150.0, 5), (180.0, 6), (220.0, 8), (250.0, 10), (math.inf, 12))
 FENETRE_14_MOIS_J = 14 * MOIS_J
 EXCLUS_2_MOIS_J = 2 * MOIS_J
+
+# ================================================================== l employeur sans travail a donner, ou qui ne paie pas
+# ( 27/09, HMT-126 ) Le droit grec ne connait pas de salarie « employe a paie nulle » :
+#  ( 1 ) l employeur qui ne fournit pas de travail doit le salaire ( code civil, art. 656 : demeure de l employeur ) ; au
+#      lieu de licencier, l entreprise dont l activite est restreinte peut mettre ses salaries en DISPONIBILITE
+#      ( διαθεσιμότητα : art. 10 de la loi 3198/1955, remplace par l art. 4 par. 1 de la loi 3846/2010 ), apres
+#      information et consultation des representants du personnel : au plus 3 mois par an, et le salarie touche la
+#      MOITIE de la moyenne de ses remunerations regulieres des deux derniers mois ( KEPEA-GSEE, fiche « Διαθεσιμότητα ») ;
+#  ( 2 ) sans travail au bout de ces 3 mois : licenciement pour motif economique, avec l indemnite de licenciement de
+#      l anciennete ( loi 4093/2012, sous-paragraphe IA.12 ; ouvriers alignes sur les employes, art. 64 de la loi
+#      4808/2021 : un mois = 22 journees ; somme majoree d un sixieme pour les primes de Noel, de Paques et de conges ;
+#      rien la premiere annee, periode d essai ) ; le salarie s inscrit a la DYPA ( indemnite s il a ses 125 jours, puis
+#      KEA s il y a droit ) ;
+#  ( 3 ) un retard de paiement des salaires dus de plus de DEUX MOIS est une modification unilaterale et prejudiciable
+#      du contrat, quelle qu en soit la cause ( art. 58 de la loi 4635/2019 ) : le salarie peut la tenir pour un
+#      licenciement et reclamer l indemnite. Le retard se lit sur le compte d arrieres de salaire du socle ( un par menage
+#      et par employeur ) : ne il y a plus de deux mois et jamais solde depuis, l employeur n a pas rattrape son retard.
+# Le modele : un salarie du prive present a son poste ( pointe au moins PRESENCE_MIN_H heures ) a qui aucune heure n est
+# creditee ce jour-la est SANS TRAVAIL ; au bout de JOURS_AVANT_DISPONIBILITE tels jours de suite ( la consultation
+# prealable ; la loi ne fixe pas de delai : a calibrer ), il est mis en disponibilite. Chaque jour ou il se presente sans
+# travail, son employeur lui paie la moitie de sa journee reguliere ( bulletin ordinaire : cotisations, impot ; la
+# moitie du mois regulier, etalee sur ses jours ouvres ) ; il cherche un autre emploi ( candidat du marche du matin ).
+# Le travail qui reprend met fin a la disponibilite ; 90 jours de disponibilite dans l annee civile : licenciement
+# economique, le poste disparait. Simplifications ecrites : les jours sans travail d AVANT la disponibilite ne sont pas
+# payes ( la loi les doit ) ; le salarie en disponibilite continue de se presenter a son poste ( c est ainsi que l on voit
+# le travail reprendre ) ; l indemnite est celle d un licenciement sans preavis ( le preavis la reduit de moitie ).
+JOURS_AVANT_DISPONIBILITE = 5
+PRESENCE_MIN_H = 2.0
+PART_SALAIRE_DISPONIBILITE = 0.5
+DISPONIBILITE_MAX_AN_J = 90
+BAREME_INDEMNITE_LICENCIEMENT = ((1.0, 0.0), (4.0, 2.0), (6.0, 3.0), (8.0, 4.0), (10.0, 5.0), (11.0, 6.0), (12.0, 7.0),
+                                 (13.0, 8.0), (14.0, 9.0), (15.0, 10.0), (16.0, 11.0), (math.inf, 12.0))   # annees -> mois
+JOURNEES_PAR_MOIS_INDEMNITE = 22.0
+MAJORATION_INDEMNITE = 1.0 / 6.0
+RETARD_SALAIRE_MAX_J = 2 * MOIS_J   # art. 58 de la loi 4635/2019 : un retard de plus de deux mois
 
 # ================================================================== les carrieres
 # Grille publique : loi 4354/2015, 19 echelons de 2 ans ( ~ +3,5 % chacun, a calibrer ). Prive : triennales de la
@@ -396,7 +435,7 @@ class Travail:
                  "postes_ouverts", "greves", "en_greve", "grevistes", "indice_ref", "pointes", "decideur", "anomalies",
                  "bulletins", "garder_bulletins", "jour", "cumul", "serie", "accidents", "revenu_coop", "offres_jour",
                  "par_eid", "bareme_ir", "inactifs", "km_cache", "retraites_sans_pension", "tolerance_heures",
-                 "hors_paie", "placements")
+                 "hors_paie", "placements", "marge_veille")
 
     def __init__(self):
         self.caisse = CaisseSecuriteSociale()
@@ -678,8 +717,11 @@ def embaucher_contrat(p, h, unite, role=None, contrat=CDI, duree_j=None, taux=No
         equipe = min(range(3), key=lambda k: (n_eq[k], k))
     if h.id in d.grevistes: _sortir_de_greve(p, d, h)
     if h.travail is not None: _solde_de_tout_compte(p, d, h)
+    if h.travail is not None and "tr_dispo_j" in col and col["tr_dispo_j"][h.id] >= 0:     # HMT-126
+        k0 = (h.travail.id, h.role); d.cible[k0] = max(0, d.cible.get(k0, 1) - 1)
     ECO.embaucher(p, h, unite, role, equipe)
     i = h.id
+    if "tr_dispo_j" in col: col["tr_dispo_j"][i] = -1; col["tr_sans_travail_j"][i] = 0; col["tr_dispo_an"][i] = 0
     q = EXIGE.get(role)
     if q in FORMEES_A_L_EMBAUCHE: col["tr_qualifs"][i] |= BIT[q]
     _ouvrir_carriere(col, i, p.jour)
@@ -729,14 +771,25 @@ def _ouvrir_carriere(col, i, jour):
 
 def _fermer_contrat(col, i):
     col["tr_contrat"][i] = AUCUN; col["tr_taux"][i] = 0.0; col["tr_fin_j"][i] = -1; col["tr_heures_prevues"][i] = 0.0
+    if "tr_dispo_j" in col: col["tr_dispo_j"][i] = -1; col["tr_sans_travail_j"][i] = 0      # HMT-126
 
 
 def _jours_14_mois(p, col, i):
-    """Les jours d assurance dans les 14 mois qui precedent, les 2 derniers exclus ( contrat en cours seulement :
-    un contrat anterieur n est pas retrouve - approximation ecrite )."""
+    """Les jours d assurance dans les 14 mois qui precedent, les 2 derniers exclus : le contrat en cours ; et ( HMT-126 ),
+    avant un contrat du recensement ( commence avant le jour 0 ), les contrats d avant que le moteur ne garde pas, a la
+    densite d assurance de la carriere reconstituee ( jours cotises sur annees de carriere ). Sans cela, un ouvrier du
+    recensement embauche depuis peu dans la meme usine perdait tout droit ( a Stratis, jour 150 : 200 ouvriers licencies
+    sans indemnite, dont la moitie avaient faim ). Un contrat anterieur a un emploi du monde n est pas retrouve ( approximation ecrite )."""
     debut = int(col["tr_debut_j"][i])
     a, b = p.jour - FENETRE_14_MOIS_J, p.jour - EXCLUS_2_MOIS_J
-    return max(0, b - max(a, debut)) * JOURS_ASSURANCE_MOIS / MOIS_J
+    jours = float(max(0, b - max(a, debut)))
+    if debut <= 0 and col["tr_carriere"][i]:
+        c0 = int(col["tr_carriere_j"][i])
+        avant = min(b, debut) - max(a, c0)
+        if avant > 0:
+            ans = max(1.0, (p.jour - c0) / JOURS_AN)
+            jours += avant * min(1.0, float(col["tr_jours_cotises"][i]) / (ans * JOURS_ASSURANCE_AN))
+    return jours * JOURS_ASSURANCE_MOIS / MOIS_J
 
 
 def _a_charge(p, h):
@@ -766,6 +819,114 @@ def _devenir_chomeur(p, d, h, involontaire):
     col["tr_statut"][i] = CHOMEUR
     col["tr_chomage_j"][i] = p.jour
     return ouverte
+
+
+# ================================================================== disponibilite et licenciement economique ( HMT-126 )
+COLONNES_HMT126 = (("tr_sans_travail_j", np.int16, 0), ("tr_dispo_j", np.int32, -1), ("tr_dispo_an", np.int16, 0))
+EVENEMENTS_HMT126 = ("mise_en_disponibilite", "licenciement_economique", "indemnite_licenciement",
+                     "indemnite_licenciement_due")
+
+
+def _assurer_colonnes_hmt126(p):
+    """Les colonnes de la disponibilite, posees aussi sur un monde installe avant elles ( instantane relu )."""
+    ch = p.colonnes["habitant"]
+    if "tr_dispo_an" not in ch:
+        for nom, dt, defaut in COLONNES_HMT126:
+            if nom not in ch: ch.ajouter(nom, dt, defaut)
+        J = p.socle.journal
+        for t in EVENEMENTS_HMT126:
+            if t not in getattr(J, "types", {}): J.declarer(t, "travail", "compte")
+    ch.assurer(p.w.table.n)
+    return ch
+
+
+def indemnite_licenciement(p, i):
+    """L indemnite de licenciement de l habitant i ( drachmes ) : les mois de salaire du bareme de la loi 4093/2012
+    selon l anciennete du contrat, un mois valant 22 journees regulieres, le tout majore d un sixieme ; rien avant un an."""
+    col = p.colonnes["habitant"]
+    anc = (p.jour - int(col["tr_debut_j"][i])) / JOURS_AN
+    mois = next(m for borne, m in BAREME_INDEMNITE_LICENCIEMENT if anc < borne)
+    journee = float(col["tr_taux"][i]) * float(col["tr_heures_prevues"][i])
+    return round(mois * JOURNEES_PAR_MOIS_INDEMNITE * journee * (1.0 + MAJORATION_INDEMNITE), 2)
+
+
+def licencier_economique(p, h, motif="economique"):
+    """Le licenciement pour motif economique, ou la rupture que la loi tient pour tel ( salaires impayes ) : l employeur
+    doit l indemnite de licenciement - payee si sa caisse le permet, sinon creance nommee du menage ( rang des salaries a
+    la liquidation, domaine 3 ) ; le poste disparait ( l effectif vise baisse ) ; le salarie devient chomeur involontaire
+    ( indemnite de la DYPA s il y a droit ). Rend l indemnite de chomage ouverte, ou None."""
+    d = p.domaine("travail"); col = p.colonnes["habitant"]; i = h.id
+    if h.travail is None or col["tr_statut"][i] not in PAYES_A_L_HEURE: return None
+    x = _payeur(p, d, h)
+    k = (h.travail.id, h.role)
+    ind = indemnite_licenciement(p, i)
+    if x is not None and x is not p.w.gouv and ind > 0.0:
+        paye, du = _payer(p, x, h.menage, ind, "indemnite_licenciement")
+        p.compter("indemnite_licenciement", paye)
+        if du > 0.0: p.compter("indemnite_licenciement_due", du)
+    d.cible[k] = max(0, d.cible.get(k, 1) - 1)
+    p.compter("licenciement_economique")
+    return rompre_contrat(p, h, motif, involontaire=True)
+
+
+def _sans_travail(p, d, col, tb, n, statut, heures, pt):
+    """A la paie : qui, parmi les salaries du prive, s est presente a son poste sans qu aucune heure lui soit creditee.
+    Tient le compte des jours sans travail de suite, met en disponibilite au bout de JOURS_AVANT_DISPONIBILITE, met fin a
+    la disponibilite de qui a retravaille. Rend les numeros payes aujourd hui en disponibilite ( dans l ordre )."""
+    viv = tb.vivant[:n] == 1
+    sal = (statut == SALARIE) & viv & (tb.travail[:n] >= 0)
+    travaille = sal & (heures > 0.0)
+    vide = sal & (heures <= 0.0) & (pt >= PRESENCE_MIN_H)
+    sj = col["tr_sans_travail_j"]; deb = col["tr_dispo_j"]; an = col["tr_dispo_an"]
+    fin = np.nonzero(travaille & (deb[:n] >= 0))[0]                   # le travail reprend : fin de la disponibilite
+    if len(fin):
+        an[fin] = np.minimum(32000, an[fin].astype(np.int64) + (p.jour - deb[fin].astype(np.int64)))
+        deb[fin] = -1
+    sj[:n][travaille] = 0
+    if not vide.any(): return np.zeros(0, np.int64)
+    ids = np.nonzero(vide)[0]
+    if d.grevistes: ids = np.array([i for i in ids.tolist() if i not in d.grevistes], np.int64)
+    sj[ids] = np.minimum(32000, sj[ids].astype(np.int64) + 1)
+    g = p.w.gouv
+    for i in ids[(deb[ids] < 0) & (sj[ids] >= JOURS_AVANT_DISPONIBILITE)].tolist():
+        x = _payeur(p, d, PO.Habitant(tb, i))
+        if x is None or x is g: continue                              # l Etat n use pas de la disponibilite du prive
+        deb[i] = p.jour
+        p.compter("mise_en_disponibilite")
+    return ids[deb[ids] >= 0]
+
+
+def _disponibilites_epuisees(p, d, col, H, n):
+    """6 h 10 : la disponibilite qui a atteint ses 90 jours dans l annee finit en licenciement economique."""
+    deb = col["tr_dispo_j"][:n]
+    for i in np.nonzero((deb >= 0) & (col["tr_dispo_an"][:n].astype(np.int64) + (p.jour - deb.astype(np.int64))
+                                      >= DISPONIBILITE_MAX_AN_J))[0].tolist():
+        h = H[i]
+        if not h.vivant or col["tr_statut"][i] != SALARIE or h.travail is None: col["tr_dispo_j"][i] = -1; continue
+        licencier_economique(p, h, "disponibilite_epuisee")
+
+
+def _retards_de_salaire(p, d, col):
+    """6 h 10 : art. 58 de la loi 4635/2019 - quand un employeur doit a un menage des salaires dont le compte d arrieres
+    est ouvert depuis plus de deux mois ( ne il y a plus de RETARD_SALAIRE_MAX_J jours et jamais solde : les comptes du
+    socle gardent la date de l impaye le plus ancien ), ses membres salaries chez lui tiennent le retard pour un
+    licenciement ( indemnite due, chomage involontaire )."""
+    K = p.socle.creances; w = p.w; tb = w.table; mt = tb.menages
+    g = w.gouv; limite = p.jour - RETARD_SALAIRE_MAX_J
+    vieux = []                                 # ( employeur, numero du menage )
+    for x, ids in list(K.par_debiteur.items()):
+        if isinstance(x, PO.Menage) or x is g: continue
+        ks = set()
+        for c in ids:
+            cr = K.actives.get(c)
+            if cr is None or cr.motif not in MOTIFS_SALAIRE or not isinstance(cr.creancier, PO.Menage): continue
+            if cr.nee < limite: ks.add(cr.creancier.id)
+        vieux.extend((x, k) for k in sorted(ks))
+    st = col["tr_statut"]; viv = tb.vivant
+    for x, k in vieux:
+        for i in [i for i in mt.membres_ids(k) if viv[i] and st[i] == SALARIE and tb.travail[i] >= 0
+                  and _payeur(p, d, PO.Habitant(tb, i)) is x]:
+            licencier_economique(p, PO.Habitant(tb, i), "salaires_impayes")
 
 
 # ================================================================== qualifications ( API du domaine 19 )
@@ -1114,6 +1275,7 @@ def _paie(p):
     w = p.w; d = p.domaine("travail"); L = p.socle.livre; g = w.gouv
     tb = w.table; n = tb.n
     col = p.colonnes["habitant"]; col.assurer(n)
+    _assurer_colonnes_hmt126(p)
     _pointer(p, w.pas)                                   # le pas de 18 h, joue en ce moment
     heures = tb.heures[:n].copy()
     statut = col["tr_statut"][:n]
@@ -1149,6 +1311,21 @@ def _paie(p):
         if x is None: continue
         f = g.facteur_salaire_public if PUBLIC_DU_MOTEUR[rc + 1] else 1.0
         brut = round(float(taux[i]) * float(heures[i]) * f, 2)
+        if brut <= 0.0: continue
+        x, k = x
+        if k not in parts: parts[k] = (x, [])
+        parts[k][1].append((PO.Habitant(tb, i), brut))
+    # --- 2 bis. ( HMT-126 ) le salarie present sans travail : au bout de quelques jours, la disponibilite ; ses jours sans
+    # travail y sont payes a moitie de sa journee reguliere, par son employeur, sur un bulletin ordinaire
+    for i in _sans_travail(p, d, col, tb, n, statut, heures, pt).tolist():
+        tn = int(tb.travail[i]); rc = int(tb.role[i])
+        cle = (tn, rc)
+        if cle in payeurs: x = payeurs[cle]
+        else:
+            x = payeurs[cle] = _payeur_de(p, d, tb.par_n[tn].id, PO.ROLES[rc] if rc >= 0 else None)
+            if x is not None: x = payeurs[cle] = (x, _cle_payeur(x))
+        if x is None: continue
+        brut = round(PART_SALAIRE_DISPONIBILITE * float(taux[i]) * float(col["tr_heures_prevues"][i]), 2)
         if brut <= 0.0: continue
         x, k = x
         if k not in parts: parts[k] = (x, [])
@@ -1252,19 +1429,37 @@ def _payer_employeur(p, d, x, lignes, agg, credit_jours=True):
         s.cotisations += paye; agg["syndicale_due"] += du
 
 
+def _marge_du_jour(p):
+    """23 h 50, avant la cloture du domaine 3 : la marge brute des ventes HT du jour de chaque marche ( ventes x marge ),
+    que ses marchands se partageront demain a la paie ( HMT-126 )."""
+    if not p.a("economie"): return
+    d = p.domaine("travail"); e = p.domaine("economie"); w = p.w
+    d.marge_veille = {mid: math.fsum(em.ventes_jour.values()) * w.marches[mid].marge for mid, em in e.marches.items()}
+
+
+def brancher_marchands(p):
+    """Une ile reprise d un instantane d avant : la marge du soir. Idempotent."""
+    if not any(fn is _marge_du_jour for _, _, fn in p.routines.get(23 * 60 + 50, ())):
+        p.routine(23 + 50 / 60, 90, "travail", _marge_du_jour)
+
+
 def _independants(p, d, agg):
     """Monde.paie, pour ceux qui ne sont pas payes a l heure : les marchands se partagent la moitie du benefice de leur
     marche au-dela de 20 000 drachmes, les paysans la caisse de leur cooperative ; l impot du moteur est preleve.
     Les dividendes des patrons sont au domaine 3 ( fin de mois ).
     EN COLONNES ( 24/09 ) : les numeros de l index, filtres sur la table ; le menage se lit sans vue d habitant."""
     w = p.w; L = p.socle.livre; g = w.gouv; col = p.colonnes["habitant"]; tb = w.table
+    veille = getattr(d, "marge_veille", None) or {}
     for m in w.marches.values():
         marchands = _ids_filtres(w, m.lieu, "marchand")
-        exces = m.caisse - 20000.0 * getattr(m, "echelle", 1.0)     # le fonds de roulement du marche ( moteur, 26/09 )
+        # ( 28/09, HMT-126 ) le commercant vit de sa marge : la marge brute des ventes HT de la veille ( domaine 3 ), dans
+        # la limite de la caisse du marche ; sans domaine 3, l ancienne regle du moteur ( fonds de roulement )
+        if m.lieu.id in veille: exces = min(veille[m.lieu.id], max(0.0, m.caisse)); part = 1.0
+        else: exces = m.caisse - 20000.0 * getattr(m, "echelle", 1.0); part = 0.5
         if exces > 0 and marchands:
             for i in marchands:
                 mg = _menage_de(tb, i)
-                brut = L.transferer(m, mg, 0.5 * exces / len(marchands), "benefice marchand")
+                brut = L.transferer(m, mg, part * exces / len(marchands), "benefice marchand")
                 L.transferer(mg, g, brut * g.impot_revenu, "impot")
                 col["tr_imposable_an"][i] += brut; col["tr_net_jour"][i] += brut * (1.0 - g.impot_revenu)
                 agg["revenu_independants"] += brut
@@ -1415,6 +1610,9 @@ def _carrieres(p):
     if p.jour % MOIS_J == 0: col["tr_jours_mois"][:n] = 0.0
     date = cal.date(w.pas).date()
     if date.month == 1 and date.day == 1: col["tr_imposable_an"][:n] = 0.0
+    _assurer_colonnes_hmt126(p)
+    if date.month == 1 and date.day == 1:                 # HMT-126 : trois mois de disponibilite par annee civile
+        col["tr_dispo_an"][:n] = 0; deb = col["tr_dispo_j"][:n]; deb[deb >= 0] = p.jour
     ages = _ages(p, n)
     # EN COLONNES ( 24/09 ) : les lignes a reprendre sont trouvees en vecteurs ( un sur-ensemble ), puis chacune passe
     # par la regle d origine, dans l ordre des numeros ; une ligne ne touche que ses propres champs.
@@ -1445,6 +1643,9 @@ def _carrieres(p):
             continue
         if s not in EN_EMPLOI and tb.travail[i] >= 0 and r not in (R_ENF, R_RET):
             _contrat_par_defaut(p, d, H[i])                                 # embauche par un autre domaine
+    # HMT-126 : la disponibilite epuisee et les salaires impayes depuis deux mois finissent en licenciement economique
+    _disponibilites_epuisees(p, d, col, H, n)
+    _retards_de_salaire(p, d, col)
     # les retraites volontaires
     jc = col["tr_jours_cotises"][:n]
     cand = np.nonzero(np.isin(st[:n], (SALARIE, FONCTIONNAIRE, INDEPENDANT, CHOMEUR, DECOURAGE, AU_FOYER))
@@ -1603,7 +1804,10 @@ def _offre_pour(p, d, h, lid, role, rng):
 def _revenu_actuel(p, d, h):
     col = p.colonnes["habitant"]; i = h.id
     st = int(col["tr_statut"][i])
-    if st in PAYES_A_L_HEURE: return _net_jour(p, float(col["tr_taux"][i]), float(col["tr_heures_prevues"][i]), h.role), STABILITE[int(col["tr_contrat"][i])]
+    if st in PAYES_A_L_HEURE:
+        net = _net_jour(p, float(col["tr_taux"][i]), float(col["tr_heures_prevues"][i]), h.role)
+        if "tr_dispo_j" in col and col["tr_dispo_j"][i] >= 0: return PART_SALAIRE_DISPONIBILITE * net, STABILITE[SAISONNIER]
+        return net, STABILITE[int(col["tr_contrat"][i])]
     if st == INDEPENDANT:
         e = p.w.entreprises.get(h.travail.id) if h.travail is not None else None
         return (d.revenu_coop.get(e.id, 0.0) * (1.0 - _taux_ir(p)) if e is not None else 0.0), 1.0
@@ -1642,7 +1846,8 @@ def _marche_du_travail(p):
     cherche = rng.random(n) < RECHERCHE_EN_EMPLOI_J
     fin = col["tr_fin_j"][:n]
     a_terme = np.isin(col["tr_contrat"][:n], (CDD, SAISONNIER)) & (fin - p.jour <= MOIS_J)
-    ok = (((st == CHOMEUR) | (np.isin(st, PAYES_A_L_HEURE) & (cherche | a_terme)))
+    en_dispo = col["tr_dispo_j"][:n] >= 0 if "tr_dispo_j" in col else np.zeros(n, bool)   # HMT-126 : il cherche
+    ok = (((st == CHOMEUR) | (np.isin(st, PAYES_A_L_HEURE) & (cherche | a_terme | en_dispo)))
           & (ages >= C.AGE_TRAVAIL) & (ages < AGE_LEGAL))
     # EN COLONNES ( 24/09 ) : les candidats en numeros, groupes par domicile dans l ordre des numeros ; une vue n est
     # fabriquee que pour qui recoit une offre
@@ -2026,10 +2231,10 @@ def installer(p):
                       ("fin_etudes", ("habitant", "age", "metier")), ("accident_mortel", ("habitant", "metier"))):
         J.declarer(t, "travail", "individuel", champs)
     for t in ("offre_emploi", "offre_acceptee", "offre_refusee", "promotion", "fin_cdd", "cdd_renouvele",
-              "indemnite_ouverte", "accident_travail", "heures_non_travaillees", "arrieres_salaire"):
+              "indemnite_ouverte", "accident_travail", "heures_non_travaillees", "arrieres_salaire") + EVENEMENTS_HMT126:
         J.declarer(t, "travail", "compte")
     ch = p.colonnes["habitant"]
-    for nom, dt, defaut in COLONNES: ch.ajouter(nom, dt, defaut)
+    for nom, dt, defaut in COLONNES + COLONNES_HMT126: ch.ajouter(nom, dt, defaut)
     ch.assurer(len(w.habitants))
     d = Travail()
     d.inactifs = RECENSER_INACTIFS
@@ -2055,6 +2260,7 @@ def installer(p):
     p.routine(6 + 20 / 60, 60, "travail", _greves)
     p.routine(20 + 10 / 60, 40, "travail", _noter_offres)
     p.routine(23 + 50 / 60, 99, "travail", _bilan_du_jour)
+    p.routine(23 + 50 / 60, 90, "travail", _marge_du_jour)              # HMT-126 : avant la cloture du domaine 3 ( rang 97 )
     return d
 
 
