@@ -23,7 +23,10 @@ def menages_habites(w):
 
 
 def faim(w):
-    return w.stats_jour.get("menages_sans_nourriture", 0) / max(1, len(menages_habites(w)))
+    """Part des menages sans repas ce soir. HMT-136 ( 28/09 ) : les menages eteints par la faim comptent AFFAMES
+    ( numerateur et denominateur ) ; avant, la faim « baissait » quand les affames mouraient."""
+    e = w.stats_jour.get("menages_eteints_faim", 0)
+    return (w.stats_jour.get("menages_sans_nourriture", 0) + e) / max(1, len(menages_habites(w)) + e)
 
 
 def hors_livre(p, net0, ext0, monnaie0):
