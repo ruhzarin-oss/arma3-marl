@@ -366,5 +366,43 @@ def test_cout():
                 f"~ {(t1 - t0) / nh * 5e7 / 60:.0f} min par jour a 50 millions")
 
 
+def test_taxe_circulation_apres_nourriture():
+    """Porte ( HMT-126 e, seuils ecrits avant la mesure ) - controle positif : un menage au revenu suffisant qui n a que 5
+    drachmes au-dela de sa semaine de nourriture paie ces 5 drachmes de sa taxe de circulation et doit le reste a l Etat
+    ( creance du socle, au centime ) ; un menage SANS revenu qui a 30 jours de nourriture en caisse ne paie rien de sa
+    taxe ( il la doit toute ) et ne fait pas le plein de sa voiture. Falsificateur : un menage aise paie la taxe en
+    entier, sans dette, et fait le plein."""
+    from . import d03_economie as EC
+    w, p = T.monde(["transport"])
+    tr = p.domaine("transport"); L = p.socle.livre; K = p.socle.creances; cm = p.colonnes["menage"]
+    T.jours(w, 1)
+    avec_voiture = [k for k in range(len(w.menages)) if any(x.vivant for x in w.menages[k].membres)
+                    and int(M._cols(p, "vh_m0")[k]) >= 0 and M.CARAC[int(M._cols(p, "vh_m0")[k])].reservoir_l > 0]
+    ids = [k for k in range(len(w.menages)) if any(x.vivant for x in w.menages[k].membres) and k not in avec_voiture]
+    A, C_ = w.menages[ids[0]], w.menages[avec_voiture[0]]
+    B = w.menages[avec_voiture[1]]
+
+    def poser(mg, x):
+        if mg.caisse > x: L.transferer(mg, w.gouv, mg.caisse - x, "amende")
+        else: L.recevoir_de_l_exterieur(mg, x - mg.caisse, "epargne_initiale")
+    ja, jc = M._cout_nourriture(p, A), M._cout_nourriture(p, C_)
+    EC.revenu_recent(p, len(w.menages))                # le revenu qui decide : celui des 30 derniers jours
+    for mg, r in ((A, 10.0 * ja), (C_, 0.0), (B, 1000.0)): cm["eco_revenu_30"][mg.id] = r; cm["eco_revenu_30_n"][mg.id] = 30
+    poser(A, EC.RESERVE_ALIMENTAIRE_J * ja + 5.0); poser(C_, 30.0 * jc); poser(B, 100000.0)
+    for mg in (C_, B): M._cols(p, "vh_res0")[mg.id] = 0.0
+    dette = lambda mg: math.fsum(c.montant for c in K.de(mg) if c.motif == "taxe_circulation")
+    da0, db0, dc0, cb0, cc0 = dette(A), dette(B), dette(C_), B.caisse, C_.caisse
+    for mg in (A, B, C_): M._taxer(p, tr, mg, 120.0, "taxe_circulation")
+    lc = M._plein_slot(p, tr, C_, 0); lb = M._plein_slot(p, tr, B, 0)
+    a_ok = abs(A.caisse - EC.RESERVE_ALIMENTAIRE_J * ja) <= 1e-6 and abs(dette(A) - da0 - 115.0) <= 1e-6
+    c_ok = abs(dette(C_) - dc0 - 120.0) <= 1e-6 and abs(C_.caisse - cc0) <= 1e-6 and lc == 0.0
+    b_ok = dette(B) == db0 and lb > 0.0 and cb0 - B.caisse > 120.0            # la taxe, puis le plein
+    tenue, msg = p.socle.conservation.tenue()
+    ok = a_ok and b_ok and c_ok and tenue
+    return ok, (f"revenu suffisant, 5 de libre : taxe payee {120.0 - (dette(A) - da0):.2f}, due {dette(A) - da0:.2f} ; sans revenu, "
+                f"30 jours en caisse : taxe due {dette(C_) - dc0:.2f}, plein {lc:.1f} l ; menage aise : sans dette {dette(B) == db0}, "
+                f"plein {lb:.1f} l ; {msg}")
+
+
 TESTS = [test_modeles, test_recensement, test_conservation_objets, test_carburant, test_accidents, test_credit_au_centime,
-         test_falsificateur, test_decision, test_pays_vivable, test_cout]
+         test_falsificateur, test_decision, test_pays_vivable, test_cout, test_taxe_circulation_apres_nourriture]

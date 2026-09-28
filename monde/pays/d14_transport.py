@@ -824,6 +824,14 @@ def _cout_nourriture(p, mg):
     return v * C.NOURRITURE_PAR_JOUR * p.w.marches[mg.domicile.marche.id].prix["nourriture"] * (1.0 + p.w.gouv.tva)
 
 
+def _plancher(p, mg):
+    """( 28/09, HMT-126 e ) Ce qu un menage garde avant de payer sa voiture ( achat, carburant, entretien, reparation ) ou
+    sa taxe de circulation : sa semaine de nourriture, ou JOURS_SANS_REVENU jours ( domaine 3 ) quand son revenu ne
+    couvre pas sa nourriture - il laisse alors sa voiture au garage. La guerre des iles, Altis, 90 jours : les menages
+    des enfants morts de faim avaient paye 870 drachmes d entretien et 318 de gazole pour 2 590 de nourriture."""
+    return EC.plancher_menage(p, mg, _cout_nourriture(p, mg))
+
+
 def _tva(p): return ET.taux_tva(p, "pieces_auto")
 
 
@@ -1098,7 +1106,7 @@ def vendre_occasion(p, conc, mg, oid, reprise_k=None, credit=True):
     m = tr.idx_parc[o.modele]; c = CARAC[m]
     prix, marge = prix_occasion(p, c, tr.fiches[oid])
     if reprise_k is None and _slot_libre(p, mg.id) is None: return 0.0
-    reserve = RESERVE_ALIMENTAIRE_J * _cout_nourriture(p, mg)
+    reserve = _plancher(p, mg)
     valeur_reprise = 0.0
     if reprise_k is not None:
         f = Fiche(_cols(p, f"vh_ne{reprise_k}")[mg.id], _cols(p, f"vh_km{reprise_k}")[mg.id], 0, 0)
@@ -1134,7 +1142,7 @@ def vendre_neuf(p, conc, acheteur, m, reprise_k=None, credit=True, octroi=True, 
     prix, ht, immat = prix_neuf(p, c)
     menage = type(acheteur).__name__ == "Menage"
     if menage and reprise_k is None and _slot_libre(p, acheteur.id) is None: return 0.0
-    reserve = RESERVE_ALIMENTAIRE_J * _cout_nourriture(p, acheteur) if menage else 0.0
+    reserve = _plancher(p, acheteur) if menage else 0.0
     valeur_reprise = 0.0
     if menage and reprise_k is not None:
         f = Fiche(_cols(p, f"vh_ne{reprise_k}")[acheteur.id], _cols(p, f"vh_km{reprise_k}")[acheteur.id], 0, 0)
@@ -1335,7 +1343,7 @@ def _plein_slot(p, tr, mg, k):
     if m < 0: return 0.0
     c = CARAC[m]
     litres = c.reservoir_l - float(col[mg.id])
-    reserve = RESERVE_ALIMENTAIRE_J * _cout_nourriture(p, mg)
+    reserve = _plancher(p, mg)
     if litres <= 0.0 or mg.caisse <= reserve: return 0.0
     st = _station_de(tr, mg)
     ttc = prix_station(p, st, c.carburant) * (1.0 + ET.taux_tva(p, c.carburant))
@@ -1672,7 +1680,7 @@ def _reparation_contexte(p, tr, o, mg, classe, bits):
     devis = cout_devis(p, r.garage, r.pieces_kg, r.heures) * (1.0 + _tva(p))
     age = (p.jour - int(_cols(p, f"vh_ne{k}")[mg_id])) / JOURS_AN
     val = valeur_venale(c, age, o.usure)
-    reserve = RESERVE_ALIMENTAIRE_J * _cout_nourriture(p, mg)
+    reserve = _plancher(p, mg)
     conc, occ, neuf = _offres(p, tr, mg, classe, bits, RESERVE_ACHAT_J * _cout_nourriture(p, mg))
     rev = _revenu(p, mg.id)
     x = (min(1.0, devis / max(1.0, val)), min(1.0, devis / max(1.0, mg.caisse - reserve)), min(1.0, age / 30.0),
@@ -1736,7 +1744,7 @@ def reparer(p, o, payeur):
         couvert = max(0.0, min(ttc, float(tr.assureur(p, tr.sinistres[r.sinistre], ttc))))
         tr.sinistres[r.sinistre].couvert = couvert
     du = ttc - couvert
-    reserve = RESERVE_ALIMENTAIRE_J * _cout_nourriture(p, payeur) if type(payeur).__name__ == "Menage" else 0.0
+    reserve = _plancher(p, payeur) if type(payeur).__name__ == "Menage" else 0.0
     if payeur.caisse - reserve < du - 1e-9: return False
     if not _consommer_pieces(p, tr, g, r.pieces_kg, 0.0, "reparation_vehicule"):
         p.compter("penurie_pieces"); return False
@@ -1798,7 +1806,7 @@ def _entretiens(p, tr, n, mi, has):
         pneus = c.pneus * max(0.0, float(odo[k, i] - ks[k, i])) / c.km_pneus
         ht = c.pieces_kg * _prix_piece_kg(p) + pneus * _prix_pneu(p) + c.heures * TAUX_HORAIRE_GARAGE
         ttc = ht * (1.0 + _tva(p))
-        if mg.caisse - RESERVE_ALIMENTAIRE_J * _cout_nourriture(p, mg) < ttc: continue
+        if mg.caisse - _plancher(p, mg) < ttc: continue
         if not _consommer_pieces(p, tr, g, c.pieces_kg, pneus, "entretien_vehicule"):
             p.compter("penurie_pieces"); continue
         L.transferer(mg, g, ht, "entretien_vehicule")
@@ -2040,8 +2048,17 @@ def _administration(p):
 
 
 def _taxer(p, tr, payeur, montant, motif):
+    """La taxe de circulation d un menage ou d une flotte ; ce qui n est pas paye devient une creance de l Etat. ( 28/09,
+    HMT-126 ) Un menage la paie sur ce qu il a au-dela de son plancher ( _plancher : sa semaine de nourriture, un
+    trimestre sans revenu ) : le menage grec pauvre laisse filer
+    ses teli kykloforias en arrieres ( dette au fisc, majoree ) ou depose ses plaques pour ne plus la devoir - il ne
+    saute pas ses repas pour elle ( la guerre des iles, Malden, jour 111 : les affames payaient 1 054 drachmes de taxe de
+    circulation pour 490 de nourriture ). Le depot des plaques ( katathesi pinakidon ) n est pas modelise : a faire."""
     if montant <= 0: return
-    x = p.socle.livre.transferer(payeur, p.w.gouv, montant, motif)
+    plafond = montant
+    if type(payeur).__name__ == "Menage":
+        plafond = min(montant, max(0.0, payeur.caisse - _plancher(p, payeur)))
+    x = p.socle.livre.transferer(payeur, p.w.gouv, plafond, motif)
     tr.stats["taxe_circulation"] += x
     p.compter("taxe_circulation", x)
     if montant - x > 1e-6:

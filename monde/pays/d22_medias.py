@@ -97,7 +97,7 @@ import math
 import numpy as np
 from .. import config as C, population as PO
 from ..socle import decision as D
-from . import pays as P, d02_banques as BQ, d06_etat as ET
+from . import pays as P, d02_banques as BQ, d03_economie as EC, d06_etat as ET
 
 EUROS = P.EUROS_PAR_DRACHME
 JOURS_AN = 365.0
@@ -276,7 +276,10 @@ PRIX_MOBILE_EUR, PRIX_FIXE_EUR, PRIX_INTERNET_EUR, PRIX_TV_PAYANTE_EUR = 17.0, 1
 TVA_TELECOM, TVA_PRESSE, TVA_PUB = 0.24, 0.06, 0.24
 FIXE, INTERNET, TV, TV_PAYANTE = 1, 2, 4, 8
 RATION_DR = 4.0                   # la ration a 4 drachmes ( pays.py ) : la reserve de nourriture qu un menage garde
-RESERVE_J = 14                    # un menage ne paie ses abonnements qu au-dela de 14 jours de nourriture ( a calibrer )
+RESERVE_J = 14                    # un menage ne paie ses abonnements qu au-dela de 14 jours de nourriture ( a calibrer ) ;
+                                  # ( 28/09, HMT-126 ) au prix affiche de son marche, TVA comprise ( domaine 3,
+                                  # reserve_alimentaire ) : a 4 drachmes fixes, la reserve fondait quand le prix montait
+                                  # ( Malden, guerre des iles, jour 111 : 255 drachmes de telephone chez les affames )
 MOIS_AVANT_SUSPENSION = 2         # delai grec usuel avant suspension pour impaye ( a calibrer )
 # Relais : autonomie sur batterie des stations de base ( 2 a 8 h selon les sites ; a calibrer ) ; pannes propres du
 # reseau ( coupure de fibre, equipement ) par lieu et par jour, duree mediane 4 h ( a calibrer ).
@@ -1335,8 +1338,12 @@ def _facturer(p, d):
     abos = cm["presse_abos"][ks].astype(np.int64)
     presse = [(x, x.bit_abo, _prix_dr(x.prix_abo)) for x in d.medias if x.bit_abo >= 0]
     caisse = tb.menages.caisse
+    if p.a("economie"):                           # HMT-126 e : un trimestre de nourriture sans revenu qui la couvre
+        jour = EC.reserve_alimentaire(p, 1)
+        reserve = np.maximum(RESERVE_J * jour, EC.plancher_discretionnaire(p, jour))
+    else: reserve = RESERVE_J * RATION_DR * vivants.astype(float)
     for j, k in enumerate(ks.tolist()):
-        dispo = max(0.0, float(caisse[k]) - RESERVE_J * RATION_DR * float(vivants[k]))
+        dispo = max(0.0, float(caisse[k]) - (float(reserve[k]) if k < len(reserve) else 0.0))
         du_tel = float(tel[j])
         lignes = [(x, prix) for x, bit, prix in presse if (abos[j] >> bit) & 1]
         du = du_tel + sum(pr for _, pr in lignes)

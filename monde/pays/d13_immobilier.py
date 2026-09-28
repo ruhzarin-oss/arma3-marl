@@ -513,8 +513,13 @@ def _prix_nourriture(p, mg):
 
 
 def reserve(p, mg):
-    """Ce qu un menage garde pour manger avant de payer loyer, impot ou travaux : 7 jours de nourriture."""
-    return RESERVE_NOURRITURE_J * C.NOURRITURE_PAR_JOUR * _n_vivants(mg) * _prix_nourriture(p, mg)
+    """Ce qu un menage garde pour manger avant de payer loyer, impot ou travaux : 7 jours de nourriture ; ( 28/09,
+    HMT-126 e ) JOURS_SANS_REVENU jours ( domaine 3 ) quand son revenu ne couvre pas sa nourriture : le loyer passe
+    alors en arrieres ( litige a 3 termes, expulsion ), il ne passe pas avant les repas. Lu aussi par l assurance
+    ( domaine 20 ) et la justice ( saisies, domaine 21 ) au travers de `disponible`."""
+    jour = C.NOURRITURE_PAR_JOUR * _n_vivants(mg) * _prix_nourriture(p, mg)
+    if p.a("economie"): return importlib.import_module(".d03_economie", __package__).plancher_menage(p, mg, jour)
+    return RESERVE_NOURRITURE_J * jour
 
 
 def disponible(p, x):

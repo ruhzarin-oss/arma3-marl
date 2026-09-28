@@ -433,6 +433,56 @@ def test_salaires_impayes():
                 f"compte de 55 jours : reste salarie {b_reste} ; sans arrieres : reste {c_reste}")
 
 
+# ================================================================== la cotisation apres la nourriture ( HMT-126, e )
+def test_cotisation_apres_nourriture():
+    """Porte ( HMT-126, seuils ecrits avant la mesure ) - controle positif : a la fin du mois, un independant dont le menage
+    n a que 10 drachmes au-dela de sa semaine de nourriture ( domaine 3, reserve_alimentaire ) paie ces 10 drachmes a la
+    caisse, garde sa semaine, et le reste de sa cotisation devient une dette envers la caisse ( au centime ) ; son mois
+    n est credite qu a proportion ; un patron sans dividende, a sa semaine de nourriture, ne paie rien et doit toute sa
+    cotisation. Falsificateur : un independant aise paie toute sa cotisation, sans dette."""
+    w, p = T.monde(["travail"])
+    d = p.domaine("travail"); col = p.colonnes["habitant"]; K = p.socle.creances; L = p.socle.livre
+    T.jours(w, 2)
+    tb = w.table; n = tb.n
+    inds = [i for i in range(n) if tb.vivant[i] and col["tr_statut"][i] == M.INDEPENDANT and tb.travail[i] >= 0
+            and M._role_de(tb, i) in M.COTISATION_INDEPENDANT_MOIS]
+    menages = {}
+    for i in inds: menages.setdefault(int(tb.menage[i]), []).append(i)
+    seuls = [v[0] for v in menages.values() if len(v) == 1]
+    patrons = [i for i in seuls if M._role_de(tb, i) == "patron"]
+    autres = [i for i in seuls if M._role_de(tb, i) != "patron"]
+    A, B, P_ = autres[0], autres[1], patrons[0]
+    ma, mb, mp = M._menage_de(tb, A), M._menage_de(tb, B), M._menage_de(tb, P_)
+    ECO.revenu_recent(p, len(w.menages)); cm = p.colonnes["menage"]; jour = ECO.reserve_alimentaire(p, 1)
+    for mg in (ma, mb, mp): cm["eco_revenu_30"][mg.id] = 10.0 * jour[mg.id]; cm["eco_revenu_30_n"][mg.id] = 30
+    res = ECO.reserve_alimentaire(p)
+    if mp.caisse > res[mp.id]: L.transferer(mp, w.gouv, mp.caisse - res[mp.id], "amende")
+    else: L.recevoir_de_l_exterieur(mp, res[mp.id] - mp.caisse, "epargne_initiale")
+    dette_p0 = math.fsum(c.montant for c in K.de(mp) if c.motif == "cotisation_independant")
+    if ma.caisse > res[ma.id] + 10.0: L.transferer(ma, w.gouv, ma.caisse - res[ma.id] - 10.0, "amende")
+    else: L.recevoir_de_l_exterieur(ma, res[ma.id] + 10.0 - ma.caisse, "epargne_initiale")
+    L.recevoir_de_l_exterieur(mb, 100000.0, "epargne_initiale")
+    jc = float(col["tr_jours_cotises"][A])
+    dette0 = math.fsum(c.montant for c in K.de(ma) if c.motif == "cotisation_independant")
+    agg = {k: 0.0 for k in M.AGREGATS}
+    M._cotisations_independants(p, d, agg)
+    m_a = M.COTISATION_INDEPENDANT_MOIS[M._role_de(tb, A)]
+    dette = math.fsum(c.montant for c in K.de(ma) if c.motif == "cotisation_independant") - dette0
+    paye_a = m_a - dette
+    ok_a = abs(paye_a - 10.0) <= 1e-6 and abs(ma.caisse - res[ma.id]) <= 1e-6 and abs(
+        (float(col["tr_jours_cotises"][A]) - jc) - M.JOURS_ASSURANCE_MOIS * 10.0 / m_a) <= 1e-9
+    dette_b = math.fsum(c.montant for c in K.de(mb) if c.motif == "cotisation_independant")
+    ok_b = dette_b == 0.0
+    m_p = M.COTISATION_INDEPENDANT_MOIS["patron"]
+    dette_p = math.fsum(c.montant for c in K.de(mp) if c.motif == "cotisation_independant") - dette_p0
+    ok_p = abs(dette_p - m_p) <= 1e-6 and abs(mp.caisse - res[mp.id]) <= 1e-6
+    tenue, msg = p.socle.conservation.tenue()
+    ok = ok_a and ok_b and ok_p and m_a > 10.0 and tenue
+    return ok, (f"cotisation de {m_a:.2f} : payee {paye_a:.2f} sur 10 de libre, dette {dette:.2f}, semaine de nourriture gardee "
+                f"{abs(ma.caisse - res[ma.id]) <= 1e-6}, mois credite {float(col['tr_jours_cotises'][A]) - jc:.3f} jours ; "
+                f"patron sans dividende a sa reserve : dette {dette_p:.2f} pour {m_p:.2f} ; independant aise sans dette {ok_b} ; {msg}")
+
+
 # ================================================================== carrieres, qualifications, syndicats
 def test_carrieres():
     """Porte : 13 a 27 % de syndiques parmi les salaries au recensement ( OCDE 13,4 % en 2020, demande 20 % ) ; chaque
@@ -498,4 +548,4 @@ def test_cout():
 
 TESTS = [test_bulletins_au_centime, test_caisse_securite_sociale, test_emploi_20_64, test_inactifs_changent, test_greve,
          test_retraite, test_heures_payees_travaillees, test_accepter_emploi, test_indemnite_chomage, test_disponibilite,
-         test_salaires_impayes, test_carrieres, test_pays_vivable, test_cout]
+         test_salaires_impayes, test_cotisation_apres_nourriture, test_carrieres, test_pays_vivable, test_cout]
