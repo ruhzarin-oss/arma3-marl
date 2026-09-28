@@ -1359,7 +1359,7 @@ def _cotisations_independants(p, d, agg):
     # meme sans revenu, et les arrieres sont massifs - 49,3 milliards d euros de cotisations impayees fin 2024, ~2,1
     # millions de debiteurs, recouvres par le KEAO ( rapport trimestriel du KEAO, via insider.gr ). Le patron ou
     # l independant sans revenu s endette envers la caisse ; il ne saute pas ses repas.
-    res = ECO.reserve_alimentaire(p)
+    res = ECO.plancher_discretionnaire(p)            # 7 jours ; 90 sans revenu qui nourrit ( HMT-126 e )
     # EN COLONNES ( 24/09 ) : les independants en activite trouves en vecteurs, payes dans l ordre des numeros
     for i in np.nonzero((tb.vivant[:n] == 1) & (st[:n] == INDEPENDANT) & (tb.travail[:n] >= 0))[0].tolist():
         m = COTISATION_INDEPENDANT_MOIS.get(_role_de(tb, i))

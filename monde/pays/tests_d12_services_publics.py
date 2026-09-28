@@ -323,6 +323,8 @@ def test_eau_et_taxe_apres_nourriture():
     B = next(i for i in ok_m if (i + j) % M.JOURS_FACTURE == 0 and i != A)
     C_ = next(i for i in ok_m if (i + j) % M.JOURS_TAXE == 7 and (i + j) % M.JOURS_FACTURE != 0)
     res = ECO.reserve_alimentaire(p)
+    ECO.revenu_recent(p, len(w.menages))                # revenu suffisant, selon les 30 derniers jours ( HMT-126 e )
+    for i in (A, B, C_): p.colonnes["menage"]["eco_revenu_30"][i] = 1000.0; p.colonnes["menage"]["eco_revenu_30_n"][i] = 30
 
     def poser(i, x):
         mg = w.menages[i]

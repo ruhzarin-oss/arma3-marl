@@ -411,5 +411,46 @@ def test_cout():
                 f"{propre / n * 1e6:.1f} us par habitant")
 
 
+def test_plancher_sans_revenu():
+    """Porte ( HMT-126 e, seuils ecrits avant la mesure ) : le plancher des depenses que l on peut remettre vaut 7 jours de
+    nourriture pour un menage dont le revenu lisse couvre sa nourriture d un jour, JOURS_SANS_REVENU ( 90 ) sinon, a 1e-9.
+    Controle positif : un menage sans revenu qui a 30 jours de nourriture en caisse achete sa nourriture le soir mais
+    aucun bien ou service marchand, aucun equipement. Falsificateur : le meme soir, un menage aise avec un revenu en
+    achete ; et le plancher d un menage au revenu suffisant reste a 7 jours."""
+    w, p = T.monde(["economie"])
+    L = p.socle.livre; cm = p.colonnes["menage"]
+    T.jours(w, 3); _avancer(w, 12)                         # 18 h
+    jour = M.reserve_alimentaire(p, 1)
+    ids = [k for k in range(len(w.menages)) if jour[k] > 0]
+    A, B = ids[0], ids[1]
+    M.revenu_recent(p, len(w.menages))                 # le revenu qui decide : celui des 30 derniers jours
+    for k, r in ((A, 0.0), (B, 10.0 * jour[B])): cm["eco_revenu_30"][k] = r; cm["eco_revenu_30_n"][k] = 30
+    pl = M.plancher_discretionnaire(p)
+    valeurs = abs(pl[A] - M.JOURS_SANS_REVENU * jour[A]) <= 1e-9 * pl[A] and abs(pl[B] - M.RESERVE_ALIMENTAIRE_J * jour[B]) <= 1e-9 * pl[B]
+    mA, mB = w.menages[A], w.menages[B]
+    if mA.caisse > 30.0 * jour[A]: L.transferer(mA, w.gouv, mA.caisse - 30.0 * jour[A], "amende")
+    else: L.recevoir_de_l_exterieur(mA, 30.0 * jour[A] - mA.caisse, "epargne_initiale")
+    L.recevoir_de_l_exterieur(mB, 100000.0, "epargne_initiale")
+    par = {}
+
+    class Espion:
+        def __init__(self, suivant): self.suivant = suivant
+        def argent(self, motif, de, vers, montant):
+            if self.suivant is not None: self.suivant.argent(motif, de, vers, montant)
+            if type(de).__name__ == "Menage": par[(de.id, motif)] = par.get((de.id, motif), 0.0) + montant
+        def bien(self, *a):
+            if self.suivant is not None: self.suivant.bien(*a)
+    ancien = getattr(L, "enregistreur", None); L.enregistreur = Espion(ancien)
+    _avancer(w, 1 + 1 / 6)                                 # 19 h 10 : les achats sont passes
+    L.enregistreur = ancien
+    a_nourri = par.get((A, "nourriture"), 0.0) > 0.0
+    a_rien = par.get((A, "services_marchands"), 0.0) == 0.0 and par.get((A, "outils"), 0.0) == 0.0
+    b_achete = par.get((B, "services_marchands"), 0.0) > 0.0
+    tenue, msg = p.socle.conservation.tenue()
+    ok = valeurs and a_nourri and a_rien and b_achete and tenue
+    return ok, (f"plancher sans revenu {pl[A] / jour[A]:.0f} jours, avec revenu {pl[B] / jour[B]:.0f} jours ; sans revenu, 30 jours "
+                f"en caisse : nourriture {par.get((A, 'nourriture'), 0.0):.2f}, marchand {par.get((A, 'services_marchands'), 0.0):.2f}, "
+                f"equipement {par.get((A, 'outils'), 0.0):.2f} ; menage aise : marchand {par.get((B, 'services_marchands'), 0.0):.2f} ; {msg}")
+
 TESTS = [test_budget_parts, test_services_marchands_et_usure, test_identite_comptable, test_faillite, test_chomage, test_prix_choc_de_demande,
-         test_commerces_fermes, test_credit, test_recalibrage, test_part_du_choix, test_pays_vivable, test_cout]
+         test_commerces_fermes, test_credit, test_recalibrage, test_part_du_choix, test_pays_vivable, test_cout, test_plancher_sans_revenu]

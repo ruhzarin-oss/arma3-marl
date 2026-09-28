@@ -1486,7 +1486,7 @@ def _factures_menages(p, E, tarif):
     if not len(a_payer): return
     _coupes(p, n)
     cm = p.colonnes["menage"]; imp, cj, cp = cm["en_impayees"], cm["en_coupure_j"], cm["en_coupe"]
-    res = ECO.reserve_alimentaire(p)
+    res = ECO.plancher_discretionnaire(p)             # 7 jours ; 90 sans revenu qui nourrit ( HMT-126 e )
     for i in a_payer.tolist():
         mg = w.menages[i]
         G = E.par_ile[E.zones[int(zi[i])].ile].gestionnaire

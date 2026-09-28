@@ -774,7 +774,7 @@ def _achats(p):
     bas = achete & (E[:n] < SEUIL_RENOUVELLEMENT * cible_e)
     if bas.any():
         po = np.array([m.prix["outils"] for m in marches]); pt = po[mi] * (1.0 + tva)
-        libre = np.maximum(0.0, caisse - np.maximum(0.5 * tampon, reserve))
+        libre = np.maximum(0.0, caisse - np.maximum(0.5 * tampon, plancher_discretionnaire(p, cout_n)))   # HMT-126 e
         voulu_e = np.where(bas, cible_e - E[:n], 0.0)
         q0 = np.minimum(voulu_e, libre) / pt
         q = _rationner(q0, mi, np.array([max(0.0, m.stocks["outils"]) for m in marches]))
@@ -795,7 +795,7 @@ def _achats(p):
     attente = M * (1.0 - part_bien)[None, :]
     attente[:, I_ALIM] = 0.0; attente[:, I_EQUIP] = 0.0
     pm = parts_marchandes(p)
-    plancher = np.maximum(reserve, tampon_vise(classe, _revenu_long(p, n)))
+    plancher = np.maximum(plancher_discretionnaire(p, cout_n), tampon_vise(classe, _revenu_long(p, n)))
     voulu_s, ttc_s = achats_marchands(attente, pm, jours, achete, w.table.menages.caisse[:n], plancher)
     tva_m = np.zeros(len(marches))
     for i in np.nonzero(ttc_s > 0.01)[0].tolist():         # le menage paie TTC ; le commerce reverse la TVA ( un virement )
@@ -1077,6 +1077,11 @@ def _apres_paie(p):
         rv = p.col("menage", "eco_revenu")
         vivant = p.col("menage", "dissous")[:n] == 0
         rv[:n] = np.where(vivant, rv[:n] * (1.0 - ALPHA_REVENU) + ALPHA_REVENU * entree, rv[:n])
+        revenu_recent(p, n)                                                       # HMT-126 e : le revenu vrai, 30 jours
+        cm = p.colonnes["menage"]; r30, n30 = cm["eco_revenu_30"], cm["eco_revenu_30_n"]
+        a = np.maximum(ALPHA_REVENU_RECENT, 1.0 / (n30[:n].astype(np.float64) + 1.0))
+        r30[:n] = np.where(vivant, r30[:n] * (1.0 - a) + a * entree, r30[:n])
+        n30[:n] = np.where(vivant, np.minimum(n30[:n] + 1, 1000), n30[:n])
         rl = _revenu_long(p, n)                                                   # HMT-126 : le revenu permanent
         rl[:] = np.where(vivant, rl * (1.0 - ALPHA_REVENU_LONG) + ALPHA_REVENU_LONG * entree, rl)
         d.caisses_1750 = None
@@ -1625,6 +1630,53 @@ def reserve_alimentaire(p, jours=RESERVE_ALIMENTAIRE_J):
     return float(jours) * ration * v * pn
 
 
+# ( 28/09, HMT-126 e ) Le plancher des depenses que l on peut remettre. Un menage dont le revenu couvre sa nourriture
+# garde sa semaine de nourriture avant de payer une facture ou une sortie ; un menage dont le revenu NE la couvre PAS
+# garde JOURS_SANS_REVENU jours de nourriture avant de payer ce qui peut attendre - cafe et taverne ( domaine 23 ),
+# assurance ( 20 ), entretien, reparation, carburant et achat de voiture, taxe de circulation ( 14 ), telephone ( 22 ),
+# loyer ( 13 ), biens et services marchands et equipement ( 3 ) : il laisse filer loyer et factures en arrieres, il ne
+# sort plus, il ne renouvelle pas son assurance ( le non-paiement de la prime met fin au contrat : loi 2496/1997,
+# art. 6 par. 2, un mois apres la mise en demeure ), il laisse sa voiture au garage. La guerre des iles l a mesure sur
+# Altis ( 90 jours, sans ce plancher ) : neuf enfants morts de faim dans des menages sans actif, qui avaient paye en 90
+# jours 870 drachmes d entretien de voiture, 802 de cafe et taverne, 790 d assurance, 377 de telephone, pour 2 590 de
+# nourriture. JOURS_SANS_REVENU : un trimestre, l ordre d une recherche d emploi ( a calibrer ).
+JOURS_SANS_REVENU = 90
+# Le revenu qui decide : ce que la paie de 18 h a VRAIMENT apporte au menage, en moyenne sur 30 jours ( moyenne simple
+# les premiers jours ; l estimation d installation tant qu aucune paie n est passee ). Le revenu lisse de 60 jours garde
+# des mois durant la trace de l estimation d installation ( le salaire du metier ) : un adulte decourage ou etudiant
+# d Altis y valait encore 12 drachmes par jour au jour 80, sans avoir rien touche - et payait ses sorties.
+ALPHA_REVENU_RECENT = 1.0 / 30.0
+
+
+def plancher_discretionnaire(p, cout_jour=None):
+    """( HMT-126 e ) Par menage ( drachmes ) : RESERVE_ALIMENTAIRE_J jours de nourriture si son revenu lisse couvre sa
+    nourriture d un jour, JOURS_SANS_REVENU jours sinon. `cout_jour` : la nourriture d un jour de chaque menage, si
+    l appelant l a deja ( sinon reserve_alimentaire( p, 1 ) )."""
+    if cout_jour is None: cout_jour = reserve_alimentaire(p, 1)
+    cout_jour = np.asarray(cout_jour, dtype=np.float64)
+    rev = revenu_recent(p, len(cout_jour))
+    return np.where(rev + EPS >= cout_jour, RESERVE_ALIMENTAIRE_J, JOURS_SANS_REVENU) * cout_jour
+
+
+def revenu_recent(p, n):
+    """( HMT-126 e ) Ce que la paie a vraiment apporte a chaque menage, en moyenne sur 30 jours ( drachmes par jour ) ;
+    le revenu lisse d installation tant qu aucune paie n est passee."""
+    cm = p.colonnes["menage"]
+    if "eco_revenu_30" not in cm:
+        cm.ajouter("eco_revenu_30", np.float64, 0.0); cm.ajouter("eco_revenu_30_n", np.int16, 0)
+    cm.assurer(n)
+    return np.where(cm["eco_revenu_30_n"][:n] > 0, cm["eco_revenu_30"][:n], cm["eco_revenu"][:n])
+
+
+def plancher_menage(p, mg, cout_jour):
+    """( HMT-126 e ) Le meme plancher pour un menage, quand l appelant connait sa nourriture d un jour ( drachmes )."""
+    cm = p.colonnes["menage"]
+    if "eco_revenu_30" in cm and mg.id < len(cm["eco_revenu_30"]) and cm["eco_revenu_30_n"][mg.id] > 0:
+        rev = float(cm["eco_revenu_30"][mg.id])
+    else: rev = float(cm["eco_revenu"][mg.id]) if "eco_revenu" in cm and mg.id < len(cm["eco_revenu"]) else 0.0
+    return (RESERVE_ALIMENTAIRE_J if rev + EPS >= cout_jour else JOURS_SANS_REVENU) * float(cout_jour)
+
+
 def budget_des_menages(p):
     """Les parts du budget voulu, mesurees depuis l installation : ensemble et par quintile de revenu lisse."""
     B = p.domaine("economie").budget
@@ -1708,6 +1760,7 @@ def installer(p):
     for h in w.habitants:
         if h.menage is not None: rv[h.menage.id] += _revenu_attendu(h, w.gouv.impot_revenu)
     _revenu_long(p, n)                                  # HMT-126 : le revenu permanent part du revenu attendu
+    revenu_recent(p, n)                                 # HMT-126 e : le revenu vrai des 30 derniers jours
     v, classe = _tableaux_menages(p)
     ok = (v > 0) & (p.col("menage", "dissous")[:n] == 0)
     cible = tampon_vise(classe, rv[:n])

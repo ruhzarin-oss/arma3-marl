@@ -345,6 +345,8 @@ def test_cotisation_apres_nourriture():
     autres = [i for i in seuls if M._role_de(tb, i) != "patron"]
     A, B, P_ = autres[0], autres[1], patrons[0]
     ma, mb, mp = M._menage_de(tb, A), M._menage_de(tb, B), M._menage_de(tb, P_)
+    ECO.revenu_recent(p, len(w.menages)); cm = p.colonnes["menage"]; jour = ECO.reserve_alimentaire(p, 1)
+    for mg in (ma, mb, mp): cm["eco_revenu_30"][mg.id] = 10.0 * jour[mg.id]; cm["eco_revenu_30_n"][mg.id] = 30
     res = ECO.reserve_alimentaire(p)
     if mp.caisse > res[mp.id]: L.transferer(mp, w.gouv, mp.caisse - res[mp.id], "amende")
     else: L.recevoir_de_l_exterieur(mp, res[mp.id] - mp.caisse, "epargne_initiale")

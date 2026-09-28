@@ -325,6 +325,41 @@ def test_cout():
                 f"{t100:.3f} s ( x{t100 / t10:.1f} )")
 
 
+def test_sortie_sans_revenu():
+    """Porte ( HMT-126 e, seuils ecrits avant la mesure ) - controle positif : le plancher de la culture vaut 90 jours de
+    nourriture pour un menage sans revenu ; une sortie de 5 drachmes au cafe, payee par le chemin des sorties
+    ( _payer_par_couple, reserve max( 7 jours, plancher ) ), n est pas payee par un menage sans revenu qui a 30 jours de
+    nourriture en caisse. Falsificateur : un menage au revenu suffisant, avec la meme caisse, la paie ; son plancher reste
+    nul au-dela de ses 7 jours propres."""
+    w, p = _monde(1)
+    d = M._dom(p); cm = p.colonnes["menage"]; tb = w.table
+    mg, viv, Mn = M._menages_vivants(p)
+    cout = M._cout_jour(p, Mn, viv)
+    ids = [k for k in range(Mn) if viv[k] > 0]
+    A, B = ids[0], ids[1]
+    EC = __import__(__package__ + ".d03_economie", fromlist=["x"]); EC.revenu_recent(p, len(w.menages))
+    for k, r in ((A, 0.0), (B, 10.0 * cout[B])): cm["eco_revenu_30"][k] = r; cm["eco_revenu_30_n"][k] = 30
+    pl = M._plancher(p, cout)
+    caisse = tb.menages.caisse[:Mn]
+    L = p.socle.livre
+    for k in (A, B):
+        m = w.menages[k]; x = 30.0 * cout[k]
+        if m.caisse > x: L.transferer(m, w.gouv, m.caisse - x, "amende")
+        else: L.recevoir_de_l_exterieur(m, x - m.caisse, "epargne_initiale")
+    et = next(i for i, e in enumerate(d.etablissements) if e is not None)
+    reserve = np.maximum(M.RESERVE_SORTIE_J * cout, pl)
+    ca, cb = float(caisse[A]), float(caisse[B])
+    tot, par = M._payer_par_couple(p, d, np.array([A, B]), np.array([et, et]), np.array([5.0, 5.0]), d.etablissements,
+                                   M._motif_etablissement, reserve, caisse, M._encaisser_sortie)
+    valeurs = abs(pl[A] - 90.0 * cout[A]) <= 1e-9 * pl[A] and pl[B] <= M.RESERVE_SORTIE_J * cout[B] + 1e-9
+    a_ok = float(caisse[A]) == ca and A not in par
+    b_ok = abs(cb - float(caisse[B]) - 5.0) <= 1e-9
+    tenue, msg = p.socle.conservation.tenue()
+    ok = valeurs and a_ok and b_ok and tenue
+    return ok, (f"plancher sans revenu {pl[A] / cout[A]:.0f} jours, avec revenu {pl[B] / cout[B]:.0f} jours ; sortie de 5 avec 30 jours "
+                f"en caisse : sans revenu payee {ca - float(caisse[A]):.2f}, avec revenu {cb - float(caisse[B]):.2f} ; {msg}")
+
+
 TESTS = [test_religion, test_niveau_du_moral, test_faim_et_deuil, test_fete_controle_positif, test_catastrophe_crue,
          test_rumeur_fausse,
-         test_argent_au_centime, test_moral_hors_causes, test_decision, test_pays_vivable, test_cout]
+         test_argent_au_centime, test_moral_hors_causes, test_decision, test_pays_vivable, test_cout, test_sortie_sans_revenu]

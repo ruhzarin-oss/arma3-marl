@@ -1338,7 +1338,10 @@ def _facturer(p, d):
     abos = cm["presse_abos"][ks].astype(np.int64)
     presse = [(x, x.bit_abo, _prix_dr(x.prix_abo)) for x in d.medias if x.bit_abo >= 0]
     caisse = tb.menages.caisse
-    reserve = EC.reserve_alimentaire(p, RESERVE_J) if p.a("economie") else RESERVE_J * RATION_DR * vivants.astype(float)
+    if p.a("economie"):                           # HMT-126 e : un trimestre de nourriture sans revenu qui la couvre
+        jour = EC.reserve_alimentaire(p, 1)
+        reserve = np.maximum(RESERVE_J * jour, EC.plancher_discretionnaire(p, jour))
+    else: reserve = RESERVE_J * RATION_DR * vivants.astype(float)
     for j, k in enumerate(ks.tolist()):
         dispo = max(0.0, float(caisse[k]) - (float(reserve[k]) if k < len(reserve) else 0.0))
         du_tel = float(tel[j])

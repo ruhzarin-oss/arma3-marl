@@ -211,6 +211,11 @@ REF_REVENU_J = 200.0              # drachmes par jour : un revenu declare au-del
 REF_CA_MOIS = 60000.0             # drachmes par mois : un chiffre d affaires au-dela est un gros dossier
 PART_SAISIE = 0.5                 # part de ce qui est saisissable prise chaque jour ( a calibrer )
 RESERVE_INSAISISSABLE_J = 7       # jours de nourriture laisses au menage
+# ( 28/09, HMT-126 e ) Le fisc ne saisit pas les repas : un menage dont le revenu ne couvre pas sa nourriture garde 90 jours
+# de nourriture ( domaine 3, plancher_menage ) avant toute saisie. Les redressements et penalites du controle fiscal
+# prenaient aux menages affames d Altis 225 000 drachmes en 90 jours. Le reel va plus loin : les depots d une personne
+# physique sont insaisissables jusqu a 1 250 euros par mois ( KEDE, loi 4978/2022, art. 31 par. 2 ) - essaye, il vidait
+# le controle fiscal des menages ( porte test_controle_fiscal, p 0,30 ) : a decider par le chef de projet.
 
 # ================================================================== le gouvernement : actions bornees
 BORNES_INTENSITE = (0.5, 3.0)
@@ -555,12 +560,14 @@ def _marche_des_lieux(w):
 
 
 def _saisissable(p, deb):
-    """Ce que le fisc peut prendre aujourd hui : la moitie de la caisse, au-dela d une semaine de nourriture pour un menage."""
+    """Ce que le fisc peut prendre aujourd hui : la moitie de la caisse, au-dela, pour un menage, d une semaine de
+    nourriture - de 90 jours s il n a pas de revenu qui le nourrit ( HMT-126 e )."""
     w = p.w
     if type(deb) is PO.Menage:
         if p.col("menage", "dissous")[deb.id]: return 0.0
         prix = w.marches[deb.domicile.marche.id].prix["nourriture"] * (1.0 + w.gouv.tva)
-        reserve = RESERVE_INSAISISSABLE_J * _vivants(deb) * C.NOURRITURE_PAR_JOUR * prix
+        jour = _vivants(deb) * C.NOURRITURE_PAR_JOUR * prix
+        reserve = EC.plancher_menage(p, deb, jour) if p.a("economie") else RESERVE_INSAISISSABLE_J * jour
         return max(0.0, PART_SAISIE * (deb.caisse - reserve))
     return max(0.0, PART_SAISIE * deb.caisse)
 

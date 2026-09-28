@@ -393,6 +393,38 @@ def test_cout():
                 f"{detail} ms ), {propre / len(w.habitants) * 1e6:.1f} us par habitant")
 
 
+def test_insaisissable():
+    """Porte ( HMT-126 e, seuils ecrits avant la mesure ) - controle positif : un menage sans revenu qui doit 5 000 drachmes
+    au fisc et n a que 30 jours de nourriture en caisse ne se voit rien saisir au recouvrement du soir ( son plancher :
+    90 jours de nourriture ) ; sa dette reste entiere. Falsificateur : le meme menage, avec un revenu qui le nourrit, se
+    voit saisir la moitie de ce qui depasse sa semaine de nourriture, au centime."""
+    from . import d03_economie as EC
+    w, p = T.monde(["etat"])
+    T.jours(w, 1)
+    e = p.domaine("etat"); f = e.fisc; K = p.socle.creances; L = p.socle.livre; cm = p.colonnes["menage"]
+    mg = next(m for m in w.menages if M._vivants(m) >= 1 and not p.col("menage", "dissous")[m.id] and not K.de(m))
+    jour = float(EC.reserve_alimentaire(p, 1)[mg.id])
+    EC.revenu_recent(p, len(w.menages))
+
+    def essai(revenu):
+        cm["eco_revenu_30"][mg.id] = revenu; cm["eco_revenu_30_n"][mg.id] = 30
+        x = 30.0 * jour
+        if mg.caisse > x: L.transferer(mg, w.gouv, mg.caisse - x, "amende")
+        else: L.recevoir_de_l_exterieur(mg, x - mg.caisse, "epargne_initiale")
+        cr = K.constater(w.gouv, mg, 5000.0, "redressement_fiscal", p.jour); f.creances.append(cr)
+        avant = cr.montant
+        M._recouvrer(p)
+        pris = avant - (cr.montant if K.actives.get(cr.id) is cr else 0.0)
+        if K.actives.get(cr.id) is cr: K.abandonner(cr, "essai")
+        return pris
+    pris_sans = essai(0.0)
+    pris_avec = essai(10.0 * jour)
+    attendu = M.PART_SAISIE * (30.0 * jour - EC.RESERVE_ALIMENTAIRE_J * jour)
+    ok = pris_sans == 0.0 and abs(pris_avec - attendu) <= 1e-6 and attendu > 0.0
+    return ok, (f"30 jours de nourriture en caisse ( {30.0 * jour:.2f} ) : sans revenu, saisi {pris_sans:.2f} ; avec revenu, saisi "
+                f"{pris_avec:.2f} ( attendu {attendu:.2f} )")
+
+
 TESTS = [test_tva_par_categorie, test_ir_par_tranches, test_is_penalites_douanes, test_comptes_nationaux,
          test_solde_budgetaire, test_tresor_jamais_a_sec, test_sitrep_sans_verite_cachee, test_enquete_chomage,
-         test_controle_fiscal, test_pays_vivable, test_cout]
+         test_controle_fiscal, test_pays_vivable, test_cout, test_insaisissable]

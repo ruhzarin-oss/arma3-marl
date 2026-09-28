@@ -953,7 +953,7 @@ def _factures(p):
     ids = np.arange(n)
     fact = np.nonzero(ok & ((ids + p.jour) % JOURS_FACTURE == 0) & (du[:n] + arr[:n] > EPS))[0]
     taxe = np.nonzero(ok & ((ids + p.jour) % JOURS_TAXE == 7))[0]
-    res = ECO.reserve_alimentaire(p) if len(fact) or len(taxe) else None
+    res = ECO.plancher_discretionnaire(p) if len(fact) or len(taxe) else None   # 7 jours ; 90 sans revenu ( HMT-126 e )
     for i in fact.tolist():
         mg = w.menages[i]
         r = S.regies[S.regie_ile[T.iles[int(T.lieu_ile[k[i]])]]]

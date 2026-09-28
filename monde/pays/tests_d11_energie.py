@@ -392,8 +392,11 @@ def test_arrieres_et_coupure():
     habites = [i for i in range(len(E.mg_zone)) if E.mg_zone[i] >= 0 and E.mg_viv[i] > 0]
     A = habites[0]
     B = max(habites, key=lambda i: (w.menages[i].caisse, -i))
+    ECO.revenu_recent(p, len(w.menages))                # revenu suffisant, selon les 30 derniers jours ( HMT-126 e )
+    for i in (A, B): cm["eco_revenu_30"][i] = 1000.0; cm["eco_revenu_30_n"][i] = 30
 
     def une_drachme():
+        cm["eco_revenu_30"][A] = 1000.0                   # revenu suffisant tout du long : le plancher reste 7 jours
         mg = w.menages[A]; r = float(ECO.reserve_alimentaire(p)[A])
         if mg.caisse > r + 1.0: L.transferer(mg, w.gouv, mg.caisse - r - 1.0, "amende")
         else: L.recevoir_de_l_exterieur(mg, r + 1.0 - mg.caisse, "epargne_initiale")
