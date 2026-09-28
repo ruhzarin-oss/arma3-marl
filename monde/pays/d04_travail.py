@@ -207,6 +207,15 @@ POLITIQUES = ("chef_gouvernement", "ministre")
 HORS_MARCHE = POLITIQUES + ("patron", "marchand")
 INDEPENDANTS = ("paysan", "marchand", "patron")
 ARRIERES_GREVE_J = 3.0              # une greve eclate quand les salaires impayes atteignent 3 jours de paie
+# ( 28/09, HMT-126 a ) Le salarie que son employeur ne paie plus. En Grece le salaire est mensuel ; le salarie impaye peut
+# retenir son travail ( Code civil, art. 325 ) et tenir le non-paiement pour une rupture du fait de l employeur
+# ( modification unilaterale dommageable, loi 2112/1920, art. 7 ) ; la suspension d activite par l employeur est bornee
+# a trois mois par an ( loi 3198/1955, art. 10 ). Sans paie nette depuis IMPAYE_RUPTURE_J jours - un mois de salaire
+# manque, A CALIBRER - le contrat est rompu contre son gre. Une ile reprise d un instantane d avant ne connait pas
+# l historique : un salarie non paye la veille y est compte impaye depuis IMPAYE_RUPTURE_J - REPRISE_IMPAYE_J jours.
+IMPAYE_RUPTURE_J = 30
+REPRISE_IMPAYE_J = 7
+MILITAIRES_RESTENT = ("soldat",)          # un militaire ne quitte pas le service parce que la solde manque
 PERTE_POUVOIR_ACHAT = 0.05          # ... ou quand l indice des prix a pris 5 % depuis la derniere hausse
 DUREE_GREVE_PA_J = 1                # la greve de 24 heures, forme grecque ordinaire
 DUREE_GREVE_ARRIERES_MAX_J = 10
@@ -396,7 +405,7 @@ class Travail:
                  "postes_ouverts", "greves", "en_greve", "grevistes", "indice_ref", "pointes", "decideur", "anomalies",
                  "bulletins", "garder_bulletins", "jour", "cumul", "serie", "accidents", "revenu_coop", "offres_jour",
                  "par_eid", "bareme_ir", "inactifs", "km_cache", "retraites_sans_pension", "tolerance_heures",
-                 "hors_paie", "placements")
+                 "hors_paie", "placements", "marge_veille")
 
     def __init__(self):
         self.caisse = CaisseSecuriteSociale()
@@ -1165,6 +1174,7 @@ def _paie(p):
         _placer_reserves(p, d, agg)
     # --- 6. accidents du travail, sur les jours travailles
     _accidents(p, d, heures)
+    pj = col["tr_paye_j"]; pj[:n] = np.where(col["tr_net_jour"][:n] > 0.0, p.jour, pj[:n])     # HMT-126 a
     agg["heures"] = float(heures.sum())
     tb.heures[:tb.n] = 0.0
     col["tr_pointage"][:n] = 0
@@ -1252,19 +1262,45 @@ def _payer_employeur(p, d, x, lignes, agg, credit_jours=True):
         s.cotisations += paye; agg["syndicale_due"] += du
 
 
+def _marge_du_jour(p):
+    """23 h 50, avant la cloture du domaine 3 : la marge brute des ventes HT du jour de chaque marche ( ventes x marge ),
+    que ses marchands se partageront demain a la paie ( HMT-126 a )."""
+    if not p.a("economie"): return
+    d = p.domaine("travail"); e = p.domaine("economie"); w = p.w
+    d.marge_veille = {mid: math.fsum(em.ventes_jour.values()) * w.marches[mid].marge for mid, em in e.marches.items()}
+
+
+def brancher_impayes(p):
+    """Une ile reprise d un instantane d avant HMT-126 a : la colonne tr_paye_j ( l historique manque : un salarie non paye
+    la veille est compte impaye depuis IMPAYE_RUPTURE_J - REPRISE_IMPAYE_J jours ), le compte des ruptures, la marge du
+    soir. Idempotent."""
+    col = p.colonnes["habitant"]; n = p.w.table.n
+    if "tr_paye_j" not in col:
+        col.ajouter("tr_paye_j", np.int32, -1); col.assurer(n)
+        col["tr_paye_j"][:n] = np.where(col["tr_net_jour"][:n] > 0.0, p.jour - 1, p.jour - IMPAYE_RUPTURE_J + REPRISE_IMPAYE_J)
+    J = p.socle.journal
+    if "rupture_salaire_impaye" not in getattr(J, "types", {}): J.declarer("rupture_salaire_impaye", "travail", "compte")
+    if not any(fn is _marge_du_jour for _, _, fn in p.routines.get(23 * 60 + 50, ())):
+        p.routine(23 + 50 / 60, 90, "travail", _marge_du_jour)
+
+
 def _independants(p, d, agg):
     """Monde.paie, pour ceux qui ne sont pas payes a l heure : les marchands se partagent la moitie du benefice de leur
     marche au-dela de 20 000 drachmes, les paysans la caisse de leur cooperative ; l impot du moteur est preleve.
     Les dividendes des patrons sont au domaine 3 ( fin de mois ).
     EN COLONNES ( 24/09 ) : les numeros de l index, filtres sur la table ; le menage se lit sans vue d habitant."""
     w = p.w; L = p.socle.livre; g = w.gouv; col = p.colonnes["habitant"]; tb = w.table
+    veille = getattr(d, "marge_veille", None) or {}
     for m in w.marches.values():
         marchands = _ids_filtres(w, m.lieu, "marchand")
-        exces = m.caisse - 20000.0 * getattr(m, "echelle", 1.0)     # le fonds de roulement du marche ( moteur, 26/09 )
+        # ( 28/09, HMT-126 a ) le commercant vit de sa marge : la marge brute des ventes HT de la veille ( domaine 3 ),
+        # dans la limite de la caisse du marche ; sans domaine 3, l ancienne regle du moteur ( fonds de roulement )
+        if m.lieu.id in veille: exces = min(veille[m.lieu.id], max(0.0, m.caisse)); part = 1.0
+        else: exces = m.caisse - 20000.0 * getattr(m, "echelle", 1.0); part = 0.5
         if exces > 0 and marchands:
             for i in marchands:
                 mg = _menage_de(tb, i)
-                brut = L.transferer(m, mg, 0.5 * exces / len(marchands), "benefice marchand")
+                brut = L.transferer(m, mg, part * exces / len(marchands), "benefice marchand")
                 L.transferer(mg, g, brut * g.impot_revenu, "impot")
                 col["tr_imposable_an"][i] += brut; col["tr_net_jour"][i] += brut * (1.0 - g.impot_revenu)
                 agg["revenu_independants"] += brut
@@ -1453,6 +1489,15 @@ def _carrieres(p):
         h = H[i]
         if not h.vivant or h.role in POLITIQUES: continue
         prendre_retraite(p, h)
+    # salaires impayes ( 28/09, HMT-126 a ) : sans paie nette depuis IMPAYE_RUPTURE_J jours, le contrat est rompu
+    pj = col["tr_paye_j"][:n]
+    rup = np.nonzero((st[:n] == SALARIE) & (p.jour - np.maximum(pj, col["tr_debut_j"][:n]) >= IMPAYE_RUPTURE_J)
+                     & (w.table.vivant[:n] == 1) & ~np.isin(w.table.role[:n], _codes(MILITAIRES_RESTENT)))[0]
+    for i in rup.tolist():
+        h = H[i]
+        if h.travail is None or i in d.grevistes: continue
+        p.compter("rupture_salaire_impaye")
+        rompre_contrat(p, h, "salaire_impaye", involontaire=True)
     # fins de CDD
     fin = col["tr_fin_j"][:n]
     rng = p.du_jour("travail_cdd")                      # un flux par jour, tire pour chaque contrat dans l ordre
@@ -2001,7 +2046,7 @@ COLONNES = (("tr_statut", np.int8, HORS), ("tr_contrat", np.int8, AUCUN), ("tr_d
             ("tr_assiette", np.float64, 0.0), ("tr_qualifs", np.int32, 0), ("tr_syndique", np.int8, 0),
             ("tr_pointage", np.int16, 0), ("tr_solde_heures", np.float32, 0.0), ("tr_jours_mois", np.float32, 0.0),
             ("tr_imposable_an", np.float64, 0.0), ("tr_net_jour", np.float64, 0.0), ("tr_chomage_j", np.int32, -1),
-            ("tr_fin_etudes", np.int32, -1))
+            ("tr_fin_etudes", np.int32, -1), ("tr_paye_j", np.int32, -1))
 def _tolerance_convois(p):
     """Le plus long aller-retour de convoi d une capitale a un lieu de son ile, en heures, plus un pas : le moteur
     credite ces heures au depart ( Monde.lancer_convoi ), le pointage les voit passer en route."""
@@ -2026,7 +2071,8 @@ def installer(p):
                       ("fin_etudes", ("habitant", "age", "metier")), ("accident_mortel", ("habitant", "metier"))):
         J.declarer(t, "travail", "individuel", champs)
     for t in ("offre_emploi", "offre_acceptee", "offre_refusee", "promotion", "fin_cdd", "cdd_renouvele",
-              "indemnite_ouverte", "accident_travail", "heures_non_travaillees", "arrieres_salaire"):
+              "indemnite_ouverte", "accident_travail", "heures_non_travaillees", "arrieres_salaire",
+              "rupture_salaire_impaye"):
         J.declarer(t, "travail", "compte")
     ch = p.colonnes["habitant"]
     for nom, dt, defaut in COLONNES: ch.ajouter(nom, dt, defaut)
@@ -2055,6 +2101,7 @@ def installer(p):
     p.routine(6 + 20 / 60, 60, "travail", _greves)
     p.routine(20 + 10 / 60, 40, "travail", _noter_offres)
     p.routine(23 + 50 / 60, 99, "travail", _bilan_du_jour)
+    p.routine(23 + 50 / 60, 90, "travail", _marge_du_jour)              # HMT-126 a : avant la cloture du domaine 3 ( rang 97 )
     return d
 
 

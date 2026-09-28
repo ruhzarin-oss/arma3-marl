@@ -85,6 +85,9 @@ def _convois(w, echelle):
     if getattr(w, "pays", None) is not None and w.pays.a("exterieur"):
         from .pays import d07_exterieur as X
         X.brancher_devises(w.pays)                       # idempotent : une ile d avant HMT-131 n a pas devises_refusees
+    if getattr(w, "pays", None) is not None and w.pays.a("travail"):
+        from .pays import d04_travail as TV
+        TV.brancher_impayes(w.pays)                      # idempotent : une ile d avant HMT-126 a n a pas tr_paye_j
     return w
 
 
