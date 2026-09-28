@@ -97,23 +97,35 @@ def test_emplois():
     moins 80 % des embauches etaient chomeurs ou hors emploi la veille ( le tourisme cree des emplois, il ne vide pas les
     fermes ) ; chacun est paye par son etablissement ( bulletins du domaine 4 ; le premier essai a ECHOUE ici : 0
     bulletin - le domaine ne creditait pas les heures pointees, 587 employes travaillaient sans etre payes ). Controle : un etablissement dont l ile
-    est interdite aux voyageurs ( risque 0 ) n embauche personne."""
+    est interdite aux voyageurs ( risque 0 ) n embauche personne.
+    28/09 ( HMT-126 b ) : une ile sans industrie donne maintenant a l hotellerie une part de ses bras des la naissance
+    ( population.effectifs : Stratis a 1 329 hoteliers pour ~600 postes de juin ) ; ce personnel n a ete pris a personne.
+    L intention reste la meme - le tourisme ne vide pas les fermes : au moins 80 % du personnel etait deja hotelier a la
+    naissance, ou chomeur ou hors emploi la veille ; les embauches seules sont rapportees a part."""
     w, p = _ile(); w0, p0 = _ile()
     M.fixer_risque(p0, 0.0, "porte")
     tb = w.table; col = p.colonnes["habitant"]; n = tb.n
     st0 = col["tr_statut"][:n].copy()
+    ne_hotelier = tb.role[:n] == PO.CODE_ROLE[M.METIER]
     p.domaine("travail").garder_bulletins = True
     _jours(w, 2); _jours(w0, 2)
     d = p.domaine("tourisme")
     ids = np.concatenate([M._personnel_ids(p, e) for e in d.etablissements])
     vise = sum(e.vise for e in d.etablissements)
-    sans = float(np.isin(st0[ids], (TR.CHOMEUR, TR.HORS, TR.DECOURAGE, TR.AU_FOYER)).mean()) if len(ids) else 0.0
+    anciens = ids[ids < n]                               # un immigre ou un nouveau-ne embauche n a pas de statut de la veille
+    libre = np.isin(st0[anciens], (TR.CHOMEUR, TR.HORS, TR.DECOURAGE, TR.AU_FOYER))
+    deja = ne_hotelier[anciens]
+    sans = float((libre | deja).mean()) if len(anciens) else 0.0
+    emb = ~deja
+    sans_emb = float(libre[emb].mean()) if emb.any() else float("nan")
     payeurs = {e.id for e in d.etablissements}
     bul = [b for b in p.domaine("travail").bulletins if int(b[0]) in set(ids.tolist())]
     payes = {b[1] for b in bul}
     ids0 = sum(len(M._personnel_ids(p0, e)) for e in p0.domaine("tourisme").etablissements)
     ok = vise > 0 and len(ids) >= 0.9 * vise and sans >= 0.8 and bul and payes <= payeurs and ids0 == 0
-    return ok, (f"personnel {len(ids)} pour {vise} vises ; {sans:.0%} etaient sans emploi ; {len(bul)} bulletins, payeurs {sorted(payes)[:3]} ; "
+    return ok, (f"personnel {len(ids)} pour {vise} vises ; {sans:.0%} etaient hoteliers a la naissance ou sans emploi "
+                f"( {int(deja.sum())} hoteliers de naissance ; {int(emb.sum())} embauches, dont {sans_emb:.0%} sans emploi ) ; "
+                f"{len(bul)} bulletins, payeurs {sorted(payes)[:3]} ; "
                 f"ile interdite : {ids0} employes")
 
 
