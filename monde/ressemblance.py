@@ -113,6 +113,7 @@ def juger(refs, valeurs):
                     l["surete"] = "fragile" if verdict(a, bas, haut) != verdict(b, bas, haut) or \
                         (a < bas and b > haut) else "sur"
                     if m.evenements is not None: l["surete"] += f" ( {m.evenements} evenements )"
+                if getattr(m, "fragile", None): l["surete"] = f"fragile ( {m.fragile} )"
         lignes.append(l)
     return lignes
 
@@ -137,12 +138,15 @@ def resume(lignes):
 # ================================================================== une mesure
 class Mesure:
     """Ce que rend la mesure d un indicateur : la valeur ( dans l unite de la reference ), le domaine du monde ou elle
-    se lit, une phrase qui dit comment, et pour un flux compte, l intervalle a 95 % et le nombre d evenements."""
-    __slots__ = ("valeur", "domaine", "detail", "intervalle", "evenements")
+    se lit, une phrase qui dit comment, et pour un flux compte, l intervalle a 95 % et le nombre d evenements.
+    `fragile` ( 27/09 ) : la raison pour laquelle la mesure ne tranche pas, quel que soit son intervalle ( une inflation
+    annualisee sur moins de 90 jours )."""
+    __slots__ = ("valeur", "domaine", "detail", "intervalle", "evenements", "fragile")
 
-    def __init__(self, valeur, domaine, detail="", intervalle=None, evenements=None):
+    def __init__(self, valeur, domaine, detail="", intervalle=None, evenements=None, fragile=None):
         self.valeur = None if valeur is None else float(valeur)
         self.domaine, self.detail, self.intervalle, self.evenements = domaine, detail, intervalle, evenements
+        self.fragile = fragile
 
 
 # ================================================================== la fenetre, le releve, le suivi
@@ -429,6 +433,52 @@ def _mesure_mortalite(x):
     return _taux_poisson(morts, x.personnes_annees(), 1000.0, "population", "deces ( toutes causes )")
 
 
+@mesure("deces_faim")
+def _mesure_deces_faim(x):
+    """27/09 ( HMT-129 ) : les morts de faim ( cause « faim » de l etat civil, domaine 1 ) dates dans la fenetre, pour
+    100 000 habitants par an. Un emigre n est pas mort ( le domaine 7 lui pose deces_j sans cause ) ; une mort naturelle
+    n est pas une mort de faim. L indicateur de la faim du moteur ne compte que les VIVANTS : deux iles de la guerre ont
+    perdu presque toute leur population par la faim pendant qu il baissait."""
+    x.exiger("population")
+    from .pays import d01_population as D1
+    dj = x.col("habitant", "deces_j"); cd = x.col("habitant", "cause_deces")
+    m = (dj >= x.depuis_jour) & (cd == D1.CAUSES.index("faim"))
+    if _a(x.p, "exterieur"): m &= x.col("habitant", "ext_emigre_j") < 0
+    return _taux_poisson(int(m.sum()), x.personnes_annees(), 1e5, "population", "morts de faim ( cause faim, domaine 1 )")
+
+
+@mesure("population_rapport")
+def _mesure_population_rapport(x):
+    """27/09 ( HMT-129 ) : les vivants sur les vivants de la naissance du monde ( domaine 1, vivants_depart ), sur toute
+    la vie du monde ( chauffe comprise ) : ramene a un an quand le monde a plus d un an, brut sinon ( la bande d une
+    annee contient a fortiori le rapport reel sur moins d un an : elle contient 1 ). Une ile qui meurt de faim ou se
+    vide le montre, meme quand ses vivants n ont plus faim."""
+    x.exiger("population")
+    v0 = int(x.p.domaine("population").vivants_depart)
+    if v0 <= 0: raise NonMesurable("aucun vivant a la naissance du monde")
+    j = x.w.pas / C.PAS_PAR_JOUR
+    r = x.population() / v0
+    v = r ** (JOURS_AN / j) if j > JOURS_AN else r
+    return Mesure(v, "population", f"{x.population()} vivants pour {v0} a la naissance du monde, en {j:.0f} jours "
+                  f"( rapport brut {r:.4f}{'' if j <= JOURS_AN else ', ramene a un an'} ) ; emigres et morts comptent")
+
+
+def _migrants(x, colonne, quoi):
+    x.exiger("population", "exterieur")
+    k = int((x.col("habitant", colonne) >= x.depuis_jour).sum())
+    return _taux_poisson(k, x.personnes_annees(), 100.0, "exterieur", quoi)
+
+
+@mesure("taux_emigration")
+def _mesure_taux_emigration(x):
+    return _migrants(x, "ext_emigre_j", "emigres ( domaine 7, ext_emigre_j ), mineurs compris")
+
+
+@mesure("taux_immigration")
+def _mesure_taux_immigration(x):
+    return _migrants(x, "ext_immigre_j", "immigres ( domaine 7, ext_immigre_j ), mineurs compris")
+
+
 # ---------------------------------------------------------------- travail
 def _statuts(x):
     x.exiger("travail")
@@ -710,18 +760,50 @@ def _mesure_taux_epargne(x):
                   f" {phrase}")
 
 
+# 27/09 ( HMT-128 ) : l indice du monde bouge de ~0,5 % par jour ( ecart-type des variations journalieres du log, pays
+# grec et Stratis, jours 40 a 240 ) ; annualisee sur 30 jours, l inflation de fenetres voisines va de -60 a +125 % par an.
+# Elle se mesure sur 90 jours au moins ; entre 30 et 90 jours, elle est rendue mais dite fragile ; sous 30 jours, non
+# mesurable. L intervalle a 95 % : l indice est une marche au hasard avec derive, lue par semaines entieres ( les
+# variations d une semaine absorbent le cycle du marche ferme le dimanche et la correlation d un jour a l autre ).
+INFLATION_FENETRE_J = 90
+INFLATION_MIN_J = 30
+
+
+def inflation_annuelle(v, k):
+    """( taux annualise en % par an, intervalle a 95 %, ecart-type d une semaine ) de l indice `v` sur ses k derniers
+    jours ( k + 1 valeurs ). Le point : ( dernier / premier ) ^ ( 365 / k ) - 1. L intervalle : les variations du log
+    sur des semaines entieres, sans chevauchement, comptees depuis la fin ; la derive d une semaine a l ecart-type
+    s / racine( semaines ) ; annualisee, exp( 365 / 7 x ( m +- 1,96 s / racine semaines ) ) - 1, centree sur le point."""
+    x = np.log(np.asarray(list(v)[len(v) - 1 - k:], np.float64))     # l indice du domaine 2 est une deque
+    taux = 100.0 * math.expm1((x[-1] - x[0]) * JOURS_AN / k)
+    sem = x[::-1][::7][::-1]                        # une valeur par semaine, la derniere comprise
+    d = np.diff(sem)
+    if d.size < 2: return taux, None, None
+    s = float(d.std(ddof=1))
+    m = (x[-1] - x[0]) / k * 7.0
+    e = Z95 * s / math.sqrt(d.size)
+    return taux, (100.0 * math.expm1((m - e) * JOURS_AN / 7.0), 100.0 * math.expm1((m + e) * JOURS_AN / 7.0)), s
+
+
 @mesure("inflation")
 def _mesure_inflation(x):
     """L indice des prix de la banque centrale ( domaine 2 : prix affiches des marches, TVA comprise ; une valeur
-    chaque matin a 6 h 10 ), entre le dernier matin avant la fenetre et le dernier matin de la fenetre, annualise."""
+    chaque matin a 6 h 10 ), entre le dernier matin avant la fenetre et le dernier matin de la fenetre, annualise ;
+    l intervalle et la fenetre minimale : voir INFLATION_FENETRE_J."""
     x.exiger("banques")
     v = x.p.domaine("banques").bc.indice.valeurs
     k = int(round(x.jours))
-    if k < 1: raise NonMesurable("fenetre de moins d un jour")
+    if k < INFLATION_MIN_J:
+        raise NonMesurable(f"fenetre de {k} jours : sous {INFLATION_MIN_J} jours, annualiser multiplie le bruit de l indice "
+                           f"( ~0,5 % par jour ) par plus de 12 ; mesurer sur {INFLATION_FENETRE_J} jours au moins")
     if len(v) <= k: raise NonMesurable(f"indice trop court ( {len(v)} valeurs pour {k} jours )")
+    taux, ic, s = inflation_annuelle(v, k)
     a, b = v[-1 - k], v[-1]
-    return Mesure(100.0 * ((b / a) ** (JOURS_AN / k) - 1.0), "banques",
-                  f"indice {a:.2f} -> {b:.2f} en {k} jours, annualise ( panier de 4 biens des marches )")
+    fr = None if k >= INFLATION_FENETRE_J else (f"fenetre de {k} jours, sous {INFLATION_FENETRE_J} : l annualisation "
+                                                 f"amplifie le bruit de l indice")
+    d = (f"indice {a:.2f} -> {b:.2f} en {k} jours, annualise ( panier de 4 biens des marches )"
+         + ("" if ic is None else f" ; intervalle a 95 % [{ic[0]:.1f} ; {ic[1]:.1f}] ( marche au hasard, semaines entieres )"))
+    return Mesure(taux, "banques", d, ic, fragile=fr)
 
 
 # ---------------------------------------------------------------- sante

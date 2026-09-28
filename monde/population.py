@@ -1,6 +1,6 @@
 """Les 500 habitants : role, classe, age, famille, domicile, lieu de travail, horaire, sante, argent.
 Chaque habitant garde son identite pour toujours, qu il soit simule ( donnee ) ou incarne dans Arma ( la bulle, E2 )."""
-import importlib, weakref
+import importlib, math, weakref
 import numpy as np
 from . import config as C
 
@@ -595,22 +595,119 @@ def metier_possible(carte, role):
     return bool(carte.de_type(*types))
 
 
+# ================================================================== les metiers de chaque ile ( 27/09, HMT-126 b )
+# Un metier industriel n a que les postes des sites de SON ile. Le monde E1 donnait a toute ile le melange de metiers
+# d Altis, et les metiers sans site passaient a un metier de repli ( SUBSTITUTS ) : Stratis ( une fonderie ; ni mine,
+# ni puits, ni centrale ) portait a l echelle 20 1 900 ouvriers pour les 120 postes de sa fonderie, a l arret faute
+# d electricite ( 99,7 % payes 0 au jour 100 : session du moteur, 27/09 ). Les postes d un site, par unite d echelle,
+# sont ceux qui font le melange d E1 sur la carte d Altis : 40 mineurs pour une mine et trois carrieres, 15 petroliers
+# pour un puits, 40 ouvriers ( config.OUVRIERS_PAR_SITE ). Altis porte donc deja ses metiers : sur Altis, et sur toute
+# carte dont Altis est la premiere ile ( les autres iles n y ajoutent pas de site industriel ), rien ne change au bit.
+POSTES_PAR_SITE = {"mineur": {"mine": 10, "carriere": 10}, "petrolier": {"puits": 15}, "ouvrier": C.OUVRIERS_PAR_SITE}
+# Ceux que les sites n emploient pas travaillent dans les metiers OUVERTS de l ile ( ceux dont le lieu de travail y
+# existe ), de sorte que ces metiers prennent la structure de l emploi reel d une region d iles grecques : l Egee du Nord
+# ( EL41 : Lesbos, Limnos - l Altis du jeu -, Chios, Samos, Ikaria ; Agios Efstratios, la Stratis du jeu, en fait
+# partie ). Le surplus remplit d abord les metiers les plus en dessous de leur part reelle ( remplissage par le bas,
+# `_vers_le_reel` ) : le melange d E1 a deja 110 paysans pour 20 marchands et aucun hotelier, trois fois la part
+# agricole du reel ; un partage au prorata aurait encore gonfle l agriculture ( Stratis : 48 % de l emploi agricole
+# contre 34 %, mesure du 27/09 ). Emploi reel de l Egee du Nord, en milliers de personnes de 15-74 ans en 2024 :
+# agriculture et peche ( A ) 15,3 ; commerce, transport, hebergement et restauration ( G-I ) 21,9 ( Eurostat
+# lfst_r_lfe2en2 ), G-I partage comme les personnes occupees des unites locales de l Egee du
+# Nord en 2023 : commerce ( G ) 10 156, transport ( H ) 1 969, hebergement et restauration ( I ) 13 366 ( Eurostat
+# sbs_r_nuts2021, EMP_LOC_NR ). Construction ( F, 5,7 ), services aux entreprises ( M-N, 4,6 ) et autres services
+# ( R-U, 4,2 ) n ont pas de metier dans le moteur : leur part se reporte sur ces quatre ( a calibrer ). La peche est
+# faite par les paysans des villages cotiers ( domaine 9 ). Si les sites d une ile demandent PLUS de bras que le
+# melange d E1 ( Enoch : 7 centrales, 13 fonderies ), l industrie les prend aux metiers ouverts les plus au-dessus de
+# leur part reelle ( remplissage par le haut ) : la taille du pays reste celle que fixe l echelle.
+#   https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfst_r_lfe2en2?geo=EL41&time=2024&age=Y15-74&sex=T&unit=THS_PER
+#   https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/sbs_r_nuts2021?geo=EL41&time=2023&indic_sbs=EMP_LOC_NR
+_G_I = 10156 + 1969 + 13366
+ACCUEIL = {"paysan": 15.3, "marchand": 21.9 * 10156 / _G_I, "convoyeur": 21.9 * 1969 / _G_I,
+           "hotellerie": 21.9 * 13366 / _G_I}
+# Les hotels et restaurants d une ile : ou sont ses lits touristiques ( domaine 28, POIDS_LIEU : la capitale et ses
+# plages, les villes, les villages ). Un poste d hotellerie ne en surplus va la ou sont les lits.
+POIDS_HOTELLERIE = {"capitale": 4, "ville": 2, "village": 1}
+
+
+def postes_des_sites(carte, role):
+    """Les postes d un metier industriel sur cette carte, par unite d echelle : la somme des postes de ses sites."""
+    par_site = POSTES_PAR_SITE[role]
+    return sum(par_site[l.type] for l in carte.de_type(*par_site))
+
+
+def _vers_le_reel(c, w, total):
+    """Des effectifs `c` ( flottants ) menes a la somme `total` en se rapprochant des parts `w` sans jamais aller contre :
+    si total > somme( c ), f = max( c, l w ) ( on n enleve a personne ) ; sinon f = min( c, l w ) ( on n ajoute a
+    personne ) ; l par dichotomie ( 200 pas, deterministe ). Rend f ( flottants, somme total )."""
+    c = np.asarray(c, np.float64); w = np.asarray(w, np.float64)
+    haut_ = total > c.sum()
+    f = (lambda l: np.maximum(c, l * w)) if haut_ else (lambda l: np.minimum(c, l * w))
+    lo, hi = 0.0, 1.0
+    while f(hi).sum() < total: hi *= 2.0
+    for _ in range(200):
+        mi = 0.5 * (lo + hi)
+        if f(mi).sum() < total: lo = mi
+        else: hi = mi
+    return f(hi)
+
+
+def effectifs(carte, echelle, entiers=True):
+    """{ metier de config.ROLES : effectif a la naissance } sur CETTE carte, a cette echelle ( sans tirage ). Chaque
+    metier du monde E1 a son effectif a l echelle ( au moins 1, comme toujours ) ; un metier industriel a les postes de
+    ses sites ( 0 sans site ) ; la difference va aux metiers ouverts de l ile les plus en dessous de leur part reelle
+    ( ACCUEIL ), ou est prise a ceux qui sont le plus au-dessus ( _vers_le_reel ). La somme ne change pas : la taille du pays est celle de
+    l echelle. Les metiers publics et militaires restent ceux d E1 ( SUBSTITUTS pour une ile sans base ). Avec
+    `entiers=False`, les memes parts sans arrondi ( des poids : sur Altis, exactement les effectifs de config.ROLES )."""
+    arrondi = (lambda x: max(1, int(round(x))) if x else 0) if entiers else float
+    eff = {r: arrondi(n * echelle) for r, (n, _, _) in C.ROLES.items()}
+    surplus = 0
+    for r in POSTES_PAR_SITE:
+        k = arrondi(postes_des_sites(carte, r) * echelle)
+        surplus += eff[r] - k
+        eff[r] = k
+    ouverts = [r for r in ACCUEIL if metier_possible(carte, r)]
+    if surplus and ouverts:
+        c = [float(eff[r]) for r in ouverts]
+        f = _vers_le_reel(c, [ACCUEIL[r] for r in ouverts], max(0.0, sum(c) + surplus))
+        d = f - np.asarray(c)                                   # ajouts ( surplus ) ou retraits ( manque ), flottants
+        if entiers:
+            k = int(round(abs(d.sum())))
+            d = np.sign(surplus) * _quotas(k, np.abs(d))
+        for r, x in zip(ouverts, d.tolist()): eff[r] += int(x) if entiers else x
+    return eff
+
+
+def _lieux_ponderes(carte, role):
+    """Les lieux de travail d un metier, chacun repete selon ses postes ( divises par leur plus grand diviseur commun ) :
+    la repartition au tour de role pourvoit chaque site au prorata de ses postes. Des postes egaux ( mines et
+    carrieres ) donnent la liste simple des lieux, dans l ordre de la carte ( celle du monde E1 )."""
+    types, _ = TRAVAIL[role]
+    lieux = carte.de_type(*types)
+    poids = POSTES_PAR_SITE.get(role) or (POIDS_HOTELLERIE if role == "hotellerie" else None)
+    if poids is None or not lieux: return lieux
+    g = 0
+    for l in lieux: g = math.gcd(g, int(poids[l.type]))
+    return [l for l in lieux for _ in range(int(poids[l.type]) // g)]
+
+
 def generer(carte, rng, echelle=1.0, table=None, demographie=None):
     """Cree la population et ses menages, deterministe a graine fixee. `echelle` multiplie chaque metier : le pays
     garde ses proportions, il change de taille. `demographie` ( None : le monde E1 ) : une population copiee sur un
-    pays reel ( DEMOGRAPHIES ), voir `generer_reel`."""
+    pays reel ( DEMOGRAPHIES ), voir `generer_reel`. Les metiers industriels suivent les sites de l ile ( effectifs )."""
     if demographie is not None: return generer_reel(carte, rng, echelle, table, demographie)
     table = table if table is not None else Table(carte.par_n)
     mt = TableMenages(table); table.menages = mt
     H = Population(table)
+    eff = effectifs(carte, echelle)
     for role, (n, classe, _) in C.ROLES.items():
-        if n == 0: continue          # 27/09 : un metier ou l on n entre que par l embauche ( hotellerie ) ne nait pas avec le monde
-        # archipel ( 24/09 ) : un pays sans le lieu d un metier n a pas ce metier ( pas de puits, pas de petroliers ) ;
+        # 27/09 : un metier sans poste ne nait pas ( hotellerie d E1 : on y entre par l embauche ; industrie sans site )
+        if eff[role] == 0: continue
+        # archipel ( 24/09 ) : un pays sans le lieu d un metier public n a pas ce metier ( pas de base, pas de soldats ) ;
         # ces gens exercent le metier de repli ( SUBSTITUTS ), avec sa classe. Sur Altis, rien ne change.
         vrai = role
         while not metier_possible(carte, vrai): vrai = SUBSTITUTS[vrai]
         if vrai != role: classe = C.ROLES[vrai][1]
-        for _ in range(max(1, int(round(n * echelle)))):
+        for _ in range(eff[role]):
             age = int(rng.integers(6, 18)) if role == "enfant" else int(rng.integers(65, 86)) if role == "retraite" \
                 else int(rng.integers(20, 65))
             Habitant.nouveau(table, vrai, classe, age)
@@ -621,9 +718,7 @@ def generer(carte, rng, echelle=1.0, table=None, demographie=None):
         h.horaire = horaire
         if not types: continue
         if types == ("gouvernement",): cands = [carte.gouvernement]
-        elif h.role == "ouvrier":         # les ouvriers vont ou il faut des bras : la raffinerie d abord
-            cands = [l for l in carte.de_type(*types) for _ in range(C.OUVRIERS_PAR_SITE[l.type])]
-        else: cands = carte.de_type(*types)
+        else: cands = _lieux_ponderes(carte, h.role)   # les ouvriers vont ou il faut des bras : la raffinerie d abord
         k = compteur.get(h.role, 0); compteur[h.role] = k + 1
         h.travail = cands[k % len(cands)]
         h.equipe = k
@@ -928,11 +1023,13 @@ def generer_reel(carte, rng, echelle, table, demographie):
     R = _cibles(demographie)
     table = table if table is not None else Table(carte.par_n)
     mt = TableMenages(table); table.menages = mt
-    # 1. les postes civils d E1 a l echelle, dans l ordre de config.ROLES ( le metier de repli du pays )
+    # 1. les postes civils d E1 a l echelle, dans l ordre de config.ROLES ( le metier de repli du pays ) ; les metiers
+    #    industriels ont les postes des sites de l ile, le reste va aux metiers ouverts ( effectifs, 27/09 )
+    eff = effectifs(carte, echelle)
     postes = []
-    for role, (k, _, _) in C.ROLES.items():
-        if k == 0 or role in ("enfant", "retraite") + MILITAIRES: continue
-        postes += [_repli(carte, role)] * max(1, int(round(k * echelle)))
+    for role in C.ROLES:
+        if eff[role] == 0 or role in ("enfant", "retraite") + MILITAIRES: continue
+        postes += [_repli(carte, role)] * eff[role]
     # 2. la taille du pays : les civils sont les personnes en emploi que l armee laisse
     n = int(round(len(postes) / (R.emploi_par_habitant() - R.PART_MILITAIRES)))
     n_mil = int(round(R.PART_MILITAIRES * n))
@@ -964,7 +1061,10 @@ def generer_reel(carte, rng, echelle, table, demographie):
                   (S_RETRAITE_ANT, "retraite_anticipee")):
         motif[statut == s] = CODE_MOTIF[mo]
     sans = np.nonzero(np.isin(statut, (S_CHOMAGE, S_FOYER, S_DECOURAGE)))[0]
-    w = np.array([[C.ROLES[m][0] * (R.PART_HOMMES[m] if s == R.HOMME else 1.0 - R.PART_HOMMES[m]) for m in METIERS_LIBRES]
+    # le metier cherche suit les effectifs de l ile ( 27/09 : sur Altis, ceux d E1 ; sans mine, personne ne cherche
+    # un poste de mineur )
+    unite = effectifs(carte, 1.0, entiers=False)
+    w = np.array([[unite[m] * (R.PART_HOMMES[m] if s == R.HOMME else 1.0 - R.PART_HOMMES[m]) for m in METIERS_LIBRES]
                   for s in (R.FEMME, R.HOMME)])
     w = np.cumsum(w / w.sum(axis=1, keepdims=True), axis=1)
     j = (rng.random(sans.size)[:, None] >= w[(sexe[sans] == R.HOMME).astype(np.int64)]).sum(axis=1).clip(0, len(METIERS_LIBRES) - 1)
@@ -993,8 +1093,7 @@ def generer_reel(carte, rng, echelle, table, demographie):
     def candidats(r):
         types, _ = TRAVAIL[r]
         if types == ("gouvernement",): return [carte.gouvernement]
-        if r == "ouvrier": return [l for l in carte.de_type(*types) for _ in range(C.OUVRIERS_PAR_SITE[l.type])]
-        return carte.de_type(*types)
+        return _lieux_ponderes(carte, r)
     habitable = {}
     def logis(l):
         if l.n not in habitable:

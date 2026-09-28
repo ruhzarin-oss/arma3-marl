@@ -20,6 +20,7 @@ $PY $C/patch_dettes.py $ARBRE
 $PY $C/patch_faim.py $ARBRE
 $PY $C/patch_prix.py $ARBRE
 $PY $C/patch_autoconsommation.py $ARBRE/monde/pays/d09_agriculture.py
+$PY $C/patch_migrations.py $ARBRE/monde/pays/d07_exterieur.py
 ( cd $ARBRE && PYTHONPATH=$ARBRE $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines.json ]; then
   cmp -s $REF/ref_domaines_refaite.json $REF/ref_domaines.json && echo "REFERENCE DES DOMAINES REPRODUITE AU BIT" || echo "REFERENCE DES DOMAINES DIFFERENTE"
