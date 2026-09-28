@@ -1355,8 +1355,10 @@ def _cotisations_independants(p, d, agg):
     mois n est credite qu a proportion de ce qui est paye."""
     w = p.w; col = p.colonnes["habitant"]; st = col["tr_statut"]; tb = w.table; n = tb.n
     # HMT-126 : le menage paie sa cotisation sur ce qu il a au-dela de sa semaine de nourriture ( domaine 3,
-    # reserve_alimentaire ) ; le reste est une dette envers la caisse, comme les arrieres de cotisations des independants
-    # grecs aupres de l e-EFKA ( recouvres par le KEAO ; ordre de grandeur a verifier ).
+    # reserve_alimentaire ) ; le reste est une dette envers la caisse. Le reel : la cotisation minimale de l e-EFKA est due
+    # meme sans revenu, et les arrieres sont massifs - 49,3 milliards d euros de cotisations impayees fin 2024, ~2,1
+    # millions de debiteurs, recouvres par le KEAO ( rapport trimestriel du KEAO, via insider.gr ). Le patron ou
+    # l independant sans revenu s endette envers la caisse ; il ne saute pas ses repas.
     res = ECO.reserve_alimentaire(p)
     # EN COLONNES ( 24/09 ) : les independants en activite trouves en vecteurs, payes dans l ordre des numeros
     for i in np.nonzero((tb.vivant[:n] == 1) & (st[:n] == INDEPENDANT) & (tb.travail[:n] >= 0))[0].tolist():

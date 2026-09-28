@@ -143,15 +143,31 @@ def test_comptes_nationaux():
 
 
 # ================================================================== le Tresor, le budget, la dette
+def _loi_en_deficit(p):
+    """Une loi de finances votee en DEFICIT, par construction : salaires publics doubles, TVA et impot sur le revenu a
+    leurs planchers ( actions du catalogue, dans leurs bornes ). ( 28/09, HMT-126 ) Le deficit ne depend plus de ce que
+    les menages consomment : depuis que la part du budget sans fournisseur installe s achete au commerce ( domaine 3 ),
+    un pays reduit a l Etat encaissait assez de TVA pour ne plus emprunter, et ces portes ne jugeaient plus rien. Rend
+    vrai si toutes les actions sont acceptees."""
+    acts = [{"type": "fixer_salaires_publics", "facteur": 2.0},
+            {"type": "fixer_tva", "categorie": "super_reduite", "valeur": 0.0},
+            {"type": "fixer_tva", "categorie": "reduite", "valeur": 0.05},
+            {"type": "fixer_tva", "categorie": "normale", "valeur": 0.15}]
+    acts += [{"type": "fixer_ir", "tranche": k, "taux": 0.0} for k in range(len(M._etat(p).fisc.taux_ir))]
+    return all(M.appliquer(p, a)[0] for a in acts)
+
+
 def test_solde_budgetaire():
-    """Porte : 40 jours, bons a 7 jours pour que des echeances tombent : chaque soir, recettes - depenses = - variation
-    de la dette nette ( dette brute lue a part - caisse ) a un demi-centime, et le cumul aussi ; aucun reste hors livre
-    non attribue. Doivent avoir joue : des bons emis ET rembourses, une vente d or ( ecrite a la main par le moteur,
-    attribuee ), une avance de la banque centrale posee a la main. Falsificateur : 100 drachmes retirees a la main de la
-    caisse du Tresor se voient le soir meme ( ecart de +100, reste non attribue de -100 )."""
+    """Porte : 40 jours, bons a 7 jours pour que des echeances tombent, sous une loi de finances votee en deficit
+    ( _loi_en_deficit ) : chaque soir, recettes - depenses = - variation de la dette nette ( dette brute lue a part -
+    caisse ) a un demi-centime, et le cumul aussi ; aucun reste hors livre non attribue. Doivent avoir joue : un solde
+    execute negatif, des bons emis ET rembourses, une vente d or ( ecrite a la main par le moteur, attribuee ), une avance
+    de la banque centrale posee a la main. Falsificateur : 100 drachmes retirees a la main de la caisse du Tresor se
+    voient le soir meme ( ecart de +100, reste non attribue de -100 )."""
     w, p = T.monde(["etat"])
     e = p.domaine("etat"); tr = e.tresor
     tr.duree_bons_j = 7
+    loi = _loi_en_deficit(p)
     remb = 0.0; or_ok = False
     for j in range(40):
         if j == 5: or_ok = M.appliquer(p, {"type": "exporter_or", "quantite": 1.0})[0]
@@ -169,8 +185,8 @@ def test_solde_budgetaire():
     vu = abs(der[7] - 100.0) <= 0.01 and abs(der[8] + 100.0) <= 0.01
     ex = M.execution_budget(p)
     dep = math.fsum(x[1] for x in ex["depenses"].values()); cred = math.fsum(x[0] for x in ex["depenses"].values())
-    ok = identite and joue and vu
-    return ok, (f"{len(serie)} soirs : pire ecart {pire:.2e}, cumul {cumul:+.2e}, reste hors livre non attribue {reste:.2e} ; "
+    ok = identite and joue and vu and loi and ex["solde"] < 0.0
+    return ok, (f"loi en deficit acceptee {loi} ; {len(serie)} soirs : pire ecart {pire:.2e}, cumul {cumul:+.2e}, reste hors livre non attribue {reste:.2e} ; "
                 f"{tr.n_bons} bons ( {tr.emis_bons:.0f} drachmes ), rembourses {remb:.0f}, "
                 f"vente d or {e.budget.recettes['vente_or']:.0f}, "
                 f"dette brute {M.dette_brute(p):.0f} ; budget execute {dep:.0f} sur {cred:.0f} de credits a "
@@ -193,13 +209,15 @@ def _vivre_pas_a_pas(w, p, jours):
 
 
 def test_tresor_jamais_a_sec():
-    """Porte : 1 500 habitants ( echelle 3, ou le Tresor du moteur est a sec vers le 25e jour ), 40 jours, pas a pas :
-    la caisse de l Etat ne descend jamais sous zero et aucun paiement que seul l Etat fait ( salaires publics, pensions,
-    commandes, subventions, remboursements d impot, interets ) n est impaye ; la caisse de depart vaut 400 drachmes par
-    habitant, empruntee ( la dette d ouverture l egale ). Controle positif : le meme monde sans financement et avec la
-    caisse du moteur ( 200 000 ) a des impayes de l Etat avant le 40e jour."""
+    """Porte : 1 500 habitants ( echelle 3 ), 40 jours, pas a pas, sous une loi de finances votee en deficit
+    ( _loi_en_deficit ) : la caisse de l Etat ne descend jamais sous zero, le deficit est finance par des bons du Tresor,
+    et aucun paiement que seul l Etat fait ( salaires publics, pensions, commandes, subventions, remboursements d impot,
+    interets ) n est impaye ; la caisse de depart vaut 400 drachmes par habitant, empruntee ( la dette d ouverture
+    l egale ). Controle positif : le meme monde, sous la meme loi, sans financement et avec la caisse du moteur
+    ( 200 000 ) a des impayes de l Etat avant le 40e jour."""
     w, p = T.monde(["etat"], echelle=3)
     e = p.domaine("etat")
+    loi = _loi_en_deficit(p)
     n = sum(1 for h in w.habitants if h.vivant)
     cible = M.TRESORERIE_PAR_HABITANT * n
     ouverture = abs(w.gouv.caisse - cible) <= 1e-6 * cible and abs(M.dette_brute(p) - e.tresor.ouverture) <= 1e-6 * cible
@@ -209,9 +227,10 @@ def test_tresor_jamais_a_sec():
     try: w2, p2 = T.monde(["etat"], echelle=3)
     finally: M.PROPORTIONNER_TRESORERIE = ancien
     p2.domaine("etat").tresor.financement = False
+    loi2 = _loi_en_deficit(p2)
     mini2, imp2, premier2 = _vivre_pas_a_pas(w2, p2, 40)
-    ok = ouverture and mini >= 0.0 and imp == 0.0 and imp2 > 0.0
-    return ok, (f"{n} habitants : caisse de depart {cible:.0f} ( dette d ouverture {e.tresor.ouverture:.0f} ) : {ouverture} ; "
+    ok = ouverture and loi and loi2 and mini >= 0.0 and imp == 0.0 and e.tresor.n_bons >= 1 and imp2 > 0.0
+    return ok, (f"{n} habitants, loi en deficit acceptee {loi and loi2} : caisse de depart {cible:.0f} ( dette d ouverture {e.tresor.ouverture:.0f} ) : {ouverture} ; "
                 f"40 jours finances : caisse minimale {mini:.0f}, impayes de l Etat {imp:.2f}, dette {M.dette_brute(p):.0f} "
                 f"( {e.tresor.n_bons} bons, avances {p.domaine('banques').bc.avances:.0f} ) ; sans financement : caisse "
                 f"minimale {mini2:.0f}, impayes {imp2:.0f} des le jour {premier2}")

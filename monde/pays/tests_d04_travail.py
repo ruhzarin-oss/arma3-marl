@@ -330,7 +330,8 @@ def test_cotisation_apres_nourriture():
     """Porte ( HMT-126, seuils ecrits avant la mesure ) - controle positif : a la fin du mois, un independant dont le menage
     n a que 10 drachmes au-dela de sa semaine de nourriture ( domaine 3, reserve_alimentaire ) paie ces 10 drachmes a la
     caisse, garde sa semaine, et le reste de sa cotisation devient une dette envers la caisse ( au centime ) ; son mois
-    n est credite qu a proportion. Falsificateur : un independant aise paie toute sa cotisation, sans dette."""
+    n est credite qu a proportion ; un patron sans dividende, a sa semaine de nourriture, ne paie rien et doit toute sa
+    cotisation. Falsificateur : un independant aise paie toute sa cotisation, sans dette."""
     w, p = T.monde(["travail"])
     d = p.domaine("travail"); col = p.colonnes["habitant"]; K = p.socle.creances; L = p.socle.livre
     T.jours(w, 2)
@@ -340,9 +341,14 @@ def test_cotisation_apres_nourriture():
     menages = {}
     for i in inds: menages.setdefault(int(tb.menage[i]), []).append(i)
     seuls = [v[0] for v in menages.values() if len(v) == 1]
-    A, B = seuls[0], seuls[1]
-    ma, mb = M._menage_de(tb, A), M._menage_de(tb, B)
+    patrons = [i for i in seuls if M._role_de(tb, i) == "patron"]
+    autres = [i for i in seuls if M._role_de(tb, i) != "patron"]
+    A, B, P_ = autres[0], autres[1], patrons[0]
+    ma, mb, mp = M._menage_de(tb, A), M._menage_de(tb, B), M._menage_de(tb, P_)
     res = ECO.reserve_alimentaire(p)
+    if mp.caisse > res[mp.id]: L.transferer(mp, w.gouv, mp.caisse - res[mp.id], "amende")
+    else: L.recevoir_de_l_exterieur(mp, res[mp.id] - mp.caisse, "epargne_initiale")
+    dette_p0 = math.fsum(c.montant for c in K.de(mp) if c.motif == "cotisation_independant")
     if ma.caisse > res[ma.id] + 10.0: L.transferer(ma, w.gouv, ma.caisse - res[ma.id] - 10.0, "amende")
     else: L.recevoir_de_l_exterieur(ma, res[ma.id] + 10.0 - ma.caisse, "epargne_initiale")
     L.recevoir_de_l_exterieur(mb, 100000.0, "epargne_initiale")
@@ -357,11 +363,14 @@ def test_cotisation_apres_nourriture():
         (float(col["tr_jours_cotises"][A]) - jc) - M.JOURS_ASSURANCE_MOIS * 10.0 / m_a) <= 1e-9
     dette_b = math.fsum(c.montant for c in K.de(mb) if c.motif == "cotisation_independant")
     ok_b = dette_b == 0.0
+    m_p = M.COTISATION_INDEPENDANT_MOIS["patron"]
+    dette_p = math.fsum(c.montant for c in K.de(mp) if c.motif == "cotisation_independant") - dette_p0
+    ok_p = abs(dette_p - m_p) <= 1e-6 and abs(mp.caisse - res[mp.id]) <= 1e-6
     tenue, msg = p.socle.conservation.tenue()
-    ok = ok_a and ok_b and m_a > 10.0 and tenue
+    ok = ok_a and ok_b and ok_p and m_a > 10.0 and tenue
     return ok, (f"cotisation de {m_a:.2f} : payee {paye_a:.2f} sur 10 de libre, dette {dette:.2f}, semaine de nourriture gardee "
                 f"{abs(ma.caisse - res[ma.id]) <= 1e-6}, mois credite {float(col['tr_jours_cotises'][A]) - jc:.3f} jours ; "
-                f"independant aise sans dette {ok_b} ; {msg}")
+                f"patron sans dividende a sa reserve : dette {dette_p:.2f} pour {m_p:.2f} ; independant aise sans dette {ok_b} ; {msg}")
 
 
 # ================================================================== carrieres, qualifications, syndicats
