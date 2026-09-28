@@ -574,6 +574,13 @@ def _dispo_euros(p, e, essentiel=True):
     return e.reserves_euros + (L.ext["entree"] - L.ext["sortie"] - e.ext_reserves) * e.taux - _plancher_devises(p, e, essentiel)
 
 
+def brancher_devises(p):
+    """Une ile reprise d un instantane d avant HMT-131 ( 28/09 ) n a pas le compte devises_refusees : le declarer
+    ( idempotent ; un monde neuf l a deja, a l installation )."""
+    J = p.socle.journal
+    if "devises_refusees" not in getattr(J, "types", {}): J.declarer("devises_refusees", "exterieur", "compte")
+
+
 def refuser_devises(p, montant):
     """Compte une demande de devises refusee par un appelant qui a lu part_en_devises avant de payer."""
     if montant > EPS: p.compter("devises_refusees", montant)
