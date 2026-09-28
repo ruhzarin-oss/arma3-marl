@@ -71,7 +71,7 @@ import numpy as np
 from .. import population as PO
 from .. import config as C
 from ..socle import decision as D
-from . import pays as P, d02_banques as BQ, d06_etat as ET, d08_territoire as TER
+from . import pays as P, d02_banques as BQ, d03_economie as ECO, d06_etat as ET, d08_territoire as TER
 
 EPS = 1e-9
 JOURS_AN = 365.0
@@ -932,7 +932,10 @@ def _soir(p):
 
 def _factures(p):
     """Les factures d eau des menages ( vectorisees ) ; chaque menage paie tous les 30 jours, decale par menage, avec la
-    TVA de l eau ; puis la taxe locale ( proprete, eclairage ) a l Etat."""
+    TVA de l eau ; puis la taxe locale ( proprete, eclairage ) a l Etat. ( HMT-126 ) Le menage paie l une et l autre sur ce
+    qu il a au-dela de sa semaine de nourriture ( domaine 3, reserve_alimentaire ) : le reste reste en arrieres ( eau ) ou
+    devient une creance du fisc ( taxe locale ). Les regies grecques ( DEYA ) coupent l eau apres des impayes, selon leur
+    reglement : non modelise, a faire."""
     S = _sp(p); w = p.w; L = p.socle.livre; E = S.eau
     n = len(S.mg_lieu)
     if n == 0: return
@@ -948,17 +951,23 @@ def _factures(p):
     S.c_injecte += math.fsum(sy.injecte_jour for sy in S.systemes)     # le meme jour que la facture
     T = p.domaine("territoire")
     ids = np.arange(n)
-    for i in np.nonzero(ok & ((ids + p.jour) % JOURS_FACTURE == 0) & (du[:n] + arr[:n] > EPS))[0].tolist():
+    fact = np.nonzero(ok & ((ids + p.jour) % JOURS_FACTURE == 0) & (du[:n] + arr[:n] > EPS))[0]
+    taxe = np.nonzero(ok & ((ids + p.jour) % JOURS_TAXE == 7))[0]
+    res = ECO.reserve_alimentaire(p) if len(fact) or len(taxe) else None
+    for i in fact.tolist():
         mg = w.menages[i]
         r = S.regies[S.regie_ile[T.iles[int(T.lieu_ile[k[i]])]]]
         voulu = float(du[i] + arr[i])
-        paye = L.transferer(mg, r, voulu, "facture_eau")
         part_eau = TARIF_EAU / float(tarif[i]) if tarif[i] > 0 else 1.0
+        libre = max(0.0, mg.caisse - (float(res[i]) if i < len(res) else 0.0)) / (1.0 + ET.taux_tva(p, "eau_potable") * part_eau)
+        paye = L.transferer(mg, r, min(voulu, libre), "facture_eau")
         if paye > 0: ET.percevoir_tva(p, mg, "eau_potable", paye * part_eau)
         du[i] = 0.0; arr[i] = voulu - paye
         if voulu - paye > EPS: p.compter("facture_eau_impayee", voulu - paye)
-    for i in np.nonzero(ok & ((ids + p.jour) % JOURS_TAXE == 7))[0].tolist():
-        ET.percevoir(p, w.menages[i], ET.taxe_locale(SURFACE_LOGEMENT_M2, JOURS_TAXE), "taxe_locale")
+    for i in taxe.tolist():
+        mg = w.menages[i]
+        ET.percevoir(p, mg, ET.taxe_locale(SURFACE_LOGEMENT_M2, JOURS_TAXE), "taxe_locale",
+                     plafond=mg.caisse - (float(res[i]) if i < len(res) else 0.0))
 
 
 def _finances(p):

@@ -366,5 +366,29 @@ def test_cout():
                 f"~ {(t1 - t0) / nh * 5e7 / 60:.0f} min par jour a 50 millions")
 
 
+def test_taxe_circulation_apres_nourriture():
+    """Porte ( HMT-126, seuils ecrits avant la mesure ) - controle positif : un menage qui n a que 5 drachmes au-dela de sa
+    semaine de nourriture paie ces 5 drachmes de sa taxe de circulation, garde sa semaine, et doit le reste a l Etat
+    ( creance du socle, au centime ). Falsificateur : un menage aise la paie en entier, sans dette."""
+    w, p = T.monde(["transport"])
+    tr = p.domaine("transport"); L = p.socle.livre; K = p.socle.creances
+    T.jours(w, 1)
+    ids = [k for k in range(len(w.menages)) if any(x.vivant for x in w.menages[k].membres)]
+    A, B = w.menages[ids[0]], w.menages[ids[1]]
+    res = M.RESERVE_ALIMENTAIRE_J * M._cout_nourriture(p, A)
+    if A.caisse > res + 5.0: L.transferer(A, w.gouv, A.caisse - res - 5.0, "amende")
+    else: L.recevoir_de_l_exterieur(A, res + 5.0 - A.caisse, "epargne_initiale")
+    L.recevoir_de_l_exterieur(B, 10000.0, "epargne_initiale")
+    dette = lambda mg: math.fsum(c.montant for c in K.de(mg) if c.motif == "taxe_circulation")
+    da0, db0, cb0 = dette(A), dette(B), B.caisse
+    M._taxer(p, tr, A, 120.0, "taxe_circulation"); M._taxer(p, tr, B, 120.0, "taxe_circulation")
+    a_ok = abs(A.caisse - res) <= 1e-6 and abs(dette(A) - da0 - 115.0) <= 1e-6
+    b_ok = abs(cb0 - B.caisse - 120.0) <= 1e-6 and dette(B) == db0
+    tenue, msg = p.socle.conservation.tenue()
+    ok = a_ok and b_ok and tenue
+    return ok, (f"taxe de 120 avec 5 de libre : payee {120.0 - (dette(A) - da0):.2f}, due {dette(A) - da0:.2f}, semaine gardee "
+                f"{abs(A.caisse - res) <= 1e-6} ; menage aise : payee {cb0 - B.caisse:.2f}, sans dette {dette(B) == db0} ; {msg}")
+
+
 TESTS = [test_modeles, test_recensement, test_conservation_objets, test_carburant, test_accidents, test_credit_au_centime,
-         test_falsificateur, test_decision, test_pays_vivable, test_cout]
+         test_falsificateur, test_decision, test_pays_vivable, test_cout, test_taxe_circulation_apres_nourriture]

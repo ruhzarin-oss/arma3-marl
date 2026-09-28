@@ -416,7 +416,38 @@ def test_cout():
                 f"{n10} habitants {t10:.2f} s, {n100} habitants {t100:.2f} s ( x{t100 / t10:.1f} )")
 
 
+def test_telephone_apres_nourriture():
+    """Porte ( HMT-126, seuils ecrits avant la mesure ) - controle positif : le jour de sa facture, un menage abonne qui n a
+    que 1 drachme au-dela de ses 14 jours de nourriture AU PRIX DE SON MARCHE ( domaine 3, reserve_alimentaire ) paie
+    cette drachme, garde ses 14 jours, et prend un mois de retard ; prix de la nourriture double a la main, la reserve
+    double avec lui ( a 4 drachmes fixes, elle ne bougeait pas ). Falsificateur : un menage aise paie toute sa facture."""
+    from . import d03_economie as EC
+    w, p = T.monde(["medias"])
+    d = M._dom(p); cm = p.colonnes["menage"]; L = p.socle.livre
+    T.jours(w, 1)
+    nm = len(w.menages)
+    ks = [k for k in range(nm) if k % M.MOIS_J == p.jour % M.MOIS_J and cm["tel_operateur"][k] >= 0
+          and any(x.vivant for x in w.menages[k].membres)]
+    A, B = ks[0], ks[1]
+    for m in w.marches.values(): m.prix["nourriture"] *= 2.0
+    res = EC.reserve_alimentaire(p, M.RESERVE_J)
+    mA, mB = w.menages[A], w.menages[B]
+    if mA.caisse > res[A] + 1.0: L.transferer(mA, w.gouv, mA.caisse - res[A] - 1.0, "amende")
+    else: L.recevoir_de_l_exterieur(mA, res[A] + 1.0 - mA.caisse, "epargne_initiale")
+    L.recevoir_de_l_exterieur(mB, 100000.0, "epargne_initiale")
+    ra, rb, cb0 = int(cm["tel_retard"][A]), int(cm["tel_retard"][B]), mB.caisse
+    M._facturer(p, d)
+    a_ok = abs(mA.caisse - res[A]) <= 1e-6 and int(cm["tel_retard"][A]) == ra + 1
+    b_ok = cb0 - mB.caisse > 1.0 and int(cm["tel_retard"][B]) == 0
+    fixe = M.RESERVE_J * M.RATION_DR * sum(1 for x in mA.membres if x.vivant)
+    tenue, msg = p.socle.conservation.tenue()
+    ok = a_ok and b_ok and res[A] > 1.5 * fixe and tenue
+    return ok, (f"prix double : reserve de 14 jours {res[A]:.1f} ( a 4 drachmes fixes : {fixe:.1f} ) ; avec 1 drachme de libre, "
+                f"reserve gardee {abs(mA.caisse - res[A]) <= 1e-6}, retard {int(cm['tel_retard'][A])} mois ; menage aise : paye "
+                f"{cb0 - mB.caisse:.2f}, retard {int(cm['tel_retard'][B])} ; {msg}")
+
+
 TESTS = [test_equipement_et_contacts, test_vitesse_rumeur, test_deformation_relais, test_deformation_chaine,
          test_jamais_antidatee,
          test_individus_et_groupes, test_publication_accelere, test_credibilite_fausse_nouvelle, test_panne_coupe_telecom, test_decision,
-         test_facturation_et_argent, test_porte_commune, test_cout]
+         test_facturation_et_argent, test_porte_commune, test_cout, test_telephone_apres_nourriture]

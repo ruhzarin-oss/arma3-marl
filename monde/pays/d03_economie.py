@@ -6,8 +6,11 @@ FICHE
    demande non solvable, couverture, ventes aux menages ), Comptes ( bilan et compte de resultat d une unite : entreprise
    du moteur ou marche ), ContexteActivite, RemplaceAchats, RemplaceRegler, AjusterPrix ( les methodes du moteur
    reprises, en objets picklables ), Economie ( l etat du domaine ). Colonnes par menage : eco_revenu ( revenu lisse,
-   drachmes par jour ), eco_equipement ( valeur des biens durables ), eco_epargne_forcee ( ce qu il voulait depenser et
-   que rien ne sert ), eco_credit_j, eco_dernier_achat. Tables eparses : proprietaires ( entreprise -> habitant ),
+   drachmes par jour ), eco_equipement ( valeur des biens durables, qui s use ), eco_epargne_forcee ( ce qu il voulait
+   depenser et que rien ne sert ), eco_credit_j, eco_dernier_achat. ( HMT-126 ) La part du budget que sert le commerce
+   ( PART_MARCHANDE ) s achete en biens et services marchands ( motif services_marchands ), sur ce que la caisse a
+   au-dela du tampon de precaution mesure sur eco_revenu_long ( le revenu permanent, moyenne d un an ) ; l equipement
+   s use. Tables eparses : proprietaires ( entreprise -> habitant ),
    chomeurs ( habitant -> jour, ancien employeur, metier, motif ), offres ( unite -> postes ). Aucune classe du moteur
    n est modifiee.
 2. Invariants. Le domaine ne DETIENT ni argent ni bien : il tient les comptes d unites du moteur. Tout paiement passe
@@ -126,16 +129,45 @@ TAMPON_MOIS = {"populaire": 1.0, "moyenne": 3.0, "aisee": 6.0}
 CLASSES = {"populaire": 0, "moyenne": 1, "aisee": 2}
 CLASSE_DU_MOTEUR = np.array([CLASSES.get(c, 0) for c in PO.CLASSES], np.int64)
 NOMS_CLASSES = ("populaire", "moyenne", "aisee")
-EPARGNE_STRUCTURELLE = 0.0      # taux d epargne brut des menages grecs proche de zero ou negatif depuis 2012 ( Eurostat, a calibrer )
+EPARGNE_STRUCTURELLE = -0.025   # taux d epargne brut des menages grecs : -2,51 % en 2024, -2,44 % en 2023, -4,99 % en 2022
+                                # ( Eurostat tec00131 ; HMT-126 : 0,0 avant, quand la plus grande part du budget n etait
+                                # servie par personne )
 AJUSTEMENT_J = 90.0             # un exces ou un manque de tampon se resorbe en trois mois ( a calibrer )
 ALPHA_REVENU = 1.0 / 60.0       # revenu lisse : moyenne mobile de 60 jours de ce que la paie ( et les dividendes ) apportent
+ALPHA_REVENU_LONG = 1.0 / 365.0 # HMT-126 : le revenu permanent, moyenne mobile d un an ( le tampon des achats marchands )
 PRECAUTION_J = 0.5              # le garde-manger vise le besoin jusqu aux prochaines courses, plus une demi-journee
 JOUR_SANS_ACHETEUR_J = 1.0      # avec l agenda, un jour sans acheteur peut arriver : un jour de plus en reserve
 RESERVE_ALIMENTAIRE_J = 7       # aucun achat non alimentaire ne descend la caisse sous 7 jours de nourriture
 JOURS_ACHAT_MAX = 3             # qui n a pas pu faire ses courses rattrape au plus 3 jours de depenses courantes
+# ( 27/09, HMT-126 ) POURQUOI LES MENAGES DEPENSAIENT SI PEU ( taux d epargne mesure de 32 a 37 %, contre -2,5 % en
+# Grece : Eurostat tec00131, 2024 ) : ( 1 ) la part du budget voulu qu aucun marche ne sert ( logement, habillement,
+# restauration, loisirs... : 60 a 75 % ) restait dans la caisse, « epargne forcee », pendant que les domaines venus depuis
+# ( loyers, factures, cafes, telephone, frontistirio... ) prelevaient chacun de leur cote, sans lien avec le budget ;
+# ( 2 ) l equipement durable ne s usait pas ( la fiche le disait ; rien ne le faisait ) : ses achats n etaient qu un
+# rattrapage de l installation ( 28 % de la consommation mesuree en mode grec, contre 4,4 % chez ELSTAT ).
+# La regle copiee sur le reel : le menage vise sa consommation ( revenu lisse, moins l epargne structurelle, plus ou moins
+# l ecart a son tampon etale sur AJUSTEMENT_J jours : l epargne de precaution, Deaton 1991, Carroll 1997 ) et la repartit
+# selon ELSTAT ; ce qu un domaine installe sert ( loyers et factures, telephone, loisirs, ecole, sante, transport ) reste a
+# ce domaine ; le reste s achete en BIENS ET SERVICES MARCHANDS au marche de sa region ( PART_MARCHANDE : habillement,
+# boissons et tabac, restauration hors cafes et tavernes du domaine 23, soins et services personnels ; et toute division
+# dont aucun fournisseur n est installe ) : le commerce de detail et les services marchands du moteur, dont vivent les
+# marchands ( la part importee n est pas separee, a calibrer ). La desepargne vient du tampon : un menage au-dessus de sa
+# cible la consomme, au-dessous il se restreint. Le reel ( Eurostat, statistiques experimentales ICW, taux d epargne
+# median en Grece, 2015 : premier quintile de revenu -49,2 %, deuxieme -11,8 %, troisieme -6,4 %, quatrieme +2,1 %,
+# cinquieme +15,9 % ; par age de la personne de reference, moins de 30 ans -30,4 %, 65-74 ans +9,0 % ) : ce sont les
+# pauvres et les jeunes qui desepargnent en Grece ; les ages epargnent.
+# PART_MARCHANDE : { division : ( part que le commerce sert quand un de ses domaines est installe, ces domaines ) } ; sans
+# aucun d eux, le commerce sert toute la part que ne sert pas le bien du marche ( a calibrer : restauration, les cafes et
+# tavernes du domaine 23 en prennent la moitie ; divers, les assurances du domaine 20 et les frais bancaires ~ 40 % ).
+PART_MARCHANDE = {"alcool_tabac": (1.0, ()), "habillement": (1.0, ()), "restauration": (0.5, ("culture",)),
+                  "divers": (0.6, ("assurances",)), "logement": (0.0, ("immobilier", "energie", "services_publics")),
+                  "sante": (0.0, ("medecine", "hopitaux")), "transport": (0.0, ("transport",)),
+                  "communications": (0.0, ("medias",)), "loisirs": (0.0, ("culture",)), "education": (0.0, ("education",)),
+                  "alimentation": (0.0, ()), "equipement": (0.0, ())}
 # Biens durables ( COICOP 05 ) : un stock d equipement qui s use ; le menage le renouvelle d un coup quand il tombe sous
 # 80 % de sa cible : c est l ACHAT DURABLE, la premiere vraie raison d emprunter.
 DUREE_VIE_EQUIPEMENT_AN = 10.0  # gros electromenager, mobilier : 10 a 12 ans ( a calibrer )
+USURE_JOUR = 1.0 / (DUREE_VIE_EQUIPEMENT_AN * 365.0)   # HMT-126 : l equipement s use lineairement sur sa duree de vie
 SEUIL_RENOUVELLEMENT = 0.8
 EFFORT_MAX_DURABLE = 0.15       # mensualite d un credit durable au plus 15 % du revenu mensuel ( a calibrer )
 DUREE_CREDIT_DURABLE = 24       # mois
@@ -444,6 +476,27 @@ def repartir_budget(revenu, caisse, tampon, cout_nourriture):
     return cv, M
 
 
+def achats_marchands(attente, pm, jours, achete, caisse, plancher):
+    """( HMT-126, fonction pure ) Les biens et services marchands d un soir : l envie ( la part du budget voulu que ne
+    sert aucun bien du marche, fois la part marchande de chaque division, fois les jours depuis les dernieres courses ),
+    pour qui fait ses courses, bornee a ce que la caisse a au-dela de son plancher ( son tampon de precaution sur son
+    revenu permanent, au moins sa semaine de nourriture ). Rend ( envie, depense TTC )."""
+    voulu = np.where(achete, (np.asarray(attente) * np.asarray(pm)[None, :]).sum(axis=1) * jours, 0.0)
+    return voulu, np.minimum(voulu, np.maximum(0.0, np.asarray(caisse) - plancher))
+
+
+def _revenu_long(p, n):
+    """( HMT-126 ) Le revenu permanent du menage : la moyenne mobile d un an de ce que la paie lui apporte ( partie du
+    revenu lisse a l installation ). Le tampon de precaution se mesure sur lui : un menage qui perd son revenu veut
+    garder son epargne, il ne la depense pas en achats marchands au rythme ou son revenu lisse de 60 jours baisse."""
+    cm = p.colonnes["menage"]
+    if "eco_revenu_long" not in cm:
+        cm.ajouter("eco_revenu_long", np.float64, 0.0); cm.assurer(len(p.w.menages))
+        cm["eco_revenu_long"][:len(p.w.menages)] = cm["eco_revenu"][:len(p.w.menages)]
+    cm.assurer(n)
+    return cm["eco_revenu_long"][:n]
+
+
 def tampon_vise(classe, revenu):
     return np.array([TAMPON_MOIS[NOMS_CLASSES[k]] for k in range(3)])[classe] * MOIS_J * revenu
 
@@ -520,6 +573,26 @@ class AjusterPrix:
 
 
 # ================================================================== les achats des menages ( 19 h )
+def _assurer_hmt126(p):
+    """( HMT-126 ) Le motif des biens et services marchands et son compte, poses aussi sur un monde installe avant eux
+    ( instantane relu )."""
+    L = p.socle.livre
+    if "services_marchands" not in L.motifs: L.declarer_motif("services_marchands", "achat", "economie")
+    J = p.socle.journal
+    if "services_marchands" not in getattr(J, "types", {}): J.declarer("services_marchands", "economie", "compte")
+
+
+def parts_marchandes(p):
+    """( HMT-126 ) Par division, la part de ce que le menage veut y depenser ( hors le bien du marche ) que le commerce
+    sert en biens et services marchands : PART_MARCHANDE quand un de ses domaines est installe, tout sinon."""
+    out = np.zeros(K)
+    for k, c in enumerate(CATEGORIES):
+        part, doms = PART_MARCHANDE[c.nom]
+        out[k] = part if any(p.a(x) for x in doms) else (1.0 if doms else part)
+    return out
+
+
+
 def _rang_marche_menages(w, d, n):
     """Le rang du marche de chacun des `n` premiers menages ( celui du domicile ), lu dans les colonnes du moteur."""
     rm = np.full(len(w.carte.par_n), -1, np.int64)
@@ -623,6 +696,7 @@ def _achats(p):
     tva = g.tva
     ration = g.lois["rationnement_nourriture"] or C.NOURRITURE_PAR_JOUR
     caisse = w.table.menages.caisse[:n].copy()
+    _assurer_hmt126(p)
     gm = w.table.menages.garde_manger[:n].copy()
     pn = np.array([m.prix["nourriture"] for m in marches])[mi]
     pn_ttc = pn * (1.0 + tva)
@@ -694,6 +768,7 @@ def _achats(p):
             _vendre(p, d, mg, marches[mi_l[i]], b, q_l[i], tva)
     # --- les durables : un renouvellement d un coup, sans descendre sous la moitie du tampon
     E = p.col("menage", "eco_equipement")
+    E[:n] *= 1.0 - USURE_JOUR                           # HMT-126 : l equipement s use
     cible_e = equipement_vise(rev, cout_n)
     caisse = w.table.menages.caisse[:n].copy()
     bas = achete & (E[:n] < SEUIL_RENOUVELLEMENT * cible_e)
@@ -716,9 +791,23 @@ def _achats(p):
             valeur = _vendre(p, d, mg, marches[mi_l[i]], "outils", q_l[i], tva)
             E[i] += valeur
             p.compter("achat_durable", valeur)
-    # --- ce que rien ne sert : demande en attente, epargne forcee
+    # --- ( HMT-126 ) les biens et services marchands : la part du budget que sert le commerce ( PART_MARCHANDE )
     attente = M * (1.0 - part_bien)[None, :]
     attente[:, I_ALIM] = 0.0; attente[:, I_EQUIP] = 0.0
+    pm = parts_marchandes(p)
+    plancher = np.maximum(reserve, tampon_vise(classe, _revenu_long(p, n)))
+    voulu_s, ttc_s = achats_marchands(attente, pm, jours, achete, w.table.menages.caisse[:n], plancher)
+    tva_m = np.zeros(len(marches))
+    for i in np.nonzero(ttc_s > 0.01)[0].tolist():         # le menage paie TTC ; le commerce reverse la TVA ( un virement )
+        mg = vues.get(i)
+        if mg is None: mg = vues[i] = Mg(i, mt)
+        k = mi_l[i]
+        tva_m[k] += L.transferer(mg, marches[k], float(ttc_s[i]), "services_marchands") * tva / (1.0 + tva)
+    for k in np.nonzero(tva_m > 0.0)[0].tolist(): w.tva_percue += L.transferer(marches[k], g, float(tva_m[k]), "tva")
+    p.compter("services_marchands", float(ttc_s.sum()))
+    # --- ce que rien ne sert : demande en attente, epargne forcee
+    servi = np.zeros(n); np.divide(ttc_s, voulu_s, out=servi, where=voulu_s > 0.0)
+    attente = attente * (1.0 - pm[None, :] * servi[:, None])
     tot_att = attente.sum(axis=1) + non_servi_valeur
     p.col("menage", "eco_epargne_forcee")[:n] += tot_att
     for j, m in enumerate(marches):
@@ -988,6 +1077,8 @@ def _apres_paie(p):
         rv = p.col("menage", "eco_revenu")
         vivant = p.col("menage", "dissous")[:n] == 0
         rv[:n] = np.where(vivant, rv[:n] * (1.0 - ALPHA_REVENU) + ALPHA_REVENU * entree, rv[:n])
+        rl = _revenu_long(p, n)                                                   # HMT-126 : le revenu permanent
+        rl[:] = np.where(vivant, rl * (1.0 - ALPHA_REVENU_LONG) + ALPHA_REVENU_LONG * entree, rl)
         d.caisses_1750 = None
     for c in d.unites: c.tresorerie_nulle = c.unite.caisse < SEUIL_TRESORERIE_NULLE
 
@@ -1517,6 +1608,23 @@ def demande_en_attente(p):
     return {mid: {NOMS_CATEGORIES[k]: float(x) for k, x in enumerate(a) if x} for mid, a in d.attente_region.items()}
 
 
+def reserve_alimentaire(p, jours=RESERVE_ALIMENTAIRE_J):
+    """( HMT-126 ) Ce que chaque menage garde pour manger avant de payer une facture, une cotisation ou une taxe :
+    `jours` jours de ration pour ses vivants presents, au prix affiche de son marche, TVA comprise ( drachmes, un tableau
+    par numero de menage ). Le reel grec : les menages pauvres ne sautent pas leurs repas pour payer, ils accumulent des
+    ARRIERES - en 2024, 32,0 % de la population a des arrieres de factures ( 65,6 % sous le seuil de pauvrete ) et 10,4 %
+    de loyer ou d emprunt ( 24,0 % ), les plus hauts de l Union ( 6,9 % et 3,1 % ) : Eurostat, EU-SILC ilc_mdes07 et
+    ilc_mdes06 ( ilc_mdes05, tous arrieres : 42,8 %, 77,9 % sous le seuil ). La privation de repas est bien plus rare.
+    Les suites des arrieres restent celles du reel : coupure d electricite ( domaine 11 ), expulsion ( domaine 13 ),
+    dettes a la caisse et au fisc ( domaines 4 et 6 )."""
+    w = p.w; d = p.domaine("economie"); n = len(w.menages)
+    v, _ = _tableaux_menages(p)
+    mi = _rang_marche_menages(w, d, n)
+    pn = np.array([w.marches[k].prix["nourriture"] for k in d.ids_marches])[mi] * (1.0 + w.gouv.tva)
+    ration = w.gouv.lois["rationnement_nourriture"] or C.NOURRITURE_PAR_JOUR
+    return float(jours) * ration * v * pn
+
+
 def budget_des_menages(p):
     """Les parts du budget voulu, mesurees depuis l installation : ensemble et par quintile de revenu lisse."""
     B = p.domaine("economie").budget
@@ -1547,12 +1655,13 @@ def installer(p):
     L.declarer_motif("indemnite_licenciement", "remuneration", "economie")
     L.declarer_motif("investissement", "achat", "economie")
     L.declarer_motif("apport_capital", "financier", "economie")
+    L.declarer_motif("services_marchands", "achat", "economie")     # HMT-126
     J = p.socle.journal
     J.declarer("faillite", "economie", "individuel", ("unite", "actif", "passif", "salaries"))
     J.declarer("licenciement", "economie", "individuel", ("habitant", "unite", "motif"))
     J.declarer("embauche", "economie", "individuel", ("habitant", "unite"))
     for t in ("achat_menages", "rupture_de_stock", "demande_en_attente", "achat_durable", "credit_economie",
-              "dividende_verse"):
+              "dividende_verse", "services_marchands"):
         J.declarer(t, "economie", "compte")
     cm = p.colonnes["menage"]
     for nom, dt, defaut in (("eco_revenu", np.float64, 0.0), ("eco_equipement", np.float64, 0.0),
@@ -1598,6 +1707,7 @@ def installer(p):
     rv = p.col("menage", "eco_revenu")
     for h in w.habitants:
         if h.menage is not None: rv[h.menage.id] += _revenu_attendu(h, w.gouv.impot_revenu)
+    _revenu_long(p, n)                                  # HMT-126 : le revenu permanent part du revenu attendu
     v, classe = _tableaux_menages(p)
     ok = (v > 0) & (p.col("menage", "dissous")[:n] == 0)
     cible = tampon_vise(classe, rv[:n])

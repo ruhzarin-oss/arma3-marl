@@ -22,6 +22,8 @@ $PY $C/patch_prix.py $ARBRE
 $PY $C/patch_autoconsommation.py $ARBRE/monde/pays/d09_agriculture.py
 $PY $C/patch_devises.py $ARBRE
 $PY $C/patch_priorite_devises.py $ARBRE
+$PY $C/patch_menages_e.py $ARBRE          # HMT-126 ( e ) : factures et cotisations apres la nourriture, coupure
+$PY $C/patch_menages_d.py $ARBRE          # HMT-126 ( d ) : la consommation des menages
 ( cd $ARBRE && PYTHONPATH=$ARBRE $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines.json ]; then
   cmp -s $REF/ref_domaines_refaite.json $REF/ref_domaines.json && echo "REFERENCE DES DOMAINES REPRODUITE AU BIT" || echo "REFERENCE DES DOMAINES DIFFERENTE"

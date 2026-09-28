@@ -325,6 +325,45 @@ def test_indemnite_chomage():
                 f"{ia.fin if ia else -1} ; demission {ib} ; contrat d un jour {ic} ; jour {p.jour} : {etat} {verse}")
 
 
+# ================================================================== la cotisation apres la nourriture ( HMT-126, e )
+def test_cotisation_apres_nourriture():
+    """Porte ( HMT-126, seuils ecrits avant la mesure ) - controle positif : a la fin du mois, un independant dont le menage
+    n a que 10 drachmes au-dela de sa semaine de nourriture ( domaine 3, reserve_alimentaire ) paie ces 10 drachmes a la
+    caisse, garde sa semaine, et le reste de sa cotisation devient une dette envers la caisse ( au centime ) ; son mois
+    n est credite qu a proportion. Falsificateur : un independant aise paie toute sa cotisation, sans dette."""
+    w, p = T.monde(["travail"])
+    d = p.domaine("travail"); col = p.colonnes["habitant"]; K = p.socle.creances; L = p.socle.livre
+    T.jours(w, 2)
+    tb = w.table; n = tb.n
+    inds = [i for i in range(n) if tb.vivant[i] and col["tr_statut"][i] == M.INDEPENDANT and tb.travail[i] >= 0
+            and M._role_de(tb, i) in M.COTISATION_INDEPENDANT_MOIS]
+    menages = {}
+    for i in inds: menages.setdefault(int(tb.menage[i]), []).append(i)
+    seuls = [v[0] for v in menages.values() if len(v) == 1]
+    A, B = seuls[0], seuls[1]
+    ma, mb = M._menage_de(tb, A), M._menage_de(tb, B)
+    res = ECO.reserve_alimentaire(p)
+    if ma.caisse > res[ma.id] + 10.0: L.transferer(ma, w.gouv, ma.caisse - res[ma.id] - 10.0, "amende")
+    else: L.recevoir_de_l_exterieur(ma, res[ma.id] + 10.0 - ma.caisse, "epargne_initiale")
+    L.recevoir_de_l_exterieur(mb, 100000.0, "epargne_initiale")
+    jc = float(col["tr_jours_cotises"][A])
+    dette0 = math.fsum(c.montant for c in K.de(ma) if c.motif == "cotisation_independant")
+    agg = {k: 0.0 for k in M.AGREGATS}
+    M._cotisations_independants(p, d, agg)
+    m_a = M.COTISATION_INDEPENDANT_MOIS[M._role_de(tb, A)]
+    dette = math.fsum(c.montant for c in K.de(ma) if c.motif == "cotisation_independant") - dette0
+    paye_a = m_a - dette
+    ok_a = abs(paye_a - 10.0) <= 1e-6 and abs(ma.caisse - res[ma.id]) <= 1e-6 and abs(
+        (float(col["tr_jours_cotises"][A]) - jc) - M.JOURS_ASSURANCE_MOIS * 10.0 / m_a) <= 1e-9
+    dette_b = math.fsum(c.montant for c in K.de(mb) if c.motif == "cotisation_independant")
+    ok_b = dette_b == 0.0
+    tenue, msg = p.socle.conservation.tenue()
+    ok = ok_a and ok_b and m_a > 10.0 and tenue
+    return ok, (f"cotisation de {m_a:.2f} : payee {paye_a:.2f} sur 10 de libre, dette {dette:.2f}, semaine de nourriture gardee "
+                f"{abs(ma.caisse - res[ma.id]) <= 1e-6}, mois credite {float(col['tr_jours_cotises'][A]) - jc:.3f} jours ; "
+                f"independant aise sans dette {ok_b} ; {msg}")
+
+
 # ================================================================== carrieres, qualifications, syndicats
 def test_carrieres():
     """Porte : 13 a 27 % de syndiques parmi les salaries au recensement ( OCDE 13,4 % en 2020, demande 20 % ) ; chaque
@@ -389,5 +428,5 @@ def test_cout():
 
 
 TESTS = [test_bulletins_au_centime, test_caisse_securite_sociale, test_emploi_20_64, test_inactifs_changent, test_greve,
-         test_retraite, test_heures_payees_travaillees, test_accepter_emploi, test_indemnite_chomage, test_carrieres,
-         test_pays_vivable, test_cout]
+         test_retraite, test_heures_payees_travaillees, test_accepter_emploi, test_indemnite_chomage,
+         test_cotisation_apres_nourriture, test_carrieres, test_pays_vivable, test_cout]

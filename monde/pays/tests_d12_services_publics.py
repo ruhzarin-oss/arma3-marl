@@ -307,6 +307,45 @@ def test_cout():
                 f"{propre / n * 1e6:.1f} us par habitant")
 
 
+def test_eau_et_taxe_apres_nourriture():
+    """Porte ( HMT-126, seuils ecrits avant la mesure ) - controle positif : le jour de sa facture d eau, un menage qui n a
+    qu une drachme au-dela de sa semaine de nourriture ( domaine 3, reserve_alimentaire ) paie ce qu il peut sans y
+    toucher, TVA de l eau comprise, et le reste de sa facture reste en arrieres ; le jour de sa taxe locale, un menage a
+    sa semaine de nourriture ne paie rien et doit toute la taxe au fisc ( creance du socle ). Falsificateur : un menage
+    aise paie facture et TVA en entier, sans arrieres."""
+    from . import d03_economie as ECO, d06_etat as ET
+    w, p = T.monde(["services_publics"])
+    L = p.socle.livre; cm = p.colonnes["menage"]; K = p.socle.creances
+    T.jours(w, 2)
+    S = M._sp(p); k = S.mg_lieu; n = len(k); j = p.jour
+    ok_m = [i for i in range(n) if k[i] >= 0 and S.mg_viv[i] > 0]
+    A = next(i for i in ok_m if (i + j) % M.JOURS_FACTURE == 0)
+    B = next(i for i in ok_m if (i + j) % M.JOURS_FACTURE == 0 and i != A)
+    C_ = next(i for i in ok_m if (i + j) % M.JOURS_TAXE == 7 and (i + j) % M.JOURS_FACTURE != 0)
+    res = ECO.reserve_alimentaire(p)
+
+    def poser(i, x):
+        mg = w.menages[i]
+        if mg.caisse > x: L.transferer(mg, w.gouv, mg.caisse - x, "amende")
+        else: L.recevoir_de_l_exterieur(mg, x - mg.caisse, "epargne_initiale")
+    poser(A, float(res[A]) + 1.0); poser(B, 100000.0); poser(C_, float(res[C_]))
+    cm["sp_eau_du"][A] = 20.0; cm["sp_eau_du"][B] = 20.0; cm["sp_eau_arrieres"][A] = cm["sp_eau_arrieres"][B] = 0.0
+    dette_c0 = math.fsum(c.montant for c in K.de(w.menages[C_]) if c.motif == "taxe_locale")
+    cb0 = w.menages[B].caisse
+    M._factures(p)
+    res2 = ECO.reserve_alimentaire(p)
+    a_ok = w.menages[A].caisse >= float(res2[A]) - 1e-6 and cm["sp_eau_arrieres"][A] > 15.0 and w.menages[A].caisse < float(res2[A]) + 1.0
+    b_ok = cm["sp_eau_arrieres"][B] == 0.0 and cb0 - w.menages[B].caisse > 20.0
+    taxe = ET.taxe_locale(M.SURFACE_LOGEMENT_M2, M.JOURS_TAXE)
+    dette_c = math.fsum(c.montant for c in K.de(w.menages[C_]) if c.motif == "taxe_locale") - dette_c0
+    c_ok = abs(dette_c - taxe) <= 1e-6 and taxe > 0.0
+    tenue, msg = p.socle.conservation.tenue()
+    ok = a_ok and b_ok and c_ok and tenue
+    return ok, (f"facture d eau avec 1 drachme de libre : arrieres {cm['sp_eau_arrieres'][A]:.2f}, reserve gardee "
+                f"{w.menages[A].caisse >= float(res2[A]) - 1e-6} ; menage aise : paye {cb0 - w.menages[B].caisse:.2f}, arrieres "
+                f"{cm['sp_eau_arrieres'][B]:.2f} ; taxe locale de {taxe:.2f} a sa reserve : due {dette_c:.2f} ; {msg}")
+
+
 TESTS = [test_bilan_eau, test_consommation, test_coupures_et_qualite, test_bilan_dechets, test_greve_collecte,
          test_routes_usure_et_entretien, test_routes_coupees_et_convois, test_energie_pompage_eclairage,
-         test_decision_entretien, test_pays_vivable, test_cout]
+         test_decision_entretien, test_eau_et_taxe_apres_nourriture, test_pays_vivable, test_cout]

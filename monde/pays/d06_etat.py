@@ -1772,14 +1772,16 @@ class RemplaceSitrep:
 
 
 # ================================================================== API pour les autres domaines
-def percevoir(p, payeur, montant, impot):
+def percevoir(p, payeur, montant, impot, plafond=None):
     """Un impot ou une redevance d un autre domaine ( enfia, taxe_locale, droits_permis, droit_de_douane, tva_import ),
-    paye a l Etat ; ce que la caisse ne couvre pas devient une creance de l Etat. Rend ( paye, creance ou None )."""
+    paye a l Etat ; ce que la caisse ne couvre pas devient une creance de l Etat. `plafond` : ce que le payeur peut y
+    mettre ( un menage garde sa semaine de nourriture, HMT-126 ) ; le reste devient aussi une creance. Rend ( paye,
+    creance ou None )."""
     if impot not in ("enfia", "taxe_locale", "droits_permis", "droit_de_douane", "tva_import"):
         raise ValueError(f"impot inconnu {impot!r}")
     if not 0.0 <= montant < math.inf: raise ValueError(f"montant invalide {montant!r}")
     e = _etat(p); w = p.w
-    paye = p.socle.livre.transferer(payeur, w.gouv, montant, impot)
+    paye = p.socle.livre.transferer(payeur, w.gouv, montant if plafond is None else min(montant, max(0.0, plafond)), impot)
     cr = None
     if montant - paye > 1e-6:
         cr = p.socle.creances.constater(w.gouv, payeur, montant - paye, impot, p.jour); e.fisc.creances.append(cr)

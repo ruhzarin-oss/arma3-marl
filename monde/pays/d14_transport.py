@@ -2040,8 +2040,16 @@ def _administration(p):
 
 
 def _taxer(p, tr, payeur, montant, motif):
+    """La taxe de circulation d un menage ou d une flotte ; ce qui n est pas paye devient une creance de l Etat. ( 28/09,
+    HMT-126 ) Un menage la paie sur ce qu il a au-dela de sa semaine de nourriture : le menage grec pauvre laisse filer
+    ses teli kykloforias en arrieres ( dette au fisc, majoree ) ou depose ses plaques pour ne plus la devoir - il ne
+    saute pas ses repas pour elle ( la guerre des iles, Malden, jour 111 : les affames payaient 1 054 drachmes de taxe de
+    circulation pour 490 de nourriture ). Le depot des plaques ( katathesi pinakidon ) n est pas modelise : a faire."""
     if montant <= 0: return
-    x = p.socle.livre.transferer(payeur, p.w.gouv, montant, motif)
+    plafond = montant
+    if type(payeur).__name__ == "Menage":
+        plafond = min(montant, max(0.0, payeur.caisse - RESERVE_ALIMENTAIRE_J * _cout_nourriture(p, payeur)))
+    x = p.socle.livre.transferer(payeur, p.w.gouv, plafond, motif)
     tr.stats["taxe_circulation"] += x
     p.compter("taxe_circulation", x)
     if montant - x > 1e-6:
