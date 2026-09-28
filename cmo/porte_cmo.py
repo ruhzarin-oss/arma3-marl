@@ -91,8 +91,11 @@ def p1_installer():
 def p2_canaris():
     """100 canaris, 0 perte, version et build lus dans le jeu."""
     with banc() as (f, l):
+        coeurs = []
         for _ in range(100):
             c = l.canari()
+            coeurs.append(c["recu"]["coeur"])
+        assert all(a < b for a, b in zip(coeurs, coeurs[1:])), "deux commandes dans le même passage"
         assert c["version_lua"] == CL.VERSION_LUA and c["build"] == "1.10.1900.20" and c["lecteur"] == "loadfile", c
 
 
@@ -266,10 +269,35 @@ def p18_nettoyer_prouve():
         assert f.compter() == 0
 
 
+def p19_poser_apres_nettoyer():
+    """La suppression est différée d'un passage ( CMO 1.10 ) : après une table rase prouvée, les mêmes numéros se
+    reposent sans refus."""
+    with banc() as (f, l):
+        for k in (1, 2, 3):
+            l.poser("Malden", "air", 3500, k, 37.5, 24.3, 6000)
+        assert l.nettoyer()["avant"] == 3
+        for k in (1, 2, 3):
+            l.poser("Stratis", "air", 3500, k, 37.6, 24.3, 6000)
+        assert l.etat_camps()["camps"]["Stratis"]["hmt_vivants"] == 3
+
+
+def p20_recharger_sans_console():
+    """CMO joue un ancien Lua : l'ouverture le refuse, recharger() le fait relire par le pont, l'ouverture passe."""
+    with banc(labo=False) as (f, _):
+        etat = os.path.join(f.racine, "etat")
+        f.lua("HMT_VERSION = 1")
+        assert "version 1" in str(leve(CL.Incomplet, CL.Labo(pont=f.pont, sortie=f.sortie, etat=etat, **RAPIDE).ouvrir))
+        kw = {k: v for k, v in RAPIDE.items() if k != "patience_ouverture"}
+        assert CL.recharger(pont=f.pont, sortie=f.sortie, etat=etat, **kw) == CL.VERSION_LUA
+        with CL.Labo(pont=f.pont, sortie=f.sortie, etat=etat, **RAPIDE) as l:
+            assert l.version["version_lua"] == CL.VERSION_LUA
+
+
 TESTS = [p0_accords, p1_installer, p2_canaris, p3_poser_etat_positions, p4_morts_une_fois, p5_erreur_lua_certaine,
          p6_refus_deux_etages, p7_compilation, p8_pause_jamais_aucun, p9_rechargement_recalage, p10_un_seul_ecrivain,
          p11_recu_ecrit_lentement, p12_que_des_nombres, p13_build_non_certifie, p14_lecteur_runscript,
-         p14b_runscript_qui_leve, p15_commande_non_prise_effacee, p16_gros_recu, p17_recu_tronque, p18_nettoyer_prouve]
+         p14b_runscript_qui_leve, p15_commande_non_prise_effacee, p16_gros_recu, p17_recu_tronque, p18_nettoyer_prouve,
+         p19_poser_apres_nettoyer, p20_recharger_sans_console]
 
 
 def passer(tests):

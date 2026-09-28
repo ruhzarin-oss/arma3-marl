@@ -15,7 +15,7 @@
 -- Codes du reçu : 0 exécutée, 1 erreur Lua pendant l'exécution, 2 le fichier ne compile pas, 3 refus ( detail =
 -- code de REFUS_LUA dans cmo_labo.py ).
 
-HMT_VERSION = 2
+HMT_VERSION = 3
 HMT_CAMPS = { 'Stratis', 'Malden' }                          -- = CAMPS de cmo_labo.py, dans le même ordre
 HMT_GENRES = { 'Air', 'Ship', 'Submarine', 'Facility' }      -- = GENRES de cmo_labo.py
 HMT_n = HMT_n or 0                                           -- dernière commande prise
@@ -108,19 +108,17 @@ function HMT_battre()
 end
 
 -- L'action de l'événement HMT_PONT. Ne lève jamais : une erreur dans une action d'événement arrêterait le pont.
+-- UNE commande par passage : CMO applique certains effets entre deux passages ( une suppression, sonde du 29/09 ) ;
+-- ainsi chaque commande voit le monde que la précédente a laissé.
 function HMT_tic()
     HMT_coeur = HMT_coeur + 1
-    local ok, err = pcall(function()
-        for _ = 1, 8 do
-            if not prendre(HMT_n + 1) then break end
-        end
-    end)
+    local ok, err = pcall(prendre, HMT_n + 1)
     if not ok then
         -- La commande attendue a planté hors de son pcall ( ExportInst ?) : on la passe, le moteur verra SansRecu.
         if HMT_attendu > HMT_n then HMT_n = HMT_attendu end
         pcall(ecrire, 'hmt_panne.inst', 'PANNE ' .. propre(err) .. '\nFIN')
     end
-    pcall(HMT_battre)                   -- APRÈS les commandes : un battement de coeur c dit où en est n après ce passage
+    pcall(HMT_battre)                   -- APRÈS la commande : un battement de coeur c dit où en est n après ce passage
 end
 
 -- --- LE REGISTRE : numéro de front -> unité. Le nom « HMT-<numéro> » est la mémoire qui survit au rechargement.
@@ -215,14 +213,22 @@ function HMT_positions(R)
     end
 end
 
--- Table rase des unités HMT. Le compte APRÈS est refait sur les camps, pas sur le registre.
+-- Table rase des unités HMT. CMO 1.10 retire une unité supprimée au passage SUIVANT ( sonde du 29/09 : DeleteUnit rend
+-- vrai, mais GetUnit et la liste du camp la montrent encore dans le même passage ). La preuve est donc HMT_recompter,
+-- une autre commande, donc un autre passage.
 function HMT_nettoyer(R)
-    local avant = 0
+    local avant, acceptees = 0, 0
     for _, e in pairs(HMT_recenser()) do
         avant = avant + 1
-        pcall(ScenEdit_DeleteUnit, { guid = e.guid }, true)
+        local ok, r = pcall(ScenEdit_DeleteUnit, { guid = e.guid }, true)
+        if ok and r == true then acceptees = acceptees + 1 end
     end
-    local apres = 0
-    for _ in pairs(HMT_recenser()) do apres = apres + 1 end
-    R('NETTOYE', { avant, apres })
+    HMT_unites = nil
+    R('NETTOYE', { avant, acceptees })
+end
+
+function HMT_recompter(R)
+    local m = 0
+    for _ in pairs(HMT_recenser()) do m = m + 1 end
+    R('RESTANTES', { m })
 end

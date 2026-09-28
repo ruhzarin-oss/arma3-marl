@@ -54,7 +54,7 @@ SORTIE = f"{CMO}/ImportExport"
 ETAT = "/mnt/data/hmt/etat"
 FICHIER_CERTIF = "cmo_build_certifie.json"
 
-VERSION_LUA = 2                     # = HMT_VERSION de lua/hmt_pont.lua
+VERSION_LUA = 3                     # = HMT_VERSION de lua/hmt_pont.lua
 CAMPS = ("Stratis", "Malden")       # = HMT_CAMPS, même ordre ; index Lua = index Python + 1
 GENRES = ("air", "navire", "sous_marin", "site")      # = HMT_GENRES ( Air, Ship, Submarine, Facility )
 LECTEURS = {1: "loadfile", 2: "RunScript"}
@@ -302,6 +302,27 @@ def certifier(build: str, verdict: dict, etat: str = ETAT):
     os.replace(tmp, os.path.join(etat, FICHIER_CERTIF))
 
 
+# --- LE RECHARGEMENT : après deployer.py, sans console -------------------------------------------------------------
+def recharger(*, pont: str = PONT, sortie: str = SORTIE, etat: str = ETAT, **kw) -> int:
+    """Fait relire hmt_pont.lua à CMO par le pont lui-même : l'événement ne relit le Lua que si HMT_tic manque, il
+    jouerait sinon l'ancien jusqu'au prochain chargement du scénario. Pas de contrôle de version à l'ouverture ( c'est
+    ce qu'on répare ) ; la version jouée ensuite est rendue, et doit être VERSION_LUA."""
+    ecrivain = VerrouEcrivain(os.path.join(etat, "cmo_pont.ecrivain"))
+    os.makedirs(etat, exist_ok=True)
+    ecrivain.prendre()
+    try:
+        li = Liaison(pont, sortie, **kw)
+        li.ouvrir()
+        li.executer("ScenEdit_RunScript('hmt_pont/hmt_config.lua') ScenEdit_RunScript('hmt_pont/hmt_pont.lua')")
+        version = int(_une(li.executer("HMT_canari(R)")["lignes"], "CANARI", 4)[1])
+    finally:
+        ecrivain.rendre()
+    if version != VERSION_LUA:
+        raise Incomplet(f"CMO joue encore hmt_pont.lua en version {version} après relecture ( attendu {VERSION_LUA} ) : "
+                        "il garde le Lua compilé ; recharger le scénario")
+    return version
+
+
 # --- LE LABO : les outils typés --------------------------------------------------------------------------------------
 class Labo:
     def __init__(self, *, pont: str = PONT, sortie: str = SORTIE, etat: str = ETAT, strict: bool = True,
@@ -414,12 +435,20 @@ class Labo:
         return {"vivants": vivants, "morts": morts, "recu": r["recu"]}
 
     def nettoyer(self) -> dict:
-        """Table rase des unités HMT. Elle se PROUVE : une seule unité HMT restante est une erreur, pas un succès."""
+        """Table rase des unités HMT. Elle se PROUVE : une seule unité HMT restante est une erreur, pas un succès.
+        CMO retire une unité supprimée au passage suivant ( sonde du 29/09 ) : le recompte est une AUTRE commande, et
+        son reçu doit venir d'un passage ultérieur ( coeur plus grand ), sinon la preuve ne vaut rien."""
         r = self._exec("HMT_nettoyer(R)", patience=max(10.0, self.liaison.patience))
-        avant, apres = _une(r["lignes"], "NETTOYE", 2)
-        if apres != 0:
-            raise ErreurLabo(f"table rase NON prouvée : {apres} unité(s) HMT restent sur {avant}")
-        return {"avant": int(avant), "apres": 0, "recu": r["recu"]}
+        avant, acceptees = _une(r["lignes"], "NETTOYE", 2)
+        if acceptees != avant:
+            raise ErreurLabo(f"CMO a refusé {int(avant - acceptees)} suppression(s) sur {int(avant)}")
+        r2 = self._exec("HMT_recompter(R)")
+        if r2["recu"]["coeur"] <= r["recu"]["coeur"]:
+            raise Incomplet("recompte fait dans le passage de la suppression : CMO n'a pas encore retiré les unités")
+        (restantes,) = _une(r2["lignes"], "RESTANTES", 1)
+        if restantes != 0:
+            raise ErreurLabo(f"table rase NON prouvée : {int(restantes)} unité(s) HMT restent sur {int(avant)}")
+        return {"avant": int(avant), "apres": 0, "recu": r2["recu"]}
 
     def lua(self, code: str, *, par_humain: bool = False) -> dict:
         """Lua brut, dans le corps d'une commande ( `R(CLE, {nombres})` pour rendre ). Réservé à une demande HUMAINE

@@ -3,7 +3,7 @@
 -- Il ne prouve que la plomberie et le Lua du pont ; ce que CMO fait vraiment, seul le banc pontcmo le prouve.
 
 FAUX = { camps = {}, unites = {}, n_guid = 0, temps = 1790000000, build = 'v1.10 - Build 1900.20',
-         dbid_refuse = -1, runscript_leve = false,
+         dbid_refuse = -1, runscript_leve = false, a_retirer = {},
          evenements = {}, declencheurs = {}, actions = {} }
 
 local function guid()
@@ -68,9 +68,10 @@ function ScenEdit_SetUnit(t)
     return copie(u)
 end
 
+-- Comme CMO 1.10 ( sonde du 29/09 ) : la suppression est acceptée tout de suite, appliquée à la fin du passage.
 function ScenEdit_DeleteUnit(t)
     if t.guid and FAUX.unites[t.guid] then
-        FAUX.unites[t.guid] = nil
+        table.insert(FAUX.a_retirer, t.guid)
         return true
     end
     return false
@@ -153,6 +154,8 @@ function FAUX_passer()
             end
         end
     end
+    for _, g in ipairs(FAUX.a_retirer) do FAUX.unites[g] = nil end
+    FAUX.a_retirer = {}
     FAUX.temps = FAUX.temps + 1
 end
 

@@ -50,6 +50,14 @@ def c1_canaris(l, n=100):
 
 def c2_unites(l):
     d = {}
+    try:
+        return _c2(l, d)
+    except CL.ErreurLabo as e:                           # le détail déjà mesuré reste dans le verdict
+        d["exception"] = f"{type(e).__name__}: {e}"[:300]
+        return False, d
+
+
+def _c2(l, d):
     l.nettoyer()
     for k, camp in ((1, "Stratis"), (2, "Malden")):
         d[f"pose_{k}"] = l.poser(camp, "air", 3500, k, KEA_OUEST[0] + k / 50, KEA_OUEST[1], 6000, 16934)

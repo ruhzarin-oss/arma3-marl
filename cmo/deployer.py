@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Pose le Lua du pont dans CMO : <CMO>/Lua/hmt_pont/{ hmt_pont.lua, installer.lua, hmt_config.lua }. Ne touche à rien
-d'autre du jeu. Après un déploiement, CMO peut garder l'ancien Lua compilé : recharger le scénario ( le canari de
+d'autre du jeu. L'événement garde le Lua déjà chargé : --recharger le fait relire par le pont ( le canari de
 cmo_labo.py compare HMT_VERSION ).
 
-    python3 cmo/deployer.py            # vers le CMO de la WS
+    .venv/bin/python cmo/deployer.py [--recharger]
 """
 import os
 import shutil
@@ -36,6 +36,10 @@ def deployer(racine: str = CL.CMO, base_lua: str = CL.BASE_WINDOWS) -> str:
 if __name__ == "__main__":
     d = deployer()
     print(f"Lua du pont posé dans {d}")
-    print("Dans CMO : ouvrir le scénario, console Lua, une ligne :")
-    print("    ScenEdit_RunScript('hmt_pont/installer.lua')")
-    print("puis Ctrl+S, et laisser le temps s'écouler ( x1 ).")
+    if "--recharger" in sys.argv:
+        # Le pont bat déjà : il fait relire le Lua à CMO lui-même, sans console.
+        print(f"CMO joue maintenant hmt_pont.lua en version {CL.recharger()}")
+    else:
+        print("Dans CMO : ouvrir le scénario, console Lua, une ligne :")
+        print("    ScenEdit_RunScript('hmt_pont/installer.lua')")
+        print("puis Ctrl+S, et laisser le temps s'écouler ( x1 ). Si le pont bat déjà : deployer.py --recharger")
