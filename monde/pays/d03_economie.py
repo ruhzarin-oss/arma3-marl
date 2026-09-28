@@ -220,6 +220,14 @@ JOURS_CESSATION = 3
 # entreprise aux capitaux propres negatifs tombait, et le capital fixe au cout ( 3 a 337 millions a Altis ) gardait en vie
 # dix entreprises a l arret depuis des mois, sans caisse ni salaire paye.
 CESSATION_J = 180
+# SUSPENDUE ( 29/09, HMT-139, mesure sur Altis graines 1 a 4 ) : appliquee, la presomption liquide la raffinerie au jour 180
+# dans chaque run ( une dette de brut nee au jour 0, jamais payee : la raffinerie du moteur est a perte ) et met son capital au
+# rebut ; l ile perd son carburant et la faim monte de ~1 000 morts pour 100 000 en 300 jours ( +1 280, +1 090, +900, +1 030
+# contre le meme monde sans elle ). En droit grec une entreprise viable est vendue comme un tout ( l activite continue, les
+# contrats de travail passent a l acheteur : directive 2001/23, decret 178/2002 ) ou restructuree. La presomption reste
+# ecrite et eprouvee par sa porte ; elle ne liquide qu une fois la vente comme un tout modelisee et la perte de la
+# raffinerie reglee.
+PRESOMPTION_CESSATION = False
 PART_CESSATION = 0.4
 SEUIL_CESSATION_EUROS = 30000.0
 # La remuneration de gerance du patron ( 28/09, HMT-139 ) : la moyenne des gains bruts mensuels des cadres dirigeants en
@@ -1393,7 +1401,7 @@ def _faillites(p, d):
         # les fermes cooperatives ( reprises par le domaine 9 ) ne sont pas des societes : leurs exploitants sont des personnes
         # physiques, et l insolvabilite d un agriculteur ne laisse pas sa terre en friche ( la ferme n est pas liquidee )
         if c.unite.type == "ferme": continue
-        if en_cessation_des_paiements(p, c.unite)[0]: liquider(p, c.unite, "cessation_des_paiements")
+        if PRESOMPTION_CESSATION and en_cessation_des_paiements(p, c.unite)[0]: liquider(p, c.unite, "cessation_des_paiements")
 
 
 def mesurer_chomage(p):

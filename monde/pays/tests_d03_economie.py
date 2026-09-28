@@ -387,7 +387,9 @@ def test_gerance_et_cessation():
         cr = next(m for m in w2.menages if m is not h.menage)
         K2.constater(cr, c.unite, montant, "salaire", p2.jour - age)
         if recente > 0: K2.constater(cr, c.unite, recente, "fournisseur", p2.jour)
-        M._faillites(p2, d2)
+        garde = M.PRESOMPTION_CESSATION; M.PRESOMPTION_CESSATION = True      # le mecanisme, eprouve meme suspendu
+        try: M._faillites(p2, d2)
+        finally: M.PRESOMPTION_CESSATION = garde
         chom = h.id in d2.chomeurs and d2.chomeurs[h.id][3] == "faillite_de_son_entreprise"
         return c.liquidee, chom and c.id not in d2.proprietaires, p2.socle.conservation.tenue()[0]
     tombe, chomeur, tenue = essai(181, seuil * 1.01)
@@ -400,13 +402,21 @@ def test_gerance_et_cessation():
     ferme_tient = True
     if cf is not None:
         p3.socle.creances.constater(w3.gouv, cf.unite, seuil * 2.0, "tva", p3.jour - 200)
-        M._faillites(p3, d3); ferme_tient = not cf.liquidee
+        garde = M.PRESOMPTION_CESSATION; M.PRESOMPTION_CESSATION = True
+        try: M._faillites(p3, d3)
+        finally: M.PRESOMPTION_CESSATION = garde
+        ferme_tient = not cf.liquidee
     tenue0 = p.socle.conservation.tenue()[0]
-    ok = gerance and tombe and chomeur and not jeune and not petit and not minoritaire and ferme_tient and tenue and tenue0
+    # suspendue ( 29/09 ) : dans le monde, la presomption ne liquide pas
+    w4, p4 = T.monde(["economie"]); T.jours(w4, 1); d4 = p4.domaine("economie")
+    c4 = next(x for x in d4.unites if x.nature == "entreprise" and d4.proprietaires.get(x.id) is not None)
+    p4.socle.creances.constater(next(m for m in w4.menages), c4.unite, seuil * 1.5, "salaire", p4.jour - 200)
+    M._faillites(p4, d4); suspendue = (not M.PRESOMPTION_CESSATION) and not c4.liquidee
+    ok = gerance and tombe and chomeur and not jeune and not petit and not minoritaire and ferme_tient and suspendue and tenue and tenue0
     return ok, (f"gerance : du jour {jour:.2f} dr, versee {verse:.2f}, net au menage {net:.2f}, impot {impot:.2f} ; avec un "
                 f"arriere de salaire {verse2:.2f} ; caisse de 50 : {verse3:.2f} | cessation : 181 j et {seuil * 1.01:.0f} dr -> "
                 f"liquidee {tombe}, patron chomeur {chomeur} ; 179 j -> {jeune} ; sous le seuil -> {petit} ; sous 40 % -> "
-                f"{minoritaire} ; ferme aux vieux arrieres epargnee {ferme_tient} ; conservation {tenue and tenue0}")
+                f"{minoritaire} ; ferme aux vieux arrieres epargnee {ferme_tient} ; presomption suspendue dans le monde {suspendue} ; conservation {tenue and tenue0}")
 
 
 TESTS = [test_budget_parts, test_identite_comptable, test_faillite, test_chomage, test_prix_choc_de_demande,
