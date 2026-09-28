@@ -32,6 +32,8 @@ POINTS = ((37.75, 23.95), (37.45, 24.60))                 # ouest et est de Kéa
 DEPART = (37.60, 24.25)
 F15C, LOADOUT, ALT = 3500, 16934, 6000
 CANARI_S, POSITIONS_S, POINT_S, PATROUILLE_S = 30, 60, 600, 600
+# Chemin complet : sous tmux, le PATH de WSL n'a pas les dossiers Windows ( 29/09 : mémoire à null ).
+POWERSHELL = "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
 
 
 def taille_journaux(logs=LOGS):
@@ -45,7 +47,7 @@ def taille_journaux(logs=LOGS):
 def memoire_command():
     """Octets de mémoire du processus Command de CMO ( interop WSL -> Windows ), ou None."""
     try:
-        r = subprocess.run(["powershell.exe", "-NoProfile", "-Command",
+        r = subprocess.run([POWERSHELL, "-NoProfile", "-Command",
                             "(Get-Process Command -ErrorAction SilentlyContinue).WorkingSet64"],
                            capture_output=True, text=True, timeout=20)
         return int(r.stdout.strip().splitlines()[-1])
