@@ -829,6 +829,70 @@ def brancher_revenu_minimum(p):
         p.routine(18, 0, "etat", _revenu_minimum)
 
 
+# ================================================================== l allocation pour enfant ( 28/09, chef de projet )
+# L allocation A21 ( loi 4512/2018 ; OPEKA ) : par mois et par enfant mineur, selon le revenu declare EQUIVALENT du menage
+# ( revenu annuel / ( 1 + 0,5 par adulte de plus + 0,25 par enfant ) ) : categorie A jusqu a 6 000 euros par an, 70 euros
+# pour le premier et le deuxieme enfant, 140 a partir du troisieme ; B de 6 001 a 10 000 euros, 42 et 84 ; C de 10 001
+# a 15 000 euros, 28 et 56 ; au-dela, rien ( OPEKA, « Επίδομα παιδιού Α21 - Συχνές ερωτήσεις » ; taxheaven.gr, « Ποιοι
+# δικαιούνται επίδομα τέκνων και τι ποσό » ; idika.gr, « Επίδομα Παιδιού ( Α21 ) » ). Versee en six fois par an : tous
+# les deux mois, les deux mois d un coup, a 18 h apres le KEA. Le revenu : celui des six derniers mois clos du test du
+# KEA ( HMT-126 a ), porte a l annee - la loi lit la derniere declaration annuelle ( simplification ecrite ). Les
+# etudiants de 18 a 24 ans, eligibles dans la loi, ne sont pas comptes ( A VERIFIER ) ; la condition de residence
+# ( cinq ans ) vaut pour tous les habitants du monde. Pourquoi : les 9 morts de faim qui restaient sur Altis ( 90 jours,
+# avec HMT-126 a ) etaient tous des enfants de 10 a 15 ans, de menages sans aucun revenu.
+A21_CATEGORIES = ((6000.0, 70.0), (10000.0, 42.0), (15000.0, 28.0))   # ( revenu equivalent annuel plafond, euros par mois )
+A21_RANG_DOUBLE = 3                                                   # a partir du troisieme enfant, le double
+A21_PERIODE_J = 2 * EC.MOIS_J
+
+
+def _allocation_enfant(p):
+    """18 h, le premier jour de chaque periode de deux mois ( apres le KEA ) : l allocation A21 de chaque menage."""
+    w = p.w
+    if not p.a("economie") or p.jour % A21_PERIODE_J != 0: return
+    tb = w.table; n = tb.n; M = len(w.menages); L = p.socle.livre; g = w.gouv
+    cm = p.colonnes["menage"]; ch = p.colonnes["habitant"]
+    _poser_comptes_kea(p); cm.assurer(M)
+    viv = np.nonzero((tb.vivant[:n] == 1) & (tb.menage[:n] >= 0))[0]
+    mid = tb.menage[viv].astype(np.int64); ok = mid < M; viv, mid = viv[ok], mid[ok]
+    age = (p.jour - ch["naissance_j"][viv].astype(np.float64)) / 365.0 if "naissance_j" in ch else np.full(len(viv), 30.0)
+    adultes = np.bincount(mid[age >= AGE_ADULTE_KEA], minlength=M)[:M].astype(np.float64)
+    enfants = np.bincount(mid[age < AGE_ADULTE_KEA], minlength=M)[:M].astype(np.float64)
+    echelle = np.maximum(1.0, 1.0 + 0.5 * np.maximum(0.0, adultes - 1.0) + 0.25 * enfants) if M else np.zeros(0)
+    annuel_euros = sum(cm[c][:M] for c in KEA_COMPTES) * (12.0 / KEA_MOIS_TEST) * EUROS_PAR_DRACHME
+    equivalent = annuel_euros / echelle
+    base = np.select([equivalent <= s for s, _ in A21_CATEGORIES], [e for _, e in A21_CATEGORIES], 0.0)
+    rang = A21_RANG_DOUBLE - 1
+    mensuel = base * (np.minimum(enfants, rang) + 2.0 * np.maximum(0.0, enfants - rang))
+    dis = cm["dissous"][:M] if "dissous" in cm else np.zeros(M, np.int8)
+    du = np.where(dis == 0, mensuel * (A21_PERIODE_J / EC.MOIS_J) / EUROS_PAR_DRACHME, 0.0)
+    verse = 0.0
+    for k in np.nonzero(du > 0.01)[0].tolist():
+        verse += L.transferer(g, w.menages[k], float(du[k]), "allocation_enfant")
+    if verse > 0: p.compter("allocation_enfant", verse)
+    manque = float(du.sum()) - verse
+    if manque > 0.01: p.compter("allocation_enfant_impayee", manque)
+
+
+def _tenir_revenu_declare(p):
+    """18 h : les comptes du revenu declare, quand le KEA n est pas branche pour les tenir."""
+    if p.a("economie"): _revenu_declare_6_mois(p, p.colonnes["menage"], len(p.w.menages))
+
+
+def brancher_allocation_enfant(p):
+    """Pose l allocation pour enfant ( une fois ), apres le KEA ; sans KEA, une routine tient les comptes du revenu
+    declare. Idempotent."""
+    _poser_comptes_kea(p)
+    p.socle.livre.declarer_motif("allocation_enfant", "prestation", "etat")
+    J = p.socle.journal
+    for t in ("allocation_enfant", "allocation_enfant_impayee"):
+        if t not in getattr(J, "types", {}): J.declarer(t, "etat", "compte")
+    r18 = p.routines.get(18 * 60, ())
+    if not any(f is _revenu_minimum for _, _, f in r18) and not any(f is _tenir_revenu_declare for _, _, f in r18):
+        p.routine(18, 0, "etat", _tenir_revenu_declare)
+    if not any(f is _allocation_enfant for _, _, f in p.routines.get(18 * 60, ())):
+        p.routine(18, 0, "etat", _allocation_enfant)
+
+
 def _paie_fiscale(p):
     """18 h, juste apres la paie du moteur : ce que chaque menage a recu ( sa caisse contre la photo de 17 h 50 ) est
     reparti entre ses membres - salaires et pensions prevus sur leurs heures, le reste aux non salaries - ; le revenu
@@ -1981,6 +2045,7 @@ def installer(p):
     p.poser(((17 * 60 + 50 - minute) % (24 * 60)) // C.MINUTES_PAR_PAS, "etat_photo_paie", 0)
     p.routine(18, 1, "etat", _paie_fiscale)
     brancher_revenu_minimum(p)                      # le KEA ( 18 h, rang 0 : avant la paie fiscale ) - tous les mondes
+    brancher_allocation_enfant(p)                   # l allocation A21 ( apres le KEA ) - tous les mondes
     p.routine(10, 40, "etat", _controles_du_jour)
     p.routine(10 + 10 / 60, 40, "etat", _mois_fiscal)
     p.routine(18 + 20 / 60, 40, "etat", _recouvrer)
