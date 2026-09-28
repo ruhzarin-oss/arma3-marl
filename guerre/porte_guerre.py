@@ -170,6 +170,10 @@ G21 LE REVENU MINIMUM GARANTI ( KEA, 27/09, ecrite avant la mesure ) : dans une 
    drachmes par jour, est sous les salaires, les pensions ( 20 par jour ) et les indemnites du moteur, et le revenu lisse
    sur 60 jours ne tombe sous lui que des mois apres la perte d un revenu. Le versement se juge sur soixante menages
    rendus eligibles a la main ; l effet sur la faim sur 200 jours, les 20 derniers, au meme seuil. )
+   AMENDEE le 28/09 ( HMT-126 a de Classes ) : le KEA teste le revenu declare des six derniers mois ( art. 235 de la loi
+   4389/2016, DMC 97046/2023 ) et plafonne l echelle a 4,5 ; le versement attendu se calcule sur ces comptes ( les soixante
+   menages cibles en ont six a zero ). Sur 13335f3, l ancien calcul ( revenu lisse ) attendait 593,22 et le KEA versait 0 ;
+   au revenu declare : 593,22 verses, pire ecart 1,8e-15.
    AMENDEE le 27/09 APRES avoir vu la mesure ( chef de projet ) : le critere etait ecrit sur un seul monde ; sur le
    tronc 12d226b, les graines 1 a 4 ( exploration, au rapport ) donnaient -20, -25, -36 et -48 % ( 8,8 % contre 13,4 % en
    moyenne ). Nouveau critere, juge sur 4 graines NEUVES ( 5 a 8 ) : petite Stratis a l echelle 20, 200 jours, la faim
@@ -807,11 +811,15 @@ def main():
     viv = np.nonzero((tb21.vivant[:n21] == 1) & (tb21.menage[:n21] >= 0))[0]; mid = tb21.menage[viv].astype(np.int64)
     age = (p21.jour - ch21["naissance_j"][viv].astype(np.float64)) / 365.0
     ad = np.bincount(mid[age >= 18], minlength=M21)[:M21].astype(float); en = np.bincount(mid[age < 18], minlength=M21)[:M21].astype(float)
-    ech = np.where(ad > 0, 1 + 0.5 * np.maximum(0, ad - 1) + 0.25 * en, 0.0)
-    seuil = 216.0 * ech / 30.0 / 1.15; rev = np.maximum(0.0, cm["eco_revenu"][:M21] - cm["rmg_lisse"][:M21]); avoirs = 7200.0 * ech / 1.15
+    # ( 28/09, HMT-126 a ) le test de ressources du KEA lit le revenu DECLARE des six derniers mois clos ( comptes rmg_m0 a
+    # rmg_m5 ), plus le revenu lisse, et l echelle est plafonnee a 4,5 : le versement attendu se calcule de meme. Les
+    # soixante menages cibles ont six mois declares a zero ; ce que la porte prouve ne change pas.
+    ech = np.where(ad > 0, np.minimum(ET21.KEA_PLAFOND_ECHELLE, 1 + 0.5 * np.maximum(0, ad - 1) + 0.25 * en), 0.0)
+    seuil = 216.0 * ech / 30.0 / 1.15; avoirs = 7200.0 * ech / 1.15
     cibles21 = np.nonzero((cm["dissous"][:M21] == 0) & (ad > 0))[0][:60]          # soixante menages sans revenu, presque sans avoirs
     cm["eco_revenu"][cibles21] = 0.0; cm["rmg_lisse"][cibles21] = 0.0; w21.table.menages.caisse[cibles21] = 10.0
-    rev = np.maximum(0.0, cm["eco_revenu"][:M21] - cm["rmg_lisse"][:M21])
+    for c in ET21.KEA_COMPTES + ("rmg_mois",): cm[c][cibles21] = 0.0
+    rev = sum(cm[c][:M21] for c in ET21.KEA_COMPTES) / (ET21.KEA_MOIS_TEST * ET21.EC.MOIS_J)   # le jour 3 : ni glissement, ni paie en cours
     caisse0 = w21.table.menages.caisse[:M21].copy(); g0 = w21.gouv.caisse
     attendu = np.where((cm["dissous"][:M21] == 0) & (ad > 0) & (caisse0 <= avoirs), np.maximum(0.0, seuil - rev), 0.0)
     attendu[attendu <= 0.01] = 0.0
