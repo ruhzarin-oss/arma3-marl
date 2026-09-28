@@ -88,6 +88,11 @@ def _convois(w, echelle):
     if getattr(w, "pays", None) is not None and w.pays.a("travail"):
         from .pays import d04_travail as TV
         TV.brancher_impayes(w.pays)                      # idempotent : une ile d avant HMT-126 a n a pas tr_paye_j
+    if getattr(w, "pays", None) is not None and w.pays.a("population"):
+        cm = w.pays.colonnes["menage"]                   # une ile d avant HMT-136 n a pas la colonne des morts de faim
+        if "morts_faim" not in cm:
+            import numpy as _np
+            cm.ajouter("morts_faim", _np.int32, 0); cm.assurer(len(w.menages))
     return w
 
 
