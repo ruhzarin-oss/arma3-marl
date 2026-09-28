@@ -1,0 +1,94 @@
+{
+ "debut": "2026-09-29 00:21:07",
+ "criteres": {
+  "C1_canaris": {
+   "passe": true,
+   "n": 100,
+   "pertes": 0,
+   "mediane_ms": 983.0,
+   "p99_ms": 993,
+   "max_ms": 993
+  },
+  "C2_unites": {
+   "passe": true,
+   "pose_1": {
+    "numero": 1,
+    "camp": "Stratis",
+    "lat": 37.57,
+    "lon": 24.05,
+    "recu": {
+     "n_cmd": 329,
+     "n_sync_lu": 329,
+     "coeur": 1172,
+     "rtt_ms": 936,
+     "nonce": 235195,
+     "lignes": 1,
+     "recalages": 0,
+     "redemarrages": 0,
+     "lecteur": 2,
+     "build": "1.10.1900.20"
+    }
+   },
+   "pose_2": {
+    "numero": 2,
+    "camp": "Malden",
+    "lat": 37.59,
+    "lon": 24.05,
+    "recu": {
+     "n_cmd": 330,
+     "n_sync_lu": 330,
+     "coeur": 1173,
+     "rtt_ms": 985,
+     "nonce": 897017,
+     "lignes": 1,
+     "recalages": 0,
+     "redemarrages": 0,
+     "lecteur": 2,
+     "build": "1.10.1900.20"
+    }
+   },
+   "etat": {
+    "Stratis": {
+     "hmt_vivants": 1,
+     "unites": 1
+    },
+    "Malden": {
+     "hmt_vivants": 1,
+     "unites": 1
+    }
+   },
+   "positions": 2,
+   "deplacement_deg": 0.17991,
+   "nettoyer": {
+    "avant": 2,
+    "apres": 0
+   }
+  },
+  "C3_erreur": {
+   "passe": true,
+   "exception": "commande n=337 exécutée, le Lua a échoué : [string \"hmt_pont/cmd_337.lua\"]:1: erreur volontaire du banc"
+  },
+  "C4_gros_recu": {
+   "passe": true,
+   "lignes": 3000
+  },
+  "C5_endurance": {
+   "passe": true,
+   "minutes": 10.0,
+   "canaris": 100,
+   "pertes": 0,
+   "mediane_ms": 982.0
+  }
+ },
+ "sonde": "SONDE 0 0 0 0 1 2",
+ "canari": {
+  "pont": "vivant",
+  "actuateur_n": 225,
+  "version_lua": 3,
+  "build": "1.10.1900.20",
+  "build_certifie": null,
+  "lecteur": "RunScript"
+ },
+ "fin": "2026-09-29 00:34:00",
+ "passe": true
+}
