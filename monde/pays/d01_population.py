@@ -375,6 +375,8 @@ def _apres_deces(p, h, cause):
     col = p.colonnes["habitant"]
     col["deces_j"][h.id] = p.jour
     col["cause_deces"][h.id] = CAUSES.index(cause)
+    if cause == "faim" and h.menage is not None:              # HMT-136 : le menage garde le compte de ses morts de faim
+        p.col("menage", "morts_faim")[h.menage.id] += 1
     col["enceinte"][h.id] = 0
     c = int(col["conjoint"][h.id])
     conjoint_vivant = c >= 0 and p.w.habitants[c].vivant
@@ -822,7 +824,8 @@ def installer(p):
                             ("deces_j", np.int32, -1), ("cause_deces", np.int8, 0), ("inscrit", np.int8, 0),
                             ("deces_declare", np.int8, 0)):
         ch.ajouter(nom, dt, defaut)
-    for nom, dt, defaut in (("dissous", np.int8, 0), ("faim7", np.int8, 0), ("demenage_j", np.int32, -100000)):
+    for nom, dt, defaut in (("dissous", np.int8, 0), ("faim7", np.int8, 0), ("demenage_j", np.int32, -100000),
+                            ("morts_faim", np.int32, 0)):
         cm.ajouter(nom, dt, defaut)
     ch.assurer(len(w.habitants)); cm.assurer(len(w.menages))
     L = p.socle.livre
