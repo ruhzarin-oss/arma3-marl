@@ -1162,6 +1162,7 @@ def _loger_en_urgence(p, d):
         if n == 0: continue
         motif = d.cherche[mid]
         b = _abri(p, d, mg.domicile, n)
+        if b is None: continue                            # ni reserve ni devises : il cherche toujours, sans abri
         _occuper(p, d, mg, b, ABRI)
         d.cherche[mid] = motif                            # il cherche toujours, depuis son abri
         d.stats["abris_donnes"] += 1; p.compter("relogement_urgence")
@@ -1180,7 +1181,10 @@ def _abri(p, d, lieu, n):
         b = _inscrire(p, d, o, "abri_urgence", d.k_lieu[lieu.id], surf, annee(p), 3)
         return b
     prix = surf * PRIX_ABRI_M2_EUROS / EUROS
-    p.socle.livre.payer_l_exterieur(g, prix, "achat_abri")
+    EX = importlib.import_module(".d07_exterieur", __package__)
+    if EX.part_en_devises(p, prix) < 1.0:                 # pas de devises : l abri importe n arrive pas ( refus compte )
+        EX.payer_en_devises(p, g, prix, "achat_abri", entier=True); return None
+    EX.payer_en_devises(p, g, prix, "achat_abri")
     b = _nouveau(p, d, "abri_urgence", g, lieu.id, surf, annee(p), "importe", 2)
     d.stats["abris_importes"] += 1
     p.noter("abri_importe", lieu=lieu.id, surface=round(surf, 1))
@@ -1390,7 +1394,7 @@ def _materiaux(p):
                 manque -= q
                 if manque > EPS and p.jour - ch.debut_j >= DELAI_IMPORT_J:
                     pu = IND.BIENS[x][2] * (1.0 + FRET_IMPORT)
-                    paye = p.socle.livre.payer_l_exterieur(ch.btp, manque * pu, "import_materiaux")
+                    paye = importlib.import_module(".d07_exterieur", __package__).payer_en_devises(p, ch.btp, manque * pu, "import_materiaux")
                     q = paye / pu
                     if q > 0:
                         p.socle.livre.importer(ch.stock, p.socle.catalogue.id(x), q, "import_materiaux")
@@ -1454,11 +1458,17 @@ def _avancer(p, d, ch, heures):
     nouvelle = min(visee, permis)
     delta = nouvelle - ch.avancement
     if delta <= 1e-12: return
+    EX = importlib.import_module(".d07_exterieur", __package__)
+    part = EX.part_en_devises(p, PART_SECOND_OEUVRE * ch.devis * delta)
+    if part < 1.0:                                        # le second oeuvre importe non paye : le chantier n avance que d autant
+        EX.refuser_devises(p, PART_SECOND_OEUVRE * ch.devis * delta * (1.0 - part))
+        nouvelle = ch.avancement + delta * part; delta = nouvelle - ch.avancement
+        if delta <= 1e-12: return
     for x, q in sorted(ch.besoins.items()):
         voulu = q * nouvelle - ch.consomme[x]
         if voulu > 0:
             ch.consomme[x] += L.consommer(ch.stock, cat.id(x), min(voulu, ch.stock[cat.id(x)]), "construction")
-    f = L.payer_l_exterieur(ch.btp, PART_SECOND_OEUVRE * ch.devis * delta, "second_oeuvre")
+    f = EX.payer_en_devises(p, ch.btp, PART_SECOND_OEUVRE * ch.devis * delta, "second_oeuvre")
     ch.btp.fournitures += f
     ch.avancement = nouvelle
     if ch.avancement >= 1.0 - 1e-12: _terminer(p, d, ch)

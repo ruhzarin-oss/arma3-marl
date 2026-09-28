@@ -1468,12 +1468,13 @@ def _depenses_du_mois(p, d, x, sal):
     for mk, pm in zip(marches, poids):
         if pm > 0 and st > 0: L.transferer(x, mk, st * pm, "sous_traitance_medias")
     imp = (PART_IMPORT_TEL * ht) if tel else (PART_PAPIER * ht if getattr(x, "genre", "") == "journal" else 0.0)
-    if imp > 0: L.payer_l_exterieur(x, imp, "equipement_telecom" if tel else "papier_journal")
+    from . import d07_exterieur as EX
+    if imp > 0: EX.payer_en_devises(p, x, imp, "equipement_telecom" if tel else "papier_journal")
     if tel:
         charges = sal * len(x.employes) + st + imp
         exces = x.caisse - RESERVE_MOIS * charges
         if exces > 0 and x.part_etrangere > 0:
-            L.payer_l_exterieur(x, exces * x.part_etrangere, "dividende_exterieur_telecom")
+            EX.payer_en_devises(p, x, exces * x.part_etrangere, "dividende_exterieur_telecom")
 
 
 def _recruter(p, d):

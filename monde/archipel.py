@@ -33,10 +33,11 @@ def graine_ile(graine, ile):
     return int.from_bytes(hashlib.sha256(f"{graine}:{ile}".encode()).digest()[:4], "little")
 
 
-def creer_ile(ile, graine, echelle, llm=False):
+def creer_ile(ile, graine, echelle, llm=False, demographie=None):
     """Un pays : son monde, ses domaines, son etalon-or ( F1 ) ; avec `llm`, son gouvernement est joue par Qwen, qui
-    sait de quel pays il est le gouvernement et dans quelle monnaie il compte."""
-    w = W.Monde(graine=graine_ile(graine, ile), iles=(ile,), echelle=echelle, cerveau="llm" if llm else "regles")
+    sait de quel pays il est le gouvernement et dans quelle monnaie il compte. `demographie` : voir population.generer."""
+    w = W.Monde(graine=graine_ile(graine, ile), iles=(ile,), echelle=echelle, cerveau="llm" if llm else "regles",
+                demographie=demographie)
     w.echelle_convois = float(echelle)
     P.installer(w, LIVRES)
     OR.installer(w, w.pays)
@@ -104,8 +105,9 @@ class Ile:
         if ordre == "resume":
             t = self.w.table; n = t.n
             return {"ile": self.nom, "jour": self.w.jour, "pas": self.w.pas, "habitants": n, "vivants": int(t.vivant[:n].sum())}
-        if ordre == "instantane":
-            with open(args[0], "wb") as f: pickle.dump(self.w, f, protocol=pickle.HIGHEST_PROTOCOL)
+        if ordre == "instantane":                   # ecrit a cote puis renomme : un lecteur ne voit jamais une ile a moitie
+            with open(args[0] + ".tmp", "wb") as f: pickle.dump(self.w, f, protocol=pickle.HIGHEST_PROTOCOL)
+            os.replace(args[0] + ".tmp", args[0])
             return True
         if ordre == "corps":                        # le recensement de l archipel : qui a un corps ici, qui est absent
             t = self.w.table; n = t.n
@@ -284,9 +286,10 @@ class Archipel:
         memoire de WSL ( 47 Go ) et fige la station - chaque sauvegarde a son propre pic."""
         os.makedirs(dossier, exist_ok=True)
         for n in self.noms: self.commande(n, "instantane", os.path.join(dossier, f"{n}.pkl"))
-        with open(os.path.join(dossier, "pont.pkl"), "wb") as f:
+        with open(os.path.join(dossier, "pont.pkl.tmp"), "wb") as f:
             pickle.dump({"pas": self.pas, "mer": self.mer, "journal": self.journal, "noms": self.noms,
                          "graine": self.graine, "echelle": self.echelle}, f)
+        os.replace(os.path.join(dossier, "pont.pkl.tmp"), os.path.join(dossier, "pont.pkl"))
 
     def commande(self, ile, *m):
         if self.parallele: self.tuyaux[ile].send(m); return self.tuyaux[ile].recv()

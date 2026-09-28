@@ -1358,7 +1358,7 @@ def _combustibles(p):
                         manque -= q
                 if b in ("gaz", "charbon") or res.stock[i] >= JOURS_MINI * j: continue
                 prix = cat[b].prix_monde * (1.0 + FRET_IMPORT)
-                paye = L.payer_l_exterieur(res.proprietaire, manque * prix, "import_combustible")
+                paye = importlib.import_module(".d07_exterieur", __package__).payer_en_devises(p, res.proprietaire, manque * prix, "import_combustible", essentiel=True)
                 if paye > EPS:
                     L.importer(res.stock, i, paye / prix, "import_combustible")
                     p.compter("import_combustible", paye)
@@ -1496,7 +1496,7 @@ def _importer_gazole(p, E):
     gros = prix_depart(p, "carburant")        # ce que le marche paie au raffineur : le prix affiche moins la marge du detaillant
     if dem <= 0 or stock >= COUVERTURE_GAZOLE_J * dem or gros <= parite: return
     q = min(COUVERTURE_GAZOLE_J * dem - stock, IMPORT_GAZOLE_MAX_J * dem)
-    paye = L.payer_l_exterieur(E.raffinerie, q * parite, "import_combustible")
+    paye = importlib.import_module(".d07_exterieur", __package__).payer_en_devises(p, E.raffinerie, q * parite, "import_combustible", essentiel=True)
     if paye > EPS:
         L.importer(StocksE1(E.raffinerie.stocks, E.noms), E.ids["carburant"], paye / parite, "import_combustible")
         p.compter("import_combustible", paye)
@@ -1997,7 +1997,7 @@ def _stock_initial(p, E):
                 if b not in E.combustibles or b in ("gaz", "charbon") or (b == "carburant" and u.entreprise is not None): continue
                 q = JOURS_STOCK * mj_combustible(u.tech, u.pmax, FACTEUR_CHARGE * u.pmax) * 24.0 / E.combustibles[b].mj()
                 prix = cat[b].prix_monde * (1.0 + FRET_IMPORT)
-                paye = L.payer_l_exterieur(u.reservoir.proprietaire, q * prix, "import_combustible")
+                paye = importlib.import_module(".d07_exterieur", __package__).payer_en_devises(p, u.reservoir.proprietaire, q * prix, "import_combustible", essentiel=True)
                 if paye > EPS: L.importer(u.reservoir.stock, E.ids[b], paye / prix, "import_combustible")
                 break
 

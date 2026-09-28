@@ -65,7 +65,26 @@ def releve_de_guerre(w):
             "recettes": math.fsum(s[1] for s in nouveaux), "part_defense": part_defense(e.budget),
             "euros_par_unite": float(o["dernier_taux"]), "monnaie": o.get("monnaie"), "militaires": militaires(w),
             "occupees": sorted(getattr(w, "occupations", {})), "front": bilan_front(w), "faim": round(faim(w), 4),
-            "gouvernement": getattr(w.cerveau, "modele", "regles") if w.cerveau is not None else "regles"}
+            "gouvernement": getattr(w.cerveau, "modele", "regles") if w.cerveau is not None else "regles", **demographie(w)}
+
+
+def demographie(w):
+    """Les vivants, les morts de faim depuis la releve d avant ( domaine 1 ) et les reserves de change ( domaine 7 ).
+    La « faim » ne compte que les menages VIVANTS : elle baisse quand les affames meurent - 27/09, 41 089 morts de faim
+    a Stratis ( essai 19 ) et 41 260 a Malden ( essai 21 ) sont passes inapercus, la faim affichee tombait vers 0 %."""
+    tb = w.table; n = tb.n; p = getattr(w, "pays", None)
+    out = {"vivants": int(tb.vivant[:n].sum())}
+    if p is not None and p.a("population"):
+        from monde.pays import d01_population as D1
+        col = p.colonnes["habitant"]
+        tot = int(((col["cause_deces"][:n] == D1.CAUSES.index("faim")) & (col["deces_j"][:n] >= 0)).sum())
+        prec = getattr(w, "guerre_morts_faim", None)
+        w.guerre_morts_faim = tot
+        out["morts_de_faim"] = 0 if prec is None else tot - prec
+    if p is not None and p.a("exterieur"):
+        from monde.pays import d07_exterieur as X
+        out["reserves_euros"] = round(float(X.reserves_de_change(p)[0]))
+    return out
 
 
 JAMAIS = 10 ** 9            # la duree d un choc d occupation tant qu il n est pas leve
@@ -272,6 +291,19 @@ def bulletin_guerre(w):
             "source": "etat-major et Tresor, le jour meme"}
 
 
+def bulletin_famine(w):
+    """Les morts de faim ( domaine 1 ) d hier et des 30 derniers jours, les vivants : 27/09, 41 260 morts de faim a Malden
+    sans que son gouvernement le voie - la faim de son bulletin ne compte que les menages VIVANTS ( HMT-131 c )."""
+    p = getattr(w, "pays", None)
+    if p is None or not p.a("population"): return {}
+    from monde.pays import d01_population as D1
+    tb = w.table; n = tb.n; col = p.colonnes["habitant"]
+    faim = (col["cause_deces"][:n] == D1.CAUSES.index("faim")); dj = col["deces_j"][:n]
+    return {"morts_de_faim_hier": int((faim & (dj == int(w.jour) - 1)).sum()),
+            "morts_de_faim_30j": int((faim & (dj >= int(w.jour) - 30)).sum()), "vivants": int(tb.vivant[:n].sum()),
+            "source": "etat civil, le jour meme"}
+
+
 def bulletin_exterieur(w):
     """Ce que la banque centrale dit au gouvernement ( 27/09 ) : ses reserves de change et leur couverture en mois
     d importations, la parite. Sans devises, aucun import ne passe - ni les negociants, ni l Etat."""
@@ -285,6 +317,17 @@ def bulletin_exterieur(w):
     except (KeyError, AttributeError): return {}
 
 
+def refus_hier(w, fouille=5000):
+    """Les actions que le gouvernement a vues refusees a sa derniere decision, avec leur raison ( souvent les bornes
+    permises ) : un code qui les lit peut corriger au lieu de rejouer ( 27/09 : les gouvernements de Qwen rejouaient chaque
+    matin les memes actions refusees - fixer_budget hors bornes, importer sans credits )."""
+    ev = w.evenements
+    for e in reversed(ev[-fouille:]):
+        if e.get("type") == "decision_gouvernement":
+            return [{"action": a.get("action"), "raison": a.get("raison", "")} for a in e.get("actions", []) if not a.get("acceptee")]
+    return []
+
+
 class CerveauDeGuerre:
     def __init__(self, interieur, w):
         self.interieur, self.w = interieur, w
@@ -296,7 +339,8 @@ class CerveauDeGuerre:
     def empreinte(self): return getattr(self.interieur, "empreinte", None)
 
     def __call__(self, bulletin, memoire=""):
-        bulletin = dict(bulletin, guerre=bulletin_guerre(self.w), exterieur=bulletin_exterieur(self.w))
+        bulletin = dict(bulletin, guerre=bulletin_guerre(self.w), exterieur=bulletin_exterieur(self.w), refus_hier=refus_hier(self.w),
+                        famine=bulletin_famine(self.w))
         if self.interieur is None:
             from monde.pays import d06_etat as ET
             return ET.decider_regles_etat(bulletin), "regles"

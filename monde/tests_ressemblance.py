@@ -156,6 +156,34 @@ def test_falsificateur_morts():
                 f"{verdicts or 'aucun'}")
 
 
+def test_emigre_n_est_pas_mort():
+    """Faire emigrer des adultes ( un sur vingt parmi ceux qui laissent un autre adulte au menage, par le domaine 7, sur
+    une copie ) : la mortalite ne bouge pas, au deces pres. Controle positif : le compte brut des dates de deces, lui,
+    monte d autant ( le domaine 7 pose deces_j au jour de la sortie ) - c est ce qui doublait la mortalite du pays grec
+    le 27/09 ( 16 emigres sur 27 « deces » en 35 jours )."""
+    from .pays import d07_exterieur as D7
+    w, p, s = reference()
+    avant = _par_id(RS.mesurer(w, p, suivi=s))
+    w2, p2 = copie(w)
+    tb = w2.table; n = tb.n
+    gens = [w2.habitants[i] for i in np.nonzero(tb.vivant[:n] == 1)[0].tolist()
+            if D1.age_de(p2, w2.habitants[i]) >= D1.AGE_MAJEUR]
+    gens = [h for h in gens if h.menage is not None and len(D1.adultes_vivants(p2, h.menage)) >= 2][::20]
+    dj = p2.col("habitant", "deces_j")
+    brut0 = int((dj >= s.depuis_jour).sum()) if hasattr(s, "depuis_jour") else int((dj >= 0).sum())
+    partis = 0
+    for h in gens:
+        if h.vivant and len(D1.adultes_vivants(p2, h.menage)) >= 2: D7.emigrer(p2, [h]); partis += 1
+    brut1 = int((dj >= s.depuis_jour).sum()) if hasattr(s, "depuis_jour") else int((dj >= 0).sum())
+    apres = _par_id(RS.mesurer(w2, p2, suivi=s))
+    ma, mb = avant["mortalite"], apres["mortalite"]
+    meme = ma["evenements"] == mb["evenements"]
+    vu = brut1 - brut0 == partis and partis > 0
+    return meme and vu, (f"{partis} emigres poses : deces comptes {ma['evenements']} -> {mb['evenements']} "
+                         f"( identiques {'oui' if meme else 'NON'} ) ; controle positif : dates de deces brutes "
+                         f"+{brut1 - brut0} ( {'vu' if vu else 'NON VU'} )")
+
+
 def test_determinisme():
     w, p, s = reference()
     a, b = RS.mesurer(w, p, suivi=s), RS.mesurer(w, p, suivi=s)
@@ -230,7 +258,7 @@ def test_non_mesurable():
 
 
 TESTS = [test_references, test_controle_positif_synthetique, test_controle_positif_monde, test_falsificateur_lits,
-         test_falsificateur_morts, test_determinisme, test_lecture_seule, test_cout, test_non_mesurable]
+         test_falsificateur_morts, test_emigre_n_est_pas_mort, test_determinisme, test_lecture_seule, test_cout, test_non_mesurable]
 
 
 def main(noms):
