@@ -50,11 +50,13 @@ def _jouer(args):
         p.domaine("travail").marge_veille = None
     tb = w.table; col = p.colonnes["habitant"]
     j0 = int(w.jour); v0 = int(tb.vivant[:tb.n].sum())
-    ruptures = 0.0
-    for _ in range(jours):
-        E.jours(w, 1)
-        c = p.socle.journal.comptes.get("rupture_salaire_impaye") if hasattr(p.socle.journal, "comptes") else None
-        ruptures += c[0] if c else 0
+    cpt = [0]; rompre = TV.rompre_contrat
+    def compter(p_, h, motif="economique", involontaire=True):
+        if motif == "salaire_impaye": cpt[0] += 1
+        return rompre(p_, h, motif, involontaire)
+    TV.rompre_contrat = compter
+    for _ in range(jours): E.jours(w, 1)
+    ruptures = cpt[0]
     n = tb.n
     faim = int(((col["cause_deces"][:n] == D1.CAUSES.index("faim")) & (col["deces_j"][:n] >= j0)).sum())
     morts = int(((col["deces_j"][:n] >= j0)).sum())
