@@ -50,7 +50,9 @@ FICHE
    ( le lot attend a quai : prepositionner ). Temoin bete : tout ravitailler a parts egales ( mixte ), par la route ou
    par la mer. MESURE DU 26/09 ( scenario, graines 7, 8, 9 ) : regle -0,044, -0,025, -0,062 contre temoin -0,052,
    -0,027, -0,068 ; la premiere regle, qui attendait la reouverture de la mer, perdait ( -0,063, -0,038, -0,086 ) :
-   le temoin prepositionnait au port sans le savoir. Mer ouverte : regle 0,067 contre temoin 0,063 ( graine 7 ). La
+   le temoin prepositionnait au port sans le savoir. Mer ouverte : regle 0,067 contre temoin 0,063 ( graine 7 ). Le
+   28/09, carburant de garnison a 3 jours ( CIBLE_GARNISON ) : porte test_decision, regle 0,168 contre temoin 0,157,
+   hasard -0,186 ( part du choix 0,053, p 0,005 ; avant : -0,044, -0,052, -0,368 ). La
    porte de decision est un SCENARIO ( scenario_ravitaillement : 120 garnisons, 12 brigades, crise, mer fermee dix
    jours, routes coupees au hasard ) : le monde E1 n a que 6 bases.
 4. Evenements. Individuels : convoi_militaire ( de, vers, tonnes ), evacuation ( habitant, moyen, minutes ),
@@ -141,7 +143,15 @@ UPK = np.array([v.unites_par_km for v in A.VEHICULES])          # unites de gazo
 KMJ = np.array([KM_COMBAT[v.categorie] for v in A.VEHICULES])
 # Les dotations reglementaires en jours de combat ( lignes de soutien de l OTAN : premiere ligne a l unite, deuxieme a
 # la brigade, reserve de guerre nationale ; l OTAN demandait 30 jours de soutien en reserve - a verifier ) : a calibrer.
-CIBLE_GARNISON = (1.0, 1.0, 3.0)                         # carburant, munitions ( la dotation de combat ), vivres
+# 28/09 : la premiere ligne garde plusieurs jours AU-DESSUS du minimum pour operer - « un bataillon se deploie avec trois
+# jours d approvisionnement de combat » ( vivres, carburant, munitions : J. Auran, « Combat supply operations »,
+# European Security & Defence, 8 mars 2024 ; les « jours d approvisionnement », days of supply, de la doctrine ). Le
+# carburant etait a 1 jour, pile sur le seuil d autonomie de l embuscade et de la defense ( domaine 27 : 1 jour ) : une
+# garnison pleine y etait au bord, et le premier litre consomme refusait la tactique ( test_preconditions, 4 variantes
+# sur 7 du tronc 24ac15d ). Carburant et vivres a 3 jours ; les munitions restent la dotation de combat de l armurerie
+# du domaine 25 ( 1 jour ; 3 jours au reel, a calibrer avec lui ) : le domaine 27 lit leur seuil a part.
+#   https://euro-sd.com/2024/03/articles/36994/combat-supply-operations/
+CIBLE_GARNISON = (3.0, 1.0, 3.0)                         # carburant, munitions ( la dotation de combat ), vivres
 JOURS_BRIGADE = 3.0
 JOURS_NATIONAL = 30.0
 SEUIL_DEMANDE = 0.8                                      # une classe sous 80 % de sa dotation se redemande

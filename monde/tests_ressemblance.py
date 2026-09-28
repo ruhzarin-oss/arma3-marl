@@ -18,8 +18,15 @@ Un instrument qui ne sait pas echouer ne mesure rien. Sept portes, seuils ecrits
                       ( empreinte de monde/porte_domaines.py, resume, argent, mesure finale ) ; chaque preuve a son
                       controle positif : un milliardieme de drachme pose a la main est vu ;
   - cout            : mesurer un monde de 10 000 habitants coute moins d une seconde ;
-  - non mesurable   : sans le domaine, la ligne dit « non mesurable » et pourquoi, sans exception ni zero invente."""
-import hashlib, pickle, sys, time
+  - non mesurable   : sans le domaine, la ligne dit « non mesurable » et pourquoi, sans exception ni zero invente ;
+  - morts de faim ( 27/09, HMT-129 ) : des morts de faim posees a la main sont comptees une a une et sortent de la bande ;
+                      des morts naturelles et des emigres ne comptent pas ; la population sur celle du depart voit une
+                      ile qui meurt de faim ( un dixieme des vivants : le rapport baisse d un dixieme, hors bande ) ;
+  - inflation ( 27/09, HMT-128 ) : une serie exacte a 3 % par an est rendue a 3 %, sure, sur 120 jours ; la meme sur 45
+                      jours est fragile, sur 20 non mesurable ; une marche au hasard de 0,5 % par jour a un intervalle
+                      qui deborde la bande sur 30 jours et se resserre comme la racine de la fenetre ; 50 % par an sur 120
+                      jours est hors bande et sur."""
+import collections, hashlib, math, pickle, sys, time
 import numpy as np
 from . import config as C, ressemblance as RS, porte_domaines as PD
 from .pays import essais as E, d01_population as D1
@@ -65,7 +72,7 @@ def test_references():
     vides = [i for i, r in refs.items() if not r["source"].strip() or not r["adresse"].startswith("http")
              or len(r["justification"]) < 20 or len(r["definition"]) < 20]
     av = [i for i, r in refs.items() if r.get("a_verifier")]
-    ok = not manque and not orphelines and not vides and 30 <= len(refs) <= 45
+    ok = not manque and not orphelines and not vides and 30 <= len(refs) <= 50     # 27/09 : 46 avec la faim et les migrations
     return ok, (f"{len(refs)} indicateurs ( {len(av)} a verifier : {', '.join(av) or 'aucun'} ) ; sans mesure {manque} ; "
                 f"mesures sans reference {orphelines} ; fiches incompletes {vides}")
 
@@ -257,8 +264,102 @@ def test_non_mesurable():
                                  f"{M['rapport_masculinite']['detail']} »")
 
 
+def test_morts_de_faim():
+    """Controle positif : vingt morts de faim posees a la main ( D1.deceder, cause faim, sur une copie ) sont vingt
+    evenements de plus et sortent l indicateur de sa bande. Falsificateur : vingt morts naturelles et dix emigres ( sur
+    une autre copie ) laissent le compte des morts de faim identique ; la mortalite, elle, compte les vingt."""
+    from .pays import d07_exterieur as D7
+    w, p, s = reference()
+    avant = _par_id(RS.mesurer(w, p, suivi=s))
+    def vivants(w2): return np.nonzero(w2.table.vivant[:w2.table.n] == 1)[0]
+    w2, p2 = copie(w)
+    for i in vivants(w2)[::97][:20].tolist(): D1.deceder(p2, w2.habitants[i], "faim")
+    faim = _par_id(RS.mesurer(w2, p2, suivi=s))
+    w3, p3 = copie(w)
+    for i in vivants(w3)[::97][:20].tolist(): D1.deceder(p3, w3.habitants[i], "naturelle")
+    partis = 0
+    for i in vivants(w3)[::53].tolist():
+        h = w3.habitants[i]
+        if partis < 10 and h.vivant and D1.age_de(p3, h) >= D1.AGE_MAJEUR and h.menage is not None and \
+                len(D1.adultes_vivants(p3, h.menage)) >= 2:
+            D7.emigrer(p3, [h]); partis += 1
+    autre = _par_id(RS.mesurer(w3, p3, suivi=s))
+    a, b, c = avant["deces_faim"], faim["deces_faim"], autre["deces_faim"]
+    vu = b["evenements"] - a["evenements"] == 20 and b["verdict"] == RS.HORS and b["ecart"] > 1
+    ignore = c["evenements"] == a["evenements"] and c["simule"] == a["simule"] and partis == 10
+    morts = autre["mortalite"]["evenements"] - avant["mortalite"]["evenements"] == 20
+    return vu and ignore and morts, (f"morts de faim {a['evenements']} -> {b['evenements']} avec 20 posees "
+                                     f"( {RS._fmt(b['simule'])} pour 100 000, {b['verdict']} {b['ecart']:+.1f} ) ; 20 morts "
+                                     f"naturelles et {partis} emigres : {c['evenements']} ( {'ignores' if ignore else 'COMPTES'} ) ; "
+                                     f"la mortalite compte les 20 morts naturelles : {'oui' if morts else 'NON'}")
+
+
+def test_population_rapport():
+    """Controle positif : un vivant sur dix meurt de faim ( sur une copie ) : le rapport des vivants a la population du
+    depart baisse d exactement ces morts et sort de sa bande, alors que la part des menages sans nourriture, qui ne
+    compte que les vivants, n en sait rien. Le monde intact de trois jours est dans la bande ( pas de fausse alarme )."""
+    w, p, s = reference()
+    avant = _par_id(RS.mesurer(w, p, suivi=s))["population_rapport"]
+    w2, p2 = copie(w)
+    ids = np.nonzero(w2.table.vivant[:w2.table.n] == 1)[0][::10].tolist()
+    for i in ids: D1.deceder(p2, w2.habitants[i], "faim")
+    apres = _par_id(RS.mesurer(w2, p2, suivi=s))["population_rapport"]
+    v0 = int(p.domaine("population").vivants_depart)
+    exact = abs((avant["simule"] - apres["simule"]) - len(ids) / v0) < 1e-12
+    ok = avant["verdict"] == RS.DANS and apres["verdict"] == RS.HORS and exact
+    return ok, (f"monde intact : {avant['simule']:.4f} ( {avant['verdict']} ) ; {len(ids)} morts de faim posees : "
+                f"{apres['simule']:.4f} ( {apres['verdict']} {apres['ecart']:+.1f} ; baisse exacte {'oui' if exact else 'NON'} ) ; "
+                f"menages sans nourriture du jour ( moteur, vivants seulement ) : {w2.stats_jour.get('menages_sans_nourriture', 0)} "
+                f"inchange")
+
+
+class _Indice:
+    """Un contexte de mesure reduit a ce que lit l inflation : l indice du domaine 2 et la longueur de la fenetre."""
+    def __init__(self, valeurs, jours):
+        bc = type("BC", (), {})(); bc.indice = type("I", (), {})()
+        bc.indice.valeurs = collections.deque(valeurs, maxlen=800)      # comme le domaine 2 ( d02_banques.Indice )
+        dom = type("D", (), {})(); dom.bc = bc
+        self.p = type("P", (), {"domaine": lambda s_, nom: dom})()
+        self.jours = float(jours)
+    def exiger(self, *d): return None
+
+
+def test_inflation():
+    refs = RS.charger()
+    r = {"inflation": refs["inflation"]}
+    def juge(valeurs, k):
+        try: m = RS._mesure_inflation(_Indice(valeurs, k))
+        except RS.NonMesurable as e: return None, str(e)
+        return RS.juger(r, {"inflation": m})[0], m
+    serie = lambda k, taux, bruit=0.0, g=1: 100.0 * np.exp(np.arange(k + 1) * math.log1p(taux / 100.0) / RS.JOURS_AN
+                                                          + np.concatenate(([0.0], np.cumsum(
+                                                              np.random.default_rng(g).normal(0.0, bruit, k)))))
+    l120, _ = juge(serie(120, 3.0), 120)
+    exact = l120 is not None and abs(l120["simule"] - 3.0) < 1e-9 and l120["verdict"] == RS.DANS and l120["surete"] == "sur"
+    l45, _ = juge(serie(45, 3.0), 45)
+    fr45 = l45 is not None and l45["surete"].startswith("fragile") and abs(l45["simule"] - 3.0) < 1e-9
+    l20, msg20 = juge(serie(20, 3.0), 20)
+    nm20 = l20 is None and "30 jours" in msg20
+    largeurs = {}
+    for k in (30, 120, 365):
+        l, _ = juge(serie(k, 3.0, 0.005, g=7), k)
+        a, b = RS._mesure_inflation(_Indice(serie(k, 3.0, 0.005, g=7), k)).intervalle
+        largeurs[k] = b - a
+    bas, haut = refs["inflation"]["bande"]
+    deborde = largeurs[30] > (haut - bas)
+    resserre = 1.3 < largeurs[30] / largeurs[365] < 8.0
+    l50, _ = juge(serie(120, 50.0), 120)
+    faux = l50 is not None and l50["verdict"] == RS.HORS and l50["surete"] == "sur"
+    ok = exact and fr45 and nm20 and deborde and resserre and faux
+    return ok, (f"3 %/an exact sur 120 j : {RS._fmt(l120['simule'])} {l120['verdict']} {l120['surete']} ; sur 45 j : "
+                f"{l45['surete'][:40]} ; sur 20 j : {'non mesurable' if nm20 else 'MESURE'} ; bruit 0,5 %/j, largeur de "
+                f"l intervalle 30 j {largeurs[30]:.0f} points ( bande {haut - bas:.0f} ), 120 j {largeurs[120]:.0f}, 365 j "
+                f"{largeurs[365]:.0f} ; 50 %/an sur 120 j : {l50['verdict']} {l50['surete']}")
+
+
 TESTS = [test_references, test_controle_positif_synthetique, test_controle_positif_monde, test_falsificateur_lits,
-         test_falsificateur_morts, test_emigre_n_est_pas_mort, test_determinisme, test_lecture_seule, test_cout, test_non_mesurable]
+         test_falsificateur_morts, test_emigre_n_est_pas_mort, test_determinisme, test_lecture_seule, test_cout, test_non_mesurable,
+         test_morts_de_faim, test_population_rapport, test_inflation]
 
 
 def main(noms):
