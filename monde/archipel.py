@@ -82,6 +82,9 @@ def _convois(w, echelle):
     if getattr(w, "pays", None) is not None and w.pays.a("agriculture"):
         from .pays import d09_agriculture as AG
         AG.brancher_autoconsommation(w.pays)             # idempotent : une ile d avant le 27/09 ne l a pas
+    if getattr(w, "pays", None) is not None and w.pays.a("exterieur"):
+        from .pays import d07_exterieur as X
+        X.brancher_devises(w.pays)                       # idempotent : une ile d avant HMT-131 n a pas devises_refusees
     return w
 
 
