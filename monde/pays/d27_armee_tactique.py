@@ -223,7 +223,7 @@ class Critere:
 
 class Tactique:
     """Une tactique : donnees seulement. PRECONDITIONS : effectif minimal ( hommes presents et aptes ), munitions et
-    autonomie de la garnison en jours de combat ( domaine 26 ), connaissance de l adversaire ( aucune ; contact : sa
+    autonomie ( carburant et vivres ) de la garnison en jours de combat ( domaine 26 ), connaissance de l adversaire ( aucune ; contact : sa
     position connue du camp ; identifiee : identification positive ), lumiere ( jour, nuit, toutes ), radio. ROLES :
     part des hommes a l appui et aux guetteurs, le reste en manoeuvre. COUTS : munitions ( la dotation de combat
     portee ; ce qui est tire sort du grand livre ), carburant ( le transport ), activite imposee au domaine 25 ( sa
@@ -541,7 +541,12 @@ def verifier(p, tactique, u, cible=-1, camp=S.CAMP_NATIONAL, roe=ROE_DEFAUT):
     if t.munitions_min_j > 0 or t.autonomie_min_j > 0:
         au = S.autonomie(p, int(u))
         if au["munitions"] < t.munitions_min_j: raisons.append(f"munitions {au['munitions']:.2f} j < {t.munitions_min_j}")
-        if au["min"] < t.autonomie_min_j: raisons.append(f"autonomie {au['min']:.2f} j < {t.autonomie_min_j}")
+        # 28/09 : l autonomie est la tenue de la garnison en carburant et en vivres ; les munitions ont leur seuil a elles
+        # ( munitions_min_j, ci-dessus ). Comptees aussi dans l autonomie, une dotation de combat pleine ( 1 jour, domaine
+        # 25 ) tombait pile sur le seuil de l embuscade et de la defense ( 1 jour ) : un tir d instruction les refusait,
+        # alors que leur seuil de munitions ( 0,5 jour ) etait tenu.
+        tenue = min(au["carburant"], au["vivres"])
+        if tenue < t.autonomie_min_j: raisons.append(f"autonomie {tenue:.2f} j < {t.autonomie_min_j}")
     if t.connaissance != "aucune":
         c = _connaissance(p, camp, cible)
         if c is None: raisons.append("adversaire inconnu du camp")
