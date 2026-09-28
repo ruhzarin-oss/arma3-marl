@@ -733,9 +733,10 @@ def _paie_prevue(p):
 # ================================================================== le revenu minimum garanti ( 27/09, Younes : « au plus realiste » )
 # Le KEA grec ( loi 4389/2016, OPEKA ) : 216 euros par mois pour un adulte seul, echelle 1 + 0,5 par adulte de plus +
 # 0,25 par enfant ; le complement jusqu a ce seuil, sous condition de ressources ( revenu du menage ) et d avoirs ( depots
-# sous 7 200 euros a l echelle ). BRANCHE DANS AUCUN MONDE ( chef de projet, 27/09 ) : sur 200 jours il faisait monter la
-# faim ( 18,1 % contre 8,4 %, le prix remontait a 9,4 ) - l offre ne repond pas au prix, ou le financement cree la monnaie ;
-# a remesurer ( porte_guerre G21 ) quand la correction des prix du domaine 3 sera dans le tronc. Verse chaque
+# sous 7 200 euros a l echelle ). BRANCHE DANS TOUS LES MONDES ( chef de projet, 28/09 ; la Grece l a depuis 2017 :
+# copier le reel ) - sans lui, les menages sans aucun revenu ( chomeurs sans droits, etudiants seuls, marchands ) ont faim
+# ( Classes : 265 morts de faim sans KEA contre 51 avec sur Altis, 209 contre 77 sur Stratis ). Son effet se mesure en
+# G21 ( graines neuves ) et en monde/porte_kea.py. Verse chaque
 # jour a 18 h, par trentiemes, dans la fenetre ou le domaine 3 lit le revenu des menages : le menage le depense comme un
 # revenu ; le test de ressources retire du revenu lisse ce qui vient du KEA lui-meme ( sinon le droit oscillerait ).
 KEA_EUROS_MOIS = 216.0
@@ -1979,6 +1980,7 @@ def installer(p):
     minute = w.minutes % (24 * 60)
     p.poser(((17 * 60 + 50 - minute) % (24 * 60)) // C.MINUTES_PAR_PAS, "etat_photo_paie", 0)
     p.routine(18, 1, "etat", _paie_fiscale)
+    brancher_revenu_minimum(p)                      # le KEA ( 18 h, rang 0 : avant la paie fiscale ) - tous les mondes
     p.routine(10, 40, "etat", _controles_du_jour)
     p.routine(10 + 10 / 60, 40, "etat", _mois_fiscal)
     p.routine(18 + 20 / 60, 40, "etat", _recouvrer)
