@@ -24,7 +24,7 @@ RAPIDE = dict(battement_max=1.0, patience=1.5, patience_ouverture=2.0)
 
 
 @contextlib.contextmanager
-def banc(build="1900.20", certifie="1900.20", strict=True, labo=True, **faux):
+def banc(build="v1.10 - Build 1900.20", certifie="1.10.1900.20", strict=True, labo=True, **faux):
     racine = tempfile.mkdtemp(prefix="porte_cmo_")
     etat = os.path.join(racine, "etat")
     f = FauxCMO(racine, build=build, **faux)
@@ -93,7 +93,7 @@ def p2_canaris():
     with banc() as (f, l):
         for _ in range(100):
             c = l.canari()
-        assert c["version_lua"] == CL.VERSION_LUA and c["build"] == "1900.20" and c["lecteur"] == "loadfile", c
+        assert c["version_lua"] == CL.VERSION_LUA and c["build"] == "1.10.1900.20" and c["lecteur"] == "loadfile", c
 
 
 def p3_poser_etat_positions():
@@ -203,13 +203,13 @@ def p12_que_des_nombres():
 
 def p13_build_non_certifie():
     """Steam a mis CMO à jour : refusé en strict, accepté ( et dit ) pour le banc."""
-    with banc(labo=False, build="1900.21") as (f, _):
+    with banc(labo=False, build="v1.10 - Build 1900.21") as (f, _):
         etat = os.path.join(f.racine, "etat")
         l = CL.Labo(pont=f.pont, sortie=f.sortie, etat=etat, strict=True, **RAPIDE)
         assert "Steam a mis CMO à jour" in str(leve(CL.Incomplet, l.ouvrir))
         assert not l.ecrivain.pris, "un refus à l'ouverture doit rendre le verrou"
         with CL.Labo(pont=f.pont, sortie=f.sortie, etat=etat, strict=False, **RAPIDE) as l2:
-            assert l2.version["build"] == "1900.21" and l2.version["build_certifie"] == "1900.20"
+            assert l2.version["build"] == "1.10.1900.21" and l2.version["build_certifie"] == "1.10.1900.20"
 
 
 def p14_lecteur_runscript():
@@ -218,6 +218,16 @@ def p14_lecteur_runscript():
         assert l.canari()["lecteur"] == "RunScript"
         l.poser("Stratis", "air", 3500, 1, 37.5, 24.3, 6000)
         assert l.etat_camps()["camps"]["Stratis"]["hmt_vivants"] == 1
+
+
+def p14b_runscript_qui_leve():
+    """Le bac à sable de la 1.10 ( sonde du 28/09 : ni loadfile, ni dofile, ni load ), et un RunScript qui lève sur un
+    fichier absent : l'actuateur ne doit pas avancer d'un numéro à chaque seconde."""
+    with banc(lecteur="runscript_leve") as (f, l):
+        time.sleep(0.5)                                  # une dizaine de passages sans commande
+        assert l.canari()["recu"]["n_cmd"] == 2, "l'actuateur a sauté des numéros sur des fichiers absents"
+        l.poser("Malden", "air", 3500, 1, 37.5, 24.3, 6000)
+        assert l.etat_camps()["camps"]["Malden"]["hmt_vivants"] == 1
 
 
 def p15_commande_non_prise_effacee():
@@ -259,7 +269,7 @@ def p18_nettoyer_prouve():
 TESTS = [p0_accords, p1_installer, p2_canaris, p3_poser_etat_positions, p4_morts_une_fois, p5_erreur_lua_certaine,
          p6_refus_deux_etages, p7_compilation, p8_pause_jamais_aucun, p9_rechargement_recalage, p10_un_seul_ecrivain,
          p11_recu_ecrit_lentement, p12_que_des_nombres, p13_build_non_certifie, p14_lecteur_runscript,
-         p15_commande_non_prise_effacee, p16_gros_recu, p17_recu_tronque, p18_nettoyer_prouve]
+         p14b_runscript_qui_leve, p15_commande_non_prise_effacee, p16_gros_recu, p17_recu_tronque, p18_nettoyer_prouve]
 
 
 def passer(tests):
@@ -291,7 +301,7 @@ def controles():
     effacer = CL._effacer
     m = [("commande non prise gardée", p15_commande_non_prise_effacee,
           (CL, "_effacer", lambda c: None if c.endswith(".lua") else effacer(c))),
-         ("build jamais contrôlé", p13_build_non_certifie, (CL, "build_certifie", lambda etat=None: "1900.21")),
+         ("build jamais contrôlé", p13_build_non_certifie, (CL, "build_certifie", lambda etat=None: "1.10.1900.21")),
          ("pas de réponse rendu comme « rien »", p8_pause_jamais_aucun,
           (CL.Liaison, "_diagnostiquer", lambda self, n, c, v: None))]
     for nom, test, (obj, attr, val) in m:

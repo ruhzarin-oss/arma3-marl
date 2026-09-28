@@ -2,7 +2,8 @@
 -- appellent, rien de plus. Les fichiers passent par PY_ecrire ( faux_cmo.py écrit le même JSON que CMO ).
 -- Il ne prouve que la plomberie et le Lua du pont ; ce que CMO fait vraiment, seul le banc pontcmo le prouve.
 
-FAUX = { camps = {}, unites = {}, n_guid = 0, temps = 1790000000, build = '1900.20', dbid_refuse = -1,
+FAUX = { camps = {}, unites = {}, n_guid = 0, temps = 1790000000, build = 'v1.10 - Build 1900.20',
+         dbid_refuse = -1, runscript_leve = false,
          evenements = {}, declencheurs = {}, actions = {} }
 
 local function guid()
@@ -125,15 +126,21 @@ function ScenEdit_SetEventAction(g, t) table.insert(evenement(g).actions, t.name
 
 -- RunScript lit sous Lua/ de la racine. Il garde sa propre copie de loadfile : la porte retire loadfile pour
 -- imiter un bac à sable plus strict, et RunScript doit alors rester le seul lecteur.
+-- FAUX.runscript_leve imite un RunScript qui lève sur un fichier absent au lieu de rendre nil.
 local charger = loadfile
 function ScenEdit_RunScript(rel)
     local f = charger(FAUX_BASE .. 'Lua/' .. rel)
-    if f == nil then return nil end
+    if f == nil then
+        if FAUX.runscript_leve then error('Lua file not found: ' .. rel) end
+        return nil
+    end
     f()
     return true
 end
 
--- Un passage : l'action de chaque événement RegularTime, comme CMO toutes les secondes de jeu.
+-- Un passage : l'action de chaque événement RegularTime, comme CMO toutes les secondes de jeu. CMO compile
+-- l'action lui-même : le faux garde sa copie de load, que la porte retire au Lua du pont.
+local compiler = load
 function FAUX_passer()
     for _, e in ipairs(FAUX.evenements) do
         for _, dn in ipairs(e.declencheurs) do
@@ -141,7 +148,7 @@ function FAUX_passer()
             if d and d.type == 'RegularTime' then
                 for _, an in ipairs(e.actions) do
                     local a = FAUX.actions[an]
-                    if a and a.type == 'LuaScript' then assert(load(a.ScriptText))() end
+                    if a and a.type == 'LuaScript' then assert(compiler(a.ScriptText))() end
                 end
             end
         end

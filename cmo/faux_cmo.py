@@ -16,7 +16,7 @@ import deployer                                           # noqa: E402
 
 
 class FauxCMO:
-    def __init__(self, racine, *, periode=0.05, build="1900.20", lecteur="loadfile", ecriture_lente=0.0,
+    def __init__(self, racine, *, periode=0.05, build="v1.10 - Build 1900.20", lecteur="loadfile", ecriture_lente=0.0,
                  tronquer=0):
         self.racine = racine
         self.periode, self.ecriture_lente, self.tronquer = periode, ecriture_lente, tronquer
@@ -35,8 +35,9 @@ class FauxCMO:
         with open(os.path.join(ICI, "lua", "faux_cmo.lua"), encoding="utf-8") as f:
             self.L.execute(f.read())
         g.FAUX.build = build
-        if lecteur == "runscript":
-            self.L.execute("loadfile = nil")
+        if lecteur in ("runscript", "runscript_leve"):
+            self.L.execute("loadfile = nil dofile = nil load = nil")     # le bac à sable de la 1.10 ( sonde du 28/09 )
+            g.FAUX.runscript_leve = lecteur == "runscript_leve"
         self.fil = threading.Thread(target=self._boucle, daemon=True)
 
     # ---- ce que CMO écrit : le JSON d'un .inst, texte dans Comments ( BOM compris, comme .NET )

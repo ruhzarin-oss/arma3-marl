@@ -54,7 +54,7 @@ SORTIE = f"{CMO}/ImportExport"
 ETAT = "/mnt/data/hmt/etat"
 FICHIER_CERTIF = "cmo_build_certifie.json"
 
-VERSION_LUA = 1                     # = HMT_VERSION de lua/hmt_pont.lua
+VERSION_LUA = 2                     # = HMT_VERSION de lua/hmt_pont.lua
 CAMPS = ("Stratis", "Malden")       # = HMT_CAMPS, même ordre ; index Lua = index Python + 1
 GENRES = ("air", "navire", "sous_marin", "site")      # = HMT_GENRES ( Air, Ship, Submarine, Facility )
 LECTEURS = {1: "loadfile", 2: "RunScript"}

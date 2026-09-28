@@ -15,7 +15,7 @@
 -- Codes du reçu : 0 exécutée, 1 erreur Lua pendant l'exécution, 2 le fichier ne compile pas, 3 refus ( detail =
 -- code de REFUS_LUA dans cmo_labo.py ).
 
-HMT_VERSION = 1
+HMT_VERSION = 2
 HMT_CAMPS = { 'Stratis', 'Malden' }                          -- = CAMPS de cmo_labo.py, dans le même ordre
 HMT_GENRES = { 'Air', 'Ship', 'Submarine', 'Facility' }      -- = GENRES de cmo_labo.py
 HMT_n = HMT_n or 0                                           -- dernière commande prise
@@ -89,12 +89,21 @@ local function prendre(n)
         f()
         return true
     end
-    local ok = ScenEdit_RunScript(rel)
-    return ok == true
+    -- RunScript ne distingue pas « absent » de « ne compile pas » ( cmo_labo compile avant d'écrire ), et peut lever au
+    -- lieu de rendre nil : la seule preuve qu'une commande a été prise est que HMT_commande a avancé HMT_n.
+    pcall(ScenEdit_RunScript, rel)
+    return HMT_n >= n
+end
+
+-- GetBuildNumber() rend « v1.10 - Build 1900.20 » en 1.10 : on garde les nombres, joints par des points.
+function HMT_build()
+    local b = {}
+    for x in string.gmatch(tostring(GetBuildNumber()), '%d+') do b[#b + 1] = x end
+    return table.concat(b, '.')
 end
 
 function HMT_battre()
-    local build = string.gsub(tostring(GetBuildNumber()), '[^0-9.]', '')
+    local build = HMT_build()
     ecrire('hmt_sync.inst', string.format('SYNC %d %d %d %d %s\nFIN', HMT_n, HMT_coeur, HMT_VERSION, HMT_lecteur(), build))
 end
 
