@@ -1363,6 +1363,9 @@ def _faillites(p, d):
         if c.nature != "entreprise" or c.liquidee: continue
         c.cessation = c.cessation + 1 if (c.cp < 0.0 and c.tresorerie_nulle) else 0
         if c.cessation >= JOURS_CESSATION: liquider(p, c.unite); continue
+        # les fermes cooperatives ( reprises par le domaine 9 ) ne sont pas des societes : leurs exploitants sont des personnes
+        # physiques, et l insolvabilite d un agriculteur ne laisse pas sa terre en friche ( la ferme n est pas liquidee )
+        if c.unite.type == "ferme": continue
         if en_cessation_des_paiements(p, c.unite)[0]: liquider(p, c.unite, "cessation_des_paiements")
 
 

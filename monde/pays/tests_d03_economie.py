@@ -349,7 +349,7 @@ def test_gerance_et_cessation():
     Etat ; avec un arriere de salaire, rien ; avec 50 drachmes en caisse, 50. CESSATION ( loi 4738/2020 ) : un arriere de
     salaire ne il y a 181 jours, au-dela de 30 000 euros et de 40 % des dettes, fait liquider l entreprise a la cloture,
     motif cessation_des_paiements, et son patron entre au registre des chomeurs ; controles : le meme ne il y a 179 jours,
-    ou sous 30 000 euros, ou sous 40 % des dettes ( une dette recente plus grosse ), ne la fait pas tomber. Conservation."""
+    ou sous 30 000 euros, ou sous 40 % des dettes ( une dette recente plus grosse ), ne la fait pas tomber ; une ferme cooperative non plus. Conservation."""
     w, p = T.monde(["economie"]); T.jours(w, 1)
     d = p.domaine("economie"); K_ = p.socle.creances; g = w.gouv
     ents = [c for c in d.unites if c.nature == "entreprise" and d.proprietaires.get(c.id) is not None and not c.liquidee]
@@ -393,12 +393,19 @@ def test_gerance_et_cessation():
     jeune = essai(179, seuil * 1.01)[0]
     petit = essai(181, seuil * 0.99)[0]
     minoritaire = essai(181, seuil * 1.01, recente=seuil * 2.0)[0]
+    # une ferme cooperative ( domaine 9 ) aux vieux arrieres n est pas liquidee : ses exploitants continuent de cultiver
+    w3, p3 = T.monde(["economie"]); T.jours(w3, 1); d3 = p3.domaine("economie")
+    cf = next((x for x in d3.unites if x.nature == "entreprise" and x.unite.type == "ferme"), None)
+    ferme_tient = True
+    if cf is not None:
+        p3.socle.creances.constater(w3.gouv, cf.unite, seuil * 2.0, "tva", p3.jour - 200)
+        M._faillites(p3, d3); ferme_tient = not cf.liquidee
     tenue0 = p.socle.conservation.tenue()[0]
-    ok = gerance and tombe and chomeur and not jeune and not petit and not minoritaire and tenue and tenue0
+    ok = gerance and tombe and chomeur and not jeune and not petit and not minoritaire and ferme_tient and tenue and tenue0
     return ok, (f"gerance : du jour {jour:.2f} dr, versee {verse:.2f}, net au menage {net:.2f}, impot {impot:.2f} ; avec un "
                 f"arriere de salaire {verse2:.2f} ; caisse de 50 : {verse3:.2f} | cessation : 181 j et {seuil * 1.01:.0f} dr -> "
                 f"liquidee {tombe}, patron chomeur {chomeur} ; 179 j -> {jeune} ; sous le seuil -> {petit} ; sous 40 % -> "
-                f"{minoritaire} ; conservation {tenue and tenue0}")
+                f"{minoritaire} ; ferme aux vieux arrieres epargnee {ferme_tient} ; conservation {tenue and tenue0}")
 
 
 TESTS = [test_budget_parts, test_identite_comptable, test_faillite, test_chomage, test_prix_choc_de_demande,
