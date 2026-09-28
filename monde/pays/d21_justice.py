@@ -192,6 +192,7 @@ BANDES_DELAIS = {"correctionnel": (180.0, 1095.0), "criminel": (365.0, 1095.0), 
 P_REPORT = 0.25                   # une audience sur quatre est reportee ( " anavoli ", a calibrer )
 AUTOPHORO_J = (1, 3)              # le flagrant delit est juge sous trois jours ( " aftoforo " )
 DELAI_MILITAIRE_J = 120           # a calibrer
+DELAI_MAX_J = 3650.0              # l audience la plus lointaine : dix ans ( au-dela, le calendrier grec s arrete en 2099 )
 JUGES_PAR_100K = 26.0             # CEPEJ 2020 : ~ 26 juges professionnels pour 100 000 habitants ( a verifier )
 TRAITEMENT_JUGE_EUROS_MOIS = 2800.0   # brut d un juge de premier degre ( a verifier )
 HEURE_AUDIENCE = 11.0
@@ -748,7 +749,9 @@ def _saisir(p, S, d, file=None, delai=None):
     if delai is None:
         if d.file in t.charge:
             cap = _capacite(p, S, t, d.file)
-            delai = t.charge[d.file] / cap if cap > EPS else 3650.0
+            # ( 28/09, HMT-126 ) borne a dix ans, comme un tribunal sans juge : une file qui deborde ( loyers impayes du
+            # chomage de masse ) donnait des audiences au-dela de 2099, ou le calendrier grec s arrete ( ValueError )
+            delai = min(t.charge[d.file] / cap, DELAI_MAX_J) if cap > EPS else DELAI_MAX_J
             t.charge[d.file] += 1.0
             S.delais[d.file].append((p.jour, delai))
         else: delai = 0.0
