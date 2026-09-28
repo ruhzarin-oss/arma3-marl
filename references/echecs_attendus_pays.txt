@@ -7,7 +7,6 @@ ECHOUE  economie          test_prix_choc_de_demande
 ECHOUE  exterieur         test_choc_petrolier
 ECHOUE  hopitaux          test_decision
 ECHOUE  immobilier        test_decision_loyer
-ECHOUE  industrie         test_epuisement
 ECHOUE  logistique        test_faim_ile_sans_production
 ECHOUE  medias            test_deformation_relais
 ECHOUE  population        test_recensement

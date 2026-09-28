@@ -267,5 +267,34 @@ def test_faim_tue():
         f"adultes a 40 rations de deficit -> {len(mf)} morts de faim ( attendu ~{attendu:.0f} ), temoin {temoin}, colonne : {colonne}")
 
 
+def test_placement_en_colonnes():
+    """HMT-130 : la recherche des familles d accueil d un orphelin en colonnes ( `_accueil_colonnes` ) rend exactement la liste
+    de la recherche d origine ( `_accueil_reference`, une vue par menage ), dans le meme ordre, pour tous les mineurs des
+    menages frappes par une vague de morts ( 3 % des adultes de 25 a 60 ans d un pays de 4 000 habitants ) ; puis la vague
+    elle-meme laisse les familles coherentes. Controle positif : une reference alteree ( un menage de plus ) est vue."""
+    w, p = T.monde(["population"], echelle=8.0); T.jours(w, 2)
+    tb = w.table; n = tb.n; col = p.colonnes["habitant"]
+    age = (p.jour - col["naissance_j"][:n]) / 365.0
+    adultes = np.nonzero((tb.vivant[:n] == 1) & (age >= 25) & (age < 60))[0]
+    rng = np.random.default_rng(1); cibles = np.sort(rng.choice(adultes, size=max(1, int(0.03 * adultes.size)), replace=False))
+    mm = M.P.menages_inscrits(tb, n)
+    mineurs = np.nonzero((tb.vivant[:n] == 1) & (age < 18) & np.isin(mm, mm[cibles]))[0].tolist()
+    ecarts = compares = 0
+    for i in mineurs:
+        x = w.habitants[i]
+        a = [m.id for m in M._accueil_colonnes(p, x)]; b = [m.id for m in M._accueil_reference(p, x)]
+        compares += 1; ecarts += a != b
+    x0 = w.habitants[mineurs[0]] if mineurs else None
+    altere = x0 is not None and [m.id for m in M._accueil_colonnes(p, x0)] != [m.id for m in M._accueil_reference(p, x0)] + [0]
+    t0 = time.perf_counter()
+    for i in cibles.tolist(): M.deceder(p, w.habitants[i], "maladie")
+    dt = time.perf_counter() - t0
+    anomalies = M.anomalies_familles(p)
+    ok = compares >= 10 and ecarts == 0 and altere and not anomalies
+    return ok, (f"{compares} orphelins compares, {ecarts} ecart(s) de familles d accueil ; reference alteree vue : {altere} ; "
+                f"{cibles.size} adultes morts d un coup en {dt:.2f} s, {p.domaine('population').placements} placements, "
+                f"anomalies {len(anomalies)}")
+
+
 TESTS = [test_tables, test_mortalite_cohorte, test_fecondite_cohorte, test_recensement, test_personnes_et_familles,
-         test_etat_civil, test_heritage, test_migrer, test_pays_vivable, test_cout, test_faim_tue]
+         test_etat_civil, test_heritage, test_migrer, test_pays_vivable, test_cout, test_faim_tue, test_placement_en_colonnes]
