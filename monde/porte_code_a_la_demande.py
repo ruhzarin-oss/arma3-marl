@@ -6,7 +6,8 @@ Seuils ecrits avant la mesure.
   Q1  un code faux est refuse par le service : import, action hors catalogue, boucle sans fin, pas de decider ; et un
       Qwen qui ne rend que du code faux voit sa version publiee « refuse », avec la raison ;
   Q2  un code bon est publie « en_epreuve », avec son essai hors ligne ( >= 200 entrees, toutes des actions ) ;
-  Q3  CONTROLE POSITIF d adoption : la regle rendue mauvaise ( toujours trois jours d import ), un candidat « attendre »
+  Q3  CONTROLE POSITIF d adoption, l import vendu A PERTE ( fret = 100 % du prix au port ) : la regle rendue
+      mauvaise ( toujours trois jours d import ), un candidat « attendre »
       sur la moitie des cles, 16 jours : le verdict l ADOPTE ( meilleur, p < 0,05 ), la bibliotheque et le journal le
       disent, et il decide ensuite pour tous ;
   Q4  CONTROLE INVERSE : la regle « attendre », un candidat « trois jours » : RETIRE, et une nouvelle demande part a Qwen
@@ -36,9 +37,13 @@ def _epreuve(regle_action, candidat_action, jours=16):
     biblio = tempfile.mkdtemp(prefix="biblio_", dir="/mnt/data/hmt/qwen"); file = tempfile.mkdtemp(prefix="file_", dir="/mnt/data/hmt/qwen")
     d = CAD.contrat(EXT.POINT_IMPORT)
     v = CAD.publier("importer", _toujours(candidat_action), d, CAD.essayer(_toujours(candidat_action), d), "en_epreuve", biblio)
-    regle0, j0, file0 = EXT.POINT_IMPORT.regle, CAD.JOURS_EPREUVE, CAD.FILE
+    regle0, j0, file0, fret0 = EXT.POINT_IMPORT.regle, CAD.JOURS_EPREUVE, CAD.FILE, EXT.FRET
     k = EXT.ACTIONS.index(regle_action)
     try:
+        # 29/09 : l import se vend A PERTE ( fret = 100 % du prix au port ) : « trois jours » est mauvais par construction,
+        # quelle que soit la demande du monde. Avant, la mauvaise regle ne l etait que tant que les menages achetaient
+        # peu de nourriture ( branche menages-revenus de Classes : Q3 retirait le candidat, p = 0,67 ).
+        EXT.FRET = {fam: 1.0 for fam in fret0}
         EXT.POINT_IMPORT.regle = lambda x, ctx, k=k: k
         CAD.JOURS_EPREUVE, CAD.FILE = jours - 1, file
         w, p = T.monde(["exterieur"], graine=GRAINE)
@@ -50,7 +55,7 @@ def _epreuve(regle_action, candidat_action, jours=16):
         part = dec.bras.part if dec.bras is not None else None
         demandes = glob.glob(os.path.join(file, "*.json"))
     finally:
-        EXT.POINT_IMPORT.regle, CAD.JOURS_EPREUVE, CAD.FILE = regle0, j0, file0
+        EXT.POINT_IMPORT.regle, CAD.JOURS_EPREUVE, CAD.FILE, EXT.FRET = regle0, j0, file0, fret0
     shutil.rmtree(biblio, ignore_errors=True)
     r = (etat.get("etat"), etat.get("verdict", {}), ev, [json.load(open(f)) for f in demandes], part)
     shutil.rmtree(file, ignore_errors=True)

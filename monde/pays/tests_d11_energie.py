@@ -378,6 +378,57 @@ def test_cout():
                 f"routines propres du domaine {propre * 1000:.0f} ms par jour ( {propre / t_e1:.1%} du moteur )")
 
 
+def test_arrieres_et_coupure():
+    """Porte ( HMT-126, seuils ecrits avant la mesure ) - controle positif : un menage qui n a, chaque soir a 23 h 40, qu une
+    drachme au-dela de sa semaine de nourriture ( domaine 3, reserve_alimentaire ) paie cette drachme a sa facture et
+    garde sa reserve ; le reste reste en arrieres ; a la seconde facture de suite en arrieres, l ordre de coupure tombe
+    pour 20 jours plus tard ; le compteur n est pas coupe avant ce jour, il l est ce jour-la ( le menage ne compte plus
+    dans la demande de sa zone et n accumule plus de facture ) ; ses arrieres soldes a la facture suivante le rebranchent.
+    Falsificateur : un menage aise paie chaque facture en entier et n est jamais coupe."""
+    from . import d03_economie as ECO
+    w, p = T.monde(["energie"])
+    E = p.domaine("energie"); cm = p.colonnes["menage"]; L = p.socle.livre
+    T.jours(w, 1)
+    habites = [i for i in range(len(E.mg_zone)) if E.mg_zone[i] >= 0 and E.mg_viv[i] > 0]
+    A = habites[0]
+    B = max(habites, key=lambda i: (w.menages[i].caisse, -i))
+    ECO.revenu_recent(p, len(w.menages))                # revenu suffisant, selon les 30 derniers jours ( HMT-126 e )
+    for i in (A, B): cm["eco_revenu_30"][i] = 1000.0; cm["eco_revenu_30_n"][i] = 30
+
+    def une_drachme():
+        cm["eco_revenu_30"][A] = 1000.0                   # revenu suffisant tout du long : le plancher reste 7 jours
+        mg = w.menages[A]; r = float(ECO.reserve_alimentaire(p)[A])
+        if mg.caisse > r + 1.0: L.transferer(mg, w.gouv, mg.caisse - r - 1.0, "amende")
+        else: L.recevoir_de_l_exterieur(mg, r + 1.0 - mg.caisse, "epargne_initiale")
+        return r
+    factures, jour_coupe, ordre, riche, du_gele = [], None, None, False, None
+    gele, mv_coupe = False, -1.0
+    _avancer(w, 17 + 2 / 3)                               # 23 h 40 ; la facture est a 23 h 50
+    for _ in range(4 * M.JOURS_FACTURE):
+        if len(factures) < 2: r = une_drachme()
+        voulu, c0, imp0 = float(cm["en_du"][A] + cm["en_arrieres"][A]), w.menages[A].caisse, int(cm["en_impayees"][A])
+        _avancer(w, 1 / 3)                                # 23 h 50 passee
+        if len(factures) < 2 and int(cm["en_impayees"][A]) == imp0 + 1:
+            factures.append((c0 - w.menages[A].caisse, voulu, float(cm["en_arrieres"][A]), w.menages[A].caisse - r))
+            if len(factures) == 2: ordre = int(cm["en_coupure_j"][A])
+        _avancer(w, 23 + 2 / 3)                           # le lendemain 23 h 40 ( la coupure s applique a 0 h )
+        if ordre is not None and jour_coupe is None and cm["en_coupe"][A] == 1:
+            jour_coupe = p.jour; du_gele = float(cm["en_du"][A]); mv_coupe = float(E.mg_viv[A])
+            L.recevoir_de_l_exterieur(w.menages[A], 10000.0, "epargne_initiale")
+        if jour_coupe is not None and p.jour == jour_coupe + 1: gele = float(cm["en_du"][A]) == du_gele
+        if jour_coupe is not None and cm["en_coupe"][A] == 0 and cm["en_arrieres"][A] == 0.0: break
+        riche |= bool(cm["en_coupe"][B] == 1 or cm["en_arrieres"][B] > 1e-6)
+    rebranche = jour_coupe is not None and int(cm["en_coupe"][A]) == 0 and float(cm["en_arrieres"][A]) == 0.0
+    tenue, msg = p.socle.conservation.tenue()
+    f_ok = len(factures) == 2 and all(abs(x[0] - 1.0) <= 1e-6 and x[2] >= x[1] - 1.0 - 1e-6 and x[3] >= -1e-6
+                                      and x[1] > 1.0 for x in factures)
+    coupe_ok = jour_coupe is not None and jour_coupe == ordre and mv_coupe == 0.0 and gele
+    ok = f_ok and coupe_ok and rebranche and not riche and tenue
+    txt = " ; ".join(f"facture de {v:.2f}, payee {p_:.2f}, arrieres {a:.2f}, reserve gardee {g >= -1e-6}" for p_, v, a, g in factures)
+    return ok, (f"{txt} ; ordre de coupure pour le jour {ordre}, coupe le jour {jour_coupe} ( hors de la demande de sa zone "
+                f"{coupe_ok} ) ; arrieres soldes : rebranche {rebranche} ; menage aise jamais en arrieres {not riche} ; {msg}")
+
+
 TESTS = [test_unites_reelles, test_bilan_energetique, test_courbe_de_charge, test_solaire, test_panne_delestage,
          test_raffinerie, test_electricite_hors_production, test_repartition, test_argent, test_part_du_choix,
-         test_pays_vivable, test_cout]
+         test_arrieres_et_coupure, test_pays_vivable, test_cout]

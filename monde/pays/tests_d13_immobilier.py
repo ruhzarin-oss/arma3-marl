@@ -200,7 +200,10 @@ def test_loyers_au_centime():
     livre = [0.0]
     bail = next(b for b in sorted(d.baux.values(), key=lambda x: x.id) if M._n_vivants(b.locataire) >= 1)
     loc = bail.locataire; bailleur = M.proprietaire(p, bail.b)
-    bail.loyer = round(max(bail.loyer, 3.0 * M.revenu_mensuel(p, loc)), 2)
+    # ( HMT-126 e ) insoutenable aussi pour sa caisse : depuis que les menages ne depensent plus leur epargne en achats
+    # marchands sous leur plancher, un locataire payait le premier terme sur son epargne et le litige ( 3 termes ) ne
+    # s ouvrait plus en 100 jours
+    bail.loyer = round(max(bail.loyer, 3.0 * M.revenu_mensuel(p, loc), 1.2 * loc.caisse), 2)
     du0, paye0 = bail.du, bail.paye
     expulsions0 = d.stats["expulsions"]
     litige = -1; fin = None
@@ -330,5 +333,39 @@ def test_cout():
                 f"us par habitant )")
 
 
+def test_loyer_sans_revenu():
+    """Porte ( HMT-126 e, seuils ecrits avant la mesure ) - controle positif : a son terme, un locataire dont le revenu
+    ne couvre pas sa nourriture et qui a en caisse 30 jours de nourriture ne paie rien : son loyer passe en
+    arrieres ( creance du bailleur, au centime ) et sa caisse reste a ses repas ; `disponible`, que lisent aussi
+    l assurance et la justice, vaut sa caisse moins 90 jours de nourriture, borne a 0. Falsificateur : un locataire au
+    revenu suffisant, avec 30 jours de nourriture plus son loyer en caisse, paie son loyer en entier."""
+    from . import d03_economie as EC
+    w, p = T.monde(["immobilier"])
+    d = M._dom(p); L = p.socle.livre; cm = p.colonnes["menage"]
+    T.jours(w, 1)
+    baux = sorted(d.baux.values(), key=lambda b: b.id)
+    A, B = baux[0], baux[1]
+    res = {}
+    for bail, rev in ((A, 0.0), (B, None)):
+        mg = bail.locataire
+        jour = M.C.NOURRITURE_PAR_JOUR * M._n_vivants(mg) * M._prix_nourriture(p, mg)     # un jour de nourriture
+        EC.revenu_recent(p, len(w.menages))              # le revenu qui decide : celui des 30 derniers jours
+        cm["eco_revenu_30"][mg.id] = 0.0 if rev == 0.0 else 10.0 * jour; cm["eco_revenu_30_n"][mg.id] = 30
+        voulu = 30.0 * jour + (bail.loyer if rev is None else 0.0)
+        if mg.caisse > voulu: L.transferer(mg, w.gouv, mg.caisse - voulu, "amende")
+        else: L.recevoir_de_l_exterieur(mg, voulu - mg.caisse, "epargne_initiale")
+        res[bail.id] = (jour, mg.caisse, len(bail.impayes))
+    dispo_a = M.disponible(p, A.locataire)
+    for bail in (A, B): M._terme(p, bail.id, (p.jour,))
+    ja, ca, na = res[A.id]; jb, cb, nb = res[B.id]
+    imp_a = math.fsum(c.montant for c in A.impayes)
+    a_ok = abs(A.locataire.caisse - ca) <= 1e-6 and abs(imp_a - A.loyer) <= 1e-6 * A.loyer and dispo_a == 0.0
+    b_ok = abs((cb - B.locataire.caisse) - B.loyer) <= 1e-6 * B.loyer and len(B.impayes) == nb
+    tenue, msg = p.socle.conservation.tenue()
+    ok = a_ok and b_ok and tenue
+    return ok, (f"sans revenu, 30 jours de nourriture en caisse, loyer {A.loyer:.2f} : paye {ca - A.locataire.caisse:.2f}, "
+                f"arrieres {imp_a:.2f}, disponible {dispo_a:.2f} ; revenu suffisant : paye {cb - B.locataire.caisse:.2f} sur "
+                f"{B.loyer:.2f} ; {msg}")
+
 TESTS = [test_logement_et_proprietaires, test_conservation_batiments, test_seisme, test_chantier_bilan_matiere,
-         test_loyers_au_centime, test_decision_loyer, test_pays_vivable, test_cout]
+         test_loyers_au_centime, test_decision_loyer, test_pays_vivable, test_cout, test_loyer_sans_revenu]

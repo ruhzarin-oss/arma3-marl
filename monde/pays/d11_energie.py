@@ -10,7 +10,8 @@ FICHE
    du moteur d une ile, un contrat ), Gisement ( les reserves finies du puits ), ReseauIle ( un reseau d ile : groupes,
    charges, meteo de l heure, journal horaire, cumuls ), Energie ( l etat du domaine ). Deux adaptateurs ( StocksE1,
    ReseauE1 ) laissent le grand livre ecrire dans les dictionnaires du moteur. Colonnes par menage : en_du ( la facture
-   qui court, drachmes ), en_arrieres ( l impaye ). Unites : 1 unite de liquide = 10 litres ( le gazole du moteur :
+   qui court, drachmes ), en_arrieres ( l impaye ), et ( HMT-126 ) en_impayees ( factures de suite laissees en arrieres ),
+   en_coupure_j ( jour ou l ordre de coupure s execute, -1 ), en_coupe ( compteur coupe pour impaye ). Unites : 1 unite de liquide = 10 litres ( le gazole du moteur :
    0,03 unite par km = 30 l aux 100 km d un camion ), ~0,1 MWh PCI par unite de combustible, 1 unite d electricite = 10 kWh.
 2. Invariants. BIENS : tout passe par le grand livre, sous des motifs de biens nommes ( extraction, oleoduc, raffinage,
    combustion_centrale, production_thermique, eolienne, solaire, hydraulique, charge et decharge de batterie, pertes du
@@ -280,6 +281,17 @@ MARGE_PRODUCTEUR = 0.10               # le gestionnaire paie aux centrales leur 
 CAPACITE_DR_KW_AN = 120.0             # paiement de capacite ( cout fixe des centrales des iles ~100-150 euros par kW et par an )
 VOLL_DR_KWH = 10.0                    # valeur de l energie non servie ( a calibrer : 5-20 euros le kWh, ACER )
 JOURS_FACTURE = 30                    # un menage recoit sa facture tous les 30 jours ( decale par menage )
+# ( HMT-126 ) Le menage paie sa facture sur ce qu il a au-dela de sa semaine de nourriture ( domaine 3,
+# reserve_alimentaire ) : le reste reste en arrieres ( en_arrieres ). La suite reelle d un impaye : le Code de fourniture
+# d electricite ( Κώδικας Προμήθειας Ηλεκτρικής Ενέργειας ) - la facture impayee reparait sur la suivante comme echue,
+# le fournisseur propose sous 5 jours un arrangement, le client a 5 jours pour repondre, puis l ordre de coupure est
+# notifie et le compteur est coupe 10 jours plus tard s il n a pas regle ( resume newpost.gr, « Απλήρωτος λογαριασμός
+# ρεύματος : πότε έρχεται η διακοπή » ). Ici : deux factures de suite laissees en arrieres, et 20 jours apres la seconde,
+# la coupure ( le menage n est plus servi ni facture ; ses arrieres restent dus ) ; le reglement des arrieres, a une date
+# de facture, le rebranche. Les clients vulnerables ( KOT, protection d hiver et d ete ) ne sont pas distingues : a faire.
+FACTURES_AVANT_COUPURE = 2
+DELAI_COUPURE_J = 5 + 5 + 10
+COLONNES_COUPURE = (("en_impayees", np.int8, 0), ("en_coupure_j", np.int32, -1), ("en_coupe", np.int8, 0))
 FONDS_ROULEMENT_J, PLAFOND_CAISSE_J, DOTATION_J = 7, 15, 7
 
 # ================================================================== les catastrophes et le reseau
@@ -793,6 +805,7 @@ def _recenser(p, E):
             z = np.where(dom >= 0, carte[np.maximum(dom, 0)], -1)
             ok = (z >= 0) & (viv > 0)
             mz[ok] = z[ok]; mv[ok] = viv[ok]
+    mv[_coupes(p, n)] = 0.0                     # HMT-126 : un compteur coupe ne tire rien ; sa zone reste pour ses arrieres
     hab = np.bincount(mz[mz >= 0], weights=mv[mz >= 0], minlength=nz)[:nz] if nz else np.zeros(0)
     for k, c in enumerate(E.zones): c.hab = float(hab[k])
     E.mg_zone, E.mg_viv = mz, mv
@@ -1435,9 +1448,29 @@ def _reversement(p):
     return p.socle.livre.jour_argent.get(("electricite", "Entreprise", "Gouvernement"), (0.0, 0))[0]
 
 
+def _coupes(p, n):
+    """( HMT-126 ) Les compteurs coupes pour impaye ( masque des n premiers menages ) ; applique d abord les ordres de
+    coupure arrives a echeance sur des arrieres toujours dus."""
+    cm = p.colonnes["menage"]
+    if "en_coupe" not in cm:                     # un monde installe avant ( instantane relu )
+        for c, dt, v in COLONNES_COUPURE: cm.ajouter(c, dt, v)
+        J = p.socle.journal
+        for t in ("coupure_impaye", "rebranchement"):
+            if t not in getattr(J, "types", {}): J.declarer(t, "energie", "compte")
+    cm.assurer(n)
+    cj, cp, arr = cm["en_coupure_j"][:n], cm["en_coupe"][:n], cm["en_arrieres"][:n]
+    ech = (cj >= 0) & (p.jour >= cj) & (cp == 0) & (arr > EPS)
+    if ech.any():
+        cp[ech] = 1
+        p.compter("coupure_impaye", float(ech.sum()))
+    return cp == 1
+
+
 def _factures_menages(p, E, tarif):
     """Le residentiel servi de chaque zone est reparti sur ses menages par personne ; chaque menage paie sa facture tous
-    les 30 jours ( decale par menage ) ; ce qu il ne peut pas payer reste en arrieres."""
+    les 30 jours ( decale par menage ), sur ce qu il a au-dela de sa semaine de nourriture ; le reste reste en
+    arrieres. Deux factures de suite en arrieres : l ordre de coupure, execute 20 jours plus tard s il n a pas regle ;
+    des arrieres soldes rebranchent le compteur ( HMT-126 )."""
     w = p.w
     n = len(E.mg_zone)
     if n == 0 or not E.zones: return
@@ -1449,14 +1482,26 @@ def _factures_menages(p, E, tarif):
     add[ok] = res[zi[ok]] * E.mg_viv[ok] / hab[zi[ok]] * tarif
     du[:n] += add
     ids = np.arange(n)
-    for i in np.nonzero(ok & ((ids + p.jour) % JOURS_FACTURE == 0) & (du[:n] + arr[:n] > EPS))[0].tolist():
+    a_payer = np.nonzero(ok & ((ids + p.jour) % JOURS_FACTURE == 0) & (du[:n] + arr[:n] > EPS))[0]
+    if not len(a_payer): return
+    _coupes(p, n)
+    cm = p.colonnes["menage"]; imp, cj, cp = cm["en_impayees"], cm["en_coupure_j"], cm["en_coupe"]
+    res = ECO.plancher_discretionnaire(p)             # 7 jours ; 90 sans revenu qui nourrit ( HMT-126 e )
+    for i in a_payer.tolist():
         mg = w.menages[i]
         G = E.par_ile[E.zones[int(zi[i])].ile].gestionnaire
         voulu = float(du[i] + arr[i])
-        paye = p.socle.livre.transferer(mg, G, voulu, "facture_electricite")
+        libre = max(0.0, mg.caisse - (float(res[i]) if i < len(res) else 0.0))
+        paye = p.socle.livre.transferer(mg, G, min(voulu, libre), "facture_electricite")
         E.factures += paye
         du[i] = 0.0; arr[i] = voulu - paye
-        if voulu - paye > EPS: E.impayes += voulu - paye; p.compter("facture_impayee", voulu - paye)
+        if voulu - paye > EPS:
+            E.impayes += voulu - paye; p.compter("facture_impayee", voulu - paye)
+            imp[i] = min(100, int(imp[i]) + 1)
+            if imp[i] >= FACTURES_AVANT_COUPURE and cj[i] < 0: cj[i] = p.jour + DELAI_COUPURE_J
+        else:
+            arr[i] = 0.0; imp[i] = 0; cj[i] = -1
+            if cp[i]: cp[i] = 0; p.compter("rebranchement")
 
 
 def _exporter(p, E):
@@ -2027,10 +2072,12 @@ def installer(p):
                       ("coupure_ligne", ("lieu", "cause", "jours")), ("gisement_en_declin", ("lieu", "reste", "depart"))):
         J.declarer(t, "energie", "individuel", champs)
     for t in ("energie_non_servie", "ecretement", "demarrage_groupe", "import_combustible", "export_petrolier",
-              "facture_impayee", "manque_combustible", "manque_eau_energie"):
+              "facture_impayee", "manque_combustible", "manque_eau_energie", "coupure_impaye", "rebranchement"):
         J.declarer(t, "energie", "compte")
     cm = p.colonnes["menage"]
     cm.ajouter("en_du", np.float64, 0.0); cm.ajouter("en_arrieres", np.float64, 0.0)
+    for c, dt, v in COLONNES_COUPURE:
+        if c not in cm: cm.ajouter(c, dt, v)
     cm.assurer(len(w.menages))
     _declarer_modeles(p)
     TER.reprendre_usage(p, "energie")

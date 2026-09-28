@@ -277,6 +277,9 @@ def _aide(dest):
     r = {"credits": ET.appliquer(p, {"type": "fixer_budget", "ligne": "interieur", "montant": 3.0 * bu.votes[("interieur", "achats")]}),
          "faim0": round(GM.faim(w), 4), "q": q}
     if dest == "population":
+        # 28/09, Classes : les hoteliers nes avec le monde font entrer des devises pendant la journee ; l etat reel du
+        # test reste : sans devises ( les reserves reviennent au plancher juste avant la tentative )
+        X.reserves_de_change(p); X._ext(p).reserves_euros = X.PLANCHER_RESERVES
         s0 = w.publics["population"]["nourriture"]
         r["sans_devises"] = ET.appliquer(p, {"type": "importer", "bien": "nourriture", "quantite": q, "destination": dest})
         r["sans_devises_arrive"] = round(w.publics["population"]["nourriture"] - s0)
