@@ -52,8 +52,9 @@ from .pays import EUROS_PAR_DRACHME
 METIER = "hotellerie"
 # Lits touristiques par habitant ( hotels et locations ). Grece : 1,26 million de lits d hotel ( Chambre hoteliere
 # 2023 ) et environ 0,6 million en location courte duree pour 10,4 millions d habitants : 0,18 ; Egee du Sud et Crete
-# 0,4 a 1 ; Malte 0,09 d hotel plus les locations. Une ile de 100 000 habitants sur si peu de terre : 0,25 ( a calibrer ).
-LITS_PAR_HABITANT = 0.25
+# 0,4 a 1 ; Malte 0,09 d hotel plus les locations. ( 29/09, HMT-140 ( 3 ), Classes et chef de projet ) la valeur
+# nationale, 0,18 ( 0,25, choisi pour une ile sur si peu de terre, faisait un revenu des menages trop haut en ete ).
+LITS_PAR_HABITANT = 0.18
 # Poids des lieux dans l offre de lits : la capitale et ses plages, les villes, les villages ( a calibrer ).
 POIDS_LIEU = {"capitale": 4.0, "ville": 2.0, "village": 1.0}
 # Occupation des lits par mois ( janvier a decembre ) : profil des iles grecques, ouvertes de mai a octobre ( INSETE,
@@ -76,6 +77,15 @@ RESERVE_HABITANTS_J = 1.0
 PART_FOURNITURES = 0.15
 FONDS_DE_ROULEMENT_J = 30             # jours de personnel plein apportes par l investisseur etranger a l installation
 RESERVE_DIVIDENDE_J = 30              # le dividende du mois laisse en caisse 30 jours de personnel plein
+# ( 29/09, HMT-140 ( 3 ) ) Le dividende du mois : la moitie du resultat net ( apres l IS ), dans la limite de la caisse
+# au-dela de la reserve - l autre moitie reste dans l etablissement ( proposition de Classes ; A VERIFIER : le taux de
+# distribution des hoteliers grecs ). Avant, toute la caisse au-dela de 30 jours de personnel partait chaque mois.
+PART_DISTRIBUEE = 0.5
+# La part des proprietaires etrangers : les entreprises de l hebergement et de la restauration sous controle etranger
+# emploient 33 027 personnes ( 363 entreprises, 2,43 milliards d euros de chiffre d affaires : ELSTAT, statistiques des
+# filiales etrangeres, citees par money-tourism.gr ) sur environ 400 000 emplois d ete ( ci-dessus ) : 8 % ( A VERIFIER ).
+# Leur dividende sort par les devises de la banque centrale ( retenue de 5 % d abord, comme pour un resident ).
+PART_ETRANGERE = 0.08
 # Avis aux voyageurs : l ile ou l on se bat ( champ de bataille ) et l ile belligerante qui ne combat pas chez elle.
 # Ukraine 2022 et Israel 2024 : 70 a 90 % d arrivees en moins ( a calibrer ).
 RISQUE_CHAMP_DE_BATAILLE = 0.15
@@ -314,12 +324,28 @@ def _mois(p):
     d = _dom(p); L = p.socle.livre; fisc = p.a("etat")
     for e in d.etablissements:
         base = getattr(e, "caisse_mois", None)
-        if fisc and base is not None: ET.impot_societes_hors_eco(p, e, e.caisse - base)
-        x = e.caisse - RESERVE_DIVIDENDE_J * _cout_jour_plein(p, e, max(OCCUPATION_MOIS))
-        if x > 1.0 and e.proprietaire is not None:
-            d.cumul["dividendes"] += (ET.verser_dividende(p, e, e.proprietaire, x) if fisc
-                                      else L.transferer(e, e.proprietaire, x, "dividende"))
+        resultat = None if base is None else e.caisse - base
+        impot = ET.impot_societes_hors_eco(p, e, resultat) if fisc and resultat is not None else 0.0
+        net = 0.0 if resultat is None else resultat - impot
+        # ( 29/09, HMT-140 ( 3 ) ) la moitie du resultat net, dans la limite de la caisse au-dela de la reserve
+        x = min(PART_DISTRIBUEE * net, e.caisse - RESERVE_DIVIDENDE_J * _cout_jour_plein(p, e, max(OCCUPATION_MOIS)))
+        if x > 1.0:
+            etr = PART_ETRANGERE * x if fisc and p.a("exterieur") else 0.0
+            if etr > EPS: d.cumul["dividendes_etrangers"] = d.cumul.get("dividendes_etrangers", 0.0) + _dividende_etranger(p, e, etr)
+            loc = x - etr
+            if loc > EPS and e.proprietaire is not None:
+                d.cumul["dividendes"] += (ET.verser_dividende(p, e, e.proprietaire, loc) if fisc
+                                          else L.transferer(e, e.proprietaire, loc, "dividende"))
         e.caisse_mois = e.caisse
+
+
+def _dividende_etranger(p, e, montant):
+    """La part des proprietaires etrangers : la retenue de 5 % a l Etat, le reste a l etranger par les devises de la banque
+    centrale ( ce qu elle ne fournit pas reste dans l etablissement ). Rend le brut verse."""
+    L = p.socle.livre; f = ET._etat(p).fisc
+    ret = L.transferer(e, p.w.gouv, f.taux_dividende * montant, "retenue_dividende")
+    f.compte["dividendes"] += ret; p.compter("retenue_dividende", ret)
+    return ret + X.payer_en_devises(p, e, montant - ret, "dividende_exterieur_tourisme")
 
 
 # ================================================================== l API
@@ -352,6 +378,9 @@ def installer(p):
     if METIER not in PO.CODE_ROLE: raise RuntimeError(f"le metier {METIER!r} manque au moteur ( config.ROLES )")
     J = p.socle.journal
     J.declarer("etablissement_ouvert", "tourisme", "individuel", ("lieu", "lits", "proprietaire"))
+    L_ = p.socle.livre
+    if "dividende_exterieur_tourisme" not in getattr(L_, "motifs", {}):          # ( 29/09 ) la part des proprietaires etrangers
+        L_.declarer_motif("dividende_exterieur_tourisme", "revenu_propriete", "tourisme")
     for t in ("nuitees", "nuitees_refusees", "recettes_touristiques", "repas_touristes", "repas_touristes_manquants",
               "fournitures_manquantes", "fin_de_saison"):
         J.declarer(t, "tourisme", "compte")
