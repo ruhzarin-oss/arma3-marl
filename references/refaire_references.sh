@@ -38,6 +38,7 @@ $PY $C/patch_menages_e2.py $ARBRE         # HMT-126 ( e, suite ) : plancher sans
 $PY $C/patch_insaisissable.py $ARBRE       # HMT-126 ( e, 28/09 ) : l insaisissable du fisc copie la loi ( KEDE art. 33 par. 2 )
 $PY $C/patch_kea.py $ARBRE/monde/pays/d06_etat.py      # 28/09 : le KEA branche dans tous les mondes ( chef de projet ; la Grece depuis 2017 )
 $PY $C/patch_allocation_enfant.py $ARBRE/monde/pays/d06_etat.py   # 28/09 : l allocation A21, apres le KEA
+$PY $C/patch_gerance_cessation.py $ARBRE          # HMT-139 a : gerance et reglement des dettes par rang ( moteur )
 ( cd $ARBRE && PYTHONPATH=$ARBRE $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines.json ]; then
   cmp -s $REF/ref_domaines_refaite.json $REF/ref_domaines.json && echo "REFERENCE DES DOMAINES REPRODUITE AU BIT" || echo "REFERENCE DES DOMAINES DIFFERENTE"
@@ -47,7 +48,7 @@ if [ -d $REF/ref/monde_ancien ]; then
   diff -rq -x __pycache__ -x "*.avant*" -x resultats $REF/ref/monde_ancien $REF/ref/monde_ancien.nouveau >/dev/null && echo "ANCIEN MOTEUR TEMOIN IDENTIQUE" || echo "ANCIEN MOTEUR TEMOIN DIFFERENT"
   rm -rf $REF/ref/monde_ancien.nouveau
 else mv $REF/ref/monde_ancien.nouveau $REF/ref/monde_ancien; echo "ancien moteur temoin pose"; fi
-TOUS=c2fa0c4
+TOUS=A_POSER
 ARBRE2=$REF/ref_tous; rm -rf $ARBRE2 && mkdir -p $ARBRE2 && git -C $DEPOT archive $TOUS monde | tar -x -C $ARBRE2
 ( cd $ARBRE2 && PYTHONPATH=$ARBRE2 $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_tous_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines_tous.json ]; then

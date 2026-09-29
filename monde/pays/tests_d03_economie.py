@@ -151,9 +151,9 @@ def test_identite_comptable():
         if j == 6: BQ.rembourser_par_anticipation(p, pe, 1000.0)
         if j == 8: M.investir(p, e, 2000.0, fournisseur=ma)
         if j == 9: c1 = K_.constater(ma, e, 150.0, "achat intrant", p.jour)
-        if j == 11: K_.regler(c1, L)
+        if j == 11 and K_.actives.get(c1.id) is c1: K_.regler(c1, L)     # ( 28/09 : l entreprise a pu la regler elle-meme )
         if j == 12: c2 = K_.constater(ma, e, 80.0, "achat intrant", p.jour)
-        if j == 13: K_.abandonner(c2, "remise")
+        if j == 13 and K_.actives.get(c2.id) is c2: K_.abandonner(c2, "remise")
         if j == 14: M.apporter(p, e, patron, 500.0)
         if j == 15: M.reevaluer_capital(p, e, 100000.0)
         T.jours(w, 1)
@@ -411,6 +411,83 @@ def test_cout():
                 f"{propre / n * 1e6:.1f} us par habitant")
 
 
+def test_gerance_et_cessation():
+    """HMT-139, ecrite avant la mesure. GERANCE : une entreprise a patron, caisse de 10 000 au-dela d une semaine de salaires, aucun salaire en retard, paie
+    a son patron exactement la gerance du jour ( 3 521 euros par mois / 1,15 / 30 ), dont l impot sur le revenu va a l
+    Etat ; avec un arriere de salaire, rien ; avec 50 drachmes au-dela de la semaine de salaires, 50. CESSATION ( loi 4738/2020 ) : un arriere de
+    salaire ne il y a 181 jours, au-dela de 30 000 euros et de 40 % des dettes, fait liquider l entreprise a la cloture,
+    motif cessation_des_paiements, et son patron entre au registre des chomeurs ; controles : le meme ne il y a 179 jours,
+    ou sous 30 000 euros, ou sous 40 % des dettes ( une dette recente plus grosse ), ne la fait pas tomber ; une ferme cooperative non plus. Conservation."""
+    w, p = T.monde(["economie"]); T.jours(w, 1)
+    d = p.domaine("economie"); K_ = p.socle.creances; g = w.gouv
+    ents = [c for c in d.unites if c.nature == "entreprise" and d.proprietaires.get(c.id) is not None and not c.liquidee]
+    jour = M.GERANCE_EUROS_MOIS / M._euros_par_drachme() / M.MOIS_J
+    c0 = ents[0]; e0 = c0.unite; h0 = d.proprietaires[c0.id]
+    # 1. gerance entiere
+    def payer_seul(c):
+        garde = {x.id: d.proprietaires.pop(x.id) for x in ents if x is not c and x.id in d.proprietaires}
+        try:
+            av_m, av_g, av_e = h0.menage.caisse, g.caisse, c.unite.caisse
+            M._gerance(p, d)
+            return c.unite.caisse, av_e - c.unite.caisse, h0.menage.caisse - av_m, g.caisse - av_g
+        finally: d.proprietaires.update(garde)
+    L = p.socle.livre
+    plein = 10000.0 + M.RESERVE_REGLEMENT_J * c0.salaires_lisses       # la gerance se paie au-dela d une semaine de salaires
+    if e0.caisse < plein: L.transferer(w.gouv, e0, plein - e0.caisse, "apport_capital")
+    _, verse, net, impot = payer_seul(c0)
+    entier = abs(verse - jour) < 1e-9 and abs(net - jour * (1 - g.impot_revenu)) < 1e-9 and abs(impot - verse * g.impot_revenu) < 1e-6
+    # 2. avec un arriere de salaire : rien
+    creancier = next(m for m in w.menages if m is not h0.menage)
+    cr = K_.constater(creancier, e0, 100.0, "salaire", p.jour)
+    _, verse2, _, _ = payer_seul(c0)
+    K_.abandonner(cr, "test")
+    # 3. caisse de 50 : 50
+    L.transferer(e0, w.gouv, e0.caisse - 50.0 - M.RESERVE_REGLEMENT_J * c0.salaires_lisses, "impot")
+    _, verse3, _, _ = payer_seul(c0)
+    gerance = entier and verse2 == 0.0 and abs(verse3 - 50.0) < 1e-9
+    # 4. cessation des paiements
+    seuil = M.SEUIL_CESSATION_EUROS / M._euros_par_drachme()
+    def essai(age, montant, recente=0.0):
+        w2, p2 = T.monde(["economie"]); T.jours(w2, 1)
+        d2 = p2.domaine("economie"); K2 = p2.socle.creances
+        c = next(x for x in d2.unites if x.nature == "entreprise" and d2.proprietaires.get(x.id) is not None)
+        h = d2.proprietaires[c.id]
+        cr = next(m for m in w2.menages if m is not h.menage)
+        K2.constater(cr, c.unite, montant, "salaire", p2.jour - age)
+        if recente > 0: K2.constater(cr, c.unite, recente, "fournisseur", p2.jour)
+        garde = M.PRESOMPTION_CESSATION; M.PRESOMPTION_CESSATION = True      # le mecanisme, eprouve meme suspendu
+        try: M._faillites(p2, d2)
+        finally: M.PRESOMPTION_CESSATION = garde
+        chom = h.id in d2.chomeurs and d2.chomeurs[h.id][3] == "faillite_de_son_entreprise"
+        return c.liquidee, chom and c.id not in d2.proprietaires, p2.socle.conservation.tenue()[0]
+    tombe, chomeur, tenue = essai(181, seuil * 1.01)
+    jeune = essai(179, seuil * 1.01)[0]
+    petit = essai(181, seuil * 0.99)[0]
+    minoritaire = essai(181, seuil * 1.01, recente=seuil * 2.0)[0]
+    # une ferme cooperative ( domaine 9 ) aux vieux arrieres n est pas liquidee : ses exploitants continuent de cultiver
+    w3, p3 = T.monde(["economie"]); T.jours(w3, 1); d3 = p3.domaine("economie")
+    cf = next((x for x in d3.unites if x.nature == "entreprise" and x.unite.type == "ferme"), None)
+    ferme_tient = True
+    if cf is not None:
+        p3.socle.creances.constater(w3.gouv, cf.unite, seuil * 2.0, "tva", p3.jour - 200)
+        garde = M.PRESOMPTION_CESSATION; M.PRESOMPTION_CESSATION = True
+        try: M._faillites(p3, d3)
+        finally: M.PRESOMPTION_CESSATION = garde
+        ferme_tient = not cf.liquidee
+    tenue0 = p.socle.conservation.tenue()[0]
+    # suspendue ( 29/09 ) : dans le monde, la presomption ne liquide pas
+    w4, p4 = T.monde(["economie"]); T.jours(w4, 1); d4 = p4.domaine("economie")
+    c4 = next(x for x in d4.unites if x.nature == "entreprise" and d4.proprietaires.get(x.id) is not None)
+    p4.socle.creances.constater(next(m for m in w4.menages), c4.unite, seuil * 1.5, "salaire", p4.jour - 200)
+    M._faillites(p4, d4); suspendue = (not M.PRESOMPTION_CESSATION) and not c4.liquidee
+    ok = gerance and tombe and chomeur and not jeune and not petit and not minoritaire and ferme_tient and suspendue and tenue and tenue0
+    return ok, (f"gerance : du jour {jour:.2f} dr, versee {verse:.2f}, net au menage {net:.2f}, impot {impot:.2f} ; avec un "
+                f"arriere de salaire {verse2:.2f} ; caisse de 50 : {verse3:.2f} | cessation : 181 j et {seuil * 1.01:.0f} dr -> "
+                f"liquidee {tombe}, patron chomeur {chomeur} ; 179 j -> {jeune} ; sous le seuil -> {petit} ; sous 40 % -> "
+                f"{minoritaire} ; ferme aux vieux arrieres epargnee {ferme_tient} ; presomption suspendue dans le monde {suspendue} ; conservation {tenue and tenue0}")
+
+
+
 def test_plancher_sans_revenu():
     """Porte ( HMT-126 e, seuils ecrits avant la mesure ) : le plancher des depenses que l on peut remettre vaut 7 jours de
     nourriture pour un menage dont le revenu lisse couvre sa nourriture d un jour, JOURS_SANS_REVENU ( 90 ) sinon, a 1e-9.
@@ -453,4 +530,4 @@ def test_plancher_sans_revenu():
                 f"equipement {par.get((A, 'outils'), 0.0):.2f} ; menage aise : marchand {par.get((B, 'services_marchands'), 0.0):.2f} ; {msg}")
 
 TESTS = [test_budget_parts, test_services_marchands_et_usure, test_identite_comptable, test_faillite, test_chomage, test_prix_choc_de_demande,
-         test_commerces_fermes, test_credit, test_recalibrage, test_part_du_choix, test_pays_vivable, test_cout, test_plancher_sans_revenu]
+         test_commerces_fermes, test_credit, test_recalibrage, test_part_du_choix, test_pays_vivable, test_cout, test_plancher_sans_revenu, test_gerance_et_cessation]
