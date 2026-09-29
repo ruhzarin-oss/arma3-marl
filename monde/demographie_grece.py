@@ -137,9 +137,11 @@ SECTEUR_DU_METIER = {"paysan": "agriculture", "mineur": "industrie", "petrolier"
                      "ministre": "public_education_sante", "policier": "public_education_sante",
                      "medecin": "public_education_sante", "infirmier": "public_education_sante",
                      "enseignant": "public_education_sante", "soldat": "public_education_sante",
-                     "officier": "public_education_sante", "administration": "public_education_sante",
-                     "pompier": "public_education_sante", "juge": "public_education_sante",
-                     "gardien": "public_education_sante"}
+                     "officier": "public_education_sante",
+                     "administration": "public_education_sante",    # NACE O 84 ( administration generale )
+                     "pompier": "public_education_sante",           # NACE O 84.25 ( services du feu et de secours )
+                     "juge": "public_education_sante",              # NACE O 84.23 ( justice )
+                     "gardien": "public_education_sante"}           # NACE O 84.23 ( justice : les prisons )
 
 
 def par_age(table, age):
