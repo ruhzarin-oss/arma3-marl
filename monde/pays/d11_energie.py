@@ -147,7 +147,9 @@ PERTES_RAFFINAGE = 0.015              # torche, evaporation
 if abs(sum(r for _, r in RENDEMENTS) + AUTOCONSOMMATION + PERTES_RAFFINAGE - 1.0) > 1e-12:
     raise ValueError("raffinerie : les coupes, l autoconsommation et les pertes ne font pas 100 % du brut")
 PCI_GAZ_RAFFINERIE, CO2_GAZ_RAFFINERIE = 49.5, 57.6   # GIEC 2006 ( gaz de raffinerie )
-DEBIT_OUVRIER_H = C.RECETTES["raffinerie"][1]["petrole"]   # unites de brut par ouvrier et par heure : la productivite du
+# ( HMT-143, 29/09 ) la productivite REELLE d un ouvrier de raffinerie ( HELLENiQ 2024 ), lue dans population.py ou elle
+# dimensionne les postes : le debit nominal de la raffinerie ne change pas, ses postes si. Avant : celle du moteur,
+DEBIT_OUVRIER_H = PO.DEBIT_REEL_RAFFINEUR_H   # unites de brut par ouvrier et par heure ; avant : la productivite du
 PETROLE_PETROLIER_H = C.RECETTES["puits"][2]["petrole"]    # moteur ( une vraie raffinerie en traite 50 fois plus )
 ELEC_RAFFINAGE_KWH_T = 60.0           # kWh par tonne de brut ( a calibrer : BREF raffinage, ordre de grandeur )
 EAU_RAFFINAGE_M3_T = 0.6              # eau douce par tonne de brut ( BREF : 0,1 a 1,2 m3/t, a calibrer )
@@ -2104,6 +2106,13 @@ def installer(p):
         E.gisement = Gisement(max(1.0, E.nominal_puits_j) * JOURS_AN * RESERVES_ANNEES)
     if E.raffinerie is not None:
         n = _vivants_au_travail(w, E.raffinerie.lieu, E.raffinerie.role)
+        # ( HMT-143 ) la raffinerie est dimensionnee pour raffiner le brut de son puits : ses postes, a la productivite
+        # reelle, sont ouverts au marche du travail ( domaine 4 ), qui pourvoit ceux que le chomage d ouverture a vides
+        if E.puits is not None and E.puits.lieu.ile == E.raffinerie.lieu.ile and E.nominal_puits_j > 0:
+            postes = max(1, math.ceil(E.nominal_puits_j / (DEBIT_OUVRIER_H * 8.0) - 1e-9))
+            if p.a("travail"):
+                importlib.import_module(".d04_travail", __package__).ouvrir_postes(p, E.raffinerie.lieu.id, E.raffinerie.role, postes)
+            n = max(n, postes)
         E.nominal_brut_j = n * DEBIT_OUVRIER_H * 8.0
         # ( HMT-143, 29/09 ) une raffinerie en marche possede son stock de brut : la cuve nait pleine et a elle, du brut
         # achete avant le premier jour du monde ( une source declaree, motif stock_initial, comme les greniers du domaine

@@ -14,7 +14,8 @@ et pour la carte des six iles ouverte par Altis, au mode par defaut et au mode g
      hoteliers nes du surplus sont ou sont les lits ( POIDS_HOTELLERIE = domaine 28, POIDS_LIEU ), a l arrondi du tour
      de role pres ;
   5. Altis porte deja ses metiers : sur Altis et sur la carte des six iles ouverte par Altis, les effectifs sont ceux
-     de config.ROLES, sans surplus ( l identite au bit est prouvee par les portes des domaines et des colonnes ) - sauf
+     de config.ROLES, sans surplus - sauf ( HMT-143, 29/09 ) les postes que la raffinerie a l effectif reel libere : les
+     ouvriers en perdent exactement ce nombre, les metiers ouverts le recoivent, et c est tout le surplus ( l identite au bit est prouvee par les portes des domaines et des colonnes ) - sauf
      les patrons, au-dela de l echelle 1,5 ( regle 6 ) ;
   6. ( 28/09 ) les patrons : dans le monde construit ( Monde.__init__ donne les entreprises ), chaque patron possede au
      moins une entreprise privee ( un site de production hors ferme ) et chaque entreprise privee a un patron ; il y a
@@ -151,9 +152,13 @@ def main():
             carte, t = generer(iles, dem, ech)
             fautes, eff, surplus = verifier(carte, t, ech, dem)
             nom = "+".join(i[:3] for i in iles) + f" x{ech:g}"
-            if iles[0] == "Altis":        # 5. Altis porte deja ses metiers
+            if iles[0] == "Altis":        # 5. Altis porte deja ses metiers, sauf la raffinerie a l effectif reel ( HMT-143 )
                 e1 = e1_patrons(carte, ech)
-                if eff != e1 or surplus != 0: fautes.append(f"Altis : effectifs {eff} differents d E1 {e1}")
+                libres = e1["ouvrier"] - max(1, int(round(PO.postes_des_sites(carte, "ouvrier") * ech)))
+                autres = [r for r in eff if r != "ouvrier" and r not in PO.ACCUEIL]
+                ok5 = (all(eff[r] == e1[r] for r in autres) and eff["ouvrier"] == e1["ouvrier"] - libres and surplus == libres
+                       and sum(eff[r] for r in PO.ACCUEIL) == sum(e1[r] for r in PO.ACCUEIL) + libres)
+                if not ok5: fautes.append(f"Altis : effectifs {eff} : E1 {e1} moins {libres} postes liberes par la raffinerie attendus")
             ind = {r: eff[r] for r in PO.POSTES_PAR_SITE}
             acc = {r: eff[r] for r in PO.ACCUEIL}
             print(f"{'PASSE ' if not fautes else 'ECHOUE'} {nom:30s} {dem or 'defaut':6s} {t.n:6d} hab. | industrie {ind} "
