@@ -1,5 +1,5 @@
 """Les portes du domaine 11 ( energie ). Seuils ecrits avant la premiere mesure.   python -m monde.pays.tests energie"""
-import time
+import math, time
 import numpy as np
 from .. import config as C, monde as W
 from ..socle import registre as R_
@@ -429,6 +429,46 @@ def test_arrieres_et_coupure():
                 f"{coupe_ok} ) ; arrieres soldes : rebranche {rebranche} ; menage aise jamais en arrieres {not riche} ; {msg}")
 
 
+# ================================================================== ( HMT-143 ) la cuve d ouverture
+def _premiers_jours(vider, jours=5):
+    """Un petit monde ; `vider` : la cuve d ouverture retiree avant le premier jour ( la naissance d avant le 29/09 ).
+    Rend la cuve d ouverture, la dette a l installation, et sur `jours` jours le brut traite et le brut achete au puits
+    ( paye sous vente_brut, vu au grand livre, plus la dette nouvelle ), au prix mondial."""
+    w, p = T.monde(["energie"])
+    E = p.domaine("energie"); r = E.raffinerie; L = p.socle.livre; K = p.socle.creances
+    prix = p.socle.catalogue["petrole"].prix_monde
+    dette = lambda: math.fsum(c.montant for c in K.de(r) if c.motif == "vente_brut")
+    x = {"cuve0": r.stocks.get("petrole", 0.0), "attendu0": M.CUVE_BRUT_J * E.nominal_brut_j, "dette0": dette(),
+         "paye": 0.0, "conserve": True}
+    if vider: L.perdre(M.StocksE1(r.stocks, E.noms), E.ids["petrole"], x["cuve0"], "stock_initial")
+    b0 = E.raff["brut_u"]
+    for _ in range(jours):
+        T.jours(w, 1)
+        x["paye"] += math.fsum(s for m, pa, re, s, _ in p.comptes_hier["argent"] if m == "vente_brut")
+        x["conserve"] = x["conserve"] and p.socle.conservation.tenue()[0]
+    x["traite"] = (E.raff["brut_u"] - b0) * prix
+    x["achete"] = x["paye"] + dette() - x["dette0"]
+    return x
+
+
+def test_cuve_ouverture():
+    """Porte ( HMT-143, ecrite avant la mesure ) : la cuve de brut de la raffinerie nait pleine et a elle : CUVE_BRUT_J
+    jours de son nominal, sans aucune dette vente_brut envers le puits a l installation. Sur les 5 premiers jours,
+    l oleoduc ne fait que remettre la cuve au plein : le brut achete au puits ( paye sous vente_brut au grand livre, plus
+    la dette nouvelle ) ne depasse pas, au prix mondial, le brut traite ( au centime ). Conservation chaque jour.
+    Falsificateur : la cuve d ouverture retiree ( la naissance d avant le 29/09 ), la raffinerie rachete en plus le
+    remplissage de sa cuve : la porte echoue."""
+    x = _premiers_jours(False); faux = _premiers_jours(True)
+    def passe(x):
+        return (x["attendu0"] > 0 and abs(x["cuve0"] - x["attendu0"]) <= 1e-6 * x["attendu0"] and x["dette0"] <= 0.005
+                and x["traite"] > 0 and x["achete"] <= x["traite"] + 0.005 and x["conserve"])
+    ok_x, ok_faux = passe(x), passe(faux)
+    return ok_x and not ok_faux, (
+        f"cuve d ouverture {x['cuve0']:.0f} / {x['attendu0']:.0f}, dette a l installation {x['dette0']:.2f} ; 5 jours : brut "
+        f"traite {x['traite']:.2f}, achete {x['achete']:.2f} ( paye {x['paye']:.2f} ) ; conservation {x['conserve']} ; cuve "
+        f"retiree : achete {faux['achete']:.2f} pour {faux['traite']:.2f} traite, porte "
+        f"{'passe ( FAUX )' if ok_faux else 'echoue ( attendu )'}")
+
 TESTS = [test_unites_reelles, test_bilan_energetique, test_courbe_de_charge, test_solaire, test_panne_delestage,
          test_raffinerie, test_electricite_hors_production, test_repartition, test_argent, test_part_du_choix,
-         test_arrieres_et_coupure, test_pays_vivable, test_cout]
+         test_arrieres_et_coupure, test_pays_vivable, test_cuve_ouverture, test_cout]
