@@ -402,24 +402,25 @@ def _redressement_unite(jours_observes, elude=1000.0):
     return o.redressement, p.socle.conservation.tenue()[0]
 
 
-def test_controle_entreprise_trimestre():
-    """Porte ( 29/09, suite de HMT-143, ecrite avant la mesure ) : le controle d une entreprise extrapole l impot elude
-    depuis l installation sur son passe non controle ( au plus PASSE_MAX_ANS = 5 ans ) avec au moins un trimestre de
-    pieces ( OBSERVATION_MIN_J ), comme celui d un menage. Elude E = 1 000, cinq ans de passe : controlee apres 30 jours,
-    redressement E x ( 1 + 12 x 5 / 3 ) = 21 E ( 1e-9 pres ) ; apres 180 jours, E x ( 1 + 12 x 5 / 6 ) = 11 E ( la regle
-    ne change pas au-dela du trimestre ). Controle positif : un elude nul ne redresse rien. Conservation. Falsificateur :
-    l ancienne regle ( un seul mois de pieces ) donne 61 E apres 30 jours, et la porte echoue."""
+def test_controle_entreprise_exercice():
+    """Porte ( 29/09, suite de HMT-143, ecrite avant la mesure ) : le controle d une entreprise redresse exercice par
+    exercice. Elude E = 1 000, cinq ans de passe non controle : controlee apres 30 jours ou 180 jours ( aucun exercice
+    entier observe ), le redressement est E, l elude vu, sans passe reconstitue ( 1e-9 pres ) ; apres 400 jours ( un
+    exercice observe ), le passe se reconstitue au rythme observe : E x ( 1 + 12 x 5 / ( 400 / 30 ) ) = 5,5 E. Elude nul :
+    rien. Conservation. Controle positif : l ancienne regle ( extrapoler des le premier mois ) donne 61 E apres 30 jours
+    ( 21 E avec le minimum d un trimestre ), et la porte echoue."""
     E = 1000.0
-    r30, t1 = _redressement_unite(30, E); r180, t2 = _redressement_unite(180, E); r0, t3 = _redressement_unite(30, 0.0)
-    ancien = M.OBSERVATION_MIN_J; M.OBSERVATION_MIN_J = M.EC.MOIS_J
+    r30, t1 = _redressement_unite(30, E); r180, t2 = _redressement_unite(180, E); r400, t3 = _redressement_unite(400, E)
+    r0, t4 = _redressement_unite(30, 0.0)
+    ancien = M.EXERCICE_OBSERVE_J; M.EXERCICE_OBSERVE_J = 0
     try: f30, _ = _redressement_unite(30, E)
-    finally: M.OBSERVATION_MIN_J = ancien
-    juge = lambda r30, r180: abs(r30 - 21 * E) <= 1e-9 * E and abs(r180 - 11 * E) <= 1e-9 * E
-    ok = juge(r30, r180) and r0 <= 1e-9 and t1 and t2 and t3 and not juge(f30, r180)
-    return ok, (f"elude {E:.0f}, 5 ans de passe : apres 30 jours {r30:.2f} ( {r30 / E:.2f} E, attendu 21 ), apres 180 jours "
-                f"{r180:.2f} ( {r180 / E:.2f} E, attendu 11 ) ; elude nul : {r0:.2f} ; conservation {t1 and t2 and t3} ; ancienne "
-                f"regle ( un mois ) : {f30 / E:.2f} E apres 30 jours, porte {'passe ( FAUX )' if juge(f30, r180) else 'echoue ( attendu )'}")
-
+    finally: M.EXERCICE_OBSERVE_J = ancien
+    attendu400 = E * (1.0 + 12.0 * 5.0 / (400.0 / M.EC.MOIS_J))
+    juge = lambda r30, r180, r400: abs(r30 - E) <= 1e-9 * E and abs(r180 - E) <= 1e-9 * E and abs(r400 - attendu400) <= 1e-9 * attendu400
+    ok = juge(r30, r180, r400) and r0 <= 1e-9 and t1 and t2 and t3 and t4 and not juge(f30, r180, r400)
+    return ok, (f"elude {E:.0f}, 5 ans de passe : apres 30 jours {r30 / E:.2f} E, 180 jours {r180 / E:.2f} E ( attendus 1 ), 400 jours "
+                f"{r400 / E:.2f} E ( attendu {attendu400 / E:.2f} ) ; elude nul {r0:.2f} ; conservation {t1 and t2 and t3 and t4} ; "
+                f"extrapoler des le premier mois : {f30 / E:.2f} E apres 30 jours, porte {'passe ( FAUX )' if juge(f30, r180, r400) else 'echoue ( attendu )'}")
 
 # ================================================================== le pays
 def test_pays_vivable():
@@ -552,4 +553,4 @@ def test_insaisissable():
 
 TESTS = [test_tva_par_categorie, test_ir_par_tranches, test_is_penalites_douanes, test_comptes_nationaux,
          test_solde_budgetaire, test_tresor_jamais_a_sec, test_sitrep_sans_verite_cachee, test_enquete_chomage,
-         test_controle_fiscal, test_kea_revenu_declare, test_pays_vivable, test_cout, test_insaisissable, test_controle_entreprise_trimestre]
+         test_controle_fiscal, test_kea_revenu_declare, test_pays_vivable, test_cout, test_insaisissable, test_controle_entreprise_exercice]

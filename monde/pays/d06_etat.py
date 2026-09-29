@@ -1360,6 +1360,12 @@ def _controles_du_jour(p):
 # Le rythme d impot elude d avant l installation se mesure sur au moins un trimestre ( periode de la TVA grecque ;
 # 28/09, a calibrer ) : quelques jours de demarrage extrapoles sur 5 ans faisaient des fraudes penales.
 OBSERVATION_MIN_J = 90
+# ( 29/09 ) Une entreprise : l administration redresse exercice par exercice, sur pieces ( exercice fiscal grec = annee
+# civile ; prescription de 5 ans, code de procedure fiscale ). Tant qu aucun exercice entier n est observe dans le monde,
+# le controle ne redresse que l impot elude qu il a vu ; le passe d avant le monde ne se reconstitue qu au rythme d un
+# exercice entier. Avant : le rythme du premier mois beneficiaire, extrapole sur 5 ans ( x 61, puis x 21 avec le minimum
+# d un trimestre ) : la raffinerie d Altis redressee de 169 283 + 84 642 de penalite au 2e mois ( bras HMT-143 ).
+EXERCICE_OBSERVE_J = 365
 
 
 def controler(p, controleur, cible, cle=None, action=-1):
@@ -1398,8 +1404,10 @@ def controler(p, controleur, cible, cle=None, action=-1):
         avant = min(PASSE_MAX_ANS, max(0.0, (f.jour0 - dos.controle_j) / JOURS_AN))
         # ( 29/09 ) au moins un trimestre de pieces, comme pour un menage : au 2e mois, un seul mois observe multipliait
         # l elude par 61 sur 5 ans de passe ( la raffinerie d Altis redressee de 27 318 + 13 659 de penalite, HMT-143 )
-        mois = max(OBSERVATION_MIN_J / EC.MOIS_J, (p.jour - f.jour0) / EC.MOIS_J)
-        redr = dos.elude * (1.0 + 12.0 * avant / mois)
+        observe = p.jour - f.jour0
+        mois = max(1.0, observe / EC.MOIS_J)
+        passe = 12.0 * avant / mois if observe >= EXERCICE_OBSERVE_J else 0.0     # ( 29/09 ) un exercice entier d abord
+        redr = dos.elude * (1.0 + passe)
         taux = taux_penalite(redr, dos.impot)
         dos.elude = 0.0; dos.controle_j = p.jour
         if redr > EPS: dos.redresse += 1; dos.propension *= DISSUASION

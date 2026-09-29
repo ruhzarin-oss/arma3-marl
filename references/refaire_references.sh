@@ -46,6 +46,7 @@ $PY $C/patch_garde_import.py $ARBRE  # ( 29/09, run long ) le negoce : demande b
 $PY $C/patch_blocus.py $ARBRE                       # 29/09 : le port pris, c est le blocus ( G25 )
 $PY $C/patch_fisc_drachmes.py $ARBRE                # 29/09 ( HMT-140 ) : bareme de l IR en drachmes, dividendes et IS hors du domaine 3
 $PY $C/patch_enfia_drachmes.py $ARBRE               # 29/09 ( regle 8 ) : l ENFIA en drachmes
+$PY $C/patch_passe_exercice.py $ARBRE  # ( 29/09 ) le controle d une entreprise redresse le passe exercice par exercice
 ( cd $ARBRE && PYTHONPATH=$ARBRE $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines.json ]; then
   cmp -s $REF/ref_domaines_refaite.json $REF/ref_domaines.json && echo "REFERENCE DES DOMAINES REPRODUITE AU BIT" || echo "REFERENCE DES DOMAINES DIFFERENTE"
@@ -55,7 +56,7 @@ if [ -d $REF/ref/monde_ancien ]; then
   diff -rq -x __pycache__ -x "*.avant*" -x resultats $REF/ref/monde_ancien $REF/ref/monde_ancien.nouveau >/dev/null && echo "ANCIEN MOTEUR TEMOIN IDENTIQUE" || echo "ANCIEN MOTEUR TEMOIN DIFFERENT"
   rm -rf $REF/ref/monde_ancien.nouveau
 else mv $REF/ref/monde_ancien.nouveau $REF/ref/monde_ancien; echo "ancien moteur temoin pose"; fi
-TOUS=648612e     # 29/09 : integration 12 ( livraison du moteur ebffe9d, blocus du port cfd07bb, chaine composee )
+TOUS=A_POSER
 ARBRE2=$REF/ref_tous; rm -rf $ARBRE2 && mkdir -p $ARBRE2 && git -C $DEPOT archive $TOUS monde | tar -x -C $ARBRE2
 ( cd $ARBRE2 && PYTHONPATH=$ARBRE2 $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_tous_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines_tous.json ]; then
