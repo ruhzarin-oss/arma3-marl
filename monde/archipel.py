@@ -93,6 +93,9 @@ def _convois(w, echelle):
         if "morts_faim" not in cm:
             import numpy as _np
             cm.ajouter("morts_faim", _np.int32, 0); cm.assurer(len(w.menages))
+    if getattr(w, "pays", None) is not None and w.pays.a("etat"):
+        from .pays import d06_etat as ET
+        ET.bareme_en_drachmes(w.pays)                    # idempotent : une ile d avant le 29/09 a son bareme d IR en euros
     return w
 
 

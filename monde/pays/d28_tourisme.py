@@ -52,8 +52,9 @@ from .pays import EUROS_PAR_DRACHME
 METIER = "hotellerie"
 # Lits touristiques par habitant ( hotels et locations ). Grece : 1,26 million de lits d hotel ( Chambre hoteliere
 # 2023 ) et environ 0,6 million en location courte duree pour 10,4 millions d habitants : 0,18 ; Egee du Sud et Crete
-# 0,4 a 1 ; Malte 0,09 d hotel plus les locations. Une ile de 100 000 habitants sur si peu de terre : 0,25 ( a calibrer ).
-LITS_PAR_HABITANT = 0.25
+# 0,4 a 1 ; Malte 0,09 d hotel plus les locations. ( 29/09, HMT-140 ( 3 ), Classes et chef de projet ) la valeur
+# nationale, 0,18 ( 0,25, choisi pour une ile sur si peu de terre, faisait un revenu des menages trop haut en ete ).
+LITS_PAR_HABITANT = 0.18
 # Poids des lieux dans l offre de lits : la capitale et ses plages, les villes, les villages ( a calibrer ).
 POIDS_LIEU = {"capitale": 4.0, "ville": 2.0, "village": 1.0}
 # Occupation des lits par mois ( janvier a decembre ) : profil des iles grecques, ouvertes de mai a octobre ( INSETE,
@@ -76,6 +77,18 @@ RESERVE_HABITANTS_J = 1.0
 PART_FOURNITURES = 0.15
 FONDS_DE_ROULEMENT_J = 30             # jours de personnel plein apportes par l investisseur etranger a l installation
 RESERVE_DIVIDENDE_J = 30              # le dividende du mois laisse en caisse 30 jours de personnel plein
+# ( 29/09, HMT-140 ( 3 ) ) Le dividende du mois : 30 % du resultat net ( apres l IS ), dans la limite de la caisse au-dela
+# de la reserve ; le reste demeure dans l etablissement. SOURCE : Eurostat, comptes de secteur ( nasa_10_nf_tr ), societes
+# non financieres ( S11 ) de la Grece, revenus distribues verses ( D42 ) sur epargne brute plus D42 ( B8G + D42 ) :
+# 0,30 en 2019, 0,27, 0,29, 0,24, 0,34 et 0,35 en 2024, moyenne 0,30 - une base brute ( avant amortissement ), comme le
+# resultat de l etablissement ici ( sa caisse du mois ). Classes proposait la moitie. Avant le 29/09, toute la caisse
+# au-dela de 30 jours de personnel partait chaque mois.
+PART_DISTRIBUEE = 0.30
+# La part des proprietaires etrangers : les entreprises de l hebergement et de la restauration sous controle etranger
+# emploient 33 027 personnes ( 363 entreprises, 2,43 milliards d euros de chiffre d affaires : ELSTAT, statistiques des
+# filiales etrangeres, citees par money-tourism.gr ) sur environ 400 000 emplois d ete ( ci-dessus ) : 8 % ( A VERIFIER ).
+# Leur dividende sort par les devises de la banque centrale ( retenue de 5 % d abord, comme pour un resident ).
+PART_ETRANGERE = 0.08
 # Avis aux voyageurs : l ile ou l on se bat ( champ de bataille ) et l ile belligerante qui ne combat pas chez elle.
 # Ukraine 2022 et Israel 2024 : 70 a 90 % d arrivees en moins ( a calibrer ).
 RISQUE_CHAMP_DE_BATAILLE = 0.15
@@ -92,7 +105,7 @@ class EtablissementTouristique:
     """Les hotels, pensions et restaurants d un lieu, comptes ensemble. Detient une caisse ( famille « tourisme » du
     registre ), aucun bien : la nourriture achetee est servie et consommee le jour meme."""
     __slots__ = ("id", "lieu", "lits", "caisse", "proprietaire", "vise", "jour_decision", "nuitees_7j", "recettes",
-                 "repas", "nuitees_total", "demande_jour", "servies_jour", "marge_jour", "possible_jour")
+                 "repas", "nuitees_total", "demande_jour", "servies_jour", "marge_jour", "possible_jour", "caisse_mois")
 
     def __init__(self, lieu, lits, proprietaire):
         if not lits > 0: raise ValueError(f"{lieu.id} : lits invalides {lits!r}")
@@ -102,6 +115,7 @@ class EtablissementTouristique:
         self.nuitees_7j = []                # nuitees servies des 7 derniers jours
         self.recettes = self.repas = self.nuitees_total = 0.0
         self.demande_jour = self.servies_jour = self.marge_jour = self.possible_jour = 0.0
+        self.caisse_mois = None             # ( 29/09 ) la caisse du dernier mois clos, apres son dividende ( l IS )
 
 
 class Tourisme:
@@ -303,12 +317,38 @@ def _lundi(p):
 
 # ================================================================== le dividende du mois
 def _mois(p):
+    """21 h 10, le jour de cloture d un mois. ( 29/09, HMT-140 ( 2 ) ) D abord l IS du mois sur le resultat de chaque
+    etablissement - sa caisse de ce soir moins celle du dernier mois clos, apres son dividende : les recettes moins les
+    salaires, la TVA, la nourriture et les fournitures ( domaine 6, impot_societes_hors_eco ; pertes reportees ) -, puis
+    le dividende, retenue de 5 % a la source et net au revenu declare du menage proprietaire ( domaine 6,
+    verser_dividende ). Avant le 29/09, le tourisme ne payait ni l IS ni la retenue, et son dividende echappait au revenu
+    declare."""
     if p.jour == 0 or p.jour % ECO.MOIS_J: return
-    d = _dom(p); L = p.socle.livre
+    d = _dom(p); L = p.socle.livre; fisc = p.a("etat")
     for e in d.etablissements:
-        x = e.caisse - RESERVE_DIVIDENDE_J * _cout_jour_plein(p, e, max(OCCUPATION_MOIS))
-        if x > 1.0 and e.proprietaire is not None:
-            d.cumul["dividendes"] += L.transferer(e, e.proprietaire, x, "dividende")
+        base = getattr(e, "caisse_mois", None)
+        resultat = None if base is None else e.caisse - base
+        impot = ET.impot_societes_hors_eco(p, e, resultat) if fisc and resultat is not None else 0.0
+        net = 0.0 if resultat is None else resultat - impot
+        # ( 29/09, HMT-140 ( 3 ) ) 30 % du resultat net ( PART_DISTRIBUEE ), dans la limite de la caisse au-dela de la reserve
+        x = min(PART_DISTRIBUEE * net, e.caisse - RESERVE_DIVIDENDE_J * _cout_jour_plein(p, e, max(OCCUPATION_MOIS)))
+        if x > 1.0:
+            etr = PART_ETRANGERE * x if fisc and p.a("exterieur") else 0.0
+            if etr > EPS: d.cumul["dividendes_etrangers"] = d.cumul.get("dividendes_etrangers", 0.0) + _dividende_etranger(p, e, etr)
+            loc = x - etr
+            if loc > EPS and e.proprietaire is not None:
+                d.cumul["dividendes"] += (ET.verser_dividende(p, e, e.proprietaire, loc) if fisc
+                                          else L.transferer(e, e.proprietaire, loc, "dividende"))
+        e.caisse_mois = e.caisse
+
+
+def _dividende_etranger(p, e, montant):
+    """La part des proprietaires etrangers : la retenue de 5 % a l Etat, le reste a l etranger par les devises de la banque
+    centrale ( ce qu elle ne fournit pas reste dans l etablissement ). Rend le brut verse."""
+    L = p.socle.livre; f = ET._etat(p).fisc
+    ret = L.transferer(e, p.w.gouv, f.taux_dividende * montant, "retenue_dividende")
+    f.compte["dividendes"] += ret; p.compter("retenue_dividende", ret)
+    return ret + X.payer_en_devises(p, e, montant - ret, "dividende_exterieur_tourisme")
 
 
 # ================================================================== l API
@@ -341,6 +381,9 @@ def installer(p):
     if METIER not in PO.CODE_ROLE: raise RuntimeError(f"le metier {METIER!r} manque au moteur ( config.ROLES )")
     J = p.socle.journal
     J.declarer("etablissement_ouvert", "tourisme", "individuel", ("lieu", "lits", "proprietaire"))
+    L_ = p.socle.livre
+    if "dividende_exterieur_tourisme" not in getattr(L_, "motifs", {}):          # ( 29/09 ) la part des proprietaires etrangers
+        L_.declarer_motif("dividende_exterieur_tourisme", "revenu_propriete", "tourisme")
     for t in ("nuitees", "nuitees_refusees", "recettes_touristiques", "repas_touristes", "repas_touristes_manquants",
               "fournitures_manquantes", "fin_de_saison"):
         J.declarer(t, "tourisme", "compte")
@@ -359,6 +402,7 @@ def installer(p):
         TR.declarer_employeur(p, l.id, METIER, e)
         x = FONDS_DE_ROULEMENT_J * _cout_jour_plein(p, e, max(OCCUPATION_MOIS))
         L.recevoir_de_l_exterieur(e, x, "investissement_direct"); d.cumul["investissement"] += x
+        e.caisse_mois = e.caisse                        # ( 29/09 ) le premier resultat du mois part d ici
         p.noter("etablissement_ouvert", lieu=l.id, lits=lits, proprietaire=getattr(e.proprietaire, "id", "etat"))
     d.decideur = p.decideur(POINT)
     p.routine(6.0, 30, "tourisme", _lundi)
