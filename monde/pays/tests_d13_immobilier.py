@@ -203,7 +203,12 @@ def test_loyers_au_centime():
     # ( HMT-126 e ) insoutenable aussi pour sa caisse : depuis que les menages ne depensent plus leur epargne en achats
     # marchands sous leur plancher, un locataire payait le premier terme sur son epargne et le litige ( 3 termes ) ne
     # s ouvrait plus en 100 jours
-    bail.loyer = round(max(bail.loyer, 3.0 * M.revenu_mensuel(p, loc), 1.2 * loc.caisse), 2)
+    # ( 29/09 ) le litige s ouvre au troisieme terme si la PREMIERE creance n est jamais soldee ( les arrieres passent
+    # avant le mois ) : ce que le locataire reunit en trois termes - sa caisse et trois mois de revenu - doit rester sous
+    # un loyer. Avec l allocation pour enfant branchee partout, le revenu de ce locataire ( un soldat, sans A21 lui-meme )
+    # payait 6 998 en trois termes, contre 4 575 sans elle ( +53 % ) : il soldait la premiere creance au troisieme terme.
+    # La marge de 50 % couvre cette derive ( loyer 9 702 ).
+    bail.loyer = round(max(bail.loyer, 1.5 * (loc.caisse + 3.0 * M.revenu_mensuel(p, loc))), 2)
     du0, paye0 = bail.du, bail.paye
     expulsions0 = d.stats["expulsions"]
     litige = -1; fin = None

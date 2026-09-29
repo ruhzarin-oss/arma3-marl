@@ -826,6 +826,17 @@ KEA_PLAFOND_ECHELLE = 972.0 / 216.0
 KEA_COMPTES = tuple(f"rmg_m{k}" for k in range(KEA_MOIS_TEST))
 
 
+def _exonerer(p, montants):
+    """( 29/09 ) Les prestations du jour ( KEA, allocation A21 ) sont exonerees de l impot sur le revenu et ne sont pas
+    un revenu declare : la paie fiscale de 18 h ( rang 1 ) les retire de ce que la caisse de chaque menage a recu depuis
+    17 h 50 ( loi 4389/2016 art. 235 pour le KEA, loi 4512/2018 pour l A21 : « αφορολόγητο και ακατάσχετο », A VERIFIER
+    article par article ). Sans cela, le fisc les imposait comme un revenu non salarial ( test_ir_par_tranches )."""
+    cm = p.colonnes["menage"]
+    if "fisc_exonere" not in cm: cm.ajouter("fisc_exonere", np.float64, 0.0)
+    M = len(montants); cm.assurer(M)
+    cm["fisc_exonere"][:M] += montants
+
+
 def _revenu_minimum(p):
     w = p.w
     if not p.a("economie"): return
@@ -850,6 +861,7 @@ def _revenu_minimum(p):
         verse[k] = L.transferer(g, w.menages[k], float(du[k]), "revenu_minimum")
     rmg[:M] = rmg[:M] * (1.0 - EC.ALPHA_REVENU) + EC.ALPHA_REVENU * verse
     s = float(verse.sum())
+    _exonerer(p, verse)                                # ( 29/09 ) exonere de l impot sur le revenu
     if s > 0: p.compter("revenu_minimum", s)
     manque = float(du.sum()) - s
     if manque > 0.01: p.compter("revenu_minimum_impaye", manque)
@@ -932,9 +944,11 @@ def _allocation_enfant(p):
     mensuel = base * (np.minimum(enfants, rang) + 2.0 * np.maximum(0.0, enfants - rang))
     dis = cm["dissous"][:M] if "dissous" in cm else np.zeros(M, np.int8)
     du = np.where(dis == 0, mensuel * (A21_PERIODE_J / EC.MOIS_J) / EUROS_PAR_DRACHME, 0.0)
-    verse = 0.0
+    vk = np.zeros(M)
     for k in np.nonzero(du > 0.01)[0].tolist():
-        verse += L.transferer(g, w.menages[k], float(du[k]), "allocation_enfant")
+        vk[k] = L.transferer(g, w.menages[k], float(du[k]), "allocation_enfant")
+    _exonerer(p, vk)                                   # ( 29/09 ) exoneree de l impot sur le revenu
+    verse = float(vk.sum())
     if verse > 0: p.compter("allocation_enfant", verse)
     manque = float(du.sum()) - verse
     if manque > 0.01: p.compter("allocation_enfant_impayee", manque)
@@ -966,10 +980,15 @@ def _paie_fiscale(p):
     non salarial est declare ( une part cachee ) ; puis la retenue cumulee au bareme est prelevee ou remboursee."""
     t0 = time.perf_counter()
     e = _etat(p); f = e.fisc; w = p.w
-    if f.caisse_1750 is None: return
+    cx = p.colonnes["menage"]; ex = cx["fisc_exonere"] if "fisc_exonere" in cx else None   # ( 29/09 ) voir _exonerer
+    if f.caisse_1750 is None:
+        if ex is not None: ex[:] = 0.0
+        return
     n = len(f.caisse_1750)
     maintenant = w.table.menages.caisse[:n].copy()
     entree = np.maximum(0.0, maintenant - f.caisse_1750)
+    if ex is not None:                             # les prestations du jour ne sont pas un revenu impose
+        k = min(n, len(ex)); entree[:k] = np.maximum(0.0, entree[:k] - ex[:k]); ex[:] = 0.0
     f.caisse_1750 = None
     H = w.habitants; nh = len(f.heures_1750)
     tb = w.table                                   # colonnes du moteur ( 24/09 ) : ROLE_IDX = code du moteur + 1
