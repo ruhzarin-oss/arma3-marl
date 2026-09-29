@@ -40,6 +40,7 @@ $PY $C/patch_kea.py $ARBRE/monde/pays/d06_etat.py      # 28/09 : le KEA branche 
 $PY $C/patch_allocation_enfant.py $ARBRE/monde/pays/d06_etat.py   # 28/09 : l allocation A21, apres le KEA
 $PY $C/patch_gerance_cessation.py $ARBRE          # HMT-139 a : gerance et reglement des dettes par rang ( moteur )
 $PY $C/patch_greve_arrieres.py $ARBRE        # HMT-143 ( 29/09 ) : tout employeur debiteur regle ses arrieres a la paie, meme sans bulletin
+$PY $C/patch_engel.py $ARBRE              # 29/09 : la loi d Engel hors alimentation ( d03, parts du reste par quintile de depense, ELSTAT 2024 )
 ( cd $ARBRE && PYTHONPATH=$ARBRE $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines.json ]; then
   cmp -s $REF/ref_domaines_refaite.json $REF/ref_domaines.json && echo "REFERENCE DES DOMAINES REPRODUITE AU BIT" || echo "REFERENCE DES DOMAINES DIFFERENTE"

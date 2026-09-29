@@ -9,3 +9,4 @@ ECHOUE  hopitaux          test_blesse_a_temps          # 48 blesses : un mort va
 ECHOUE  medecine          test_decisions               # ne passe qu a SA graine ( 61 ) sur le tronc, echoue sur 62 a 65 ; part du choix souvent 0,000 ( Classes, 28/09 )
 ECHOUE  logistique        test_decision_expedier_lot   # a la graine par defaut, p = 0,050 ( 10 sur 201 permutations ) sur 0807690 ; passe aux graines 1 a 4 des deux cotes ( Classes, 29/09 )
 ECHOUE  transport         test_decision                # reparer : ne passe qu a la graine par defaut ; echoue aux graines 1 a 3 ( part 0,000 a 0,018 ) ; sorti des echecs attendus ( Classes, 29/09 )
+ECHOUE  economie          test_credit                  # controle positif « pharmacie videe au jour 4 » : le jour de sa demande de tresorerie suit le monde. Tronc e8f1ee8, graines 1-5 : jamais, 7, 7, jamais, 7 ( echoue ) ; engel-budget : 4, jamais, jamais, 4, jamais ( passe a la graine par defaut ) ( Engel, 29/09 )

@@ -35,7 +35,9 @@ def _cp_mesure(p, c):
 # ================================================================== le budget des menages
 def test_budget_parts():
     """Porte : les parts du budget sont celles d ELSTAT 2023 ( somme 1 a 0,002 pres, chaque part a 1e-9 ) ; en 20 jours,
-    la structure voulue hors alimentation suit ELSTAT a 0,5 point pres ; la loi d Engel tient : la part de
+    la structure voulue hors alimentation de CHAQUE quintile de rang de depense suit ENGEL_PARTS ( ELSTAT 2024 ) a 0,5
+    point pres ( 29/09, loi d Engel : avant, la structure d ensemble suivait ELSTAT 2023 a 0,5 point ; l ensemble depend
+    desormais de la repartition de la depense du monde, il est rapporte ) ; la loi d Engel tient : la part de
     l alimentation du quintile le plus pauvre ( revenu lisse ) vaut au moins 1,5 fois celle du plus riche ( ELSTAT :
     alimentation et logement 55,8 % contre 24,8 % ). Controle positif ( fonction pure ) : doubler le prix de la
     nourriture fait monter sa part d au moins 50 % chez un menage modeste ; la nourriture passe meme quand le revenu ne
@@ -47,7 +49,10 @@ def test_budget_parts():
     b = M.budget_des_menages(p)
     pa = b["parts"]["alimentation"]
     ref_hors = {k: v / (1.0 - M.PARTS[M.I_ALIM]) for k, v in zip(M.NOMS_CATEGORIES, M.PARTS) if k != "alimentation"}
-    structure = max(abs(b["parts"][k] / (1.0 - pa) - v) for k, v in ref_hors.items())
+    ensemble = max(abs(b["parts"][k] / (1.0 - pa) - v) for k, v in ref_hors.items())       # rapporte ( Engel, 29/09 )
+    pq = np.array(b["parts_par_quintile_rang"])                                              # 5 x K, le budget entier
+    hors = pq.copy(); hors[:, M.I_ALIM] = 0.0; hors /= np.maximum(1e-12, hors.sum(axis=1, keepdims=True))
+    structure = float(np.abs(hors - M.ENGEL_PARTS).max()) if pq.shape == M.ENGEL_PARTS.shape else math.inf
     q = b["alimentation_par_quintile"]
     engel = q[0] / q[4] if q[4] > 0 else math.inf
     _, M1 = M.repartir_budget([40.0], [0.0], [0.0], [8.0])
@@ -57,8 +62,61 @@ def test_budget_parts():
     positif = s2 >= 1.5 * s1 and M3[0, M.I_ALIM] == 8.0 and cv[0] < 8.0
     ok = conf and structure <= 0.005 and engel >= 1.5 and positif
     return ok, (f"parts ELSTAT {'tenues' if conf else 'FAUSSES'} ; alimentation mesuree {pa:.1%} ( ELSTAT 20,7 % ) ; "
-                f"structure hors alimentation a {structure * 100:.2f} point ; alimentation par quintile "
+                f"structure hors alimentation par quintile de rang a {structure * 100:.2f} point d ENGEL_PARTS ( ensemble a "
+                f"{ensemble * 100:.2f} point d ELSTAT 2023, rapporte ) ; alimentation par quintile "
                 + ", ".join(f"{x:.1%}" for x in q) + f" ( Engel x{engel:.1f} ) ; prix double : part {s1:.0%} -> {s2:.0%}")
+
+
+def test_engel_hors_alimentation():
+    """Porte ( 29/09, loi d Engel hors alimentation ; seuils ecrits avant la mesure ). Fonctions pures, ELSTAT 2024.
+    ( 1 ) Les donnees : les quintiles extremes et l ensemble somment a 100 % a 0,2 point pres. ( 2 ) Des parts : chaque
+    ligne de ENGEL_PARTS est >= 0, alimentation 0, de somme 1 a 1e-12. ( 3 ) Le reel : les quintiles 1 et 5 hors
+    alimentation sont ceux du tableau 15 renormalises, a 1e-12 ; la moyenne des cinq quintiles de Working-Leser ponderee
+    par leur depense rend le tableau 1 a 1,5 point pres par division ( 1,35 calcule avant la porte : la restauration ).
+    ( 4 ) La pente : logement et communications baissent du quintile 1 au quintile 5 ( rapport <= 0,5 ) ; transport,
+    restauration, loisirs et education montent ( rapport >= 1,5 ). ( 5 ) Le rang : sur 1 000 menages tires, le poids du
+    quintile 1 vaut 20 % a un menage pres, des ex aequo ont le meme rang, le rang ne descend jamais quand la depense
+    monte. ( 6 ) partager_le_reste garde la nourriture et le total a 1e-9 pres. Controle positif : des parts identiques
+    pour tous ( PARTS_HORS_ALIM a chaque quintile, le tronc du 29/09 ) echouent a ( 4 )."""
+    rng = np.random.default_rng(20260929)
+    Q1, Q5, TT, P = M.ENGEL_Q1, M.ENGEL_Q5, M.ENGEL_ENSEMBLE, M.ENGEL_PARTS
+    donnees = all(abs(float(s) - 1.0) <= 0.002 for s in (Q1.sum(), Q5.sum(), TT.sum()))
+    parts = bool((P >= 0.0).all() and (P[:, M.I_ALIM] == 0.0).all() and np.abs(P.sum(axis=1) - 1.0).max() <= 1e-12)
+
+    def hors(x):
+        y = np.array(x, dtype=float); y[M.I_ALIM] = 0.0
+        return y / y.sum()
+    extremes = max(np.abs(P[0] - hors(Q1)).max(), np.abs(P[4] - hors(Q5)).max())
+    X = M.ENGEL_DEPENSES
+    wl = float(np.abs((X[:, None] * M.ENGEL_ELSTAT).sum(axis=0) / X.sum() - TT).max())
+    ix = {k: M.NOMS_CATEGORIES.index(k) for k in M.NOMS_CATEGORIES}
+
+    def pente(Pq):
+        r = Pq[4] / np.maximum(Pq[0], 1e-12)
+        return (all(r[ix[k]] <= 0.5 for k in ("logement", "communications"))
+                and all(r[ix[k]] >= 1.5 for k in ("transport", "restauration", "loisirs", "education"))), r
+    pente_ok, r = pente(P)
+    controle = not pente(np.tile(M.PARTS_HORS_ALIM, (5, 1)))[0]
+    x = rng.lognormal(0.0, 0.6, 1000); x[:10] = x.max()                  # des ex aequo, en haut de la distribution
+    poids = rng.integers(1, 5, 1000).astype(float)
+    rg = M.rang_pondere(x, poids)
+    q = M.quintile_de_rang(rg)
+    o = np.argsort(x, kind="stable")
+    part_q1 = float(poids[q == 0].sum() / poids.sum())
+    rang_ok = (bool((np.diff(rg[o]) >= -1e-15).all()) and float(np.ptp(rg[x == x.max()])) == 0.0
+               and abs(part_q1 - 0.2) <= poids.max() / poids.sum() + 1e-12)
+    avant = rng.random((50, M.K)); avant[:, M.I_ALIM] *= 3.0
+    apres = M.partager_le_reste(avant, P[rng.integers(0, 5, 50)])
+    partage = (np.abs(apres[:, M.I_ALIM] - avant[:, M.I_ALIM]).max() <= 1e-9
+               and np.abs(apres.sum(axis=1) - avant.sum(axis=1)).max() <= 1e-9)
+    ok = donnees and parts and extremes <= 1e-12 and wl <= 0.015 and pente_ok and controle and rang_ok and partage
+    return ok, (f"donnees {'tenues' if donnees else 'FAUSSES'} ; parts {'tenues' if parts else 'FAUSSES'} ; quintiles "
+                f"extremes a {extremes:.1e} d ELSTAT ; Working-Leser a {wl * 100:.2f} point du tableau 1 ; Q5/Q1 logement "
+                f"{r[ix['logement']]:.2f}, communications {r[ix['communications']]:.2f}, transport {r[ix['transport']]:.2f}, "
+                f"restauration {r[ix['restauration']]:.2f}, loisirs {r[ix['loisirs']]:.2f}, education "
+                f"{r[ix['education']]:.2f} ; controle ( parts identiques ) {'REFUSE' if controle else 'ACCEPTE'} ; rang "
+                f"{'tenu' if rang_ok else 'FAUX'} ( quintile 1 : {part_q1:.1%} du poids ) ; partage "
+                f"{'tenu' if partage else 'FAUX'}")
 
 
 def test_services_marchands_et_usure():
@@ -529,5 +587,5 @@ def test_plancher_sans_revenu():
                 f"en caisse : nourriture {par.get((A, 'nourriture'), 0.0):.2f}, marchand {par.get((A, 'services_marchands'), 0.0):.2f}, "
                 f"equipement {par.get((A, 'outils'), 0.0):.2f} ; menage aise : marchand {par.get((B, 'services_marchands'), 0.0):.2f} ; {msg}")
 
-TESTS = [test_budget_parts, test_services_marchands_et_usure, test_identite_comptable, test_faillite, test_chomage, test_prix_choc_de_demande,
+TESTS = [test_budget_parts, test_engel_hors_alimentation, test_services_marchands_et_usure, test_identite_comptable, test_faillite, test_chomage, test_prix_choc_de_demande,
          test_commerces_fermes, test_credit, test_recalibrage, test_part_du_choix, test_pays_vivable, test_cout, test_plancher_sans_revenu, test_gerance_et_cessation]
