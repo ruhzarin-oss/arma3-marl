@@ -223,7 +223,13 @@ ALPHA_MONDIAL = 1.0 / 90.0      # ... lisse sur ~3 mois : le prix de detail ne s
                                 # cause locale ; petite economie ouverte, loi du prix unique a une marge pres )
 ALPHA_COUVERTURE = 1.0 / 3.0    # la couverture que lit le marchand est lissee sur ~3 soirs : un seul creux de livraison ne
                                 # fait pas un prix ( HMT-125 : +4 % par mois sur la nourriture par des creux d un soir )
-LENTEUR_DANS_LA_BANDE = 0.25    # dans la bande, le prix bouge au quart de la vitesse : il redescend quand le stock est a l aise
+# 29/09 ( HMT-140, la ration ) : ZONE MORTE. Dans la bande, la couverture ne bouge plus le prix : il suit sa reference
+# ( le prix d installation indexe sur le cours mondial lisse ), les ruptures le poussent, le rappel le ramene ; hors de la
+# bande, rien ne change. A 0,25, le prix glissait sans fin : deux consignes pour un seul stock ( d03 vise 2 jours a 19 h,
+# d09 livre pour 3,5 jours a 15 h 50 ) laissent la nourriture a 2,1 - 2,6 jours, et le prix HT descendait de 17 % en six
+# mois ( 0,83 au jour 180, Altis, graine 51 ; couverture -0,86 du log sur l annee, rappel +0,52 ). Un prix de detail est
+# collant et suit ses couts. Dette : d09 vise encore l ancien point de mesure ( l aube ).
+LENTEUR_DANS_LA_BANDE = 0.0
 MARGE_PRODUCTEUR = 0.10         # marge d un producteur sur son prix de revient complet ( a calibrer )
 MARGE_COMMERCE = 0.05           # la regle de commerce du moteur exige 5 % de gain au-dela du transport ( monde.py, commerce_regle )
 ARBITRAGE_AU_DELA = 1.03        # la borne haute de la concurrence laisse passer l arbitrage ( 3 % au-dessus de son seuil )
