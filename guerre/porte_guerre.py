@@ -218,7 +218,28 @@ G19 L AVIS AUX VOYAGEURS ( 27/09, ecrite avant la mesure ) : a l ouverture de la
    tourisme de Malden ( champ de bataille ) passe au risque 0,15 et celui de Stratis ( belligerante ) a 0,5 ; deux jours
    plus tard, les recettes touristiques de Malden sont sous 20 % de celles d un Malden en paix ( meme graine ).
 
-   python -m guerre.porte_guerre"""
+   python -m guerre.porte_guerreG25 LE PORT PRIS, C EST LE BLOCUS ( 29/09, chef de projet : go - Hodeidah 2017, Gaza ; ECRITE AVANT LA MESURE ) : un petit
+   Malden ( archipel Malden-Stratis, echelle 4, graine du moteur ). Au debut du jour 3, la zone du port ( zone 2 : port01,
+   La Riviere, fonderie04 ) est occupee cinq jours ( jours 3 a 7 ), puis liberee au debut du jour 8. Temoin apparie :
+   meme graine, la zone 14 ( Saint-Louis, fonderie05 ) occupee les memes jours. Controle positif : le port pris au debut
+   du jour 3 et libere a la fin du meme jour. Criteres :
+   a) port pris, jours 4 a 7 : aucun import arrive, aucun export, aucune nuitee demandee ; des imports tentes et refuses
+      ( compte import_blocus ) ; l import du gouvernement ( 100 de nourriture, jour 5 ) refuse avec la raison du blocus ;
+      le bulletin de guerre porte le blocus ( port01 ) ;
+   b) temoin, jours 4 a 7 : des imports arrives et des nuitees demandees ( il y avait a bloquer ) ; l import du
+      gouvernement accepte ; pas de blocus au bulletin ;
+   c) libere : des imports arrives et des nuitees demandees les jours 9 et 10 ; plus de blocus au bulletin ;
+   d) controle positif, jours 4 a 7 : des imports arrives et des nuitees demandees ; pas de blocus au bulletin ;
+   e) la conservation tient dans les trois bras.
+   La regle : un port est tenu quand son lieu est dans une zone occupee ( guerre/moteur.occuper ) ; l ile est sous
+   blocus quand elle a un port et que l ennemi les tient tous - aucun drapeau, la regle se relit. Rien d autre ne change
+   que ce qui existe : les imports ( d07.importer_au_port, declarer_import ), les exports ( exporter_au_port ) et les
+   departs ( _peut_partir ) refuses et comptes ; l avis aux voyageurs du domaine 28 a 0 ; les lots maritimes du domaine
+   15 par un port tenu annules ( Malden n a aucune ligne : non exerce ici ) ; le refus d import du gouvernement dit
+   « blocus » ; le bulletin de guerre le porte. La contrebande continue ( elle force les blocus ). Choix ecrits ( a
+   verifier ) : un aeroport libre ne rouvre ni le fret ni le tourisme ( les compagnies ne volent pas vers une ile en guerre
+   dont l ennemi tient le port ) ; les navires deja en mer ne sont pas modelises.
+"""
 import math, os, re, sys, time
 from . import bourse as B, zones as Z, arma as A, moteur as GM
 from .horloge import HorlogeDeGuerre
