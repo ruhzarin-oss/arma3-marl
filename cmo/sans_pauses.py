@@ -29,14 +29,21 @@ SECTION = b"[MessageLog Preferences]"
 POWERSHELL = "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
 
 
-def cmo_tourne():
-    r = subprocess.run([POWERSHELL, "-NoProfile", "-Command",
-                        "if (Get-Process Command -ErrorAction SilentlyContinue) { 'oui' } else { 'non' }"],
-                       capture_output=True, text=True, timeout=30)
-    rep = r.stdout.strip()
-    if rep not in ("oui", "non"):
-        raise RuntimeError(f"impossible de savoir si CMO tourne : {r.stdout!r} {r.stderr[:200]!r}")
-    return rep == "oui"
+def cmo_tourne(essais=5):
+    """oui / non, relu dans Windows. Un appel PowerShell qui traîne ( 29/09 : 30 s dépassées, l'attente est morte ) est
+    retenté ; sans réponse sûre après `essais`, on lève : ne pas savoir n'est pas « fermé »."""
+    for _ in range(essais):
+        try:
+            r = subprocess.run([POWERSHELL, "-NoProfile", "-Command",
+                                "if (Get-Process Command -ErrorAction SilentlyContinue) { 'oui' } else { 'non' }"],
+                               capture_output=True, text=True, timeout=60)
+        except subprocess.TimeoutExpired:
+            continue
+        rep = r.stdout.strip()
+        if rep in ("oui", "non"):
+            return rep == "oui"
+        time.sleep(2)
+    raise RuntimeError("impossible de savoir si CMO tourne ( PowerShell ne répond pas )")
 
 
 def lignes_messages(octets):
@@ -85,6 +92,8 @@ def appliquer():
 
 
 def retablir():
+    if not os.path.exists(COPIE):
+        return None                                      # jamais coupés : il n'y a rien à rétablir
     if cmo_tourne():
         raise RuntimeError("Command.exe tourne : fermer CMO d'abord")
     shutil.copy2(COPIE, INI)
@@ -95,10 +104,16 @@ if __name__ == "__main__":
     if "--voir" in sys.argv:
         print({t: p for t, p in popups(open(INI, "rb").read()).items() if p} or "aucun pop-up")
     elif "--retablir" in sys.argv:
-        print("pop-ups rétablis :", retablir())
+        r = retablir()
+        print("rien à rétablir : les pop-ups n'ont jamais été coupés" if r is None else f"pop-ups rétablis : {r}")
     else:
         if "--attendre" in sys.argv:
             print(time.strftime("%H:%M:%S"), "j'attends la fermeture de CMO", flush=True)
-            while cmo_tourne():
+            while True:
+                try:
+                    if not cmo_tourne():
+                        break
+                except RuntimeError as e:                # PowerShell muet : on attend encore, sans conclure
+                    print(time.strftime("%H:%M:%S"), e, flush=True)
                 time.sleep(2)
         print(time.strftime("%H:%M:%S"), "pop-ups coupés :", appliquer(), flush=True)
