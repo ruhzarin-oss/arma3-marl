@@ -326,5 +326,51 @@ def test_cout():
                 f"du moteur )")
 
 
+# ================================================================== ( HMT-140, cause 5 ) les stocks d ouverture
+def _dix_premiers_jours(ouverture, jours=10):
+    """Un petit monde, 10 jours ; `ouverture` False : les sites naissent sans stock ( la naissance d avant le 29/09 ).
+    Rend, par site, les heures creditees par ouvrier chaque soir, et la part de ses ouvriers en disponibilite au dernier soir."""
+    import collections
+    anc = (M.JOURS_MATIERES, M.JOURS_DEMI_PRODUITS, M._soir)
+    if not ouverture: M.JOURS_MATIERES = M.JOURS_DEMI_PRODUITS = 0.0
+    heures = collections.defaultdict(list)
+    def espion(p_, _f=anc[2]):
+        for s in p_.domaines["industrie"].sites: heures[s.entreprise.id].append(s.heures_j / max(1, s.equipe))
+        _f(p_)
+    M._soir = espion
+    try:
+        # le monde ou le trou a ete mesure : Altis a 10 000 habitants, ses 28 domaines ( le petit monde des essais ne le
+        # reproduit pas : sans stock, ses fonderies avaient des heures 5 a 7 soirs sur 10 - le controle positif echouait )
+        from ..porte_domaines import LIVRES
+        from . import pays as P
+        w = W.Monde(graine=61, echelle=20.0); P.installer(w, LIVRES); p = w.pays
+        T.jours(w, jours)
+        tb = w.table; col = p.colonnes["habitant"]; dispo = {}
+        for s in p.domaines["industrie"].sites:
+            ids = [i for i in w.ids_au_travail(s.entreprise.lieu, s.entreprise.role) if tb.vivant[i]]
+            dispo[s.entreprise.id] = (sum(1 for i in ids if col["tr_dispo_j"][i] >= 0) / len(ids)) if ids else 0.0
+        return heures, dispo, p.socle.conservation.tenue()[0]
+    finally:
+        M.JOURS_MATIERES, M.JOURS_DEMI_PRODUITS, M._soir = anc
+
+
+def test_stocks_d_ouverture():
+    """Porte ( 29/09, HMT-140 cause 5, ecrite avant la mesure ; sur Altis a 10 000 habitants, graine 61, ou le trou a ete
+    mesure ) : les sites industriels naissent avec leurs stocks
+    ( Sidenor 2019 : ~26 jours de matieres et consommables, ~1 jour de demi-produits ). Sur les 10 premiers jours, chaque
+    fonderie a des heures creditees au moins 5 soirs ; au dixieme soir, au plus 10 % des ouvriers de chaque site
+    industriel sont en disponibilite. Conservation. Controle positif : sans stock d ouverture, le trou du demarrage revient
+    ( une fonderie a moins de 5 soirs d heures, ou plus de 10 % en disponibilite ) et la porte echoue."""
+    h, d, t = _dix_premiers_jours(True); h0, d0, t0 = _dix_premiers_jours(False)
+    def juge(h, d):
+        fond = [k for k in h if k.startswith("fonderie")]
+        return bool(fond) and all(sum(1 for x in h[k] if x > 0) >= 5 for k in fond) and all(v <= 0.10 for v in d.values())
+    ok = juge(h, d) and t and t0 and not juge(h0, d0)
+    resume = lambda h, d: "; ".join(f"{k} : {sum(1 for x in v if x > 0)} soirs d heures, {d.get(k, 0):.0%} en disponibilite"
+                                    for k, v in sorted(h.items()))
+    return ok, (f"avec les stocks : {resume(h, d)} ; conservation {t and t0} ; sans : {resume(h0, d0)} ; porte "
+                f"{'passe ( FAUX )' if juge(h0, d0) else 'echoue ( attendu )'}")
+
+
 TESTS = [test_bilan_matiere, test_epuisement, test_mtbf, test_conservation_machines, test_accidents, test_bien_hors_recette,
-         test_part_du_choix, test_pays_vivable, test_cout]
+         test_part_du_choix, test_pays_vivable, test_cout, test_stocks_d_ouverture]
