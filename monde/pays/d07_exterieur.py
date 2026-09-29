@@ -1334,8 +1334,8 @@ def installer(p):
                       ("saisie_douane", ("lieu", "bien", "quantite"))):
         J.declarer(t, "exterieur", "individuel", champs)
     for t in ("import_negoce", "export_negoce", "commande_annulee", "controle_des_changes", "contrebande_passee",
-              "envoi_de_fonds", "aide_ue", "depart_empeche", "devises_refusees", "import_borne", "import_blocus",
-              "export_blocus"):
+              "envoi_de_fonds", "aide_ue", "depart_empeche", "devises_refusees", "import_blocus", "export_blocus",
+              "import_borne"):
         J.declarer(t, "exterieur", "compte")
     ch = p.colonnes["habitant"]
     ch.ajouter("ext_emigre_j", np.int32, -1); ch.ajouter("ext_immigre_j", np.int32, -1)

@@ -80,8 +80,10 @@ remplacer("monde/pays/d07_exterieur.py", [
     w = p.w
     if sous_blocus(p): return False                      # ( 29/09 ) le blocus : aucun navire ne part
 '''),
-    ('''"envoi_de_fonds", "aide_ue", "depart_empeche", "devises_refusees"):''',
-     '''"envoi_de_fonds", "aide_ue", "depart_empeche", "devises_refusees", "import_blocus", "export_blocus"):'''),
+    # ( chef de projet, integration 12 ) ancre courte : la garde du negoce ( patch_garde_import, avant dans la chaine ) a
+    # deja ajoute « import_borne » en fin de liste ; les deux correctifs se composent dans les deux ordres
+    ('''"depart_empeche", "devises_refusees"''',
+     '''"depart_empeche", "devises_refusees", "import_blocus", "export_blocus"'''),
     ('''    if "devises_refusees" not in getattr(J, "types", {}): J.declarer("devises_refusees", "exterieur", "compte")
 ''', '''    for t in ("devises_refusees", "import_blocus", "export_blocus"):          # ( 29/09 ) et ceux du blocus
         if t not in getattr(J, "types", {}): J.declarer(t, "exterieur", "compte")
