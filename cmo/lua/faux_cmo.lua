@@ -104,6 +104,13 @@ function ScenEdit_AddMission(side, nom, genre, opts)
     FAUX.missions[side .. '/' .. nom] = { side = side, genre = genre, type = opts.type, zone = opts.zone, unites = {} }
     return { name = nom, side = side }
 end
+function ScenEdit_SetMission(side, nom, t)
+    local m = FAUX.missions[side .. '/' .. nom]
+    if m == nil then return nil end
+    for k, v in pairs(t) do m[k] = v end
+    return { name = nom, side = side }
+end
+
 function ScenEdit_AssignUnitToMission(guid, nom)
     local u = FAUX.unites[guid]
     if u == nil then return false end

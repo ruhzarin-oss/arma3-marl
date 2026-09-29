@@ -296,7 +296,8 @@ end
 -- LES MISSIONS : une patrouille de défense aérienne ( Patrol AAW ) par identifiant, nommée HMT-P<id>, sur une zone de 4
 -- points de référence en carré autour d'un centre. Créée au premier appel ; ensuite ses points bougent, la mission reste
 -- ( et ses avions aussi ). C'est l'IA de CMO qui vole, engage, se ravitaille et rentre : on ne pilote pas l'avion.
-function HMT_patrouille(R, id, camp, lat, lon, demi_km)
+-- tiers : 1 = règle du tiers de CMO ( un tiers en vol, pour durer ), 0 = tout le paquet part ; nil = réglage de CMO.
+function HMT_patrouille(R, id, camp, lat, lon, demi_km, tiers)
     local cote = HMT_CAMPS[camp]
     if cote == nil then error('HMT_REFUS 1') end
     local nom = 'HMT-P' .. id
@@ -317,6 +318,7 @@ function HMT_patrouille(R, id, camp, lat, lon, demi_km)
     if not existe and ScenEdit_AddMission(cote, nom, 'Patrol', { type = 'AAW', zone = noms }) == nil then
         error('HMT_REFUS 6')
     end
+    if tiers ~= nil then pcall(ScenEdit_SetMission, cote, nom, { OneThirdRule = (tiers == 1) }) end
     R('PATROUILLE', { id, camp, existe and 0 or 1 })
 end
 

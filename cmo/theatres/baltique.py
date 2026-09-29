@@ -57,3 +57,19 @@ DRAPEAUX = [
     ("Baranovitchi ( 61e base aérienne )", "Belarus [1992-]", 53.10, 26.05, "base aérienne", 20, "Russie-Chine", 1877, False),
     ("Hrodna", "Belarus [1992-]", 53.68, 23.83, "point clé", 20, "Russie-Chine", None, False),
 ]
+
+# D'où décollent les avions de chaque pays ( noms de drapeaux ci-dessus ). Les alliés sans base sur le théâtre se déploient
+# chez un hôte, comme dans le réel : les Américains à Łask ( rotations F-16 et F-35 en Pologne ), les Allemands à Šiauliai
+# et les Britanniques à Ämari ( police du ciel balte ), les Finlandais à Ämari ( en face d'Helsinki ), les Danois à Bornholm,
+# les Suédois sur Gotland. Les Baltes n'achètent pas d'avions ( aucun chasseur ).
+BASES_DE = {
+    "Poland": ["Łask ( 32e base aérienne )", "Malbork ( 22e base aérienne )"],
+    "United States": ["Łask ( 32e base aérienne )"],
+    "Germany [FRG/Reunified]": ["Šiauliai ( police du ciel balte )"],
+    "United Kingdom": ["Ämari"],
+    "Finland": ["Ämari"],
+    "Denmark": ["Bornholm ( Rønne )"],
+    "Sweden": ["Gotland ( Visby )"],
+    "Russia [1992-]": ["Tchkalovsk ( base aérienne )", "Pskov ( Kresty )", "Saint-Pétersbourg ( Levachovo )"],
+    "Belarus [1992-]": ["Baranovitchi ( 61e base aérienne )"],
+}

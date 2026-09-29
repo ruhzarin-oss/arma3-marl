@@ -530,14 +530,16 @@ class Labo:
         return os.path.join(CMO, "Logs", f"hmt_messages_{k}.txt")
 
     def missions(self, patrouilles=(), affectations=()) -> dict:
-        """Toutes les missions d'un tour en UN envoi. patrouilles : [ ( id, camp, lat, lon, demi_km ) ] ( créée au premier
-        appel, déplacée ensuite ) ; affectations : [ ( id, [ numéros ] ) ]."""
+        """Toutes les missions d'un tour en UN envoi. patrouilles : [ ( id, camp, lat, lon, demi_km [ , tiers ] ) ] ( créée
+        au premier appel, déplacée ensuite ; tiers 1 = règle du tiers de CMO, 0 = tout le paquet part ) ;
+        affectations : [ ( id, [ numéros ] ) ]."""
         corps, n_pat, n_aff = [], 0, 0
-        for i, camp, la, lo, dk in patrouilles:
+        for i, camp, la, lo, dk, *tiers in patrouilles:
             if camp not in self.camps:
                 raise Refus(f"camp {camp!r} inconnu")
             corps.append(f"HMT_patrouille(R, {_ent(i, 1, 9999, 'id')}, {self.camps.index(camp) + 1}, "
-                         f"{_num(la, -90, 90, 'lat'):.7f}, {_num(lo, -180, 180, 'lon'):.7f}, {_num(dk, 1, 200, 'demi_km'):.2f})")
+                         f"{_num(la, -90, 90, 'lat'):.7f}, {_num(lo, -180, 180, 'lon'):.7f}, {_num(dk, 1, 200, 'demi_km'):.2f}"
+                         + (f", {1 if tiers[0] else 0})" if tiers else ")"))
             n_pat += 1
         for i, ks in affectations:
             if ks:
