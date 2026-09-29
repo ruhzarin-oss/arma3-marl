@@ -40,6 +40,8 @@ $PY $C/patch_kea.py $ARBRE/monde/pays/d06_etat.py      # 28/09 : le KEA branche 
 $PY $C/patch_allocation_enfant.py $ARBRE/monde/pays/d06_etat.py   # 28/09 : l allocation A21, apres le KEA
 $PY $C/patch_gerance_cessation.py $ARBRE          # HMT-139 a : gerance et reglement des dettes par rang ( moteur )
 $PY $C/patch_greve_arrieres.py $ARBRE        # HMT-143 ( 29/09 ) : tout employeur debiteur regle ses arrieres a la paie, meme sans bulletin
+$PY $C/patch_cuve_ouverture.py $ARBRE  # HMT-143 ( 29/09 ) : la cuve de brut nait pleine et a elle, au bilan d ouverture
+$PY $C/patch_controle_entreprises.py $ARBRE  # ( 29/09 ) le controle d une entreprise extrapole sur au moins un trimestre
 ( cd $ARBRE && PYTHONPATH=$ARBRE $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines.json ]; then
   cmp -s $REF/ref_domaines_refaite.json $REF/ref_domaines.json && echo "REFERENCE DES DOMAINES REPRODUITE AU BIT" || echo "REFERENCE DES DOMAINES DIFFERENTE"
@@ -49,7 +51,7 @@ if [ -d $REF/ref/monde_ancien ]; then
   diff -rq -x __pycache__ -x "*.avant*" -x resultats $REF/ref/monde_ancien $REF/ref/monde_ancien.nouveau >/dev/null && echo "ANCIEN MOTEUR TEMOIN IDENTIQUE" || echo "ANCIEN MOTEUR TEMOIN DIFFERENT"
   rm -rf $REF/ref/monde_ancien.nouveau
 else mv $REF/ref/monde_ancien.nouveau $REF/ref/monde_ancien; echo "ancien moteur temoin pose"; fi
-TOUS=1f600f4     # 29/09 : integration 11 ( KEA declare, gerance, greve-arrieres, nuit du run long ) sans 948b397
+TOUS=48474e2     # 29/09 : integration 11 + HMT-143 ( cuve d ouverture au bilan d ouverture, controle des entreprises sur un trimestre )
 ARBRE2=$REF/ref_tous; rm -rf $ARBRE2 && mkdir -p $ARBRE2 && git -C $DEPOT archive $TOUS monde | tar -x -C $ARBRE2
 ( cd $ARBRE2 && PYTHONPATH=$ARBRE2 $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_tous_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines_tous.json ]; then
