@@ -92,7 +92,7 @@ class EtablissementTouristique:
     """Les hotels, pensions et restaurants d un lieu, comptes ensemble. Detient une caisse ( famille « tourisme » du
     registre ), aucun bien : la nourriture achetee est servie et consommee le jour meme."""
     __slots__ = ("id", "lieu", "lits", "caisse", "proprietaire", "vise", "jour_decision", "nuitees_7j", "recettes",
-                 "repas", "nuitees_total", "demande_jour", "servies_jour", "marge_jour", "possible_jour")
+                 "repas", "nuitees_total", "demande_jour", "servies_jour", "marge_jour", "possible_jour", "caisse_mois")
 
     def __init__(self, lieu, lits, proprietaire):
         if not lits > 0: raise ValueError(f"{lieu.id} : lits invalides {lits!r}")
@@ -102,6 +102,7 @@ class EtablissementTouristique:
         self.nuitees_7j = []                # nuitees servies des 7 derniers jours
         self.recettes = self.repas = self.nuitees_total = 0.0
         self.demande_jour = self.servies_jour = self.marge_jour = self.possible_jour = 0.0
+        self.caisse_mois = None             # ( 29/09 ) la caisse du dernier mois clos, apres son dividende ( l IS )
 
 
 class Tourisme:
@@ -296,12 +297,22 @@ def _lundi(p):
 
 # ================================================================== le dividende du mois
 def _mois(p):
+    """21 h 10, le jour de cloture d un mois. ( 29/09, HMT-140 ( 2 ) ) D abord l IS du mois sur le resultat de chaque
+    etablissement - sa caisse de ce soir moins celle du dernier mois clos, apres son dividende : les recettes moins les
+    salaires, la TVA, la nourriture et les fournitures ( domaine 6, impot_societes_hors_eco ; pertes reportees ) -, puis
+    le dividende, retenue de 5 % a la source et net au revenu declare du menage proprietaire ( domaine 6,
+    verser_dividende ). Avant le 29/09, le tourisme ne payait ni l IS ni la retenue, et son dividende echappait au revenu
+    declare."""
     if p.jour == 0 or p.jour % ECO.MOIS_J: return
-    d = _dom(p); L = p.socle.livre
+    d = _dom(p); L = p.socle.livre; fisc = p.a("etat")
     for e in d.etablissements:
+        base = getattr(e, "caisse_mois", None)
+        if fisc and base is not None: ET.impot_societes_hors_eco(p, e, e.caisse - base)
         x = e.caisse - RESERVE_DIVIDENDE_J * _cout_jour_plein(p, e, max(OCCUPATION_MOIS))
         if x > 1.0 and e.proprietaire is not None:
-            d.cumul["dividendes"] += L.transferer(e, e.proprietaire, x, "dividende")
+            d.cumul["dividendes"] += (ET.verser_dividende(p, e, e.proprietaire, x) if fisc
+                                      else L.transferer(e, e.proprietaire, x, "dividende"))
+        e.caisse_mois = e.caisse
 
 
 # ================================================================== l API
@@ -352,6 +363,7 @@ def installer(p):
         TR.declarer_employeur(p, l.id, METIER, e)
         x = FONDS_DE_ROULEMENT_J * _cout_jour_plein(p, e, max(OCCUPATION_MOIS))
         L.recevoir_de_l_exterieur(e, x, "investissement_direct"); d.cumul["investissement"] += x
+        e.caisse_mois = e.caisse                        # ( 29/09 ) le premier resultat du mois part d ici
         p.noter("etablissement_ouvert", lieu=l.id, lits=lits, proprietaire=getattr(e.proprietaire, "id", "etat"))
     d.decideur = p.decideur(POINT)
     p.routine(6.0, 30, "tourisme", _lundi)
