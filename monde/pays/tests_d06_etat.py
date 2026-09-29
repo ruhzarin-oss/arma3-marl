@@ -4,6 +4,7 @@ import numpy as np
 from .. import config as C, monde as W
 from ..socle import decision as D
 from . import essais as T, d01_population as POP, d02_banques as BQ, d03_economie as EC, d06_etat as M
+from .pays import EUROS_PAR_DRACHME as EUR
 
 
 # ================================================================== la loi, sans monde
@@ -52,11 +53,13 @@ def test_ir_par_tranches():
     est ce que le grand livre a vu verser a la paie, motif par motif ( 1e-6 relatif ) ; au moins 99 % des menages ont
     verse l impot cumule de leurs membres au centime. Falsificateur : 1 000 drachmes de revenu fantome ecrites a la main
     dans la colonne d un salarie se voient dans ce recoupement ; un taux unique de 15 % ne rend pas le bareme."""
+    # ( 29/09, HMT-140 ) les cas de la loi sont en EUROS ; le bareme du pays est en drachmes : revenus et impots convertis
+    # ( l impot d un revenu converti est l impot de la loi converti, les tranches et la reduction etant converties )
     cas = ((5000, 450.0), (10000, 900.0), (15000, 2000.0), (25000, 4500.0), (35000, 7700.0), (60000, 18300.0))
-    bar = all(abs(M.bareme_ir(y) - v) <= 1e-9 for y, v in cas)
+    bar = all(abs(M.bareme_ir(y / EUR) - v / EUR) <= 1e-9 for y, v in cas)
     cas2 = ((8000, 8000, 0, 0.0), (15000, 15000, 0, 1283.0), (20000, 20000, 2, 2360.0), (50000, 50000, 0, 13883.0),
             (60000, 60000, 0, 18300.0), (15000, 0, 0, 2000.0), (20000, 10000, 0, 2323.0), (30000, 30000, 5, 4340.0))
-    red = all(abs(M.impot_annuel(y, ys, k) - v) <= 1e-9 for y, ys, k, v in cas2)
+    red = all(abs(M.impot_annuel(y / EUR, ys / EUR, k) - v / EUR) <= 1e-9 for y, ys, k, v in cas2)
     rng = np.random.default_rng(3)
     r = rng.gamma(2.0, 30.0, 365); Y = np.cumsum(r)
     cumul = abs(M.impot_cumule(Y[-1], Y[-1], 1, 365, 365) - M.impot_annuel(Y[-1], Y[-1], 1)) <= 1e-9
@@ -109,7 +112,11 @@ def test_is_penalites_douanes():
     prescrit = abs(M.impot_societes(1000.0, vieux, 5 * 365 + 1)[0] - 220.0) <= 1e-9
     pen = [M.taux_penalite(a, b) for a, b in ((4, 100), (10, 100), (30, 100), (60, 100), (10, 0))]
     pen_ok = pen == [0.0, 0.10, 0.25, 0.50, 0.50]
-    en_ok = abs(M.enfia(100, 600) - 280.0) <= 1e-9 and abs(M.enfia(100, 5200) - 1110.0) <= 1e-9
+    # ( 29/09, regle 8 ) les cas de la loi sont en euros ( 100 m2 a 600 : 280 ; a 5 200 : 1 110 ), le tableau du pays en
+    # drachmes ; falsificateur : le tableau en euros applique aux drachmes donnait 200 drachmes a 600 euros ( 522 drachmes )
+    ancien = next(t for borne, t in M.ENFIA_ZONES_EUROS if 600.0 / EUR <= borne) * 100
+    en_ok = (abs(M.enfia(100, 600 / EUR) - 280.0 / EUR) <= 1e-9 and abs(M.enfia(100, 5200 / EUR) - 1110.0 / EUR) <= 1e-9
+             and abs(ancien - 280.0 / EUR) > 1.0)
     w, p = T.monde(["etat"])
     droit, tva = M.taxes_import(p, "outils", 1000.0)
     dou_ok = abs(droit - 40.0) <= 1e-9 and abs(tva - 249.6) <= 1e-9

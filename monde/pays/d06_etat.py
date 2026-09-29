@@ -95,15 +95,20 @@ TAUX_TVA = {"normale": 0.24, "reduite": 0.13, "super_reduite": 0.06, "exoneree":
 BORNES_TVA = {"normale": (0.15, 0.27), "reduite": (0.05, 0.17), "super_reduite": (0.0, 0.10), "exoneree": (0.0, 0.0)}
 # Impot sur le revenu des personnes : loi 4172/2013 art. 15, bareme de la loi 4646/2019 ( exercices 2020 et suivants ) :
 # 9 % jusqu a 10 000, 22 % jusqu a 20 000, 28 % jusqu a 30 000, 36 % jusqu a 40 000, 44 % au-dela ( drachmes = euros ).
-TRANCHES_IR = (10000.0, 20000.0, 30000.0, 40000.0)
+# ( 29/09, HMT-140 ; regle 8 : une drachme n est pas un euro ) le bareme de la loi est en EUROS, les revenus du pays en
+# drachmes ( EUROS_PAR_DRACHME euros la drachme ) : tranches, reduction, supplement par enfant et seuil sont convertis -
+# ecrits « drachmes = euros » jusqu au 29/09, chaque tranche etait 15 % trop large et la reduction 15 % trop forte.
+TRANCHES_IR_EUROS = (10000.0, 20000.0, 30000.0, 40000.0)
+TRANCHES_IR = tuple(x / EUROS_PAR_DRACHME for x in TRANCHES_IR_EUROS)
 TAUX_IR = (0.09, 0.22, 0.28, 0.36, 0.44)
 BORNES_TAUX_IR = (0.0, 0.55)
 # Reduction d impot des salaries et retraites ( art. 16 ) : 777 sans enfant, 810, 900, 1 120, 1 340 avec 1 a 4 enfants,
 # + 220 par enfant au-dela ; diminuee de 20 par 1 000 de revenu salarial au-dela de 12 000 ( pas de diminution a partir
 # de 5 enfants ). Limitee a l impot du revenu salarial ( partage au prorata des revenus ). A verifier par Younes.
-REDUCTION_IR = (777.0, 810.0, 900.0, 1120.0, 1340.0)
-REDUCTION_PAR_ENFANT_SUP = 220.0
-SEUIL_DEGRESSIVITE = 12000.0
+REDUCTION_IR_EUROS = (777.0, 810.0, 900.0, 1120.0, 1340.0)
+REDUCTION_IR = tuple(x / EUROS_PAR_DRACHME for x in REDUCTION_IR_EUROS)
+REDUCTION_PAR_ENFANT_SUP = 220.0 / EUROS_PAR_DRACHME
+SEUIL_DEGRESSIVITE = 12000.0 / EUROS_PAR_DRACHME
 DEGRESSIVITE = 0.02
 TAUX_DIVIDENDE = 0.05              # retenue liberatoire sur dividendes ( art. 64, 5 % depuis 2020 )
 # Impot sur les societes : art. 58, 22 % depuis l exercice 2021 ( loi 4799/2021 ) ; cooperatives agricoles 10 % ( a
@@ -120,11 +125,13 @@ PENALITES = ((0.05, 0.0), (0.20, 0.10), (0.50, 0.25), (math.inf, 0.50))
 # bien par bien ; la TVA a l importation porte sur la valeur en douane plus le droit.
 DROITS_DOUANE = {"aliment": 0.10, "eau": 0.0, "matiere_premiere": 0.0, "energie": 0.0, "materiau": 0.03,
                  "chimie": 0.045, "produit_fini": 0.04, "piece": 0.03, "sante": 0.0, "munition": 0.0}
-# ENFIA ( loi 4223/2013, art. 4 ) : impot principal = surface x tarif de base de la zone ( drachmes par m2, selon la
-# valeur de zone en drachmes par m2 ) x coefficients ( age, etage, facades : 1 par defaut ). Tableau de 2014, a verifier ;
-# l impot complementaire et les baisses de 2019-2022 ne sont pas modelises.
-ENFIA_ZONES = ((550.0, 2.0), (750.0, 2.8), (1050.0, 2.9), (1500.0, 3.7), (2000.0, 4.5), (2500.0, 6.0), (3000.0, 6.8),
-               (3500.0, 7.5), (4000.0, 9.0), (4500.0, 9.5), (5000.0, 10.2), (math.inf, 11.1))
+# ENFIA ( loi 4223/2013, art. 4 ) : impot principal = surface x tarif de base de la zone ( selon la valeur de zone par m2 )
+# x coefficients ( age, etage, facades : 1 par defaut ). Tableau de 2014, a verifier ; l impot complementaire et les
+# baisses de 2019-2022 ne sont pas modelises. ( 29/09, regle 8 ) La loi est en EUROS par m2 ( valeur de zone et tarif ) ;
+# la valeur de zone du domaine 13 est en drachmes : paliers et tarifs convertis ( appliques tels quels jusqu au 29/09 ).
+ENFIA_ZONES_EUROS = ((550.0, 2.0), (750.0, 2.8), (1050.0, 2.9), (1500.0, 3.7), (2000.0, 4.5), (2500.0, 6.0), (3000.0, 6.8),
+                     (3500.0, 7.5), (4000.0, 9.0), (4500.0, 9.5), (5000.0, 10.2), (math.inf, 11.1))
+ENFIA_ZONES = tuple((b / EUROS_PAR_DRACHME, t / EUROS_PAR_DRACHME) for b, t in ENFIA_ZONES_EUROS)
 DROITS_PERMIS = 0.005             # droits d un permis de construire, part du devis ( a calibrer )
 DELAI_PERMIS_J = 90               # instruction d un permis ( a calibrer )
 TAXE_LOCALE_M2_AN = 1.5           # taxes communales de proprete et d eclairage, drachmes par m2 et par an ( a calibrer )
@@ -1151,6 +1158,49 @@ def _nouvel_exercice(p, e):
     _voter_budget(p, e, f.debut, f.fin)
 
 
+# ================================================================== dividendes et IS hors du domaine 3 ( 29/09, HMT-140 )
+def verser_dividende(p, payeur, menage, montant, motif="dividende"):
+    """Un dividende d une entreprise qui n est pas une unite du domaine 3 ( le tourisme, domaine 28 ) : la retenue
+    liberatoire de 5 % ( art. 64 ) va a l Etat a la source, le net au menage, et compte a son revenu declare ( les six
+    mois du KEA et de l A21 : rmg_mois ; le dividende est verse hors de la fenetre de 18 h qu ils lisent ). Le dividende
+    n entre pas au bareme de l IR ( la retenue est liberatoire ). Rend le brut verse."""
+    if montant <= EPS: return 0.0
+    L = p.socle.livre; w = p.w; f = _etat(p).fisc
+    ret = L.transferer(payeur, w.gouv, f.taux_dividende * montant, "retenue_dividende")
+    f.compte["dividendes"] += ret; p.compter("retenue_dividende", ret)
+    net = L.transferer(payeur, menage, montant - ret, motif)
+    _declarer_revenu(p, menage, net)
+    return ret + net
+
+
+def _declarer_revenu(p, menage, montant):
+    """Un revenu verse hors de la fenetre de 18 h, ajoute au mois en cours du revenu declare ( rmg_mois )."""
+    cm = p.colonnes["menage"]
+    if montant > EPS and "rmg_mois" in cm and 0 <= menage.id < len(cm["rmg_mois"]): cm["rmg_mois"][menage.id] += montant
+
+
+def impot_societes_hors_eco(p, unite, resultat):
+    """L IS d un mois clos pour une entreprise hors du domaine 3 ( le tourisme ) : 22 % du resultat, les pertes reportees
+    cinq ans ( un dossier par entreprise, comme les unites du domaine 3 ; aucune part cachee ). Paye de sa caisse ; le
+    reste devient une creance de l Etat. Rend l impot du."""
+    e = _etat(p); f = e.fisc; L = p.socle.livre; K = p.socle.creances; w = p.w
+    dos = f.unites.get(unite.id)
+    if dos is None: dos = f.unites[unite.id] = DossierUnite(unite.id, 0.0, False)
+    impot, base = impot_societes(resultat, dos.pertes, p.jour, f.taux_is)
+    dos.resultat, dos.impot = base, impot
+    if impot > EPS:
+        paye = L.transferer(unite, w.gouv, impot, "impot_societes")
+        f.compte["impot_societes"] += paye; p.compter("impot_societes", paye)
+        if impot - paye > 1e-6: f.creances.append(K.constater(w.gouv, unite, impot - paye, "impot_societes", p.jour))
+    return impot
+
+
+def bareme_en_drachmes(p):
+    """Une ile reprise d un instantane d avant le 29/09 garde le bareme de l IR ecrit en euros : le convertir ( une fois )."""
+    f = _etat(p).fisc
+    if tuple(f.tranches_ir) == tuple(TRANCHES_IR_EUROS): f.tranches_ir = tuple(TRANCHES_IR)
+
+
 # ================================================================== l IS et les dividendes ( fin de mois )
 def _mois_fiscal(p):
     """10 h 10, le lendemain de la cloture d un mois par le domaine 3 : IS sur le resultat du mois clos ( part cachee ),
@@ -1183,6 +1233,7 @@ def _mois_fiscal(p):
         if h is not None and h.menage is not None and div > EPS:
             x = L.transferer(h.menage, w.gouv, f.taux_dividende * div, "retenue_dividende")
             f.compte["dividendes"] += x; p.compter("retenue_dividende", x)
+            _declarer_revenu(p, h.menage, div - x)              # ( 29/09 ) le dividende net au revenu declare
     _compter_enfants(p)
     _chrono(e, "mois_fiscal", t0)
 
