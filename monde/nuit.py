@@ -5,7 +5,13 @@ gouvernement ) et la memoire de chaque processus, dans journal.jsonl et nuit.txt
 tous les INSTANTANE_J jours ; un plantage -> reprise depuis le dernier instantane ( au plus REPRISES_MAX fois ).
 On l arrete en posant le fichier STOP dans le dossier de la nuit.
 
-   python -m monde.nuit --echelle 2000 --llm --dossier /mnt/data/hmt/archipel/nuit [ --enregistrer /mnt/data/hmt/archipel/matrice ]"""
+   python -m monde.nuit --echelle 2000 --llm --dossier /mnt/data/hmt/archipel/nuit [ --enregistrer /mnt/data/hmt/archipel/matrice ]
+   [ --demographie grece ] [ --garde-famine 0.005 ]
+
+La garde de famine ( 29/09, run long HMT-119 ; la meme que celle de la guerre, essai22n ) : des qu une ile a perdu de
+faim, depuis sa creation, au moins cette part de ses vivants, la nuit prend un instantane ( instantane_famine/ ) et
+s arrete proprement - sans elle, les essais 19 et 21 ont laisse mourir de faim 41 000 habitants sans que la « faim »
+affichee ne le montre."""
 import argparse, json, os, shutil, sys, time, traceback
 from . import config as C
 from .archipel import Archipel
@@ -62,6 +68,9 @@ def main():
     a.add_argument("--code-a-la-demande", default="/mnt/data/hmt/qwen/bibliotheque",
                    help="bibliotheque du code ecrit par Qwen ( regle 8 : branchee par defaut ) ; --sans-code pour s en passer")
     a.add_argument("--sans-code", action="store_true")
+    a.add_argument("--demographie", default=None, help="population de chaque ile : grece ( copiee sur le reel ) ; sans, le monde E1")
+    a.add_argument("--garde-famine", type=float, default=None,
+                   help="arret propre quand les morts de faim d une ile atteignent cette part de ses vivants ( 0.005 )")
     x = a.parse_args()
     d = x.dossier; os.makedirs(d, exist_ok=True)
     stop, inst = os.path.join(d, "STOP"), os.path.join(d, "instantane")
@@ -71,10 +80,11 @@ def main():
             t0 = time.time()
             reprise = inst if os.path.exists(os.path.join(inst, "pont.pkl")) else None
             arc = Archipel(echelle=x.echelle, ouvert=True, llm=x.llm, reprise=reprise, enregistrer=x.enregistrer,
-                           gouvernement=x.gouvernement, code=None if x.sans_code else x.code_a_la_demande)
+                           gouvernement=x.gouvernement, code=None if x.sans_code else x.code_a_la_demande,
+                           demographie=x.demographie)
             ecrire(d, {"evenement": "depart", "reprise": bool(reprise), "pas": arc.pas, "secondes": round(time.time() - t0)},
                    f"== archipel {'repris au pas ' + str(arc.pas) if reprise else 'cree'} en {time.time() - t0:.0f} s "
-                   f"( {x.echelle * 500:,.0f} habitants par pays, gouvernements {'Qwen' if x.llm else ('code ' + os.path.basename(x.gouvernement)) if x.gouvernement else 'regles'} )")
+                   f"( echelle {x.echelle:g}, population {x.demographie or 'E1'}, gouvernements {'Qwen' if x.llm else ('code ' + os.path.basename(x.gouvernement)) if x.gouvernement else 'regles'} )")
             while not os.path.exists(stop):
                 t0 = time.time(); arc.jours(1); dt = time.time() - t0
                 etats = arc._envoyer_a_tous(lambda n: ("etat",))
@@ -82,11 +92,21 @@ def main():
                 jour = next(iter(etats.values()))["jour"]
                 ecrire(d, {"jour": jour, "secondes": round(dt, 1), "pas": arc.pas, "en_mer": len(arc.mer), "etats": etats, "memoire_go": mem},
                        f"jour {jour:4d} ( {dt:5.0f} s, {len(arc.mer)} en mer, {sum(v or 0 for v in mem.values()):.1f} Go ) | "
-                       + " | ".join(f"{n[:6]} {e['vivants']:,} v faim {e['faim']:.0%} {e['monnaie']} {e['euros_par_unite'] or 0:.2f}€ "
+                       + " | ".join(f"{n[:6]} {e['vivants']:,} v faim {e['faim']:.0%}" + (f" {e['morts_faim']}mf" if e.get('morts_faim') is not None else "") + f" {e['monnaie']} {e['euros_par_unite'] or 0:.2f}€ "
                                     f"{'ok' if e['conservation'] else 'ROMPUE'} {e['etrangers']}e"
                                     + (f" gouv {e['gouvernement']['acceptees']}/{e['gouvernement']['actions']}" if e['gouvernement'] else "")
                                     for n, e in etats.items()))
                 total = sum(v or 0 for v in mem.values())
+                if x.garde_famine is not None:
+                    affamees = {n: e["morts_faim"] for n, e in etats.items()
+                                if e.get("morts_faim") is not None and e["morts_faim"] >= x.garde_famine * max(1, e["vivants"])}
+                    if affamees:
+                        arc.instantane(os.path.join(d, "instantane_famine"))
+                        ecrire(d, {"evenement": "arret_famine", "jour": jour, "garde": x.garde_famine,
+                                   "iles": {n: {"morts_faim": m, "vivants": etats[n]["vivants"]} for n, m in affamees.items()}},
+                               "== ARRET : garde de famine ( " + ", ".join(f"{n} {m:,} morts de faim pour {etats[n]['vivants']:,} vivants"
+                                                                        for n, m in affamees.items()) + " ), instantane dans instantane_famine/")
+                        arc.fermer(); return 3
                 dispo = disponible_go()
                 if dispo is not None and dispo < MARGE_MIN_GO:
                     ecrire(d, {"evenement": "arret_marge", "jour": jour, "disponible_go": dispo},

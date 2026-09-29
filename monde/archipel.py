@@ -140,7 +140,14 @@ class Ile:
             ins = PO.menages_inscrits(t, n)
             habites = int((np.bincount(ins[(t.vivant[:n] == 1) & (ins >= 0)], minlength=len(w.menages)) > 0).sum())
             sans = w.stats_jour.get("menages_sans_nourriture", 0)
-            return {"ile": self.nom, "jour": w.jour, "vivants": int(t.vivant[:n].sum()), "habitants": n,
+            # les morts de faim depuis la creation de l ile ( 29/09 : la garde de famine du run long, HMT-119 ; la « faim »
+            # ne compte que les vivants et baisse quand les affames meurent - essais 19 et 21 )
+            p = getattr(w, "pays", None); morts_faim = None
+            if p is not None and p.a("population"):
+                from .pays import d01_population as D1
+                ch = p.colonnes["habitant"]
+                morts_faim = int(((ch["cause_deces"][:n] == D1.CAUSES.index("faim")) & (ch["deces_j"][:n] >= 0)).sum())
+            return {"ile": self.nom, "jour": w.jour, "vivants": int(t.vivant[:n].sum()), "habitants": n, "morts_faim": morts_faim,
                     "faim": sans / max(1, habites), "faim_liste": sans / max(1, len(w.menages)), "menages_habites": habites,
                     "conservation": bool(tenue), "monnaie": o.get("monnaie"), "euros_par_unite": o.get("dernier_taux"),
                     "or_euros_g": o.get("cours"), "etrangers": len(w.etrangers), "absents": len(w.absents),
@@ -209,14 +216,14 @@ def brancher_code(w, biblio):
 
 
 def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False, llm=False, enregistrer=None, gouv=None,
-                   code=None):
+                   code=None, demographie=None):
     # 27/09 : le domaine 22 fait des produits de matrices ( faits x lieux x lieux ) ; six iles qui prennent chacune tous
     # les coeurs se marchent dessus ( 120 fils pour 20 coeurs ). Chaque ile garde sa part ( HMT_FILS_PAR_ILE pour forcer ) ;
     # le nombre de fils ne change pas les resultats ( porte des 27 domaines identique a 3 fils et a 20 )
     from threadpoolctl import threadpool_limits
     n_iles = max(1, len(noms) if noms else 1)
     threadpool_limits(int(os.environ.get("HMT_FILS_PAR_ILE", max(1, (os.cpu_count() or 1) // n_iles))), user_api="blas")
-    w = _convois(charger(reprise), echelle) if reprise else creer_ile(nom, graine, echelle, llm)
+    w = _convois(charger(reprise), echelle) if reprise else creer_ile(nom, graine, echelle, llm, demographie)
     poser_gouvernement(w, nom, gouv)
     brancher_code(w, code)
     if ouvert: w.archipel = {"noms": tuple(noms), "ouvert": True}
@@ -235,11 +242,12 @@ def _processus_ile(nom, graine, echelle, reprise, tuyau, noms=None, ouvert=False
 # ------------------------------------------------------------------ le pont
 class Archipel:
     def __init__(self, iles=C.ILES_ARCHIPEL, graine=C.GRAINE, echelle=4.0, parallele=True, reprise=None, ouvert=False,
-                 llm=False, enregistrer=None, gouvernement=None, code=None):
+                 llm=False, enregistrer=None, gouvernement=None, code=None, demographie=None):
         """`enregistrer` : un dossier ou chaque ile ecrit tout ce qui s y passe ( monde/enregistreur.py ).
         `gouvernement` : le code qui gouverne chaque ile ( voir gouvernements() ) ; sans, les regles ou le LLM.
         `code` : la bibliotheque du code a la demande ( HMT-102 ) ; None pour les portes, qui ne dependent pas de son
-        etat ; les lanceurs ( nuit, guerre, run long ) la passent par defaut."""
+        etat ; les lanceurs ( nuit, guerre, run long ) la passent par defaut. `demographie` : la population de chaque ile
+        ( None : le monde E1 ; « grece » : copiee sur la Grece, voir population.generer - 29/09, le run long HMT-119 )."""
         gv = gouvernements(gouvernement, tuple(iles))
         self.noms, self.graine, self.echelle, self.parallele, self.ouvert = tuple(iles), graine, echelle, parallele, ouvert
         self.pas = 0
@@ -255,11 +263,11 @@ class Archipel:
             self.tuyaux, self.proc = {}, {}
             for n in self.noms:
                 a, b = ctx.Pipe()
-                p = ctx.Process(target=_processus_ile, args=(n, graine, echelle, chemin(n), b, self.noms, ouvert, llm, enregistrer, gv.get(n), code), daemon=True)
+                p = ctx.Process(target=_processus_ile, args=(n, graine, echelle, chemin(n), b, self.noms, ouvert, llm, enregistrer, gv.get(n), code, demographie), daemon=True)
                 p.start(); self.tuyaux[n], self.proc[n] = a, p
             for n in self.noms: assert self.tuyaux[n].recv() == ("pret", n)
         else:
-            self.iles = {n: Ile(n, _convois(charger(chemin(n)), echelle) if reprise else creer_ile(n, graine, echelle, llm))
+            self.iles = {n: Ile(n, _convois(charger(chemin(n)), echelle) if reprise else creer_ile(n, graine, echelle, llm, demographie))
                          for n in self.noms}
             if ouvert:
                 for i in self.iles.values(): i.w.archipel = {"noms": self.noms, "ouvert": True}
