@@ -248,5 +248,116 @@ def test_cout():
                 f"{propre / len(w.habitants) * 1e6:.1f} us par habitant")
 
 
+# ================================================================== ( 29/09, run long HMT-119 ) la subvention des hopitaux
+class _Suivie(dict):
+    """La demande d un marche, dont on additionne ce qui s y ajoute ( pour un bien donne )."""
+    def __init__(self, d, cpt, bien): dict.__init__(self, d); self.cpt, self.bien = cpt, bien
+    def __setitem__(self, k, v):
+        if k == self.bien:
+            x = v - self.get(k, 0.0)
+            if x > 0: self.cpt[0] += x
+        dict.__setitem__(self, k, v)
+
+
+def _subvention_hopitaux(avec, ancien, jours=30, jour_sub=5):
+    """Un monde de ~4 500 habitants, l epidemie du moteur ; `avec` : au jour 5, la subvention des hopitaux en remedes
+    ( une demi-unite par habitant ) ; `ancien` : la regle d avant le 29/09 ( la commande recomptee chaque heure par la
+    logistique, ni borne ni reserve dans le domaine 7 ). Rend la demande de remedes et la faim, jour par jour."""
+    from . import d15_logistique as LG
+    anc_plaf, anc_res, anc_cp = M.PLAFOND_DEMANDE_HAB_J, M.GARDE_RESERVE_NOURRITURE, LG._commandes_publiques
+    if ancien:
+        M.PLAFOND_DEMANDE_HAB_J = {}; M.GARDE_RESERVE_NOURRITURE = False
+        def recompter(p, lg, _f=anc_cp):
+            for c in p.w.gouv.commandes: c.pop("_demande_comptee", None)
+            return _f(p, lg)
+        LG._commandes_publiques = recompter
+    try:
+        w, p = T.monde(["exterieur", "logistique"], echelle=9)
+        cpt = [0.0]
+        for m in w.marches.values(): m.demande = _Suivie(m.demande, cpt, "remedes")
+        n0 = int((w.table.vivant[:w.table.n] == 1).sum()); Q = 0.0
+        faim, dem, cons = [], [], True
+        for j in range(1, jours + 1):
+            if avec and j == jour_sub:
+                Q = 0.5 * n0
+                w.subventionner("hopitaux", Q * w.prix_moyen("remedes") * 1.1)
+            cpt[0] = 0.0
+            T.jours(w, 1)
+            dem.append(cpt[0]); faim.append(w.stats_jour.get("menages_sans_nourriture", 0) / max(1, len(w.menages)))
+            cons = cons and p.socle.conservation.tenue()[0]
+        return {"dem": dem, "faim": faim, "Q": Q, "cons": cons, "borne": p.socle.journal.compte("import_borne") if hasattr(p.socle.journal, "compte") else None}
+    finally:
+        M.PLAFOND_DEMANDE_HAB_J, M.GARDE_RESERVE_NOURRITURE, LG._commandes_publiques = anc_plaf, anc_res, anc_cp
+
+
+def test_subvention_hopitaux():
+    """Porte ( 29/09, run long HMT-119, ecrite avant la mesure ) : deux mondes jumeaux de ~4 500 habitants avec l epidemie
+    du moteur, 30 jours ; l un recoit au jour 5 la subvention des hopitaux en remedes ( une commande publique d une
+    demi-unite par habitant, comme celle que Qwen a donnee a Stratis ). ( a ) La demande de remedes en plus du jumeau, sur
+    les 30 jours, ne depasse pas la commande ( a 5 % pres ) : la commande est UNE demande. ( b ) Pas de faim causee par
+    l achat de remedes : chaque jour, la part de menages sans nourriture ne depasse pas celle du jumeau de plus d un point.
+    Conservation chaque jour. Controle positif : la regle d avant le 29/09 ( recomptee chaque heure, ni borne ni reserve )
+    echoue au moins sur ( a )."""
+    t = _subvention_hopitaux(False, False); s = _subvention_hopitaux(True, False)
+    ta = _subvention_hopitaux(False, True); sa = _subvention_hopitaux(True, True)
+    def juge(s, t):
+        en_plus = sum(s["dem"]) - sum(t["dem"])
+        faim = max(a - b for a, b in zip(s["faim"], t["faim"]))
+        return en_plus <= 1.05 * s["Q"], faim <= 0.01, en_plus, faim
+    a, b, en_plus, faim = juge(s, t); a2, b2, en_plus2, faim2 = juge(sa, ta)
+    ok = a and b and s["cons"] and t["cons"] and not (a2 and b2)
+    return ok, (f"commande {s['Q']:.0f} remedes au jour 5 : demande en plus sur 30 jours {en_plus:.0f} ( {en_plus / s['Q']:.2f} fois la "
+                f"commande ), pire ecart de faim au jumeau {faim:+.3f} ; conservation {s['cons'] and t['cons']} ; regle d avant : "
+                f"demande en plus {en_plus2:.0f} ( {en_plus2 / sa['Q']:.1f} fois ), pire ecart de faim {faim2:+.3f}, porte "
+                f"{'passe ( FAUX )' if a2 and b2 else 'echoue ( attendu )'}")
+
+
+def _garde_reserve(garde):
+    """Un marche sans remedes, face a un lot de remedes du negoce dix fois plus cher que son prix ( achete quand meme :
+    un bien essentiel sous un jour de stock ) ; rend ( caisse avant, caisse apres, reserve de nourriture visee )."""
+    from collections import deque
+    anc = M.GARDE_RESERVE_NOURRITURE; M.GARDE_RESERVE_NOURRITURE = garde
+    try:
+        w, p = T.monde(["exterieur"])
+        T.jours(w, 1)
+        e = M._ext(p); neg = e.negociants[0]; m = w.marches[neg.marche_id]; em = p.domaine("economie").marches[neg.marche_id]
+        L = p.socle.livre; b = M._id(p, "remedes")
+        em.demande_lisse["remedes"] = M._plafond(p, neg.marche_id, "remedes")
+        if m.stocks["remedes"] > 0: L.perdre(M.StockE1(m.stocks, p.socle.catalogue), b, m.stocks["remedes"], "perte_de_la_porte")
+        for k in list(neg.lots): neg.lots[k] = deque()
+        q = 10.0 * M._cible("remedes") * em.demande_lisse["remedes"]
+        L.source(neg.stock, b, q, "produit", "stock_initial")          # le lot, pose pour la porte : une source declaree
+        neg.lots[b] = deque([[-1, q, 10.0 * m.prix["remedes"]]])
+        reserve = M._cible("nourriture") * M._demande(p, neg.marche_id, "nourriture") * m.prix["nourriture"] * (1.0 - m.marge)
+        avant = m.caisse
+        M._vendre_aux_marches(p)
+        return avant, m.caisse, reserve, p.socle.conservation.tenue()[0]
+    finally:
+        M.GARDE_RESERVE_NOURRITURE = anc
+
+
+def test_gardes_import():
+    """Porte ( 29/09, run long HMT-119, ecrite avant la mesure ) : les deux gardes du domaine 7. ( 1 ) La borne : une
+    demande lissee de remedes posee a 100 fois le plafond ( 0,315 par habitant du marche ) est lue au plafond exact
+    ( 1e-9 ) ; une demande de nourriture ordinaire passe telle quelle. ( 2 ) La reserve : un marche sans remedes, face a
+    un lot de remedes dix fois plus cher que son prix, en achete ( un bien essentiel sous un jour de stock ) mais garde de
+    quoi racheter sa couverture de nourriture : sa caisse finit au-dessus de la reserve ( 1e-6 pres ) s il l avait au
+    depart. Conservation. Falsificateur : sans la reserve, le meme marche descend sous la reserve, et la porte echoue."""
+    w, p = T.monde(["exterieur"])
+    T.jours(w, 1)
+    e = M._ext(p); mid = e.negociants[0].marche_id; em = p.domaine("economie").marches[mid]
+    pop = w._pop_marche.get(mid, 0); plaf = M.PLAFOND_DEMANDE_HAB_J["remedes"] * pop
+    em.demande_lisse["remedes"] = 100.0 * plaf
+    borne = abs(M._demande(p, mid, "remedes") - plaf) <= 1e-9 * plaf and pop > 0
+    nour = abs(M._demande(p, mid, "nourriture") - M._demande_brute(p, mid, "nourriture")) <= 1e-12
+    av, ap, res, t1 = _garde_reserve(True); av2, ap2, res2, t2 = _garde_reserve(False)
+    garde_ok = lambda av, ap, res: ap >= min(av, res) - 1e-6 and ap < av
+    ok = borne and nour and garde_ok(av, ap, res) and t1 and t2 and not garde_ok(av2, ap2, res2)
+    return ok, (f"borne : {pop} habitants, demande lue {M._demande(p, mid, 'remedes'):.1f} pour un plafond {plaf:.1f} ( 100 fois "
+                f"au-dessus en entree ) ; nourriture ordinaire intacte {nour} ; reserve : caisse {av:.0f} -> {ap:.0f} pour une "
+                f"reserve de {res:.0f} ; conservation {t1 and t2} ; sans la reserve : {av2:.0f} -> {ap2:.0f}, porte "
+                f"{'passe ( FAUX )' if garde_ok(av2, ap2, res2) else 'echoue ( attendu )'}")
+
+
 TESTS = [test_balance_se_ferme, test_sans_argent_hors_livre, test_flux_energie, test_choc_petrolier, test_choc_importe, test_devaluation,
-         test_migrations, test_falsificateur, test_decision_importer, test_cout]
+         test_migrations, test_falsificateur, test_decision_importer, test_cout, test_subvention_hopitaux, test_gardes_import]
