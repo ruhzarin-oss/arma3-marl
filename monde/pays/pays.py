@@ -62,9 +62,12 @@ MODULE = {nom: mod for nom, mod, _ in DOMAINES}
 DEPEND = {nom: dep for nom, _, dep in DOMAINES}
 RANG = {nom: k for k, (nom, _, _) in enumerate(DOMAINES)}
 MINUTES_JOUR = 24 * 60
-# Le taux de conversion commun : 1 drachme = 1,15 euro. Deux ancrages concordants ( domaine 4, 23/09 ) : la ration a
-# 4 drachmes = 4,59 euros ( ELSTAT 2023 : 1 685 euros par mois x 20,7 % / 2,5 personnes / 30 ) ; l ouvrier a 8 drachmes
-# de l heure = 9,2 euros. Tout domaine qui convertit un prix, un salaire ou un tarif reels passe par ici.
+# Le taux de conversion commun : 1 drachme = 1,15 euro. Deux ancrages ( domaine 4, 23/09 ; corriges le 29/09, HMT-140 ) :
+# ( 1 ) la ration vaut 4 drachmes HORS TAXE ( config.PRIX_MONDE ), 4,52 TTC avec la TVA reduite de 13 %, soit 5,20 euros TTC ;
+# la depense alimentaire reelle est de 4,74 euros TTC par personne et par jour en 2023 ( ELSTAT, enquete budget des menages :
+# 1 685,28 euros par mois x 20,7 % / 2,42 personnes / 30,4 jours ) et ~4,95 en 2024 : le moteur est 10 % puis 5 % au-dessus.
+# L ancienne ecriture ( 4 drachmes = 4,59 euros, 2,5 personnes ) comparait un prix HT a une depense TTC. ( 2 ) l ouvrier a
+# 8 drachmes de l heure = 9,2 euros. Tout domaine qui convertit un prix, un salaire ou un tarif reels passe par ici.
 EUROS_PAR_DRACHME = 1.15
 DERNIERE_MINUTE = MINUTES_JOUR - C.MINUTES_PAR_PAS
 

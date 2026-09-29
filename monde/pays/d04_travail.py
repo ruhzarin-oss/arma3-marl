@@ -74,9 +74,11 @@ MOIS_J = 30
 TOL = 1e-9
 
 # ================================================================== la conversion des euros en drachmes
-# Deux ancres, qui s accordent : ( 1 ) la ration du moteur vaut 4 drachmes ( config.PRIX_MONDE ) ; un Grec depense
-# pour se nourrir 1 685,28 euros par mois et par menage x 20,7 % / 2,5 personnes / 30,4 jours = 4,59 euros par jour
-# ( ELSTAT, enquete budget des menages 2023 ) : 1 drachme = 1,15 euro ; ( 2 ) l ouvrier du moteur gagne 8 drachmes de
+# Deux ancres ( corrigees le 29/09, HMT-140 ) : ( 1 ) la ration du moteur vaut 4 drachmes HORS TAXE ( config.PRIX_MONDE ),
+# 4,52 drachmes TTC avec la TVA reduite de 13 % ; un Grec depense pour se nourrir 1 685,28 euros par mois et par menage x
+# 20,7 % / 2,42 personnes / 30,4 jours = 4,74 euros TTC par jour ( ELSTAT, enquete budget des menages 2023 ; ~4,95 en 2024 ) :
+# a 1,15 euro la drachme, la ration TTC vaut 5,20 euros, 10 % puis 5 % au-dessus du reel ( l ancienne ecriture, 4,59 euros
+# pour 2,5 personnes, comparait un prix HT a une depense TTC ) ; ( 2 ) l ouvrier du moteur gagne 8 drachmes de
 # l heure, soit 9,2 euros : l ordre du salaire brut moyen d un ouvrier grec, primes de Paques, de Noel et de conges
 # comprises ( a calibrer ). Les deux disent 1 drachme = 1,15 euro.
 EUROS_PAR_DRACHME = 1.15
