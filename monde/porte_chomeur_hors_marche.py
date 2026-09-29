@@ -1,5 +1,5 @@
 """PORTE DU CHOMEUR HORS MARCHE ET DE L ORDRE NEUTRE ( d04, 29/09, Classes diag 204 et chef de projet ; criteres ecrits
-AVANT la mesure ; graines NEUVES 121, 122, 123 ). Deux defauts du marche du travail du matin : le chomeur elu, patron ou
+AVANT la mesure ; graines NEUVES 121, 122, 123, puis 151, 152, 153 pour le rejugement de HMT-148 ). Deux defauts du marche du travail du matin : le chomeur elu, patron ou
 marchand ( HORS_MARCHE ) etait ecarte par son metier ; les candidats d un lieu etaient servis par numero d habitant ( une
 file fixe ). Le monde : Stratis x 20 ( tests_d28_tourisme._ile, ou Classes l a vu ), une annee, quatre bras par graine,
 chacun dans son propre arbre de code : la REGLE ( ce depot : patch_chomeur_hors_marche et patch_ordre_neutre ), SANS
@@ -19,16 +19,19 @@ M1 aucun chomeur sans offre la ou des postes de son lieu se sont ouverts. Dans l
    ( Une premiere forme, « le nombre sans offre sous 1,25 x l attendu, et au-dessus de 2 x sans ordre », a ete ecartee
    avant la mesure sur une fumee de 10 jours, graine 5 : ~ 1 poste par jour pour ~ 1 000 chomeurs, l attendu sans offre
    vaut ~ 900, et aucun ordre ne peut en faire le double. )
-M2 la part des marchands : dans la regle, les offres faites aux chomeurs marchands valent de 0,8 a 1,25 fois l attendu
-   ( somme des o_L x m_L / c_L, m_L les chomeurs marchands de L ), si l attendu vaut au moins 20 ( sinon sans objet ).
-   Controle positif : SANS HORS MARCHE, 0 offre aux chomeurs marchands pour un attendu d au moins 20.
+M2 la part des marchands ( HMT-148, rejugement ) : dans la regle, les offres faites aux chomeurs marchands O, sommees sur
+   les 3 graines, et leur attendu E ( somme des o_L x m_L / c_L, m_L les chomeurs marchands de L ) : | O - E | au plus
+   2 x racine( E ) ( 2 ecarts-types de Poisson ), avec E au moins 50 ( sinon manque de puissance, REFUSEE comme telle ).
+   Controle positif : SANS HORS MARCHE, 0 offre aux chomeurs marchands pour un attendu d au moins 20 par graine.
+   ( Premier jugement, graines 121 a 123, REFUSEE et garde : M2 par graine de 0,8 a 1,25 fois l attendu, 0,66 a la graine
+   121 pour 28,6 attendues ; une bande de +- 20 % y vaut ~ 1 ecart-type, le critere etait sous-dimensionne. )
 M3 la conservation tient dans les quatre bras.
 Information ( pas un critere ) : le chomage moyen des 20-64 ans de l annee ( statuts du domaine 4 ), regle contre tronc,
 et aux jours 0, 3, 30, 90, 180, 365 ; les chomeurs marchands du jour 3 ; les embauches des marchands par metier.
    python -m monde.porte_chomeur_hors_marche [ graines ]"""
 import sys, os, json, time, subprocess, tempfile
 from concurrent.futures import ThreadPoolExecutor
-GRAINES = (121, 122, 123)
+GRAINES = (151, 152, 153)          # HMT-148 ( le premier jugement : 121, 122, 123 )
 JOURS = 365
 POINTS = (0, 3, 30, 90, 180, 365)
 TRONC = "6b054bd"
@@ -52,6 +55,7 @@ def _jouer(graine):
     lp = np.zeros(cap); expose = np.zeros(cap, bool); offert = np.zeros(cap, bool)
     cho_v = np.zeros(cap, bool); lieu_v = np.full(cap, -1, np.int64); mar_v = np.zeros(cap, bool); haut_v = np.zeros(cap, bool)
     serie, taux = {}, []; om = 0; em = 0.0; oh = 0; eh = 0.0; o_tot = 0; emb_m = collections.Counter(); marchands_j3 = None
+    om_lieu = np.zeros(nl); em_lieu = np.zeros(nl); roles_m = collections.Counter()          # le detail, pour la sonde
 
     def mesurer():
         n = tb.n; v = tb.vivant[:n] == 1
@@ -83,13 +87,13 @@ def _jouer(graine):
             o_l[lieu_v[i]] += 1; offert[i] = True; o_tot += 1
             if haut_v[i]: oh += 1
             if mar_v[i]:
-                om += 1
+                om += 1; om_lieu[lieu_v[i]] += 1; roles_m[k[1]] += 1
                 if a == 1: emb_m[k[1]] += 1
         if len(ids_v):
             c_l = np.bincount(lieu_v[ids_v], minlength=nl).astype(float)
             m_l = np.bincount(lieu_v[ids_v[mar_v[ids_v]]], minlength=nl).astype(float)
             q = np.divide(o_l, c_l, out=np.zeros(nl), where=c_l > 0)
-            em += float((o_l * np.divide(m_l, c_l, out=np.zeros(nl), where=c_l > 0)).sum())
+            e_l = o_l * np.divide(m_l, c_l, out=np.zeros(nl), where=c_l > 0); em += float(e_l.sum()); em_lieu += e_l
             h_l = np.bincount(lieu_v[ids_v[haut_v[ids_v]]], minlength=nl).astype(float)
             eh += float((o_l * np.divide(h_l, c_l, out=np.zeros(nl), where=c_l > 0)).sum())
             qi = q[lieu_v[ids_v]]; ex = qi > 0
@@ -102,7 +106,8 @@ def _jouer(graine):
             "exposes": int(expose.sum()), "offerts": int((expose & offert).sum()),
             "offerts_attendu": round(float((1.0 - np.exp(lp[expose])).sum()), 1), "offres_haut": oh, "offres_haut_attendu": round(eh, 1),
             "offres_chomeurs": o_tot, "offres_marchands": om, "offres_marchands_attendu": round(em, 1),
-            "marchands_j3": marchands_j3, "embauches_marchands": dict(emb_m),
+            "marchands_j3": marchands_j3, "embauches_marchands": dict(emb_m), "roles_offerts_marchands": dict(roles_m),
+            "marchands_par_lieu": {w.carte.par_n[k].id: (int(om_lieu[k]), round(float(em_lieu[k]), 1)) for k in range(nl) if em_lieu[k] >= 1.0 or om_lieu[k] > 0},
             "conservation": bool(p.socle.conservation.tenue()[0]), "secondes": round(time.time() - t0)}
 
 
@@ -149,17 +154,17 @@ def main():
                 ok[f"M1b graine {g} : regle, la moitie haute des numeros {B['offres_haut']} offres pour {B['offres_haut_attendu']} attendues ( {x:.2f} ; 0,8 a 1,25 )"] = 0.8 <= x <= 1.25
             else:
                 ok[f"M1b graine {g} : controle positif, sans ordre, la moitie haute {B['offres_haut']} offres pour {B['offres_haut_attendu']} attendues ( {x:.2f} ; moins de 0,2 )"] = x < 0.2
-        if R["offres_marchands_attendu"] >= 20:
-            x = R["offres_marchands"] / R["offres_marchands_attendu"]
-            ok[f"M2 graine {g} : regle, {R['offres_marchands']} offres aux chomeurs marchands pour {R['offres_marchands_attendu']} attendues ( {x:.2f} ; 0,8 a 1,25 )"] = 0.8 <= x <= 1.25
-        else:
-            print(f"   M2 graine {g} : sans objet, {R['offres_marchands_attendu']} offres attendues aux marchands", flush=True)
         ok[f"M2 graine {g} : controle positif, sans hors marche {SH['offres_marchands']} offres aux marchands pour {SH['offres_marchands_attendu']} attendues ( 0, attendu au moins 20 )"] = (
             SH["offres_marchands"] == 0 and SH["offres_marchands_attendu"] >= 20)
         ok[f"M3 graine {g} : conservation dans les quatre bras"] = all(X[b]["conservation"] for b in BRAS)
         print(f"   information graine {g} : chomage moyen des 20-64 ans regle {R['chomage_moyen']:.2%}, tronc {TT['chomage_moyen']:.2%}, sans hors marche {SH['chomage_moyen']:.2%}, "
               f"sans ordre {SO['chomage_moyen']:.2%} ; serie regle {R['serie']} tronc {TT['serie']} ; marchands chomeurs au jour 3 {R['marchands_j3']} ; "
               f"leurs embauches {R['embauches_marchands']}", flush=True)
+    Rs = [r for r in rs if r["bras"] == "regle"]
+    O = sum(r["offres_marchands"] for r in Rs); Em = sum(r["offres_marchands_attendu"] for r in Rs)
+    ok[f"M2 somme des graines : regle, {O} offres aux chomeurs marchands pour {Em:.1f} attendues ( | O - E | au plus 2 x racine( E ) = {2 * Em ** 0.5:.1f} ; E au moins 50 )"] = (
+        Em >= 50 and abs(O - Em) <= 2 * Em ** 0.5)
+    for r in Rs: print(f"   information graine {r['graine']} : marchands par lieu ( offerts, attendus ) {r['marchands_par_lieu']} ; metiers offerts {r['roles_offerts_marchands']}", flush=True)
     for k, v in ok.items(): print(("PASSE  " if v else "ECHOUE ") + k)
     print(f"PORTE DU CHOMEUR HORS MARCHE ET DE L ORDRE NEUTRE : {'FRANCHIE' if all(ok.values()) else 'REFUSEE'} ( {time.time() - t0:.0f} s )")
     return 0 if all(ok.values()) else 1
