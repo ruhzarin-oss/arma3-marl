@@ -40,6 +40,14 @@ ROLES = {
     "etudiant":          (0, "populaire", False),
     "chomeur":           (0, "populaire", False),
     "inactif":           (0, "populaire", False),
+    # 29/09 ( emploi public, diagnostic de Classes, HMT-140 ) : l administration generale ( NACE O84, hors defense et
+    # police ), les pompiers ( domaine 18 ), les juges et les gardiens de prison ( domaine 21 ), payes par l Etat. Le monde
+    # grec n avait que 7 ministres pour toute l administration ( 5,6 % de l emploi dans le reel, -3,4 points ici ).
+    # Effectif 0 : le monde E1 n en a pas et garde son identite au bit ; Classes les remplit dans le monde grec.
+    "administration":    (0, "moyenne", True),
+    "pompier":           (0, "moyenne", True),
+    "juge":              (0, "aisee", True),
+    "gardien":           (0, "moyenne", True),
 }
 assert sum(v[0] for v in ROLES.values()) == 500
 
