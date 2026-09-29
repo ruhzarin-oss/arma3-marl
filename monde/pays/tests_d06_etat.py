@@ -112,7 +112,11 @@ def test_is_penalites_douanes():
     prescrit = abs(M.impot_societes(1000.0, vieux, 5 * 365 + 1)[0] - 220.0) <= 1e-9
     pen = [M.taux_penalite(a, b) for a, b in ((4, 100), (10, 100), (30, 100), (60, 100), (10, 0))]
     pen_ok = pen == [0.0, 0.10, 0.25, 0.50, 0.50]
-    en_ok = abs(M.enfia(100, 600) - 280.0) <= 1e-9 and abs(M.enfia(100, 5200) - 1110.0) <= 1e-9
+    # ( 29/09, regle 8 ) les cas de la loi sont en euros ( 100 m2 a 600 : 280 ; a 5 200 : 1 110 ), le tableau du pays en
+    # drachmes ; falsificateur : le tableau en euros applique aux drachmes donnait 200 drachmes a 600 euros ( 522 drachmes )
+    ancien = next(t for borne, t in M.ENFIA_ZONES_EUROS if 600.0 / EUR <= borne) * 100
+    en_ok = (abs(M.enfia(100, 600 / EUR) - 280.0 / EUR) <= 1e-9 and abs(M.enfia(100, 5200 / EUR) - 1110.0 / EUR) <= 1e-9
+             and abs(ancien - 280.0 / EUR) > 1.0)
     w, p = T.monde(["etat"])
     droit, tva = M.taxes_import(p, "outils", 1000.0)
     dou_ok = abs(droit - 40.0) <= 1e-9 and abs(tva - 249.6) <= 1e-9
