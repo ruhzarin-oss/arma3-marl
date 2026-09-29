@@ -1,16 +1,18 @@
 """PORTE DU DIVIDENDE DU TOURISME ( HMT-140 ( 3 ), 29/09, chef de projet ; criteres ecrits AVANT la mesure ; graines
 NEUVES 101, 102, 103 ). L Altis par defaut ( 28 domaines, echelle 20 ; le monde nait le 15 juin ), une annee, deux bras
-par graine : la REGLE ( la moitie du resultat net apres l IS, 8 % aux proprietaires etrangers, 0,18 lit par habitant )
+par graine : la REGLE ( 30 % du resultat net apres l IS, 8 % aux proprietaires etrangers, 0,18 lit par habitant )
 et le TEMOIN ( l etat de la cause 2 : toute la caisse au-dela de 30 jours de personnel, aucun etranger, 0,25 lit ).
-D1 la regle : sur l annee, les dividendes bruts du tourisme ( residents et etrangers ) ne depassent pas la moitie de la
+D1 la regle : sur l annee, les dividendes bruts du tourisme ( residents et etrangers ) ne depassent pas 30 % de la
    somme de ses resultats nets positifs du mois ( 1e-6 pres ) ; la part etrangere fait 8 % des dividendes a un demi-point
    pres ( les devises refusees la reduisent ) ; la retenue vaut 5 % des dividendes bruts ( 1e-6 pres ) ; controle
-   positif : le temoin distribue plus de la moitie de ses resultats nets positifs.
+   positif : le temoin distribue plus de 30 % de ses resultats nets positifs.
+   ( AMENDEE le 29/09 AVANT toute mesure, chef de projet : la part distribuee est SOURCEE - Eurostat nasa_10_nf_tr, S11
+   Grece, D42 / ( B8G + D42 ), moyenne 2019-2024 0,30 - au lieu de la moitie proposee par Classes ; graines inchangees. )
 D2 les lits : a l installation, les lits du tourisme valent entre 0,17 et 0,19 par habitant ( l arrondi par lieu ).
 D3 l annee : les dividendes verses aux menages residents sont plus bas que dans le temoin ; aucun etablissement n a de
    caisse negative ; la conservation tient dans les deux bras.
 Information ( pas un critere ) : le revenu net moyen des menages par personne et par mois, regle moins temoin, sur
-l annee et sur l ete ( jours 0 a 90 ) ; Classes attendait -80 a -100 euros sur l annee.
+l annee et sur l ete ( jours 0 a 90 ) ; Classes attendait -80 a -100 euros sur l annee ( avec la moitie ).
    python -m monde.porte_dividende_tourisme [ graines ]"""
 import sys, time, collections
 import numpy as np
@@ -83,12 +85,12 @@ def main():
     for r in rs: print("  ", r, flush=True)
     for g in graines:
         R = next(r for r in rs if r["graine"] == g and r["regle"]); T = next(r for r in rs if r["graine"] == g and not r["regle"])
-        ok[f"D1 graine {g} : dividendes {R['dividendes_bruts']} au plus la moitie des resultats nets {R['resultats_nets_positifs']}"] = (
-            R["dividendes_bruts"] <= 0.5 * R["resultats_nets_positifs"] * (1 + 1e-6) + 0.01 and R["dividendes_bruts"] > 0)
+        ok[f"D1 graine {g} : dividendes {R['dividendes_bruts']} au plus 30 % des resultats nets {R['resultats_nets_positifs']}"] = (
+            R["dividendes_bruts"] <= TO.PART_DISTRIBUEE * R["resultats_nets_positifs"] * (1 + 1e-6) + 0.01 and R["dividendes_bruts"] > 0)
         ok[f"D1 graine {g} : part etrangere {R['part_etrangere']} ( 8 % a un demi-point ) ; retenue {R['retenue']} = 5 %"] = (
             abs(R["part_etrangere"] - 0.08) <= 0.005 and abs(R["retenue"] - 0.05 * R["dividendes_bruts"]) <= 1e-6 * R["dividendes_bruts"] + 0.01)
-        ok[f"D1 graine {g} : controle positif, le temoin distribue plus de la moitie ( {T['dividendes_bruts']} pour {T['resultats_nets_positifs']} )"] = (
-            T["dividendes_bruts"] > 0.5 * T["resultats_nets_positifs"])
+        ok[f"D1 graine {g} : controle positif, le temoin distribue plus de 30 % ( {T['dividendes_bruts']} pour {T['resultats_nets_positifs']} )"] = (
+            T["dividendes_bruts"] > 0.30 * T["resultats_nets_positifs"])
         ok[f"D2 graine {g} : {R['lits_par_habitant']} lit par habitant ( 0,17 a 0,19 )"] = 0.17 <= R["lits_par_habitant"] <= 0.19
         ok[f"D3 graine {g} : dividendes aux menages {R['dividendes_menages']} sous le temoin {T['dividendes_menages']} ; caisses positives ; conservation"] = (
             R["dividendes_menages"] < T["dividendes_menages"] and not R["caisse_negative"] and R["conservation"] and T["conservation"])

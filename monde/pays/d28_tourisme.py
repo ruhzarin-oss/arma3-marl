@@ -77,10 +77,13 @@ RESERVE_HABITANTS_J = 1.0
 PART_FOURNITURES = 0.15
 FONDS_DE_ROULEMENT_J = 30             # jours de personnel plein apportes par l investisseur etranger a l installation
 RESERVE_DIVIDENDE_J = 30              # le dividende du mois laisse en caisse 30 jours de personnel plein
-# ( 29/09, HMT-140 ( 3 ) ) Le dividende du mois : la moitie du resultat net ( apres l IS ), dans la limite de la caisse
-# au-dela de la reserve - l autre moitie reste dans l etablissement ( proposition de Classes ; A VERIFIER : le taux de
-# distribution des hoteliers grecs ). Avant, toute la caisse au-dela de 30 jours de personnel partait chaque mois.
-PART_DISTRIBUEE = 0.5
+# ( 29/09, HMT-140 ( 3 ) ) Le dividende du mois : 30 % du resultat net ( apres l IS ), dans la limite de la caisse au-dela
+# de la reserve ; le reste demeure dans l etablissement. SOURCE : Eurostat, comptes de secteur ( nasa_10_nf_tr ), societes
+# non financieres ( S11 ) de la Grece, revenus distribues verses ( D42 ) sur epargne brute plus D42 ( B8G + D42 ) :
+# 0,30 en 2019, 0,27, 0,29, 0,24, 0,34 et 0,35 en 2024, moyenne 0,30 - une base brute ( avant amortissement ), comme le
+# resultat de l etablissement ici ( sa caisse du mois ). Classes proposait la moitie. Avant le 29/09, toute la caisse
+# au-dela de 30 jours de personnel partait chaque mois.
+PART_DISTRIBUEE = 0.30
 # La part des proprietaires etrangers : les entreprises de l hebergement et de la restauration sous controle etranger
 # emploient 33 027 personnes ( 363 entreprises, 2,43 milliards d euros de chiffre d affaires : ELSTAT, statistiques des
 # filiales etrangeres, citees par money-tourism.gr ) sur environ 400 000 emplois d ete ( ci-dessus ) : 8 % ( A VERIFIER ).
@@ -320,7 +323,7 @@ def _mois(p):
         resultat = None if base is None else e.caisse - base
         impot = ET.impot_societes_hors_eco(p, e, resultat) if fisc and resultat is not None else 0.0
         net = 0.0 if resultat is None else resultat - impot
-        # ( 29/09, HMT-140 ( 3 ) ) la moitie du resultat net, dans la limite de la caisse au-dela de la reserve
+        # ( 29/09, HMT-140 ( 3 ) ) 30 % du resultat net ( PART_DISTRIBUEE ), dans la limite de la caisse au-dela de la reserve
         x = min(PART_DISTRIBUEE * net, e.caisse - RESERVE_DIVIDENDE_J * _cout_jour_plein(p, e, max(OCCUPATION_MOIS)))
         if x > 1.0:
             etr = PART_ETRANGERE * x if fisc and p.a("exterieur") else 0.0
