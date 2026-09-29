@@ -116,6 +116,8 @@ local function voler()
 end
 FAUX.voler = voler
 
+function SetScenarioMessageLogPath(p) FAUX.journal = p end
+
 FAUX.postures = {}
 function ScenEdit_SetSidePosture(a, b, p) FAUX.postures[a .. '>' .. b] = p end
 function ScenEdit_GetSidePosture(a, b) return FAUX.postures[a .. '>' .. b] or 'N' end

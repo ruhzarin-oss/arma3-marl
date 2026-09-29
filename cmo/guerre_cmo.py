@@ -85,6 +85,7 @@ class CmoGuerre:
             if camp not in CAMPS_ARMA[:2] or ile not in CL.CAMPS or ile not in iles:
                 raise CL.Refus(f"camp {camp} -> île {ile} : inconnu du pont CMO ( {CL.CAMPS} ) ou sans île réelle")
         self.labo, self.labo_kw, self.possede = labo, labo_kw or {}, labo is None
+        self.table_rase, self.journal_id, self.journal = False, None, None
         self.cat, self.plafond, self.rayon = dict(catalogue), int(plafond), float(rayon_ciel_m)
         self.geo = {ile: Geo(*iles[ile]) for ile in self.camps.values()}
         self.geo_champ = self.geo[champ]
@@ -129,6 +130,10 @@ class CmoGuerre:
         try:
             iles = list(self.camps.values())
             self.labo.hostiles(iles[0], iles[1])
+            if self.journal_id:
+                self.journal = self.labo.journal_messages(self.journal_id)
+            if self.table_rase:                          # une guerre neuve : aucun avion d'avant
+                self.labo.nettoyer()
             self._relever()                              # une reprise : les avions déjà en vol sont ceux de la guerre
         except BaseException:
             self.fermer()

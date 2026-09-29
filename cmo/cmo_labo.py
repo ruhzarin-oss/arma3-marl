@@ -54,7 +54,7 @@ SORTIE = f"{CMO}/ImportExport"
 ETAT = "/mnt/data/hmt/etat"
 FICHIER_CERTIF = "cmo_build_certifie.json"
 
-VERSION_LUA = 5                     # = HMT_VERSION de lua/hmt_pont.lua
+VERSION_LUA = 6                     # = HMT_VERSION de lua/hmt_pont.lua
 CAMPS = ("Stratis", "Malden")       # = HMT_CAMPS, même ordre ; index Lua = index Python + 1
 GENRES = ("air", "navire", "sous_marin", "site")      # = HMT_GENRES ( Air, Ship, Submarine, Facility )
 NUMERO_MAX = 99_999_999             # guerre_cmo décale les numéros de front par camp : chaque île numérote depuis 1
@@ -487,6 +487,13 @@ class Labo:
         if len(out["ordonnes"]) + len(out["absents"]) != n:
             raise Incomplet(f"{n} ordres envoyés, {len(out['ordonnes'])} faits, {len(out['absents'])} absents")
         return out
+
+    def journal_messages(self, ident: int) -> str:
+        """Le journal des messages de CMO part dans Logs/hmt_messages_<ident>.txt ( chemin rendu, vu d'ici ). C'est là que
+        CMO dit qui a tiré sur qui, et pourquoi un avion est perdu."""
+        k = _ent(ident, 1, 999_999_999_999, "ident")          # AAAAMMJJhhmm : 12 chiffres
+        _une(self._exec(f"HMT_journal(R, {k})")["lignes"], "JOURNAL", 1)
+        return os.path.join(CMO, "Logs", f"hmt_messages_{k}.txt")
 
     def missions(self, patrouilles=(), affectations=()) -> dict:
         """Toutes les missions d'un tour en UN envoi. patrouilles : [ ( id, camp, lat, lon, demi_km ) ] ( créée au premier

@@ -15,7 +15,7 @@
 -- Codes du reçu : 0 exécutée, 1 erreur Lua pendant l'exécution, 2 le fichier ne compile pas, 3 refus ( detail =
 -- code de REFUS_LUA dans cmo_labo.py ).
 
-HMT_VERSION = 5
+HMT_VERSION = 6
 HMT_CAMPS = { 'Stratis', 'Malden' }                          -- = CAMPS de cmo_labo.py, dans le même ordre
 HMT_GENRES = { 'Air', 'Ship', 'Submarine', 'Facility' }      -- = GENRES de cmo_labo.py
 HMT_n = HMT_n or 0                                           -- dernière commande prise
@@ -240,6 +240,13 @@ function HMT_aller_tous(R, lat, lon, ...)
             R('ORDRE', { k, lat, lon })
         end
     end
+end
+
+-- Le journal des messages de CMO ( tirs, détections, pertes et leur cause ) écrit dans Logs/hmt_messages_<id>.txt.
+-- Le nom est composé ICI, d'un nombre : aucun texte du moteur n'entre dans CMO.
+function HMT_journal(R, id)
+    SetScenarioMessageLogPath('hmt_messages_' .. string.format('%d', id) .. '.txt')
+    R('JOURNAL', { id })
 end
 
 -- LES MISSIONS : une patrouille de défense aérienne ( Patrol AAW ) par identifiant, nommée HMT-P<id>, sur une zone de 4

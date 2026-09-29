@@ -345,13 +345,19 @@ def p25_calme_moins_de_runscript():
         assert l.canari()["pont"] == "vivant"
 
 
+def p26_journal_des_messages():
+    with banc() as (f, l):
+        chemin = l.journal_messages(202609291200)
+        assert chemin.endswith("hmt_messages_202609291200.txt") and f.lua("return FAUX.journal") == "hmt_messages_202609291200.txt"
+
+
 TESTS = [p0_accords, p1_installer, p2_canaris, p3_poser_etat_positions, p4_morts_une_fois, p5_erreur_lua_certaine,
          p6_refus_deux_etages, p7_compilation, p8_pause_jamais_aucun, p9_rechargement_recalage, p10_un_seul_ecrivain,
          p11_recu_ecrit_lentement, p12_que_des_nombres, p13_build_non_certifie, p14_lecteur_runscript,
          p14b_runscript_qui_leve, p15_commande_non_prise_effacee, p16_gros_recu, p17_recu_tronque, p18_nettoyer_prouve,
          p19_poser_apres_nettoyer, p20_recharger_sans_console,
          p21_hostiles, p22_recu_tardif, p23_lecture_impossible_nest_pas_une_panne, p24_patrouilles,
-         p25_calme_moins_de_runscript]
+         p25_calme_moins_de_runscript, p26_journal_des_messages]
 
 
 def passer(tests):

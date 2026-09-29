@@ -44,7 +44,7 @@ DOSSIER = os.path.join(CL.ETAT, "cmo_guerre")
 # Un avion ( 500 000 points ) toutes les 6 minutes pour Stratis, toutes les 7 pour Malden : points = 0,05 x recettes / 100.
 RECETTES = {"Stratis": 1.67e8, "Malden": 1.43e8}
 PERIODE_S, SUIVI_S, POINT_S = 60.0, 10.0, 600.0
-RAYON_COMBAT_M = 40_000.0
+RAYON_COMBAT_M = 150_000.0                               # portée d'un missile air-air à longue portée ( AIM-120 )
 
 
 class GuerreLongue:
@@ -57,6 +57,8 @@ class GuerreLongue:
         self.carte = carte
         self.arc = ArchipelDePapier(recettes, pas_s=0.2)
         self.g = G.CmoGuerre(carte["zones"], labo_kw=labo_kw or {})
+        self.g.table_rase = True                         # une endurance = une guerre neuve
+        self.g.journal_id = int(time.strftime("%Y%m%d%H%M"))   # le journal des messages de CMO : la vraie cause des morts
         self.h = HorlogeDeGuerre(self.arc, self.g, carte, periode_s=periode_s, dossier=self.dossier,
                                  periode_suivi_s=suivi_s)
         self.stop = False
@@ -108,6 +110,9 @@ class GuerreLongue:
         for camp, us in vivants.items():
             for k, x, y, _d in us:
                 self.dernieres_pos[(camp, k)] = (x, y)
+        if time.time() - getattr(self, "t_positions", 0.0) >= 60:     # de quoi rejouer la guerre après coup
+            self.t_positions = time.time()
+            self.noter("positions", avions={f"{c}{k}": [round(x), round(y)] for (c, k), (x, y) in self.dernieres_pos.items()})
 
     def tourner(self):
         for sig in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
@@ -131,7 +136,8 @@ class GuerreLongue:
             except CL.ErreurLabo as e:
                 self._panne(e, "ouvrir")
                 time.sleep(10)
-        self.noter("debut", carte=len(self.carte["zones"]), journaux=E.taille_journaux(self.logs), memoire=E.memoire_command())
+        self.noter("debut", carte=len(self.carte["zones"]), journal_messages=self.g.journal,
+                   journaux=E.taille_journaux(self.logs), memoire=E.memoire_command())
         t_point = 0.0
         try:
             while not self.stop and time.time() < fin and not os.path.exists(stop):
@@ -162,10 +168,11 @@ class GuerreLongue:
             self.plantage = f"{type(e).__name__}: {e}"
             raise
         finally:
-            try:                                         # les morts vues au dernier tour vont au moteur ( E2 )
-                self._apres_suivi(self.h.suivre_soldats())
-            except CL.ErreurLabo as e:
-                self._panne(e, "dernier relevé")
+            if self.g.ouvert:                            # les morts vues au dernier tour vont au moteur ( E2 )
+                try:
+                    self._apres_suivi(self.h.suivre_soldats())
+                except CL.ErreurLabo as e:
+                    self._panne(e, "dernier relevé")
             self.noter("fin", journaux=E.taille_journaux(self.logs), memoire=E.memoire_command())
             self.rapport(final=True)
             self.g.fermer()
