@@ -2105,6 +2105,12 @@ def installer(p):
     if E.raffinerie is not None:
         n = _vivants_au_travail(w, E.raffinerie.lieu, E.raffinerie.role)
         E.nominal_brut_j = n * DEBIT_OUVRIER_H * 8.0
+        # ( HMT-143, 29/09 ) une raffinerie en marche possede son stock de brut : la cuve nait pleine et a elle, du brut
+        # achete avant le premier jour du monde ( une source declaree, motif stock_initial, comme les greniers du domaine
+        # 9 ). Avant, l oleoduc la remplissait des le jour 1, a credit et sans echeance : la raffinerie naissait avec ~200 000
+        # drachmes d arrieres envers le puits ( 233 000 au jour 10 d Altis, graine 1 ).
+        q = CUVE_BRUT_J * E.nominal_brut_j - E.raffinerie.stocks.get("petrole", 0.0)
+        if q > EPS: L.source(StocksE1(E.raffinerie.stocks, E.noms), E.ids["petrole"], q, "produit", "stock_initial")
     reg = p.socle.registre
     reg.inscrire("gestionnaires_reseau", "entreprises", _membres_gestionnaires, "caisse", "stock", "GestionnaireReseau")
     reg.inscrire("reservoirs_energie", "entreprises", _membres_reservoirs, None, "stock", None)
