@@ -1742,6 +1742,19 @@ def apporter(p, unite, apporteur, montant):
     return paye
 
 
+def ouvrir_stocks(p, unite):
+    """( HMT-143, 29/09 ) Un domaine qui pose, a son installation, le stock d ouverture d une entreprise ( la cuve de
+    brut de la raffinerie, domaine 11 ) le fait entrer au BILAN D OUVERTURE : la valeur des stocks et les capitaux
+    propres d ouverture montent ensemble, et rien ne passe au resultat du premier jour. Le domaine 3 prend son bilan
+    d ouverture a sa propre installation, avant les domaines suivants : sans cela, la cuve entrait au resultat du
+    premier soir ( ~200 000 drachmes de benefice a Altis ), puis a l assiette de l IS et au redressement fiscal."""
+    c = comptes(p, unite)
+    st = _valeur_stocks(p.w, unite, _marche_de(p.w, unite))
+    delta = st - c.stocks_val
+    c.stocks_val = st; c.cp += delta; c.cp0 += delta
+    return delta
+
+
 def reevaluer_capital(p, unite, valeur_nette, duree_vie_ans=None):
     """Un domaine qui reprend une entreprise ( 9, 10, 11 ) remplace son capital comptable par la valeur de ses objets
     ( Parc ) : l ecart passe en capitaux propres ( ecart de reevaluation ), pas en resultat."""

@@ -4,6 +4,7 @@ Le monde des portes a plusieurs iles : Altis et Malden ( `essais.monde( [...], i
 payee du 22-23/09 : a 2 000 habitants sur six iles, la faim passait de 2,2 % a 11,9 % parce que la nourriture ne
 traversait pas la mer. Le controle positif en est tire : les fermes de Malden ne produisent plus rien ( secheresse
 totale, `Monde.chocs` ) ; sans fret, l ile a faim ; avec le fret, elle doit manger."""
+import math
 import time
 import numpy as np
 from .. import config as C, monde as W
@@ -314,6 +315,44 @@ def test_cout():
                 f"{int(lg.stats['convois'] / 6)} convois par jour ; faim {T.faim(p.w):.1%}")
 
 
+# ================================================================== ( 29/09, run long HMT-119 ) la commande publique comptee une fois
+def _demande_comptee(p, w, Q, ancien):
+    """Une commande publique de remedes que personne ne peut servir ( les marches de l ile du gouvernement sans remedes ),
+    vue 72 heures de suite par la logistique ; rend la demande de remedes comptee. `ancien` : le drapeau efface avant
+    chaque heure, comme dans le domaine 15 d avant le correctif."""
+    lg = M._lg(p)
+    ms = [m for m in w.marches.values() if m.lieu.ile == w.carte.gouvernement.ile]
+    stocks = {m.lieu.id: m.stocks["remedes"] for m in ms}; dem = {m.lieu.id: m.demande["remedes"] for m in ms}
+    cmd = {"bien": "remedes", "quantite": Q, "destination": "hopitaux"}
+    autres = list(w.gouv.commandes); w.gouv.commandes[:] = [cmd]
+    d0 = math.fsum(m.demande["remedes"] for m in ms)
+    for _ in range(72):
+        for m in ms: m.stocks["remedes"] = 0.0
+        if ancien: cmd.pop("_demande_comptee", None)
+        M._commandes_publiques(p, lg)
+    compte = math.fsum(m.demande["remedes"] for m in ms) - d0
+    for m in ms: m.stocks["remedes"] = stocks[m.lieu.id]; m.demande["remedes"] = dem[m.lieu.id]
+    w.gouv.commandes[:] = autres
+    return compte, cmd["quantite"]
+
+
+def test_commande_publique_une_fois():
+    """Porte ( 29/09, run long HMT-119, ecrite avant la mesure ) : une commande publique non servie pendant 3 jours
+    ( 72 heures de logistique ) entre UNE fois dans la demande du marche : la demande comptee egale la quantite
+    commandee ( 1e-9 pres ), et la commande reste entiere ( rien de servi ). Controle positif : le domaine 15 d avant le
+    correctif ( recompte a chaque heure ) donne 72 fois la quantite, 24 fois par jour, et la porte echoue."""
+    w, p = T.monde(["logistique"])
+    T.jours(w, 1)
+    Q = 5000.0
+    n, reste = _demande_comptee(p, w, Q, False)
+    a, _ = _demande_comptee(p, w, Q, True)
+    juge = lambda n: abs(n - Q) <= 1e-9 * Q
+    ok = juge(n) and abs(reste - Q) <= 1e-9 and not juge(a) and abs(a - 72 * Q) <= 1e-9 * Q
+    return ok, (f"commande de {Q:.0f} remedes non servie 72 heures : demande comptee {n:.1f} ( {n / Q:.2f} fois la "
+                f"commande ), reste a servir {reste:.1f} ; domaine 15 d avant : {a:.1f} ( {a / Q:.0f} fois ), porte "
+                f"{'passe ( FAUX )' if juge(a) else 'echoue ( attendu )'}")
+
+
 TESTS = [test_flotte_et_physique, test_conservation_en_transit, test_faim_ile_sans_production, test_port_sature,
          test_chauffeurs_au_repos, test_duree_selon_routes, test_decision_expedier_lot, test_api_envoyer, test_pays_vivable,
-         test_cout]
+         test_cout, test_commande_publique_une_fois]

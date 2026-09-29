@@ -695,7 +695,13 @@ def _commandes_publiques(p, lg):
         tr = lg.par_capitale.get(m.lieu.id)
         ck = capacite_libre(p, tr)[0] if tr is not None else 0.0
         q = min(cmd["quantite"], m.stocks[b], ck / max(EPS, masse_kg(p, b)))
-        m.demande[b] += cmd["quantite"]
+        # ( 29/09 ) une commande publique est UNE demande, comptee le jour ou le marche la voit, comme dans le moteur depuis le
+        # 26/09 ( _demande_comptee ). Ce domaine, en remplacant monde.expedier, avait perdu ce correctif : recomptee a chaque
+        # heure tant qu elle n etait pas servie, la subvention des hopitaux en remedes du run long ( Stratis, 100 000
+        # habitants ) faisait 1,2 million de remedes demandes par jour, que le negoce importait et que le marche rachetait
+        # avec la caisse de sa nourriture ( 64 a 71 % de menages sans nourriture, jours 24 a 27 ).
+        if not cmd.get("_demande_comptee"):
+            m.demande[b] += cmd["quantite"]; cmd["_demande_comptee"] = True
         if q < 1: continue
         cout = q * m.prix[b]
         if w.gouv.caisse < cout: continue
