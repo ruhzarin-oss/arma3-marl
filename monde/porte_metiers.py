@@ -14,7 +14,8 @@ et pour la carte des six iles ouverte par Altis, au mode par defaut et au mode g
      hoteliers nes du surplus sont ou sont les lits ( POIDS_HOTELLERIE = domaine 28, POIDS_LIEU ), a l arrondi du tour
      de role pres ;
   5. Altis porte deja ses metiers : sur Altis et sur la carte des six iles ouverte par Altis, les effectifs sont ceux
-     de config.ROLES, sans surplus ( l identite au bit est prouvee par les portes des domaines et des colonnes ) - sauf
+     de config.ROLES, sans surplus - sauf ( HMT-140, 29/09 ) la politique, un gouvernement par ile ( 1 chef, 6
+     ministres ) : les postes au-dela naissent marchands, comme les patrons sans entreprise ( l identite au bit est prouvee par les portes des domaines et des colonnes ) - sauf
      les patrons, au-dela de l echelle 1,5 ( regle 6 ) ;
   6. ( 28/09 ) les patrons : dans le monde construit ( Monde.__init__ donne les entreprises ), chaque patron possede au
      moins une entreprise privee ( un site de production hors ferme ) et chaque entreprise privee a un patron ; il y a
@@ -45,11 +46,15 @@ def postes_des(carte, r): return PO.postes_des_sites(carte, r)
 
 def e1_patrons(carte, echelle):
     """Les effectifs d E1 a l echelle, apres la regle 6 : min( patrons, entreprises privees ) patrons, les autres
-    marchands ( calcule ici sans population.effectifs )."""
+    marchands ; et ( HMT-140 ) un gouvernement par ile, 1 chef et 6 ministres, les autres marchands ( calcule ici sans
+    population.effectifs )."""
     e1 = {r: (max(1, int(round(k * echelle))) if k else 0) for r, (k, _, _) in C.ROLES.items()}
     n = len(carte.de_type(*[t for t in C.RECETTES if t != "ferme"]))
     garde = min(e1["patron"], n)
     e1["marchand"] += e1["patron"] - garde; e1["patron"] = garde
+    for r in PO.POLITIQUES_PAR_ILE:                     # ( HMT-140 ) un gouvernement par ile ; les autres, marchands
+        k = max(1, int(round(C.ROLES[r][0])))
+        e1[PO.POLITIQUE_SANS_GOUVERNEMENT] += e1[r] - k; e1[r] = k
     return e1
 
 
@@ -84,6 +89,8 @@ def verifier(carte, t, echelle, demographie):
         if sans_base and r in PO.MILITAIRES + ("policier",): continue
         k = int((ro == PO.CODE_ROLE[r]).sum())
         if k != v: fautes.append(f"{r} : {k} dans la table pour {v} annonces")
+    for r in PO.POLITIQUES_PAR_ILE:                     # ( HMT-140 ) un gouvernement par ile, celui d E1, a toute echelle
+        if eff[r] != max(1, int(round(C.ROLES[r][0]))): fautes.append(f"{r} : {eff[r]} pour {C.ROLES[r][0]} par ile")
     # 4. le surplus, au prorata d ACCUEIL
     surplus = sum(max(1, int(round(C.ROLES[r][0] * echelle))) for r in PO.POSTES_PAR_SITE) - \
         sum(eff[r] for r in PO.POSTES_PAR_SITE)
@@ -151,7 +158,7 @@ def main():
             carte, t = generer(iles, dem, ech)
             fautes, eff, surplus = verifier(carte, t, ech, dem)
             nom = "+".join(i[:3] for i in iles) + f" x{ech:g}"
-            if iles[0] == "Altis":        # 5. Altis porte deja ses metiers
+            if iles[0] == "Altis":        # 5. Altis porte deja ses metiers ( E1 apres les regles des patrons et de la politique )
                 e1 = e1_patrons(carte, ech)
                 if eff != e1 or surplus != 0: fautes.append(f"Altis : effectifs {eff} differents d E1 {e1}")
             ind = {r: eff[r] for r in PO.POSTES_PAR_SITE}
@@ -232,6 +239,18 @@ def main():
     print(f"{'PASSE ' if fa else 'ECHOUE'} falsificateur des patrons : {npat} patrons pour {nent} entreprises ( l ancienne regle ) "
           f"{'refuses' if fa else 'NON VUS'} : {fautes[:2]}")
     ok &= fa
+    # ( HMT-140 ) falsificateur de la politique : l ancienne regle posee a la main ( 133 marchands redevenus ministres
+    # sur Altis x20, 120 ministres comme l echelle les faisait ) : la porte doit voir la faute
+    w = W.Monde(graine=1, iles=("Altis",), echelle=ECHELLE)
+    t = w.table
+    ids = np.nonzero(t.role[:t.n] == PO.CODE_ROLE["marchand"])[0][:114]
+    t.role[ids] = PO.CODE_ROLE["ministre"]
+    fautes, eff, _ = verifier(w.carte, t, ECHELLE, None)
+    nmin = int((t.role[:t.n] == PO.CODE_ROLE["ministre"]).sum())
+    fp = any("ministre" in x for x in fautes)
+    print(f"{'PASSE ' if fp else 'ECHOUE'} falsificateur de la politique : {nmin} ministres sur Altis x{ECHELLE:g} ( l ancienne regle ) "
+          f"{'refuses' if fp else 'NON VUS'} : {[x for x in fautes if 'ministre' in x][:1]}")
+    ok &= fp
     print(f"PORTE DES METIERS DES ILES : {'FRANCHIE' if ok else 'NON FRANCHIE'} ( {time.perf_counter() - t0:.0f} s )")
     return 0 if ok else 1
 

@@ -670,6 +670,16 @@ def _vers_le_reel(c, w, total):
     return f(hi)
 
 
+# ( HMT-140, 29/09 ) La politique ne grandit pas avec l echelle : un gouvernement par ile, celui d E1 ( 1 chef, 6
+# ministres ). A 10 000 habitants, l echelle en faisait 20 et 120 ( 76 ministres a l echelle 12,75 ), soit ~57 euros par
+# habitant et par mois de remunerations politiques. Le reel des petits Etats insulaires : Nauru ( 12 000 habitants ), un
+# president et 5 ministres ; Tuvalu ( 11 000 ), un Premier ministre et 7 ministres ; Malte ( 520 000 ), 17 ministres ;
+# la Grece ( 10,4 millions ), ~20 ministres. Ceux que l echelle aurait faits ministres naissent marchands ( comme les
+# patrons sans entreprise ).
+POLITIQUES_PAR_ILE = ("chef_gouvernement", "ministre")
+POLITIQUE_SANS_GOUVERNEMENT = "marchand"
+
+
 def effectifs(carte, echelle, entiers=True):
     """{ metier de config.ROLES : effectif a la naissance } sur CETTE carte, a cette echelle ( sans tirage ). Chaque
     metier du monde E1 a son effectif a l echelle ( au moins 1, comme toujours ) ; un metier industriel a les postes de
@@ -688,6 +698,10 @@ def effectifs(carte, echelle, entiers=True):
     garde = min(eff["patron"], entreprises_privees(carte))      # un patron a au moins une entreprise ( 28/09 )
     eff[PATRON_SANS_ENTREPRISE] += eff["patron"] - garde
     eff["patron"] = garde
+    for r in POLITIQUES_PAR_ILE:                         # ( HMT-140 ) un gouvernement par ile, pas par unite d echelle
+        k = arrondi(C.ROLES[r][0])
+        eff[POLITIQUE_SANS_GOUVERNEMENT] += eff[r] - k
+        eff[r] = k
     ouverts = [r for r in ACCUEIL if metier_possible(carte, r)]
     if surplus and ouverts:
         c = [float(eff[r]) for r in ouverts]

@@ -60,10 +60,23 @@ class Menage:
         return [h for h in self.membres if h.role not in ("enfant",) and h.vivant]
 
 
+# ( HMT-140, 29/09 ) La politique ne grandit pas avec l echelle : un gouvernement par ile, celui d E1 ( 1 chef, 6
+# ministres ). A 10 000 habitants, l echelle en faisait 20 et 120 ( 76 ministres a l echelle 12,75 ), soit ~57 euros par
+# habitant et par mois de remunerations politiques. Le reel des petits Etats insulaires : Nauru ( 12 000 habitants ), un
+# president et 5 ministres ; Tuvalu ( 11 000 ), un Premier ministre et 7 ministres ; Malte ( 520 000 ), 17 ministres ;
+# la Grece ( 10,4 millions ), ~20 ministres. Ceux que l echelle aurait faits ministres naissent marchands ( comme les
+# patrons sans entreprise ).
+POLITIQUES_PAR_ILE = ("chef_gouvernement", "ministre")
+POLITIQUE_SANS_GOUVERNEMENT = "marchand"
+
+
 def _effectif_patrons(carte, role, n, echelle):
     """28/09 : l effectif d un metier a la naissance ; un patron a au moins une entreprise privee ( un site de production
     hors ferme ), les patrons en trop naissent marchands ( patch_patrons.py ; population.effectifs dans le tronc )."""
     k = max(1, int(round(n * echelle)))
+    if role in POLITIQUES_PAR_ILE: return max(1, int(round(n)))              # ( HMT-140 ) un gouvernement par ile
+    if role == POLITIQUE_SANS_GOUVERNEMENT:
+        k += sum(max(1, int(round(C.ROLES[r][0] * echelle))) - max(1, int(round(C.ROLES[r][0]))) for r in POLITIQUES_PAR_ILE)
     if role not in ("patron", "marchand"): return k
     p = max(1, int(round(C.ROLES["patron"][0] * echelle)))
     garde = min(p, len(carte.de_type(*[t for t in C.RECETTES if t != "ferme"])))
