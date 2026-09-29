@@ -420,7 +420,14 @@ MARGE_REDUCTION = 1.05                   # on ne reduit qu au-dela de 5 % au-des
 # a partir de 19 ans ; sursis d etudes jusqu a la fin des etudes ( au plus ~ 28 ans ) ; les femmes volontaires
 # seulement. Exemptes ( sante, charge de famille ) : ~ 10 % d une classe ( a calibrer ).
 AGE_APPEL = 19.0
-AGE_MAX_SURSIS = 28.0
+AGE_MAX_SURSIS = 28.0                     # ( 29/09 ) loi 3421/2005, art. 18 par. 2 : le sursis des etudes superieures et du
+#                                           master court jusqu a 28 ans ( lycee 21, ecole professionnelle 24, doctorat 31 )
+# ( 29/09, chef de projet et Classes ) Dans un monde recense sur le reel ( table.recensement ), a l installation : le
+# NON-etudiant de AGE_SERVI ans ou plus sans formation militaire n a pas servi selon le tirage du domaine 4
+# ( SERVICE_MILITAIRE, tire a 21 ans ) - il est exempte, sans second tirage de P_EXEMPTE ; l etudiant est sursitaire ( la
+# formation que ce tirage lui a donnee lui est retiree ), appele a la sortie de ses etudes ; les conscrits que le
+# recensement marque ( table.recensement["conscrit"] ) servent deja. Le monde E1 ( sans recensement ) ne change pas.
+AGE_SERVI = 21.0
 DUREE_SERVICE_J = 365
 MARGE_CDD_J = 30                           # le CDD du conscrit court plus loin : c est le domaine qui le libere
 P_EXEMPTE = 0.10
@@ -432,6 +439,7 @@ PROGRAMME_RECRUES = "classe_recrues"
 # L instruction de base ( ~ 5 semaines dans un centre d instruction grec, a verifier ) : 20 jours d instruction, 8
 # d exercice, 2 de debrief, puis l epreuve ; competence technique, qualification formation_militaire.
 RECRUES = (20, 8, 2, 2, 0.3, "formation", 10.0)
+JOURS_INSTRUCTION = RECRUES[0] + RECRUES[1] + RECRUES[2]      # ( 29/09 ) 30 jours : instruction, exercice, debrief
 
 # ================================================================== le soldat
 # Competences et etats dans [ 0 ; 1 ]. Tirages de depart ( moyenne, ecart-type ) et effets par journee : a calibrer
@@ -565,7 +573,7 @@ class Armee:
     __slots__ = ("eff", "unites", "veh", "coll", "armureries", "par_base", "bases", "decideur", "activite", "imposee",
                  "compagnies", "patr_jour", "patr_hier", "ratelier", "mids", "idx_parc", "bids", "entrees", "sorties",
                  "stock0", "exemptes", "incorpores", "liberes", "depenses", "serie", "vise", "cmd_jour", "anomalies_vues",
-                 "loi", "loi_vue", "departs",
+                 "loi", "loi_vue", "departs", "conscrits_recenses", "sursitaires",
                  "ctx", "brigades", "armee_u", "patr_base", "dotes")
 
     def __init__(self):
@@ -598,6 +606,8 @@ class Armee:
         self.loi = None            # la loi de programmation en vigueur ( credits annuels de la defense )
         self.loi_vue = None        # ( exercice, debut ) de la loi de finances deja lue
         self.departs = 0           # militaires de carriere partis au plan de departs
+        self.conscrits_recenses = 0  # ( 29/09 ) conscrits que le recensement marque, au service a l installation
+        self.sursitaires = 0       # ( 29/09 ) etudiants a qui l installation a retire la formation tiree au recensement
         self.cmd_jour = {}             # compagnie -> action decidee ce matin ( pour la note )
         self.anomalies_vues = 0
         self.ctx = {}
@@ -1119,6 +1129,11 @@ def _eligibles(p, d, n):
             & (col["ar_rang"][:n] < 0))
 
 
+def _recense(p):
+    """( 29/09 ) La population copiee sur le reel ( population.generer, `demographie` ), ou None ( le monde E1 )."""
+    return getattr(p.w.table, "recensement", None)
+
+
 def _appeler(p, d, installation=False):
     """Chaque matin : les nouveaux eligibles tirent leur exemption ; les autres recoivent leur jour d appel ( le jour
     meme ; le jour de l installation, les retards sont etales sur une periode d incorporation ). Puis ceux dont le jour
@@ -1127,6 +1142,12 @@ def _appeler(p, d, installation=False):
     el = _eligibles(p, d, n)
     ap = col["ar_appel"]
     nouveaux = np.nonzero(el & (ap[:n] == PAS_APPEL))[0]
+    if len(nouveaux) and installation and _recense(p) is not None:
+        # ( 29/09 ) le tirage du domaine 4 a decide pour le non-etudiant de 21 ans ou plus : il n a pas servi, exempte
+        servi = nouveaux[(p.jour - col["naissance_j"][nouveaux]) / POP.JOURS_AN >= AGE_SERVI]
+        if len(servi):
+            ap[servi] = EXEMPTE; d.exemptes += len(servi); p.compter("exemption_service", len(servi))
+            nouveaux = nouveaux[ap[nouveaux] == PAS_APPEL]
     if len(nouveaux):
         rng = p.hasard("armee_installation") if installation else p.du_jour("armee_appel")
         u = rng.random(len(nouveaux))
@@ -1144,6 +1165,45 @@ def _appeler(p, d, installation=False):
         _incorporer(p, d, i, b)
         libres[b] -= 1; fait += 1
     return fait
+
+
+def _conscrits_du_recensement(p, d, ids, bases):
+    """( 29/09 ) Les conscrits que le recensement marque ( table.recensement["conscrit"], Classes : des hommes de 19 a 27
+    ans, soldats en emploi a une base ) sont deja au service. Leurs jours servis se tirent sur [ 0 ; DUREE_SERVICE_J [
+    ( les classes s incorporent tous les deux mois : le stock a tous les ages de service ) ; leur contrat de titulaire du
+    recensement devient le CDD du service, a la solde d un appele. Moins de JOURS_INSTRUCTION servis : en instruction
+    ( recrues du domaine 19 ) ; au-dela : formes ( la qualification de l epreuve ). Rend leur nombre."""
+    tb = p.w.table; col = p.colonnes["habitant"]; w = p.w; E = d.eff
+    rng = p.hasard("armee_conscrits_recensement")
+    servis = rng.integers(0, DUREE_SERVICE_J, len(ids))
+    instr = servis < JOURS_INSTRUCTION
+    for sel, statut, depart in ((~instr, ACTIF, DEPART), (instr, EN_INSTRUCTION, DEPART_RECRUE)):
+        if not sel.any(): continue
+        rows = _ajouter_militaires(p, d, ids[sel], bases[sel], False, 1, statut, depart, rng)
+        E["debut_j"][rows] = p.jour - servis[sel]
+        E["fin_j"][rows] = p.jour + DUREE_SERVICE_J - servis[sel]
+    for i, b, j in zip(ids.tolist(), bases.tolist(), servis.tolist()):
+        h = PO.Habitant(tb, i)
+        TR.embaucher_contrat(p, h, TR.Etablissement(w.carte.par_n[b], "soldat"), "soldat", TR.CDD,
+                             DUREE_SERVICE_J - j + MARGE_CDD_J)
+        TR.fixer_taux(p, h, SOLDE_CONSCRIT_HORAIRE, service=True)
+        col["ar_appel"][i] = APPELE
+        if j >= JOURS_INSTRUCTION: TR.qualifier(p, h, "formation_militaire")
+        else: ED.inscrire_formation(p, h, PROGRAMME_RECRUES)
+    return len(ids)
+
+
+def _sursitaires(p):
+    """( 29/09 ) A l installation dans un monde recense : l etudiant de moins de AGE_MAX_SURSIS ans est sursitaire ( loi
+    3421/2005, art. 18 ) - la formation militaire que le recensement du domaine 4 lui a tiree lui est retiree ; il sera
+    appele a la sortie de ses etudes. Rend leur nombre."""
+    tb = p.w.table; n = tb.n; col = p.colonnes["habitant"]; q = col["tr_qualifs"]
+    b = np.asarray(TR.BIT["formation_militaire"], q.dtype)
+    age = (p.jour - col["naissance_j"][:n]) / POP.JOURS_AN
+    s = np.nonzero((tb.vivant[:n] == 1) & (col["tr_statut"][:n] == TR.ETUDIANT) & (col["sexe"][:n] == POP.HOMME)
+                   & (age < AGE_MAX_SURSIS) & ((q[:n] & b) > 0))[0]
+    q[s] = q[s] & ~b
+    return len(s)
 
 
 def _lits_libres(p, d):
@@ -1784,7 +1844,15 @@ def installer(p):
                      & ((ro == PO.CODE_ROLE["soldat"]) | (ro == PO.CODE_ROLE["officier"]))
                      & np.isin(col["tr_statut"][:n], TR.EN_EMPLOI))[0]
     rng = p.hasard("armee_recensement")
-    _ajouter_militaires(p, d, ids, tr[ids], ro[ids] == PO.CODE_ROLE["officier"], 0, ACTIF, DEPART, rng)
+    rec = _recense(p); marque = None if rec is None else rec.get("conscrit")
+    cons = np.zeros(len(ids), bool)                     # ( 29/09 ) les conscrits que le recensement marque
+    if marque is not None:
+        m = np.zeros(n, bool); k = min(n, len(marque)); m[:k] = np.asarray(marque[:k]) == 1
+        cons = m[ids] & (ro[ids] == PO.CODE_ROLE["soldat"])
+    car = ids[~cons]
+    _ajouter_militaires(p, d, car, tr[car], ro[car] == PO.CODE_ROLE["officier"], 0, ACTIF, DEPART, rng)
+    if cons.any(): d.conscrits_recenses = _conscrits_du_recensement(p, d, ids[cons], tr[ids[cons]])
+    if rec is not None: d.sursitaires = _sursitaires(p)
     _organiser(p, d)
     _doter(p, d, _lignes(d))
     _equipement_initial(p, d)

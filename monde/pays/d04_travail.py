@@ -1175,11 +1175,20 @@ def _metier_vise(p, d, h):
     return min(manque, key=lambda r: (manque[r], r))
 
 
+def _service_par_l_armee(p):
+    """( 29/09 ) Le service national est fait par le domaine 25 : l armee est installee dans un monde recense sur le reel
+    ( table.recensement ). L etudiant y est sursitaire ( loi 3421/2005, art. 18 par. 2 ), appele a la sortie de ses
+    etudes ; la formation militaire lui vient au terme de son service."""
+    return p.a("armee") and getattr(p.w.table, "recensement", None) is not None
+
+
 def _sortir_des_etudes(p, d, h, rng):
     col = p.colonnes["habitant"]; i = h.id
     age = POP.age_de(p, h)
     sexe = int(col["sexe"][i])
-    if age >= 19 and rng.random() < SERVICE_MILITAIRE.get(sexe, 0.0): col["tr_qualifs"][i] |= BIT["formation_militaire"]
+    # ( 29/09 ) sursitaire : le domaine 25 l appellera ; le tirage reste fait, les suivants ne bougent pas
+    if age >= 19 and rng.random() < SERVICE_MILITAIRE.get(sexe, 0.0) and not _service_par_l_armee(p):
+        col["tr_qualifs"][i] |= BIT["formation_militaire"]
     if age >= 21.5 and not p.a("education"):      # en attendant le domaine 19
         u = rng.random()
         for titre, pr in TITRES_DE_SORTIE:
