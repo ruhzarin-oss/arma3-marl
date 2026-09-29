@@ -45,6 +45,8 @@ $PY $C/patch_controle_entreprises.py $ARBRE  # ( 29/09 ) le controle d une entre
 $PY $C/patch_garde_import.py $ARBRE  # ( 29/09, run long ) le negoce : demande bornee par habitant, reserve de nourriture du marche
 $PY $C/patch_blocus.py $ARBRE                       # 29/09 : le port pris, c est le blocus ( G25 )
 $PY $C/patch_service_etudiants.py $ARBRE           # 29/09 ( d25 ) : l etudiant sursitaire, appele a sa sortie par l armee
+$PY $C/patch_pension_militaire.py $ARBRE          # 29/09 ( HMT-147 ) : la pension militaire, sans la penalite civile
+$PY $C/patch_ordinaire_defense.py $ARBRE          # 29/09 ( HMT-147 ) : l ordinaire de caserne aux achats de la defense
 ( cd $ARBRE && PYTHONPATH=$ARBRE $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines.json ]; then
   cmp -s $REF/ref_domaines_refaite.json $REF/ref_domaines.json && echo "REFERENCE DES DOMAINES REPRODUITE AU BIT" || echo "REFERENCE DES DOMAINES DIFFERENTE"
