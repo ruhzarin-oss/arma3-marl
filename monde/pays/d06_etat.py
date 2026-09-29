@@ -884,15 +884,26 @@ def _revenu_declare_6_mois(p, cm, M):
     return sum(cm[c][:M] for c in KEA_COMPTES)
 
 
-def _poser_comptes_kea(p):
-    """Les comptes du test de ressources ; les six mois passes : _revenu_avant_le_jour_0."""
-    cm = p.colonnes["menage"]
-    if "rmg_mois" in cm: return
-    M = len(p.w.menages)
-    for c in KEA_COMPTES + ("rmg_mois",): cm.ajouter(c, np.float64, 0.0)
+def _poser_comptes_kea(p, installation=False):
+    """Les comptes du test de ressources. Les six mois passes ( _revenu_avant_le_jour_0 ) se posent a la premiere paie
+    de 18 h, apres l installation de TOUS les domaines : ceux installes apres le domaine 6 changent encore des statuts
+    ( embauches des medias, saisons du tourisme ; porte de l historique du KEA, 29/09 : 9 sur 10 000 ). rmg_pose : 0
+    pour un menage du jour d installation dont les six mois restent a poser ; un menage ne ensuite ( defaut 1 ) part d un
+    historique nul. `installation` : les comptes seulement ( le branchement )."""
+    cm = p.colonnes["menage"]; M = len(p.w.menages)
+    if "rmg_mois" not in cm:
+        for c in KEA_COMPTES + ("rmg_mois",): cm.ajouter(c, np.float64, 0.0)
+        cm.ajouter("rmg_pose", np.int8, 1)
+        cm.assurer(M); cm["rmg_pose"][:M] = 0
+    elif "rmg_pose" not in cm:                     # un instantane d avant le 29/09 : son historique est deja pose
+        cm.ajouter("rmg_pose", np.int8, 1); cm.assurer(M)
+    if installation: return
     cm.assurer(M)
+    a = np.nonzero(cm["rmg_pose"][:M] == 0)[0]
+    if len(a) == 0: return
     passe = _revenu_avant_le_jour_0(p, M)
-    for k, c in enumerate(KEA_COMPTES): cm[c][:M] = passe[:, k]
+    for k, c in enumerate(KEA_COMPTES): cm[c][a] = passe[a, k]
+    cm["rmg_pose"][a] = 1
 
 
 def _revenu_avant_le_jour_0(p, M):
@@ -933,7 +944,7 @@ def brancher_revenu_minimum(p):
     """Pose le revenu minimum ( une fois ). Aucun monde ne l appelle encore ( voir plus haut ) ; les portes, si."""
     cm = p.colonnes["menage"]
     if "rmg_lisse" not in cm: cm.ajouter("rmg_lisse", np.float64, 0.0); cm.assurer(len(p.w.menages))
-    _poser_comptes_kea(p)
+    _poser_comptes_kea(p, installation=True)
     p.socle.livre.declarer_motif("revenu_minimum", "prestation", "etat")
     J = p.socle.journal
     for t in ("revenu_minimum", "revenu_minimum_impaye"):
@@ -996,7 +1007,7 @@ def _tenir_revenu_declare(p):
 def brancher_allocation_enfant(p):
     """Pose l allocation pour enfant ( une fois ), apres le KEA ; sans KEA, une routine tient les comptes du revenu
     declare. Idempotent."""
-    _poser_comptes_kea(p)
+    _poser_comptes_kea(p, installation=True)
     p.socle.livre.declarer_motif("allocation_enfant", "prestation", "etat")
     J = p.socle.journal
     for t in ("allocation_enfant", "allocation_enfant_impayee"):

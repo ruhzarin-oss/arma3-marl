@@ -16,13 +16,21 @@ H1, a l installation, Altis par defaut et Altis grec ( echelle 20 ), graines 51,
 H2, l effet, Altis par defaut ( le monde de K1 ), 90 jours, graines 51 a 53, AVEC et SANS le KEA ( sa routine retiree ) :
   le KEA verse des le premier mois ( plus de 0 les 30 premiers jours ) ; son cout sur 90 jours est entre 0,1 % et 3 % de la
   depense publique ; les morts de faim avec le KEA ne depassent pas celles sans lui ; la conservation tient.
+AMENDEMENT du 29/09, ecrit APRES le premier verdict ( graines 51 a 53 : REFUSEE par H1 a ) et b ) dans les deux mondes ;
+  H1 c ), d ) et H2 franchies : le KEA versait 80 001 / 79 639 / 86 118 le premier mois, 1,141 / 1,118 / 1,233 % de la
+  depense publique, 0 mort de faim avec et sans ) : le domaine 6 posait l historique a SON installation, et les domaines
+  installes apres lui changeaient encore des statuts ( 9 sur 10 000 a la graine 51 : fonctionnaire, salarie ou etudiant
+  devenus hors, un chomeur embauche ) - l historique ne suivait plus la situation du jour 0. Il se pose desormais a la
+  premiere paie de 18 h ( rmg_pose ), et H1 lit les statuts a ce moment-la ; criteres inchanges. Juge sur les graines
+  NEUVES 54, 55, 56, H1 et H2.
    python -m monde.porte_historique_kea [ H1,H2 ]"""
 import sys, time
 import numpy as np
 from multiprocessing import get_context
+from . import config as C
 from .pays import pays as P, essais as E, d01_population as D1, d03_economie as EC, d04_travail as TV, d06_etat as ET
 
-GRAINES = (51, 52, 53)
+GRAINES = (54, 55, 56)                  # graines neuves de l amendement ( le premier verdict : 51, 52, 53 )
 MONDES = {"defaut": None, "grec": "grece"}
 J = float(EC.MOIS_J)
 
@@ -36,6 +44,10 @@ def _h1(args):
     nom, graine = args
     w = _monde(MONDES[nom], graine); p = w.pays; tb = w.table; M = len(w.menages)
     cm = p.colonnes["menage"]; col = p.colonnes["habitant"]; d4 = p.domaine("travail"); imp = w.gouv.impot_revenu
+    pas = 0                                     # jusqu a la pose ( la premiere paie de 18 h ) : les statuts de ce moment
+    while cm["rmg_pose"][:M].min() < 1:
+        w.pas_suivant(); pas += 1
+        if pas > C.PAS_PAR_JOUR: raise RuntimeError("l historique du KEA ne s est pas pose le premier jour")
     passe = np.stack([cm[c][:M] for c in ET.KEA_COMPTES], axis=1).copy()
     ancien = J * cm["eco_revenu"][:M]
     age = (p.jour - col["naissance_j"][:tb.n].astype(np.float64)) / 365.0
@@ -65,7 +77,7 @@ def _h1(args):
                 c += 1; sal = J * EC._revenu_attendu(w.habitants[i], imp)
                 c_ok &= bool(np.all(np.abs(passe[m, 1:] - sal) <= 1e-9 * max(1.0, sal)))
     m0 = float(passe[:, 0][cm["dissous"][:M] == 0].sum())
-    for _ in range(30): E.jours(w, 1)
+    for _ in range(int(30 * C.PAS_PAR_JOUR) - pas): w.pas_suivant()     # trente jours depuis l installation
     vu = float(cm["rmg_mois"][:M][cm["dissous"][:M] == 0].sum())
     return {"monde": nom, "graine": graine, "a": a, "a_ok": a_ok, "a_ancien_non_nul": a_ancien, "b": b, "b_ok": b_ok,
             "c": c, "c_ok": c_ok, "m0": round(m0), "vu": round(vu), "rapport": round(vu / max(1.0, m0), 3)}
