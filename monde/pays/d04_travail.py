@@ -1903,6 +1903,10 @@ def _marche_du_travail(p):
     for i in np.nonzero(ok)[0].tolist():
         if i not in gr: par_lieu.setdefault(par_n[dom[i]].id, []).append(i)
     if not par_lieu: _refaire_pointes(p, d); return
+    # ( 29/09 ) l ordre des candidats d un lieu, tire au hasard du jour dans un flux a part ( servis par numero, les grands
+    # numeros n etaient jamais atteints ) ; la distance reste la premiere cle
+    fl = p.du_jour("travail_file")
+    for k in sorted(par_lieu): fl.shuffle(par_lieu[k])
     lieux_cands = [w.carte.lieux[k] for k in sorted(par_lieu)]
     dec = d.decideur
     for k in sorted(vac):
