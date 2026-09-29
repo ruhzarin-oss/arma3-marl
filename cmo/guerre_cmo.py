@@ -18,9 +18,11 @@ CHOIX PRIS EN COPIANT LE RÉEL, À TRANCHER PAR YOUNES ( rapport du 29/09 ) — 
   n'en a aucun ; sinon la zone garde son dernier maître. Dans le réel, une aviation interdit, elle n'occupe pas : à
   remplacer par un blocus quand le moteur saura le dire ;
 - PLAFOND_AVIONS = 12 en vol par camp ; pas d'avion sans pilote ( pas d'achat sans numéro de front ) ;
-- DOCTRINE v0 : l'envahisseur vise la zone qu'il ne tient pas la plus proche de son aéroport ; le défenseur vole vers
-  cette zone tant que l'envahisseur a des avions en vol, sinon il va reprendre la zone perdue la plus proche de son
-  aéroport ; un avion ne reçoit un ordre que si sa cible change ( anti-oscillation ) ;
+- DOCTRINE v1 ( les MISSIONS de CMO ) : chaque camp a UNE patrouille de défense aérienne ( Patrol AAW ) sur un carré de
+  DEMI_ZONE_KM autour de sa zone cible ; ses avions y sont affectés à l'achat, et c'est l'IA de CMO qui vole, engage et
+  rentre. L'envahisseur vise la zone qu'il ne tient pas la plus proche de son aéroport ; le défenseur patrouille sur
+  cette zone tant que l'envahisseur a des avions en vol, sinon sur la zone perdue la plus proche de son aéroport. Quand
+  la cible change, ce sont les points de la zone qui bougent, pas les affectations ;
 - les avions naissent en vol au-dessus de l'aéroport de leur île ( aucune base aérienne posée dans CMO : un avion à sec
   tombe, et c'est un pilote mort ).
 
@@ -48,6 +50,7 @@ ILES_REELLES = {                                         # île : ( côté de la
 }
 CATALOGUE = {"nom": "F-15C", "dbid": 3500, "loadout": 16934, "alt_m": 6000.0, "prix_points": 500_000.0}
 RAYON_CIEL_M = 5000.0
+DEMI_ZONE_KM = 3.5                                       # la diagonale du carré ( 4,9 km ) reste sous RAYON_CIEL_M
 PLAFOND_AVIONS = 12
 M_PAR_DEG = 111_320.0
 
@@ -102,7 +105,8 @@ class CmoGuerre:
         self.connus = {c: set() for c in self.camps}
         self.en_vol = {c: set() for c in self.camps}
         self.cible = {c: None for c in self.camps}       # n de zone visée
-        self.ordre = {}                                  # ( camp, numéro ) -> n de zone de son dernier ordre
+        self.zone_mission = {}                           # camp -> n de zone où sa patrouille est posée dans CMO
+        self.affectes = set()                            # ( camp, numéro ) affectés à la patrouille de leur camp
         self.morts_a_rendre = {c: [] for c in self.camps}
         self.ouvert = False
 
@@ -135,6 +139,7 @@ class CmoGuerre:
     def fermer(self):
         if self.labo is not None and self.possede:
             self.labo.fermer()
+            self.labo = None                             # une ouverture retentée repart d'un pont neuf
         self.ouvert = False
 
     # ---- le relevé : vivants dans le repère du champ, morts gardés jusqu'à positions()
@@ -207,7 +212,10 @@ class CmoGuerre:
             if len(presents) == 1:
                 self.proprio[z["n"]] = presents[0]
 
-    # ---- la doctrine v0 : une cible par camp, un ordre seulement quand la cible d'un avion change
+    # ---- la doctrine v1 : une patrouille par camp, déplacée quand la cible change ; les neufs y sont affectés
+    def _mission(self, camp):
+        return CAMPS_ARMA.index(camp) + 1
+
     def _ordonner(self):
         secteurs = [z for z in self.zones if z.get("genre") != "base"]
         for camp in self.envahisseurs:
@@ -223,26 +231,23 @@ class CmoGuerre:
             self.cible[self.defenseur] = min(perdues, key=lambda z: math.hypot(z["x"] - bx, z["y"] - by))["n"]
         else:
             self.cible[self.defenseur] = None
-        par_zone = {}
-        for camp in self.camps:
+        patrouilles, affectations, deplacees = [], [], {}
+        for camp, ile in self.camps.items():
             n = self.cible[camp]
-            if n is None:
-                continue
-            for k in sorted(self.en_vol[camp]):
-                if self.ordre.get((camp, k)) != n:
-                    par_zone.setdefault(n, []).append((camp, k))
-        ordres = []
-        for n, avions in sorted(par_zone.items()):
-            z = next(z for z in self.zones if z["n"] == n)
-            lat, lon = self.geo_champ.vers_latlon(z["x"], z["y"])
-            ordres.append((lat, lon, [self._vers_cmo(c, k) for c, k in avions]))
-        if ordres:
-            r = self.labo.aller_tous(ordres)
-            faits = set(r["ordonnes"])
-            for n, avions in par_zone.items():
-                for c, k in avions:
-                    if self._vers_cmo(c, k) in faits:
-                        self.ordre[(c, k)] = n
+            if n is not None and self.zone_mission.get(camp) != n:
+                z = next(z for z in self.zones if z["n"] == n)
+                patrouilles.append((self._mission(camp), ile, *self.geo_champ.vers_latlon(z["x"], z["y"]), DEMI_ZONE_KM))
+                deplacees[camp] = n
+            if n is not None or camp in self.zone_mission:   # une patrouille existe ( ou naît ) : y mettre les neufs
+                neufs = [k for k in sorted(self.en_vol[camp]) if (camp, k) not in self.affectes]
+                if neufs:
+                    affectations.append((self._mission(camp), [self._vers_cmo(camp, k) for k in neufs]))
+        if not patrouilles and not affectations:
+            return
+        r = self.labo.missions(patrouilles, affectations)
+        self.zone_mission.update(deplacees)
+        for kc in r["affectes"]:
+            self.affectes.add(self._depuis_cmo(kc))
 
     # ---- l'interface de l'horloge
     def tour(self, points, reserves=None):

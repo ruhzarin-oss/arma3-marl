@@ -15,12 +15,17 @@
 -- Codes du reçu : 0 exécutée, 1 erreur Lua pendant l'exécution, 2 le fichier ne compile pas, 3 refus ( detail =
 -- code de REFUS_LUA dans cmo_labo.py ).
 
-HMT_VERSION = 4
+HMT_VERSION = 5
 HMT_CAMPS = { 'Stratis', 'Malden' }                          -- = CAMPS de cmo_labo.py, dans le même ordre
 HMT_GENRES = { 'Air', 'Ship', 'Submarine', 'Facility' }      -- = GENRES de cmo_labo.py
 HMT_n = HMT_n or 0                                           -- dernière commande prise
 HMT_coeur = HMT_coeur or 0                                   -- battements depuis le chargement
 HMT_attendu = HMT_attendu or 0                               -- commande en cours de lecture
+HMT_calme = HMT_calme or 0                                   -- passages de suite sans commande
+-- Chaque RunScript sur un fichier absent écrit une erreur dans Logs/LuaHistory ( pas de mode silencieux, pas de io ni de
+-- os.rename pour tester l'existence : sonde du 29/09 ). Après HMT_CALME passages sans commande, on ne cherche plus qu'un
+-- passage sur HMT_PAS_CALME : dix fois moins de lignes ; la première commande après un silence attend 10 s au plus.
+HMT_CALME, HMT_PAS_CALME = 30, 10
 
 local function propre(s)
     s = string.gsub(tostring(s), '[\r\n]+', ' ')
@@ -112,7 +117,13 @@ end
 -- ainsi chaque commande voit le monde que la précédente a laissé.
 function HMT_tic()
     HMT_coeur = HMT_coeur + 1
+    if HMT_calme >= HMT_CALME and HMT_coeur % HMT_PAS_CALME ~= 0 then
+        pcall(HMT_battre)
+        return
+    end
+    local avant = HMT_n
     local ok, err = pcall(prendre, HMT_n + 1)
+    if HMT_n > avant then HMT_calme = 0 else HMT_calme = HMT_calme + 1 end
     if not ok then
         -- La commande attendue a planté hors de son pcall ( ExportInst ?) : on la passe, le moteur verra SansRecu.
         if HMT_attendu > HMT_n then HMT_n = HMT_attendu end
@@ -227,6 +238,46 @@ function HMT_aller_tous(R, lat, lon, ...)
             ScenEdit_SetUnit({ guid = e.guid,
                                course = { { latitude = lat, longitude = lon, TypeOf = 'ManualPlottedCourseWaypoint' } } })
             R('ORDRE', { k, lat, lon })
+        end
+    end
+end
+
+-- LES MISSIONS : une patrouille de défense aérienne ( Patrol AAW ) par identifiant, nommée HMT-P<id>, sur une zone de 4
+-- points de référence en carré autour d'un centre. Créée au premier appel ; ensuite ses points bougent, la mission reste
+-- ( et ses avions aussi ). C'est l'IA de CMO qui vole, engage, se ravitaille et rentre : on ne pilote pas l'avion.
+function HMT_patrouille(R, id, camp, lat, lon, demi_km)
+    local cote = HMT_CAMPS[camp]
+    if cote == nil then error('HMT_REFUS 1') end
+    local nom = 'HMT-P' .. id
+    local dlat = demi_km / 111.32
+    local dlon = demi_km / (111.32 * math.cos(math.rad(lat)))
+    local coins = { { lat + dlat, lon - dlon }, { lat + dlat, lon + dlon }, { lat - dlat, lon + dlon }, { lat - dlat, lon - dlon } }
+    local ok, m = pcall(ScenEdit_GetMission, cote, nom)
+    local existe = ok and m ~= nil
+    local noms = {}
+    for i, c in ipairs(coins) do
+        noms[i] = nom .. '-' .. i
+        if existe then
+            ScenEdit_SetReferencePoint({ side = cote, name = noms[i], latitude = c[1], longitude = c[2] })
+        else
+            ScenEdit_AddReferencePoint({ side = cote, name = noms[i], latitude = c[1], longitude = c[2] })
+        end
+    end
+    if not existe and ScenEdit_AddMission(cote, nom, 'Patrol', { type = 'AAW', zone = noms }) == nil then
+        error('HMT_REFUS 6')
+    end
+    R('PATROUILLE', { id, camp, existe and 0 or 1 })
+end
+
+function HMT_affecter(R, id, ...)
+    local nom = 'HMT-P' .. id
+    for _, k in ipairs({ ... }) do
+        local e = registre()[k]
+        if e == nil or unite(e.guid) == nil then
+            R('ABSENT', { k })
+        else
+            local ok, r = pcall(ScenEdit_AssignUnitToMission, e.guid, nom)
+            if ok and r ~= false then R('AFFECTE', { k, id }) else R('REFUSE', { k, 6 }) end
         end
     end
 end

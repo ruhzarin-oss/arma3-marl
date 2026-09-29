@@ -300,12 +300,58 @@ def p21_hostiles():
         leve(CL.Refus, l.hostiles, "Stratis", "Stratis")
 
 
+def p22_recu_tardif():
+    """Une commande plus longue que la patience ( 500 poses dans CMO, 29/09 ) : le reçu arrive après, c'est une réponse ;
+    et une commande vraiment sans reçu reste SansRecu."""
+    with banc() as (f, l):
+        r = l.lua("local t = os.clock() while os.clock() - t < 2.0 do end R('LENT', {1})", par_humain=True)
+        assert r["lignes"] == [{"cle": "LENT", "nombres": [1]}], r
+        assert l.canari()["pont"] == "vivant"
+
+
+def p23_lecture_impossible_nest_pas_une_panne():
+    """Toute OSError de lecture ( WSL rend OSError 61 quand Windows écrit le fichier au même instant ) = pas encore
+    lisible, jamais une exception qui ferait tomber la guerre."""
+    d = tempfile.mkdtemp(prefix="porte_cmo_")
+    try:
+        assert CL.lire_inst(d) is None                   # un dossier : IsADirectoryError, une OSError
+        assert CL.lire_inst(os.path.join(d, "absent.inst")) is None
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def p24_patrouilles():
+    """Une patrouille créée puis déplacée ( pas recréée ), deux avions affectés, un absent dit ABSENT."""
+    with banc() as (f, l):
+        l.poser("Stratis", "air", 3500, 1, 37.5, 24.3, 6000)
+        l.poser("Stratis", "air", 3500, 2, 37.5, 24.3, 6000)
+        r = l.missions([(7, "Stratis", 38.0, 24.5, 3.5)], [(7, [1, 2, 99])])
+        assert r["patrouilles"] == [(7, True)] and r["affectes"] == [1, 2] and r["absents"] == [99], r
+        r = l.missions([(7, "Stratis", 38.2, 24.6, 3.5)], [])
+        assert r["patrouilles"] == [(7, False)], r
+        time.sleep(0.2)
+        u = [x for x in l.positions()["vivants"]["Stratis"] if x[0] == 1][0]
+        assert abs(u[1] - 38.2) < 1e-6 and abs(u[2] - 24.6) < 1e-6, u
+
+
+def p25_calme_moins_de_runscript():
+    """Après 30 passages sans commande, un passage sur dix seulement cherche une commande ( dix fois moins de lignes dans
+    LuaHistory ) ; une commande envoyée pendant le calme passe quand même."""
+    with banc(lecteur="runscript") as (f, l):
+        f.lua("local rs = ScenEdit_RunScript FAUX.rs = 0 ScenEdit_RunScript = function(r) FAUX.rs = FAUX.rs + 1 return rs(r) end")
+        time.sleep(4.0)                                  # ~80 passages sans commande
+        n = f.lua("return FAUX.rs")
+        assert n < 45, f"{n} RunScript en 80 passages de calme"
+        assert l.canari()["pont"] == "vivant"
+
+
 TESTS = [p0_accords, p1_installer, p2_canaris, p3_poser_etat_positions, p4_morts_une_fois, p5_erreur_lua_certaine,
          p6_refus_deux_etages, p7_compilation, p8_pause_jamais_aucun, p9_rechargement_recalage, p10_un_seul_ecrivain,
          p11_recu_ecrit_lentement, p12_que_des_nombres, p13_build_non_certifie, p14_lecteur_runscript,
          p14b_runscript_qui_leve, p15_commande_non_prise_effacee, p16_gros_recu, p17_recu_tronque, p18_nettoyer_prouve,
          p19_poser_apres_nettoyer, p20_recharger_sans_console,
-         p21_hostiles]
+         p21_hostiles, p22_recu_tardif, p23_lecture_impossible_nest_pas_une_panne, p24_patrouilles,
+         p25_calme_moins_de_runscript]
 
 
 def passer(tests):

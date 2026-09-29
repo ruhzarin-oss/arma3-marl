@@ -54,19 +54,20 @@ SORTIE = f"{CMO}/ImportExport"
 ETAT = "/mnt/data/hmt/etat"
 FICHIER_CERTIF = "cmo_build_certifie.json"
 
-VERSION_LUA = 4                     # = HMT_VERSION de lua/hmt_pont.lua
+VERSION_LUA = 5                     # = HMT_VERSION de lua/hmt_pont.lua
 CAMPS = ("Stratis", "Malden")       # = HMT_CAMPS, même ordre ; index Lua = index Python + 1
 GENRES = ("air", "navire", "sous_marin", "site")      # = HMT_GENRES ( Air, Ship, Submarine, Facility )
 NUMERO_MAX = 99_999_999             # guerre_cmo décale les numéros de front par camp : chaque île numérote depuis 1
 LECTEURS = {1: "loadfile", 2: "RunScript"}
 REFUS_LUA = {1: "camp inconnu", 2: "genre inconnu", 3: "numéro déjà tenu par une unité vivante",
-             4: "CMO refuse d'ajouter l'unité (dbid, loadout ou position)", 5: "numéro inconnu ou unité détruite"}
+             4: "CMO refuse d'ajouter l'unité (dbid, loadout ou position)", 5: "numéro inconnu ou unité détruite",
+             6: "CMO refuse la mission ou l'affectation"}
 # = SCRIPT de lua/installer.lua, au caractère près : c'est ce que l'événement exécute toutes les secondes.
 ACTION_EVENEMENT = ("if HMT_tic == nil then ScenEdit_RunScript('hmt_pont/hmt_config.lua') "
                     "ScenEdit_RunScript('hmt_pont/hmt_pont.lua') end HMT_tic()")
 
 BATTEMENT_MAX = 6.0                 # s ; l'événement bat toutes les 2 s de jeu
-PATIENCE = 5.0                      # s ; l'événement passe toutes les secondes, plus l'écriture des deux fichiers
+PATIENCE = 15.0                     # s ; après 30 s de silence l'événement ne cherche qu'une seconde sur dix
 PLAFOND_OCTETS = 60000
 
 _RE_SYNC = re.compile(r"^SYNC (\d+) (\d+) (\d+) (\d+) ([0-9.]*)$", re.M)
@@ -83,7 +84,9 @@ def lire_inst(chemin: str) -> str | None:
     try:
         with open(chemin, encoding="utf-8-sig") as f:
             d = json.load(f)
-    except (FileNotFoundError, PermissionError, json.JSONDecodeError, UnicodeDecodeError):
+    except (OSError, ValueError):
+        # absent, verrouillé, JSON pas fini… et, par WSL, OSError 61 « No data available » quand Windows écrit le
+        # fichier au même instant ( 29/09, sonde des aérodromes ) : pas encore lisible, jamais une panne.
         return None
     c = d.get("Comments") if isinstance(d, dict) else None
     return c if isinstance(c, str) else None
@@ -241,6 +244,13 @@ class Liaison:
                     return self._recu(r, n, nonce, t0)
                 time.sleep(0.05)
             self._diagnostiquer(n, coeur0, vie0)
+            # Prise, et un reçu arrivé APRÈS la patience ( commande longue : 500 poses, 29/09 ) : c'est une réponse.
+            r = lire_recu(lire_inst(recu) or "") if os.path.exists(recu) else None
+            if r is not None and "tronque" not in r and "illisible" not in r and r["n"] == n and r["nonce"] == nonce:
+                log.warning("REÇU TARDIF n=%d ( après %.1f s )", n, time.monotonic() - t0)
+                return self._recu(r, n, nonce, t0)
+            raise SansRecu(f"commande n={n} prise par l'événement mais sans reçu : ScenEdit_ExportInst a échoué "
+                           f"( voir ImportExport/hmt_panne.inst )")
         finally:
             _effacer(cmd)                           # prise ou non, elle ne doit jamais être rejouée
             _effacer(recu)
@@ -280,8 +290,7 @@ class Liaison:
                            "été effacée, on ne sait pas si elle a joué avant.")
         if self.sync_n is not None and self.sync_n >= n:
             self.n_confirme, self.conf_coeur, self.conf_vie = self.sync_n, self.sync_coeur, self.vie
-            raise SansRecu(f"commande n={n} prise par l'événement mais sans reçu : ScenEdit_ExportInst a échoué "
-                           f"( voir ImportExport/hmt_panne.inst )")
+            return                                       # prise : l'appelant relit le reçu une dernière fois
         raise PontMort(f"commande n={n} jamais prise : l'événement est à n={self.sync_n}. Un autre écrivain, ou un "
                        "compteur décalé ; la commande a été effacée.")
 
@@ -479,6 +488,32 @@ class Labo:
             raise Incomplet(f"{n} ordres envoyés, {len(out['ordonnes'])} faits, {len(out['absents'])} absents")
         return out
 
+    def missions(self, patrouilles=(), affectations=()) -> dict:
+        """Toutes les missions d'un tour en UN envoi. patrouilles : [ ( id, camp, lat, lon, demi_km ) ] ( créée au premier
+        appel, déplacée ensuite ) ; affectations : [ ( id, [ numéros ] ) ]."""
+        corps, n_pat, n_aff = [], 0, 0
+        for i, camp, la, lo, dk in patrouilles:
+            if camp not in CAMPS:
+                raise Refus(f"camp {camp!r} inconnu")
+            corps.append(f"HMT_patrouille(R, {_ent(i, 1, 9999, 'id')}, {CAMPS.index(camp) + 1}, "
+                         f"{_num(la, -90, 90, 'lat'):.7f}, {_num(lo, -180, 180, 'lon'):.7f}, {_num(dk, 1, 200, 'demi_km'):.2f})")
+            n_pat += 1
+        for i, ks in affectations:
+            if ks:
+                corps.append(f"HMT_affecter(R, {_ent(i, 1, 9999, 'id')}, "
+                             f"{', '.join(str(_ent(k, 1, NUMERO_MAX, 'numero')) for k in ks)})")
+                n_aff += len(ks)
+        if not corps:
+            return {"patrouilles": [], "affectes": [], "absents": [], "refus": []}
+        r = self._exec(" ".join(corps))
+        out = {"patrouilles": [(int(v[0]), bool(v[2])) for k, v in r["lignes"] if k == "PATROUILLE"],
+               "affectes": [int(v[0]) for k, v in r["lignes"] if k == "AFFECTE"],
+               "absents": [int(v[0]) for k, v in r["lignes"] if k == "ABSENT"],
+               "refus": [int(v[0]) for k, v in r["lignes"] if k == "REFUSE"], "recu": r["recu"]}
+        if len(out["patrouilles"]) != n_pat or len(out["affectes"]) + len(out["absents"]) + len(out["refus"]) != n_aff:
+            raise Incomplet(f"missions : {n_pat} patrouilles et {n_aff} affectations envoyées, reçu {out}")
+        return out
+
     def positions(self) -> dict:
         """{ camp : [ ( numéro, lat, lon, alt ) ] } des vivants, et { camp : [ numéro ] } des morts depuis le dernier
         relevé. Un mort n'est rendu qu'une fois : c'est le moteur qui le garde."""
@@ -511,7 +546,7 @@ class Labo:
             raise ErreurLabo(f"table rase NON prouvée : {int(restantes)} unité(s) HMT restent sur {int(avant)}")
         return {"avant": int(avant), "apres": 0, "recu": r2["recu"]}
 
-    def lua(self, code: str, *, par_humain: bool = False) -> dict:
+    def lua(self, code: str, *, par_humain: bool = False, patience: float | None = None) -> dict:
         """Lua brut, dans le corps d'une commande ( `R(CLE, {nombres})` pour rendre ). Réservé à une demande HUMAINE
         explicite : un agent qui écrit du Lua arbitraire dans CMO n'est plus instrumenté par rien."""
         if not par_humain:
@@ -519,7 +554,7 @@ class Labo:
         if not isinstance(code, str) or not code.strip():
             raise Refus("code vide")
         log.warning("LUA BRUT (humain) : %s", code[:300])
-        r = self._exec(code)
+        r = self._exec(code, patience)
         return {"lignes": [{"cle": k, "nombres": v} for k, v in r["lignes"]], "recu": r["recu"]}
 
 

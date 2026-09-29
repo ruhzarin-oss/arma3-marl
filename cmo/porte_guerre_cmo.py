@@ -142,7 +142,7 @@ def g7_pont_mort_jamais_rien():
 
 
 def g8_quatre_envois_par_tour():
-    """Relevé, achats, ordres, canari : tous les ordres d'un tour partent ensemble, même avec six avions à ordonner."""
+    """Relevé, achats, missions, canari : tous les ordres d'un tour partent ensemble, même avec six avions neufs."""
     with guerre() as (f, g):
         n0 = g.labo.liaison.n_confirme
         g.tour({"EAST": 3 * PRIX, "WEST": 3 * PRIX}, {"EAST": [1, 2, 3], "WEST": [1, 2, 3]})
@@ -195,6 +195,20 @@ class ArchipelDePapier:
         pass
 
 
+def g11_les_avions_sont_en_mission():
+    """Chaque avion acheté est affecté à la patrouille de son camp dans CMO ; la patrouille suit la cible."""
+    def missions(f):
+        return f.lua("local t = {} for _, u in pairs(FAUX.unites) do t[#t+1] = u.name .. '=' .. tostring(u.mission) end "
+                     "table.sort(t) return table.concat(t, ',')")
+    with guerre() as (f, g):
+        g.tour({"EAST": 2 * PRIX, "WEST": 0.0}, {"EAST": [1, 2], "WEST": []})
+        assert missions(f) == "HMT-10000001=HMT-P1,HMT-10000002=HMT-P1", missions(f)
+        c1 = g.zone_mission["EAST"]
+        g.tour({"EAST": 0.0, "WEST": PRIX}, {"EAST": [], "WEST": [1]})      # c1 prise : la patrouille avance
+        assert g.zone_mission["EAST"] != c1 and g.zone_mission["WEST"] == g.zone_mission["EAST"], g.zone_mission
+        assert missions(f).endswith("HMT-20000001=HMT-P2"), missions(f)
+
+
 def g10_sous_la_vraie_horloge():
     """La VRAIE HorlogeDeGuerre mène CmoGuerre : points de la bourse, pilotes mobilisés, achats payés, zone prise
     occupée dans le moteur, soldats suivis."""
@@ -219,17 +233,18 @@ def g10_sous_la_vraie_horloge():
 
 TESTS = [g0_geo, g1_ouverture, g2_caisse_puis_achat, g3_pas_de_pilote_pas_d_avion, g4_plafond,
          g5_le_ciel_tient_les_zones, g6_morts_rendus_une_fois, g7_pont_mort_jamais_rien, g8_quatre_envois_par_tour,
-         g9_un_refus_de_cmo_ne_coute_rien, g10_sous_la_vraie_horloge]
+         g9_un_refus_de_cmo_ne_coute_rien, g10_sous_la_vraie_horloge, g11_les_avions_sont_en_mission]
 
 
-def _un_ordre_par_avion(self, ordres):
-    """Mutant : un envoi par avion, au lieu d'un envoi pour tout le tour."""
-    faits = []
-    for la, lo, ks in ordres:
+def _une_affectation_par_envoi(self, patrouilles=(), affectations=()):
+    """Mutant : les patrouilles ensemble, puis un envoi par avion affecté."""
+    out = {"patrouilles": [], "affectes": [], "absents": [], "refus": []}
+    r = CL.Labo.__dict__["_vrai_missions"](self, patrouilles, ())
+    out["patrouilles"] = r["patrouilles"]
+    for i, ks in affectations:
         for k in ks:
-            self._exec(f"HMT_aller_tous(R, {la:.7f}, {lo:.7f}, {k})")
-            faits.append(k)
-    return {"ordonnes": faits, "absents": []}
+            out["affectes"] += CL.Labo.__dict__["_vrai_missions"](self, (), [(i, [k])])["affectes"]
+    return out
 
 
 def controles():
@@ -239,7 +254,8 @@ def controles():
           (G.CmoGuerre, "_vers_cmo", lambda self, camp, k: G.DECALAGE + int(k))),
          ("morts vues pendant un tour perdues", g6_morts_rendus_une_fois,
           (G.CmoGuerre, "positions", lambda self: ({c: [] for c in self.camps}, {c: [] for c in self.camps}))),
-         ("un envoi par avion", g8_quatre_envois_par_tour, (CL.Labo, "aller_tous", _un_ordre_par_avion))]
+         ("un envoi par avion affecté", g8_quatre_envois_par_tour, (CL.Labo, "missions", _une_affectation_par_envoi))]
+    CL.Labo._vrai_missions = CL.Labo.missions
     for nom, test, (obj, attr, val) in m:
         with P.mutant(obj, attr, val):
             try:

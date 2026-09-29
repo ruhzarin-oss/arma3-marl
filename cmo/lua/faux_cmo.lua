@@ -77,6 +77,45 @@ function ScenEdit_DeleteUnit(t)
     return false
 end
 
+-- Missions : l'avion affecté à une patrouille se trouve, au passage suivant, au centre de sa zone ( l'IA de CMO
+-- l'y mènerait ; le faux ne vole pas ).
+FAUX.rp, FAUX.missions = {}, {}
+function ScenEdit_AddReferencePoint(t) FAUX.rp[t.side .. '/' .. t.name] = { lat = t.latitude, lon = t.longitude } return copie(t) end
+function ScenEdit_SetReferencePoint(t)
+    local p = FAUX.rp[t.side .. '/' .. t.name]
+    if p == nil then error('reference point not found') end
+    p.lat, p.lon = t.latitude, t.longitude
+    return copie(t)
+end
+function ScenEdit_GetMission(side, nom)
+    local m = FAUX.missions[side .. '/' .. nom]
+    if m == nil then return nil end
+    return { name = nom, side = side }
+end
+function ScenEdit_AddMission(side, nom, genre, opts)
+    FAUX.missions[side .. '/' .. nom] = { side = side, genre = genre, type = opts.type, zone = opts.zone, unites = {} }
+    return { name = nom, side = side }
+end
+function ScenEdit_AssignUnitToMission(guid, nom)
+    local u = FAUX.unites[guid]
+    if u == nil then return false end
+    local m = FAUX.missions[u.side .. '/' .. nom]
+    if m == nil then return false end
+    u.mission = nom
+    return true
+end
+local function voler()
+    for _, u in pairs(FAUX.unites) do
+        local m = u.mission and FAUX.missions[u.side .. '/' .. u.mission]
+        if m then
+            local la, lo = 0, 0
+            for _, n in ipairs(m.zone) do local p = FAUX.rp[u.side .. '/' .. n] la, lo = la + p.lat, lo + p.lon end
+            u.latitude, u.longitude = la / #m.zone, lo / #m.zone
+        end
+    end
+end
+FAUX.voler = voler
+
 FAUX.postures = {}
 function ScenEdit_SetSidePosture(a, b, p) FAUX.postures[a .. '>' .. b] = p end
 function ScenEdit_GetSidePosture(a, b) return FAUX.postures[a .. '>' .. b] or 'N' end
@@ -159,6 +198,7 @@ function FAUX_passer()
         end
     end
     for _, g in ipairs(FAUX.a_retirer) do FAUX.unites[g] = nil end
+    FAUX.voler()
     FAUX.a_retirer = {}
     FAUX.temps = FAUX.temps + 1
 end
