@@ -117,7 +117,9 @@ AGES_MILITAIRES = (19, 55)           # engages et appeles ( service a 19 ans ) ;
 # sexe des personnes en emploi, ces parts decalees ensemble pour que le compte des hommes tombe juste.
 PART_HOMMES = {"chef_gouvernement": 0.6, "ministre": 0.7, "officier": 0.85, "soldat": 0.9, "policier": 0.8,
                "medecin": 0.5, "infirmier": 0.15, "enseignant": 0.3, "patron": 0.7, "paysan": 0.6, "mineur": 0.95,
-               "petrolier": 0.9, "ouvrier": 0.7, "convoyeur": 0.9, "marchand": 0.5, "hotellerie": 0.5}
+               "petrolier": 0.9, "ouvrier": 0.7, "convoyeur": 0.9, "marchand": 0.5, "hotellerie": 0.5,
+               # 29/09, CHOIX DECLARE ( a calibrer sur ELSTAT ) : les metiers publics ajoutes a config.ROLES
+               "administration": 0.45, "pompier": 0.9, "juge": 0.35, "gardien": 0.8}
 
 # ================================================================== l emploi par secteur ( mesure, pas une porte )
 # Eurostat lfsa_egan2 ( emploi par section NACE rev. 2, 15-74 ans, milliers ), Grece 2024.
@@ -135,7 +137,9 @@ SECTEUR_DU_METIER = {"paysan": "agriculture", "mineur": "industrie", "petrolier"
                      "ministre": "public_education_sante", "policier": "public_education_sante",
                      "medecin": "public_education_sante", "infirmier": "public_education_sante",
                      "enseignant": "public_education_sante", "soldat": "public_education_sante",
-                     "officier": "public_education_sante"}
+                     "officier": "public_education_sante", "administration": "public_education_sante",
+                     "pompier": "public_education_sante", "juge": "public_education_sante",
+                     "gardien": "public_education_sante"}
 
 
 def par_age(table, age):

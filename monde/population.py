@@ -21,11 +21,19 @@ TRAVAIL = {
     # enfant ( 0-5 ans ) reste a la maison ; l etudiant ( 18 ans et plus ) va aux cours dans la capitale de son marche,
     # comme l enfant a l ecole ; le chomeur et l inactif ( au foyer, decourage ) n ont ni lieu ni horaire de travail.
     "petit_enfant": ((), None), "etudiant": (("capitale",), "ecole"), "chomeur": ((), None), "inactif": ((), None),
+    # 29/09 ( metiers publics, config.ROLES ) : les bureaux de l administration et le tribunal sont dans la capitale ; la
+    # caserne des pompiers et la prison tournent jour et nuit, en trois equipes.
+    "administration": (("capitale",), "bureau"), "pompier": (("capitale",), "garde"), "juge": (("capitale",), "bureau"),
+    "gardien": (("capitale",), "garde"),
 }
 SALAIRE_HORAIRE = {   # drachmes par heure travaillee ( public : paye par l Etat ; prive : par l entreprise )
     "chef_gouvernement": 30, "ministre": 22, "officier": 16, "soldat": 7, "policier": 9, "medecin": 20, "infirmier": 10,
     "enseignant": 10, "ouvrier": 8, "mineur": 9, "petrolier": 9, "convoyeur": 7, "marchand": 0, "paysan": 0, "patron": 0,
     "hotellerie": 6,     # 27/09 : salaire brut moyen de l hebergement et de la restauration, ~ 1 100 euros ( ERGANI 2023, a calibrer )
+    # 29/09, CHOIX DECLARE ( sans source lue, a trancher par Younes ) : alignes sur les echelles publiques du moteur.
+    # L administration comme l echelle unique entre le soldat et l enseignant ; le pompier comme le policier ( meme
+    # regime des corps de securite ) ; le juge comme le medecin ; le gardien de prison un cran sous le policier.
+    "administration": 9, "pompier": 9, "juge": 20, "gardien": 8,
 }
 PENSION_JOUR = 20     # retraite versee par l Etat
 
