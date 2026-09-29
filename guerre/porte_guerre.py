@@ -70,6 +70,17 @@ G14 USINES OCCUPEES ( 27/09, AMENDEE avant tout verdict : la premiere version me
    Quatrieme essai : production 1 184 -> 0 -> 1 171, ouvriers 0,76 -> 0,19 -> 0,19. Sonde : la quarantaine est bien
    levee, mais l agenda ( domaine 5 ) planifie la semaine - les ouvriers reviennent 6 sur 21 le mercredi, les 21 le
    mardi suivant. La reprise se juge donc sur la DEUXIEME semaine apres la liberation. )
+   AMENDEMENT du 29/09, ecrit APRES un echec vu ( chef de projet ; declare ici ) : sur guerre-des-iles 4968bf5 ( 0,78 )
+   et sur revenu-patrons ( 0,792 contre 0,981 au tronc ), la reprise tombait sous 0,8 a production ( 1 137 -> 0 -> 1 159
+   par jour ) et effectifs ( 10 ouvriers, 36 au temoin ) identiques, sans faim : une epidemie du petit Malden ( 330 a 410
+   personnes en incubation ou malades la semaine jugee ) gardait des ouvriers malades chez eux ( regle de l agenda ),
+   11 journees d absence contre 5. G14 juge l occupation, pas le tirage de l epidemie : les malades ( etat I ) ne
+   comptent plus parmi les absents, a la centrale comme au temoin - a chaque pas, les presents x l equipe / ( l equipe
+   moins ses malades absents ), l equipe etant les vivants dont c est le lieu de travail. Seuils inchanges. Juge sur
+   trois graines NEUVES ( 41, 42, 43 ), sur le tronc 090e1eb et sur revenu-patrons a10da93 : FRANCHIE sur les neuf ;
+   reprise 0,918 a 0,938 fois ( branche 0,924 / 0,919 / 0,935 ; tronc 0,922 / 0,920 / 0,935 ; revenu-patrons 0,930 /
+   0,938 / 0,918 ), controle positif tenu ( occupee 0,03 a 0,07 contre 0,18 a 0,32 avant, production 0 ). Le monde de
+   la porte, sur 4968bf5 : 0,78 -> 0,970 fois.
 G15 LES LEVIERS SUIVENT LA TAILLE DU PAYS ( 27/09, ecrite avant la mesure ) : dans un pays de 2 000 habitants
    ( k = 4 ), le gouvernement peut acheter 8 000 unites de nourriture et pas 8 001 ; il peut relever les credits de
    subventions ( la ligne porte sur ses transferts ) puis verser une subvention qu il n aurait pas pu verser avant.
@@ -338,14 +349,14 @@ def _g13(occuper, graine):
     return {"av": av, "pe": pe, "ap": ap, "gv": gv, "tenue": tenue, "villes": b13["villes_occupees"], "siege": b13["siege_du_gouvernement_occupe"]}
 
 
-def _monde_de_g14():
+def _monde_de_g14(graine=None):
     """G14 joue dans le monde ou jouait G13 avant son amendement du 28/09 : un petit Malden ( graine du moteur ), la
     quarantaine du gouvernement a Goisse, La Trinite occupee du jour 3 au jour 6 puis liberee, 10 jours ; rejoue a
     l identique pour que G14 ne change pas."""
     from monde.archipel import Archipel
     carte = Z.carte_de_guerre(open(os.path.join(MISSION, "mission.sqm"), encoding="latin-1").read(), "Malden")
     zs = carte["zones"]
-    arc = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False)
+    arc = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False, **({} if graine is None else {"graine": graine}))
     w = arc.iles["Malden"].w
     zt = next(z["n"] for z in zs if "Malden_C_LaTrinite" in z["lieux"]); lt = next(z["lieux"] for z in zs if z["n"] == zt)
     w.gouv.lois.setdefault("quarantaine", []).append("Malden_V_Goisse")
@@ -355,6 +366,76 @@ def _monde_de_g14():
     arc.commande("Malden", "occuper", zt, lt, False)
     for _ in range(4 * 144): arc.un_pas()
     return arc, w, w.table
+
+
+def _g14(graine=None):
+    """G14 : la centrale occupee sept jours puis liberee. Rend ( presences avant, occupee, liberee ; production par jour
+    avant, occupee, liberee ; equipes ). Presences = [ centrale, temoin ] en pas d ouvrier au travail, les malades
+    ( etat I ) hors des absents ( amendement du 29/09 ) : a chaque pas, presents x equipe / ( equipe - malades absents ),
+    l equipe etant les vivants dont c est le lieu de travail. La reprise : la DEUXIEME semaine apres la liberation."""
+    from monde import population as PO13
+    from monde.pays import d05_agenda as AG
+    zs = Z.carte_de_guerre(open(os.path.join(MISSION, "mission.sqm"), encoding="latin-1").read(), "Malden")["zones"]
+    z14 = next(z["n"] for z in zs if "centrale01" in z["lieux"]); l14 = next(z["lieux"] for z in zs if z["n"] == z14)
+    arc13, w13, t13 = _monde_de_g14(graine)
+    kc, kw = w13.carte.lieux["centrale01"].n, w13.carte.lieux["Malden_V_Dourdan"].n
+    TRAV = PO13.CODE_POSTE["travail"]
+
+    def compte(k, at, n):
+        la = at & (t13.lieu[:n] == k)
+        equipe = (t13.vivant[:n] == 1) & (t13.travail[:n] == k); e = int(equipe.sum())
+        malades = int((equipe & ~la & (AG.ETAT_DU_MOTEUR[t13.etat[:n]] == AG.ETAT_I)).sum())
+        return int(la.sum()) * e / (e - malades) if e > malades else float(la.sum())
+
+    def usine(jours):
+        pres, prod = [0.0, 0.0], 0.0
+        for _ in range(jours):
+            a0 = sum(w13.entreprises["centrale01"].produit_du_jour.values())
+            for _ in range(144):
+                arc13.un_pas(); n14 = t13.n
+                at = (t13.vivant[:n14] == 1) & (t13.poste[:n14] == TRAV)
+                pres[0] += compte(kc, at, n14); pres[1] += compte(kw, at, n14)
+            a1 = sum(w13.entreprises["centrale01"].produit_du_jour.values())
+            prod += (a1 - a0) if a1 >= a0 else a1
+        return pres, prod / jours
+    n0 = t13.n; v0 = t13.vivant[:n0] == 1
+    equipes = (int((v0 & (t13.travail[:n0] == kc)).sum()), int((v0 & (t13.travail[:n0] == kw)).sum()))
+    pa, qa = usine(7)
+    arc13.commande("Malden", "occuper", z14, l14, True)
+    pp, qp = usine(7)
+    arc13.commande("Malden", "occuper", z14, l14, False)
+    usine(7)                                        # la semaine du retour ( l agenda planifie la semaine )
+    pl, ql = usine(7)
+    arc13.fermer()
+    return pa, pp, pl, qa, qp, ql, equipes
+
+
+def _g14_juger(r, graine=None):
+    """Les deux criteres de G14 sur un resultat de _g14, et sa ligne."""
+    pa, pp, pl, qa, qp, ql, eq = r
+    rp = lambda x: x[0] / max(1, x[1])
+    ligne = (f"   usines occupees{'' if graine is None else f' ( graine {graine} )'} : equipes {eq} ; ouvriers de la centrale / "
+             f"temoin, malades hors des absents, avant [{pa[0]:.0f}, {pa[1]:.0f}] ( {rp(pa):.2f} ), occupee [{pp[0]:.0f}, "
+             f"{pp[1]:.0f}] ( {rp(pp):.2f} ), liberee [{pl[0]:.0f}, {pl[1]:.0f}] ( {rp(pl):.2f} ; {rp(pl) / max(1e-9, rp(pa)):.3f} "
+             f"fois ) ; production par jour {qa:.0f} -> {qp:.0f} -> {ql:.0f}")
+    return ligne, {
+        "G14 controle positif : la centrale travaillait ; occupee, ouvriers sous 0,4 fois, production sous 0,5 fois": (
+            pa[0] > 0 and pa[1] > 0 and pp[1] > 0 and qa > 0 and rp(pp) < 0.4 * rp(pa) and qp < 0.5 * qa),
+        "G14 liberee, au-dessus de 0,8 fois ( les malades ne comptent pas parmi les absents )": rp(pl) > 0.8 * rp(pa) and ql > 0.8 * qa}
+
+
+def _g14_graines(graines):
+    """G14 seule sur des graines ( une par processus ) : python -m guerre.porte_guerre --g14 41,42,43"""
+    from multiprocessing import get_context
+    t0 = time.time()
+    with get_context("spawn").Pool(len(graines)) as pool:
+        rs = pool.map(_g14, graines)
+    tout = True
+    for g, r in zip(graines, rs):
+        ligne, ok = _g14_juger(r, g); print(ligne, flush=True)
+        for k, v in ok.items(): print(("PASSE  " if v else "ECHOUE ") + f"graine {g} : {k}"); tout &= v
+    print(f"G14 SUR LES GRAINES {graines} : {'FRANCHIE' if tout else 'ECHOUEE'} ( {time.time() - t0:.0f} s )")
+    return 0 if tout else 1
 
 
 def _fret_recoltes(couper=False, jours=30, graine=2):
@@ -710,35 +791,9 @@ def main():
     ok["G15 acheter jusqu a 2 000 x k, pas au-dela ; subventions relevees puis versees"] = (
         a_ok[0] and not a_non[0] and "achat invalide" in a_non[1] and not s_avant[0] and f15[0] and s_apres[0])
     arc15.fermer()
-    # G14 ( dans le monde ou G13 jouait avant son amendement, rejoue a l identique )
-    from monde import population as PO13
-    arc13, w13, t13 = _monde_de_g14()
-    z14 = zone_de["centrale01"]; l14 = next(z["lieux"] for z in zs if z["n"] == z14)
-    kc, kw = w13.carte.lieux["centrale01"].n, w13.carte.lieux["Malden_V_Dourdan"].n
-    def usine(jours):
-        pres, prod = [0, 0], 0.0
-        for _ in range(jours):
-            a0 = sum(w13.entreprises["centrale01"].produit_du_jour.values())
-            for _ in range(144):
-                arc13.un_pas(); n14 = t13.n
-                at = (t13.vivant[:n14] == 1) & (t13.poste[:n14] == PO13.CODE_POSTE["travail"])
-                pres[0] += int((at & (t13.lieu[:n14] == kc)).sum()); pres[1] += int((at & (t13.lieu[:n14] == kw)).sum())
-            a1 = sum(w13.entreprises["centrale01"].produit_du_jour.values())
-            prod += (a1 - a0) if a1 >= a0 else a1
-        return pres, prod / jours
-    pa, qa = usine(7)
-    arc13.commande("Malden", "occuper", z14, l14, True)
-    pp, qp = usine(7)
-    arc13.commande("Malden", "occuper", z14, l14, False)
-    usine(7)                                        # la semaine du retour ( l agenda planifie la semaine )
-    pl, ql = usine(7)
-    rp = lambda x: x[0] / max(1, x[1])
-    print(f"   usines occupees : ouvriers de la centrale / temoin avant {pa} ( {rp(pa):.2f} ), occupee {pp} ( {rp(pp):.2f} ), liberee {pl} "
-          f"( {rp(pl):.2f} ) ; production par jour {qa:.0f} -> {qp:.0f} -> {ql:.0f}", flush=True)
-    ok["G14 controle positif : la centrale travaillait ; occupee, ouvriers sous 0,4 fois, production sous 0,5 fois"] = (
-        pa[0] > 0 and pa[1] > 0 and pp[1] > 0 and qa > 0 and rp(pp) < 0.4 * rp(pa) and qp < 0.5 * qa)
-    ok["G14 liberee, au-dessus de 0,8 fois"] = rp(pl) > 0.8 * rp(pa) and ql > 0.8 * qa
-    arc13.fermer()
+    # G14 ( dans le monde ou G13 jouait avant son amendement, rejoue a l identique ; malades hors des absents, 29/09 )
+    ligne14, ok14 = _g14_juger(_g14())
+    print(ligne14, flush=True); ok.update(ok14)
     # G16
     from multiprocessing import get_context
     famine_produite()                            # une fois, avant les copies ( le fork les herite )
@@ -877,4 +932,5 @@ def main():
 
 
 if __name__ == "__main__":
+    if "--g14" in sys.argv: sys.exit(_g14_graines([int(x) for x in sys.argv[sys.argv.index("--g14") + 1].split(",")]))
     sys.exit(main())
