@@ -188,7 +188,7 @@ def test_chantier_bilan_matiere():
 # ================================================================== loyers et impayes au centime
 def test_loyers_au_centime():
     """Porte : un bail dont le loyer est porte a trois mois de revenu du locataire ( un loyer insoutenable ) ; il paie
-    ce qu il peut sans toucher a sa reserve de nourriture. Sur 100 jours, pour ce bail : loyers echus = payes +
+    ce qu il peut sans toucher a sa reserve de nourriture. Sur JOURS_LOYERS jours, pour ce bail : loyers echus = payes +
     impayes ( creances du socle, motif loyer, creancier le bailleur, debiteur le locataire ) au centime ; au troisieme
     terme impaye le litige s ouvre, puis l expulsion ( delai mis a zero ) le reloge ( un logement ou un abri ), le
     depot compensant ses arrieres. Pour tout le pays : le grand livre a vu, sous le motif loyer, exactement ce que le
@@ -207,7 +207,7 @@ def test_loyers_au_centime():
     du0, paye0 = bail.du, bail.paye
     expulsions0 = d.stats["expulsions"]
     litige = -1; fin = None
-    for j in range(100):
+    for j in range(JOURS_LOYERS):
         T.jours(w, 1)
         for m, pa, re, s, _ in p.comptes_hier["argent"]:
             if m == "loyer": livre[0] += s
@@ -236,6 +236,12 @@ def test_loyers_au_centime():
 
 
 MIN_TERMES = 3
+# ( HMT-139, 29/09 ) 100 jours etaient le bord de la fenetre : le litige s ouvrait au jour 85. Le terme regle les
+# arrieres les plus anciens d abord et le litige compte les CREANCES ( trois ) : un locataire qui emprunte un peu plus
+# solde la premiere au troisieme terme, garde deux creances pour pres de deux mois d arrieres, et le litige attend le
+# quatrieme terme. Avec la remuneration de gerance, ce locataire obtient 5 644 drachmes de credit au lieu de 4 138 :
+# le critere ne change pas, la fenetre couvre un terme de plus.
+JOURS_LOYERS = 130
 
 
 # ================================================================== la decision
