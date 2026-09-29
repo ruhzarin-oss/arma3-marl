@@ -78,6 +78,12 @@ intègre, tranche, et tient ce fichier à jour.
 - Messages de commit en français, avec « Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com> ».
 - **Charge de la station** : au plus DEUX gros calculs à la fois, toutes sessions confondues ( `portes.sh`, guerre dans
   Arma, run long ), chacun annoncé au chef de projet. La station est tombée le 27/09 à 21 h 59 sous pleine charge.
+  Un calcul MONO-CŒUR ( une mesure, une graine ) ne compte pas dans les deux, s'il l'est vraiment : dans tout pool ou
+  toute campagne de processus, `OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1` ( sans cela, numpy prend
+  tous les cœurs dans chaque processus ) ; l'archipel borne déjà ses îles ( `HMT_FILS_PAR_ILE` ).
+- **Un run long s'arrête seul sur la famine** : `monde.nuit --garde-famine 0.005` ( arrêt propre et instantané quand
+  les morts de faim d'une île atteignent 0,5 % de ses vivants ). La « faim » affichée ne compte que les vivants : elle
+  baisse quand les affamés meurent ( essais 19 et 21 ).
 - **La station ne se met jamais en veille** : au réveil, le pilote NVIDIA ne répond plus avec Qwen chargé ( 28/09,
   01 h 19 → 10 h 31 ). Le réglage est à Younes.
 - `portes.sh` écrit dans des fichiers PRIVÉS ( `mktemp` ) ; les tests dont l'issue suit le bruit vont dans
