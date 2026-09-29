@@ -43,6 +43,7 @@ $PY $C/patch_greve_arrieres.py $ARBRE        # HMT-143 ( 29/09 ) : tout employeu
 $PY $C/patch_cuve_ouverture.py $ARBRE  # HMT-143 ( 29/09 ) : la cuve de brut nait pleine et a elle, au bilan d ouverture
 $PY $C/patch_controle_entreprises.py $ARBRE  # ( 29/09 ) le controle d une entreprise extrapole sur au moins un trimestre
 $PY $C/patch_garde_import.py $ARBRE  # ( 29/09, run long ) le negoce : demande bornee par habitant, reserve de nourriture du marche
+$PY $C/patch_stocks_industrie.py $ARBRE  # ( 29/09, HMT-140 cause 5 ) d10 : stocks en jours de la consommation reelle lissee, ouverture a l equilibre
 ( cd $ARBRE && PYTHONPATH=$ARBRE $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines.json ]; then
   cmp -s $REF/ref_domaines_refaite.json $REF/ref_domaines.json && echo "REFERENCE DES DOMAINES REPRODUITE AU BIT" || echo "REFERENCE DES DOMAINES DIFFERENTE"
@@ -52,7 +53,7 @@ if [ -d $REF/ref/monde_ancien ]; then
   diff -rq -x __pycache__ -x "*.avant*" -x resultats $REF/ref/monde_ancien $REF/ref/monde_ancien.nouveau >/dev/null && echo "ANCIEN MOTEUR TEMOIN IDENTIQUE" || echo "ANCIEN MOTEUR TEMOIN DIFFERENT"
   rm -rf $REF/ref/monde_ancien.nouveau
 else mv $REF/ref/monde_ancien.nouveau $REF/ref/monde_ancien; echo "ancien moteur temoin pose"; fi
-TOUS=9cbf2be     # 29/09 : integration 11 + HMT-143 ( cuve, controle des entreprises ) + commande publique comptee une fois ( d15 ), gardes du negoce ( d07 )
+TOUS=b7751e6     # 29/09 : 9cbf2be + les stocks de d10 en jours de la consommation reelle lissee ( stocks-industrie, NON LIVRE avant ( c ) )
 ARBRE2=$REF/ref_tous; rm -rf $ARBRE2 && mkdir -p $ARBRE2 && git -C $DEPOT archive $TOUS monde | tar -x -C $ARBRE2
 ( cd $ARBRE2 && PYTHONPATH=$ARBRE2 $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_tous_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines_tous.json ]; then
