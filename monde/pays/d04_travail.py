@@ -1895,7 +1895,9 @@ def _marche_du_travail(p):
     # EN COLONNES ( 24/09 ) : les candidats en numeros, groupes par domicile dans l ordre des numeros ; une vue n est
     # fabriquee que pour qui recoit une offre
     tb = w.table
-    ok &= (tb.vivant[:n] == 1) & ~np.isin(tb.role[:n], _codes(HORS_MARCHE)) & (tb.domicile[:n] >= 0)
+    # ( 29/09 ) « hors marche » ne vaut que pour qui EXERCE ( elu, patron, marchand en commerce ) : un chomeur cherche
+    # un emploi ( BIT ), quel que soit le metier qu il cherche ou a quitte
+    ok &= (tb.vivant[:n] == 1) & ~(np.isin(tb.role[:n], _codes(HORS_MARCHE)) & (st != CHOMEUR)) & (tb.domicile[:n] >= 0)
     par_lieu = {}
     gr = d.grevistes; dom = tb.domicile; par_n = w.carte.par_n
     for i in np.nonzero(ok)[0].tolist():
