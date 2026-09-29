@@ -63,7 +63,7 @@ class GrandLivre:
     """Le seul chemin de l argent et des biens. `flux` et `ext` peuvent etre ceux d un Monde E1 : moteur et domaines
     nouveaux comptent alors dans les memes cumuls ( brancher.py )."""
     __slots__ = ("catalogue", "motifs", "strict", "flux", "ext", "monnaie", "jour_argent", "jour_biens", "impayes",
-                 "non_declares", "net_cumule", "n_transferts", "enregistreur")
+                 "non_declares", "net_cumule", "n_transferts", "par_payeur", "enregistreur")
 
     def __init__(self, catalogue, flux=None, ext=None, strict=True):
         self.catalogue = catalogue
@@ -81,6 +81,7 @@ class GrandLivre:
         self.non_declares = {}     # motif -> nombre d usages ( mode non strict ), cumule
         self.net_cumule = {}       # classe -> recu - paye, cumule aux clotures
         self.n_transferts = 0
+        self.par_payeur = None     # ( HMT-145 ) ( classes suivies, { ( classe, id, motif ) : paye } ) ; None : rien de suivi
         self.enregistreur = None   # monde/enregistreur.py : chaque ecriture, une ligne ( lit seulement )
 
     # ------------------------------------------------------------------ les motifs
@@ -106,6 +107,20 @@ class GrandLivre:
         if r is None: self.impayes[motif] = [manque, 1]
         else: r[0] += manque; r[1] += 1
 
+    # ------------------------------------------------------------------ ( HMT-145 ) les paiements par payeur
+    def suivre_payeurs(self, *classes):
+        """Compte desormais, par payeur et par motif, ce que paient les objets de ces classes ( noms de classe, par
+        exemple Menage ) : ce que chaque payeur a reellement paye, paiements partiels compris. Un seul abonnement : le
+        dernier remplace le precedent et son cumul."""
+        self.par_payeur = (frozenset(classes), {})
+
+    def vider_payeurs(self):
+        """Le cumul { ( classe, id, motif ) : paye } depuis le dernier vidage, remis a vide ; {} sans abonnement."""
+        s = getattr(self, "par_payeur", None)
+        if s is None: return {}
+        cumul = s[1]; self.par_payeur = (s[0], {})
+        return cumul
+
     # ------------------------------------------------------------------ l argent, a l interieur
     def transferer(self, de, vers, montant, motif):
         """Meme contrat que Monde.transferer : paie au plus ce que le payeur a, rend le montant paye."""
@@ -113,6 +128,9 @@ class GrandLivre:
         paye = max(0.0, min(montant, de.caisse))
         de.caisse -= paye; vers.caisse += paye
         self._ranger(motif, type(de).__name__, type(vers).__name__, paye)
+        try: s = self.par_payeur                       # ( HMT-145 ) les paiements des classes suivies, par payeur et motif
+        except AttributeError: s = None                # un instantane d avant HMT-145
+        if s is not None and type(de).__name__ in s[0]: k = (type(de).__name__, de.id, motif); s[1][k] = s[1].get(k, 0.0) + paye
         e = getattr(self, "enregistreur", None)
         if e is not None: e.argent(motif, de, vers, paye)
         if montant - paye > TOLERANCE_IMPAYE: self._impaye(motif, montant - paye)

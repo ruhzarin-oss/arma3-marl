@@ -61,6 +61,73 @@ def test_budget_parts():
                 + ", ".join(f"{x:.1%}" for x in q) + f" ( Engel x{engel:.1f} ) ; prix double : part {s1:.0%} -> {s2:.0%}")
 
 
+def test_enveloppes():
+    """Porte ( HMT-145, seuils ecrits avant la mesure ). Fonctions pures : un locataire dont le loyer mensuel vaut 30 jours
+    d entree n achete jamais au commerce ( 360 jours ) ; un proprietaire sans facture achete des qu il depasse 45 + 7 jours
+    d entree, au jour 52, puis chaque semaine ; une voiture ( une enveloppe tres negative ) suspend les achats jusqu a ce
+    qu elle se reconstitue ; qui ne fait pas ses courses n achete pas. Les parts d occupation : proprietaire 0,685 et
+    locataire 1,873 fois la part du logement ( ELSTAT HBS 2024, Eurostat ), ponderees 73,5 / 26,5 : la moyenne a 1e-3 ;
+    partager_le_reste garde la nourriture et le total. Le pays ( economie, immobilier, energie, services publics, medias,
+    culture, 1 000 habitants, 60 jours ) : des substitutions sont achetees ; AUCUNE fuite ( paiement d achat d un menage
+    que rien ne classe ) ; le compte des enveloppes tient au centime ( entrees - encaissements - substitutions = somme des
+    enveloppes ) ; argent et biens conserves. Controles positifs : ENVELOPPES a False ne fait aucune substitution ; retirer
+    loyer de MOTIFS_DIVISION fait voir une fuite."""
+    import numpy as np
+    j = M.J_ENVELOPPE; lot = M.LOT_ENVELOPPE
+    E = np.zeros(3); achats = np.zeros((360, 3))
+    for t in range(360):
+        paye = np.array([300.0 if t % 30 == 29 else 0.0, 0.0, 20000.0 if t == 10 else 0.0])
+        E, x = M.enveloppe_du_soir(E, np.full(3, 10.0), paye, np.array([True, True, True]))
+        E = E - x; achats[t] = x
+    locataire = achats[:, 0].sum() == 0.0
+    premier = int(np.nonzero(achats[:, 1] > 0)[0][0]) if (achats[:, 1] > 0).any() else -1
+    proprietaire = premier == int(j + lot) - 1 and achats[:, 1].sum() > 0.0
+    voiture = (achats[:200, 2] == 0.0).all()
+    _, x0 = M.enveloppe_du_soir(np.array([1e6]), np.array([10.0]), np.array([0.0]), np.array([False]))
+    absent = x0[0] == 0.0
+    moy = 0.735 * M.F_PROPRIETAIRE + 0.265 * M.F_LOCATAIRE
+    parts = (abs(M.F_PROPRIETAIRE - 0.685) < 1e-3 and abs(M.F_LOCATAIRE - 1.873) < 1e-3 and abs(moy - 1.0) < 1e-3
+             and abs(M.PARTS_PROPRIETAIRE.sum() - 1.0) < 1e-12 and abs(M.PARTS_LOCATAIRE.sum() - 1.0) < 1e-12)
+    rng = np.random.default_rng(29)
+    avant = rng.random((20, M.K)); apres = M.partager_le_reste(avant, M.parts_d_occupation(rng.integers(0, 4, 20)))
+    partage = (np.abs(apres[:, M.I_ALIM] - avant[:, M.I_ALIM]).max() <= 1e-9
+               and np.abs(apres.sum(axis=1) - avant.sum(axis=1)).max() <= 1e-9)
+    doms = ["economie", "immobilier", "energie", "services_publics", "medias", "culture"]
+
+    def pays(sans_loyer=False, eteint=False):
+        garde_m, garde_e = dict(M.MOTIFS_DIVISION), M.ENVELOPPES
+        try:
+            if sans_loyer: del M.MOTIFS_DIVISION["loyer"]
+            M.ENVELOPPES = not eteint
+            w, p = T.monde(doms, echelle=2.0)
+            T.jours(w, 60)
+            return w, p
+        finally:
+            M.MOTIFS_DIVISION.clear(); M.MOTIFS_DIVISION.update(garde_m); M.ENVELOPPES = garde_e
+    w, p = pays()
+    d = p.domaine("economie"); n = len(w.menages)
+    fuite = dict(d.sans_division)
+    ec = d.env_compte
+    env = np.array([float(p.col("menage", f"eco_env_{M.NOMS_CATEGORIES[k]}")[:n].sum()) for k in M.IDX_ENVELOPPE])
+    attendu = np.array([ec[0, k] - ec[1, k] - ec[2, k] for k in M.IDX_ENVELOPPE])
+    compte = float(np.abs(env - attendu).max()) <= 1e-6 * max(1.0, float(ec[0].sum()))
+    tenue, msg = p.socle.conservation.tenue()
+    achetees = float(ec[2].sum()) > 0.0
+    w2, p2 = pays(eteint=True)
+    L2 = p2.socle.livre
+    sans_subst = not any(m.startswith("substitution_") for m in L2.motifs) and getattr(L2, "par_payeur", None) is None
+    w3, p3 = pays(sans_loyer=True)
+    vue = p3.domaine("economie").sans_division.get("loyer", 0.0) > 0.0
+    ok = (locataire and proprietaire and voiture and absent and parts and partage and not fuite and achetees and compte
+          and tenue and sans_subst and vue)
+    return ok, (f"locataire sans achat : {locataire} ; proprietaire : premier achat au jour {premier + 1} ( attendu "
+                f"{int(j + lot)} ) ; voiture : {voiture} ; absent : {absent} ; parts d occupation {M.F_PROPRIETAIRE:.3f} / "
+                f"{M.F_LOCATAIRE:.3f}, moyenne {moy:.4f} ; partage : {partage} | pays 60 j : fuites {fuite or 'aucune'} ; "
+                f"entrees {ec[0].sum():.0f}, encaisse {ec[1].sum():.0f}, substitue {ec[2].sum():.0f} dr, compte des enveloppes "
+                f"{'tenu' if compte else 'FAUX'} ; conservation : {msg} | controles : eteint sans substitution {sans_subst}, "
+                f"loyer retire -> fuite vue {vue}")
+
+
 def test_services_marchands_et_usure():
     """Porte ( HMT-126, seuils ecrits avant la mesure ). Fonction pure : trois menages, deux divisions ( habillement,
     restauration ), parts marchandes 1 et 0,5 : l envie vaut 30 x 1 + 20 x 0,5 = 40 drachmes par jour, 80 pour deux jours ;
@@ -529,5 +596,5 @@ def test_plancher_sans_revenu():
                 f"en caisse : nourriture {par.get((A, 'nourriture'), 0.0):.2f}, marchand {par.get((A, 'services_marchands'), 0.0):.2f}, "
                 f"equipement {par.get((A, 'outils'), 0.0):.2f} ; menage aise : marchand {par.get((B, 'services_marchands'), 0.0):.2f} ; {msg}")
 
-TESTS = [test_budget_parts, test_services_marchands_et_usure, test_identite_comptable, test_faillite, test_chomage, test_prix_choc_de_demande,
+TESTS = [test_budget_parts, test_enveloppes, test_services_marchands_et_usure, test_identite_comptable, test_faillite, test_chomage, test_prix_choc_de_demande,
          test_commerces_fermes, test_credit, test_recalibrage, test_part_du_choix, test_pays_vivable, test_cout, test_plancher_sans_revenu, test_gerance_et_cessation]

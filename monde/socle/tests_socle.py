@@ -447,10 +447,46 @@ def test_journal():
     return ok, f"1 000 000 achats comptes exactement : {exact} ; file bornee a 1000 : {bornee} ; {lignes} lignes ecrites ; {refus}/5 refus"
 
 
+def test_paiements_par_payeur():
+    """Porte ( HMT-145, seuils ecrits avant la mesure ). Controle positif : un payeur d une classe suivie enregistre
+    exactement la somme de ce qu il a PAYE, par ( classe, id, motif ), paiements partiels compris ( une caisse plus courte
+    que le montant ). Falsificateurs : une autre classe n est pas enregistree ; vider_payeurs rend le cumul et remet a
+    vide ; sans abonnement, rien n est enregistre et vider_payeurs rend {}. Identite : un Monde E1 branche au socle, suivi
+    ou non, fait le meme monde au bit ( 8 jours, resume et argent ) et passe dans l instantane."""
+    class Menage:
+        __slots__ = ("id", "caisse")
+        def __init__(self, i, c): self.id, self.caisse = i, c
+
+    class Autre:
+        __slots__ = ("id", "caisse")
+        def __init__(self, i, c): self.id, self.caisse = i, c
+    livre = K.GrandLivre(B.catalogue_du_moteur())
+    livre.declarer_motif("loyer", "achat", "test"); livre.declarer_motif("salaire", "remuneration", "test")
+    a, b, x, dest = Menage(0, 100.0), Menage(1, 30.0), Autre(0, 1e6), Autre(9, 0.0)
+    sans = livre.vider_payeurs() == {} and livre.par_payeur is None
+    livre.transferer(a, dest, 10.0, "loyer")                     # avant l abonnement : non compte
+    livre.suivre_payeurs("Menage")
+    livre.transferer(a, dest, 25.0, "loyer"); livre.transferer(a, dest, 5.0, "loyer")
+    livre.transferer(b, dest, 50.0, "loyer")                     # partiel : 30 payes sur 50
+    livre.transferer(x, dest, 70.0, "salaire")                   # une autre classe
+    cumul = livre.vider_payeurs()
+    exact = cumul == {("Menage", 0, "loyer"): 30.0, ("Menage", 1, "loyer"): 30.0}
+    vide = livre.vider_payeurs() == {} and livre.par_payeur is not None
+    a0 = jours(W.Monde(graine=11), 8)
+    b0 = W.Monde(graine=11); BR.brancher(b0); b0.socle.livre.suivre_payeurs("Menage", "Habitant"); jours(b0, 4)
+    snap = pickle.dumps(b0); jours(b0, 4)
+    c0 = jours(pickle.loads(snap), 4)
+    meme = a0.resume_jour() == b0.resume_jour() == c0.resume_jour() and a0.argent_total() == b0.argent_total() == c0.argent_total()
+    suivis = len(b0.socle.livre.vider_payeurs())
+    ok = sans and exact and vide and meme and suivis > 0
+    return ok, (f"sans abonnement rien : {sans} ; cumul exact ( partiel compris, autre classe exclue ) : {exact} ; vidage : "
+                f"{vide} ; monde suivi = monde non suivi au bit, reprise comprise : {meme} ( {suivis} payeurs x motifs suivis )")
+
+
 TESTS = [test_catalogue, test_hasard_par_domaine, test_calendrier, test_registre_reproduit_le_moteur,
          test_registre_voit_un_oubli, test_creation_hors_source, test_socle_ne_change_pas_le_monde,
          test_motifs_du_moteur, test_rapprochement, test_creances, test_echeancier, test_objets,
-         test_decision_horizon, test_journal]
+         test_decision_horizon, test_journal, test_paiements_par_payeur]
 
 if __name__ == "__main__":
     ok = 0
