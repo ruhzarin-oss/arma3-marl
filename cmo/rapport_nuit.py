@@ -14,7 +14,16 @@ DOSSIER = "/mnt/data/hmt/etat/cmo_nuit"
 
 
 def en_vol():
-    return subprocess.run(["pgrep", "-f", "python cmo/endurance.py"], capture_output=True).returncode == 0
+    """Un PROCESSUS python d'endurance vit encore. ⚠️ pgrep seul trouve aussi le serveur tmux, qui garde la ligne de
+    commande de la session qui l'a lancé ( 29/09 : le rapport attendait sans fin )."""
+    r = subprocess.run(["pgrep", "-f", "python cmo/endurance.py"], capture_output=True, text=True)
+    for pid in r.stdout.split():
+        try:
+            if open(f"/proc/{pid}/comm").read().strip().startswith("python"):
+                return True
+        except OSError:
+            pass
+    return False
 
 
 def rapport():
