@@ -231,9 +231,23 @@ def g10_sous_la_vraie_horloge():
         assert arc.suivis.get("Stratis") == 1, arc.suivis
 
 
+def g12_causes_lues_dans_cmo():
+    """La cause vient du journal de CMO ( lignes réelles du 29/09 ) : abattu après un coup au but, ou à sec."""
+    import causes_cmo
+    t = ("29/09/2026 10:22:22 - AIM-120D AMRAAM P3I.4 #9 HIT: Weapon: AIM-120D AMRAAM P3I.4 #9 is attacking HMT-10000001 "
+         "(F-15C Eagle) with a base PH of 95%.\n"
+         "29/09/2026 10:22:22 - [Stratis] HMT-10000001 (F-15C Eagle) has been destroyed!\n"
+         "29/09/2026 12:43:07 - [Malden] HMT-20000014 (F-15C Eagle) has run out of fuel and crashed!\n"
+         "29/09/2026 12:43:07 - [Malden] HMT-20000014 (F-15C Eagle) has been destroyed!\n")
+    b = causes_cmo.bilan(t)
+    assert b["pertes"] == {"EAST": {"combat": 1}, "WEST": {"carburant": 1}}, b
+    assert b["armes_au_but"] == {"AIM-120D AMRAAM P3I.4": 1}, b
+
+
 TESTS = [g0_geo, g1_ouverture, g2_caisse_puis_achat, g3_pas_de_pilote_pas_d_avion, g4_plafond,
          g5_le_ciel_tient_les_zones, g6_morts_rendus_une_fois, g7_pont_mort_jamais_rien, g8_quatre_envois_par_tour,
-         g9_un_refus_de_cmo_ne_coute_rien, g10_sous_la_vraie_horloge, g11_les_avions_sont_en_mission]
+         g9_un_refus_de_cmo_ne_coute_rien, g10_sous_la_vraie_horloge, g11_les_avions_sont_en_mission,
+         g12_causes_lues_dans_cmo]
 
 
 def _une_affectation_par_envoi(self, patrouilles=(), affectations=()):

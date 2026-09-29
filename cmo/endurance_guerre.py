@@ -12,8 +12,8 @@ CRITÈRES ÉCRITS D'AVANT ( verdict dans rapport_guerre.md ) :
   E2 chaque mort rendue une fois : morts reçues par le moteur = pertes comptées par CmoGuerre ;
   E3 chaque achat payé : dernier paiement du moteur = dépense de CmoGuerre, par île ;
   E4 CMO tient la cadence : temps du scénario / temps réel >= 0,9 en médiane ( 29/09 : des sondes l'avaient mis à 0,13 ) ;
-  E5 LA GUERRE A EU LIEU : au moins une zone a changé de main ET au moins une mort au combat estimée ( un ennemi à moins
-     de 40 km au dernier relevé ) — une « guerre » sans combat est un échec du banc, pas un succès ;
+  E5 LA GUERRE A EU LIEU : au moins une zone a changé de main ET au moins un avion ABATTU selon le journal des messages
+     de CMO ( causes_cmo.py ; l'estimation par la distance comptait les pannes sèches comme des combats, 29/09 ) ;
   E6 le pont ne meurt pas : pannes PontMort cumulées < 5 % de la durée.
 
 Sorties : /mnt/data/hmt/etat/cmo_guerre/<début>/ ( journal.jsonl de l'horloge, suivi.jsonl, rapport_guerre.md ).
@@ -39,6 +39,7 @@ import cmo_labo as CL                                     # noqa: E402
 import guerre_cmo as G                                    # noqa: E402
 from archipel_papier import ArchipelDePapier              # noqa: E402
 import endurance as E                                     # noqa: E402  ( journaux et mémoire de CMO )
+import causes_cmo                                         # noqa: E402
 
 DOSSIER = os.path.join(CL.ETAT, "cmo_guerre")
 # Un avion ( 500 000 points ) toutes les 6 minutes pour Stratis, toutes les 7 pour Malden : points = 0,05 x recettes / 100.
@@ -187,7 +188,11 @@ class GuerreLongue:
         payes = {ile: (arc.payes.get(ile) or [0.0])[-1] for ile in g.camps.values()}
         depenses = {g.camps[c]: g.depense[c] for c in g.camps}
         vit = statistics.median(self.vitesses) if self.vitesses else None
-        combats = sum(1 for m in self.morts if m["combat"])
+        try:                                             # la cause écrite par CMO, pas une estimation
+            b = causes_cmo.bilan(open(g.journal, errors="ignore").read()) if g.journal else {"pertes": {}, "armes_au_but": {}}
+        except OSError:
+            b = {"pertes": {}, "armes_au_but": {}, "illisible": g.journal}
+        combats = sum(v.get("combat", 0) for v in b["pertes"].values())
         return {
             "E1_pas_de_plantage": not getattr(self, "plantage", None),
             "E2_morts_une_fois": morts_moteur == pertes,
@@ -196,7 +201,7 @@ class GuerreLongue:
             "E5_la_guerre_a_eu_lieu": self.flips > 0 and combats > 0,
             "E6_pont_vivant": pannes / duree < 0.05,
             "_mesures": {"heures": round(duree / 3600, 2), "tours": self.h.tours, "achats": g.achats, "pertes": g.pertes,
-                         "morts_moteur": morts_moteur, "morts_combat_estimees": combats, "changements_de_zone": self.flips,
+                         "morts_moteur": morts_moteur, "causes_cmo": b, "abattus_cmo": combats, "changements_de_zone": self.flips,
                          "payes": payes, "depenses": depenses, "vitesse_mediane": vit,
                          "vitesse_min": min(self.vitesses) if self.vitesses else None,
                          "rtt_ms_mediane": statistics.median(self.rtt) if self.rtt else None,
