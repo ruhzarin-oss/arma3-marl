@@ -92,6 +92,18 @@ intègre, tranche, et tient ce fichier à jour.
 - Les portes de la guerre ( `guerre/porte_guerre.py` ) et des devises sont dans `portes.sh` ( 28/09 ).
 - Lancer un calcul détaché sur la WS : `setsid nohup bash script > /dev/null 2>&1 < /dev/null &` ( sans `< /dev/null`, il
   meurt avec la session ssh ).
+- **La ligne « PORTES REFUSEES » part au chef de projet DÈS qu'elle tombe** : le 29/09, une passe finie à 12 h 41 n'a été
+  vue qu'à 13 h 48, et la station est restée libre une heure.
+- **Un atelier par session et par sujet** : `/mnt/data/hmt/atelier-<session>-<sujet>`. Ne jamais masquer l'erreur de
+  `git worktree add`, vérifier que le chemin n'existe pas avant : le 29/09, un worktree add qui a échoué en silence a
+  fait écrire un correctif dans l'atelier d'une autre session.
+- **Les correctifs rejouables se composent dans les deux ordres** : des ancres COURTES, propres à la fonction touchée. Deux
+  sessions dans le même fichier jouent les deux ordres sur une copie du tronc et comparent au bit ( contrôle de texte ).
+  Le 29/09, l'intégration 12 s'est arrêtée : une ancre voulait une liste qu'un correctif précédent avait changée.
+- **Une règle ne se juge pas sur une fenêtre d'été** : les rapports annuels ( revenu, nourriture, chômage ) se mesurent sur
+  l'année entière ; le monde naît le 15 juin ( config.DATE_DEPART ), et une fenêtre d'été a donné 7,66 au lieu de 5,17.
+- **Un choix sans source est déclaré comme CHOIX avant la mesure**, avec sa raison, pour que Younes le tranche ; il ne se
+  règle jamais après avoir vu le résultat.
 - Qwen : tâche Windows `HMT_QWEN` ( garde root sous `flock`, au démarrage puis toutes les 10 min ) ; elle relance Ollama
   si Qwen est chargé hors de la carte graphique. Pour libérer la 3090 : prévenir le chef de projet et désactiver la tâche.
 
