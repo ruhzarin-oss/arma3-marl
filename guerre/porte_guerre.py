@@ -169,6 +169,11 @@ G20 LA VRAIE STRATIS AFFAMEE REPART ( 27/09, ecrite avant la mesure ; sur la fai
    LIMITE ( chef de projet ) : cette famine est COURTE ( 30 % de faim en 6 jours, aucun mort ) : le critere « morts de faim
    sous 1 % » y est tenu d office. La reprise apres une famine LONGUE, des habitants pres du seuil de mort, n est pas
    testee ici : une porte a part, a venir.
+   PRECISEE le 29/09 ( chef de projet : « dans le reel, un blocus coupe aussi l arrivee des touristes » ; ecrite avant la
+   mesure ) : les hoteliers nes avec le monde ( HMT-126 b ) faisaient entrer des euros chaque jour du blocus. Pendant le
+   blocus, l avis aux voyageurs de Stratis est a 0 ( domaine 28, motif « blocus » ) ; la relache le remet a 1. Criteres
+   de G16 et G20 inchanges ; un de plus : des recettes touristiques les 7 jours avant le blocus ( sinon rien a couper ),
+   aucune pendant.
 G21 LE REVENU MINIMUM GARANTI ( KEA, 27/09, ecrite avant la mesure ) : dans une petite Stratis, un versement du jour
    donne a chaque menage eligible exactement le seuil du jour ( 216 euros par mois a l echelle 1 + 0,5 par adulte de plus
    + 0,25 par enfant ) moins son revenu lisse hors KEA ; rien a un menage au-dessus du seuil ni a un menage aux avoirs
@@ -497,15 +502,31 @@ def famine_produite(graine=1, echelle=20.0, faim_visee=0.30, blocus_max_j=60):
     for _ in range(10): _jour_de_famine(w, ile, False)
     fermes = sorted(l for l, x in w.entreprises.items() if x.type == "ferme")
     GM.occuper(w, ZONE_FAMINE, fermes, True)
+    avant = _recettes_touristiques(w, 7)
     blocus = []
     while len(blocus) < blocus_max_j and (not blocus or blocus[-1] < faim_visee): blocus.append(_jour_de_famine(w, ile, True))
-    _FAMINE[cle] = (pickle.dumps(w, protocol=pickle.HIGHEST_PROTOCOL), {"blocus_jours": len(blocus), "faim_blocus": blocus, "fermes": fermes})
+    _FAMINE[cle] = (pickle.dumps(w, protocol=pickle.HIGHEST_PROTOCOL), {"blocus_jours": len(blocus), "faim_blocus": blocus, "fermes": fermes,
+                                                                          "tourisme_avant": avant, "tourisme_blocus": _recettes_touristiques(w, len(blocus))})
     return _FAMINE[cle]
 
 
+def _recettes_touristiques(w, jours):
+    """Les recettes touristiques des `jours` derniers jours ( domaine 28 ), None sans le domaine."""
+    p = w.pays
+    if not p.a("tourisme"): return None
+    from monde.pays import d28_tourisme as TO
+    return round(sum(x[3] for x in TO._dom(p).serie[-jours:]))
+
+
 def _jour_de_famine(w, ile, blocus):
+    """Un jour de la famine produite ; `blocus` : chaque matin la banque centrale n a plus un euro, et ( 29/09 ) aucun
+    touriste n arrive - l avis aux voyageurs a 0 ; hors blocus il revient a 1."""
     from monde.pays import d07_exterieur as X
     p = w.pays; e = X._ext(p)
+    if p.a("tourisme"):
+        from monde.pays import d28_tourisme as TO
+        if blocus: TO.fixer_risque(p, 0.0, "blocus")
+        elif TO._dom(p).motif_risque == "blocus": TO.fixer_risque(p, 1.0, "paix")
     for k in range(144):
         if blocus and k == 0: X.reserves_de_change(p); e.reserves_euros = X.PLANCHER_RESERVES
         w.pas_suivant()
@@ -862,6 +883,10 @@ def main():
         ok["G20 une famine du code d aujourd hui relachee : fermes en 8 jours, faim sous 10 % le huitieme, morts de faim sous 1 % ; conservation"] = (
             re20["faim_blocus"] >= 0.30 and g20_passe(re20))
         ok["G20 controle positif : sans relache, la meme porte echoue"] = not g20_passe(te20)
+        s20 = famine_produite()[1]
+        print(f"   recettes touristiques : 7 jours avant le blocus {s20['tourisme_avant']}, pendant ses {s20['blocus_jours']} jours {s20['tourisme_blocus']}", flush=True)
+        ok["G20 le blocus coupe les touristes : des recettes les 7 jours avant, aucune pendant"] = (
+            (s20["tourisme_avant"] or 0) > 0 and s20["tourisme_blocus"] == 0)
     # G21 : un versement du jour, verifie menage par menage
     from monde.pays import d06_etat as ET21
     w21 = creer_ile("Stratis", 1, 4.0); p21 = w21.pays; ET21.brancher_revenu_minimum(p21); T20.jours(w21, 3)
