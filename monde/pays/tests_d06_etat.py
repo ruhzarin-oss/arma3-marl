@@ -4,6 +4,7 @@ import numpy as np
 from .. import config as C, monde as W
 from ..socle import decision as D
 from . import essais as T, d01_population as POP, d02_banques as BQ, d03_economie as EC, d06_etat as M
+from .pays import EUROS_PAR_DRACHME as EUR
 
 
 # ================================================================== la loi, sans monde
@@ -52,11 +53,13 @@ def test_ir_par_tranches():
     est ce que le grand livre a vu verser a la paie, motif par motif ( 1e-6 relatif ) ; au moins 99 % des menages ont
     verse l impot cumule de leurs membres au centime. Falsificateur : 1 000 drachmes de revenu fantome ecrites a la main
     dans la colonne d un salarie se voient dans ce recoupement ; un taux unique de 15 % ne rend pas le bareme."""
+    # ( 29/09, HMT-140 ) les cas de la loi sont en EUROS ; le bareme du pays est en drachmes : revenus et impots convertis
+    # ( l impot d un revenu converti est l impot de la loi converti, les tranches et la reduction etant converties )
     cas = ((5000, 450.0), (10000, 900.0), (15000, 2000.0), (25000, 4500.0), (35000, 7700.0), (60000, 18300.0))
-    bar = all(abs(M.bareme_ir(y) - v) <= 1e-9 for y, v in cas)
+    bar = all(abs(M.bareme_ir(y / EUR) - v / EUR) <= 1e-9 for y, v in cas)
     cas2 = ((8000, 8000, 0, 0.0), (15000, 15000, 0, 1283.0), (20000, 20000, 2, 2360.0), (50000, 50000, 0, 13883.0),
             (60000, 60000, 0, 18300.0), (15000, 0, 0, 2000.0), (20000, 10000, 0, 2323.0), (30000, 30000, 5, 4340.0))
-    red = all(abs(M.impot_annuel(y, ys, k) - v) <= 1e-9 for y, ys, k, v in cas2)
+    red = all(abs(M.impot_annuel(y / EUR, ys / EUR, k) - v / EUR) <= 1e-9 for y, ys, k, v in cas2)
     rng = np.random.default_rng(3)
     r = rng.gamma(2.0, 30.0, 365); Y = np.cumsum(r)
     cumul = abs(M.impot_cumule(Y[-1], Y[-1], 1, 365, 365) - M.impot_annuel(Y[-1], Y[-1], 1)) <= 1e-9
