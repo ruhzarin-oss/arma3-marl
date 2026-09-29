@@ -578,17 +578,19 @@ def brancher_devises(p):
     """Une ile reprise d un instantane d avant HMT-131 ( 28/09 ) n a pas le compte devises_refusees : le declarer
     ( idempotent ; un monde neuf l a deja, a l installation )."""
     J = p.socle.journal
-    if "devises_refusees" not in getattr(J, "types", {}): J.declarer("devises_refusees", "exterieur", "compte")
+    for t in ("devises_refusees", "import_blocus", "export_blocus"):          # ( 29/09 ) et ceux du blocus
+        if t not in getattr(J, "types", {}): J.declarer(t, "exterieur", "compte")
 
 
 def refuser_devises(p, montant):
     """Compte une demande de devises refusee par un appelant qui a lu part_en_devises avant de payer."""
-    if montant > EPS: p.compter("devises_refusees", montant)
+    if montant > EPS: p.compter("import_blocus" if sous_blocus(p) else "devises_refusees", montant)
 
 
 def part_en_devises(p, montant, essentiel=False):
     """La part de `montant` ( monnaie de l ile ) que la banque centrale fournirait maintenant, en LECTURE SEULE."""
     if not p.a("exterieur") or montant <= EPS: return 1.0
+    if sous_blocus(p): return 0.0                        # ( 29/09 ) ses appelants achetent des marchandises ( d13 )
     e = _ext(p); euros = montant * e.taux; d = _dispo_euros(p, e, essentiel)
     return 1.0 if d >= euros else max(0.0, d / euros)
 
@@ -604,6 +606,8 @@ def payer_en_devises(p, de, montant, motif, essentiel=False, entier=False):
     `essentiel` : nourriture, medicaments, energie. Rend le paye."""
     L = p.socle.livre
     if not p.a("exterieur"): return L.payer_l_exterieur(de, montant, motif)
+    if marchandise(motif) and sous_blocus(p):            # ( 29/09 ) le blocus : la marchandise n arrive pas
+        p.compter("import_blocus", montant); return 0.0
     e = _ext(p)
     euros = montant * e.taux
     if _dispo_euros(p, e, essentiel) >= euros: return L.payer_l_exterieur(de, montant, motif)
@@ -634,6 +638,47 @@ def _controle_devises(p, e, euros, essentiel=True):
     return max(0.0, dispo / euros)
 
 
+# ================================================================== le blocus ( 29/09, guerre des iles )
+def ports_tenus(p):
+    """Les ports de l ile ( lieux de type port ) dans une zone occupee par l ennemi ( guerre/moteur.occuper :
+    w.occupations ) ; la regle se relit a chaque appel, aucun drapeau."""
+    w = p.w; occ = getattr(w, "occupations", None)
+    if not occ: return ()
+    tenus = {l for o in occ.values() for l in o.get("lieux", ())}
+    return tuple(sorted(l for l in tenus if l in w.carte.lieux and w.carte.lieux[l].type == "port"))
+
+
+MARCHANDISES_HORS_PORT = ("achat_abri", "second_oeuvre", "equipement_telecom", "papier_journal", "investissement")
+# ( 29/09 ) les marchandises payees a l etranger par payer_en_devises : tout motif import_* ( le fioul des centrales, les
+# materiaux, les medicaments, le grossiste ) et ceux-ci ( les abris, le second oeuvre, l equipement des medias, les
+# machines de d03.investir ). Le reste de ce qui y passe est financier ( dividendes, capitaux, transferts des migrants,
+# droits ) : le blocus ne l arrete pas, la contrebande non plus.
+
+
+def marchandise(motif):
+    return motif.startswith("import_") or motif in MARCHANDISES_HORS_PORT
+
+
+def export_bloque(p, valeur):
+    """( 29/09 ) Un export hors d exporter_au_port ( le negoce agricole, le petrole, les vehicules d occasion ) : sous
+    blocus il ne part pas - compte export_blocus et rend vrai ; l appelant garde son bien."""
+    if not sous_blocus(p): return False
+    p.compter("export_blocus", valeur); return True
+
+
+def sous_blocus(p):
+    """Le blocus ( 29/09, chef de projet ; Hodeidah 2017, Gaza ) : l ile a un port et l ennemi les tient tous. Rien
+    n entre ni ne sort par la mer : les imports ( importer_au_port, declarer_import ) et les exports ( exporter_au_port )
+    sont refuses et comptes ( import_blocus, export_blocus ), personne ne part ( _peut_partir ) ; le domaine 28 n attend
+    plus de touristes, le domaine 15 annule ses lots par ce port. Un port libre leve le blocus. La contrebande continue
+    ( elle force les blocus ). Choix ecrits ( a verifier ) : un aeroport libre ne rouvre ni le fret ni le tourisme ; les
+    navires deja en mer font demi-tour ( leur arrivee est refusee )."""
+    w = p.w
+    if not getattr(w, "occupations", None): return False
+    ports = [l for l, x in w.carte.lieux.items() if x.type == "port"]
+    return bool(ports) and set(ports) <= set(ports_tenus(p))
+
+
 def importer_au_port(p, importateur, stock, bien, q, motif="import_biens", droits=True):
     """Une importation complete : devises, prix FOB a l etranger, fret aux armateurs etrangers, droit de douane a l Etat,
     le bien dans `stock` ( Stock du socle ou StockE1 ), la declaration. Ce que la caisse ne paie pas n est pas importe.
@@ -644,6 +689,8 @@ def importer_au_port(p, importateur, stock, bien, q, motif="import_biens", droit
     b = bien if isinstance(bien, int) else _id(p, bien)
     nom = p.socle.catalogue[b].nom
     fob = prix_port(p, b); fret = fret_unitaire(p, b)
+    if sous_blocus(p):                                   # ( 29/09 ) le blocus : rien n entre par la mer
+        p.compter("import_blocus", q * (fob + fret)); return 0.0, 0.0
     taux_droit = ET.taxes_import(p, nom, 1.0)[0] if droits and importateur is not w.gouv else 0.0
     unitaire = (fob + fret) * (1.0 + taux_droit)
     q = min(q, max(0.0, importateur.caisse) / unitaire * (1.0 - 1e-12)) if unitaire > 0 else 0.0
@@ -668,6 +715,8 @@ def declarer_import(p, importateur, valeur_fob, famille, motif="import_vehicules
     if famille not in BI.FAMILLES: raise ValueError(f"famille inconnue {famille!r}")
     e = _ext(p); L = p.socle.livre; w = p.w
     fret = valeur_fob * FRET.get(famille, 0.05)
+    if sous_blocus(p):                                   # ( 29/09 ) le blocus : ni vehicule ni arme n entrent
+        p.compter("import_blocus", valeur_fob + fret); return 0.0
     taux_droit = ET.DROITS_DOUANE.get(famille, 0.0) if importateur is not w.gouv else 0.0
     if importateur.caisse < (valeur_fob + fret) * (1.0 + taux_droit) - EPS: return 0.0
     if _controle_devises(p, e, (valeur_fob + fret) * e.taux, motif in MOTIFS_ESSENTIELS_DEVISES) < 1.0: return 0.0
@@ -685,6 +734,8 @@ def exporter_au_port(p, exportateur, stock, bien, q, motif="export_biens"):
     e = _ext(p); L = p.socle.livre
     b = bien if isinstance(bien, int) else _id(p, bien)
     nom = p.socle.catalogue[b].nom
+    if sous_blocus(p):                                   # ( 29/09 ) le blocus : rien ne sort par la mer
+        p.compter("export_blocus", q * prix_export(p, b)); return 0.0, 0.0
     q = L.exporter(stock, b, q, motif)
     if q <= 0.0: return 0.0, 0.0
     recu = L.recevoir_de_l_exterieur(exportateur, q * prix_export(p, b), motif)
@@ -718,6 +769,7 @@ class RemplaceExporterOr:
         q = min(float(q), w.publics["reserve"].get("or", 0.0))
         if q <= 0: return False, "pas d or en reserve"
         q, gain = exporter_au_port(p, w.gouv, StockE1(w.publics["reserve"], p.socle.catalogue), "or", q, "export_or_etat")
+        if q <= 0.0 and sous_blocus(p): return False, "blocus : l ennemi tient le port, l or ne part pas"
         w.noter("export_or", quantite=round(q, 2), gain=round(gain))
         return True, ""
 
@@ -997,6 +1049,7 @@ def _unite_de_depart(p, h):
 
 def _peut_partir(p, gens):
     w = p.w
+    if sous_blocus(p): return False                      # ( 29/09 ) le blocus : aucun navire ne part
     for g in gens:
         if g.poste == "voyage" or g.id in w.sejours or g.incarne or g.eleve or g.role in EXCLUS_EMIGRATION: return False
     mg = gens[0].menage
@@ -1255,7 +1308,7 @@ def installer(p):
                       ("saisie_douane", ("lieu", "bien", "quantite"))):
         J.declarer(t, "exterieur", "individuel", champs)
     for t in ("import_negoce", "export_negoce", "commande_annulee", "controle_des_changes", "contrebande_passee",
-              "envoi_de_fonds", "aide_ue", "depart_empeche", "devises_refusees"):
+              "envoi_de_fonds", "aide_ue", "depart_empeche", "devises_refusees", "import_blocus", "export_blocus"):
         J.declarer(t, "exterieur", "compte")
     ch = p.colonnes["habitant"]
     ch.ajouter("ext_emigre_j", np.int32, -1); ch.ajouter("ext_immigre_j", np.int32, -1)

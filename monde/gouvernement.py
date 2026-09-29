@@ -63,6 +63,11 @@ class Gouvernement:
                 # le port ( domaine 7 ) rend ce qui est vraiment entre : sans devises a la banque centrale, rien n entre
                 # ( 27/09 : la vraie Stratis, reserves de change a -55 millions d euros, « acceptait » des imports vides )
                 if recu is not None and recu <= 1e-9:
+                    pays = getattr(monde, "pays", None)             # ( 29/09 ) le blocus : le gouvernement doit savoir pourquoi
+                    if pays is not None and pays.a("exterieur"):
+                        from .pays import d07_exterieur as X
+                        if X.sous_blocus(pays):
+                            return False, "import refuse : blocus, l ennemi tient le port ( rien n entre ni ne sort par la mer )"
                     return False, f"import refuse : rien n est entre sur {q:.0f} ( devises de la banque centrale ou caisse de l Etat )"
                 if recu is not None and recu < q * (1.0 - 1e-9):
                     return True, f"importe {recu:.0f} sur {q:.0f} ( devises de la banque centrale ou caisse de l Etat )"

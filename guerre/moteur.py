@@ -272,6 +272,19 @@ def payer_la_guerre(w, depense_points, euros_par_point):
 # gouvernement de l ile : le code ecrit par Qwen ( agent codeur ), ou les regles s il n y en a pas. Le levier est deja
 # dans le catalogue : fixer_budget sur la ligne defense change la part de la defense, donc les points verses au front.
 
+def blocus(w):
+    """( 29/09 ) Le blocus de l ile, pour son gouvernement : les ports tenus par l ennemi ( d07.ports_tenus ), s ils le
+    sont tous ( d07.sous_blocus ), et ce que cela coupe ; None sans port tenu."""
+    p = getattr(w, "pays", None)
+    if p is None or not p.a("exterieur"): return None
+    from monde.pays import d07_exterieur as X
+    tenus = X.ports_tenus(p)
+    if not tenus: return None
+    return {"ports_tenus": list(tenus), "sous_blocus": X.sous_blocus(p),
+            "effet": "rien n entre ni ne sort par la mer : imports ( Etat et negociants ), exports et departs refuses, plus "
+                     "de touristes ; reprendre la zone du port leve le blocus" if X.sous_blocus(p) else "un autre port reste libre"}
+
+
 def bulletin_guerre(w):
     f = _front(w)
     semaine = int(w.pas) - 7 * 144
@@ -288,6 +301,7 @@ def bulletin_guerre(w):
             "villes_occupees": sorted(l for o in occ.values() for l in o.get("quarantaine", ())
                                       if w.carte.lieux[l].type in ("capitale", "ville")),
             "siege_du_gouvernement_occupe": any(w.carte.gouvernement.id in o.get("quarantaine", ()) for o in occ.values()),
+            "blocus": blocus(w),
             "source": "etat-major et Tresor, le jour meme"}
 
 
@@ -313,7 +327,8 @@ def bulletin_exterieur(w):
         from monde.pays import d07_exterieur as X
         euros, mois = X.reserves_de_change(p)
         return {"reserves_de_change_euros": round(euros), "mois_d_importations": None if mois is None else round(mois, 2),
-                "euros_par_unite": round(X.taux_de_change(p), 6), "devaluations": len(X._ext(p).devaluations)}
+                "euros_par_unite": round(X.taux_de_change(p), 6), "devaluations": len(X._ext(p).devaluations),
+                "blocus": X.sous_blocus(p)}
     except (KeyError, AttributeError): return {}
 
 

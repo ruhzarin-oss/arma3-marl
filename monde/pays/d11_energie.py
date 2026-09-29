@@ -1520,6 +1520,8 @@ def _exporter(p, E):
                          for u in R.thermiques if u.tech.combustibles[0] == b)
         i = E.ids[b]
         if E.depot.stock[i] <= garde + EPS: continue
+        if importlib.import_module(".d07_exterieur", __package__).export_bloque(p, (E.depot.stock[i] - garde) * cat[b].prix_monde):
+            continue                                     # ( 29/09 ) le blocus : le petrole reste au depot
         q = L.exporter(E.depot.stock, i, E.depot.stock[i] - garde, "export_petrolier")
         x = L.recevoir_de_l_exterieur(E.raffinerie, q * cat[b].prix_monde * (1.0 - DECOTE_EXPORT), "export_petrolier")
         p.compter("export_petrolier", x)

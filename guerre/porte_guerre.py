@@ -239,6 +239,18 @@ G19 L AVIS AUX VOYAGEURS ( 27/09, ecrite avant la mesure ) : a l ouverture de la
    « blocus » ; le bulletin de guerre le porte. La contrebande continue ( elle force les blocus ). Choix ecrits ( a
    verifier ) : un aeroport libre ne rouvre ni le fret ni le tourisme ( les compagnies ne volent pas vers une ile en guerre
    dont l ennemi tient le port ) ; les navires deja en mer ne sont pas modelises.
+   PREMIER ESSAI ( 29/09, graine du moteur ) : ECHOUE a ) - le septieme jour du blocus, 6 911 de fioul des centrales
+   ( d11, import_combustible ) arrivaient par payer_en_devises, hors d importer_au_port ; et les ventes du negoce agricole
+   ( d09, vente_negoce ) partaient hors d exporter_au_port, que la mesure ne comptait pas comme exports. b ) a e )
+   passaient. La regle couvre maintenant tous les chemins des marchandises ( payer_en_devises pour les motifs de
+   marchandise, export_bloque pour le negoce agricole, le petrole, les vehicules d occasion ) ; la mesure compte comme
+   import tout paiement a l exterieur, comme export toute recette de l exterieur, hors flux financiers, contrebande et
+   recettes touristiques ( FINANCIERS_G25 ). Criteres inchanges. Jugee sur la graine du moteur ET les graines NEUVES 71, 72
+   et 73. ( Precision : les navires deja en mer font demi-tour - leur arrivee est refusee au port. )
+   RESULTATS ( 29/09 ) : FRANCHIE sur la graine du moteur - port pris, jours 4 a 7 : 0 import, 0 export, 0 nuitee,
+   34 000 a 113 000 d imports refuses par jour ; temoin : 5 777 a 96 332 d imports par jour, 374 a 390 nuitees ;
+   libere : 83 212 et 93 067 d imports les jours 9 et 10 ; controle : tout reprend le jour 4 - et sur les graines neuves
+   71, 72 et 73 ( les cinq criteres sur chacune ).
 """
 import math, os, re, sys, time
 from . import bourse as B, zones as Z, arma as A, moteur as GM
@@ -461,6 +473,94 @@ def _g14_graines(graines):
         ligne, ok = _g14_juger(r, g); print(ligne, flush=True)
         for k, v in ok.items(): print(("PASSE  " if v else "ECHOUE ") + f"graine {g} : {k}"); tout &= v
     print(f"G14 SUR LES GRAINES {graines} : {'FRANCHIE' if tout else 'ECHOUEE'} ( {time.time() - t0:.0f} s )")
+    return 0 if tout else 1
+
+
+# G25 : ce qui franchit la frontiere sans etre une marchandise ( 29/09 ) - les flux financiers, que le blocus n arrete
+# pas ; la contrebande, qui le force ; les recettes touristiques, jugees par les nuitees. Le reste est un import ( paye a
+# l exterieur ) ou un export ( paye par l exterieur ).
+FINANCIERS_G25 = ("prime_reassurance", "rapatriement_capital", "transfert_migrant", "dividende_assureur",
+                  "dividende_exterieur_telecom", "droits_films", "contrebande", "investissement_direct", "epargne_initiale",
+                  "fonds_propres_medias", "envoi_de_fonds", "aide_ue", "recette_touristique")
+
+
+def _g25(args):
+    """G25, un bras ( « port », « temoin », « controle » ) dans un petit Malden neuf : jour par jour ( jour du calendrier
+    clos ) les imports et exports arrives ( grand livre ), les nuitees demandees ( domaine 28 ), les imports refuses par le
+    blocus ; l import du gouvernement du jour 5 ; le blocus du bulletin ; la conservation."""
+    bras, graine = args
+    from monde.archipel import Archipel
+    from monde.pays import d06_etat as ET25, d28_tourisme as TO25
+    zs = Z.carte_de_guerre(open(os.path.join(MISSION, "mission.sqm"), encoding="latin-1").read(), "Malden")["zones"]
+    z = next(x for x in zs if ("Malden_V_SaintLouis" if bras == "temoin" else "port01") in x["lieux"])
+    arc = Archipel(iles=("Malden", "Stratis"), echelle=4.0, parallele=False, **({} if graine is None else {"graine": graine}))
+    w = arc.iles["Malden"].w; p = w.pays
+    jours, bulletin = {}, {}; gouv = None
+    J = p.socle.journal; bl = [0.0, 0.0, 0.0]            # imports refuses par le blocus : cumul, dernier lu, cumul au jour clos
+    j0 = int(w.jour); vu = j0
+    while vu < j0 + 12:
+        arc.un_pas()
+        v = (J.comptes.get("import_blocus") or (0, 0.0))[1]   # le compte du jour du journal, remis a zero a la cloture
+        bl[0] += v - bl[1] if v >= bl[1] else v; bl[1] = v
+        j = int(w.jour) - j0
+        if int(w.jour) == vu: continue
+        vu = int(w.jour); fini = j - 1                        # le jour du calendrier `fini` vient de se clore
+        arg = p.comptes_hier["argent"]
+        s = next((x for x in reversed(TO25._dom(p).serie) if x[0] == j0 + fini), None)
+        jours[fini] = {"imports": round(sum(x[3] for x in arg if x[2] == "Exterieur" and x[0] not in FINANCIERS_G25)),
+                       "exports": round(sum(x[3] for x in arg if x[1] == "Exterieur" and x[0] not in FINANCIERS_G25)),
+                       "nuitees_demandees": None if s is None else round(s[2]),
+                       "import_blocus": round(bl[0] - bl[2])}
+        bl[2] = bl[0]
+        bulletin[fini] = GM.bulletin_guerre(w)["blocus"]
+        if j == 3: arc.commande("Malden", "occuper", z["n"], z["lieux"], True)           # debut du jour 3
+        if (j == 4 and bras == "controle") or (j == 8 and bras != "controle"):
+            arc.commande("Malden", "occuper", z["n"], z["lieux"], False)                 # fin du jour 3 ( controle ), debut du 8
+        if j == 5:
+            gouv = ET25.appliquer(p, {"type": "importer", "bien": "nourriture", "quantite": 100})
+        if j in (5, 9): bulletin[f"debut_{j}"] = GM.bulletin_guerre(w)["blocus"]
+    return {"bras": bras, "jours": jours, "bulletin": bulletin, "gouvernement": list(gouv) if gouv else None,
+            "conservation": bool(p.socle.conservation.tenue()[0])}
+
+
+def _g25_juger(r):
+    """Les criteres de G25 ( ecrits avant la mesure ) sur les trois bras."""
+    P, T, K = r["port"], r["temoin"], r["controle"]
+    s = lambda b, cle, js: sum((b["jours"][j][cle] or 0) for j in js)
+    J = range(4, 8)
+    g = P["gouvernement"] or [True, ""]
+    return {
+        "G25 a) port pris, jours 4 a 7 : aucun import, export ni nuitee ; imports refuses comptes ; l import du gouvernement "
+        "refuse pour blocus ; le bulletin porte le blocus": (
+            all(P["jours"][j]["imports"] == 0 and P["jours"][j]["exports"] == 0 and P["jours"][j]["nuitees_demandees"] == 0 for j in J)
+            and s(P, "import_blocus", J) > 0 and not g[0] and "blocus" in g[1]
+            and bool(P["bulletin"].get("debut_5")) and "port01" in P["bulletin"]["debut_5"]["ports_tenus"]),
+        "G25 b) temoin, jours 4 a 7 : des imports et des nuitees ; l import du gouvernement accepte ; pas de blocus": (
+            s(T, "imports", J) > 0 and s(T, "nuitees_demandees", J) > 0 and bool(T["gouvernement"] and T["gouvernement"][0])
+            and T["bulletin"].get("debut_5") is None),
+        "G25 c) libere : des imports et des nuitees les jours 9 et 10 ; plus de blocus": (
+            all(P["jours"][j]["imports"] > 0 and (P["jours"][j]["nuitees_demandees"] or 0) > 0 for j in (9, 10))
+            and P["bulletin"].get("debut_9") is None),
+        "G25 d) controle positif ( le port libere le jour meme ), jours 4 a 7 : des imports et des nuitees ; pas de blocus": (
+            s(K, "imports", J) > 0 and s(K, "nuitees_demandees", J) > 0 and K["bulletin"].get("debut_5") is None),
+        "G25 e) la conservation tient dans les trois bras": P["conservation"] and T["conservation"] and K["conservation"]}
+
+
+def _g25_mesurer(graine=None):
+    from multiprocessing import get_context
+    with get_context("spawn").Pool(3) as pool:
+        rs = pool.map(_g25, [(b, graine) for b in ("port", "temoin", "controle")])
+    return {x["bras"]: x for x in rs}
+
+
+def _g25_graines(graines):
+    """G25 seule sur des graines : python -m guerre.porte_guerre --g25 71,72,73"""
+    t0 = time.time(); tout = True
+    for g in graines:
+        r = _g25_mesurer(g)
+        for b in ("port", "temoin", "controle"): print(f"   G25 graine {g} {b} : {r[b]['jours']} ; gouvernement {r[b]['gouvernement']}", flush=True)
+        for k, v in _g25_juger(r).items(): print(("PASSE  " if v else "ECHOUE ") + f"graine {g} : {k}"); tout &= v
+    print(f"G25 SUR LES GRAINES {graines} : {'FRANCHIE' if tout else 'ECHOUEE'} ( {time.time() - t0:.0f} s )")
     return 0 if tout else 1
 
 
@@ -836,6 +936,13 @@ def main():
     # G14 ( dans le monde ou G13 jouait avant son amendement, rejoue a l identique ; malades hors des absents, 29/09 )
     ligne14, ok14 = _g14_juger(_g14())
     print(ligne14, flush=True); ok.update(ok14)
+    # G25 ( le port pris, c est le blocus ; 29/09 )
+    if "G25" not in SANS:
+        r25 = _g25_mesurer()
+        for b25 in ("port", "temoin", "controle"):
+            print(f"   blocus, bras {b25} : jours {r25[b25]['jours']} ; import du gouvernement {r25[b25]['gouvernement']} ; "
+                  f"bulletin {r25[b25]['bulletin'].get('debut_5')}", flush=True)
+        ok.update(_g25_juger(r25))
     # G16
     from multiprocessing import get_context
     famine_produite()                            # une fois, avant les copies ( le fork les herite )
@@ -979,4 +1086,5 @@ def main():
 
 if __name__ == "__main__":
     if "--g14" in sys.argv: sys.exit(_g14_graines([int(x) for x in sys.argv[sys.argv.index("--g14") + 1].split(",")]))
+    if "--g25" in sys.argv: sys.exit(_g25_graines([int(x) for x in sys.argv[sys.argv.index("--g25") + 1].split(",")]))
     sys.exit(main())

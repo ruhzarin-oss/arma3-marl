@@ -814,9 +814,14 @@ def _charger_convoi(p, lg, lot, src, o, d, motif, marche):
 
 
 def _avancer_lots(p, lg):
-    """Chaque heure pleine : les lots prets partent vers leur prochain bout de route."""
+    """Chaque heure pleine : les lots prets partent vers leur prochain bout de route. ( 29/09 ) Un lot par la mer dont un
+    port est tenu par l ennemi ( d07.ports_tenus : le blocus ) revient a son expediteur, avant de partir ou a quai."""
     w = p.w; carte = w.carte
+    tenus = set(EXT.ports_tenus(p)) if getattr(w, "occupations", None) else ()
     for lot in list(lg.lots.values()):
+        if (tenus and lot.mode not in ("route", "avion") and lot.etat in (PREPARATION, QUAI_A)
+                and any(t.lieu.id in tenus for t in _terminaux_du_lot(p, lg, lot))):
+            _annuler(p, lg, lot); continue
         if lot.etat == PREPARATION:
             ent = lg.entrepots[lot.ou]
             o = carte.lieux[lot.origine]; d = _premier_bout(p, lg, lot)
