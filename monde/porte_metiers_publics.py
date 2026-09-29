@@ -25,8 +25,8 @@ ECHELLE = 20.0
 
 
 def _effectifs_avec(orig):
-    def effectifs(carte, echelle, entiers=True):
-        eff = orig(carte, echelle, entiers)
+    def effectifs(*a, **k):                         # la signature d effectifs peut grandir ( fret, Classes 29/09 )
+        eff = orig(*a, **k)
         for r in NOUVEAUX:
             k = min(K, eff["marchand"]); eff["marchand"] -= k; eff[r] += k
         return eff
