@@ -5,6 +5,7 @@ payee du 22-23/09 : a 2 000 habitants sur six iles, la faim passait de 2,2 % a 1
 traversait pas la mer. Le controle positif en est tire : les fermes de Malden ne produisent plus rien ( secheresse
 totale, `Monde.chocs` ) ; sans fret, l ile a faim ; avec le fret, elle doit manger."""
 import math
+import sys
 import time
 import numpy as np
 from .. import config as C, monde as W
@@ -353,6 +354,70 @@ def test_commande_publique_une_fois():
                 f"{'passe ( FAUX )' if juge(a) else 'echoue ( attendu )'}")
 
 
+# ================================================================== le fret attend le service des convoyeurs
+def _appelant(nom, profondeur=8):
+    f = sys._getframe(2)
+    for _ in range(profondeur):
+        if f is None: return False
+        if f.f_code.co_name == nom: return True
+        f = f.f_back
+    return False
+
+
+def _cinq_jours_de_fret(ancien):
+    """5 jours avec l agenda : ( tentatives hors service de l heure pleine, dont refusees ; quantite d approvisionnement
+    refusee hors service ; convois par jour ; jours ouvres ; conservation ). ancien : le domaine 15 d avant ( tente a
+    toute heure )."""
+    w, p = T.monde(["logistique", "agenda"])
+    cal = p.socle.calendrier; lg = p.domaine("logistique")
+    vrai, oc, ol = M._en_service, M.conducteur, M._lancer
+    n = {"hors": 0, "refus_hors": 0, "fantome_hors": 0.0}
+    def cond(p_, cap):
+        r = oc(p_, cap)
+        if _appelant("_expedier") and not _appelant("_charger_convoi") and not vrai(p_, cap):
+            n["hors"] += 1; n["refus_hors"] += r is None
+        return r
+    def lan(p_, o, d, cargo, payeur, motif, marche, *a, **k):
+        r = ol(p_, o, d, cargo, payeur, motif, marche, *a, **k)
+        if motif == "approvisionnement" and r is None and not vrai(p_, marche.lieu): n["fantome_hors"] += sum(cargo.values())
+        return r
+    M.conducteur, M._lancer = cond, lan
+    if ancien: M._en_service = lambda p_, c: True
+    ouvres = set()
+    try:
+        for _ in range(5 * C.PAS_PAR_JOUR):
+            w.pas_suivant()
+            if cal.ouvre(cal.date(w.pas)): ouvres.add(p.jour)
+    finally:
+        M.conducteur, M._lancer, M._en_service = oc, ol, vrai
+    par_jour = {}
+    for x in lg.lancements: par_jour[x[0]] = par_jour.get(x[0], 0) + 1
+    return n, par_jour, ouvres, p.socle.conservation.tenue()
+
+
+def test_fret_attend_le_service():
+    """Porte ( 29/09, arriere de HMT-140 cause 5 b, ecrite avant la mesure ) : le fret de l heure pleine ( ventes et
+    approvisionnements des entreprises, commerce industriel entre marches, commandes publiques ) attend le service des
+    convoyeurs de sa capitale. Avec l agenda, 5 jours du vendredi 15 juin au mardi 19 ( week-end et lundi de Pentecote ) :
+    ( 1 ) hors service, 0 convoi tente, donc 0 refus faute de chauffeur, et 0 unite d approvisionnement comptee en demande
+    pour un convoi qui ne part pas ; ( 2 ) les convois partent comme avant : au moins 5 chaque jour ouvre, et au moins
+    95 % du nombre du domaine 15 d avant sur les 5 jours ; ( 3 ) conservation. Les lots ( _charger_convoi ) ne sont pas
+    concernes. Controle positif : le domaine 15 d avant ( tente a toute heure ) tente des convois hors service et y compte
+    des refus : la porte echoue sur lui. Mesure du 29/09 ( Altis, 10 000 habitants, 20 jours, tronc 6b054bd ) : 11 081
+    refus pour 1 125 convois, tous sans convoyeur a son poste, 98 % par l heure pleine ; la demande comptee pour des
+    approvisionnements qui ne partaient pas faisait 66 % de celle du zinc, 13 % du fer et du gazole."""
+    n, pj, ouv, (tenue, msg) = _cinq_jours_de_fret(False)
+    n0, pj0, ouv0, (tenue0, _) = _cinq_jours_de_fret(True)
+    tot, tot0 = sum(pj.values()), sum(pj0.values())
+    juge = lambda n, pj, ouv, tot, t: (n["hors"] == 0 and n["refus_hors"] == 0 and n["fantome_hors"] == 0.0 and len(ouv) >= 2
+                                       and all(pj.get(j, 0) >= 5 for j in ouv) and tot >= 0.95 * tot0 and t)
+    ok = juge(n, pj, ouv, tot, tenue) and not juge(n0, pj0, ouv0, tot0, tenue0)
+    return ok, (f"hors service : {n['hors']} tentatives, {n['refus_hors']} refus, {n['fantome_hors']:.1f} unites d appro "
+                f"refusees ; convois {tot} ( par jour {dict(sorted(pj.items()))}, jours ouvres {sorted(ouv)} ) ; {msg} ; "
+                f"domaine 15 d avant : {n0['hors']} tentatives hors service, {n0['refus_hors']} refus, {n0['fantome_hors']:.1f} "
+                f"unites, {tot0} convois ; porte {'passe ( FAUX )' if juge(n0, pj0, ouv0, tot0, tenue0) else 'echoue ( attendu )'}")
+
+
 TESTS = [test_flotte_et_physique, test_conservation_en_transit, test_faim_ile_sans_production, test_port_sature,
          test_chauffeurs_au_repos, test_duree_selon_routes, test_decision_expedier_lot, test_api_envoyer, test_pays_vivable,
-         test_cout, test_commande_publique_une_fois]
+         test_cout, test_commande_publique_une_fois, test_fret_attend_le_service]

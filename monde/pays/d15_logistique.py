@@ -461,6 +461,20 @@ def conducteur(p, capitale):
     return None
 
 
+def _en_service(p, capitale):
+    """Vrai si les convoyeurs de cette capitale sont en service a cette heure : au moins un, a son horaire, est a son
+    poste ou sur la route. Hors service ( la nuit ; les jours de repos avec l agenda, ou ils restent chez eux ), le fret
+    de l heure pleine attend l ouverture : il n est ni tente, ni compte comme un refus, ni compte comme une demande
+    ( 29/09 : sur Altis a 10 000 habitants, 11 081 refus faute de chauffeur pour 1 125 convois en 20 jours, tous sans
+    convoyeur a son poste ; la demande d approvisionnement comptee pour des convois qui ne partaient pas faisait 66 % de
+    celle du zinc, 13 % du fer et du gazole ). Tous sur la route : en service, et le refus reste un vrai refus."""
+    w = p.w; t = w.table; pas = w.pas; libre = w.conducteur_libre
+    ids, poste = _au_poste_ids(w, capitale)
+    for i, a in zip(ids.tolist(), poste.tolist()):
+        if (a or libre.get(i, 0) > pas) and t.vivant[i] and PO.au_travail_ligne(t, i, w.heure): return True
+    return False
+
+
 class RemplaceConducteur:
     __slots__ = ("pays",)
 
@@ -618,10 +632,13 @@ def _compter(d, mid, b, q):
 def _expedier(p, h):
     w = p.w; lg = _lg(p); t0 = time.perf_counter()
     _avancer_lots(p, lg)
+    service = {}
     for e in w.entreprises.values():
         m = w.marches[e.lieu.marche.id]
         tr = lg.par_capitale.get(m.lieu.id)
         if tr is None: continue
+        if m.lieu.id not in service: service[m.lieu.id] = _en_service(p, m.lieu)
+        if not service[m.lieu.id]: continue           # ( 29/09 ) hors service, le fret attend l ouverture
         # vendre la production : une cargaison par entreprise, a partir d une palette et demie ou a la collecte du jour
         cargo = {b: e.stocks[b] for b in e.produits if b != "electricite" and e.stocks[b] > EPS}
         if cargo:
@@ -666,7 +683,7 @@ def _commerce_industriel(p, lg):
     w = p.w
     for a in w.marches.values():
         tr = lg.par_capitale.get(a.lieu.id)
-        if tr is None: continue
+        if tr is None or not _en_service(p, a.lieu): continue      # ( 29/09 ) hors service, le fret attend
         for b in BIENS_INDUSTRIELS:
             surplus = a.stocks[b] - w.reserve_marche(a, b)
             if surplus < LOT_MIN_U: continue
@@ -702,6 +719,7 @@ def _commandes_publiques(p, lg):
         # avec la caisse de sa nourriture ( 64 a 71 % de menages sans nourriture, jours 24 a 27 ).
         if not cmd.get("_demande_comptee"):
             m.demande[b] += cmd["quantite"]; cmd["_demande_comptee"] = True
+        if not _en_service(p, m.lieu): continue       # ( 29/09 ) hors service, la commande comptee attend le camion
         if q < 1: continue
         cout = q * m.prix[b]
         if w.gouv.caisse < cout: continue
