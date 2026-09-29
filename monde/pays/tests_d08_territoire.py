@@ -305,5 +305,111 @@ def test_cout():
                 f"routines propres {propre * 1000:.1f} ms par jour ; installation des six iles {t_inst:.2f} s")
 
 
+# ================================================================== provoquer ( HMT-146 )
+def _evts(p, type_, **k):
+    return [e for e in p.socle.journal.recents if e["type"] == type_ and all(e.get(a) == b for a, b in k.items())]
+
+
+def _releve(w, p, i):
+    """Ce que la porte lit d un jour : le temps de l ile, ses reserves ( part de l exploitable ), son bulletin, les
+    parcelles, les catastrophes nees aujourd hui."""
+    Tt = p.domaine("territoire"); B, P, m = Tt.bassins, Tt.parcelles, Tt.meteo
+    sb = B.ile == i
+    num = float((B.nappe - B.min_n + B.retenue - B.min_r)[sb].sum()); den = float((B.cap_n - B.min_n + B.cap_r - B.min_r)[sb].sum())
+    return {"jour": w.jour, "tmax": float(m.tmax[i]), "pluie": float(m.pluie[i]), "reserves": num / den,
+            "secheresse": bool(Tt.en_secheresse[i]), "facteur": P.inond_facteur.copy(), "fin": P.inond_fin.copy(),
+            "cat": [(c.type, c.lieu, c.gravite, c.valeur, dict(c.intensites or {})) for c in Tt.catastrophes if c.debut_j == w.jour]}
+
+
+def _vivre(w, p, n, i=0):
+    out = []
+    for _ in range(n): T.jours(w, 1); out.append(_releve(w, p, i))
+    return out
+
+
+def test_provoquer():
+    """Porte ( HMT-146, seuils ecrits avant le code, Plane ). Des mondes jumeaux ( Altis, graine 146 ) : l un provoque,
+    l autre non. Controles positifs. Un seisme M 6,5 sous un village, ordonne au jour 0, ne tombe qu au minuit du jour 1 ;
+    ses intensites sont celles de la loi du domaine recalculees ici ( Bakun et Wentworth, distance au village ) pour tous
+    les lieux de l ile ; l evenement porte le numero de la provocation ; sa sequence de repliques est ouverte. Une crue
+    de gravite 2 au jour 2 : la catastrophe, les parcelles de SON bassin a 0,5 jusqu au jour 9, les autres identiques au
+    jumeau. Un seisme ordonne pour le jour 6 ne fait rien avant. Une secheresse de 60 jours : reserves de l ile a 10 % au
+    plus de l exploitable le jour d effet, aucune pluie sur l ile 10 jours, bulletin de secheresse. Une canicule de +8 C
+    sur 10 jours : tmax moyenne de la fenetre au moins 6 C au-dessus du jumeau. Chaque ordre est au journal. Falsificateurs :
+    ValueError, sans rien noter ni mettre en file, pour une nature inconnue, une magnitude au-dessus du m_max de l ile, une
+    gravite 4, un lieu d une autre ile, un jour passe, une ile inconnue, un parametre inconnu ; le jumeau n a ni file ni
+    evenement provoque. Reprise : un instantane sans file se relit et se provoque ; une provocation en attente survit a
+    l instantane ( meme monde au bit : l empreinte de la porte des domaines )."""
+    import pickle
+    from ..porte_domaines import empreinte
+    monde = lambda: T.monde(["territoire"], graine=146)
+    w0, p0 = monde()
+    T0 = p0.domaine("territoire"); i = T0.iles.index("Altis")
+    vil = sorted(lid for lid, k in zip(T0.parcelles.lieu_id, T0.parcelles.ile.tolist()) if k == i)
+    v0 = vil[0]; b1 = int(T0.lieu_bassin[T0.index_lieu[vil[-1]]])
+    jumeau = _vivre(w0, p0, 10)
+    # ---- seisme, crue, echeance
+    w1, p1 = monde(); T1 = p1.domaine("territoire")
+    r1 = M.provoquer(p1, "seisme", "Altis", magnitude=6.5, lieu=v0, par="porte")
+    r2 = M.provoquer(p1, "inondation", "Altis", jour=2, lieu=vil[-1], gravite=2, par="porte")
+    r3 = M.provoquer(p1, "seisme", "Altis", jour=6, magnitude=5.0, lieu=v0, par="porte")
+    attente = len(M.provocations_en_attente(p1)) == 3 and not any(c.debut_j == w1.jour for c in T1.catastrophes if c.valeur == 6.5)
+    a = _vivre(w1, p1, 7)
+    ev1 = _evts(p1, "seisme", provoque=r1["numero"])
+    sis = [c for c in a[0]["cat"] if c[0] == "seisme" and c[3] == 6.5]
+    sel = np.nonzero(T1.lieu_ile == i)[0]; k0 = T1.index_lieu[v0]
+    d = np.hypot(T1.lieu_pos[sel, 0] - T1.lieu_pos[k0, 0], T1.lieu_pos[sel, 1] - T1.lieu_pos[k0, 1]) / 1000
+    s = M.SISMICITE["Altis"]; h = 0.5 * (s.profondeur_km[0] + s.profondeur_km[1])
+    mmi = M.intensite(6.5, np.hypot(d, h))
+    loi = {T1.lieux[int(sel[a_])]: round(float(mmi[a_]), 1) for a_ in np.nonzero(mmi >= 4.0)[0].tolist()}
+    seisme = (a[0]["jour"] == 1 and len(sis) == 1 and sis[0][4] == loi and sis[0][2] == round(float(mmi.max()))
+              and len(ev1) >= 1 and ev1[0]["jour"] == 1 and any(q[0] == 6.5 and q[1] == 1 for q in T1.sequences[i]))
+    touche = T1.parcelles.bassin == b1
+    crue = (any(c[0] == "inondation" and c[1] == T1.bassins.nom[b1] and c[2] == 2 for c in a[1]["cat"])
+            and bool((a[1]["facteur"][touche] <= 0.5 + 1e-12).all()) and bool((a[1]["fin"][touche] == 9).all())
+            and np.array_equal(a[1]["facteur"][~touche], jumeau[1]["facteur"][~touche])
+            and np.array_equal(a[1]["fin"][~touche], jumeau[1]["fin"][~touche]) and len(_evts(p1, "inondation", provoque=r2["numero"])) == 1)
+    ev3 = _evts(p1, "seisme", provoque=r3["numero"])
+    echeance = len(ev3) >= 1 and min(e["jour"] for e in ev3) == 6 and not M.provocations_en_attente(p1)
+    journal = [e["numero"] for e in _evts(p1, "provocation")] == [1, 2, 3]
+    # ---- secheresse, canicule
+    w2, p2 = monde(); M.provoquer(p2, "secheresse", "Altis", jours=60); b = _vivre(w2, p2, 10)
+    sech = b[0]["reserves"] <= 0.10 + 1e-9 and max(x["pluie"] for x in b) <= 1e-9 and b[0]["secheresse"]
+    w3, p3 = monde(); M.provoquer(p3, "canicule", "Altis", jours=10, chaleur_c=8.0); c3 = _vivre(w3, p3, 10)
+    dt = np.mean([x["tmax"] for x in c3]) - np.mean([x["tmax"] for x in jumeau])
+    canicule = dt >= 6.0 and len(_evts(p3, "canicule")) == 1
+    # ---- falsificateurs
+    w4, p4 = T.monde(["territoire"], graine=146, iles=("Altis", "Stratis"))
+    T4 = p4.domaine("territoire")
+    de = lambda ile: next(l for l in T4.lieux if T4.lieu_ile[T4.index_lieu[l]] == T4.iles.index(ile))
+    # ( nature, ile, parametres, ce que le refus doit dire ) : un refus pour une autre raison ne compte pas
+    fautes = [("tsunami", "Altis", {}, "nature inconnue"),
+              ("seisme", "Altis", {"magnitude": M.SISMICITE["Altis"].m_max + 0.1}, "magnitude"),
+              ("inondation", "Altis", {"lieu": de("Altis"), "gravite": 4}, "gravite"),
+              ("seisme", "Altis", {"magnitude": 5.0, "lieu": de("Stratis")}, "hors de Altis"),
+              ("seisme", "Altis", {"magnitude": 5.0, "jour": w4.jour}, "au plus tot"),
+              ("seisme", "Atlantis", {"magnitude": 5.0}, "ile inconnue"),
+              ("seisme", "Altis", {"magnitude": 5.0, "magnitud": 5.0}, "parametres inconnus")]
+    refus = 0
+    for nat, ile, kw, motif in fautes:
+        try: M.provoquer(p4, nat, ile, **kw)
+        except ValueError as e: refus += motif in str(e)
+    rien = not M.provocations_en_attente(p4) and not _evts(p4, "provocation") if "provocation" in p4.socle.journal.types else not M.provocations_en_attente(p4)
+    temoin = M._file(T0) is None and not any("provoque" in e for e in p0.socle.journal.recents)
+    # ---- reprise
+    w5 = pickle.loads(pickle.dumps(w0)); r5 = M.provoquer(w5.pays, "seisme", "Altis", magnitude=5.5, lieu=v0)
+    w6, p6 = monde(); M.provoquer(p6, "seisme", "Altis", jour=2, magnitude=6.0, lieu=v0); T.jours(w6, 1)
+    w7 = pickle.loads(pickle.dumps(w6)); T.jours(w6, 2); T.jours(w7, 2)
+    reprise = (r5["numero"] == 1 and empreinte(w6) == empreinte(w7)
+               and len(_evts(w6.pays, "seisme", provoque=1)) >= 1 and len(_evts(w7.pays, "seisme", provoque=1)) >= 1)
+    ok = attente and seisme and crue and echeance and journal and sech and canicule and refus == len(fautes) and rien and temoin and reprise
+    return ok, (f"seisme M6,5 sous {v0} : attend minuit {attente}, tombe au jour {a[0]['jour']} avec les intensites de la loi "
+                f"{seisme} ( {len(loi)} lieux >= IV, max {mmi.max():.2f} ) ; crue gravite 2 du bassin {T1.bassins.nom[b1]} {crue} ; "
+                f"ordre pour le jour 6 {echeance} ; journal {journal} | secheresse : reserves {b[0]['reserves']:.3f}, pluie max "
+                f"{max(x['pluie'] for x in b):.2f} mm, bulletin {b[0]['secheresse']} -> {sech} ; canicule +8 : tmax {dt:+.2f} C sur "
+                f"10 jours -> {canicule} | falsificateurs {refus}/{len(fautes)} refuses, rien note {rien} ; jumeau sans file ni "
+                f"provoque {temoin} | reprise {reprise}")
+
+
 TESTS = [test_climat, test_bilan_eau, test_secheresse_fermes, test_gutenberg_richter, test_pollution, test_gerer_eau,
-         test_pays_vivable, test_cout]
+         test_pays_vivable, test_cout, test_provoquer]

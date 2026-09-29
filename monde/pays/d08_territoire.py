@@ -25,11 +25,14 @@ FICHE
    d autonomie ( severe sous un mois, legere sous trois ou en secheresse severe ). Temoin : jamais de restriction. Plusieurs bassins decident le meme jour : la part du
    choix se mesure a jour egal ( 21 bassins sur Altis ).
 4. Evenements. Individuels : secheresse, fin_secheresse, inondation, seisme, cyclone, alerte_incendie,
-   restriction_eau. Comptes : seisme_non_ressenti, penurie_eau ( m3 manquants ), prelevement_eau ( m3 ),
-   rejet_polluant ( kg ).
+   restriction_eau ; provocation et canicule ( declares a la premiere provocation, HMT-146 ). Un seisme ou une crue
+   provoques portent le champ `provoque` ( le numero de la provocation ) ; ceux de la nature ne l ont pas. Comptes :
+   seisme_non_ressenti, penurie_eau ( m3 manquants ), prelevement_eau ( m3 ), rejet_polluant ( kg ).
 5. Liens. Donne : la meteo du jour par ile ou par lieu, la saison, le rendement climatique d une parcelle, l eau
    disponible et `prelever`, `reprendre_usage`, `rejeter`, la pollution par lieu, le risque d incendie ( FFDI ), les
-   catastrophes en cours ( avec l intensite MMI par lieu pour un seisme ). Recoit : les prelevements ( services
+   catastrophes en cours ( avec l intensite MMI par lieu pour un seisme ), `provoquer` ( HMT-146 : une catastrophe
+   provoquee attend minuit et passe par les memes fonctions que la nature ) et le registre des provocations
+   ( `noter_provocation`, que monde/provoquer.py partage ). Recoit : les prelevements ( services
    publics 12, agriculture 9, industrie 10, energie 11 ) et les rejets ( industrie, energie, transport ). En attendant
    ces domaines, il fait lui-meme les prelevements de fond ( domestique, irrigation, industrie, energie ) et les rejets
    de fond des sites du moteur E1 ; un domaine qui reprend un usage appelle `reprendre_usage`. Pont avec le moteur E1 :
@@ -782,7 +785,8 @@ class Territoire:
                  "index_lieu", "lieu_ile", "lieu_bassin", "lieu_pos", "lieu_largeur", "lieu_surface", "capitale_ile",
                  "bassins", "parcelles", "pollution", "catastrophes", "classe_secheresse", "en_secheresse",
                  "usages_repris", "pont_e1", "decideur", "jour_fait", "pluie30", "sites", "c_neige", "neige0",
-                 "n_seismes", "n_crues", "n_alertes", "doy")
+                 "n_seismes", "n_crues", "n_alertes", "doy",
+                 "a_provoquer")        # HMT-146 : pose a la premiere provocation seulement ( voir _file )
 
 
 # ================================================================== la decision : gerer l eau d un bassin
@@ -863,6 +867,7 @@ def _minuit(p):
     if T.jour_fait == j: return
     T.jour_fait = j
     T.doy = doy = _doy(p)
+    _provoquer_le_temps(p, T)
     if j % 7 == 0: _recenser(p, T)
     if j % JOURS_ENTRE_DECISIONS == 0: _decider(p, T, doy)
     _climat_du_jour(p, T, doy)
@@ -1032,32 +1037,53 @@ def _catastrophes(p, T, doy):
     # crues : le ruissellement du bassin en un jour
     for b in np.nonzero(B.ruis_jour >= SEUILS_CRUE[0])[0].tolist():
         g = int(np.searchsorted(SEUILS_CRUE, B.ruis_jour[b], side="right"))
-        i = int(B.ile[b])
-        T.catastrophes.append(Catastrophe("inondation", T.iles[i], B.nom[b], g, j, j + 2, float(B.ruis_jour[b])))
-        p.noter("inondation", ile=T.iles[i], lieu=B.nom[b], gravite=g, ruissellement_mm=round(float(B.ruis_jour[b]), 1),
-                pluie_mm=round(float(m.pluie[i]), 1))
-        P = T.parcelles
-        touche = P.bassin == b
-        P.inond_facteur = np.where(touche, np.minimum(np.where(P.inond_fin >= j, P.inond_facteur, 1.0),
-                                                      1.0 - DEGAT_CRUE * g), P.inond_facteur)
-        P.inond_fin = np.where(touche, j + DUREE_DEGAT_J, P.inond_fin)
-        T.n_crues += 1
+        _crue(p, T, b, g, float(B.ruis_jour[b]))
     # seismes
     rng = p.du_jour("territoire_seismes")
     for i, ile in enumerate(T.iles):
         sel = np.nonzero(T.lieu_ile == i)[0]
         for mag, x, y, h, rep in seismes_du_jour(SISMICITE[ile], T.sequences[i], j, rng):
-            T.n_seismes += 1
-            d = np.hypot(T.lieu_pos[sel, 0] - (T.centres[i][0] + 1000 * x), T.lieu_pos[sel, 1] - (T.centres[i][1] + 1000 * y)) / 1000
-            mmi = intensite(mag, np.hypot(d, h))
-            k = int(np.argmax(mmi))
-            if mmi[k] < MMI_RESSENTI:
-                p.compter("seisme_non_ressenti"); continue
-            lieu = T.lieux[int(sel[k])]
-            inten = {T.lieux[int(sel[a])]: round(float(mmi[a]), 1) for a in np.nonzero(mmi >= 4.0)[0].tolist()}
-            T.catastrophes.append(Catastrophe("seisme", ile, lieu, round(float(mmi[k])), j, j, mag, inten))
-            p.noter("seisme", ile=ile, lieu=lieu, gravite=int(round(float(mmi[k]))), magnitude=round(mag, 1),
-                    profondeur_km=round(h, 1), distance_km=round(float(d[k]), 1), replique=rep)
+            _seisme(p, T, i, sel, mag, x, y, h, rep)
+    _provoquer_les_catastrophes(p, T)
+
+
+def _crue(p, T, b, g, ruis_mm, provoque=None):
+    """Une crue du bassin b, de gravite g ( 1 a 3 ) : la catastrophe que lisent les domaines 11, 12, 16 et 18, et le
+    rendement des villages du bassin ( -25 % par degre pendant 7 jours ). La nature et la provocation passent ici
+    ( HMT-146 ) ; `provoque` : le numero de la provocation, None pour la nature."""
+    j, m, B = p.jour, T.meteo, T.bassins
+    i = int(B.ile[b])
+    T.catastrophes.append(Catastrophe("inondation", T.iles[i], B.nom[b], g, j, j + 2, ruis_mm))
+    marque = {} if provoque is None else {"provoque": provoque}
+    p.noter("inondation", ile=T.iles[i], lieu=B.nom[b], gravite=g, ruissellement_mm=round(ruis_mm, 1),
+            pluie_mm=round(float(m.pluie[i]), 1), **marque)
+    P = T.parcelles
+    touche = P.bassin == b
+    P.inond_facteur = np.where(touche, np.minimum(np.where(P.inond_fin >= j, P.inond_facteur, 1.0),
+                                                  1.0 - DEGAT_CRUE * g), P.inond_facteur)
+    P.inond_fin = np.where(touche, j + DUREE_DEGAT_J, P.inond_fin)
+    T.n_crues += 1
+
+
+def _seisme(p, T, i, sel, mag, x, y, h, rep, provoque=None):
+    """Un seisme de l ile i ( epicentre a x, y km du centre, a h km de profondeur ) : l intensite MMI de chaque lieu
+    `sel` de l ile, et, s il est ressenti, la catastrophe que lisent les domaines 11, 12, 13 et 18. La nature et la
+    provocation passent ici ( HMT-146 ). Rend la catastrophe, ou None."""
+    j, ile = p.jour, T.iles[i]
+    T.n_seismes += 1
+    d = np.hypot(T.lieu_pos[sel, 0] - (T.centres[i][0] + 1000 * x), T.lieu_pos[sel, 1] - (T.centres[i][1] + 1000 * y)) / 1000
+    mmi = intensite(mag, np.hypot(d, h))
+    k = int(np.argmax(mmi))
+    if mmi[k] < MMI_RESSENTI:
+        p.compter("seisme_non_ressenti"); return None
+    lieu = T.lieux[int(sel[k])]
+    inten = {T.lieux[int(sel[a])]: round(float(mmi[a]), 1) for a in np.nonzero(mmi >= 4.0)[0].tolist()}
+    c = Catastrophe("seisme", ile, lieu, round(float(mmi[k])), j, j, mag, inten)
+    T.catastrophes.append(c)
+    marque = {} if provoque is None else {"provoque": provoque}
+    p.noter("seisme", ile=ile, lieu=lieu, gravite=int(round(float(mmi[k]))), magnitude=round(mag, 1),
+            profondeur_km=round(h, 1), distance_km=round(float(d[k]), 1), replique=rep, **marque)
+    return c
 
 
 def _degradation(T):
@@ -1316,6 +1342,158 @@ def imposer_secheresse(p, ile, jours, reserves=0.10, chaleur_c=3.0):
     sb = B.ile == i
     B.s_w0[sb] -= B.w_bv[sb]; B.w_bv[sb] = 0.0
     T.etat.deficit[i] = max(T.etat.deficit[i], 1.2 * T.normales.seuils[i, 2] * T.tab.p_an[i])
+
+
+# ------------------------------------------------------------------ provoquer ( HMT-146, 29/09 )
+# Younes, 26/09 : « Younes et Claude provoquent les evenements ». Une catastrophe provoquee entre par le chemin de la
+# nature : elle attend dans la file et tombe a minuit, ou les domaines qui lisent les catastrophes du jour ( 11, 12,
+# 13, 16, 18 : entre 0 h 10 et 0 h 30, debut_j == aujourd hui ) la voient comme une naturelle. Un appel direct a
+# d18.seisme a 14 h court-circuitait les lignes ( 11 ), les routes ( 12 ) et les crues ( 16 ).
+NATURES_PROVOQUEES = ("seisme", "inondation", "secheresse", "canicule")
+# une canicule : +1 a +12 C sur la temperature moyenne du jour, 1 a 30 jours. CHOIX borne sur le reel ( a verifier ) :
+# 26/06/2007, 44,8 C a Nea Filadelfia, soit ~+14 C sur la maximale normale de juin a Athenes ; les vagues de 2007,
+# 2021 et 2023 ont dure d une semaine a deux. Sans pluie par defaut : une canicule egeenne est anticyclonique.
+CANICULE_C, CANICULE_J = (1.0, 12.0), (1, 30)
+SECHERESSE_J = (1, 3650)                 # les bornes de forcer_meteo
+
+
+def _file(T):
+    """La file des provocations, ou None : un territoire jamais provoque ( ou relu d un instantane d avant HMT-146 ) n a
+    pas l attribut, et le monde reste identique au bit."""
+    try: return T.a_provoquer
+    except AttributeError: return None
+
+
+def _assurer_file(p, T):
+    f = _file(T)
+    if f is None:
+        J = p.socle.journal
+        J.declarer("provocation", "territoire", "individuel", ("numero", "nature", "ile", "jour_effet", "par", "parametres"))
+        J.declarer("canicule", "territoire", "individuel", ("ile", "lieu", "chaleur_c", "jours"))
+        f = T.a_provoquer = {"n": 0, "file": []}
+    return f
+
+
+def noter_provocation(p, nature, ile, jour_effet, par, parametres):
+    """Le registre des provocations ( numero, journal ), tenu ici pour tout le pays : monde/provoquer.py y note aussi
+    celles des autres domaines. Rend la provocation notee."""
+    f = _assurer_file(p, p.domaine("territoire"))
+    f["n"] += 1
+    r = {"numero": f["n"], "nature": nature, "ile": ile, "jour_effet": int(jour_effet), "par": str(par),
+         "parametres": dict(parametres)}
+    p.noter("provocation", **r)
+    return r
+
+
+def _borne(q, nom, bornes, defaut=None, entier=False):
+    v = q.pop(nom, defaut)
+    if v is None: raise ValueError(f"provoquer : parametre {nom!r} manquant")
+    v = int(v) if entier else float(v)
+    if not bornes[0] <= v <= bornes[1]: raise ValueError(f"provoquer : {nom} = {v!r} hors [{bornes[0]} ; {bornes[1]}]")
+    return v
+
+
+def provoquer(p, nature, ile, jour=None, par="inconnu", **parametres):
+    """Une catastrophe provoquee ( maitre du jeu, scenario ), mise en file pour le minuit du jour `jour` ( le prochain
+    minuit par defaut ). Bornes copiees sur le reel, verifiees ici ( ValueError ) ; un parametre inconnu est refuse.
+      seisme      magnitude ( M_MIN a m_max de la sismicite de l ile ) ; epicentre sous `lieu` ( un lieu de l ile ), ou a
+                  x_km, y_km du centre de l ile ( dans le rayon de sa sismicite ), au centre sinon ; profondeur_km ( dans
+                  la plage de la sismicite, son milieu par defaut ). A partir de M 5, ses repliques suivent comme pour un
+                  seisme naturel ( Reasenberg et Jones ).
+      inondation  lieu ( la crue touche son bassin ), gravite ( 1 a 3 ; le ruissellement note est le seuil de la classe,
+                  SEUILS_CRUE ). CHOIX : la crue provoquee porte ses degats, pas son eau ( le bilan de l eau n en change pas ).
+      secheresse  jours, reserves ( 0,10 ), chaleur_c ( 3 ) : imposer_secheresse, au matin du jour d effet.
+      canicule    jours, chaleur_c ( 8 ), pluie ( 0 : multiplie la pluie ) : forcer_meteo, au matin du jour d effet.
+    Rend la provocation notee ( numero, nature, ile, jour_effet, par, parametres )."""
+    T = p.domaine("territoire")
+    if nature not in NATURES_PROVOQUEES: raise ValueError(f"provoquer : nature inconnue {nature!r} : {NATURES_PROVOQUEES}")
+    if ile not in T.iles: raise ValueError(f"provoquer : ile inconnue {ile!r} : {T.iles}")
+    i = T.iles.index(ile)
+    premier = p.jour + 1 if T.jour_fait == p.jour else p.jour
+    j = premier if jour is None else int(jour)
+    if not premier <= j <= p.jour + SECHERESSE_J[1]: raise ValueError(f"provoquer : jour {jour!r} ( au plus tot {premier} )")
+    q = dict(parametres)
+
+    def lieu_de_l_ile():
+        l = q.pop("lieu", None)
+        if l is None: return None, None
+        k = T.index_lieu.get(_id(l))
+        if k is None or int(T.lieu_ile[k]) != i: raise ValueError(f"provoquer : lieu {l!r} hors de {ile}")
+        return T.lieux[k], k
+
+    if nature == "seisme":
+        s = SISMICITE[ile]
+        mag = _borne(q, "magnitude", (M_MIN, s.m_max))
+        h = _borne(q, "profondeur_km", s.profondeur_km, 0.5 * (s.profondeur_km[0] + s.profondeur_km[1]))
+        lieu, k = lieu_de_l_ile()
+        if k is not None:
+            if "x_km" in q or "y_km" in q: raise ValueError("provoquer : lieu OU x_km, y_km, pas les deux")
+            x, y = [(float(T.lieu_pos[k, a]) - T.centres[i][a]) / 1000.0 for a in (0, 1)]
+        else:
+            r = s.rayon_km
+            x, y = _borne(q, "x_km", (-r, r), 0.0), _borne(q, "y_km", (-r, r), 0.0)
+            if math.hypot(x, y) > r: raise ValueError(f"provoquer : epicentre a plus de {r} km du centre de {ile}")
+        v = {"magnitude": mag, "profondeur_km": h, "x_km": x, "y_km": y, "lieu": lieu}
+    elif nature == "inondation":
+        lieu, k = lieu_de_l_ile()
+        if k is None: raise ValueError("provoquer : une inondation veut un lieu")
+        v = {"lieu": lieu, "bassin": int(T.lieu_bassin[k]), "gravite": _borne(q, "gravite", (1, len(SEUILS_CRUE)), entier=True)}
+    elif nature == "secheresse":
+        v = {"jours": _borne(q, "jours", SECHERESSE_J, entier=True), "reserves": _borne(q, "reserves", (0.0, 1.0), 0.10),
+             "chaleur_c": _borne(q, "chaleur_c", (0.0, CANICULE_C[1]), 3.0)}
+    else:
+        v = {"jours": _borne(q, "jours", CANICULE_J, entier=True), "chaleur_c": _borne(q, "chaleur_c", CANICULE_C, 8.0),
+             "pluie": _borne(q, "pluie", (0.0, 1.0), 0.0)}
+    if q: raise ValueError(f"provoquer : parametres inconnus pour {nature} : {sorted(q)}")
+    r = noter_provocation(p, nature, ile, j, par, v)
+    _file(T)["file"].append((j, r["numero"], nature, i, v))
+    return r
+
+
+def provocations_en_attente(p):
+    """( jour d effet, numero, nature, ile, parametres ) de la file, dans l ordre ou elles tomberont."""
+    T = p.domaine("territoire"); f = _file(T)
+    return [] if f is None else [(j, n, nat, T.iles[i], dict(v)) for j, n, nat, i, v in sorted(f["file"], key=lambda x: (x[0], x[1]))]
+
+
+def _dues(T, j, natures):
+    """Les provocations de la file qui tombent aujourd hui ( dans l ordre des numeros ), retirees de la file."""
+    f = _file(T)
+    if not f or not f["file"]: return []
+    dues = sorted((x for x in f["file"] if x[0] <= j and x[2] in natures), key=lambda x: x[1])
+    if dues: f["file"] = [x for x in f["file"] if not (x[0] <= j and x[2] in natures)]
+    return dues
+
+
+def _provoquer_le_temps(p, T):
+    """Minuit, AVANT le temps du jour : les secheresses et canicules provoquees qui commencent aujourd hui."""
+    for _, n, nature, i, v in _dues(T, p.jour, ("secheresse", "canicule")):
+        ile = T.iles[i]
+        if nature == "secheresse": imposer_secheresse(p, ile, v["jours"], v["reserves"], v["chaleur_c"])
+        else:
+            forcer_meteo(p, ile, v["jours"], pluie=v["pluie"], chaleur_c=v["chaleur_c"])
+            p.noter("canicule", ile=ile, lieu=T.capitale_ile[i], chaleur_c=v["chaleur_c"], jours=v["jours"], provoque=n)
+
+
+def _provoquer_les_catastrophes(p, T):
+    """Minuit, APRES les catastrophes naturelles du jour : les seismes et crues provoques, par les memes fonctions. Un
+    seisme provoque de M >= M_SEQUENCE ouvre sa sequence de repliques : celles du jour tirees ici ( flux propre ),
+    les suivantes par la nature ( T.sequences )."""
+    dues = _dues(T, p.jour, ("seisme", "inondation"))
+    if not dues: return
+    rng = p.du_jour("territoire_provoque")
+    for _, n, nature, i, v in dues:
+        if nature == "inondation":
+            _crue(p, T, v["bassin"], v["gravite"], SEUILS_CRUE[v["gravite"] - 1], provoque=n); continue
+        sel = np.nonzero(T.lieu_ile == i)[0]
+        _seisme(p, T, i, sel, v["magnitude"], v["x_km"], v["y_km"], v["profondeur_km"], False, provoque=n)
+        if v["magnitude"] >= M_SEQUENCE:
+            s = SISMICITE[T.iles[i]]
+            seq = [[v["magnitude"], p.jour, v["x_km"], v["y_km"]]]
+            for mag, x, y, h, rep in seismes_du_jour(Sismicite(0.0, s.b, s.m_max, s.rayon_km, s.profondeur_km, s.source),
+                                                     seq, p.jour, rng):
+                _seisme(p, T, i, sel, mag, x, y, h, rep, provoque=n)
+            T.sequences[i].extend(seq)
 
 
 # ------------------------------------------------------------------ bilans ( portes )

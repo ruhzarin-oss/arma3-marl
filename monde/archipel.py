@@ -183,6 +183,9 @@ class Ile:
         if ordre == "tourisme_etat":
             from monde.pays import d28_tourisme as TO
             return TO.etat_tourisme(self.w.pays)
+        if ordre == "provoquer":                    # HMT-146 : le maitre du jeu ( nature, ile, { parametres } ; monde/provoquer.py )
+            from .provoquer import provoquer as PV
+            return PV(self.w, args[0], args[1], **(args[2] if len(args) > 2 else {}))
         if ordre == "perturber":                    # controle positif des portes : un milliardieme de drachme
             self.w.table.menages.caisse[0] += 1e-9; return True
         raise ValueError(ordre)
