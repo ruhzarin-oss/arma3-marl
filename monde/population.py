@@ -603,7 +603,21 @@ def metier_possible(carte, role):
 # sont ceux qui font le melange d E1 sur la carte d Altis : 40 mineurs pour une mine et trois carrieres, 15 petroliers
 # pour un puits, 40 ouvriers ( config.OUVRIERS_PAR_SITE ). Altis porte donc deja ses metiers : sur Altis, et sur toute
 # carte dont Altis est la premiere ile ( les autres iles n y ajoutent pas de site industriel ), rien ne change au bit.
-POSTES_PAR_SITE = {"mineur": {"mine": 10, "carriere": 10}, "petrolier": {"puits": 15}, "ouvrier": C.OUVRIERS_PAR_SITE}
+# ( HMT-143, 29/09 ) La raffinerie a l effectif REEL. Le debit de celle d Altis est deja grec par habitant ( 8 080 unites
+# de brut par jour, ~508 barils, pour 10 000 habitants : 51 barils par jour pour 1 000 habitants, comme la Grece, ~530 000
+# pour 10,4 millions ) ; son effectif ne l etait pas : 202 ouvriers, 2 % de la population, contre 0,035 % en Grece. La
+# societe de raffinage d HELLENiQ ENERGY a produit 15,4 millions de tonnes en 2024 avec 2 233 employes ( rapport annuel
+# 2024 de HELLENIC PETROLEUM R.S.S.O.P.P. ), soit ~6 900 tonnes par employe et par an : ~401 unites de brut du moteur
+# ( 8,6 kg ) par heure travaillee ( 2 000 heures par an ). L ouvrier du moteur en traitait 5 ( config.RECETTES ) : les
+# postes de la raffinerie sont ceux d E1 divises dans ce rapport, pour le meme debit nominal ; d11 lit cette productivite.
+# Les autres ouvriers vont aux metiers ouverts de l ile ( _vers_le_reel ).
+#   https://m.helpe.gr/userfiles/09deccd3-a8a9-4ae2-b7da-a27a010c9bf8/2024-Annual-Report-EN%20_HELPE-RSSOPP.pdf
+HEURES_TRAVAILLEES_AN = 2000.0
+DEBIT_MOTEUR_RAFFINEUR_H = C.RECETTES["raffinerie"][1]["petrole"]
+DEBIT_REEL_RAFFINEUR_H = 15.4e9 / 2233.0 / HEURES_TRAVAILLEES_AN / 8.6     # kg par an / employes / heures / kg par unite
+POSTES_PAR_SITE = {"mineur": {"mine": 10, "carriere": 10}, "petrolier": {"puits": 15},
+                   "ouvrier": {**C.OUVRIERS_PAR_SITE, "raffinerie": C.OUVRIERS_PAR_SITE["raffinerie"]
+                               * DEBIT_MOTEUR_RAFFINEUR_H / DEBIT_REEL_RAFFINEUR_H}}
 # Ceux que les sites n emploient pas travaillent dans les metiers OUVERTS de l ile ( ceux dont le lieu de travail y
 # existe ), de sorte que ces metiers prennent la structure de l emploi reel d une region d iles grecques : l Egee du Nord
 # ( EL41 : Lesbos, Limnos - l Altis du jeu -, Chios, Samos, Ikaria ; Agios Efstratios, la Stratis du jeu, en fait
@@ -700,7 +714,7 @@ def effectifs(carte, echelle, entiers=True):
     return eff
 
 
-def _lieux_ponderes(carte, role):
+def _lieux_ponderes(carte, role, n=None):
     """Les lieux de travail d un metier, chacun repete selon ses postes ( divises par leur plus grand diviseur commun ) :
     la repartition au tour de role pourvoit chaque site au prorata de ses postes. Des postes egaux ( mines et
     carrieres ) donnent la liste simple des lieux, dans l ordre de la carte ( celle du monde E1 )."""
@@ -708,9 +722,22 @@ def _lieux_ponderes(carte, role):
     lieux = carte.de_type(*types)
     poids = POSTES_PAR_SITE.get(role) or (POIDS_HOTELLERIE if role == "hotellerie" else None)
     if poids is None or not lieux: return lieux
-    g = 0
-    for l in lieux: g = math.gcd(g, int(poids[l.type]))
-    return [l for l in lieux for _ in range(int(poids[l.type]) // g)]
+    if all(float(poids[l.type]).is_integer() for l in lieux):
+        g = 0
+        for l in lieux: g = math.gcd(g, int(poids[l.type]))
+        return [l for l in lieux for _ in range(int(poids[l.type]) // g)]
+    # ( HMT-143 ) des postes non entiers ( la raffinerie a l effectif reel ) : pour `n` personnes, les quotas exacts au
+    # plus fort reste, un poste au moins par site ; sans `n` ( un cycle pour une porte ), les poids rapportes au plus
+    # petit, arrondis. Des postes entiers gardent le partage d avant, au bit.
+    w = [float(poids[l.type]) for l in lieux]
+    if n is None:
+        m = min(w)
+        return [l for l, x in zip(lieux, w) for _ in range(max(1, int(round(x / m))))]
+    q = _quotas(int(n), w)
+    if n >= len(lieux):
+        for i in np.nonzero(q == 0)[0].tolist():
+            j = int(np.argmax(q)); q[j] -= 1; q[i] += 1
+    return [l for l, k in zip(lieux, q.tolist()) for _ in range(k)]
 
 
 def generer(carte, rng, echelle=1.0, table=None, demographie=None):
@@ -735,13 +762,15 @@ def generer(carte, rng, echelle=1.0, table=None, demographie=None):
                 else int(rng.integers(20, 65))
             Habitant.nouveau(table, vrai, classe, age)
     # lieux de travail : repartition equilibree sur les lieux du bon type
-    compteur = {}
+    compteur = {}; partages = {}
     for h in H:
         types, horaire = TRAVAIL[h.role]
         h.horaire = horaire
         if not types: continue
         if types == ("gouvernement",): cands = [carte.gouvernement]
-        else: cands = _lieux_ponderes(carte, h.role)   # les ouvriers vont ou il faut des bras : la raffinerie d abord
+        else:                                           # les ouvriers vont ou il faut des bras ( un partage par metier )
+            cands = partages.get(h.role)
+            if cands is None: cands = partages[h.role] = _lieux_ponderes(carte, h.role, eff.get(h.role))
         k = compteur.get(h.role, 0); compteur[h.role] = k + 1
         h.travail = cands[k % len(cands)]
         h.equipe = k
