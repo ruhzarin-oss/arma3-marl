@@ -356,6 +356,87 @@ def test_formation():
                 f"memoire {s_temoin:.2f} ( diplome {dlv} ), eleve a memoire {s_mem:.2f} ( diplome {dlv_mem} )")
 
 
+# ================================================================== les repas scolaires ( HMT-177 )
+def _ecole_forcee(w, p, repas):
+    """Un jour de cours du primaire impose maintenant, repas en marche ou non ( REPAS_SCOLAIRES est au module )."""
+    garde = M.REPAS_SCOLAIRES
+    try:
+        M.REPAS_SCOLAIRES = repas; M._ecole(p, forcer=(True, False, False))
+    finally: M.REPAS_SCOLAIRES = garde
+
+
+def _jusqu_a_20h10(w, repas):
+    garde = M.REPAS_SCOLAIRES
+    try:
+        M.REPAS_SCOLAIRES = repas
+        while w.minutes % (24 * 60) != 20 * 60 + 10: w.pas_suivant()
+    finally: M.REPAS_SCOLAIRES = garde
+
+
+def test_repas_scolaires():
+    """Porte ( HMT-177, seuils ecrits avant la mesure ). Fonctions pures : l echelle OCDE modifiee ( 2 adultes et 2
+    enfants : 2,1 ; un enfant seul : 1 ) ; les lieux couverts sont les plus pauvres d abord jusqu a 47 % des eleves
+    ( revenus 5, 1, 3, 2 et 0, eleves 10, 10, 10, 10 et 0 : les lieux 1 et 3 ; jamais un lieu sans eleve ). Le pays
+    ( 10 000 habitants, deux jumeaux, l un sans repas ) : au moins 47 % des eleves du primaire couverts, aucun lieu
+    couvert plus riche qu un lieu non couvert. Un jour de cours force du primaire : au moins 85 % des eleves couverts
+    presents au sens large mangent ; aucun eleve non couvert, hors du primaire ou absent ne mange ; la nourriture des
+    marches baisse EXACTEMENT de 0,24 ration par repas, le Tresor paie EXACTEMENT le prix des repas ( 1e-9 ), le crochet
+    recoit 0,24 par eleve servi ; au repas de 20 h, le crochet est lu ( rations_dehors > 0 ) puis remis a zero ;
+    conservation. Controles : le jumeau eteint ne sert rien, ne paie rien et ne touche aucun marche ; un marche vide ( sa
+    nourriture deplacee aux reserves publiques, dans les deux jumeaux ) compte ses repas manques et ne recoit rien ; un
+    eleve couvert marque absent ne mange pas. Sans le crochet du moteur ( Monde.manger_dehors ), la porte echoue."""
+    uc = M.unites_de_consommation(np.array([40.0, 38.0, 8.0, 5.0, 9.0]), np.array([0, 0, 0, 0, 1]), 2)
+    cv_pur = M.ecoles_couvertes([5.0, 1.0, 3.0, 2.0, 0.0], [10, 10, 10, 10, 0])
+    pur = abs(uc[0] - 2.1) < 1e-12 and abs(uc[1] - 1.0) < 1e-12 and cv_pur.tolist() == [False, True, False, True, False]
+    w1, p1 = _installe(); w0, p0 = _installe()
+    if not hasattr(w1, "manger_dehors"):
+        return False, f"fonctions pures {pur} ; crochet du moteur ABSENT ( Monde.manger_dehors ) : aucun repas ne peut nourrir"
+    d1, d0 = M._dom(p1), M._dom(p0); R1, R0 = M._repas(d1), M._repas(d0)
+    cv = R1["couverts"]
+    rev, el = M.revenu_et_eleves_des_lieux(p1)
+    avec = el > 0
+    pauvres = float(rev[cv & avec].max()) <= float(rev[~cv & avec].min()) if (~cv & avec).any() else True
+    part = R1["part"] >= M.PART_ELEVES_COUVERTS and np.array_equal(cv, R0["couverts"])
+    col = p1.colonnes["habitant"]; tb = w1.table; n = tb.n
+    prim = np.nonzero((col["ed_cycle"][:n] == M.PRIMAIRE) & (tb.vivant[:n] == 1) & (tb.domicile[:n] >= 0))[0]
+    couv = prim[cv[tb.domicile[prim].astype(np.int64)]]
+    zone = d1.zone_du_lieu[tb.domicile[couv].astype(np.int64)]
+    zs, cpt = np.unique(zone[zone >= 0], return_counts=True)
+    z_vide = int(zs[np.argmin(cpt)]); mid = w1.carte.par_n[z_vide].id
+    for w in (w0, w1):                         # le marche vide : un deplacement entre detenteurs inscrits
+        m = w.marches[mid]; q = m.stocks["nourriture"]; m.stocks["nourriture"] = 0.0
+        w.publics["population"]["nourriture"] += q
+    absent = int(couv[zone != z_vide][0])
+    for w in (w0, w1): w.table.statut[absent] = PO.ABSENT
+    avant = {k: (w0.marches[k].stocks["nourriture"], w0.marches[k].caisse) for k in w0.marches}
+    g0, g1 = w0.gouv.caisse, w1.gouv.caisse
+    _ecole_forcee(w1, p1, True); _ecole_forcee(w0, p0, False)
+    rd = np.asarray(getattr(w1, "repas_dehors", np.zeros(0)), float)
+    mangeurs = np.nonzero(rd > 0)[0]
+    servis, paye_force = R1["servis"], R1["paye"]
+    nourr = sum(w0.marches[k].stocks["nourriture"] - w1.marches[k].stocks["nourriture"] for k in w1.marches)
+    exact = (abs(nourr - servis * M.RATION_REPAS) <= 1e-9 * max(1.0, servis) and abs((g0 - w0.gouv.caisse) - 0.0) <= 1e-12
+             and abs((g1 - w1.gouv.caisse) - servis * M.PRIX_REPAS_DR) <= 1e-9 * max(1.0, servis)
+             and abs(R1["paye"] - servis * M.PRIX_REPAS_DR) <= 1e-9 * max(1.0, servis)
+             and len(mangeurs) == servis and bool(np.all(np.abs(rd[mangeurs] - M.RATION_REPAS) <= 1e-12)))
+    permis = set(couv[(zone != z_vide)].tolist()) - {absent}
+    justes = set(mangeurs.tolist()) <= permis and absent not in set(mangeurs.tolist())
+    assez = servis >= 0.85 * len(permis)
+    vide = R1["manques"] >= 1 and w1.marches[mid].caisse == w0.marches[mid].caisse
+    eteint = (R0["servis"] == 0 and R0["paye"] == 0.0 and w0.gouv.caisse == g0
+              and all((w0.marches[k].stocks["nourriture"], w0.marches[k].caisse) == avant[k] for k in w0.marches))
+    _jusqu_a_20h10(w1, True); _jusqu_a_20h10(w0, False)
+    lu = float(w1.stats_jour.get("rations_dehors", 0.0)) > 0.0
+    remis = float(np.abs(np.asarray(getattr(w1, "repas_dehors", np.zeros(0)), float)).sum()) == 0.0
+    tenue, msg = p1.socle.conservation.tenue()
+    ok = pur and part and pauvres and exact and justes and assez and vide and eteint and lu and remis and tenue
+    return ok, (f"pures {pur} | {len(prim)} eleves du primaire, {R1['part']:.1%} couverts ( {int(cv.sum())} lieux ), les plus "
+                f"pauvres {pauvres} | jour force : {servis} repas pour {len(permis)} eleves couverts permis ( {servis / max(1, len(permis)):.1%} ), "
+                f"justes {justes}, nourriture et Tresor exacts {exact} ( {nourr:.3f} rations, {paye_force:.2f} dr ) ; marche vide "
+                f"{mid} : {R1['manques']} manques, rien paye {vide} ; jumeau eteint intact {eteint} | repas de 20 h : crochet lu "
+                f"{lu} ( {w1.stats_jour.get('rations_dehors', 0.0):.2f} rations ), remis a zero {remis} ; conservation : {msg}")
+
+
 # ================================================================== la porte commune et le cout
 def test_pays_vivable():
     return T.porte_commune("education", n_jours=12)
@@ -386,4 +467,5 @@ def test_cout():
 
 TESTS = [test_lois_et_calendrier, test_scolarisation, test_places, test_competences, test_rentree_et_cours_prives,
          test_diplome_donne_la_qualification,
-         test_examens, test_falsificateurs, test_orientation, test_formation, test_pays_vivable, test_cout]
+         test_examens, test_falsificateurs, test_orientation, test_formation, test_repas_scolaires, test_pays_vivable,
+         test_cout]

@@ -20,7 +20,9 @@ FICHE
    qu il exige ( `anomalies` ). Un eleve inscrit de 16 ans et plus est etudiant pour le domaine 4 ( tr_fin_etudes
    dans l avenir ) ; un jeune de 16 ans et plus qui n est plus inscrit sort des etudes a l aube suivante. Le domaine ne
    DETIENT ni argent ni bien : les cours prives ( frontistiria ) vont du menage au marche de sa zone ( services
-   marchands ), l allocation de formation de l Etat au menage du stagiaire ; tout passe par le grand livre.
+   marchands ), l allocation de formation de l Etat au menage du stagiaire ; tout passe par le grand livre. Les repas
+   scolaires ( HMT-177 ) : l Etat paie le repas au marche de la zone, qui en consomme la nourriture ; le repas baisse
+   le besoin du soir de l eleve par le crochet du moteur ( Monde.manger_dehors, lu par Monde.repas ).
 3. Decision `orientation` ( chaque eleve qui obtient l apolytirio du gymnase, a la cloture de l annee, le 20 juin ) :
    lycee general, lycee professionnel, arret. Traits : sa moyenne de juin sur 20, son niveau technique, son taux
    d absence, ses redoublements, ce que la caisse du menage paierait de cours prives, le plus haut niveau d etudes des
@@ -34,7 +36,8 @@ FICHE
 4. Evenements. Individuels : diplome_superieur, decrochage, qualification_formation. Comptes : passage, redoublement,
    diplome, panhellenies_candidat, panhellenies_admis, orientation_general, orientation_pro, orientation_arret,
    frontistirio_paye, frontistirio_arrete, formation_entree, formation_echec, allocation_formation, rentree,
-   places_manquantes.
+   places_manquantes ; repas_scolaires, repas_scolaires_manques, repas_scolaires_sans_crochet ( declares au premier
+   repas ).
 5. Liens. Travail ( 4 ) : `qualifier` ( les diplomes donnent les qualifications de QUALIFICATIONS ), tr_fin_etudes
    ( le domaine dit qui etudie encore : le tirage TITRES_DE_SORTIE s eteint quand le domaine est installe ),
    tr_statut ( chomeurs en formation ), tr_net_jour ( la note ), `ouvrir_postes` ( enseignants a la rentree, au
@@ -197,6 +200,19 @@ FRONTISTIRIO = {   # ( cycle, annee ou 0 pour toutes ) : ( part, euros par mois 
     (LYCEE_GENERAL, 2): (0.60, 190.0), (LYCEE_GENERAL, 3): (0.80, 280.0), (LYCEE_PRO, 0): (0.10, 60.0)}
 FACTEUR_CLASSE_FRONT = np.array([1.25, 1.0, 0.7])   # aisee, moyenne, populaire ( a calibrer )
 MOIS_DE_RESERVE_FRONT = 2.0       # la famille inscrit si sa caisse couvre deux mois de cours
+
+# ================================================================== les repas scolaires ( HMT-177, 30/09 )
+# « Sxolika Geymata » ( loi 4455/2017 art. 12, lois 4756/2020 et PD 77/2023 ; ministere de la Cohesion sociale et de la
+# Famille, OPEKA ) : un repas chaud a midi, gratuit, dans les ecoles PRIMAIRES publiques choisies sur des criteres
+# socio-economiques ( revenu par habitant, chomage, zones reculees, iles, frontiere ). 2025-2026 : 231 062 repas par
+# jour, 1 918 ecoles, 45 % des ecoles et 47 % des eleves du primaire ; 115 millions d euros en 2025 ( ministere,
+# declaration de D. Michailidou ). Dans le moteur : les lieux les plus pauvres d abord ( revenu par unite de
+# consommation ), jusqu a 47 % des eleves du primaire, fixes a la rentree ( la KYA de l annee ).
+REPAS_SCOLAIRES = True            # le bras C d une mesure l eteint ( les ecoles couvertes sont calculees quand meme )
+PART_ELEVES_COUVERTS = 0.47       # ministere, 2025-2026
+RATION_REPAS = 0.24               # CHOIX ( a calibrer ) : un dejeuner d enfant ~ un tiers de ses besoins, ~ 600 kcal
+PRIX_REPAS_EUR = 2.8              # CHOIX ( a verifier ) : 115 M euros / ( 231 062 repas x ~ 175 jours de classe )
+PRIX_REPAS_DR = PRIX_REPAS_EUR / EUROS
 
 # ================================================================== le ratio eleves / enseignant
 # OCDE, Regards sur l education 2023 ( donnees 2021 ) : Grece ~ 9 eleves par enseignant au primaire, ~ 8 au premier
@@ -424,7 +440,7 @@ class Education:
     __slots__ = ("programmes", "stagiaires", "decideur", "suivi", "cout_jour", "prime_jour", "zone_du_lieu",
                  "jours_an", "jours_sans", "places", "enseignants", "candidats", "admis", "passages", "diplomes_j",
                  "orientations", "decrochages", "redoublements", "paye_front", "qualifies", "echoues", "stats_passage",
-                 "allocations")
+                 "allocations", "repas")
 
     def __init__(self, decideur, zone_du_lieu):
         self.programmes = {}
@@ -445,6 +461,7 @@ class Education:
         self.qualifies = self.echoues = 0
         self.stats_passage = {}     # annee -> { mesure : valeur } : ce que le dernier passage a produit
         self.allocations = 0.0      # drachmes d allocation de formation versees depuis l installation
+        self.repas = _repas_neuf()  # les repas scolaires ( HMT-177 ) : lieux couverts, compteurs
 
 
 def _dom(p): return p.domaines["education"]
@@ -540,6 +557,7 @@ def _ecole(p, forcer=None):
         if en_classe.any():
             k = ids[en_classe]; ck = c_ids[en_classe]
             pres = _presents(p, k, p.du_jour("education_presence"))
+            if REPAS_SCOLAIRES and classe[PRIM]: _servir_repas(p, d, k, ck, pres)
             col["ed_classes"][k] += 1
             col["ed_absences"][k[~pres]] += 1
             comp[en_classe] = pas_d_ecole(comp[en_classe], ck, col["ed_aptitude"][k].astype(np.float64),
@@ -801,9 +819,140 @@ def rentree(p):
         ok = (rng.random(len(ins)) < part) & (caisse >= MOIS_DE_RESERVE_FRONT * _frais_mensuels(cyc, an)) & (k >= 0)
         col["ed_frontistirio"][ins[ok]] = 1
     mesurer_places(p)
+    choisir_ecoles(p)
     if p.a("travail"):
         for z, (pl, el, ens) in sorted(d.places.items()):
             TR.ouvrir_postes(p, p.w.carte.par_n[z].id, "enseignant", int(math.ceil(el / RATIO_CIBLE)))
+
+
+# ================================================================== les repas scolaires ( HMT-177 )
+def _repas_neuf():
+    return {"couverts": None, "part": 0.0, "servis": 0, "manques": 0, "sans_crochet": 0, "paye": 0.0, "jours": 0}
+
+
+def _repas(d):
+    """L etat des repas scolaires ; un domaine relu d un instantane d avant HMT-177 le recoit neuf."""
+    try: return d.repas
+    except AttributeError:
+        d.repas = _repas_neuf(); return d.repas
+
+
+def unites_de_consommation(ages, menage, nm):
+    """( fonction pure ) L echelle OCDE modifiee ( Eurostat, ELSTAT ) : 1 pour le premier adulte ( 14 ans et plus ),
+    0,5 pour chaque autre personne de 14 ans et plus, 0,3 pour chaque enfant de moins de 14 ans ; un menage sans adulte
+    compte 1 pour son premier enfant. Rend les unites par menage ( 0 sans personne )."""
+    menage = np.asarray(menage, np.int64); ages = np.asarray(ages, float)
+    ad = np.bincount(menage[ages >= 14.0], minlength=nm).astype(float)
+    en = np.bincount(menage[ages < 14.0], minlength=nm).astype(float)
+    return np.where(ad > 0, 1.0 + 0.5 * (ad - 1.0) + 0.3 * en, np.where(en > 0, 1.0 + 0.3 * (en - 1.0), 0.0))
+
+
+def ecoles_couvertes(revenu_uc, eleves, part=PART_ELEVES_COUVERTS):
+    """( fonction pure ) Les lieux dont les ecoles primaires servent le repas : les plus pauvres d abord ( revenu moyen
+    par unite de consommation croissant, puis rang du lieu ), jusqu a ce que leurs eleves du primaire fassent au moins
+    `part` de tous ; un lieu est couvert en entier ( toutes ses ecoles ), un lieu sans eleve ne l est jamais. Rend un
+    masque par lieu."""
+    revenu_uc = np.asarray(revenu_uc, float); eleves = np.asarray(eleves, float)
+    out = np.zeros(len(eleves), bool)
+    tot = float(eleves.sum())
+    if tot <= 0.0 or part <= 0.0: return out
+    ordre = np.lexsort((np.arange(len(eleves)), revenu_uc))
+    ordre = ordre[eleves[ordre] > 0]
+    k = int(np.searchsorted(np.cumsum(eleves[ordre]), part * tot - 1e-9)) + 1
+    out[ordre[:k]] = True
+    return out
+
+
+def revenu_et_eleves_des_lieux(p):
+    """Par lieu : le revenu moyen, sur ses menages habites, de leur revenu lisse ( eco_revenu, domaine 3 ) par unite de
+    consommation ( sans le domaine 3 : zero partout ), et les eleves du primaire qui y habitent. Lecture seule."""
+    col = _cols(p); n = _n(p); tb = p.w.table; w = p.w
+    nl = len(w.carte.par_n); nm = tb.menages.n
+    viv = np.nonzero((tb.vivant[:n] == 1) & (tb.menage[:n] >= 0))[0]
+    uc = unites_de_consommation(_ages(p, viv), tb.menage[viv], nm)
+    rev = np.zeros(nm); cm = p.colonnes["menage"]
+    if "eco_revenu" in cm:
+        m_ = min(nm, len(cm["eco_revenu"])); rev[:m_] = cm["eco_revenu"][:m_]
+    dom = tb.menages.domicile[:nm].astype(np.int64)
+    ok = (uc > 0) & (dom >= 0)
+    somme = np.bincount(dom[ok], weights=rev[ok] / uc[ok], minlength=nl); nb = np.bincount(dom[ok], minlength=nl)
+    revenu_uc = np.divide(somme, nb, out=np.zeros(nl), where=nb > 0)
+    prim = np.nonzero((col["ed_cycle"][:n] == PRIMAIRE) & (tb.vivant[:n] == 1) & (tb.domicile[:n] >= 0))[0]
+    return revenu_uc, np.bincount(tb.domicile[prim].astype(np.int64), minlength=nl)
+
+
+def choisir_ecoles(p):
+    """A l installation et a chaque rentree : les lieux couverts de l annee ( la KYA ), les plus pauvres d abord
+    ( revenu_et_eleves_des_lieux ; sans le domaine 3, dans l ordre de leur rang ). Lecture seule du monde : le bras sans
+    repas calcule les memes lieux. Rend le masque."""
+    revenu_uc, eleves = revenu_et_eleves_des_lieux(p)
+    R = _repas(_dom(p))
+    R["couverts"] = ecoles_couvertes(revenu_uc, eleves)
+    R["part"] = float(eleves[R["couverts"]].sum() / max(1, eleves.sum()))
+    return R["couverts"]
+
+
+def _assurer_repas(p):
+    L = p.socle.livre
+    if "repas_scolaire" not in L.motifs:
+        L.declarer_motif("repas_scolaire", "achat", "education")
+        for t in ("repas_scolaires", "repas_scolaires_manques", "repas_scolaires_sans_crochet"):
+            p.socle.journal.declarer(t, "education", "compte")
+
+
+def _servir_repas(p, d, k, ck, pres):
+    """15 h, un jour de cours du primaire : le repas de MIDI des eleves du primaire PRESENTS ( le tirage de presence du
+    jour, un seul ) dont le lieu est couvert. Par zone de marche : l Etat paie le repas au marche ( PRIX_REPAS_DR,
+    motif repas_scolaire ) et la nourriture du repas ( RATION_REPAS ) y est consommee. Un marche sans assez de
+    nourriture sert les repas entiers qu il peut, par ordre d identifiant ; un Tresor qui ne paie pas tout aussi ; les
+    autres sont comptes manques. Le repas baisse le besoin du soir de l eleve ( Monde.manger_dehors, crochet de
+    Monde.repas a 20 h ) : sans ce crochet, AUCUN repas n est servi ( compte a part ), pour ne pas payer une nourriture
+    qui ne nourrirait personne."""
+    R = _repas(d); cv = R["couverts"]
+    if cv is None: return
+    w = p.w; tb = w.table
+    dom = tb.domicile[k].astype(np.int64)
+    sel = (ck == PRIMAIRE) & pres & (dom >= 0)
+    sel[sel] = cv[dom[sel]]
+    ids = k[sel]
+    if not len(ids): return
+    _assurer_repas(p)
+    R["jours"] += 1
+    if not hasattr(w, "manger_dehors"):
+        R["sans_crochet"] += len(ids); p.compter("repas_scolaires_sans_crochet", float(len(ids))); return
+    L = p.socle.livre; par_n = w.carte.par_n
+    zones = d.zone_du_lieu[tb.domicile[ids].astype(np.int64)]
+    ordre = np.lexsort((ids, zones)); ids, zones = ids[ordre], zones[ordre]
+    servis, manques = [], 0
+    for z in np.unique(zones).tolist():
+        eux = ids[zones == z]
+        m = w.marches.get(par_n[z].id) if z >= 0 else None
+        nb = 0
+        if m is not None:
+            nb = min(len(eux), int(math.floor(m.stocks.get("nourriture", 0.0) / RATION_REPAS + 1e-9)))
+            if nb > 0:
+                paye = L.transferer(w.gouv, m, nb * PRIX_REPAS_DR, "repas_scolaire")
+                R["paye"] += paye
+                nb = min(nb, int(math.floor(paye / PRIX_REPAS_DR + 1e-9)))
+            if nb > 0:
+                q = nb * RATION_REPAS
+                m.stocks["nourriture"] -= q; m.demande["nourriture"] += q
+                L.flux["consomme"]["nourriture"] += q
+                servis.append(eux[:nb])
+        manques += len(eux) - nb
+    if manques:
+        R["manques"] += manques; p.compter("repas_scolaires_manques", float(manques))
+    if servis:
+        s = np.concatenate(servis)
+        w.manger_dehors(s, RATION_REPAS)
+        R["servis"] += len(s); p.compter("repas_scolaires", float(len(s)))
+
+
+def repas_scolaires(p):
+    """Les compteurs des repas scolaires depuis l installation : lieux couverts, part des eleves du primaire couverts,
+    repas servis, manques, sans crochet, drachmes payees par l Etat, jours de service."""
+    R = _repas(_dom(p))
+    return {k: (None if v is None else (int(v.sum()) if k == "couverts" else v)) for k, v in R.items()}
 
 
 def mesurer_places(p):
@@ -1166,6 +1315,7 @@ def installer(p):
     p.domaines["education"] = d
     _recensement(p, d, p.hasard("education_recensement"))
     mesurer_places(p)
+    choisir_ecoles(p)
     p.routine(9.0, 50, "education", _inscrire_formations)
     p.routine(15.0, 50, "education", _ecole)
     p.routine(17.0, 50, "education", _formations)
