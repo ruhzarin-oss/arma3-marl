@@ -720,7 +720,9 @@ def embaucher_contrat(p, h, unite, role=None, contrat=CDI, duree_j=None, taux=No
     if h.id in d.grevistes: _sortir_de_greve(p, d, h)
     if h.travail is not None: _solde_de_tout_compte(p, d, h)
     if h.travail is not None and "tr_dispo_j" in col and col["tr_dispo_j"][h.id] >= 0:     # HMT-126
-        k0 = (h.travail.id, h.role); d.cible[k0] = max(0, d.cible.get(k0, 1) - 1)
+        # ( 29/09, HMT-161 ) le poste ne disparait que si l employeur n en a plus besoin, comme a la fin d un CDD
+        k0 = (h.travail.id, h.role)
+        if not _besoin(p, d, *k0): d.cible[k0] = max(0, d.cible.get(k0, 1) - 1)
     ECO.embaucher(p, h, unite, role, equipe)
     i = h.id
     if "tr_dispo_j" in col: col["tr_dispo_j"][i] = -1; col["tr_sans_travail_j"][i] = 0; col["tr_dispo_an"][i] = 0
