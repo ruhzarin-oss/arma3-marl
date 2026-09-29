@@ -50,7 +50,7 @@ if [ -d $REF/ref/monde_ancien ]; then
   diff -rq -x __pycache__ -x "*.avant*" -x resultats $REF/ref/monde_ancien $REF/ref/monde_ancien.nouveau >/dev/null && echo "ANCIEN MOTEUR TEMOIN IDENTIQUE" || echo "ANCIEN MOTEUR TEMOIN DIFFERENT"
   rm -rf $REF/ref/monde_ancien.nouveau
 else mv $REF/ref/monde_ancien.nouveau $REF/ref/monde_ancien; echo "ancien moteur temoin pose"; fi
-TOUS=1f600f4     # 29/09 : integration 11 ( KEA declare, gerance, greve-arrieres, nuit du run long ) sans 948b397
+TOUS=e2e5979     # 29/09 : la loi d Engel hors alimentation ( engel-budget, sur l integration 11 e8f1ee8 )
 ARBRE2=$REF/ref_tous; rm -rf $ARBRE2 && mkdir -p $ARBRE2 && git -C $DEPOT archive $TOUS monde | tar -x -C $ARBRE2
 ( cd $ARBRE2 && PYTHONPATH=$ARBRE2 $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_tous_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines_tous.json ]; then
