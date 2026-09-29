@@ -426,9 +426,29 @@ def prix_export(p, bien):
     return prix_port(p, bien) - fret_unitaire(p, bien)
 
 
-def _demande(p, mid, b):
+# ( 29/09, run long HMT-119 ) Une GARDE de plausibilite, pas un reglage : la demande qu un marche montre au negoce est
+# bornee par habitant qu il sert, a 10 fois la demande ordinaire. L ordinaire : Altis, graine 41, sans epidemie
+# ( epidemie_jour = -1 ), mediane des jours 11 a 30, mesure du 29/09 sur le tronc e8f1ee8 corrige ( d15 ) : nourriture
+# 1,22, remedes 0,0315, outils 0,27 par habitant et par jour ( outils jusqu a 2,5 les dix premiers jours : le
+# renouvellement des durables a l installation, sous la borne ). Sans elle, une demande recomptee ( la subvention des
+# hopitaux, 12 remedes par habitant et par jour a Stratis ) faisait importer 907 875 traitements en un jour.
+PLAFOND_DEMANDE_HAB_J = {"nourriture": 12.2, "remedes": 0.315, "outils": 2.7}
+GARDE_RESERVE_NOURRITURE = True       # la reserve de caisse du marche pour sa nourriture ( ci-dessous, _vendre_aux_marches )
+
+
+def _demande_brute(p, mid, b):
     em = p.domaine("economie").marches[mid]
     return max(EC.DEMANDE_MIN, em.demande_lisse.get(b, 0.0))
+
+
+def _plafond(p, mid, b):
+    k = PLAFOND_DEMANDE_HAB_J.get(b)
+    pop = getattr(p.w, "_pop_marche", {}).get(mid, 0) if k is not None else 0
+    return k * pop if pop > 0 else math.inf
+
+
+def _demande(p, mid, b):
+    return min(_demande_brute(p, mid, b), _plafond(p, mid, b))
 
 
 def _cible(b): return EC.COUVERTURE_CIBLE_J.get(b, 5.0)
@@ -842,6 +862,7 @@ def _commander(p):
             cle = e.cle; e.cle += 1
             a = dec.decider(cle, ContexteImport(x, _cible(nom), neg, nom))
             dem = _demande(p, neg.marche_id, nom)
+            if _demande_brute(p, neg.marche_id, nom) > dem + EPS: p.compter("import_borne")   # la garde a joue : au bulletin
             e.suivi[cle] = [neg.marche_id, nom, p.jour, 0, None, max(EPS, dem * prix_import(p, b)), dem]
             q = QUANTITES_J[a] * dem
             if q > EPS:
@@ -875,6 +896,10 @@ def _vendre_aux_marches(p):
     e = _ext(p); w = p.w; L = p.socle.livre; cat = p.socle.catalogue
     for neg in e.negociants:
         m = w.marches[neg.marche_id]
+        # ( 29/09 ) comme un vrai commercant, le marche garde de quoi racheter sa couverture de nourriture avant d acheter
+        # un autre bien : sans cela, les remedes d une demande recomptee vidaient sa caisse ( Stratis, 14,0 M -> 3,1 M ) et
+        # 64 a 71 % des menages restaient sans nourriture les jours 24 a 27 du run long
+        reserve_n = _cible("nourriture") * _demande(p, neg.marche_id, "nourriture") * m.prix["nourriture"] * (1.0 - m.marge)
         for b, lots in sorted(neg.lots.items(), key=lambda kv: cat[kv[0]].nom not in PRIORITE_RACHAT):   # tri stable
             if not lots: continue
             nom = cat[b].nom
@@ -891,7 +916,8 @@ def _vendre_aux_marches(p):
                 cession = lot[2] * (1.0 + MARGE_NEGOCE)
                 urgence = nom in ESSENTIELS and m.stocks[nom] < URGENCE_J * fermes * dem
                 if m.prix[nom] * (1.0 - m.marge) < cession and not urgence: break
-                q = min(lot[1], besoin, max(0.0, m.caisse) / cession)
+                garde = 0.0 if nom == "nourriture" or not GARDE_RESERVE_NOURRITURE else reserve_n
+                q = min(lot[1], besoin, max(0.0, m.caisse - garde) / cession)
                 if q <= EPS: break
                 en_manque = min(q, max(0.0, URGENCE_J * dem - m.stocks[nom]))
                 paye = L.transferer(m, neg, q * cession, "vente_import")
@@ -1255,7 +1281,7 @@ def installer(p):
                       ("saisie_douane", ("lieu", "bien", "quantite"))):
         J.declarer(t, "exterieur", "individuel", champs)
     for t in ("import_negoce", "export_negoce", "commande_annulee", "controle_des_changes", "contrebande_passee",
-              "envoi_de_fonds", "aide_ue", "depart_empeche", "devises_refusees"):
+              "envoi_de_fonds", "aide_ue", "depart_empeche", "devises_refusees", "import_borne"):
         J.declarer(t, "exterieur", "compte")
     ch = p.colonnes["habitant"]
     ch.ajouter("ext_emigre_j", np.int32, -1); ch.ajouter("ext_immigre_j", np.int32, -1)
