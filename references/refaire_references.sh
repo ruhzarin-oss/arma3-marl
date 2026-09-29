@@ -54,7 +54,7 @@ if [ -d $REF/ref/monde_ancien ]; then
   diff -rq -x __pycache__ -x "*.avant*" -x resultats $REF/ref/monde_ancien $REF/ref/monde_ancien.nouveau >/dev/null && echo "ANCIEN MOTEUR TEMOIN IDENTIQUE" || echo "ANCIEN MOTEUR TEMOIN DIFFERENT"
   rm -rf $REF/ref/monde_ancien.nouveau
 else mv $REF/ref/monde_ancien.nouveau $REF/ref/monde_ancien; echo "ancien moteur temoin pose"; fi
-TOUS=e23354e     # 29/09 : HMT-145 ( F1 ) enveloppes par division, sur l integration 12 ( 6b054bd )
+TOUS=bbd13d1     # 29/09 : HMT-145 ( F1 ) enveloppes par division, multiplicateurs cales sur le monde, sur 6b054bd
 ARBRE2=$REF/ref_tous; rm -rf $ARBRE2 && mkdir -p $ARBRE2 && git -C $DEPOT archive $TOUS monde | tar -x -C $ARBRE2
 ( cd $ARBRE2 && PYTHONPATH=$ARBRE2 $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_tous_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines_tous.json ]; then
