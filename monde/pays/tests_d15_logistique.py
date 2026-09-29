@@ -387,7 +387,7 @@ def _cinq_jours_de_fret(ancien):
     try:
         for _ in range(5 * C.PAS_PAR_JOUR):
             w.pas_suivant()
-            if cal.ouvre(cal.date(w.pas)): ouvres.add(p.jour)
+            if 7 <= w.heure < 15 and cal.ouvre(cal.date(w.pas)): ouvres.add(p.jour)
     finally:
         M.conducteur, M._lancer, M._en_service = oc, ol, vrai
     par_jour = {}
@@ -405,7 +405,11 @@ def test_fret_attend_le_service():
     concernes. Controle positif : le domaine 15 d avant ( tente a toute heure ) tente des convois hors service et y compte
     des refus : la porte echoue sur lui. Mesure du 29/09 ( Altis, 10 000 habitants, 20 jours, tronc 6b054bd ) : 11 081
     refus pour 1 125 convois, tous sans convoyeur a son poste, 98 % par l heure pleine ; la demande comptee pour des
-    approvisionnements qui ne partaient pas faisait 66 % de celle du zinc, 13 % du fer et du gazole."""
+    approvisionnements qui ne partaient pas faisait 66 % de celle du zinc, 13 % du fer et du gazole.
+    ( AMENDEE apres la premiere mesure, 29/09, cf8c317 : un jour ouvre ne compte que si ses heures de service, 7 h a 15 h,
+    sont dans la fenetre, comme test_chauffeurs_au_repos. Le cinquieme jour n y entrait que par son premier pas, a minuit,
+    et demandait 5 convois a un jour sans service, dans les deux bras : 82 convois de part et d autre, 0 tentative hors
+    service contre 1 551. Les seuils ne changent pas. )"""
     n, pj, ouv, (tenue, msg) = _cinq_jours_de_fret(False)
     n0, pj0, ouv0, (tenue0, _) = _cinq_jours_de_fret(True)
     tot, tot0 = sum(pj.values()), sum(pj0.values())
