@@ -351,13 +351,33 @@ def p26_journal_des_messages():
         assert chemin.endswith("hmt_messages_202609291200.txt") and f.lua("return FAUX.journal") == "hmt_messages_202609291200.txt"
 
 
+def p27_camps_du_theatre_et_bases():
+    """Les camps d'un théâtre écrits par le déployeur et reconnus par leur signature ; des avions posés sur leur base ;
+    une base invalide refuse SES avions sans défaire le reste de la commande."""
+    camps = ("OTAN", "Russie-Chine")
+    with banc(camps=camps, labo=False) as (f, _):
+        etat = os.path.join(f.racine, "etat")
+        assert "redéployer" in str(leve(CL.Incomplet, CL.Labo(pont=f.pont, sortie=f.sortie, etat=etat, **RAPIDE).ouvrir))
+        with CL.Labo(pont=f.pont, sortie=f.sortie, etat=etat, camps=camps, **RAPIDE) as l:
+            l.poser("OTAN", "site", 1712, 90000001, 51.55, 19.18)                  # Łask
+            l.poser("Russie-Chine", "site", 1712, 90000002, 54.77, 20.40)          # Tchkalovsk
+            r = l.poser_base_lots([("OTAN", 7087, 0, 90000001, [11000001, 11000002]),
+                                   ("Russie-Chine", 8333, 0, 90000002, [21000001]),
+                                   ("OTAN", 7087, 0, 90000002, [11000003]),        # base de l'autre camp
+                                   ("OTAN", 7087, 0, 90000099, [11000004])])       # base inconnue
+            assert sorted(r["poses"]) == [11000001, 11000002, 21000001] and r["refus"] == {11000003: 8, 11000004: 7}, r
+            u = [x for x in l.positions()["vivants"]["OTAN"] if x[0] == 11000001][0]
+            assert abs(u[1] - 51.55) < 1e-6 and abs(u[2] - 19.18) < 1e-6, u     # au sol, sur sa base
+            assert f.compter() == 5, f.compter()
+
+
 TESTS = [p0_accords, p1_installer, p2_canaris, p3_poser_etat_positions, p4_morts_une_fois, p5_erreur_lua_certaine,
          p6_refus_deux_etages, p7_compilation, p8_pause_jamais_aucun, p9_rechargement_recalage, p10_un_seul_ecrivain,
          p11_recu_ecrit_lentement, p12_que_des_nombres, p13_build_non_certifie, p14_lecteur_runscript,
          p14b_runscript_qui_leve, p15_commande_non_prise_effacee, p16_gros_recu, p17_recu_tronque, p18_nettoyer_prouve,
          p19_poser_apres_nettoyer, p20_recharger_sans_console,
          p21_hostiles, p22_recu_tardif, p23_lecture_impossible_nest_pas_une_panne, p24_patrouilles,
-         p25_calme_moins_de_runscript, p26_journal_des_messages]
+         p25_calme_moins_de_runscript, p26_journal_des_messages, p27_camps_du_theatre_et_bases]
 
 
 def passer(tests):

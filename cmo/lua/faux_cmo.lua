@@ -46,8 +46,16 @@ function ScenEdit_AddUnit(t)
     local camp = nil
     for _, s in ipairs(FAUX.camps) do if s.name == t.side then camp = s end end
     if camp == nil or type(t.dbid) ~= 'number' or t.dbid <= 0 or t.dbid == FAUX.dbid_refuse then return nil end
-    local u = { guid = guid(), name = t.unitname, side = t.side, type = t.type, dbid = t.dbid,
-                latitude = t.latitude, longitude = t.longitude, altitude = t.altitude or 0 }
+    local la, lo = t.latitude, t.longitude
+    if t.base then                                   -- posé sur une base : il est là où elle est, au sol
+        local b = FAUX.unites[t.base]
+        if b == nil or b.side ~= t.side then return nil end
+        la, lo = b.latitude, b.longitude
+    elseif la == nil or lo == nil then
+        return nil
+    end
+    local u = { guid = guid(), name = t.unitname, side = t.side, type = t.type, dbid = t.dbid, base = t.base,
+                latitude = la, longitude = lo, altitude = t.altitude or 0 }
     FAUX.unites[u.guid] = u
     return copie(u)
 end

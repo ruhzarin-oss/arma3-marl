@@ -54,6 +54,7 @@ BLOCS.update({
     # --- des cas à trancher, laissés neutres
     "Pakistan": (NEUTRE, "à valider", "allié de la Chine ( JF-17, J-10C ), mais pas contre l'OTAN : à trancher"),
     "India": (NEUTRE, "à valider", "matériel russe et occidental, rivale de la Chine"),
+    "Algeria": (NEUTRE, "à valider", "grand client de l'armement russe ( Su-30MKA, S-400 ), mais non alignée ( 29/09, Younes )"),
     "Syria": (NEUTRE, "à valider", "matériel soviétique, mais le régime allié de la Russie est tombé en décembre 2024"),
     "Armenia": (NEUTRE, "à valider", "OTSC gelée depuis 2024"),
     "Serbia [1992-]": (NEUTRE, "à valider", "neutralité militaire, matériel russe et chinois"),

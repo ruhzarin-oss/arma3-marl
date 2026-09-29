@@ -54,14 +54,14 @@ SORTIE = f"{CMO}/ImportExport"
 ETAT = "/mnt/data/hmt/etat"
 FICHIER_CERTIF = "cmo_build_certifie.json"
 
-VERSION_LUA = 6                     # = HMT_VERSION de lua/hmt_pont.lua
+VERSION_LUA = 7                     # = HMT_VERSION de lua/hmt_pont.lua
 CAMPS = ("Stratis", "Malden")       # = HMT_CAMPS, même ordre ; index Lua = index Python + 1
 GENRES = ("air", "navire", "sous_marin", "site")      # = HMT_GENRES ( Air, Ship, Submarine, Facility )
 NUMERO_MAX = 99_999_999             # guerre_cmo décale les numéros de front par camp : chaque île numérote depuis 1
 LECTEURS = {1: "loadfile", 2: "RunScript"}
 REFUS_LUA = {1: "camp inconnu", 2: "genre inconnu", 3: "numéro déjà tenu par une unité vivante",
              4: "CMO refuse d'ajouter l'unité (dbid, loadout ou position)", 5: "numéro inconnu ou unité détruite",
-             6: "CMO refuse la mission ou l'affectation"}
+             6: "CMO refuse la mission ou l'affectation", 7: "base inconnue ou détruite", 8: "base d'un autre camp"}
 # = SCRIPT de lua/installer.lua, au caractère près : c'est ce que l'événement exécute toutes les secondes.
 ACTION_EVENEMENT = ("if HMT_tic == nil then ScenEdit_RunScript('hmt_pont/hmt_config.lua') "
                     "ScenEdit_RunScript('hmt_pont/hmt_pont.lua') end HMT_tic()")
@@ -73,6 +73,15 @@ PLAFOND_OCTETS = 60000
 _RE_SYNC = re.compile(r"^SYNC (\d+) (\d+) (\d+) (\d+) ([0-9.]*)$", re.M)
 _RE_ECHO = re.compile(r"^ECHO (\d+) (\d+) (\d+) (\d+) (\d+) (\d+)$")
 _RE_R = re.compile(r"^R ([A-Z_]+)((?: [-+0-9.eE]+)*)$")
+
+
+def signature_camps(camps) -> int:
+    """= HMT_signature_camps du Lua : somme des octets UTF-8 pondérés par leur place, modulo 1 000 000 007."""
+    s = 0
+    for i, nom in enumerate(camps, 1):
+        for j, b in enumerate(nom.encode("utf-8"), 1):
+            s = (s + b * (i * 31 + j)) % 1_000_000_007
+    return s
 
 
 class EchecLua(ErreurLabo):
@@ -337,8 +346,9 @@ def recharger(*, pont: str = PONT, sortie: str = SORTIE, etat: str = ETAT, **kw)
 class Labo:
     def __init__(self, *, pont: str = PONT, sortie: str = SORTIE, etat: str = ETAT, strict: bool = True,
                  battement_max: float = BATTEMENT_MAX, patience: float = PATIENCE, patience_ouverture: float = 8.0,
-                 compiler: bool = True):
+                 compiler: bool = True, camps=CAMPS):
         self.pont, self.sortie, self.etat, self.strict = pont, sortie, etat, strict
+        self.camps = tuple(camps)
         self.patience_ouverture = patience_ouverture
         self.ecrivain = VerrouEcrivain(os.path.join(etat, "cmo_pont.ecrivain"))
         self.liaison = Liaison(pont, sortie, battement_max=battement_max, patience=patience, compiler=compiler)
@@ -386,8 +396,10 @@ class Labo:
         if version != VERSION_LUA:
             raise Incomplet(f"hmt_pont.lua joué en version {version}, le module attend {VERSION_LUA} : relancer "
                             "deployer.py, puis recharger le scénario ( CMO garde le Lua compilé )")
-        if n_camps != len(CAMPS):
-            raise Incomplet(f"le Lua connaît {n_camps} camps, le module {len(CAMPS)} : ce n'est pas le Lua du dépôt")
+        sig = _une(r["lignes"], "CAMPS_SIG", 1)[0]
+        if n_camps != len(self.camps) or sig != signature_camps(self.camps):
+            raise Incomplet(f"CMO joue {int(n_camps)} camps ( signature {int(sig)} ), le module attend {list(self.camps)} "
+                            f"( signature {signature_camps(self.camps)} ) : redéployer avec ces camps ( deployer.py --camps )")
         certifie = build_certifie(self.etat)
         if build != certifie and self.strict:
             raise Incomplet(f"CMO en build {build}, le banc pontcmo a certifié {certifie} : Steam a mis CMO à jour. "
@@ -400,19 +412,19 @@ class Labo:
         """Compte le JEU, pas une mémoire : relu dans CMO à chaque appel. total = -1 si CMO ne rend pas la liste."""
         r = self._exec("HMT_etat(R)")
         camps = [v for c, v in r["lignes"] if c == "CAMP"]
-        if len(camps) != len(CAMPS) or any(len(v) != 3 for v in camps):
-            raise Incomplet(f"attendu {len(CAMPS)} lignes CAMP, lu {camps!r}")
-        return {"camps": {CAMPS[int(i) - 1]: {"hmt_vivants": int(v), "unites": int(t)} for i, v, t in camps},
+        if len(camps) != len(self.camps) or any(len(v) != 3 for v in camps):
+            raise Incomplet(f"attendu {len(self.camps)} lignes CAMP, lu {camps!r}")
+        return {"camps": {self.camps[int(i) - 1]: {"hmt_vivants": int(v), "unites": int(t)} for i, v, t in camps},
                 "recu": r["recu"]}
 
     def poser(self, camp: str, genre: str, dbid: int, numero: int, lat: float, lon: float,
               alt: float = 0.0, loadout: int = 0) -> dict:
         """Une unité du catalogue de CMO ( dbid ), nommée HMT-<numéro> : le numéro de front du moteur."""
-        if camp not in CAMPS:
-            raise Refus(f"camp {camp!r} inconnu ; permis : {list(CAMPS)}")
+        if camp not in self.camps:
+            raise Refus(f"camp {camp!r} inconnu ; permis : {list(self.camps)}")
         if genre not in GENRES:
             raise Refus(f"genre {genre!r} inconnu ; permis : {list(GENRES)}")
-        c, g = CAMPS.index(camp) + 1, GENRES.index(genre) + 1
+        c, g = self.camps.index(camp) + 1, GENRES.index(genre) + 1
         d = _ent(dbid, 1, 10_000_000, "dbid")
         k = _ent(numero, 1, NUMERO_MAX, "numero")
         la, lo = _num(lat, -90, 90, "lat"), _num(lon, -180, 180, "lon")
@@ -420,13 +432,13 @@ class Labo:
         lod = _ent(loadout, 0, 10_000_000, "loadout")
         r = self._exec(f"HMT_poser(R, {c}, {g}, {d}, {k}, {la:.7f}, {lo:.7f}, {a:.1f}, {lod})")
         k2, c2, la2, lo2 = _une(r["lignes"], "POSE", 4)
-        return {"numero": int(k2), "camp": CAMPS[int(c2) - 1], "lat": la2, "lon": lo2, "recu": r["recu"]}
+        return {"numero": int(k2), "camp": self.camps[int(c2) - 1], "lat": la2, "lon": lo2, "recu": r["recu"]}
 
     def hostiles(self, camp_a: str, camp_b: str) -> dict:
         """Les deux camps se voient hostiles dans CMO ( relu, pas supposé )."""
-        if camp_a not in CAMPS or camp_b not in CAMPS or camp_a == camp_b:
-            raise Refus(f"deux camps distincts parmi {list(CAMPS)} : {camp_a!r}, {camp_b!r}")
-        r = self._exec(f"HMT_hostiles(R, {CAMPS.index(camp_a) + 1}, {CAMPS.index(camp_b) + 1})")
+        if camp_a not in self.camps or camp_b not in self.camps or camp_a == camp_b:
+            raise Refus(f"deux camps distincts parmi {list(self.camps)} : {camp_a!r}, {camp_b!r}")
+        r = self._exec(f"HMT_hostiles(R, {self.camps.index(camp_a) + 1}, {self.camps.index(camp_b) + 1})")
         _, _, ab, ba = _une(r["lignes"], "HOSTILES", 4)
         if not (ab and ba):
             raise Incomplet(f"posture relue non hostile dans CMO ( {camp_a}->{camp_b} {ab}, {camp_b}->{camp_a} {ba} )")
@@ -439,16 +451,38 @@ class Labo:
         k2, la2, lo2 = _une(r["lignes"], "ORDRE", 3)
         return {"numero": int(k2), "lat": la2, "lon": lo2, "recu": r["recu"]}
 
+    def poser_base_lots(self, lots) -> dict:
+        """Des avions posés sur leur base, en UN envoi. lots : [ ( camp, dbid, loadout, numéro de la base, [ numéros ] ) ].
+        La base est une installation HMT du même camp, posée avant ( poser, genre « site » )."""
+        corps, n = [], 0
+        for camp, dbid, loadout, base, ks in lots:
+            if camp not in self.camps:
+                raise Refus(f"camp {camp!r} inconnu")
+            if not ks:
+                continue
+            corps.append(f"HMT_poser_base_lot(R, {self.camps.index(camp) + 1}, {_ent(dbid, 1, 10_000_000, 'dbid')}, "
+                         f"{_ent(loadout, 0, 10_000_000, 'loadout')}, {_ent(base, 1, NUMERO_MAX, 'base')}, "
+                         f"{', '.join(str(_ent(k, 1, NUMERO_MAX, 'numero')) for k in ks)})")
+            n += len(ks)
+        if not corps:
+            return {"poses": [], "refus": {}}
+        r = self._exec(" ".join(corps))
+        out = {"poses": [int(v[0]) for k, v in r["lignes"] if k == "POSE"],
+               "refus": {int(v[0]): int(v[1]) for k, v in r["lignes"] if k == "REFUSE"}, "recu": r["recu"]}
+        if len(out["poses"]) + len(out["refus"]) != n:
+            raise Incomplet(f"{n} avions à poser sur base : {len(out['poses'])} posés, {len(out['refus'])} refusés")
+        return out
+
     def poser_lots(self, lots) -> dict:
         """Plusieurs lots ( un par camp, par exemple ) en UN envoi. lots : [ ( camp, genre, dbid, [ ( numéro, lat, lon ) ],
         alt, loadout ) ]. Rend les numéros posés et les refus { numéro : code REFUS_LUA, 0 = erreur Lua }."""
         corps, n = [], 0
         for camp, genre, dbid, poses, alt, loadout in lots:
-            if camp not in CAMPS or genre not in GENRES:
+            if camp not in self.camps or genre not in GENRES:
                 raise Refus(f"camp {camp!r} ou genre {genre!r} inconnu")
             if not poses:
                 continue
-            c, g = CAMPS.index(camp) + 1, GENRES.index(genre) + 1
+            c, g = self.camps.index(camp) + 1, GENRES.index(genre) + 1
             d, a = _ent(dbid, 1, 10_000_000, "dbid"), _num(alt, 0, 30000, "alt")
             lod = _ent(loadout, 0, 10_000_000, "loadout")
             args = []
@@ -500,9 +534,9 @@ class Labo:
         appel, déplacée ensuite ) ; affectations : [ ( id, [ numéros ] ) ]."""
         corps, n_pat, n_aff = [], 0, 0
         for i, camp, la, lo, dk in patrouilles:
-            if camp not in CAMPS:
+            if camp not in self.camps:
                 raise Refus(f"camp {camp!r} inconnu")
-            corps.append(f"HMT_patrouille(R, {_ent(i, 1, 9999, 'id')}, {CAMPS.index(camp) + 1}, "
+            corps.append(f"HMT_patrouille(R, {_ent(i, 1, 9999, 'id')}, {self.camps.index(camp) + 1}, "
                          f"{_num(la, -90, 90, 'lat'):.7f}, {_num(lo, -180, 180, 'lon'):.7f}, {_num(dk, 1, 200, 'demi_km'):.2f})")
             n_pat += 1
         for i, ks in affectations:
@@ -525,16 +559,16 @@ class Labo:
         """{ camp : [ ( numéro, lat, lon, alt ) ] } des vivants, et { camp : [ numéro ] } des morts depuis le dernier
         relevé. Un mort n'est rendu qu'une fois : c'est le moteur qui le garde."""
         r = self._exec("HMT_positions(R)", patience=max(10.0, self.liaison.patience))
-        vivants, morts = {c: [] for c in CAMPS}, {c: [] for c in CAMPS}
+        vivants, morts = {c: [] for c in self.camps}, {c: [] for c in self.camps}
         for cle, v in r["lignes"]:
             if cle == "U":
                 if len(v) != 5:
                     raise Incomplet(f"ligne U à {len(v)} nombres : {v!r}")
-                vivants[CAMPS[int(v[0]) - 1]].append((int(v[1]), v[2], v[3], v[4]))
+                vivants[self.camps[int(v[0]) - 1]].append((int(v[1]), v[2], v[3], v[4]))
             elif cle == "MORT":
                 if len(v) != 2:
                     raise Incomplet(f"ligne MORT à {len(v)} nombres : {v!r}")
-                morts[CAMPS[int(v[0]) - 1]].append(int(v[1]))
+                morts[self.camps[int(v[0]) - 1]].append(int(v[1]))
         return {"vivants": vivants, "morts": morts, "recu": r["recu"]}
 
     def nettoyer(self) -> dict:

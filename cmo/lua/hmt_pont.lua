@@ -15,8 +15,10 @@
 -- Codes du reçu : 0 exécutée, 1 erreur Lua pendant l'exécution, 2 le fichier ne compile pas, 3 refus ( detail =
 -- code de REFUS_LUA dans cmo_labo.py ).
 
-HMT_VERSION = 6
-HMT_CAMPS = { 'Stratis', 'Malden' }                          -- = CAMPS de cmo_labo.py, dans le même ordre
+HMT_VERSION = 7
+-- Les camps : ceux de hmt_config.lua ( écrit par deployer.py depuis le théâtre ), sinon la guerre des îles. Même ordre que
+-- Labo( camps = ... ) ; le canari rend leur signature, calculée des deux côtés.
+HMT_CAMPS = HMT_CAMPS_CONFIG or { 'Stratis', 'Malden' }
 HMT_GENRES = { 'Air', 'Ship', 'Submarine', 'Facility' }      -- = GENRES de cmo_labo.py
 HMT_n = HMT_n or 0                                           -- dernière commande prise
 HMT_coeur = HMT_coeur or 0                                   -- battements depuis le chargement
@@ -159,8 +161,19 @@ local function unite(guid)
 end
 
 -- --- LES OUTILS : appelés par les commandes, avec des nombres seulement.
+-- La signature des noms de camps : somme des octets pondérés par leur place, modulo 1 000 000 007 ( = signature_camps
+-- de cmo_labo.py ). Aucun nom ne remonte : un nombre suffit à savoir si les deux côtés parlent des mêmes camps.
+function HMT_signature_camps()
+    local s = 0
+    for i, nom in ipairs(HMT_CAMPS) do
+        for j = 1, #nom do s = (s + string.byte(nom, j) * (i * 31 + j)) % 1000000007 end
+    end
+    return s
+end
+
 function HMT_canari(R)
     R('CANARI', { HMT_n, HMT_VERSION, #HMT_CAMPS, HMT_lecteur() })
+    R('CAMPS_SIG', { HMT_signature_camps() })
     local b = {}
     for x in string.gmatch(tostring(GetBuildNumber()), '%d+') do b[#b + 1] = tonumber(x) end
     R('BUILD', b)
@@ -207,6 +220,37 @@ function HMT_hostiles(R, a, b)
     local ab = ScenEdit_GetSidePosture(HMT_CAMPS[a], HMT_CAMPS[b]) == 'H'
     local ba = ScenEdit_GetSidePosture(HMT_CAMPS[b], HMT_CAMPS[a]) == 'H'
     R('HOSTILES', { a, b, ab and 1 or 0, ba and 1 or 0 })
+end
+
+-- Des avions posés SUR une base ( une installation HMT déjà posée, du même camp ) : une mission les fait décoller, ils y
+-- reviennent se ravitailler. Nés en vol sans base, ils tombaient à sec ( guerre du 29/09 : 37 des 48 pertes de Malden ).
+function HMT_poser_base_lot(R, camp, dbid, loadout, base, ...)
+    -- Un lot n'échoue jamais à moitié : une base invalide refuse SES avions un par un ( REFUSE 7 ou 8 ), sans lever ; lever
+    -- ici effacerait le reçu des lots déjà posés dans la même commande, qui existeraient pourtant dans CMO.
+    local cote = HMT_CAMPS[camp]
+    local reg = registre()
+    local b = reg[base]
+    local defaut = nil
+    if cote == nil then defaut = 1
+    elseif b == nil or unite(b.guid) == nil then defaut = 7
+    elseif b.camp ~= camp then defaut = 8 end
+    for _, k in ipairs({ ... }) do
+        if defaut then
+            R('REFUSE', { k, defaut })
+        elseif reg[k] ~= nil and unite(reg[k].guid) ~= nil then
+            R('REFUSE', { k, 3 })
+        else
+            local t = { side = cote, type = 'Air', unitname = 'HMT-' .. k, dbid = dbid, base = b.guid }
+            if loadout > 0 then t.loadoutid = loadout end
+            local ok, u = pcall(ScenEdit_AddUnit, t)
+            if ok and u ~= nil then
+                reg[k] = { guid = u.guid, camp = camp }
+                R('POSE', { k, camp, u.latitude or 0, u.longitude or 0 })
+            else
+                R('REFUSE', { k, 4 })
+            end
+        end
+    end
 end
 
 function HMT_aller(R, numero, lat, lon)
