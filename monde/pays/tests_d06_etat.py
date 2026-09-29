@@ -380,6 +380,40 @@ def test_controle_fiscal():
                 f"{f.compte['impot_societes']:.0f}, elude {f.compte['is_elude']:.0f} ; {msg}")
 
 
+
+def _redressement_unite(jours_observes, elude=1000.0):
+    """Une entreprise au dossier d elude `elude`, cinq ans de passe non controle, controlee apres `jours_observes`
+    jours depuis l installation du fisc ; rend le redressement."""
+    w, p = T.monde(["etat"])
+    T.jours(w, 1)
+    f = M._etat(p).fisc
+    c = min((c for c in p.domaine("economie").unites if c.nature == "entreprise" and not c.liquidee), key=lambda c: c.id)
+    dos = f.unites.get(c.id) or f.unites.setdefault(c.id, M.DossierUnite(c.id, 0.0, False))
+    f.jour0 = p.jour - jours_observes
+    dos.controle_j = f.jour0 - int(10 * M.JOURS_AN); dos.elude = elude
+    o = M.controler(p, None, ("unite", c))
+    return o.redressement, p.socle.conservation.tenue()[0]
+
+
+def test_controle_entreprise_trimestre():
+    """Porte ( 29/09, suite de HMT-143, ecrite avant la mesure ) : le controle d une entreprise extrapole l impot elude
+    depuis l installation sur son passe non controle ( au plus PASSE_MAX_ANS = 5 ans ) avec au moins un trimestre de
+    pieces ( OBSERVATION_MIN_J ), comme celui d un menage. Elude E = 1 000, cinq ans de passe : controlee apres 30 jours,
+    redressement E x ( 1 + 12 x 5 / 3 ) = 21 E ( 1e-9 pres ) ; apres 180 jours, E x ( 1 + 12 x 5 / 6 ) = 11 E ( la regle
+    ne change pas au-dela du trimestre ). Controle positif : un elude nul ne redresse rien. Conservation. Falsificateur :
+    l ancienne regle ( un seul mois de pieces ) donne 61 E apres 30 jours, et la porte echoue."""
+    E = 1000.0
+    r30, t1 = _redressement_unite(30, E); r180, t2 = _redressement_unite(180, E); r0, t3 = _redressement_unite(30, 0.0)
+    ancien = M.OBSERVATION_MIN_J; M.OBSERVATION_MIN_J = M.EC.MOIS_J
+    try: f30, _ = _redressement_unite(30, E)
+    finally: M.OBSERVATION_MIN_J = ancien
+    juge = lambda r30, r180: abs(r30 - 21 * E) <= 1e-9 * E and abs(r180 - 11 * E) <= 1e-9 * E
+    ok = juge(r30, r180) and r0 <= 1e-9 and t1 and t2 and t3 and not juge(f30, r180)
+    return ok, (f"elude {E:.0f}, 5 ans de passe : apres 30 jours {r30:.2f} ( {r30 / E:.2f} E, attendu 21 ), apres 180 jours "
+                f"{r180:.2f} ( {r180 / E:.2f} E, attendu 11 ) ; elude nul : {r0:.2f} ; conservation {t1 and t2 and t3} ; ancienne "
+                f"regle ( un mois ) : {f30 / E:.2f} E apres 30 jours, porte {'passe ( FAUX )' if juge(f30, r180) else 'echoue ( attendu )'}")
+
+
 # ================================================================== le pays
 def test_pays_vivable():
     return T.porte_commune("etat", n_jours=12)
@@ -511,4 +545,4 @@ def test_insaisissable():
 
 TESTS = [test_tva_par_categorie, test_ir_par_tranches, test_is_penalites_douanes, test_comptes_nationaux,
          test_solde_budgetaire, test_tresor_jamais_a_sec, test_sitrep_sans_verite_cachee, test_enquete_chomage,
-         test_controle_fiscal, test_kea_revenu_declare, test_pays_vivable, test_cout, test_insaisissable]
+         test_controle_fiscal, test_kea_revenu_declare, test_pays_vivable, test_cout, test_insaisissable, test_controle_entreprise_trimestre]

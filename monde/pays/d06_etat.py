@@ -1300,7 +1300,9 @@ def controler(p, controleur, cible, cle=None, action=-1):
     else:
         c = x; dos = f.unites[c.id]; debiteur = c.unite
         avant = min(PASSE_MAX_ANS, max(0.0, (f.jour0 - dos.controle_j) / JOURS_AN))
-        mois = max(1.0, (p.jour - f.jour0) / EC.MOIS_J)
+        # ( 29/09 ) au moins un trimestre de pieces, comme pour un menage : au 2e mois, un seul mois observe multipliait
+        # l elude par 61 sur 5 ans de passe ( la raffinerie d Altis redressee de 27 318 + 13 659 de penalite, HMT-143 )
+        mois = max(OBSERVATION_MIN_J / EC.MOIS_J, (p.jour - f.jour0) / EC.MOIS_J)
         redr = dos.elude * (1.0 + 12.0 * avant / mois)
         taux = taux_penalite(redr, dos.impot)
         dos.elude = 0.0; dos.controle_j = p.jour
