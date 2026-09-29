@@ -125,8 +125,20 @@ def b7_quatre_envois_et_plafond():
             assert sum(1 for a in g.avions.values() if a["camp"] == c) <= g.plafond_camp[c]
 
 
+def b8_pertes_d_un_camp_a_tiret():
+    """Le journal de CMO écrit le camp entre crochets, tiret compris ( lignes réelles du 29/09 ) : une perte russe compte."""
+    import causes_cmo
+    t = ("29/09/2026 21:20:44 - [Russie-Chine] HMT-11100021 (Su-57 Felon) has run out of fuel and crashed!\n"
+         "29/09/2026 21:20:44 - [Russie-Chine] HMT-11100021 (Su-57 Felon) has been destroyed!\n"
+         "29/09/2026 19:02:10 - R-77M #4 HIT: Weapon: R-77M #4 is attacking HMT-10100003 (F-16CJ Blk 52+ Falcon) with a base PH "
+         "of 80%.\n"
+         "29/09/2026 19:02:10 - [OTAN] HMT-10100003 (F-16CJ Blk 52+ Falcon) has been destroyed!\n")
+    c, _ = causes_cmo.causes(t)
+    assert c == {11100021: "carburant", 10100003: "combat"}, c
+
+
 TESTS = [b1_ouverture, b2_credit_de_depart_et_budget, b3_offensive_en_paquet, b4_tenir_trois_tours,
-         b5_le_qg_gagne_la_guerre, b6_morts_par_pays_une_fois, b7_quatre_envois_et_plafond]
+         b5_le_qg_gagne_la_guerre, b6_morts_par_pays_une_fois, b7_quatre_envois_et_plafond, b8_pertes_d_un_camp_a_tiret]
 
 
 def controles():

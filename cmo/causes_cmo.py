@@ -9,8 +9,10 @@ import json
 import re
 import sys
 
-_DETRUIT = re.compile(r"\[(\w+)\] HMT-(\d+) \([^)]*\) has been destroyed!")
-_SEC = re.compile(r"\[(\w+)\] HMT-(\d+) \([^)]*\) has run out of fuel and crashed!")
+# Le camp entre crochets peut porter un tiret ou une espace : 29/09, « [Russie-Chine] » échappait à \w+ et les 11 pertes
+# russes de la guerre des blocs manquaient au bilan.
+_DETRUIT = re.compile(r"\[([^\]]+)\] HMT-(\d+) \([^)]*\) has been destroyed!")
+_SEC = re.compile(r"\[([^\]]+)\] HMT-(\d+) \([^)]*\) has run out of fuel and crashed!")
 _COUP = re.compile(r"Weapon: ([^#]+?) #\d+ is attacking HMT-(\d+)")
 
 
