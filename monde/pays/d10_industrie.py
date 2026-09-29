@@ -481,7 +481,7 @@ class Site:
     """Une entreprise du moteur reprise ( mine, carriere, fonderie ). Son stock du socle tient les biens nouveaux ; les
     biens du moteur restent dans Entreprise.stocks. equipe : les travailleurs affectes ( index du moteur, au matin )."""
     __slots__ = ("id", "entreprise", "lieu", "type", "stock", "ateliers", "equipe", "equipe_ref", "facteur_eau",
-                 "actif", "heures_j")
+                 "actif", "heures_j", "besoin_lisse")
 
     def __init__(self, entreprise, stock):
         self.id, self.entreprise, self.lieu, self.type = entreprise.id, entreprise, entreprise.lieu, entreprise.type
@@ -491,6 +491,7 @@ class Site:
         self.facteur_eau = 1.0
         self.actif = True
         self.heures_j = 0.0
+        self.besoin_lisse = {}      # bien -> ce que le site consomme par jour, lisse ( _lisser_besoins )
 
 
 class Chargement:
@@ -675,7 +676,7 @@ def valeur_directeur(p, a):
     return m.prix[b] * (1.0 - m.marge)
 
 
-def _regimes(p, D_):
+def _regimes(p, D_, equilibre=False):
     """Chaque atelier regle son regime sur son bien directeur. Un bien du moteur ( fer, zinc, outils ) : par crans de
     0,25 sur la couverture du marche de sa region ( sous la cible : plus ; au-dela de deux fois : moins ), comme la regle
     du moteur et de l economie ; un gisement qui donne de l or tourne plein ( l or se vend au prix mondial ). Un bien
@@ -684,7 +685,10 @@ def _regimes(p, D_):
     atelier ne fait pas un bien nouveau a perte ( cout variable au-dessus du prix de cession : arret ) ; un bien du
     moteur perd un cran quand son prix ne couvre plus le cout variable, comme la regle de l economie. Un four a fonte
     electrique paie ~ 2 300 kWh par tonne : au tarif du moteur ( ~ 0,18 euro le kWh, le tarif reglemente grec ) il
-    perd de l argent, et il n existe en vrai qu avec une electricite a quelques centimes ( hydraulique norvegienne )."""
+    perd de l argent, et il n existe en vrai qu avec une electricite a quelques centimes ( hydraulique norvegienne ).
+    ( 29/09 ) La cible du pays : les jours de stock que les sites clients gardent de leur consommation lissee, plus les 2
+    jours du producteur. equilibre : le monde qui nait ( _stocks_d_ouverture ) ; chaque stock est a sa cible, un bien
+    nouveau produit ce que ses clients consomment, un bien du moteur garde son regime."""
     cat = p.socle.catalogue
     ateliers = [a for s in D_.sites if s.actif for a in s.ateliers]
     for a in ateliers:
@@ -694,6 +698,7 @@ def _regimes(p, D_):
         b = a.directeur
         if b in BIENS: continue
         if g is not None and "or" in g.rendements: a.regime = 1.0; a.couverture = 0.0; continue
+        if equilibre: continue
         couv = _demande_lissee(p, a.site.entreprise, b)
         cible = ECO.COUVERTURE_CIBLE_J.get(b, 5.0)
         a.couverture = couv / (2.0 * cible)
@@ -708,8 +713,9 @@ def _regimes(p, D_):
             a.recette.entrees[b] * a.nominal_j * a.regime for a in ateliers if a.recette is not None and b in a.recette.entrees)
         nominal = math.fsum(a.nominal_j for a in prod)
         if nominal <= 0.0: continue
-        cible = max(STOCK_MIN_J * nominal, JOURS_STOCK * besoin)
-        dispo = _dispo_bien(D_, b, cat.id(b))
+        lisse = math.fsum(s.besoin_lisse.get(b, 0.0) for s in D_.sites if s.actif)
+        cible = max(STOCK_MIN_J * nominal, STOCK_MIN_J * besoin + jours_de_stock(b) * lisse)   # ( 29/09 ) le niveau reel
+        dispo = cible if equilibre else _dispo_bien(D_, b, cat.id(b))
         r = min(1.0, max(0.0, (besoin + (cible - dispo) / JOURS_RATTRAPAGE) / nominal))
         for a in prod: a.regime = r; a.couverture = dispo / (2.0 * cible)
 
@@ -731,6 +737,8 @@ def _matin(p):
         len(w.ids_au_travail(e.lieu, e.role)) * e.intrants.get("electricite", 0.0)
         for e in w.entreprises.values() if e.id not in p.repris and e.type != "centrale")
     _regimes(p, D_)
+    for s in D_.sites:
+        if s.actif: _lisser_besoins(s)
     dec = D_.decideur; parc = p.socle.parc
     for s in D_.sites:
         if not s.actif: continue
@@ -875,10 +883,13 @@ def _panne(p, D_, s, a, m, presents):
     p.compter("panne_machine")
     rng = D_.rng_accidents
     pa, pm = a.p_acc * D_.facteur_risque, a.p_mort * D_.facteur_risque
-    D_.attendu[0] += pa; D_.attendu[1] += pm
     u = rng.random()
     tb = p.w.table                                # `presents` : les numeros des presents ( _pas, en colonnes )
     vivants = presents[tb.vivant[presents] != 0]
+    # ( 29/09 ) l attendu est la probabilite de ce tirage : une panne blesse au plus une personne, et personne si nul n est
+    # present. Avant, il ajoutait l intensite : au facteur de risque 1 000 de la porte, 1 a 12 par panne pour 1 accident
+    # possible, et l attendu des pannes depassait de ~6 fois ce que le tirage pouvait donner ( test_accidents ).
+    if len(vivants): D_.attendu[0] += min(pa, 1.0); D_.attendu[1] += min(pa + pm, 1.0) - min(pa, 1.0)
     if u < pa + pm and len(vivants):
         h = PO.Habitant(tb, int(vivants[int(rng.integers(len(vivants)))]))
         mortel = u >= pa
@@ -1019,20 +1030,16 @@ def _pas(p):
 # ================================================================== l apres-midi ( 16 h ) : gazole et livraisons entre sites
 def _acheter_gazole(p, D_):
     """Les sites qui roulent au gazole l achetent au marche de leur region, TVA comprise, comme le moteur achete les
-    intrants de ses entreprises : deux jours de reserve, sans descendre le marche sous la reserve de ses convois."""
+    intrants de ses entreprises : JOURS_MATIERES jours de sa consommation lissee ( 29/09 ; avant : deux ), sans
+    descendre le marche sous la reserve de ses convois."""
     w = p.w; L = p.socle.livre; g = w.gouv
     for s in D_.sites:
         if not s.actif: continue
-        besoin = 0.0
-        for a in s.ateliers:
-            gi = a.gisement
-            if gi is None or gi.reserve_t <= 0: continue
-            besoin += (s.equipe * a.part * HEURES_POSTE * a.regime * gi.type.materiel_t_h * gi.type.gazole_l_t
-                       / LITRES_PAR_UNITE_CARBURANT)
+        besoin = s.besoin_lisse.get("carburant", 0.0)
         e = s.entreprise
-        if besoin <= 0.0 or e.stocks["carburant"] >= 2.0 * besoin: continue
+        if besoin <= 0.0 or e.stocks["carburant"] >= (JOURS_MATIERES - 1.0) * besoin: continue   # ( 29/09 ) consommable
         m = w.marches[e.lieu.marche.id]
-        voulu = 3.0 * besoin - e.stocks["carburant"]
+        voulu = JOURS_MATIERES * besoin - e.stocks["carburant"]
         q = min(voulu, m.stocks["carburant"] - RESERVE_CARBURANT_MARCHE)
         # 27/09 : la commande entiere est une demande, et ce que le marche ne peut pas servir est une rupture ( non servi ) :
         # avant, une mine a sec devant un marche sous sa reserve ne laissait aucune trace, le prix ne bougeait pas, la
@@ -1066,7 +1073,8 @@ def _en_route_vers(D_, s, bid):
 
 def _livraisons(p, D_):
     """Chaque site qui manque d un intrant venu d ailleurs ( lignite, calcaire, gypse, sable, fonte ) le fait venir du
-    site le plus proche qui en a ( au-dela de son propre jour de besoin ). Le camion part, les biens sont en route le
+    site le plus proche qui en a ( au-dela de ses propres jours de stock ; 29/09 : sur la consommation lissee, avant :
+    3 jours du besoin du jour, et la source gardait 1 jour ). Le camion part, les biens sont en route le
     temps du trajet ( km de la carte a la vitesse des convois ) ; le gazole est achete au marche de depart par le site
     qui recoit, qui paie aussi la marchandise au prix de cession ( ou la doit : creance du socle ). Un marche sans
     gazole au-dela de sa reserve : pas de camion ce jour-la."""
@@ -1076,13 +1084,13 @@ def _livraisons(p, D_):
         biens = sorted({b for a in s.ateliers if a.recette is not None for b in a.recette.entrees if b in BIENS})
         for b in biens:
             bid = cat.id(b)
-            besoin = _besoin_site(s, b)
-            manque = JOURS_INTRANTS * besoin - s.stock[bid] - _en_route_vers(D_, s, bid)
+            besoin = s.besoin_lisse.get(b, 0.0)
+            manque = jours_de_stock(b) * besoin - s.stock[bid] - _en_route_vers(D_, s, bid)   # ( 29/09 ) le niveau reel
             if besoin <= 0.0 or manque < LOT_MIN_T: continue
             sources = sorted((x for x in D_.sites if x is not s and x.actif and x.lieu.ile == s.lieu.ile),
                              key=lambda x: (x.lieu.distance(s.lieu), x.id))
             for src in sources:
-                q = min(manque, src.stock[bid] - _besoin_site(src, b))
+                q = min(manque, src.stock[bid] - jours_de_stock(b) * src.besoin_lisse.get(b, 0.0))
                 if q < LOT_MIN_T: continue
                 km = w.carte.km_route(src.lieu, s.lieu)
                 m = w.marches[src.lieu.marche.id]
@@ -1114,13 +1122,13 @@ def _arrivee(p, cle, donnees):
 
 def _livrer_energie(p, D_):
     """Le lignite que le domaine 11 commande ( `commander( p, "charbon", t par jour )` ) part chaque jour aux cuves de ses
-    centrales de l ile, par sa fonction `livrer_combustible` ( il paie au prix de cession ) ; chaque site garde son
-    propre besoin du jour."""
+    centrales de l ile, par sa fonction `livrer_combustible` ( il paie au prix de cession ) ; chaque site garde ses
+    propres jours de stock ( 29/09 ; avant : son besoin du jour )."""
     q = D_.commandes.get("charbon", 0.0)
     if q <= 0.0 or not p.a("energie"): return
     ENE = importlib.import_module(".d11_energie", __package__); bid = p.socle.catalogue.id("charbon")
     for s in D_.sites:
-        dispo = s.stock[bid] - _besoin_site(s, "charbon")
+        dispo = s.stock[bid] - jours_de_stock("charbon") * s.besoin_lisse.get("charbon", 0.0)
         if not s.actif or dispo < LOT_MIN_T: continue
         q -= ENE.livrer_combustible(p, s.stock, "charbon", min(q, dispo), s.entreprise, BIENS["charbon"][2], s.lieu.ile)
         if q < LOT_MIN_T: break
@@ -1341,33 +1349,59 @@ def livrer(p, bien, quantite, vers, payeur, prix=None):
 JOURS_MATIERES = 26.0
 JOURS_DEMI_PRODUITS = 1.0
 DEMI_PRODUITS = ("fonte", "acier")
+# CHOIX DECLARE ( 29/09 ) : pour les mines, les carrieres et leurs ateliers ( ciment, chaux ), aucune statistique de
+# branche lisible ( Eurostat SBS ne publie pas le niveau des stocks ; BACH ne couvre pas la Grece ) : le ratio des
+# matieres et consommables de Sidenor vaut pour toutes les branches du domaine, gazole des engins compris.
+# La politique du domaine suit le meme niveau ( avant : 3 jours d intrants, 5 jours de stock vise ) : un monde qui nait a
+# 26 jours sous une politique a 5 laissait l amont a l arret des semaines.
 
 
-def _besoins_nominaux(s):
-    """Ce qu un site consomme par jour a plein regime : les intrants materiels de ses recettes ( comme _besoin_site ) et
-    le gazole de ses gisements ( comme _acheter_gazole )."""
+def jours_de_stock(b):
+    """Les jours de besoin qu un site garde d un intrant ( et que les producteurs visent en plus de leurs 2 jours )."""
+    return JOURS_DEMI_PRODUITS if b in DEMI_PRODUITS else JOURS_MATIERES
+
+
+ALPHA_BESOIN = 1.0 / 30.0         # la consommation d un site lissee sur ~ un mois ( comme la demande d outils, d03 )
+
+
+def _besoins_du_jour(s):
+    """Ce qu un site consomme par jour a son regime : les intrants materiels de ses recettes ( comme _besoin_site ) et le
+    gazole de ses gisements. Le stock se compte en jours de cette consommation reelle, pas de la capacite : Sidenor
+    compte ses 26 jours sur ce qu il a consomme dans l annee ( 29/09 : le nominal au regime 1 faisait des annees de la
+    consommation reelle d un site en sureffectif )."""
     besoin = {}
     for a in s.ateliers:
-        nominal = s.equipe * a.part * HEURES_POSTE * a.productivite()
         if a.recette is not None:
             for b, k in a.recette.entrees.items():
-                if b != "electricite": besoin[b] = besoin.get(b, 0.0) + k * nominal
+                if b != "electricite": besoin[b] = besoin.get(b, 0.0) + k * a.nominal_j * a.regime
         elif a.gisement is not None and a.gisement.reserve_t > 0:
             g = a.gisement.type
-            besoin["carburant"] = besoin.get("carburant", 0.0) + (s.equipe * a.part * HEURES_POSTE * g.materiel_t_h
+            besoin["carburant"] = besoin.get("carburant", 0.0) + (s.equipe * a.part * HEURES_POSTE * a.regime * g.materiel_t_h
                                                                      * g.gazole_l_t / LITRES_PAR_UNITE_CARBURANT)
     return besoin
 
 
+def _lisser_besoins(s):
+    du_jour = _besoins_du_jour(s)
+    for b in sorted(set(du_jour) | set(s.besoin_lisse)):
+        s.besoin_lisse[b] = (1.0 - ALPHA_BESOIN) * s.besoin_lisse.get(b, 0.0) + ALPHA_BESOIN * du_jour.get(b, 0.0)
+
+
 def _stocks_d_ouverture(p, D_):
     """A l installation : chaque site recoit JOURS_MATIERES jours de ses matieres et consommables et JOURS_DEMI_PRODUITS
-    de ses demi-produits ( une source declaree, motif stock_initial ), puis le domaine 3 les met au bilan d ouverture."""
+    de ses demi-produits ( une source declaree, motif stock_initial ), puis le domaine 3 les met au bilan d ouverture. Les
+    jours se comptent sur la consommation du monde a l equilibre ( _regimes, equilibre ) : elle amorce la consommation
+    lissee. Les regimes calcules pour cela sont remis tels qu ils etaient : le premier matin les fixe."""
     L = p.socle.livre; cat = p.socle.catalogue
     X = importlib.import_module(".d07_exterieur", __package__)
+    avant = [(a, a.regime, a.couverture, a.nominal_j) for s in D_.sites for a in s.ateliers]
+    _regimes(p, D_, equilibre=True)
+    for s in D_.sites: s.besoin_lisse = _besoins_du_jour(s)
+    for a, r, c, n in avant: a.regime, a.couverture, a.nominal_j = r, c, n
     for s in D_.sites:
         e = s.entreprise
-        for b, q in sorted(_besoins_nominaux(s).items()):
-            q *= JOURS_DEMI_PRODUITS if b in DEMI_PRODUITS else JOURS_MATIERES
+        for b, q in sorted(s.besoin_lisse.items()):
+            q *= jours_de_stock(b)
             if q <= 1e-9: continue
             if b in BIENS_E1: L.source(X.StockE1(e.stocks, cat), cat.id(b), q, "produit", "stock_initial")
             else: L.source(s.stock, cat.id(b), q, "produit", "stock_initial")

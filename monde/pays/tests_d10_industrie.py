@@ -24,7 +24,11 @@ def test_bilan_matiere():
     20 jours : chaque gisement a donne, chaque recette placee a tourne - ou bien son cout variable depasse la valeur de
     son produit au tarif du reseau ( elle est a l arret pour cette raison, et pour elle seule ) - et l audit ( ce que
     les recettes impliquent = ce que le grand livre a vu ) tient a 1e-9 pres. Controle positif du cout : 10 jours avec
-    une electricite a 0,03 drachme le kWh ( hydraulique ) : le four a fonte electrique tourne."""
+    une electricite a 0,03 drachme le kWh ( hydraulique ) : le four a fonte electrique tourne.
+    ( AMENDEE le 29/09 AVANT la mesure, HMT-140 cause 5 : les sites gardent desormais 26 jours de matieres ( Sidenor ) et
+    naissent avec ; un gisement peut attendre que ses clients aient entame leur stock. « Chaque gisement a donne » se juge
+    sur 60 jours au lieu de 20, qui venaient de la politique du modele a 5 jours. Controle positif : un gisement vide au
+    depart ne livre rien en 60 jours, et la porte le voit. )"""
     pires = []
     for r in M.RECETTES.values():
         (e, s), (fi, fo) = M.bilan_recette(r)
@@ -42,7 +46,7 @@ def test_bilan_matiere():
     donnees = (pire[0] <= 1e-3 and 0.6 <= co2 <= 0.95 and abs(gj_clinker / 3.5 - 1) <= 0.01 and 2000 <= kwh_fonte <= 2600
                and all(0.3 <= x <= 1.0 for x in laitiers) and 0.08 <= lait_acier <= 0.2 and 55 <= o2 <= 65 and gis < 1.0)
     w, p = T.monde(["industrie"])
-    T.jours(w, 20)
+    T.jours(w, 60)
     ats = [a for s in p.domaine("industrie").sites for a in s.ateliers]
     places = {}
     for a in ats:
@@ -58,13 +62,18 @@ def test_bilan_matiere():
     T.jours(w2, 10)
     hydro = sum(a.cumul_passes for s in p2.domaine("industrie").sites for a in s.ateliers
                 if a.recette is not None and a.recette.nom == "fonte_electrique")
-    ok = donnees and tourne and ecart <= 1e-9 and tenue and hydro > 0 and M.ecart_audit(p2)[0] <= 1e-9
+    w3, p3 = T.monde(["industrie"])                  # controle positif : un gisement vide ne livre rien en 60 jours
+    vide = next(a for s in p3.domaine("industrie").sites for a in s.ateliers if a.gisement is not None)
+    vide.gisement.reserve_t = 0.0
+    T.jours(w3, 60)
+    vu_vide = not all(a.cumul_minerai > 0 for s in p3.domaine("industrie").sites for a in s.ateliers if a.gisement is not None)
+    ok = donnees and tourne and ecart <= 1e-9 and tenue and hydro > 0 and M.ecart_audit(p2)[0] <= 1e-9 and vu_vide
     return ok, (f"pire bilan de recette {pire[0]:.1e} ( {pire[1]}, {pire[2]} ) ; ciment {co2:.3f} t CO2/t, clinker "
                 f"{gj_clinker:.2f} GJ/t ; four a fonte {kwh_fonte:.0f} kWh/t ; laitier fonte {laitiers[0]:.2f} et {laitiers[1]:.2f}, "
-                f"acier {lait_acier:.3f} ; O2 {o2:.0f} Nm3/t ; gisement le plus riche {gis:.2f} t de produit par t ; 20 jours : "
+                f"acier {lait_acier:.3f} ; O2 {o2:.0f} Nm3/t ; gisement le plus riche {gis:.2f} t de produit par t ; 60 jours : "
                 + ", ".join(f"{k} {v:.1f}" for k, v in sorted(places.items())) + f" ; a l arret parce qu a perte : {a_perte} ; "
                 f"gisements tous > 0 : {all(v > 0 for v in gisements.values())} ; audit {ecart:.1e} ( {qui} ) ; {msg} ; "
-                f"electricite hydraulique, 10 jours : fonte electrique {hydro:.1f} t")
+                f"electricite hydraulique, 10 jours : fonte electrique {hydro:.1f} t ; gisement vide vu {vu_vide}")
 
 
 def _electricite_hydraulique(p):
@@ -191,7 +200,12 @@ def test_accidents():
     chose en 15 jours a 2 000 habitants ) : les accidents tires s ecartent de leurs intensites de moins de 3 ecarts-types, et
     le taux attendu par heure travaillee, ramene au facteur, est de 0,86 a 1,15 fois celui d ESAW ( 0,85 vient de
     l heure travaillee ; les pannes reelles doivent en porter au moins un quinzieme de leur part ). ( 3 ) Un accident mortel passe par la population : le mort
-    a la cause accident."""
+    a la cause accident.
+    ( AMENDEE le 29/09, HMT-140 cause 5, AVANT la mesure : l attendu d une panne est la probabilite de son tirage, au plus
+    1, et 0 si personne n est present ; il ajoutait l intensite. Au facteur 1 000, chaque panne vaut 1 a 12 accidents
+    attendus pour 1 possible : le temoin cachait 19 accidents attendus en trop ( z -1,56 ), les stocks a 26 jours, qui
+    font tourner plus de machines au demarrage, 32 ( z -3,85 ). Apres : z +0,33 et -1,21. L ancien compte, rejoue sur le
+    nouveau monde, fait echouer la porte : elle sait encore echouer. )"""
     rng = np.random.default_rng(3)
     lignes, ok1 = [], True
     for sec in ("B", "C24"):
