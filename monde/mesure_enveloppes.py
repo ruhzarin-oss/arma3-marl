@@ -83,12 +83,21 @@ def main(argv=None):
             env[nom] = {"entrees": float(ec[0, k_]), "encaisse": float(ec[1, k_]), "substitue": float(ec[2, k_]),
                         "part_negative": float((c < 0).mean()) if n else 0.0}
     st = p.col("menage", "im_statut")[:n] if "im_statut" in p.colonnes["menage"] else np.zeros(0)
+    occupation = {}
+    if len(st):
+        v_, _ = EC._tableaux_menages(p); hb = (v_ > 0) & (p.col("menage", "dissous")[:n] == 0)
+        _, s = EC.parts_d_occupation(st, hb) if hasattr(EC, "parts_d_occupation") else (None, float("nan"))
+        f_p, f_l = EC.multiplicateurs_occupation(s)
+        occupation = {"part_locataires_monde": s, "part_locataires_grece": EC.PART_LOCATAIRES_GRECE, "f_proprietaire": f_p,
+                      "f_locataire": f_l, "moyenne_ponderee": (1.0 - s) * f_p + s * f_l,
+                      "habites": int(hb.sum()), "sans_statut_habites": int((hb & (st != 1) & (st != 2)).sum())}
     lignes = RS.mesurer(w, p, suivi=suivi, refs=RS.charger())
     rs = {l["id"]: l for l in lignes}
     res = {"etiquette": et, "enveloppes": x.enveloppes, "graine": x.graine, "habitants": int(w.table.n), "jours": x.jours,
            "chauffe": x.chauffe, "demographie": x.demographie, "s_par_jour": t_jours / max(1, x.jours),
            "structure_realisee": struct, "elstat_2024": ELSTAT_2024, "consommation_fenetre": conso,
            "enveloppes_par_division": env, "fuites": dict(getattr(d, "sans_division", {})),
+           "occupation": occupation,
            "statuts": {str(int(k)): int((st == k).sum()) for k in np.unique(st)} if len(st) else {},
            "resume": RS.resume(lignes),
            "ressemblance": [{k: l[k] for k in ("id", "simule", "reel", "bande", "verdict", "surete", "evenements")}

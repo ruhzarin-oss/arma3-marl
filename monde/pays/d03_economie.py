@@ -537,11 +537,15 @@ def repartir_budget(revenu, caisse, tampon, cout_nourriture):
 # du moteur ( d11, d12, d13, d22 : 30 jours ) plus une demi-marge, pour ne jamais acheter au commerce la part d un loyer ou
 # d une facture qui n est pas encore tombee ; LOT_ENVELOPPE = 7 jours, des achats hebdomadaires.
 # LE LOGEMENT SUIT LE STATUT D OCCUPATION ( d13 ). ELSTAT HBS 2024 : les menages locataires consacrent 17,1 % de leur
-# consommation au loyer ; 26,5 % des Grecs sont locataires ( Eurostat ilc_lvho02 2023 : 73,5 % proprietaires, la valeur
-# de d13 ; a verifier ) : le loyer pese ~ 0,265 x 17,1 = 4,5 des 14,4 points du logement ( tableau 1 ). Un proprietaire
-# ne paie pas de loyer : sa part du logement vaut ( 14,4 - 4,5 ) / 14,4 = 0,685 fois la moyenne ; un locataire y ajoute
-# son loyer, ( 9,9 + 17,1 ) / 14,4 = 1,873 fois ; ponderes, la moyenne. Les autres divisions se renormalisent. Sans d13,
-# ou pour un menage ni proprietaire ni locataire ( sans logement, abri ), la moyenne.
+# consommation au loyer. Avec s la part des locataires parmi les menages loges ( proprietaires et locataires ), le loyer
+# pese s x 17,1 des 14,4 points du logement ( tableau 1 ) : un proprietaire, qui ne paie pas de loyer, a une part du
+# logement de ( 14,4 - s x 17,1 ) / 14,4 fois la moyenne, un locataire y ajoute son loyer, 17,1 / 14,4 de plus ; ponderes
+# par s, la moyenne. En Grece, s = 26,5 % ( Eurostat ilc_lvho02 2023 : 73,5 % de proprietaires, la valeur de d13 ; a
+# verifier ) : 0,685 et 1,873. ( 29/09, CHOIX declare avant la mesure, remarque de Classes ) s est celle du MONDE, lue
+# chaque soir sur les menages habites de l ile : d13 en loge un tiers en location ( 33 % a Altis, sonde du 29/09 ), et des
+# multiplicateurs cales sur 26,5 % donneraient au logement du monde 7 % de trop par construction ; le loyer de 17,1 %
+# chez les locataires est garde. Les autres divisions se renormalisent. Sans d13, ou pour un menage ni proprietaire ni
+# locataire ( sans logement, abri ), la moyenne.
 J_ENVELOPPE = 45.0
 LOT_ENVELOPPE = 7.0
 DIVISIONS_ENVELOPPE = ("logement", "sante", "transport", "communications", "loisirs", "education", "restauration", "divers")
@@ -567,11 +571,17 @@ MOTIFS_DU_DOMAINE_3 = ("nourriture", "remedes", "carburant", "outils", "services
 HORS_ENVELOPPE = ("vente_logement", "frais_transaction", "vente_terrain", "travaux", "second_oeuvre", "achat_abri",
                   "import_materiaux", "investissement", "cession_liquidation", "droits_mutation", "depot_garantie")
 LOYER_LOCATAIRES = 0.171      # ELSTAT HBS 2024 ( communique du 25/09/2025 ) : part du loyer chez les menages locataires
-PART_LOCATAIRES = 0.265       # Eurostat ilc_lvho02, Grece 2023 ( a verifier ) ; d13 : 73,5 % de proprietaires
+PART_LOCATAIRES_GRECE = 0.265 # Eurostat ilc_lvho02, Grece 2023 ( a verifier ) ; la reference, le monde a la sienne
 LOGEMENT_ELSTAT = 0.144       # ELSTAT HBS 2024, tableau 1 : logement, eau, electricite, gaz et autres combustibles
-F_PROPRIETAIRE = 1.0 - PART_LOCATAIRES * LOYER_LOCATAIRES / LOGEMENT_ELSTAT
-F_LOCATAIRE = F_PROPRIETAIRE + LOYER_LOCATAIRES / LOGEMENT_ELSTAT
+F_PROPRIETAIRE_MIN = 0.05     # garde : si le monde logeait presque tout le monde en location, un proprietaire garde 5 %
 STATUT_PROPRIETAIRE, STATUT_LOCATAIRE = 1, 2      # les codes de im_statut ( d13 : SANS, PROPRIETAIRE, LOCATAIRE, ABRI )
+
+
+def multiplicateurs_occupation(part_locataires):
+    """( HMT-145, fonction pure ) ( proprietaire, locataire ) : les multiplicateurs de la part du logement pour une part
+    s de locataires parmi les menages loges ; ponderes par s, 1 ( sauf sous la garde ). 0,685 et 1,873 a s = 26,5 %."""
+    f_p = max(F_PROPRIETAIRE_MIN, 1.0 - float(part_locataires) * LOYER_LOCATAIRES / LOGEMENT_ELSTAT)
+    return f_p, f_p + LOYER_LOCATAIRES / LOGEMENT_ELSTAT
 
 
 def _parts_occupation(f):
@@ -579,8 +589,6 @@ def _parts_occupation(f):
     return x / x.sum()
 
 
-PARTS_PROPRIETAIRE = _parts_occupation(F_PROPRIETAIRE)
-PARTS_LOCATAIRE = _parts_occupation(F_LOCATAIRE)
 ENVELOPPES = True             # le bras temoin des mesures le met a False dans son processus : le partage du tronc
 
 
@@ -594,11 +602,16 @@ def partager_le_reste(M, parts):
     return out
 
 
-def parts_d_occupation(statut):
-    """( HMT-145, fonction pure ) Les parts du reste de chaque menage selon son statut d occupation ( codes de d13 )."""
-    st = np.asarray(statut)[:, None]
-    return np.where(st == STATUT_PROPRIETAIRE, PARTS_PROPRIETAIRE[None, :],
-                    np.where(st == STATUT_LOCATAIRE, PARTS_LOCATAIRE[None, :], PARTS_HORS_ALIM[None, :]))
+def parts_d_occupation(statut, habite):
+    """( HMT-145, fonction pure ) Les parts du reste de chaque menage selon son statut d occupation ( codes de d13 ), les
+    multiplicateurs cales sur la part de locataires parmi les menages habites et loges. Rend ( parts n x K, s )."""
+    st = np.asarray(statut); hb = np.asarray(habite, dtype=bool)
+    prop = int((hb & (st == STATUT_PROPRIETAIRE)).sum()); loc = int((hb & (st == STATUT_LOCATAIRE)).sum())
+    s = loc / (prop + loc) if prop + loc else PART_LOCATAIRES_GRECE
+    f_p, f_l = multiplicateurs_occupation(s)
+    st = st[:, None]
+    return np.where(st == STATUT_PROPRIETAIRE, _parts_occupation(f_p)[None, :],
+                    np.where(st == STATUT_LOCATAIRE, _parts_occupation(f_l)[None, :], PARTS_HORS_ALIM[None, :])), s
 
 
 def enveloppe_du_soir(E, entree, paye, achete):
@@ -953,7 +966,7 @@ def _achats(p):
     cout_n = besoin * pn_ttc
     _, M = repartir_budget(rev, caisse, tampon, cout_n)
     if ENVELOPPES and "im_statut" in p.colonnes["menage"]:      # ( HMT-145 ) le logement suit le statut d occupation
-        M = partager_le_reste(M, parts_d_occupation(p.col("menage", "im_statut")[:n]))
+        M = partager_le_reste(M, parts_d_occupation(p.col("menage", "im_statut")[:n], ok)[0])
     M[~ok] = 0.0
     jours = np.clip(p.jour - p.col("menage", "eco_dernier_achat")[:n], 1, JOURS_ACHAT_MAX).astype(float)
     reserve = RESERVE_ALIMENTAIRE_J * cout_n

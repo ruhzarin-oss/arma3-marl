@@ -65,8 +65,9 @@ def test_enveloppes():
     """Porte ( HMT-145, seuils ecrits avant la mesure ). Fonctions pures : un locataire dont le loyer mensuel vaut 30 jours
     d entree n achete jamais au commerce ( 360 jours ) ; un proprietaire sans facture achete des qu il depasse 45 + 7 jours
     d entree, au jour 52, puis chaque semaine ; une voiture ( une enveloppe tres negative ) suspend les achats jusqu a ce
-    qu elle se reconstitue ; qui ne fait pas ses courses n achete pas. Les parts d occupation : proprietaire 0,685 et
-    locataire 1,873 fois la part du logement ( ELSTAT HBS 2024, Eurostat ), ponderees 73,5 / 26,5 : la moyenne a 1e-3 ;
+    qu elle se reconstitue ; qui ne fait pas ses courses n achete pas. Les multiplicateurs d occupation : 0,685 et 1,873
+    a 26,5 % de locataires ( ELSTAT HBS 2024, Eurostat ) ; ponderes par la part s de locataires, la moyenne a 1e-12 pour s
+    de 0 a 0,8 ( 29/09 : s est celle du monde ) ; s ne compte que les menages habites et loges ;
     partager_le_reste garde la nourriture et le total. Le pays ( economie, immobilier, energie, services publics, medias,
     culture, 1 000 habitants, 60 jours ) : des substitutions sont achetees ; AUCUNE fuite ( paiement d achat d un menage
     que rien ne classe ) ; le compte des enveloppes tient au centime ( entrees - encaissements - substitutions = somme des
@@ -85,11 +86,14 @@ def test_enveloppes():
     voiture = (achats[:200, 2] == 0.0).all()
     _, x0 = M.enveloppe_du_soir(np.array([1e6]), np.array([10.0]), np.array([0.0]), np.array([False]))
     absent = x0[0] == 0.0
-    moy = 0.735 * M.F_PROPRIETAIRE + 0.265 * M.F_LOCATAIRE
-    parts = (abs(M.F_PROPRIETAIRE - 0.685) < 1e-3 and abs(M.F_LOCATAIRE - 1.873) < 1e-3 and abs(moy - 1.0) < 1e-3
-             and abs(M.PARTS_PROPRIETAIRE.sum() - 1.0) < 1e-12 and abs(M.PARTS_LOCATAIRE.sum() - 1.0) < 1e-12)
+    f_p, f_l = M.multiplicateurs_occupation(0.265)
+    moy = max(abs((1.0 - s) * M.multiplicateurs_occupation(s)[0] + s * M.multiplicateurs_occupation(s)[1] - 1.0)
+              for s in np.linspace(0.0, 0.8, 9))
+    P0, s0 = M.parts_d_occupation(np.array([1, 1, 1, 2, 0, 2]), np.array([True, True, True, True, True, False]))
+    parts = (abs(f_p - 0.685) < 1e-3 and abs(f_l - 1.873) < 1e-3 and moy < 1e-12 and abs(s0 - 0.25) < 1e-12
+             and np.abs(P0.sum(axis=1) - 1.0).max() < 1e-12)
     rng = np.random.default_rng(29)
-    avant = rng.random((20, M.K)); apres = M.partager_le_reste(avant, M.parts_d_occupation(rng.integers(0, 4, 20)))
+    avant = rng.random((20, M.K)); apres = M.partager_le_reste(avant, M.parts_d_occupation(rng.integers(0, 4, 20), np.ones(20, bool))[0])
     partage = (np.abs(apres[:, M.I_ALIM] - avant[:, M.I_ALIM]).max() <= 1e-9
                and np.abs(apres.sum(axis=1) - avant.sum(axis=1)).max() <= 1e-9)
     doms = ["economie", "immobilier", "energie", "services_publics", "medias", "culture"]
@@ -121,8 +125,8 @@ def test_enveloppes():
     ok = (locataire and proprietaire and voiture and absent and parts and partage and not fuite and achetees and compte
           and tenue and sans_subst and vue)
     return ok, (f"locataire sans achat : {locataire} ; proprietaire : premier achat au jour {premier + 1} ( attendu "
-                f"{int(j + lot)} ) ; voiture : {voiture} ; absent : {absent} ; parts d occupation {M.F_PROPRIETAIRE:.3f} / "
-                f"{M.F_LOCATAIRE:.3f}, moyenne {moy:.4f} ; partage : {partage} | pays 60 j : fuites {fuite or 'aucune'} ; "
+                f"{int(j + lot)} ) ; voiture : {voiture} ; absent : {absent} ; multiplicateurs a 26,5 % {f_p:.3f} / "
+                f"{f_l:.3f}, ecart a la moyenne {moy:.1e}, part lue {s0:.2f} ( attendu 0,25 ) ; partage : {partage} | pays 60 j : fuites {fuite or 'aucune'} ; "
                 f"entrees {ec[0].sum():.0f}, encaisse {ec[1].sum():.0f}, substitue {ec[2].sum():.0f} dr, compte des enveloppes "
                 f"{'tenu' if compte else 'FAUX'} ; conservation : {msg} | controles : eteint sans substitution {sans_subst}, "
                 f"loyer retire -> fuite vue {vue}")
