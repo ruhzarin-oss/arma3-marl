@@ -3,7 +3,7 @@ import math, time
 import numpy as np
 from .. import config as C, monde as W
 from ..socle import registre as R_
-from . import essais as T, d08_territoire as TER, d11_energie as M
+from . import essais as T, d03_economie as ECO, d08_territoire as TER, d11_energie as M
 
 PAS_H = C.PAS_PAR_JOUR // 24
 
@@ -440,6 +440,12 @@ def _premiers_jours(vider, jours=5):
     dette = lambda: math.fsum(c.montant for c in K.de(r) if c.motif == "vente_brut")
     x = {"cuve0": r.stocks.get("petrole", 0.0), "attendu0": M.CUVE_BRUT_J * E.nominal_brut_j, "dette0": dette(),
          "paye": 0.0, "conserve": True}
+    eco = p.domaine("economie")
+    if eco is not None:                  # ( HMT-143 ) la cuve au bilan d ouverture du domaine 3, pas au resultat du jour 1
+        c = eco.comptes[r.id]
+        x["bilan0"] = abs(c.stocks_val - ECO._valeur_stocks(w, r, ECO._marche_de(w, r))) <= 1e-6 * max(1.0, c.stocks_val)
+        x["cp0"] = c.cp0; x["valeur_cuve"] = x["cuve0"] * ECO._valeur_unitaire(w, ECO._marche_de(w, r), "petrole")
+    else: x["bilan0"] = None
     if vider: L.perdre(M.StocksE1(r.stocks, E.noms), E.ids["petrole"], x["cuve0"], "stock_initial")
     b0 = E.raff["brut_u"]
     for _ in range(jours):
@@ -447,23 +453,41 @@ def _premiers_jours(vider, jours=5):
         x["paye"] += math.fsum(s for m, pa, re, s, _ in p.comptes_hier["argent"] if m == "vente_brut")
         x["conserve"] = x["conserve"] and p.socle.conservation.tenue()[0]
     x["traite"] = (E.raff["brut_u"] - b0) * prix
+    if eco is not None: x["cp_fin"] = eco.comptes[r.id].cp; x["cp_moins_cp0"] = x["cp_fin"] - x["cp0"]
     x["achete"] = x["paye"] + dette() - x["dette0"]
     return x
 
 
 def test_cuve_ouverture():
     """Porte ( HMT-143, ecrite avant la mesure ) : la cuve de brut de la raffinerie nait pleine et a elle : CUVE_BRUT_J
-    jours de son nominal, sans aucune dette vente_brut envers le puits a l installation. Sur les 5 premiers jours,
+    jours de son nominal, sans aucune dette vente_brut envers le puits a l installation. ( 29/09, apres la regression vue en
+    campagne ) Elle entre au bilan d ouverture du domaine 3 : a l installation, sa valeur des stocks est celle de ses
+    stocks, cuve comprise, et apres 5 jours ses capitaux propres n ont pas gagne la moitie de la valeur de la cuve ( la
+    cuve n est pas un benefice : ni resultat, ni IS, ni redressement ) ; le meme monde sans ouvrir_stocks finit ses 5 jours
+    avec les memes capitaux propres au centime : seul le classement change. Falsificateur : sans ouvrir_stocks, la cuve
+    passe au resultat du premier soir et la porte echoue. Sur les 5 premiers jours,
     l oleoduc ne fait que remettre la cuve au plein : le brut achete au puits ( paye sous vente_brut au grand livre, plus
     la dette nouvelle ) ne depasse pas, au prix mondial, le brut traite ( au centime ). Conservation chaque jour.
     Falsificateur : la cuve d ouverture retiree ( la naissance d avant le 29/09 ), la raffinerie rachete en plus le
     remplissage de sa cuve : la porte echoue."""
     x = _premiers_jours(False); faux = _premiers_jours(True)
+    ancien = ECO.ouvrir_stocks; ECO.ouvrir_stocks = lambda p, u: 0.0        # falsificateur du bilan : la cuve au resultat
+    try: faux_bilan = _premiers_jours(False)
+    finally: ECO.ouvrir_stocks = ancien
+    bilan = lambda x: x["bilan0"] is True
+    # les jumeaux : meme monde, la cuve seulement classee ailleurs -> memes capitaux propres au 5e soir, au centime ;
+    # l ouverture porte la cuve posee ( au moins la moitie de sa valeur : le moteur y avait deja un peu de brut )
+    jumeaux = abs(x["cp_fin"] - faux_bilan["cp_fin"]) <= 0.01 and x["cp0"] - faux_bilan["cp0"] >= 0.5 * x["valeur_cuve"]
     def passe(x):
         return (x["attendu0"] > 0 and abs(x["cuve0"] - x["attendu0"]) <= 1e-6 * x["attendu0"] and x["dette0"] <= 0.005
                 and x["traite"] > 0 and x["achete"] <= x["traite"] + 0.005 and x["conserve"])
-    ok_x, ok_faux = passe(x), passe(faux)
-    return ok_x and not ok_faux, (
+    ok_x, ok_faux = passe(x) and bilan(x) and jumeaux, passe(faux)
+    ok_bilan_faux = bilan(faux_bilan)
+    return ok_x and not ok_faux and not ok_bilan_faux, (
+        f"bilan d ouverture du domaine 3 avec la cuve {x['bilan0']} ( cuve {x['valeur_cuve']:.0f} drachmes ) ; jumeaux : "
+        f"ouverture {x['cp0'] - faux_bilan['cp0']:+.0f}, resultat de 5 jours {x['cp_moins_cp0']:+.0f} contre "
+        f"{faux_bilan['cp_moins_cp0']:+.0f}, capitaux propres du 5e soir {x['cp_fin'] - faux_bilan['cp_fin']:+.2f} ; sans "
+        f"ouvrir_stocks : bilan {faux_bilan['bilan0']}, porte {'passe ( FAUX )' if ok_bilan_faux else 'echoue ( attendu )'} ; "
         f"cuve d ouverture {x['cuve0']:.0f} / {x['attendu0']:.0f}, dette a l installation {x['dette0']:.2f} ; 5 jours : brut "
         f"traite {x['traite']:.2f}, achete {x['achete']:.2f} ( paye {x['paye']:.2f} ) ; conservation {x['conserve']} ; cuve "
         f"retiree : achete {faux['achete']:.2f} pour {faux['traite']:.2f} traite, porte "
