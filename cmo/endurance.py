@@ -136,13 +136,32 @@ class Nuit:
             json.dump(d, g, ensure_ascii=False, indent=1)
         return d
 
-    def tourner(self):
+    def ouvrir(self, attente_s):
+        """Attend le premier battement jusqu'à attente_s : un scénario rouvert démarre EN PAUSE dans CMO, et rien en Lua
+        ne relance le temps sur la version Steam ( 29/09 ). La nuit compte à partir du premier battement."""
+        limite = time.time() + attente_s
+        while True:
+            try:
+                l = CL.Labo(**self.labo_kw).ouvrir()
+                break
+            except CL.PontMort as e:
+                if time.time() > limite or self.stop:
+                    raise
+                self.noter("attente_battement", message=str(e)[:120])
+                time.sleep(10)
+        duree = self.fin - self.debut
+        self.debut = time.time()
+        self.fin = self.debut + duree
+        return l
+
+    def tourner(self, attente_s=1800):
         # TERM, HUP ( tmux kill-session ) et INT : la même sortie propre, table rase comprise ( 29/09 : un HUP sans
         # gestionnaire tuait la nuit sans nettoyer ).
         for sig in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
             signal.signal(sig, lambda *a: setattr(self, "stop", True))
         canari_s, positions_s, point_s, patrouille_s = self.intervalles
-        with CL.Labo(**self.labo_kw) as l:                # strict : le build doit être certifié
+        l = self.ouvrir(attente_s)                       # strict : le build doit être certifié
+        try:
             self.noter("debut", version=l.version, journaux=taille_journaux(self.logs), memoire=memoire_command())
             self.appel("nettoyer", l.nettoyer)
             t_canari = t_pos = t_point = t_patrouille = 0.0
@@ -174,6 +193,8 @@ class Nuit:
             finally:
                 self.appel("nettoyer", l.nettoyer)
                 self.noter("fin", journaux=taille_journaux(self.logs), memoire=memoire_command())
+        finally:
+            l.fermer()
         return self.resume(final=True)
 
 
