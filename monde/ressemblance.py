@@ -685,9 +685,13 @@ def _mesure_recettes_tourisme_pib(x):
 HORS_CONSOMMATION = ("vente_logement", "frais_transaction", "vente_terrain", "travaux", "second_oeuvre", "achat_abri",
                      "import_materiaux", "investissement", "cession_liquidation", "droits_mutation")
 POSTES = {"alimentation": ("nourriture",),
-          "logement": ("loyer", "facture_electricite", "facture_eau"),
+          "logement": ("loyer", "facture_electricite", "facture_eau", "substitution_logement"),
           "transport": ("carburant", "carburant_station", "entretien_vehicule", "reparation_vehicule", "vente_vehicule",
-                        "reprise_vehicule", "lecons_conduite")}
+                        "reprise_vehicule", "lecons_conduite", "substitution_transport")}
+# ( 29/09, HMT-145, commit declare AVANT la mesure, relu par Classes ) les substitutions : ce que les domaines ne servent
+# pas d une division et que le commerce vend sous cette division ( le fioul et l entretien au logement, les transports
+# publics au transport ) comptent a leur poste. La prime d assurance reste un transfert courant : le revenu disponible
+# recoit les indemnites et paie les primes ( comptes nationaux, comme le taux d epargne d Eurostat ).
 BIENS_DES_MARCHES = ("nourriture", "carburant", "remedes", "outils")
 
 
