@@ -433,6 +433,139 @@ def test_salaires_impayes():
                 f"compte de 55 jours : reste salarie {b_reste} ; sans arrieres : reste {c_reste}")
 
 
+# ================================================================== la greve pour arrieres finit par le paiement ( HMT-143 )
+def _greve_arrieres(caisse, manuelle=False, jours=1):
+    """Le scenario des portes HMT-143. Au jour 3 a 6 h, sur la premiere mine ( ordre des identifiants ) : 4 jours de paie
+    nette d arrieres de salaire poses en creances des menages de ses mineurs, 500 drachmes de cotisation patronale et
+    100 d impot retenu dus, un mineur syndique ; la greve « arrieres » part a 6 h 20 par la regle ( ou, `manuelle`, une
+    greve « arrieres » de 2 jours est posee a la main a 6 h ). Juste avant chaque paie, la caisse de la mine est mise a
+    `caisse( salaires dus, retenues dues )` drachmes. Rend ( p, e, gv, grevistes, releves, matins ) : un releve autour
+    de chaque appel de la paie ( caisse, dus par menage et retenues dues avant et apres, bulletins de grevistes ) ;
+    l etat de la greve chaque matin suivant a 6 h 30 ( jour, greve en cours ou None )."""
+    w, p = T.monde(["travail"])
+    d = p.domaine("travail"); d.garder_bulletins = True
+    K = p.socle.creances; L = p.socle.livre; col = p.colonnes["habitant"]
+    T.jours(w, 3)                                                    # jour 3, 6 h 00
+    e = next(x for x in sorted(w.entreprises.values(), key=lambda x: x.id) if x.type == "mine")
+    gens = M._membres(p, e.lieu.id, e.role)
+    col["tr_syndique"][gens[0].id] = 1
+    paie = math.fsum(M._net_jour(p, float(col["tr_taux"][h.id]), float(col["tr_heures_prevues"][h.id]), h.role) for h in gens)
+    for h in gens: K.constater(h.menage, e, 4.0 * paie / len(gens), "salaire", p.jour)
+    K.constater(d.caisse, e, 500.0, "cotisation_patronale", p.jour)
+    K.constater(w.gouv, e, 100.0, "impot sur le revenu", p.jour)
+    if manuelle: M.declencher_greve(p, e.lieu.id, e.role, 2, "arrieres")
+    _avancer(w, 0.5)                                                 # 6 h 30 : la greve a commence
+    gv = d.en_greve.get((e.lieu.id, e.role))
+    grevistes = set(gv.horaires) if gv is not None else set()
+
+    def dus():
+        s, r = {}, 0.0
+        for c in K.de(e):
+            if c.motif in M.MOTIFS_SALAIRE and isinstance(c.creancier, M.PO.Menage):
+                s[c.creancier.id] = s.get(c.creancier.id, 0.0) + c.montant
+            elif c.motif in M.MOTIFS_RETENUES: r += c.montant
+        return s, r
+    releves, matins = [], []
+    vraie = w.paie
+
+    def paie_mesuree():
+        s0, r0 = dus()
+        cible = caisse(math.fsum(s0.values()), r0)
+        if e.caisse > cible: L.transferer(e, w.gouv, e.caisse - cible, "amende")
+        elif cible > e.caisse: L.recevoir_de_l_exterieur(e, cible - e.caisse, "apport_capital")
+        c0 = e.caisse
+        vraie()
+        s1, r1 = dus()
+        releves.append({"jour": p.jour, "c0": c0, "c1": e.caisse, "s0": s0, "r0": r0, "s1": s1, "r1": r1,
+                        "bulletins": sum(1 for b in d.bulletins if b[0] in grevistes)})
+    w.paie = paie_mesuree
+    try:
+        for _ in range(jours):
+            _avancer(w, 24)                                          # la paie de 18 h, puis le matin suivant a 6 h 30
+            matins.append((p.jour, d.en_greve.get((e.lieu.id, e.role))))
+    finally:
+        w.paie = vraie
+    return p, e, gv, grevistes, releves, matins
+
+
+def test_greve_arrieres_payee():
+    """Porte ( 29/09, HMT-143, seuils ecrits avant la mesure ) - une greve pour arrieres finit par le paiement.
+    P1 controle positif : la mine tout entiere en greve « arrieres » ( declenchee par la regle ), caisse = arrieres de
+    salaire + retenues dues + 1 000 : a la paie du premier jour de greve, chaque menage greviste recoit exactement sa
+    creance de salaire ( soldee, 1e-6 ), aucun bulletin de greviste, et ce que la mine debourse est la somme des arrieres
+    ( les heures de greve ne sont pas payees, 1e-6 ) ; ses retenues dues sont soldees ; le lendemain a 6 h 20 la greve
+    est finie par le paiement ( fin = le lendemain, avant sa fin prevue ), les grevistes ont repris leur horaire ; la
+    conservation tient. P2 ordre : caisse = la moitie des arrieres de salaire - tout va aux salaires ( 1e-6 ), les
+    retenues dues sont inchangees, la greve continue le lendemain. P3 falsificateur : une greve « arrieres » de 2 jours
+    posee a la main, caisse videe avant chaque paie - rien n est paye, l arriere est inchange, la greve continue le
+    lendemain, expire a sa fin prevue + 1 et la regle la relance le meme matin. P4 le controle sait echouer : la paie
+    d avant le correctif ( l appel des employeurs sans bulletin neutralise ) laisse l arriere et la greve de P1.
+    La raffinerie d Altis mesuree avant et apres ( raf_hmt143.py, graine 1, tous les domaines livres, echelle 20, 100
+    jours, 29/09 ) : avant, greves « arrieres » aux jours 74, 84 et 94, chacune expiree, 26 jours de greve de 74 a 100,
+    arriere fige a 49 548 drachmes, caisse jusqu a 72 000 apres la paie, rien de raffine de 75 a 100, 41 jours ou elle
+    garde a la fois arrieres et caisse apres la paie ; apres, aucune greve « arrieres », 1 jour de greve ( pouvoir d
+    achat ), 136 800 unites de brut raffinees de 75 a 100, 0 jour avec arrieres et caisse ( 0 employeur de l ile, contre
+    122 cas avant ) ; carburant des marches d Altis au jour 100 : 130 657 unites avant, 176 726 apres."""
+    tol = 1e-6
+    # P1 : caisse pleine
+    p, e, gv, grev, rel, mat = _greve_arrieres(lambda s, r: s + r + 1000.0)
+    r = rel[0] if rel else None
+    s0 = math.fsum(r["s0"].values()) if r else 0.0
+    paye_s = s0 - math.fsum(r["s1"].values()) if r else 0.0
+    paye_r = r["r0"] - r["r1"] if r else 0.0
+    a = r is not None and len(r["s0"]) >= 2 and s0 > 0.0 and all(v <= tol for v in r["s1"].values())
+    b = r is not None and r["bulletins"] == 0 and abs((r["c0"] - r["c1"]) - (paye_s + paye_r)) <= tol
+    c = r is not None and r["r0"] >= 600.0 - tol and r["r1"] <= tol
+    lendemain, en_cours = mat[0] if mat else (-1, gv)
+    w = p.w
+    repris = all(w.habitants[i].horaire is not None for i in grev
+                 if w.habitants[i].vivant and w.habitants[i].travail is not None and w.habitants[i].travail.id == e.lieu.id)
+    d_ = gv is not None and gv.motif == "arrieres" and len(grev) >= 3 and en_cours is None and gv.fin == lendemain \
+        and gv.fin <= gv.fin_prevue and repris
+    tenue, msg = p.socle.conservation.tenue()
+    p1 = a and b and c and d_ and tenue
+    m1 = (f"P1 caisse pleine : {len(grev)} grevistes, arrieres {s0:.2f} sur {len(r['s0']) if r else 0} menages, soldes {a}, "
+          f"bulletins de grevistes {r['bulletins'] if r else -1}, debourse {r['c0'] - r['c1'] if r else 0:.2f} = salaires "
+          f"{paye_s:.2f} + retenues {paye_r:.2f} {b}, retenues soldees {c}, greve finie le jour {gv.fin if gv else -2} "
+          f"( debut {gv.debut if gv else -2}, fin prevue {gv.fin_prevue if gv else -2} ) par le paiement {d_} ; {msg}")
+    # P2 : la moitie des arrieres de salaire
+    p, e, gv, grev, rel, mat = _greve_arrieres(lambda s, r: 0.5 * s)
+    r = rel[0] if rel else None
+    s0 = math.fsum(r["s0"].values()) if r else 0.0
+    paye_s = s0 - math.fsum(r["s1"].values()) if r else 0.0
+    p2 = (r is not None and s0 > 0.0 and abs(paye_s - 0.5 * s0) <= tol and abs(r["r1"] - r["r0"]) <= tol
+          and r["bulletins"] == 0 and bool(mat) and mat[0][1] is gv and gv is not None and gv.fin < 0)
+    m2 = (f"P2 demi-caisse : {paye_s:.2f} payes aux salaires sur {0.5 * s0:.2f} attendus, "
+          f"retenues dues {r['r0'] if r else 0:.2f} "
+          f"-> {r['r1'] if r else 0:.2f}, greve en cours le lendemain {bool(mat) and mat[0][1] is gv}")
+    # P3 : caisse vide, greve de 2 jours posee a la main
+    p, e, gv, grev, rel, mat = _greve_arrieres(lambda s, r: 0.0, manuelle=True, jours=2)
+    rien = len(rel) == 2 and all(x["c0"] <= tol and x["c1"] <= tol and x["bulletins"] == 0 and abs(x["r1"] - x["r0"]) <= tol
+                                 and all(abs(x["s1"].get(k, 0.0) - v) <= tol for k, v in x["s0"].items()) for x in rel)
+    continue_ = len(mat) == 2 and mat[0][1] is gv and gv is not None
+    g2 = mat[1][1] if len(mat) == 2 else None
+    relance = (gv is not None and gv.fin == gv.fin_prevue + 1 == mat[1][0] and g2 is not None and g2 is not gv
+               and g2.motif == "arrieres" and g2.debut == gv.fin)
+    p3 = rien and continue_ and relance
+    m3 = (f"P3 caisse vide : rien paye {rien}, greve en cours le lendemain {continue_}, "
+          f"expiree le jour {gv.fin if gv else -2} "
+          f"( fin prevue {gv.fin_prevue if gv else -2} ) et relancee le meme matin {relance}")
+    # P4 : sans le correctif, le controle positif echoue
+    garde = M._regler_arrieres_sans_bulletin
+    M._regler_arrieres_sans_bulletin = lambda *a_: None
+    try:
+        p, e, gv, grev, rel, mat = _greve_arrieres(lambda s, r: s + r + 1000.0)
+    finally:
+        M._regler_arrieres_sans_bulletin = garde
+    r = rel[0] if rel else None
+    reste = r is not None and math.fsum(r["s1"].values()) >= math.fsum(r["s0"].values()) - tol > 0.0
+    toujours = bool(mat) and mat[0][1] is gv and gv is not None
+    p4 = reste and toujours
+    m4 = f"P4 sans le correctif : arriere intact {reste}, greve en cours le lendemain {toujours}"
+    ok = p1 and p2 and p3 and p4
+    return ok, " ; ".join((m1, m2, m3, m4))
+
+
 # ================================================================== la cotisation apres la nourriture ( HMT-126, e )
 def test_cotisation_apres_nourriture():
     """Porte ( HMT-126, seuils ecrits avant la mesure ) - controle positif : a la fin du mois, un independant dont le menage
@@ -548,4 +681,5 @@ def test_cout():
 
 TESTS = [test_bulletins_au_centime, test_caisse_securite_sociale, test_emploi_20_64, test_inactifs_changent, test_greve,
          test_retraite, test_heures_payees_travaillees, test_accepter_emploi, test_indemnite_chomage, test_disponibilite,
-         test_salaires_impayes, test_cotisation_apres_nourriture, test_carrieres, test_pays_vivable, test_cout]
+         test_salaires_impayes, test_greve_arrieres_payee, test_cotisation_apres_nourriture, test_carrieres,
+         test_pays_vivable, test_cout]
