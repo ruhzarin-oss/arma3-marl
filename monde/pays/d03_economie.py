@@ -517,6 +517,31 @@ def equipement_vise(revenu, cout_nourriture):
     return flux * JOURS_AN * DUREE_VIE_EQUIPEMENT_AN
 
 
+AGE_ADULTE_UC = 16.0            # l echelle d ELSTAT : 0,5 a partir de 16 ans, 0,3 en dessous
+
+def mediane_ponderee(x, poids):
+    """La mediane de `x` ponderee par `poids` ( la premiere valeur ou le poids cumule atteint la moitie )."""
+    x = np.asarray(x, dtype=float); poids = np.asarray(poids, dtype=float)
+    if not len(x): return 0.0
+    o = np.argsort(x, kind="stable"); cw = np.cumsum(poids[o])
+    if cw[-1] <= 0.0: return 0.0
+    return float(x[o][min(len(o) - 1, int(np.searchsorted(cw, 0.5 * cw[-1])))])
+
+def unites_de_consommation(p, n):
+    """( HMT-140 ) L echelle OCDE modifiee d ELSTAT, par menage : 1 pour le premier adulte, 0,5 par autre personne de 16 ans
+    et plus, 0,3 par enfant ; les presents seulement ( comme _tableaux_menages ). Sans adulte present, le premier enfant
+    compte 1 ; un menage vide, 0."""
+    tb = p.w.table; nh = tb.n
+    mid = np.where((tb.vivant[:nh] == 1) & (tb.statut[:nh] != PO.ABSENT), tb.menage[:nh], -1).astype(np.int64)
+    ok = (mid >= 0) & (mid < n)
+    if "naissance_j" in p.colonnes["habitant"]:
+        age = (p.jour - p.col("habitant", "naissance_j")[:nh].astype(np.float64)) / JOURS_AN
+    else: age = tb.age[:nh].astype(np.float64)
+    ad = np.bincount(mid[ok & (age >= AGE_ADULTE_UC)], minlength=n)[:n].astype(np.float64)
+    en = np.bincount(mid[ok & (age < AGE_ADULTE_UC)], minlength=n)[:n].astype(np.float64)
+    return np.where(ad > 0, 1.0 + 0.5 * (ad - 1.0) + 0.3 * en, np.where(en > 0, 1.0 + 0.3 * (en - 1.0), 0.0))
+
+
 # ================================================================== le point de decision
 def _observer_activite(ctx): return ctx.traits
 
