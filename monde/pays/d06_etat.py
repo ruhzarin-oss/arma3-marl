@@ -819,8 +819,9 @@ AGE_ADULTE_KEA = 18.0
 # mensuels par menage ( rmg_m0, le dernier mois clos, a rmg_m5 ) et le mois en cours ( rmg_mois ), remplis chaque jour
 # de ce que la paie de 18 h a apporte au menage ( la fenetre que lit le domaine 3 ), KEA exclu. Le droit se recalcule
 # chaque mois sur les six derniers mois clos ( la loi le fixe a la demande, renouvelee tous les six mois : simplification
-# ecrite ). A l installation, les six mois passes valent le revenu estime par le domaine 3 : un menage qui vient de tout
-# perdre n a droit a rien tant que ses six derniers mois comptent son ancien revenu ( le decalage de la loi ).
+# ecrite ). A l installation, les six mois passes suivent la situation REELLE de chaque membre ( _revenu_avant_le_jour_0,
+# 29/09 ) : un chomeur garde son ancien salaire jusqu au jour ou il l a perdu ( le decalage de la loi ), un menage sans
+# aucun revenu avant le jour 0 n en a pas non plus dans ses six mois.
 KEA_MOIS_TEST = 6
 KEA_PLAFOND_ECHELLE = 972.0 / 216.0
 KEA_COMPTES = tuple(f"rmg_m{k}" for k in range(KEA_MOIS_TEST))
@@ -884,15 +885,48 @@ def _revenu_declare_6_mois(p, cm, M):
 
 
 def _poser_comptes_kea(p):
-    """Les comptes du test de ressources ; les six mois passes valent le revenu estime par le domaine 3 ( un mois = 30
-    jours de son revenu lisse ), comme a l installation."""
+    """Les comptes du test de ressources ; les six mois passes : _revenu_avant_le_jour_0."""
     cm = p.colonnes["menage"]
     if "rmg_mois" in cm: return
     M = len(p.w.menages)
     for c in KEA_COMPTES + ("rmg_mois",): cm.ajouter(c, np.float64, 0.0)
     cm.assurer(M)
+    passe = _revenu_avant_le_jour_0(p, M)
+    for k, c in enumerate(KEA_COMPTES): cm[c][:M] = passe[:, k]
+
+
+def _revenu_avant_le_jour_0(p, M):
+    """( 29/09, chef de projet ) Les six mois declares avant l installation ( ou la reprise ), d apres la situation
+    REELLE de chaque membre au recensement du travail ( domaine 4 ), mois par mois ( colonne k : le mois clos k + 1 mois
+    avant le jour ) : la pension ou l indemnite que le domaine 4 verse ; pour qui est en emploi ( salarie,
+    fonctionnaire, independant ), le revenu attendu de son metier ( domaine 3 ) ; pour le chomeur, son ancien salaire
+    jusqu au jour ou il l a perdu, puis son indemnite tant qu elle courait ( douze mois ) ; rien pour l etudiant, la
+    personne au foyer, le decourage, l enfant. Le revenu estime par le domaine 3, lu avant ce recensement, donnait le
+    salaire de son metier a qui n avait pas d emploi : dans l Altis par defaut, 432 menages sans aucun revenu reel
+    partaient avec six mois de salaire, et aucun n avait droit au KEA avant six mois ( porte_kea K1 : 0,04 % de la
+    depense publique ). Sans le domaine 4 : le revenu estime par le domaine 3. Drachmes, ( M, KEA_MOIS_TEST )."""
+    cm = p.colonnes["menage"]; w = p.w; J = float(EC.MOIS_J)
     rv = cm["eco_revenu"][:M] if "eco_revenu" in cm else np.zeros(M)
-    for c in KEA_COMPTES: cm[c][:M] = EC.MOIS_J * rv
+    if not p.a("travail"): return np.repeat(J * rv[:, None], KEA_MOIS_TEST, axis=1)
+    from . import d04_travail as TV
+    d4 = p.domaine("travail"); col = p.colonnes["habitant"]; st = col["tr_statut"]; cj = col["tr_chomage_j"]
+    tb = w.table; H = w.habitants; imp = w.gouv.impot_revenu
+    fin = p.jour - J * np.arange(KEA_MOIS_TEST); debut = fin - J                 # le mois k : [ debut_k, fin_k )
+    out = np.zeros((M, KEA_MOIS_TEST))
+    for i in np.nonzero(tb.vivant[:tb.n] == 1)[0].tolist():
+        m = int(tb.menage[i])
+        if not 0 <= m < M: continue
+        pn = d4.pensions.get(i)
+        if pn is not None: out[m] += J * pn.par_jour(); continue
+        s = int(st[i])
+        if s in TV.EN_EMPLOI: out[m] += J * EC._revenu_attendu(H[i], imp); continue
+        if s != TV.CHOMEUR: continue
+        perte = float(cj[i])            # le jour ou il a perdu son emploi ( negatif au recensement : jour - duree )
+        out[m] += np.clip(perte - debut, 0.0, J) * EC._revenu_attendu(H[i], imp)
+        ind = d4.indemnites.get(i)
+        jour_ind = ind.jour if ind is not None else TV.INDEMNITE_JOUR
+        out[m] += np.clip(np.minimum(fin, perte + 12 * J) - np.maximum(debut, perte), 0.0, J) * jour_ind
+    return out
 
 
 def brancher_revenu_minimum(p):
