@@ -65,7 +65,9 @@ def ciel(camps=("OTAN", "Russie-Chine")):
 
 
 def endurance_vivante():
-    return subprocess.run(["pgrep", "-f", "endurance_blocs.py"], capture_output=True).returncode == 0
+    # Ancré au début de la ligne de commande : le serveur tmux garde celle de sa première session ( « tmux new-session …
+    # endurance_blocs.py » ) et vit tant qu'une session existe, dont celle de ce bilan.
+    return subprocess.run(["pgrep", "-f", r"^\S*python\S* \S*endurance_blocs\.py"], capture_output=True).returncode == 0
 
 
 if __name__ == "__main__":
