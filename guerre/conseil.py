@@ -324,6 +324,8 @@ plus ), importer de la nourriture destination « population » ( l aide alimenta
 au port et elle est distribuee aux menages sans nourriture ; dans les credits interieur, que fixer_budget peut porter a
 trois fois le vote : chaque ligne de finances.budget porte son « plancher » et son « plafond », reste entre les deux ), subventionner, fixer les budgets ( la defense comprise ). Tout import passe par les devises de la
 banque centrale ( section « exterieur » du bulletin ) : sans reserves de change, il est refuse ; exporter_or en rapporte.
+Si l ennemi tient ton port ( section « guerre », « blocus » ), rien n entre ni ne sort par la mer : tout import est refuse,
+meme avec des devises, et plus aucun touriste ne vient - ne rejoue pas l import ; reprendre la zone du port leve le blocus.
 La section « famine » compte tes morts de faim d hier et des 30 derniers jours : la faim du bulletin ne compte que les
 menages VIVANTS, elle baisse quand les affames meurent. Sous 3 mois d importations de reserves, la banque centrale ne
 sert plus que l essentiel ( nourriture, medicaments, energie ) : le reste de tes achats a l etranger attend, armes comprises.

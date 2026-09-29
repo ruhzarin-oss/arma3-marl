@@ -2002,6 +2002,7 @@ def _approvisionner_concession(p, tr, conc):
         if o is None: del conc.occasions[oid]; continue
         m = tr.idx_parc[o.modele]
         v = _valeur_fiche(p, CARAC[m], tr.fiches[oid]) * DECOTE_IMPORT_OCCASION
+        if EXT.export_bloque(p, v): break                # ( 29/09 ) le blocus : l occasion reste chez le concessionnaire
         del conc.occasions[oid]
         _sortir(p, tr, o, "exporte")
         p.socle.livre.recevoir_de_l_exterieur(conc, v, "export_vehicules")

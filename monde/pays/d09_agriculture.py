@@ -527,6 +527,9 @@ def _transformer(p, A, ex, recette, q):
 
 def _vendre(p, A, ex, nom, q):
     """Vend au negoce ( exportation ) : le bien sort du pays, l exterieur paie la caisse de la ferme."""
+    # ( 29/09 ) le blocus : sous blocus, la vente au negoce ne part pas ( d07.export_bloque )
+    from . import d07_exterieur as X
+    if X.export_bloque(p, q * p.socle.catalogue[nom].prix_monde * PARITE_NEGOCE): return 0.0
     pris = _sortir(p, A, ex, nom, q, "exporte", "vente_negoce")
     if pris <= 0.0: return 0.0
     montant = pris * p.socle.catalogue[nom].prix_monde * PARITE_NEGOCE

@@ -125,10 +125,17 @@ def _membres(w): return tuple(w.pays.domaines["tourisme"].etablissements)
 def mois(p): return p.socle.calendrier.date(p.pas).month
 
 
+def avis(p):
+    """L avis aux voyageurs effectif : 0 sous blocus ( 29/09, d07.sous_blocus : l ennemi tient tous les ports de l ile -
+    aucun navire, et les compagnies ne volent pas vers une ile en guerre dont l ennemi tient le port ), le facteur de
+    risque sinon ( fixer_risque )."""
+    return 0.0 if X.sous_blocus(p) else _dom(p).risque
+
+
 def occupation_attendue(p, mois_=None):
     """L occupation des lits que la profession attend ce mois-ci, avis aux voyageurs compris."""
     m = mois(p) if mois_ is None else int(mois_)
-    return OCCUPATION_MOIS[m - 1] * _dom(p).risque
+    return OCCUPATION_MOIS[m - 1] * avis(p)
 
 
 def _ferme(p, e):
@@ -247,7 +254,7 @@ def _observer(c):
     return (min(1.0, occupation_attendue(p)),
             min(1.0, sum(e.nuitees_7j) / max(1.0, 7.0 * e.lits)),
             min(1.0, max(0.0, e.caisse) / (30.0 * cout)),
-            min(1.0, _dom(p).risque),
+            min(1.0, avis(p)),
             min(1.0, len(_personnel_ids(p, e)) / plein),
             min(1.0, (m.prix["nourriture"] / pm / 3.0) if m is not None else 1.0))
 
@@ -315,8 +322,8 @@ def fixer_risque(p, facteur, motif="guerre"):
 def etat_tourisme(p):
     d = _dom(p)
     s = d.serie[-7:]
-    return {"etablissements": len(d.etablissements), "lits": sum(e.lits for e in d.etablissements), "risque": d.risque,
-            "motif": d.motif_risque, "nuitees_7j": round(sum(x[1] for x in s)), "demande_7j": round(sum(x[2] for x in s)),
+    return {"etablissements": len(d.etablissements), "lits": sum(e.lits for e in d.etablissements), "risque": avis(p),
+            "motif": "blocus" if X.sous_blocus(p) else d.motif_risque, "nuitees_7j": round(sum(x[1] for x in s)), "demande_7j": round(sum(x[2] for x in s)),
             "recettes_7j": round(sum(x[3] for x in s)), "personnel": int(s[-1][4]) if s else 0,
             "cumul": {k: round(v) for k, v in d.cumul.items()}}
 
