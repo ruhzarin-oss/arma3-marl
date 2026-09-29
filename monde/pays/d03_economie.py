@@ -1138,9 +1138,13 @@ def _avant_paie(p):
 
 
 def _regler_dettes(p, d):
-    """18 h, apres les salaires ( et les arrieres de salaire que le domaine 4 regle a la paie ) : chaque entreprise vivante
-    regle ses dettes echues avec ce qui depasse RESERVE_REGLEMENT_J jours de salaires, par rang puis par anciennete."""
+    """18 h, apres les salaires : chaque entreprise vivante regle ses dettes echues avec ce qui depasse RESERVE_REGLEMENT_J
+    jours de salaires, par rang puis par anciennete. Les arrieres de salaire et de retenues sont au domaine 4 seul, qui
+    les solde a la paie ( 29/09, avec la session Classes : un seul titulaire ) ; ici les indemnites ( rang 0 ), l Etat et
+    la securite sociale ( rang 1 ), les fournisseurs ( rang 2 )."""
     w = p.w; K_ = p.socle.creances; L = p.socle.livre
+    T4 = __import__("importlib").import_module(".d04_travail", __package__)
+    a_d04 = set(getattr(T4, "MOTIFS_SALAIRE", ())) | set(getattr(T4, "MOTIFS_RETENUES", ()))
     def rang(cr):
         if cr.motif in MOTIFS_ARRIERES_SALAIRE: return 0
         if cr.creancier is w.gouv or type(cr.creancier).__name__ == "CaisseSecuriteSociale": return 1
@@ -1150,7 +1154,7 @@ def _regler_dettes(p, d):
         e = c.unite
         dispo = e.caisse - RESERVE_REGLEMENT_J * c.salaires_lisses
         if dispo <= 1.0: continue
-        for cr in sorted(K_.de(e), key=lambda x: (rang(x), x.nee, x.id)):
+        for cr in sorted((x for x in K_.de(e) if x.motif not in a_d04), key=lambda x: (rang(x), x.nee, x.id)):
             if dispo <= 1.0: break
             x = K_.regler(cr, L, min(cr.montant, dispo)); dispo -= x
             if x > 0: p.compter("dettes_reglees", x)
