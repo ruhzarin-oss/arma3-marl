@@ -975,6 +975,17 @@ def _ajuster_prix(p, mid):
         m.demande[b] = 0.0; m.offre[b] = 0.0; em.non_servi[b] = 0.0
 
 
+# 29/09 ( HMT-140, la ration ) : la TRANSMISSION du cours mondial au prix de detail. Le cours mondial de la nourriture
+# ( domaine 7 ) est un cours de matiere premiere ( indice FAO ) ; au detail, il ne pese que sa part des couts : la
+# reference d un bien de cette table est un prix en couts, prix d installation x ( 1 - s + s x cours lisse / cours de
+# depart ). s : la part des matieres premieres agricoles dans la depense alimentaire finale, ~14 % ( USDA ERS, cite par
+# Peersman, International Food Commodity Prices and Missing ( Dis ) Inflation in the Euro Area, 2018, notes 1 et 13 ).
+# Controle : Peersman mesure +0,10 % ( non transforme ) et +0,15 % ( transforme ) de l IPCH alimentaire pour +1 % de
+# cours, 0,13 aux poids de l IPCH. Avant : 100 %, et la zone morte transmettait au detail -9 a +17 % de cours par an
+# ( graines 131 a 133 ). Les autres biens gardent la transmission entiere ( a sourcer bien par bien ).
+PART_MATIERES = {"nourriture": 0.14}
+
+
 def _prix_de_reference(p, em, m, b):
     """Le prix d installation du bien a ce marche, indexe sur le prix mondial du jour ( prix_port du domaine 7 ) : ce vers quoi
     le prix revient quand rien ne manque ni ne deborde. None pour un bien qui ne s echange pas."""
@@ -984,7 +995,9 @@ def _prix_de_reference(p, em, m, b):
     if r is None: r = em.prix_ref[b] = [m.prix[b], pm, pm]          # prix d installation, cours mondial alors, cours lisse
     r[2] = (1.0 - ALPHA_MONDIAL) * r[2] + ALPHA_MONDIAL * pm
     prix0, pm0, pml = r
-    return prix0 * pml / pm0 if pm0 > 0.0 else prix0
+    if pm0 <= 0.0: return prix0
+    part = PART_MATIERES.get(b)
+    return prix0 * (1.0 - part + part * pml / pm0) if part is not None else prix0 * pml / pm0
 
 
 def _parite_import(p, m, b):

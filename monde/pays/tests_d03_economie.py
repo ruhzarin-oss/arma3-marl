@@ -529,5 +529,26 @@ def test_plancher_sans_revenu():
                 f"en caisse : nourriture {par.get((A, 'nourriture'), 0.0):.2f}, marchand {par.get((A, 'services_marchands'), 0.0):.2f}, "
                 f"equipement {par.get((A, 'outils'), 0.0):.2f} ; menage aise : marchand {par.get((B, 'services_marchands'), 0.0):.2f} ; {msg}")
 
+def test_transmission_nourriture():
+    """Porte de construction ( 29/09, HMT-140, ecrite avant la mesure ) : le cours mondial lisse force a +10 % de son
+    niveau de depart, la reference de la nourriture monte de 1,4 % ( s = 0,14, a 1e-9 pres ) et celle du gazole de 10 %
+    ( transmission entiere, inchangee ). Controle positif : sans PART_MATIERES ( l ancienne formule ), la nourriture
+    monte de 10 % et la porte echoue."""
+    w, p = T.monde(["economie"])
+    d = p.domaine("economie"); mid = sorted(w.marches)[0]; em = d.marches[mid]; m = w.marches[mid]
+    orig, part0 = M._prix_mondial_du_jour, dict(M.PART_MATIERES)
+    def ref(b, parts):
+        M.PART_MATIERES.clear(); M.PART_MATIERES.update(parts)
+        em.prix_ref = {b: [4.0, 2.0, 2.2]}                    # prix d installation, cours d alors, cours lisse a +10 %
+        M._prix_mondial_du_jour = lambda w_, b_: 2.2           # le cours du jour a +10 % : le lisse n en bouge pas
+        try: return M._prix_de_reference(p, em, m, b) / 4.0 - 1.0
+        finally: M._prix_mondial_du_jour = orig; M.PART_MATIERES.clear(); M.PART_MATIERES.update(part0)
+    n, g, n0 = ref("nourriture", part0), ref("carburant", part0), ref("nourriture", {})
+    juge = lambda x: abs(x - 0.014) <= 1e-9
+    ok = juge(n) and abs(g - 0.10) <= 1e-9 and not juge(n0)
+    return ok, (f"cours a +10 % : reference de la nourriture {n:+.4%} ( attendu +1,40 % ), du gazole {g:+.4%} ( +10 % ) ; "
+                f"ancienne formule : nourriture {n0:+.4%}, porte {'passe ( FAUX )' if juge(n0) else 'echoue ( attendu )'}")
+
+
 TESTS = [test_budget_parts, test_services_marchands_et_usure, test_identite_comptable, test_faillite, test_chomage, test_prix_choc_de_demande,
-         test_commerces_fermes, test_credit, test_recalibrage, test_part_du_choix, test_pays_vivable, test_cout, test_plancher_sans_revenu, test_gerance_et_cessation]
+         test_commerces_fermes, test_credit, test_recalibrage, test_part_du_choix, test_pays_vivable, test_cout, test_plancher_sans_revenu, test_gerance_et_cessation, test_transmission_nourriture]
