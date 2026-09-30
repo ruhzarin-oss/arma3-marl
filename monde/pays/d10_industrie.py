@@ -514,7 +514,7 @@ class Industrie:
     __slots__ = ("sites", "par_entreprise", "chargements", "prochain_chargement", "machines", "decideur", "rng_pannes",
                  "rng_accidents", "facteur_risque", "commandes", "livre_biens", "e1_flux", "fabrications", "stats",
                  "heures_secteur", "accidents_secteur", "attendu", "blessures", "remplacements", "co2_t",
-                 "reserve_reseau", "vu_pharmacie")
+                 "reserve_reseau", "vu_pharmacie", "demandes_jour", "demande_hors_lisse", "reste_a_servir")
 
     def __init__(self):
         self.sites = []                 # Site, dans l ordre des identifiants
@@ -541,6 +541,9 @@ class Industrie:
         self.co2_t = 0.0
         self.vu_pharmacie = {}          # id de la pharmacie du moteur -> sa production cumulee deja abreuvee
         self.reserve_reseau = RESERVE_RESEAU_MIN   # unites du reseau du moteur que l industrie laisse aux autres sites
+        self.demandes_jour = {}         # ( 30/09, HMT-155 v2 ) bien -> { demandeur : [ demande du jour, servi du jour ] }
+        self.demande_hors_lisse = {}    # bien -> la demande des autres domaines ( livrer ), lissee
+        self.reste_a_servir = {}        # bien -> ce que la veille n a pas servi
 
 
 MOTIF_PRODUCTION, MOTIF_INTRANT, MOTIF_LIVRAISON = "production_industrie", "intrant_industrie", "livraison_interne"
@@ -678,6 +681,25 @@ def valeur_extraction(p, a):
     return v / g.rendements[a.directeur]
 
 
+def _exportable(p, b):
+    """( 30/09, HMT-155 v2 ) Vrai si le negoce du domaine 7 exporte ce bien ( fer, zinc, or... )."""
+    if not p.a("exterieur"): return False
+    return b in importlib.import_module(".d07_exterieur", __package__).BIENS_IMPORT
+
+
+def _clore_demandes(D_):
+    """( 30/09, HMT-155 v2 ) Le matin, les demandes livrer de la veille : leur somme ( une fois par demandeur ) entre dans
+    la demande lissee, et ce qui n a pas ete servi devient le reste a servir. Puis la journee repart de zero."""
+    for b, par in D_.demandes_jour.items():
+        dem = math.fsum(x[0] for x in par.values())
+        D_.demande_hors_lisse[b] = (1.0 - ALPHA_BESOIN) * D_.demande_hors_lisse.get(b, 0.0) + ALPHA_BESOIN * dem
+        D_.reste_a_servir[b] = math.fsum(max(0.0, x[0] - x[1]) for x in par.values())
+    for b in list(D_.demande_hors_lisse):
+        if b not in D_.demandes_jour:
+            D_.demande_hors_lisse[b] *= (1.0 - ALPHA_BESOIN); D_.reste_a_servir[b] = 0.0
+    D_.demandes_jour = {}
+
+
 def _invendus_en_jours(p, e, b):
     """( 30/09, HMT-155 ) Les invendus d un bien du moteur sur le site d une entreprise, en jours de la demande lissee de
     son marche : un gisement dont les camions n emportent pas tout le voit, et descend."""
@@ -716,6 +738,16 @@ def _regimes(p, D_, equilibre=False):
         b = a.directeur
         if b in BIENS: continue
         if equilibre: continue
+        if g is not None and _exportable(p, b):
+            # ( 30/09, HMT-155 v2 ) un gisement dont les produits s exportent ( d07 ) vend au prix du monde : il se regle
+            # sur son cout, coproduits compris, et sur ses invendus du site en jours de sa production a plein, pas sur la
+            # demande de l ile ( la v1, bornee par la couverture du marche local, arretait la mine : 81 t pour 515 )
+            par_j = a.nominal_j * g.rendements[b]
+            inv = max(0.0, a.site.entreprise.stocks[b]) / par_j if par_j > 0.0 else math.inf
+            a.couverture = inv / INVENDUS_MAX_J
+            if cout_variable(p, a) > valeur_extraction(p, a) or inv >= INVENDUS_MAX_J: a.regime = max(0.0, a.regime - PAS_REGIME)
+            elif inv < 0.5 * INVENDUS_MAX_J: a.regime = min(1.0, a.regime + PAS_REGIME)
+            continue
         # ( 30/09, HMT-155 ) un gisement est borne par ses ventes : ses invendus comptent dans la couverture, son cout se
         # compare a tous ses coproduits, et il peut s arreter ( avant : un gisement qui donne de l or tournait plein )
         couv = _demande_lissee(p, a.site.entreprise, b) + (_invendus_en_jours(p, a.site.entreprise, b) if g is not None else 0.0)
@@ -730,7 +762,8 @@ def _regimes(p, D_, equilibre=False):
         for a in [a for a in prod if cout_variable(p, a) > valeur_directeur(p, a)]:
             a.regime = 0.0; prod.remove(a)
         if not prod: continue
-        besoin = D_.commandes.get(b, 0.0) + math.fsum(
+        besoin = (D_.commandes.get(b, 0.0) + D_.demande_hors_lisse.get(b, 0.0)    # ( 30/09, v2 ) les demandes livrer
+                  + D_.reste_a_servir.get(b, 0.0) / JOURS_RATTRAPAGE) + math.fsum(
             a.recette.entrees[b] * a.nominal_j * a.regime for a in ateliers if a.recette is not None and b in a.recette.entrees)
         nominal = math.fsum(a.nominal_j for a in prod)
         if nominal <= 0.0: continue
@@ -757,6 +790,7 @@ def _matin(p):
     D_.reserve_reseau = RESERVE_RESEAU_MIN + HEURES_POSTE * math.fsum(
         len(w.ids_au_travail(e.lieu, e.role)) * e.intrants.get("electricite", 0.0)
         for e in w.entreprises.values() if e.id not in p.repris and e.type != "centrale")
+    _clore_demandes(D_)
     _regimes(p, D_)
     for s in D_.sites:
         if s.actif: _lisser_besoins(s)
@@ -1349,6 +1383,8 @@ def livrer(p, bien, quantite, vers, payeur, prix=None):
     quantite livree."""
     D_ = _dom(p); L = p.socle.livre; bid = p.socle.catalogue.id(bien)
     reste = float(quantite)
+    x = D_.demandes_jour.setdefault(bien, {}).setdefault(id(vers), [0.0, 0.0])   # ( 30/09, v2 ) une fois par demandeur et par jour
+    x[0] = max(x[0], float(quantite))
     for s in sorted((x for x in D_.sites if x.actif), key=lambda x: (-x.stock[bid], x.id)):
         if reste <= 0.0: break
         q = L.deplacer(s.stock, vers, bid, min(reste, s.stock[bid]), MOTIF_LIVRAISON)
@@ -1356,6 +1392,7 @@ def livrer(p, bien, quantite, vers, payeur, prix=None):
         L.payer_ou_devoir(payeur, s.entreprise, q * (BIENS[bien][2] if prix is None else prix), MOTIF_VENTE,
                           p.socle.creances, p.jour)
         reste -= q
+    x[1] += float(quantite) - reste
     return float(quantite) - reste
 
 
@@ -1368,6 +1405,10 @@ def livrer(p, bien, quantite, vers, payeur, prix=None):
 # les matieres pesant ~70 % du cout, 15,05 / ( 0,7 x 301,69 ) x 365 = ~26 jours de consommation ; les demi-produits,
 # 0,83 / 301,69 x 365 = ~1 jour. https://sidenor.gr/wp-content/uploads/2020/09/Sidenor-FS-31.12.2019-EN-Final.pdf
 JOURS_MATIERES = 26.0
+# CHOIX DECLARE ( 30/09, HMT-155 v2 ) : un site d extraction dont les produits s exportent ralentit quand ses invendus
+# depassent JOURS_MATIERES jours de sa production a plein ( le ratio de Sidenor, faute d une source pour les stocks de
+# concentres d une mine ), et accelere sous la moitie.
+INVENDUS_MAX_J = JOURS_MATIERES
 JOURS_DEMI_PRODUITS = 1.0
 DEMI_PRODUITS = ("fonte", "acier")
 # CHOIX DECLARE ( 29/09 ) : pour les mines, les carrieres et leurs ateliers ( ciment, chaux ), aucune statistique de

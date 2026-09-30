@@ -1,7 +1,7 @@
 """Correctif ( 29/09, HMT-140 cause 5 ) : les sites industriels naissent avec leurs stocks d ouverture ( matieres et
 consommables, demi-produits ), au bilan d ouverture du domaine 3 ; les stocks se comptent en jours de la consommation
-reelle lissee de chaque site ( 29/09 ) ; la cible en jours de demande sans plancher nominal, le gisement borne par
-ses ventes, coproduits valorises ( HMT-155, 30/09 ). Applique au domaine 10 d un arbre. Idempotent. Les blocs ( ancien, nouveau ) sont ceux du diff du moteur, contexte compris."""
+reelle lissee de chaque site ( 29/09 ) ; la cible en jours de demande sans plancher nominal, les demandes livrer dans le
+besoin, le gisement exporte regle sur son cout et ses invendus ( HMT-155 v2, 30/09 ). Applique au domaine 10 d un arbre. Idempotent. Les blocs ( ancien, nouveau ) sont ceux du diff du moteur, contexte compris."""
 import os, sys
 f = os.path.join(sys.argv[1], "monde", "pays", "d10_industrie.py")
 s = open(f, encoding="utf-8").read()
@@ -53,6 +53,35 @@ BLOCS = [
      "\n"
      "\n"
      "class Chargement:\n"),
+    ('    __slots__ = ("sites", "par_entreprise", "chargements", "prochain_chargement", "machines", "decideur", "rng_pannes",\n'
+     '                 "rng_accidents", "facteur_risque", "commandes", "livre_biens", "e1_flux", "fabrications", "stats",\n'
+     '                 "heures_secteur", "accidents_secteur", "attendu", "blessures", "remplacements", "co2_t",\n'
+     '                 "reserve_reseau", "vu_pharmacie")\n'
+     "\n"
+     "    def __init__(self):\n"
+     "        self.sites = []                 # Site, dans l ordre des identifiants\n",
+     '    __slots__ = ("sites", "par_entreprise", "chargements", "prochain_chargement", "machines", "decideur", "rng_pannes",\n'
+     '                 "rng_accidents", "facteur_risque", "commandes", "livre_biens", "e1_flux", "fabrications", "stats",\n'
+     '                 "heures_secteur", "accidents_secteur", "attendu", "blessures", "remplacements", "co2_t",\n'
+     '                 "reserve_reseau", "vu_pharmacie", "demandes_jour", "demande_hors_lisse", "reste_a_servir")\n'
+     "\n"
+     "    def __init__(self):\n"
+     "        self.sites = []                 # Site, dans l ordre des identifiants\n"),
+    ("        self.co2_t = 0.0\n"
+     "        self.vu_pharmacie = {}          # id de la pharmacie du moteur -> sa production cumulee deja abreuvee\n"
+     "        self.reserve_reseau = RESERVE_RESEAU_MIN   # unites du reseau du moteur que l industrie laisse aux autres sites\n"
+     "\n"
+     "\n"
+     'MOTIF_PRODUCTION, MOTIF_INTRANT, MOTIF_LIVRAISON = "production_industrie", "intrant_industrie", "livraison_interne"\n',
+     "        self.co2_t = 0.0\n"
+     "        self.vu_pharmacie = {}          # id de la pharmacie du moteur -> sa production cumulee deja abreuvee\n"
+     "        self.reserve_reseau = RESERVE_RESEAU_MIN   # unites du reseau du moteur que l industrie laisse aux autres sites\n"
+     "        self.demandes_jour = {}         # ( 30/09, HMT-155 v2 ) bien -> { demandeur : [ demande du jour, servi du jour ] }\n"
+     "        self.demande_hors_lisse = {}    # bien -> la demande des autres domaines ( livrer ), lissee\n"
+     "        self.reste_a_servir = {}        # bien -> ce que la veille n a pas servi\n"
+     "\n"
+     "\n"
+     'MOTIF_PRODUCTION, MOTIF_INTRANT, MOTIF_LIVRAISON = "production_industrie", "intrant_industrie", "livraison_interne"\n'),
     ("    return par_t / g.rendements[a.directeur]\n"
      "\n"
      "\n"
@@ -70,6 +99,25 @@ BLOCS = [
      "    g = a.gisement; m = p.w.marches[a.site.entreprise.lieu.marche.id]\n"
      "    v = math.fsum(r * (BIENS[b][2] if b in BIENS else m.prix[b] * (1.0 - m.marge)) for b, r in g.rendements.items())\n"
      "    return v / g.rendements[a.directeur]\n"
+     "\n"
+     "\n"
+     "def _exportable(p, b):\n"
+     '    """( 30/09, HMT-155 v2 ) Vrai si le negoce du domaine 7 exporte ce bien ( fer, zinc, or... )."""\n'
+     '    if not p.a("exterieur"): return False\n'
+     '    return b in importlib.import_module(".d07_exterieur", __package__).BIENS_IMPORT\n'
+     "\n"
+     "\n"
+     "def _clore_demandes(D_):\n"
+     '    """( 30/09, HMT-155 v2 ) Le matin, les demandes livrer de la veille : leur somme ( une fois par demandeur ) entre dans\n'
+     '    la demande lissee, et ce qui n a pas ete servi devient le reste a servir. Puis la journee repart de zero."""\n'
+     "    for b, par in D_.demandes_jour.items():\n"
+     "        dem = math.fsum(x[0] for x in par.values())\n"
+     "        D_.demande_hors_lisse[b] = (1.0 - ALPHA_BESOIN) * D_.demande_hors_lisse.get(b, 0.0) + ALPHA_BESOIN * dem\n"
+     "        D_.reste_a_servir[b] = math.fsum(max(0.0, x[0] - x[1]) for x in par.values())\n"
+     "    for b in list(D_.demande_hors_lisse):\n"
+     "        if b not in D_.demandes_jour:\n"
+     "            D_.demande_hors_lisse[b] *= (1.0 - ALPHA_BESOIN); D_.reste_a_servir[b] = 0.0\n"
+     "    D_.demandes_jour = {}\n"
      "\n"
      "\n"
      "def _invendus_en_jours(p, e, b):\n"
@@ -127,11 +175,35 @@ BLOCS = [
      "        if couv >= 2.0 * cible or cout_variable(p, a) > valeur_directeur(p, a): a.regime = max(REGIME_MIN, a.regime - PAS_REGIME)\n"
      "        elif couv < cible: a.regime = min(1.0, a.regime + PAS_REGIME)\n"
      "    for b in ORDRE_BIENS:\n"
-     "        prod = [a for a in ateliers if a.directeur == b and not (a.gisement is not None and a.gisement.reserve_t <= 0.0)]\n",
+     "        prod = [a for a in ateliers if a.directeur == b and not (a.gisement is not None and a.gisement.reserve_t <= 0.0)]\n"
+     "        for a in [a for a in prod if cout_variable(p, a) > valeur_directeur(p, a)]:\n"
+     "            a.regime = 0.0; prod.remove(a)\n"
+     "        if not prod: continue\n"
+     "        besoin = D_.commandes.get(b, 0.0) + math.fsum(\n"
+     "            a.recette.entrees[b] * a.nominal_j * a.regime for a in ateliers if a.recette is not None and b in a.recette.entrees)\n"
+     "        nominal = math.fsum(a.nominal_j for a in prod)\n"
+     "        if nominal <= 0.0: continue\n"
+     "        cible = max(STOCK_MIN_J * nominal, JOURS_STOCK * besoin)\n"
+     "        dispo = _dispo_bien(D_, b, cat.id(b))\n"
+     "        r = min(1.0, max(0.0, (besoin + (cible - dispo) / JOURS_RATTRAPAGE) / nominal))\n"
+     "        for a in prod: a.regime = r; a.couverture = dispo / (2.0 * cible)\n"
+     "\n"
+     "\n"
+     "def _matin(p):\n",
      "        if g is not None and g.reserve_t <= 0.0: a.regime = 0.0; continue\n"
      "        b = a.directeur\n"
      "        if b in BIENS: continue\n"
      "        if equilibre: continue\n"
+     "        if g is not None and _exportable(p, b):\n"
+     "            # ( 30/09, HMT-155 v2 ) un gisement dont les produits s exportent ( d07 ) vend au prix du monde : il se regle\n"
+     "            # sur son cout, coproduits compris, et sur ses invendus du site en jours de sa production a plein, pas sur la\n"
+     "            # demande de l ile ( la v1, bornee par la couverture du marche local, arretait la mine : 81 t pour 515 )\n"
+     "            par_j = a.nominal_j * g.rendements[b]\n"
+     "            inv = max(0.0, a.site.entreprise.stocks[b]) / par_j if par_j > 0.0 else math.inf\n"
+     "            a.couverture = inv / INVENDUS_MAX_J\n"
+     "            if cout_variable(p, a) > valeur_extraction(p, a) or inv >= INVENDUS_MAX_J: a.regime = max(0.0, a.regime - PAS_REGIME)\n"
+     "            elif inv < 0.5 * INVENDUS_MAX_J: a.regime = min(1.0, a.regime + PAS_REGIME)\n"
+     "            continue\n"
      "        # ( 30/09, HMT-155 ) un gisement est borne par ses ventes : ses invendus comptent dans la couverture, son cout se\n"
      "        # compare a tous ses coproduits, et il peut s arreter ( avant : un gisement qui donne de l or tournait plein )\n"
      "        couv = _demande_lissee(p, a.site.entreprise, b) + (_invendus_en_jours(p, a.site.entreprise, b) if g is not None else 0.0)\n"
@@ -142,17 +214,12 @@ BLOCS = [
      "        if couv >= 2.0 * cible or cout_variable(p, a) > valeur: a.regime = max(plancher, a.regime - PAS_REGIME)\n"
      "        elif couv < cible: a.regime = min(1.0, a.regime + PAS_REGIME)\n"
      "    for b in ORDRE_BIENS:\n"
-     "        prod = [a for a in ateliers if a.directeur == b and not (a.gisement is not None and a.gisement.reserve_t <= 0.0)]\n"),
-    ("            a.recette.entrees[b] * a.nominal_j * a.regime for a in ateliers if a.recette is not None and b in a.recette.entrees)\n"
-     "        nominal = math.fsum(a.nominal_j for a in prod)\n"
-     "        if nominal <= 0.0: continue\n"
-     "        cible = max(STOCK_MIN_J * nominal, JOURS_STOCK * besoin)\n"
-     "        dispo = _dispo_bien(D_, b, cat.id(b))\n"
-     "        r = min(1.0, max(0.0, (besoin + (cible - dispo) / JOURS_RATTRAPAGE) / nominal))\n"
-     "        for a in prod: a.regime = r; a.couverture = dispo / (2.0 * cible)\n"
-     "\n"
-     "\n"
-     "def _matin(p):\n",
+     "        prod = [a for a in ateliers if a.directeur == b and not (a.gisement is not None and a.gisement.reserve_t <= 0.0)]\n"
+     "        for a in [a for a in prod if cout_variable(p, a) > valeur_directeur(p, a)]:\n"
+     "            a.regime = 0.0; prod.remove(a)\n"
+     "        if not prod: continue\n"
+     "        besoin = (D_.commandes.get(b, 0.0) + D_.demande_hors_lisse.get(b, 0.0)    # ( 30/09, v2 ) les demandes livrer\n"
+     "                  + D_.reste_a_servir.get(b, 0.0) / JOURS_RATTRAPAGE) + math.fsum(\n"
      "            a.recette.entrees[b] * a.nominal_j * a.regime for a in ateliers if a.recette is not None and b in a.recette.entrees)\n"
      "        nominal = math.fsum(a.nominal_j for a in prod)\n"
      "        if nominal <= 0.0: continue\n"
@@ -164,14 +231,17 @@ BLOCS = [
      "\n"
      "\n"
      "def _matin(p):\n"),
-    ('        len(w.ids_au_travail(e.lieu, e.role)) * e.intrants.get("electricite", 0.0)\n'
+    ("    D_.reserve_reseau = RESERVE_RESEAU_MIN + HEURES_POSTE * math.fsum(\n"
+     '        len(w.ids_au_travail(e.lieu, e.role)) * e.intrants.get("electricite", 0.0)\n'
      '        for e in w.entreprises.values() if e.id not in p.repris and e.type != "centrale")\n'
      "    _regimes(p, D_)\n"
      "    dec = D_.decideur; parc = p.socle.parc\n"
      "    for s in D_.sites:\n"
      "        if not s.actif: continue\n",
+     "    D_.reserve_reseau = RESERVE_RESEAU_MIN + HEURES_POSTE * math.fsum(\n"
      '        len(w.ids_au_travail(e.lieu, e.role)) * e.intrants.get("electricite", 0.0)\n'
      '        for e in w.entreprises.values() if e.id not in p.repris and e.type != "centrale")\n'
+     "    _clore_demandes(D_)\n"
      "    _regimes(p, D_)\n"
      "    for s in D_.sites:\n"
      "        if s.actif: _lisser_besoins(s)\n"
@@ -304,12 +374,33 @@ BLOCS = [
      "        if not s.actif or dispo < LOT_MIN_T: continue\n"
      '        q -= ENE.livrer_combustible(p, s.stock, "charbon", min(q, dispo), s.entreprise, BIENS["charbon"][2], s.lieu.ile)\n'
      "        if q < LOT_MIN_T: break\n"),
-    ("    return float(quantite) - reste\n"
+    ('    quantite livree."""\n'
+     "    D_ = _dom(p); L = p.socle.livre; bid = p.socle.catalogue.id(bien)\n"
+     "    reste = float(quantite)\n"
+     "    for s in sorted((x for x in D_.sites if x.actif), key=lambda x: (-x.stock[bid], x.id)):\n"
+     "        if reste <= 0.0: break\n"
+     "        q = L.deplacer(s.stock, vers, bid, min(reste, s.stock[bid]), MOTIF_LIVRAISON)\n",
+     '    quantite livree."""\n'
+     "    D_ = _dom(p); L = p.socle.livre; bid = p.socle.catalogue.id(bien)\n"
+     "    reste = float(quantite)\n"
+     "    x = D_.demandes_jour.setdefault(bien, {}).setdefault(id(vers), [0.0, 0.0])   # ( 30/09, v2 ) une fois par demandeur et par jour\n"
+     "    x[0] = max(x[0], float(quantite))\n"
+     "    for s in sorted((x for x in D_.sites if x.actif), key=lambda x: (-x.stock[bid], x.id)):\n"
+     "        if reste <= 0.0: break\n"
+     "        q = L.deplacer(s.stock, vers, bid, min(reste, s.stock[bid]), MOTIF_LIVRAISON)\n"),
+    ("        L.payer_ou_devoir(payeur, s.entreprise, q * (BIENS[bien][2] if prix is None else prix), MOTIF_VENTE,\n"
+     "                          p.socle.creances, p.jour)\n"
+     "        reste -= q\n"
+     "    return float(quantite) - reste\n"
      "\n"
      "\n"
      "def valeur_stocks(p, entreprise):\n"
      '    """Drachmes : les biens nouveaux du site d une entreprise reprise, au prix de cession. Les comptes du domaine 3\n'
      "    ( _valeur_stocks ) ne voient que les biens du moteur : sans cette ligne, ce qu une carriere a mis en stock ( ciment,\n",
+     "        L.payer_ou_devoir(payeur, s.entreprise, q * (BIENS[bien][2] if prix is None else prix), MOTIF_VENTE,\n"
+     "                          p.socle.creances, p.jour)\n"
+     "        reste -= q\n"
+     "    x[1] += float(quantite) - reste\n"
      "    return float(quantite) - reste\n"
      "\n"
      "\n"
@@ -322,6 +413,10 @@ BLOCS = [
      "# les matieres pesant ~70 % du cout, 15,05 / ( 0,7 x 301,69 ) x 365 = ~26 jours de consommation ; les demi-produits,\n"
      "# 0,83 / 301,69 x 365 = ~1 jour. https://sidenor.gr/wp-content/uploads/2020/09/Sidenor-FS-31.12.2019-EN-Final.pdf\n"
      "JOURS_MATIERES = 26.0\n"
+     "# CHOIX DECLARE ( 30/09, HMT-155 v2 ) : un site d extraction dont les produits s exportent ralentit quand ses invendus\n"
+     "# depassent JOURS_MATIERES jours de sa production a plein ( le ratio de Sidenor, faute d une source pour les stocks de\n"
+     "# concentres d une mine ), et accelere sous la moitie.\n"
+     "INVENDUS_MAX_J = JOURS_MATIERES\n"
      "JOURS_DEMI_PRODUITS = 1.0\n"
      'DEMI_PRODUITS = ("fonte", "acier")\n'
      "# CHOIX DECLARE ( 29/09 ) : pour les mines, les carrieres et leurs ateliers ( ciment, chaux ), aucune statistique de\n"

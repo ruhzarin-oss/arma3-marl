@@ -416,5 +416,64 @@ def test_stocks_d_ouverture():
                 f"{'passe ( FAUX )' if juge(h0, d0) else 'echoue ( attendu )'}")
 
 
+# ================================================================== HMT-155 v2 : la demande des autres domaines, les gisements exportes
+def _jours_de_ciment(clore=True, jours=20, q=5.0):
+    """Un demandeur ( le stock du dernier site, qui consomme aussitot ce qu il recoit ) demande chaque jour q t de
+    ciment a d10, par livrer, apres que tout le ciment du pays a ete perdu au depart. Rend la part servie chaque jour."""
+    orig = M._clore_demandes
+    if not clore: M._clore_demandes = lambda D__: D__.demandes_jour.clear()
+    try:
+        w, p = T.monde(["industrie"])
+        D_ = p.domaine("industrie"); L = p.socle.livre; bid = p.socle.catalogue.id("ciment")
+        for s in D_.sites:
+            if s.stock[bid] > 0: L.perdre(s.stock, bid, s.stock[bid], "stock_initial")
+        dst = D_.sites[-1]; servi = []
+        for _ in range(jours):
+            T.jours(w, 1)
+            r = M.livrer(p, "ciment", q, dst.stock, dst.entreprise)
+            servi.append(r / q)
+            if dst.stock[bid] > 0: L.consommer(dst.stock, bid, dst.stock[bid], M.MOTIF_INTRANT)
+        return servi, p.socle.conservation.tenue()
+    finally:
+        M._clore_demandes = orig
+
+
+def test_demande_livrer():
+    """Porte ( 30/09, HMT-155 v2, ecrite avant la mesure ) : un demandeur qui demande chaque jour 5 t de ciment a d10
+    ( livrer ), apres la perte de tout le ciment du pays, est servi : sur les 5 derniers jours de 20, au moins 80 % en
+    moyenne ; conservation. Controle positif : si les demandes n entrent pas dans le besoin ( la v1 ), la cimenterie ne
+    tourne pas pour elles et ces 5 jours sont servis a moins de 50 %."""
+    s, (t, msg) = _jours_de_ciment(True)
+    s0, (t0, _) = _jours_de_ciment(False)
+    fin, fin0 = sum(s[-5:]) / 5, sum(s0[-5:]) / 5
+    ok = fin >= 0.80 and t and t0 and fin0 < 0.50
+    return ok, (f"servi par jour : {[round(x, 2) for x in s]} ; 5 derniers jours {fin:.0%} ; {msg} ; sans la demande dans le "
+                f"besoin : 5 derniers jours {fin0:.0%}, porte {'passe ( FAUX )' if fin0 >= 0.50 else 'echoue ( attendu )'}")
+
+
+def test_gisement_exporte():
+    """Porte ( 30/09, HMT-155 v2, ecrite avant la mesure ) : la mine ( skarn : fer, zinc, or, exportes par le domaine 7 )
+    descend d un cran quand ses invendus de fer depassent INVENDUS_MAX_J jours de sa production a plein, et monte d un
+    cran quand elle n a pas d invendus et que son cout est couvert ; elle peut descendre jusqu a 0. Controle positif :
+    elle ne suit pas la couverture du marche de l ile ( un marche noye de fer ne la fait pas descendre sans invendus )."""
+    w, p = T.monde(["industrie", "exterieur"])
+    T.jours(w, 1)
+    D_ = p.domaine("industrie"); a = _atelier(p, "mine@Mine01", "skarn"); e = a.site.entreprise
+    par_j = a.nominal_j * a.gisement.rendements["fer"]
+    e.stocks["fer"] = 2.0 * M.INVENDUS_MAX_J * par_j; a.regime = 0.5
+    M._regimes(p, D_); bas = a.regime
+    e.stocks["fer"] = 0.0; a.regime = 0.5
+    cout_ok = M.cout_variable(p, a) <= M.valeur_extraction(p, a)
+    M._regimes(p, D_); haut = a.regime
+    m = w.marches[e.lieu.marche.id]; m.stocks["fer"] *= 100.0; a.regime = 0.5
+    M._regimes(p, D_); noye = a.regime
+    e.stocks["fer"] = 1e9; a.regime = 0.25
+    for _ in range(3): M._regimes(p, D_)
+    zero = a.regime
+    ok = bas == 0.25 and (haut == 0.75 if cout_ok else haut <= 0.5) and noye >= 0.5 and zero == 0.0
+    return ok, (f"invendus 2 x {M.INVENDUS_MAX_J:.0f} jours : 0,5 -> {bas} ; sans invendus ( cout couvert {cout_ok} ) : 0,5 -> "
+                f"{haut} ; marche de l ile noye de fer, sans invendus : 0,5 -> {noye} ; invendus enormes, 3 matins : 0,25 -> {zero}")
+
+
 TESTS = [test_bilan_matiere, test_epuisement, test_mtbf, test_conservation_machines, test_accidents, test_bien_hors_recette,
-         test_part_du_choix, test_pays_vivable, test_cout, test_stocks_d_ouverture]
+         test_part_du_choix, test_pays_vivable, test_cout, test_stocks_d_ouverture, test_demande_livrer, test_gisement_exporte]
