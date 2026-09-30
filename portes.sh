@@ -24,6 +24,7 @@ porte "enregistreur"   "PORTE DE L ENREGISTREUR : FRANCHIE"  $PY -m monde.porte_
 porte "agent codeur"   "PORTE DE L AGENT CODEUR : FRANCHIE"  $PY -m monde.porte_agent_codeur
 porte "devises"        "PORTE DES DEVISES : FRANCHIE"        $PY -m monde.porte_devises
 porte "faim des morts"  "PORTE DE LA FAIM DES MORTS : FRANCHIE" $PY -m monde.porte_faim_des_morts
+porte "vivres des enfants" "PORTE DES VIVRES DES ENFANTS : FRANCHIE" $PY -m monde.porte_vivres_enfants
 porte "code a la demande" "PORTE DU CODE A LA DEMANDE : FRANCHIE" $PY -m monde.porte_code_a_la_demande
 porte "guerre"         "PORTES DE LA GUERRE : FRANCHIES"     $PY -m guerre.porte_guerre
 if [ "$1" != "--vite" ]; then
