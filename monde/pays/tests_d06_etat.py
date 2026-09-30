@@ -4,6 +4,7 @@ import numpy as np
 from .. import config as C, monde as W
 from ..socle import decision as D
 from . import essais as T, d01_population as POP, d02_banques as BQ, d03_economie as EC, d06_etat as M
+from .pays import EUROS_PAR_DRACHME as EUR
 
 
 # ================================================================== la loi, sans monde
@@ -52,11 +53,13 @@ def test_ir_par_tranches():
     est ce que le grand livre a vu verser a la paie, motif par motif ( 1e-6 relatif ) ; au moins 99 % des menages ont
     verse l impot cumule de leurs membres au centime. Falsificateur : 1 000 drachmes de revenu fantome ecrites a la main
     dans la colonne d un salarie se voient dans ce recoupement ; un taux unique de 15 % ne rend pas le bareme."""
+    # ( 29/09, HMT-140 ) les cas de la loi sont en EUROS ; le bareme du pays est en drachmes : revenus et impots convertis
+    # ( l impot d un revenu converti est l impot de la loi converti, les tranches et la reduction etant converties )
     cas = ((5000, 450.0), (10000, 900.0), (15000, 2000.0), (25000, 4500.0), (35000, 7700.0), (60000, 18300.0))
-    bar = all(abs(M.bareme_ir(y) - v) <= 1e-9 for y, v in cas)
+    bar = all(abs(M.bareme_ir(y / EUR) - v / EUR) <= 1e-9 for y, v in cas)
     cas2 = ((8000, 8000, 0, 0.0), (15000, 15000, 0, 1283.0), (20000, 20000, 2, 2360.0), (50000, 50000, 0, 13883.0),
             (60000, 60000, 0, 18300.0), (15000, 0, 0, 2000.0), (20000, 10000, 0, 2323.0), (30000, 30000, 5, 4340.0))
-    red = all(abs(M.impot_annuel(y, ys, k) - v) <= 1e-9 for y, ys, k, v in cas2)
+    red = all(abs(M.impot_annuel(y / EUR, ys / EUR, k) - v / EUR) <= 1e-9 for y, ys, k, v in cas2)
     rng = np.random.default_rng(3)
     r = rng.gamma(2.0, 30.0, 365); Y = np.cumsum(r)
     cumul = abs(M.impot_cumule(Y[-1], Y[-1], 1, 365, 365) - M.impot_annuel(Y[-1], Y[-1], 1)) <= 1e-9
@@ -109,7 +112,11 @@ def test_is_penalites_douanes():
     prescrit = abs(M.impot_societes(1000.0, vieux, 5 * 365 + 1)[0] - 220.0) <= 1e-9
     pen = [M.taux_penalite(a, b) for a, b in ((4, 100), (10, 100), (30, 100), (60, 100), (10, 0))]
     pen_ok = pen == [0.0, 0.10, 0.25, 0.50, 0.50]
-    en_ok = abs(M.enfia(100, 600) - 280.0) <= 1e-9 and abs(M.enfia(100, 5200) - 1110.0) <= 1e-9
+    # ( 29/09, regle 8 ) les cas de la loi sont en euros ( 100 m2 a 600 : 280 ; a 5 200 : 1 110 ), le tableau du pays en
+    # drachmes ; falsificateur : le tableau en euros applique aux drachmes donnait 200 drachmes a 600 euros ( 522 drachmes )
+    ancien = next(t for borne, t in M.ENFIA_ZONES_EUROS if 600.0 / EUR <= borne) * 100
+    en_ok = (abs(M.enfia(100, 600 / EUR) - 280.0 / EUR) <= 1e-9 and abs(M.enfia(100, 5200 / EUR) - 1110.0 / EUR) <= 1e-9
+             and abs(ancien - 280.0 / EUR) > 1.0)
     w, p = T.monde(["etat"])
     droit, tva = M.taxes_import(p, "outils", 1000.0)
     dou_ok = abs(droit - 40.0) <= 1e-9 and abs(tva - 249.6) <= 1e-9
@@ -395,24 +402,25 @@ def _redressement_unite(jours_observes, elude=1000.0):
     return o.redressement, p.socle.conservation.tenue()[0]
 
 
-def test_controle_entreprise_trimestre():
-    """Porte ( 29/09, suite de HMT-143, ecrite avant la mesure ) : le controle d une entreprise extrapole l impot elude
-    depuis l installation sur son passe non controle ( au plus PASSE_MAX_ANS = 5 ans ) avec au moins un trimestre de
-    pieces ( OBSERVATION_MIN_J ), comme celui d un menage. Elude E = 1 000, cinq ans de passe : controlee apres 30 jours,
-    redressement E x ( 1 + 12 x 5 / 3 ) = 21 E ( 1e-9 pres ) ; apres 180 jours, E x ( 1 + 12 x 5 / 6 ) = 11 E ( la regle
-    ne change pas au-dela du trimestre ). Controle positif : un elude nul ne redresse rien. Conservation. Falsificateur :
-    l ancienne regle ( un seul mois de pieces ) donne 61 E apres 30 jours, et la porte echoue."""
+def test_controle_entreprise_exercice():
+    """Porte ( 29/09, suite de HMT-143, ecrite avant la mesure ) : le controle d une entreprise redresse exercice par
+    exercice. Elude E = 1 000, cinq ans de passe non controle : controlee apres 30 jours ou 180 jours ( aucun exercice
+    entier observe ), le redressement est E, l elude vu, sans passe reconstitue ( 1e-9 pres ) ; apres 400 jours ( un
+    exercice observe ), le passe se reconstitue au rythme observe : E x ( 1 + 12 x 5 / ( 400 / 30 ) ) = 5,5 E. Elude nul :
+    rien. Conservation. Controle positif : l ancienne regle ( extrapoler des le premier mois ) donne 61 E apres 30 jours
+    ( 21 E avec le minimum d un trimestre ), et la porte echoue."""
     E = 1000.0
-    r30, t1 = _redressement_unite(30, E); r180, t2 = _redressement_unite(180, E); r0, t3 = _redressement_unite(30, 0.0)
-    ancien = M.OBSERVATION_MIN_J; M.OBSERVATION_MIN_J = M.EC.MOIS_J
+    r30, t1 = _redressement_unite(30, E); r180, t2 = _redressement_unite(180, E); r400, t3 = _redressement_unite(400, E)
+    r0, t4 = _redressement_unite(30, 0.0)
+    ancien = M.EXERCICE_OBSERVE_J; M.EXERCICE_OBSERVE_J = 0
     try: f30, _ = _redressement_unite(30, E)
-    finally: M.OBSERVATION_MIN_J = ancien
-    juge = lambda r30, r180: abs(r30 - 21 * E) <= 1e-9 * E and abs(r180 - 11 * E) <= 1e-9 * E
-    ok = juge(r30, r180) and r0 <= 1e-9 and t1 and t2 and t3 and not juge(f30, r180)
-    return ok, (f"elude {E:.0f}, 5 ans de passe : apres 30 jours {r30:.2f} ( {r30 / E:.2f} E, attendu 21 ), apres 180 jours "
-                f"{r180:.2f} ( {r180 / E:.2f} E, attendu 11 ) ; elude nul : {r0:.2f} ; conservation {t1 and t2 and t3} ; ancienne "
-                f"regle ( un mois ) : {f30 / E:.2f} E apres 30 jours, porte {'passe ( FAUX )' if juge(f30, r180) else 'echoue ( attendu )'}")
-
+    finally: M.EXERCICE_OBSERVE_J = ancien
+    attendu400 = E * (1.0 + 12.0 * 5.0 / (400.0 / M.EC.MOIS_J))
+    juge = lambda r30, r180, r400: abs(r30 - E) <= 1e-9 * E and abs(r180 - E) <= 1e-9 * E and abs(r400 - attendu400) <= 1e-9 * attendu400
+    ok = juge(r30, r180, r400) and r0 <= 1e-9 and t1 and t2 and t3 and t4 and not juge(f30, r180, r400)
+    return ok, (f"elude {E:.0f}, 5 ans de passe : apres 30 jours {r30 / E:.2f} E, 180 jours {r180 / E:.2f} E ( attendus 1 ), 400 jours "
+                f"{r400 / E:.2f} E ( attendu {attendu400 / E:.2f} ) ; elude nul {r0:.2f} ; conservation {t1 and t2 and t3 and t4} ; "
+                f"extrapoler des le premier mois : {f30 / E:.2f} E apres 30 jours, porte {'passe ( FAUX )' if juge(f30, r180, r400) else 'echoue ( attendu )'}")
 
 # ================================================================== le pays
 def test_pays_vivable():
@@ -545,4 +553,4 @@ def test_insaisissable():
 
 TESTS = [test_tva_par_categorie, test_ir_par_tranches, test_is_penalites_douanes, test_comptes_nationaux,
          test_solde_budgetaire, test_tresor_jamais_a_sec, test_sitrep_sans_verite_cachee, test_enquete_chomage,
-         test_controle_fiscal, test_kea_revenu_declare, test_pays_vivable, test_cout, test_insaisissable, test_controle_entreprise_trimestre]
+         test_controle_fiscal, test_kea_revenu_declare, test_pays_vivable, test_cout, test_insaisissable, test_controle_entreprise_exercice]
