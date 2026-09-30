@@ -210,7 +210,8 @@ MOIS_DE_RESERVE_FRONT = 2.0       # la famille inscrit si sa caisse couvre deux 
 # consommation ), jusqu a 47 % des eleves du primaire, fixes a la rentree ( la KYA de l annee ).
 REPAS_SCOLAIRES = True            # le bras C d une mesure l eteint ( les ecoles couvertes sont calculees quand meme )
 PART_ELEVES_COUVERTS = 0.47       # ministere, 2025-2026
-RATION_REPAS = 0.24               # CHOIX ( a calibrer ) : un dejeuner d enfant ~ un tiers de ses besoins, ~ 600 kcal
+RATION_REPAS = 0.24               # CHOIX ( a calibrer ) : 600 kcal / 2 500 kcal, la ration d une JOURNEE du moteur ( la meme
+                                  # pour un enfant et un adulte ) ; un dejeuner d enfant ~ un tiers de ses besoins
 PRIX_REPAS_EUR = 2.8              # CHOIX ( a verifier ) : 115 M euros / ( 231 062 repas x ~ 175 jours de classe )
 PRIX_REPAS_DR = PRIX_REPAS_EUR / EUROS
 
