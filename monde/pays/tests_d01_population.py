@@ -8,16 +8,17 @@ from . import essais as T, d01_population as M
 # ================================================================== les lois, sur des cohortes synthetiques
 def test_tables():
     """L esperance de vie de la table retrouve la Grece ( 79,0 / 84,1 ans, a 1,5 an pres ), la mortalite infantile est
-    de 3 a 4,5 pour mille, l ISF de 1,30 a 1,40, l age moyen a la maternite de 30 a 32,5 ans. Controle positif : une
-    table dont la pente de Gompertz est doublee en niveau fait perdre plus de 3 ans d esperance de vie."""
+    de 3 a 4,5 pour mille. La fecondite est celle publiee ( 30/09, Eurostat demo_find 2024 ) : ISF a 0,01 pres de 1,24,
+    age moyen a la maternite a 0,2 an pres de 32,2. Controle positif : une table dont la pente de Gompertz est doublee
+    en niveau fait perdre plus de 3 ans d esperance de vie."""
     t = M.TableDeMortalite(); f = M.TableDeFecondite()
     eh, ef = t.esperance_de_vie(M.HOMME), t.esperance_de_vie(M.FEMME)
     q0 = (t.q[M.HOMME, 0] + t.q[M.FEMME, 0]) / 2
     params = {s: dict(k, b=2 * k["b"]) for s, k in M.MORTALITE.items()}
     eh2 = M.TableDeMortalite(params).esperance_de_vie(M.HOMME)
     ok = (abs(eh - M.CIBLE_E0[M.HOMME]) <= 1.5 and abs(ef - M.CIBLE_E0[M.FEMME]) <= 1.5 and 0.003 <= q0 <= 0.0045
-          and 1.30 <= f.isf() <= 1.40 and 30 <= f.age_moyen() <= 32.5 and eh - eh2 > 3)
-    return ok, (f"e0 hommes {eh:.1f} ans, femmes {ef:.1f} ; q0 {q0 * 1000:.1f} pour mille ; ISF {f.isf():.2f}, age moyen a "
+          and abs(f.isf() - 1.24) <= 0.01 and abs(f.age_moyen() - 32.2) <= 0.2 and eh - eh2 > 3)
+    return ok, (f"e0 hommes {eh:.1f} ans, femmes {ef:.1f} ; q0 {q0 * 1000:.1f} pour mille ; ISF {f.isf():.3f}, age moyen a "
                 f"la maternite {f.age_moyen():.1f} ; mortalite doublee au-dela de 15 ans : e0 hommes {eh2:.1f}")
 
 
@@ -42,42 +43,66 @@ def test_mortalite_cohorte():
     return ok, f"{m1} morts pour {a1:.0f} attendus ( z = {z:+.2f} ) ; table x1,5 : {m15} morts, rapport {m15 / m1:.3f}"
 
 
-def _simuler_femmes(table, n=100_000, annees=3, graine=2):
-    """Des femmes d age fixe, moitie en couple, qui concoivent, perdent ou portent, accouchent, puis attendent 3 mois.
-    Rend ( naissances par femme et par an, par age ; part des naissances hors couple ), mesurees apres un an de chauffe."""
+# La table d avant le 30/09 ( ordre de grandeur 2019, groupes de 5 ans, ISF 1,345 ) et le facteur de couple d avant ( un
+# seul k pour tous les ages ) : les falsificateurs de test_fecondite_cohorte.
+ASFR_AVANT = {15: 0.008, 20: 0.030, 25: 0.068, 30: 0.094, 35: 0.058, 40: 0.0105, 45: 0.0005}
+
+
+def _facteur_unique(table, age, en_couple):
+    base = table.hasard_conception(age)
+    pondere = (base * np.where(en_couple, 1.0, M.FECONDITE_SOLO)).sum()
+    return float(base.sum() / pondere) if pondere > 0 else 1.0
+
+
+def _simuler_femmes(table, n=300_000, annees=3, graine=2, facteur=M.facteur_couples):
+    """Des femmes d age fixe ( uniformes de 15 a 49 ans ), en couple selon l age ( EN_COUPLE, comme au recensement ),
+    qui concoivent, perdent ou portent, accouchent ( jumeaux compris ), puis attendent 3 mois. Rend ( naissances par
+    femme et par an, par age ; part des naissances hors couple ; naissances ), mesurees apres un an de chauffe."""
     rng = np.random.default_rng(graine)
-    age = rng.integers(15, 50, n); couple = rng.random(n) < 0.5
-    occupee_jusqu = np.zeros(n, np.int64); naissance_le = np.full(n, -1, np.int64)
-    nes = np.zeros(111); expo = np.zeros(111); hors = total = 0
+    age = rng.integers(15, 50, n)
+    part = np.zeros(n)
+    for a, v in M.EN_COUPLE: part[age >= a] = v
+    couple = rng.random(n) < part
+    occupee_jusqu = np.zeros(n, np.int64); naissance_le = np.full(n, -1, np.int64); jumeaux = np.zeros(n, np.int64)
+    nes = np.zeros(111); hors = total = 0
     for j in range(annees * 365):
-        mesure = j >= 365
         nait = np.nonzero(naissance_le == j)[0]
-        if mesure:
-            np.add.at(nes, age[nait], 1); total += len(nait); hors += int((~couple[nait]).sum())
-            np.add.at(expo, age, 1.0 / 365)
+        if j >= 365:
+            b = 1 + jumeaux[nait]
+            np.add.at(nes, age[nait], b); total += int(b.sum()); hors += int(b[~couple[nait]].sum())
         occupee_jusqu[nait] = j + M.POST_PARTUM_J; naissance_le[nait] = -1
         libre = np.nonzero(occupee_jusqu <= j)[0]
-        k = M.facteur_couples(table, age[libre], couple[libre])
+        k = facteur(table, age[libre], couple[libre])
         c = libre[M.tirer_conceptions(table, age[libre], couple[libre], rng.random(len(libre)), k)]
         perdue = rng.random(len(c)) < M.FAUSSE_COUCHE
         g = np.clip(rng.normal(*M.GESTATION_J, len(c)), 196, 294).astype(np.int64)
-        occupee_jusqu[c] = np.where(perdue, j + rng.integers(42, 85, len(c)), j + g + 10 ** 6)
+        occupee_jusqu[c] = np.where(perdue, j + rng.integers(*M.FAUSSE_COUCHE_J, len(c)), j + g + 10 ** 6)
         naissance_le[c[~perdue]] = j + g[~perdue]
+        jumeaux[c] = rng.random(len(c)) < M.JUMEAUX
+    expo = np.bincount(age, minlength=111)[:111] * (annees - 1.0)      # des femmes d age fixe, toutes presentes
     return nes / np.maximum(expo, 1e-9), hors / max(1, total), total
 
 
 def test_fecondite_cohorte():
-    """100 000 femmes pendant 3 ans : les naissances par age retrouvent la table ( ISF a 5 % pres, chaque groupe de 25
-    a 39 ans a 8 % pres ), malgre les grossesses perdues et le temps ou une femme ne peut pas concevoir. Controle
-    positif : une table doublee double les naissances ( 1,8 a 2,2 )."""
+    """Porte decisive ( 30/09, critere de la session Classes, amendement du chef A2 ) : 300 000 femmes d age fixe, en
+    couple selon l age, 3 ans dont 1 de chauffe, jumeaux compris : l ICF mesure retrouve la somme des ASFR a 3 % pres
+    et chaque groupe de 5 ans de 20 a 44 ans a 5 % pres, malgre les grossesses perdues, le temps ou une femme ne peut
+    pas concevoir et la regle des couples ; une table doublee donne 1,8 a 2,2 fois plus de naissances. Falsificateurs :
+    la table d avant ( ISF 1,345 ) sort des 3 % de l ISF publie ( 1,24 ) ; le facteur de couple d avant ( un seul k
+    pour tous les ages ) sort des 5 % sur au moins un groupe."""
     t = M.TableDeFecondite()
+    def groupes(taux): return {a: taux[a:a + 5].sum() / t.asfr[a:a + 5].sum() for a in range(20, 45, 5)}
     taux, hors, n1 = _simuler_femmes(t)
-    isf = sum(taux[a] for a in range(15, 50))
-    groupes = {a: taux[a:a + 5].mean() / M.ASFR[a] for a in (25, 30, 35)}
+    isf, g = taux[15:50].sum(), groupes(taux)
     _, _, n2 = _simuler_femmes(M.TableDeFecondite(facteur=2.0))
-    ok = abs(isf / t.isf() - 1) <= 0.05 and all(abs(r - 1) <= 0.08 for r in groupes.values()) and 1.8 <= n2 / n1 <= 2.2
-    return ok, (f"ISF mesure {isf:.3f} pour {t.isf():.3f} ; 25-39 ans : " + ", ".join(f"{a} {r:.2f}" for a, r in groupes.items())
-                + f" ; naissances hors couple {hors:.0%} ; table doublee : x{n2 / n1:.2f}")
+    isf_avant = _simuler_femmes(M.TableDeFecondite(ASFR_AVANT))[0][15:50].sum()
+    g_unique = groupes(_simuler_femmes(t, facteur=_facteur_unique)[0])
+    ok = (abs(isf / t.isf() - 1) <= 0.03 and all(abs(r - 1) <= 0.05 for r in g.values()) and 1.8 <= n2 / n1 <= 2.2
+          and abs(isf_avant / 1.24 - 1) > 0.03 and any(abs(r - 1) > 0.05 for r in g_unique.values()))
+    return ok, (f"ICF mesure {isf:.3f} pour {t.isf():.3f} ( x{isf / t.isf():.3f} ) ; 20-44 ans : "
+                + ", ".join(f"{a} {r:.2f}" for a, r in g.items()) + f" ; naissances hors couple {hors:.1%} ; "
+                f"table doublee : x{n2 / n1:.2f} ; falsificateurs : table d avant ICF {isf_avant:.3f} "
+                f"( {isf_avant / 1.24 - 1:+.1%} de 1,24 ), k unique " + ", ".join(f"{a} {r:.2f}" for a, r in g_unique.items()))
 
 
 # ================================================================== le domaine dans le moteur

@@ -48,6 +48,7 @@ $PY $C/patch_fisc_drachmes.py $ARBRE                # 29/09 ( HMT-140 ) : bareme
 $PY $C/patch_enfia_drachmes.py $ARBRE               # 29/09 ( regle 8 ) : l ENFIA en drachmes
 $PY $C/patch_passe_exercice.py $ARBRE  # ( 29/09 ) le controle d une entreprise redresse le passe exercice par exercice
 $PY $C/patch_orphelins.py $ARBRE/monde/pays/d01_population.py   # ( 30/09, session Classes ) aucun mineur seul : parente ( AK 1510, 1589, 1592, 1463 ) sinon accueil, garde le temps d une absence ; d21 appelle d01 a l arrestation
+$PY $C/patch_fecondite.py $ARBRE/monde/pays/d01_population.py   # ( 30/09, session Classes ) fecondite copiee sur Eurostat demo_frate 2024 : ages simples a l age de la naissance, jumeaux, duree des pertes, couples age par age
 ( cd $ARBRE && PYTHONPATH=$ARBRE $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines.json ]; then
   cmp -s $REF/ref_domaines_refaite.json $REF/ref_domaines.json && echo "REFERENCE DES DOMAINES REPRODUITE AU BIT" || echo "REFERENCE DES DOMAINES DIFFERENTE"

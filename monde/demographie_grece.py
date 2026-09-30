@@ -59,9 +59,12 @@ ECART_AGE_COUPLE, ECART_AGE_SD, ECART_AGE_MAX = 3.0, 4.0, 12
 #   https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/ilc_lvps08?geo=EL&time=2024
 CHEZ_LES_PARENTS = ((18, 0.854), (25, 0.711), (30, 0.396), (35, 0.22), (40, 0.16), (45, 0.12), (50, 0.08), (55, 0.04),
                     (60, 0.0))
-# Les ages de la mere a la naissance : la fecondite par age du domaine 1 ( d01_population.ASFR, ordre de grandeur
-# Eurostat, ISF 1,35 ) ; une femme seule a 0,15 fois la fecondite d une femme en couple ( d01 : FECONDITE_SOLO ).
-ASFR = {15: 0.008, 20: 0.030, 25: 0.068, 30: 0.094, 35: 0.058, 40: 0.0105, 45: 0.0005}
+# Les ages de la mere a la naissance : Eurostat demo_frate ( Fertility rates by age ), Grece 2024, agedef COMPLET, les
+# groupes de 5 ans ( Y15-19 a Y45-49 ; population._asfr lit des groupes de 5 ans ), lu le 30/09/2026 - la meme source
+# que d01_population.ASFR ( ages simples ). ISF des groupes 1,231 ( publie, demo_find TOTFERRT 2024 : 1,24 ). Une
+# femme seule a 0,15 fois la fecondite d une femme en couple ( d01 : FECONDITE_SOLO, a calibrer ).
+#   https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_frate?geo=EL&time=2024
+ASFR = {15: 0.00723, 20: 0.02051, 25: 0.05449, 30: 0.08714, 35: 0.05831, 40: 0.01571, 45: 0.00288}
 FECONDITE_SOLO = 0.15
 # Les parents ages qui vivent chez un enfant ( menages a plusieurs generations ) : part des 65 ans et plus hors couple
 # et seuls, par age ( a calibrer : calee sur « trois adultes et plus » et « un adulte de 65 ans et plus »

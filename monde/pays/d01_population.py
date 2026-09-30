@@ -47,13 +47,23 @@ MORTALITE = {HOMME: {"q0": 0.0039, "q_enfant": 0.00012, "a": 0.0004, "b": 2.676e
              FEMME: {"q0": 0.0033, "q_enfant": 0.00010, "a": 0.00015, "b": 1.732e-05, "c": 0.095}}
 CIBLE_E0 = {HOMME: 79.0, FEMME: 84.1}
 
-# Fecondite par groupe d age ( naissances par femme et par an ) : ISF 1,35 ( Grece 2019 : 1,34 ), age moyen a
-# l accouchement 31 ans. Ordres de grandeur Eurostat, a calibrer.
-ASFR = {15: 0.008, 20: 0.030, 25: 0.068, 30: 0.094, 35: 0.058, 40: 0.0105, 45: 0.0005}
-FECONDITE_SOLO = 0.15        # une femme sans conjoint conçoit 0,15 fois moins : ~12 % des naissances hors couple ( a calibrer )
+# Fecondite par age ( naissances vivantes par femme et par an, age revolu de la mere A LA NAISSANCE ) : Eurostat
+# demo_frate ( Fertility rates by age, successeur de demo_fasfr ), Grece 2024, agedef COMPLET, ages simples, lu
+# le 30/09/2026 : https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_frate?geo=EL&time=2024
+# Somme 1,237 ( ISF publie, demo_find TOTFERRT 2024 : 1,24 ; les meres de moins de 15 ans et de 50 ans et plus,
+# 0,4 % de l ISF, ne sont pas copiees ) ; age moyen 32,1 ( demo_find AGEMOTH 2024 : 32,2 ). ( 30/09 : la table
+# d avant, ordre de grandeur 2019 par groupes de 5 ans, ISF 1,345, faisait trop naitre de 20 a 34 ans. )
+ASFR = {15: 0.00285, 16: 0.00488, 17: 0.00720, 18: 0.00938, 19: 0.01223, 20: 0.01429, 21: 0.01633, 22: 0.01978,
+        23: 0.02328, 24: 0.02916, 25: 0.03529, 26: 0.04438, 27: 0.05434, 28: 0.06492, 29: 0.07301, 30: 0.08530,
+        31: 0.08872, 32: 0.08925, 33: 0.08886, 34: 0.08364, 35: 0.07640, 36: 0.07113, 37: 0.05978, 38: 0.04833,
+        39: 0.03970, 40: 0.02933, 41: 0.02159, 42: 0.01432, 43: 0.00875, 44: 0.00647, 45: 0.00483, 46: 0.00333,
+        47: 0.00292, 48: 0.00220, 49: 0.00114}
+AGE_FIN_FECONDITE = 50      # le dernier groupe de la table va jusqu a 49 ans revolus
+FECONDITE_SOLO = 0.15        # une femme sans conjoint conçoit 0,15 fois moins : ~16 % des naissances hors couple ( a calibrer )
 FAUSSE_COUCHE = 0.12         # grossesses reconnues perdues au premier trimestre ( 10-20 % dans la litterature, a calibrer )
 GESTATION_J = (266.0, 12.0)  # conception -> naissance : moyenne, ecart-type ; bornee a [196 ; 294] jours
 POST_PARTUM_J = 90           # pas de conception dans les 3 mois qui suivent un accouchement
+FAUSSE_COUCHE_J = (42, 85)   # une grossesse perdue l est de 6 a 12 semaines apres la conception ( jours, [a ; b[ )
 JUMEAUX = 0.015
 GARCON = 105.0 / 205.0       # 105 garcons pour 100 filles a la naissance
 MORT_MATERNELLE = 3.0e-5     # par naissance ( Grece : quelques pour 100 000 )
@@ -133,12 +143,15 @@ class TableDeMortalite:
 
 
 class TableDeFecondite:
-    """asfr[age] : naissances par femme et par an, a chaque age entier."""
+    """asfr[age] : naissances vivantes par femme et par an, a chaque age entier ( age revolu de la mere a la
+    naissance ). Chaque valeur vaut de sa borne a la suivante, la derniere jusqu a AGE_FIN_FECONDITE : une table
+    d ages simples ou de groupes de 5 ans."""
     __slots__ = ("asfr",)
 
     def __init__(self, groupes=ASFR, facteur=1.0):
         self.asfr = np.zeros(AGE_MAX + 1)
-        for a, f in groupes.items(): self.asfr[a:a + 5] = f * facteur
+        bornes = sorted(groupes)
+        for a, b in zip(bornes, bornes[1:] + [AGE_FIN_FECONDITE]): self.asfr[a:b] = groupes[a] * facteur
 
     def isf(self): return float(self.asfr.sum())
     def age_moyen(self): return float(((np.arange(AGE_MAX + 1) + 0.5) * self.asfr).sum() / self.asfr.sum())
@@ -146,9 +159,12 @@ class TableDeFecondite:
     def hasard_conception(self, age):
         """Le hasard journalier de conception d une femme NON enceinte : les naissances visees, corrigees des pertes et
         du temps passe enceinte ou apres l accouchement, pendant lequel elle ne peut pas concevoir."""
-        f = self.asfr[age]
-        occupee = f / (1.0 - FAUSSE_COUCHE) * (GESTATION_J[0] + POST_PARTUM_J) / JOURS_AN
-        return f / (1.0 - FAUSSE_COUCHE) / np.maximum(0.05, 1.0 - occupee) / JOURS_AN
+        # ( 30/09 ) l ASFR compte des ENFANTS : un accouchement sur 1 / ( 1 + JUMEAUX ) en donne deux. Une conception
+        # occupe la femme 266 + 90 jours si elle va a terme, 42 a 84 jours si elle est perdue ( la perte etait
+        # comptee comme un accouchement : le hasard sortait ~1 % trop haut )
+        c = self.asfr[age] / (1.0 + JUMEAUX) / (1.0 - FAUSSE_COUCHE)
+        duree = (1.0 - FAUSSE_COUCHE) * (GESTATION_J[0] + POST_PARTUM_J) + FAUSSE_COUCHE * sum(FAUSSE_COUCHE_J) / 2.0
+        return c / np.maximum(0.05, 1.0 - c * duree / JOURS_AN) / JOURS_AN
 
 
 def tirer_deces(table, sexe, age, u):
@@ -157,17 +173,21 @@ def tirer_deces(table, sexe, age, u):
 
 
 def tirer_conceptions(table, age, en_couple, u, k):
-    """Qui conçoit aujourd hui parmi des femmes non enceintes. `k` recale le total : les couples conçoivent plus que
-    les femmes seules, sans changer l ISF du pays."""
+    """Qui conçoit aujourd hui parmi des femmes non enceintes. `k` ( un par femme ) recale le total de chaque age :
+    les couples conçoivent plus que les femmes seules, sans changer l ASFR de l age."""
     h = table.hasard_conception(age) * np.where(en_couple, 1.0, FECONDITE_SOLO) * k
     return u < h
 
 
 def facteur_couples(table, age, en_couple):
-    """Le k qui garde le total des conceptions egal a celui d une fecondite sans distinction de couple."""
-    base = table.hasard_conception(age)
-    pondere = (base * np.where(en_couple, 1.0, FECONDITE_SOLO)).sum()
-    return float(base.sum() / pondere) if pondere > 0 else 1.0
+    """Le k de chaque candidate : A CHAQUE AGE, le total des conceptions reste celui d une fecondite sans distinction
+    de couple. La part en couple est celle des candidates du jour a cet age : mesuree dans le monde, pas supposee.
+    ( 30/09 : un seul k pour tous les ages gardait le total mais deformait la courbe - de 20 a 24 ans, rarement en
+    couple, ~0,4 fois l ASFR ; de 35 a 39 ans ~1,3 fois. )"""
+    poids = np.where(en_couple, 1.0, FECONDITE_SOLO)
+    n = np.bincount(age, minlength=AGE_MAX + 1)
+    k = n / np.maximum(np.bincount(age, weights=poids, minlength=AGE_MAX + 1), FECONDITE_SOLO)
+    return k[age]
 
 
 # ================================================================== l etat civil
@@ -295,19 +315,23 @@ def _dissoudre_si_vide(p, mg):
 def _concevoir(p, d, ids, age, sexe):
     H = p.col("habitant", "conception_j"); A = p.col("habitant", "accouchement_j"); E = p.col("habitant", "enceinte")
     conj = p.col("habitant", "conjoint")
-    f = (sexe == FEMME) & (age >= 15) & (age <= 49) & (E[ids] == 0) & (p.jour - A[ids] >= POST_PARTUM_J)
+    # ( 30/09 ) l ASFR se lit a l age revolu de la mere a la naissance ( Eurostat, agedef COMPLET ) : au terme moyen
+    nj = p.col("habitant", "naissance_j")
+    terme = np.clip((p.jour + int(GESTATION_J[0]) - nj[ids].astype(np.int64)) // 365, 0, AGE_MAX)
+    f = ((sexe == FEMME) & (terme >= 15) & (terme < AGE_FIN_FECONDITE) & (E[ids] == 0)
+         & (p.jour - A[ids] >= POST_PARTUM_J))
     cand = ids[f]
     if len(cand) == 0: return
     en_couple = conj[cand] >= 0
-    k = facteur_couples(d.fecondite, age[f], en_couple)
+    k = facteur_couples(d.fecondite, terme[f], en_couple)
     rng = p.du_jour("population_conception")
     u = rng.random(len(cand))
-    for i in cand[tirer_conceptions(d.fecondite, age[f], en_couple, u, k)].tolist():
+    for i in cand[tirer_conceptions(d.fecondite, terme[f], en_couple, u, k)].tolist():
         H[i] = p.jour; E[i] = 1
         pere = int(conj[i])
         p.compter("conception")
         if rng.random() < FAUSSE_COUCHE:
-            p.poser(int(rng.integers(42, 85)) * C.PAS_PAR_JOUR + int(rng.integers(0, C.PAS_PAR_JOUR)),
+            p.poser(int(rng.integers(*FAUSSE_COUCHE_J)) * C.PAS_PAR_JOUR + int(rng.integers(0, C.PAS_PAR_JOUR)),
                     "fin_de_grossesse", i, (0, pere, 0))
         else:
             g = int(min(294, max(196, rng.normal(*GESTATION_J))))
@@ -939,7 +963,7 @@ def _recensement(p, d, rng):
     for h in w.habitants:
         a = int(h.age)
         if col["sexe"][h.id] != FEMME or not 15 <= a <= 49: continue
-        if rng.random() < d.fecondite.asfr[a] * GESTATION_J[0] / JOURS_AN:
+        if rng.random() < d.fecondite.asfr[a] / (1.0 + JUMEAUX) * GESTATION_J[0] / JOURS_AN:
             reste = int(rng.integers(1, int(GESTATION_J[0])))
             col["conception_j"][h.id] = p.jour - (int(GESTATION_J[0]) - reste); col["enceinte"][h.id] = 1
             p.poser(reste * C.PAS_PAR_JOUR + int(rng.integers(0, C.PAS_PAR_JOUR)), "fin_de_grossesse", h.id,
@@ -964,7 +988,7 @@ def _recensement_reel(p, d, rng, rec):
             d.enfants_de.setdefault(x, []).append(i)
     # grossesses en cours : autant qu en regime permanent, a un terme tire au hasard ( comme `_recensement` )
     for i in np.nonzero((col["sexe"][:n] == FEMME) & (tb.age[:n] >= 15) & (tb.age[:n] < 50))[0].tolist():
-        if rng.random() < d.fecondite.asfr[int(tb.age[i])] * GESTATION_J[0] / JOURS_AN:
+        if rng.random() < d.fecondite.asfr[int(tb.age[i])] / (1.0 + JUMEAUX) * GESTATION_J[0] / JOURS_AN:
             reste = int(rng.integers(1, int(GESTATION_J[0])))
             col["conception_j"][i] = p.jour - (int(GESTATION_J[0]) - reste); col["enceinte"][i] = 1
             p.poser(reste * C.PAS_PAR_JOUR + int(rng.integers(0, C.PAS_PAR_JOUR)), "fin_de_grossesse", i,
