@@ -384,7 +384,10 @@ def test_repas_scolaires():
     recoit 0,24 par eleve servi ; au repas de 20 h, le crochet est lu ( rations_dehors > 0 ) puis remis a zero ;
     conservation. Controles : le jumeau eteint ne sert rien, ne paie rien et ne touche aucun marche ; un marche vide ( sa
     nourriture deplacee aux reserves publiques, dans les deux jumeaux ) compte ses repas manques et ne recoit rien ; un
-    eleve couvert marque absent ne mange pas. Sans le crochet du moteur ( Monde.manger_dehors ), la porte echoue."""
+    eleve couvert marque absent ne mange pas. CONTROLE DE MASSE ( demande du moteur, 30/09 ) : les rations mangees
+    dehors et appliquees au repas du soir ( stats_jour["rations_dehors"] ) ne depassent pas la nourriture que d19 a
+    consommee pour ses repas ce jour-la ; controle positif : dans le jumeau eteint, un appel a manger_dehors SANS
+    consommation ( 0,5 ration a un eleve ) est vu. Sans le crochet du moteur ( Monde.manger_dehors ), la porte echoue."""
     uc = M.unites_de_consommation(np.array([40.0, 38.0, 8.0, 5.0, 9.0]), np.array([0, 0, 0, 0, 1]), 2)
     cv_pur = M.ecoles_couvertes([5.0, 1.0, 3.0, 2.0, 0.0], [10, 10, 10, 10, 0])
     pur = abs(uc[0] - 2.1) < 1e-12 and abs(uc[1] - 1.0) < 1e-12 and cv_pur.tolist() == [False, True, False, True, False]
@@ -425,16 +428,25 @@ def test_repas_scolaires():
     vide = R1["manques"] >= 1 and w1.marches[mid].caisse == w0.marches[mid].caisse
     eteint = (R0["servis"] == 0 and R0["paye"] == 0.0 and w0.gouv.caisse == g0
               and all((w0.marches[k].stocks["nourriture"], w0.marches[k].caisse) == avant[k] for k in w0.marches))
+    fraudeur = int(sorted(permis)[0])        # le controle positif de la masse : des rations sans nourriture consommee
+    w0.manger_dehors(np.array([fraudeur]), 0.5)
     _jusqu_a_20h10(w1, True); _jusqu_a_20h10(w0, False)
+    def masse(w, R):
+        dehors = float(w.stats_jour.get("rations_dehors", 0.0)); consomme = R["servis"] * M.RATION_REPAS
+        return dehors <= consomme + 1e-9, dehors, consomme
+    masse1, dehors1, conso1 = masse(w1, R1); masse0, dehors0, conso0 = masse(w0, R0)
+    masse_ok = masse1 and not masse0 and dehors0 > 0.0
     lu = float(w1.stats_jour.get("rations_dehors", 0.0)) > 0.0
     remis = float(np.abs(np.asarray(getattr(w1, "repas_dehors", np.zeros(0)), float)).sum()) == 0.0
     tenue, msg = p1.socle.conservation.tenue()
-    ok = pur and part and pauvres and exact and justes and assez and vide and eteint and lu and remis and tenue
+    ok = pur and part and pauvres and exact and justes and assez and vide and eteint and lu and remis and tenue and masse_ok
     return ok, (f"pures {pur} | {len(prim)} eleves du primaire, {R1['part']:.1%} couverts ( {int(cv.sum())} lieux ), les plus "
                 f"pauvres {pauvres} | jour force : {servis} repas pour {len(permis)} eleves couverts permis ( {servis / max(1, len(permis)):.1%} ), "
                 f"justes {justes}, nourriture et Tresor exacts {exact} ( {nourr:.3f} rations, {paye_force:.2f} dr ) ; marche vide "
                 f"{mid} : {R1['manques']} manques, rien paye {vide} ; jumeau eteint intact {eteint} | repas de 20 h : crochet lu "
-                f"{lu} ( {w1.stats_jour.get('rations_dehors', 0.0):.2f} rations ), remis a zero {remis} ; conservation : {msg}")
+                f"{lu} ( {w1.stats_jour.get('rations_dehors', 0.0):.2f} rations ), remis a zero {remis} | masse : {dehors1:.2f} rations "
+                f"dehors pour {conso1:.2f} consommees {masse1} ; fraude du jumeau vue {not masse0} ( {dehors0:.2f} pour {conso0:.2f} ) "
+                f"| conservation : {msg}")
 
 
 # ================================================================== la porte commune et le cout
