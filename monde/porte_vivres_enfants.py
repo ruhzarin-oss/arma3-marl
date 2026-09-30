@@ -13,12 +13,17 @@
       deux appels de 0,7 bornes a 1 ;
   V5  falsificateur du crochet : sans l appel, le besoin reste plein ( manque 1,0 avec 1,0 au garde-manger ) ;
   V6a identite unitaire : 20 000 menages sans mineur ou sans adulte, a = 0 : manque et faim au bit de l ancienne formule ;
-  V6c repas_python contre repas ( colonnes ) : 4 jours, journee provoquee, a = 0,5 pour un enfant sur trois : faim,
-      garde-manger, nourriture consommee, rations_dehors identiques au bit ;
+  V6c repas_python contre repas ( colonnes ) : 4 jours, manque provoque les soirs 2 a 4, a_i FRACTIONNAIRES meles
+      ( 0,24, 0,5, 0,48, 0,7 + 0,7 ) chez les mineurs et les adultes, une ration perdue par soir : faim, garde-manger, nourriture
+      consommee, rations_dehors, rations_dehors_perdues identiques au bit ; au moins 20 menages-soirs mixtes qui
+      manquent avec deux parts non dyadiques ( la ou l ordre des sommes compte ) ; controle : un chemin sans mineurs
+      differe des le soir 2 ( ajout du 30/09, 5 h 50, demande du chef de projet ) ;
+  V4 bis  audit : servi = rations_dehors + rations_dehors_perdues ( un mort de la journee, et l excedent au-dela de 1 :
+      0,7 + 0,7 ) ; falsificateur : une ration a un vivant a table n est pas perdue ;
   V7  conservation : pour chaque menage, somme ( b_i - manque_i ) = mange a 1e-9 ; verifier_conservation du monde.
 ( V6b, l identite du monde entier sur 40 jours contre le tronc, se joue hors du depot : deux arbres. )
    python -m monde.porte_vivres_enfants"""
-import sys
+import math, sys
 import numpy as np
 from . import monde as W, population as P, config as C
 from .pays import essais as T
@@ -118,7 +123,8 @@ def v2_a_v5(dire):
     # V4 : le crochet
     fa, fe, g, (manque, part, mineur, k, M, mi) = _soir(w, mg, adulte, enfant, 1.0, dehors=((enfant, 1.0),))
     rd = w.repas_dehors
-    ok4a = manque[mg] == 0.0 and fa == 4.0 and fe == 4.0 and g == 0.0 and w.stats_jour.get("rations_dehors") == 1.0 \
+    r4a = w.stats_jour.get("rations_dehors")
+    ok4a = manque[mg] == 0.0 and fa == 4.0 and fe == 4.0 and g == 0.0 and r4a == 1.0 \
         and not rd.any() and len(rd) >= w.table.n
     fa2, fe2, g2, (manque2, *_r) = _soir(w, mg, adulte, enfant, 0.0, dehors=((enfant, 1.0),))
     ok4b = manque2[mg] == 1.0 and fa2 == 5.0 + (1.0 - C.FAIM_ADAPTATION) and fe2 == 4.0
@@ -129,9 +135,27 @@ def v2_a_v5(dire):
         try: w.manger_dehors(ids, q)
         except ValueError: erreurs += 1
     w.repas_dehors[:] = 0.0
+    from .pays import d01_population as PO
+    membres, k = _membres(w)
+    v = np.bincount(k, minlength=w.table.menages.n)
+    seul = [int(i) for i in membres if v[w.table.menage[i]] == 1 and w.table.age[i] >= 18 and i not in (adulte, enfant)]
+    z1, z2 = seul[0], seul[1]
+    z3 = seul[2]
+    w.manger_dehors([z1], 0.3); w.manger_dehors([z2], 0.25); PO.deceder(p, w.habitants[z1], "naturelle")
+    w.manger_dehors([z3], 0.7); w.manger_dehors([z3], 0.7)          # deux appels de 0,7 : 0,4 au-dela de 1
+    w.repas()
+    perdues, dehors_ok = w.stats_jour.get("rations_dehors_perdues"), w.stats_jour.get("rations_dehors")
+    servi = 0.3 + 0.25 + 0.7 + 0.7
+    w.manger_dehors([z2], 0.25); w.repas()
+    perdues2, dehors2 = w.stats_jour.get("rations_dehors_perdues"), w.stats_jour.get("rations_dehors")
+    dire(abs(perdues - 0.7) <= 1e-12 and dehors_ok == 1.25 and abs(servi - (dehors_ok + perdues)) <= 1e-9
+         and perdues2 == 0.0 and dehors2 == 0.25,
+         f"V4 bis audit : 0,3 puis mort avant le repas, 0,25 a table, 0,7 + 0,7 a table -> appliquees {dehors_ok!r}, perdues "
+         f"{perdues!r} ( attendu 0,3 + 0,4 ) ; servi {servi!r} = appliquees + perdues a {abs(servi - dehors_ok - perdues):.1e} "
+         f"pres ; falsificateur, 0,25 a un vivant a table -> perdues {perdues2!r}")
     dire(ok4a and ok4b and ok4c and erreurs == 6,
          f"V4 crochet : enfant a l ecole ( a = 1 ) -> manque {manque[mg]:g}, adulte 5 -> {fa:g}, enfant 5 -> {fe:g}, "
-         f"rations_dehors {w.stats_jour.get('rations_dehors')}, tableau remis a zero {not rd.any()} ; garde-manger vide : "
+         f"rations_dehors {r4a}, tableau remis a zero {not rd.any()} ; garde-manger vide : "
          f"manque {manque2[mg]:g}, adulte -> {fa2:g}, enfant -> {fe2:g} ; 0,7 + 0,7 -> manque {manque3[mg]:g} ; "
          f"ValueError {erreurs} / 6")
     return w, p
@@ -198,41 +222,92 @@ def v6a_identite_unitaire(dire):
              f"l ancien partage egal : {ok}")
 
 
-def _monde_v6c(python):
+def _monde_v6c(python, mineur=None, numero=None):
+    """Un monde de 4 jours ; les soirs 2 a 4 : garde-manger a la moitie du besoin, des a_i FRACTIONNAIRES meles ( 0,24,
+    0,5, 0,24 + 0,24 ) chez les mineurs ET les adultes, et une ration perdue ( un habitant seul mange dehors a 15 h et
+    meurt avant le repas ). `mineur` / `numero` : le controle ( un chemin a qui l on change l age de la majorite ou le
+    tri des membres ). Rend les photos du soir et, chemin en colonnes, le nombre de menages mixtes qui manquent avec au
+    moins deux parts non dyadiques ( la ou l ordre des sommes compte )."""
+    from .pays import d01_population as PO
     w, p = T.monde(["population"], graine=GRAINE)
     if python: w.utiliser_coeur = False
     vrai = w.repas
-    etat = {"jour": 0}
+    etat = {"jour": 0, "sensibles": 0}
 
     def repas_du_jour():
         etat["jour"] += 1
         t, mt = w.table, w.table.menages
-        if etat["jour"] == 2:
+        if etat["jour"] >= 2:
             membres, k = _membres(w)
             mt.garde_manger[:mt.n] = 0.5 * R * np.bincount(k, minlength=mt.n)
-        if etat["jour"] >= 2:
-            n = t.n
-            enf = np.nonzero((t.vivant[:n] == 1) & (t.age[:n] < 18))[0][::3]
-            if enf.size: w.manger_dehors(enf, 0.5)
+            viv = membres[np.argsort(membres)]
+            enf, adu = viv[t.age[viv] < 18], viv[t.age[viv] >= 18]
+            servi = []
+            for ids, q in ((enf[0::3], 0.24), (enf[1::3], 0.5), (adu[0::4], 0.24), (adu[1::4], 0.5), (enf[0::6], 0.24),
+                           (adu[2::8], 0.24), (adu[3::8], 0.7), (adu[3::8], 0.7)):
+                if ids.size: w.manger_dehors(ids, q); servi += [q] * ids.size
+            v = np.bincount(k, minlength=mt.n)
+            seul = viv[(v[t.menage[viv]] == 1) & (t.age[viv] >= 18)]
+            if seul.size:                                   # une ration perdue : il a mange dehors, il meurt avant 20 h
+                z = int(seul[etat["jour"] % seul.size]); w.manger_dehors([z], 0.3); servi.append(0.3)
+                PO.deceder(p, w.habitants[z], "naturelle")
+            etat["servi"] = math.fsum(servi)
+            membres, k = _membres(w)
+            a = np.minimum(1.0, w.repas_dehors[membres]); part = 1.0 - a
+            besoin = R * np.bincount(k, weights=part, minlength=mt.n)
+            mi = np.bincount(k, weights=(t.age[membres] < 18).astype(float), minlength=mt.n)
+            v = np.bincount(k, minlength=mt.n)
+            dyad = np.isin(a, (0.0, 0.5, 1.0))
+            nd = np.bincount(k, weights=(~dyad).astype(float), minlength=mt.n)
+            gm = mt.garde_manger[:mt.n]
+            etat["sensibles"] += int(((mi > 0) & (mi < v) & (nd >= 2) & (gm > 0) & (gm < besoin - 1e-6)).sum())
         vrai()
+        if etat["jour"] >= 2:
+            etat["bilan"] = max(etat.get("bilan", 0.0), abs(etat["servi"] - w.stats_jour["rations_dehors"]
+                                                            - w.stats_jour["rations_dehors_perdues"]))
     w.repas = repas_du_jour
+    ancien = (W.AGE_MINEUR, W._numero)
+    if mineur is not None: W.AGE_MINEUR = mineur
+    if numero is not None: W._numero = numero
     photos = []
-    for _ in range(4):
-        T.jours(w, 1)
-        t, mt = w.table, w.table.menages
-        photos.append((t.faim[:t.n].copy(), mt.garde_manger[:mt.n].copy(), w.flux["consomme"]["nourriture"],
-                       w.stats_jour.get("rations_dehors"), w.stats_jour.get("menages_sans_nourriture")))
-    return photos
+    try:
+        for _ in range(4):
+            T.jours(w, 1)
+            t, mt = w.table, w.table.menages
+            photos.append((t.faim[:t.n].copy(), mt.garde_manger[:mt.n].copy(), w.flux["consomme"]["nourriture"],
+                           w.stats_jour.get("rations_dehors"), w.stats_jour.get("menages_sans_nourriture"),
+                           w.stats_jour.get("rations_dehors_perdues")))
+    finally:
+        W.AGE_MINEUR, W._numero = ancien
+    return photos, etat["sensibles"], etat.get("bilan")
+
+
+def _jours_differents(a, b):
+    return [j + 1 for j, (x, y) in enumerate(zip(a, b))
+            if not (np.array_equal(x[0], y[0]) and np.array_equal(x[1], y[1]) and x[2:] == y[2:])]
+
+
+def _sans_tri(h):
+    return 0
 
 
 def v6c_python_colonnes(dire):
-    a, b = _monde_v6c(False), _monde_v6c(True)
-    ecarts = []
-    for j, (x, y) in enumerate(zip(a, b)):
-        same = np.array_equal(x[0], y[0]) and np.array_equal(x[1], y[1]) and x[2] == y[2] and x[3] == y[3] and x[4] == y[4]
-        if not same: ecarts.append(j + 1)
-    dire(not ecarts, f"V6c repas_python contre repas en colonnes : 4 jours, journee provoquee, a = 0,5 pour un enfant sur "
-                     f"trois ( rations_dehors {a[-1][3]} ) : jours differents {ecarts or 'aucun'}")
+    (a, sensibles, bil_a), (b, _s, bil_b) = _monde_v6c(False), _monde_v6c(True)
+    ecarts = _jours_differents(a, b)
+    dire(bil_a is not None and bil_b is not None and max(bil_a, bil_b) <= 1e-9,
+         f"V6c audit, chaque soir de 2 a 4 et sur les deux chemins : servi = rations_dehors + rations_dehors_perdues, pire "
+         f"ecart {max(bil_a, bil_b):.1e} ( perdues du dernier soir {a[-1][5]!r} : un mort de la journee et les excedents )")
+    dire(not ecarts and sensibles >= 20,
+         f"V6c repas_python contre repas en colonnes, AU BIT, sous manque, menages mixtes, a_i fractionnaires meles "
+         f"( 0,24 / 0,5 / 0,48, mineurs et adultes ) : {sensibles} menages-soirs mixtes qui manquent avec au moins deux "
+         f"parts non dyadiques ; rations_dehors {a[-1][3]!r} / {b[-1][3]!r}, perdues {a[-1][5]!r} / {b[-1][5]!r} ; "
+         f"jours differents {ecarts or 'aucun'}")
+    c, _s, _b = _monde_v6c(True, mineur=-1.0)
+    ec = _jours_differents(a, c)
+    dire(len(ec) >= 1, f"V6c controle : le comparateur sait echouer ( chemin Python sans mineurs : jours differents {ec} )")
+    d, _s, _b = _monde_v6c(True, numero=_sans_tri)
+    print(f"INFO   V6c repas_python SANS le tri des membres : jours differents {_jours_differents(a, d) or 'aucun'} "
+          f"( le tri garantit l ordre des sommes ; son absence ne se voit que si l ordre d arrivee differe )", flush=True)
 
 
 def main():

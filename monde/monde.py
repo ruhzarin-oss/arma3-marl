@@ -1238,6 +1238,8 @@ class Monde:
         consomme lui-meme au grand livre ( d19 au marche ).
           ids      numeros d habitants ( 0 <= id < table.n ) ;
           rations  un flottant dans ]0 ; 1], ou un tableau aligne sur ids ; deux appels s ajoutent ( borne a 1 au repas ).
+        Chaque soir, a 1e-9 pres : somme des rations passees ici depuis le repas precedent = stats_jour["rations_dehors"]
+        ( appliquees ) + stats_jour["rations_dehors_perdues"] ( hors de table, ou au-dela de 1 ).
         Le tableau ( float64, indexe par numero ) nait au premier appel et grandit avec la table ( naissances ) ; avant,
         il est absent ou None : le monde est identique au bit a l ancien ( un instantane ancien se relit par getattr )."""
         ids = np.asarray(ids, np.int64).ravel()
@@ -1263,11 +1265,22 @@ class Monde:
         a[dans] = np.minimum(1.0, np.maximum(0.0, rd[ids[dans]]))
         return a
 
-    def _vider_repas_dehors(self, a):
-        """HMT-177 : apres le repas, le compteur du jour ( somme EXACTE des a_i appliques ) et la remise a zero."""
+    def _vider_repas_dehors(self, a, membres):
+        """HMT-177 : apres le repas, les deux compteurs du jour, puis la remise a zero. `a` est aligne sur `membres`.
+          rations_dehors          la somme EXACTE ( fsum ) des a_i appliques aux membres a table ;
+          rations_dehors_perdues  pour l audit, tout ce qui a ete passe a manger_dehors et n est pas applique : ( a ) les
+                                  rations des habitants qui ne sont pas membres a table ( morts dans la journee, absents,
+                                  non inscrits ) ; ( b ) l excedent au-dela de 1 d un membre ( deux appels de 0,7 : 0,4 ).
+        D ou, chaque soir, aux arrondis pres ( 1e-9 ) : somme des rations passees a manger_dehors depuis le repas precedent
+        = rations_dehors + rations_dehors_perdues. Des compteurs seulement : l etat du monde n en depend pas."""
         rd = getattr(self, "repas_dehors", None)
         if rd is None: return
-        self.stats_jour["rations_dehors"] = math.fsum(np.asarray(a, np.float64).tolist()) if a is not None else 0.0
+        a = np.zeros(0) if a is None else np.asarray(a, np.float64)
+        m = np.asarray(membres, np.int64)
+        dans = m < len(rd)
+        hors = rd != 0.0; hors[m[dans]] = False
+        self.stats_jour["rations_dehors"] = math.fsum(a.tolist())
+        self.stats_jour["rations_dehors_perdues"] = math.fsum(rd[hors].tolist() + (rd[m[dans]] - a[dans]).tolist())
         rd[:] = 0.0
 
     def repas(self):
@@ -1307,7 +1320,7 @@ class Monde:
         faim = t.faim[membres]
         mi = partager_le_manque(manque, part, t.age[membres] < AGE_MINEUR, k, M)   # HMT-176 : les mineurs d abord
         t.faim[membres] = np.where(affame[k] & (mi > 0.0), faim + np.maximum(0.0, mi - C.FAIM_ADAPTATION), np.maximum(0.0, faim - 1))
-        self._vider_repas_dehors(dehors)
+        self._vider_repas_dehors(dehors, membres)
         for nom, noter in (("travailleurs", R.noter_travailleurs), ("entreprises", R.noter_entreprises),
                            ("marches", R.noter_marches), ("commerce", R.noter_commerce),
                            ("fraudeurs", R.noter_fraudeurs), ("voyageurs", R.noter_voyageurs)):
@@ -1331,7 +1344,7 @@ class Monde:
 
     def repas_python(self):
         sans = 0
-        vus_dehors = []                                               # HMT-177 : les a_i appliques, pour le compteur
+        vus_dehors, vus_membres = [], []                              # HMT-177 : les a_i appliques et les membres, pour les compteurs
         self.nourri_menage = ParMenage(np.ones(len(self.menages), bool))
         par_region, affames_region = {}, {}
         for mg in self.menages:
@@ -1339,7 +1352,9 @@ class Monde:
             vivants.sort(key=_numero)                                # l ordre des sommes de la version en colonnes
             dehors = self._rations_dehors([p.id for p in vivants])  # HMT-177
             part = np.ones(len(vivants)) if dehors is None else 1.0 - dehors
-            besoin = C.NOURRITURE_PAR_JOUR * sum(part.tolist())     # a = 0 : R x len(vivants), au bit
+            besoin = C.NOURRITURE_PAR_JOUR * float(np.bincount(np.zeros(len(part), np.int64), weights=part, minlength=1)[0])
+            # ^ la MEME somme que la version en colonnes ( bincount, dans l ordre des numeros ) : le sum() de Python 3.12
+            #   compense ses arrondis ( Neumaier ) et s ecartait au dernier bit des que les a_i sont fractionnaires
             mange = min(besoin, mg.garde_manger)
             mg.garde_manger -= mange; self.flux["consomme"]["nourriture"] += mange
             manque = besoin - mange
@@ -1360,9 +1375,9 @@ class Monde:
                                         np.zeros(len(vivants), np.int64), 1).tolist()
                 for p, m_i in zip(vivants, mi):
                     p.faim = p.faim + max(0.0, m_i - C.FAIM_ADAPTATION) if manque > 1e-6 and m_i > 0.0 else max(0.0, p.faim - 1)
-                if dehors is not None: vus_dehors.extend(dehors.tolist())
+                if dehors is not None: vus_dehors.extend(dehors.tolist()); vus_membres.extend([p.id for p in vivants])
         self.stats_jour["menages_sans_nourriture"] = sans
-        self._vider_repas_dehors(vus_dehors)                          # HMT-177
+        self._vider_repas_dehors(vus_dehors, vus_membres)             # HMT-177
         vv = np.array([sum(1 for p in mg.membres if p.vivant) for mg in self.menages], dtype=np.int64)
         eteint = self._eteints_par_la_faim(vv)                  # HMT-136 : meme regle que la version en colonnes
         for k in np.nonzero(eteint)[0].tolist(): self.nourri_menage[self.menages[k].id] = False
