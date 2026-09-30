@@ -9,8 +9,8 @@ FICHE
    recensement n allait a terme ). Par menage : dissous, faim7,
    demenage_j. Habitant et Menage ( moteur E1 ) ne sont pas touches.
 2. Invariants. Personnes : vivants = vivants du depart + naissances - deces ( toutes causes, y compris les morts du
-   moteur E1, reprises chaque soir ). Chaque deces est traite une fois ( deces_j pose une fois ). Aucun mineur vivant
-   dans un menage sans adulte vivant ; aucun vivant dans un menage dissous. Argent : heritages, mises en commun,
+   moteur E1, reprises chaque soir ). Chaque deces est traite une fois ( deces_j pose une fois ). Aucun mineur present
+   le soir sans adulte present ( 30/09 ) ; aucun vivant dans un menage dissous. Argent : heritages, mises en commun,
    partages et demenagements passent par le grand livre ; le domaine ne DETIENT rien : ni argent, ni bien. Etat civil :
    inscrits vivants du registre = recompte exact des colonnes ( inscrit, deces_declare ).
 3. Decision `migrer` ( menage, tous les 7 jours, s il a eu faim dans la semaine ) : rester ou partir vers le marche le
@@ -231,7 +231,7 @@ class RemplaceDemographie:
 
 class Demographie:
     __slots__ = ("mortalite", "fecondite", "etat_civil", "enfants_de", "decideur", "prochain_habitant",
-                 "naissances", "deces", "unions", "divorces", "migrations", "placements", "vivants_depart")
+                 "naissances", "deces", "unions", "divorces", "migrations", "placements", "vivants_depart", "gardes")
 
     def __init__(self, mortalite, fecondite, etat_civil, decideur, prochain_habitant, vivants_depart):
         self.mortalite, self.fecondite, self.etat_civil, self.decideur = mortalite, fecondite, etat_civil, decideur
@@ -239,6 +239,7 @@ class Demographie:
         self.prochain_habitant = prochain_habitant
         self.naissances = self.deces = self.unions = self.divorces = self.migrations = self.placements = 0
         self.vivants_depart = vivants_depart
+        self.gardes = {}                  # enfant -> son menage, le temps de l absence d un adulte ( 30/09 )
 
 
 # ------------------------------------------------------------------ petits outils
@@ -415,6 +416,8 @@ def _heriter(p, d, h, conjoint_vivant):
     mg = h.menage
     restants = adultes_vivants(p, mg)
     heritiers = _heritiers(p, d, h)
+    if restants and not _adultes_presents(p, mg):          # ( 30/09 ) les adultes qui restent sont absents
+        _confier(p, d, mg, p.hasard("population_placement"), garde=True)
     if restants:
         if age_de(p, h) < AGE_MAJEUR: return               # un mineur ne possede pas la caisse du menage
         enfants = [w.habitants[i] for i in d.enfants_de.get(h.id, ()) if w.habitants[i].vivant]
@@ -441,8 +444,8 @@ def _heriter(p, d, h, conjoint_vivant):
 
 
 def _placer(p, d, x, rng):
-    """Un mineur sans adulte : l autre parent, un grand-parent, un frere ou une soeur majeur, sinon une famille
-    d accueil de son lieu. Jamais un enfant seul dans un menage vide."""
+    """Un mineur sans adulte : l autre parent, un grand-parent, un frere ou une soeur majeur, un oncle ou une tante,
+    presents ( 30/09, voir « les orphelins » ), sinon une famille d accueil de son lieu. Jamais un enfant seul."""
     w = p.w; col = p.colonnes["habitant"]
     candidats = []
     parents = [int(col[k][x.id]) for k in ("mere", "pere") if col[k][x.id] >= 0]
@@ -454,39 +457,171 @@ def _placer(p, d, x, rng):
     for i in parents:
         for s in d.enfants_de.get(i, ()):
             if s != x.id: candidats.append((w.habitants[s], "fratrie"))
+    for i in parents:                          # ( 30/09 ) les autres enfants des grands-parents : 3e degre
+        for k in ("mere", "pere"):
+            g = int(col[k][i])
+            for o in (d.enfants_de.get(g, ()) if g >= 0 else ()):
+                if o not in parents and o != x.id: candidats.append((w.habitants[o], "oncle_tante"))
     for c, lien in candidats:
-        if c.vivant and c.menage is not x.menage and age_de(p, c) >= AGE_MAJEUR and not p.col("menage", "dissous")[c.menage.id]:
+        if c.vivant and c.menage is not x.menage and age_de(p, c) >= AGE_MAJEUR and not p.col("menage", "dissous")[c.menage.id] \
+                and _present(p, c.id):
             deplacer_membre(p, x, c.menage); d.placements += 1
             p.noter("placement", enfant=x.id, menage=c.menage.id, lien=lien); return
-    accueil = _accueil_colonnes(p, x)
-    if not accueil:                           # plus aucun adulte vivant dans le pays ( effondrement ) : l enfant reste chez lui
+    accueil = _accueil_ids(p, x)
+    if not len(accueil):                           # plus aucun adulte vivant dans le pays ( effondrement ) : l enfant reste chez lui
         p.compter("placement_impossible"); return
-    m = accueil[int(rng.integers(0, len(accueil)))]
+    m = P.Menage(int(accueil[int(rng.integers(0, len(accueil)))]), w.table.menages)
     deplacer_membre(p, x, m); d.placements += 1
     p.noter("placement", enfant=x.id, menage=m.id, lien="accueil")
 
 
-def _accueil_colonnes(p, x):
+def _accueil_ids(p, x):
     """Les familles d accueil possibles d un mineur, dans l ordre des numeros de menage : un menage de SON lieu, autre que le
     sien, avec un adulte vivant ; a defaut, n importe ou. Lu dans les colonnes ( HMT-130 ) : `_accueil_reference` est la
     version d origine, une vue par menage et par membre, gardee pour la porte d identite."""
     w = p.w; tb = w.table; n = tb.n; mt = tb.menages; M = mt.n
     mm = P.menages_inscrits(tb, n)
-    adulte = (tb.vivant[:n] == 1) & (mm >= 0) & ((p.jour - p.col("habitant", "naissance_j")[:n].astype(np.int64)) >= AGE_MAJEUR * 365)
+    adulte = (tb.vivant[:n] == 1) & (mm >= 0) & ~_absents(tb, n) & ((p.jour - p.col("habitant", "naissance_j")[:n].astype(np.int64)) >= AGE_MAJEUR * 365)
     avec_adulte = np.bincount(mm[adulte], minlength=M)[:M] > 0
     avec_adulte[x.menage.id] = False
     dom = mt.domicile[:M]
     local = np.nonzero(avec_adulte & (dom == (x.domicile.n if x.domicile is not None else -2)))[0]
     ids = local if len(local) else np.nonzero(avec_adulte)[0]
-    return [P.Menage(int(k), mt) for k in ids.tolist()]
+    return ids
+
+
+def _accueil_colonnes(p, x):
+    """Les memes, en menages : la liste que compare la porte d identite du placement. `_placer` tire dans les
+    numeros ( 30/09 ) : une vue par menage candidat a chaque placement coutait ~3 ms a 100 000 habitants."""
+    return [P.Menage(int(k), p.w.table.menages) for k in _accueil_ids(p, x).tolist()]
 
 
 def _accueil_reference(p, x):
     w = p.w
-    accueil = [m for m in w.menages if m.domicile is x.domicile and m is not x.menage and adultes_vivants(p, m)]
+    accueil = [m for m in w.menages if m.domicile is x.domicile and m is not x.menage and _adultes_presents(p, m)]
     if not accueil:
-        accueil = [m for m in w.menages if m is not x.menage and adultes_vivants(p, m)]
+        accueil = [m for m in w.menages if m is not x.menage and _adultes_presents(p, m)]
     return accueil
+
+
+# ================================================================== les orphelins ( 30/09, session Classes )
+# Un mineur n est jamais seul le soir. Le jour meme ou le dernier adulte PRESENT de son menage disparait - la mort
+# ( `_heriter` ), la prison ( domaine 21 : le detenu reste membre de son menage, ABSENT ), le voyage de l archipel, tout
+# autre chemin - il rejoint un autre menage. Le droit grec : a la mort, a l absence declaree ou a la decheance d un
+# parent, la garde revient a l autre parent ; s il est empeche de fait, l autre l exerce seul ( AK 1510 ). Sans parent
+# qui puisse l exercer, le mineur est mis sous tutelle ( AK 1589 ) ; le tribunal nomme de preference l un de ses plus
+# proches parents ( AK 1592 ), apres les avoir entendus avec le service social ( AK 1593 ) ; la proximite se compte en
+# generations ( AK 1463 : grands-parents, freres et soeurs au 2e degre, oncles et tantes au 3e ). Sans personne qui
+# convienne, la tutelle va a un etablissement ou au service social ( AK 1600 ; en Grece, l EKKA et les centres de
+# protection de l enfance ). Les chemins recenses le 30/09 : la mort ( deja ici ) ; la prison ( a l heure de
+# l arrestation : `confier_si_seuls`, appele par le domaine 21 ) ; le voyage de l archipel ( balayage du soir, filet de
+# tous les chemins ) ; l emigration, les unions, les divorces, le recensement ne laissent jamais un mineur seul
+# ( `_peut_partir` ici et au domaine 7 ) ; la conscription ( domaine 25 ) et l hopital ( domaine 17 ) laissent l appele
+# et le malade membres PRESENTS de leur menage : aucun menage sans adulte.
+# CHOIX ( sans source, a trancher par Younes ) :
+#  1. dans le 2e degre, les grands-parents avant les freres et soeurs majeurs ( la loi laisse le choix au tribunal ;
+#     les grands-parents sont la parente qui recueille le plus souvent, a verifier ) ; dans un rang, la lignee de la
+#     mere d abord, puis l ordre des numeros ;
+#  2. qui recueille doit etre PRESENT ( un detenu, un voyageur ne recueille pas ) ; ni sa caisse ni sa faim ne sont
+#     examinees ( le tribunal le ferait : AK 1593 ) ;
+#  3. le foyer d accueil reste la famille tiree au hasard ( flux population_placement ) parmi les menages de son lieu qui
+#     ont un adulte present ; un etablissement public ( foyer de l EKKA ) demanderait un budget au domaine 6 ;
+#  4. une absence ( prison, voyage ) confie l enfant pour son temps : il rentre chez lui le soir ou un adulte y est de
+#     nouveau present ( garde par la parente ). L absent garde la caisse du menage ; l enfant emporte sa part des vivres
+#     ( `deplacer_membre` ) et la rapporte ; ce qu il herite pendant la garde reste au menage qui l a recueilli ( un
+#     mineur n a pas de patrimoine propre dans le monde : l argent est au menage ) ; l allocation A21 le suit, elle
+#     compte les membres le jour du versement. Rien n est paye a qui recueille.
+def _absents(tb, n):
+    """Les ABSENTS ( detenu du domaine 21, voyageur de l archipel ) parmi les n premiers habitants ; un moteur sans
+    colonne statut n en a aucun."""
+    st = getattr(tb, "statut", None)
+    return st[:n] == P.ABSENT if st is not None else np.zeros(n, bool)
+
+
+def _present(p, i):
+    st = getattr(p.w.table, "statut", None)
+    return st is None or st[i] != P.ABSENT
+
+
+def _adultes_presents(p, mg):
+    return [x for x in adultes_vivants(p, mg) if _present(p, x.id)]
+
+
+def menages_sans_adulte(p):
+    """L invariant des orphelins, EN COLONNES : les numeros des menages habites ( au moins un membre present ) sans aucun
+    adulte present. Present : vivant, dans la liste de son menage, pas ABSENT."""
+    tb = p.w.table; n = tb.n; M = tb.menages.n
+    mm = P.menages_inscrits(tb, n)
+    ici = (tb.vivant[:n] == 1) & (mm >= 0) & ~_absents(tb, n)
+    majeur = (p.jour - p.col("habitant", "naissance_j")[:n].astype(np.int64)) >= AGE_MAJEUR * 365
+    habite = np.bincount(mm[ici], minlength=M)[:M] > 0
+    avec = np.bincount(mm[ici & majeur], minlength=M)[:M] > 0
+    return np.nonzero(habite & ~avec)[0]
+
+
+def _gardes(d):
+    g = getattr(d, "gardes", None)            # un instantane d avant le 30/09 n a pas ce champ
+    if g is None: g = d.gardes = {}
+    return g
+
+
+def _confier(p, d, mg, rng, garde):
+    """Les mineurs presents de `mg` rejoignent leur parente ou un foyer ( `_placer` ), dans l ordre de la liste ; `garde` :
+    l absence est temporaire, l enfant rentrera ( `_rentrer` ). Rend ceux qui sont partis."""
+    g = _gardes(d); partis = []
+    for x in [x for x in mg.membres if x.vivant and _present(p, x.id) and age_de(p, x) < AGE_MAJEUR]:
+        _placer(p, d, x, rng)
+        if int(p.w.table.menage[x.id]) == mg.id: continue          # placement impossible
+        partis.append(x)
+        if garde: g.setdefault(x.id, mg.id)
+    return partis
+
+
+def confier_si_seuls(p, k):
+    """A l heure ou un domaine rend ABSENT le dernier adulte present du menage k ( l arrestation, domaine 21 ) : ses
+    mineurs presents sont confies dans le meme pas, comme le soir ( `_recueillir` ). Rien si un adulte reste present."""
+    if k < 0: return
+    mg = p.w.menages[k]
+    if _adultes_presents(p, mg): return
+    _confier(p, p.domaine("population"), mg, p.hasard("population_placement"), garde=bool(adultes_vivants(p, mg)))
+
+
+def _rentrer(p, d):
+    """L enfant confie rentre chez lui des qu un adulte y est de nouveau present ( sortie de prison, retour de voyage ).
+    La garde finit aussi a sa majorite, a sa mort, ou quand son menage est dissous."""
+    g = _gardes(d)
+    if not g: return
+    w = p.w; dis = p.col("menage", "dissous")
+    for e in sorted(g):
+        m = g[e]; x = w.habitants[e]
+        if not x.vivant or age_de(p, x) >= AGE_MAJEUR or dis[m]:
+            del g[e]; continue
+        mg = w.menages[m]
+        if not _adultes_presents(p, mg): continue
+        if int(w.table.menage[e]) != m:
+            deplacer_membre(p, x, mg)
+            p.noter("placement", enfant=e, menage=m, lien="retour")
+        del g[e]
+
+
+def _recueillir(p):
+    """23 h 50, apres la reprise des morts : les retours, puis tout mineur present d un menage sans adulte present est
+    confie le jour meme. Un menage dont un adulte vit encore ( absent ) le garde, et sa caisse ; un menage de mineurs
+    seuls ( aucun chemin connu n en laisse ) les suit : sa caisse part avec eux, par tete. EN COLONNES : trois bincount
+    par soir, Python ne voit que les menages trouves ; aucun tirage un soir sans orphelin."""
+    d = p.domaine("population"); w = p.w
+    _rentrer(p, d)
+    k = menages_sans_adulte(p)
+    if not len(k): return
+    rng = p.hasard("population_placement")
+    for m in k.tolist():
+        mg = w.menages[m]
+        proprietaire = bool(adultes_vivants(p, mg))
+        partis = _confier(p, d, mg, rng, garde=proprietaire)
+        if proprietaire or not partis or any(x.vivant for x in mg.membres): continue
+        q = mg.caisse / len(partis)
+        for x in partis: p.socle.livre.transferer(mg, x.menage, q, "mise_en_commun")
+        _dissoudre_si_vide(p, mg)
 
 
 def _reprendre_les_morts(p):
@@ -875,6 +1010,7 @@ def installer(p):
     w.demographie = RemplaceDemographie(p)
     p.routine(20 + 10 / 60, 10, "population", _soir)
     p.routine(23 + 50 / 60, 90, "population", _reprendre_les_morts)
+    p.routine(23 + 50 / 60, 91, "population", _recueillir)              # ( 30/09 ) aucun mineur seul le soir
     return d
 
 
@@ -892,7 +1028,7 @@ def anomalies_familles(p):
             if c >= 0 and (not w.habitants[c].vivant or int(col["conjoint"][c]) != h.id): out.append(("conjoint", h.id))
         elif col["deces_j"][h.id] < 0: out.append(("mort_non_traite", h.id))
     for m in w.menages:
-        v = [x for x in m.membres if x.vivant]
+        v = [x for x in m.membres if x.vivant and _present(p, x.id)]
         if v and not any(age_de(p, x) >= AGE_MAJEUR for x in v): out.append(("mineurs_seuls", m.id))
     return out
 

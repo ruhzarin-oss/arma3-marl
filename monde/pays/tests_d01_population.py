@@ -223,7 +223,7 @@ def test_cout():
     t_pop, _ = jour_moyen(True)
     w, p = T.monde(["population"], echelle=20); T.jours(w, 3)
     t0 = time.perf_counter()
-    for _ in range(3): M._demographie(p); M._soir(p); M._reprendre_les_morts(p)
+    for _ in range(3): M._demographie(p); M._soir(p); M._reprendre_les_morts(p); M._recueillir(p)   # ( 30/09 ) le balayage
     propre = (time.perf_counter() - t0) / 3
     ok = t_pop <= 1.25 * t_e1 and propre <= 0.25 * t_e1
     return ok, (f"{n} habitants : moteur seul {t_e1:.2f} s par jour, avec la population {t_pop:.2f} s "
@@ -296,5 +296,167 @@ def test_placement_en_colonnes():
                 f"anomalies {len(anomalies)}")
 
 
+# ================================================================== les orphelins ( 30/09, session Classes )
+def _foyer(p, w, pris):
+    """Un menage construit : un adulte X de 30 ans ou plus, seul, et un mineur Y de moins de 16 ans venu d un menage qui
+    garde un adulte ; X est le parent de Y et n a aucune autre parente connue. `pris` : les menages deja pris."""
+    d = p.domaine("population"); col = p.colonnes["habitant"]
+    def seuls(m): return [x for x in m.membres if x.vivant]
+    A = next(m for m in w.menages if m.id not in pris and len(seuls(m)) == 1 and M.age_de(p, seuls(m)[0]) >= 30
+             and w.table.statut[seuls(m)[0].id] != M.P.ABSENT)
+    X = seuls(A)[0]
+    Y = next(h for h in w.habitants if h.vivant and M.age_de(p, h) < 16 and h.menage.id not in pris and h.menage.id != A.id
+             and len(M.adultes_vivants(p, h.menage)) >= 1)
+    pris.update((A.id, Y.menage.id))
+    M.deplacer_membre(p, Y, A)
+    for k in ("mere", "pere"): col[k][X.id] = col[k][Y.id] = -1
+    col["mere" if col["sexe"][X.id] == M.FEMME else "pere"][Y.id] = X.id
+    d.enfants_de[X.id] = [Y.id]
+    return A, X, Y
+
+
+def _ailleurs(p, w, pris, age_min):
+    """Un adulte present d un menage qui n est pas encore pris ( la parente qu on pose a la main )."""
+    h = next(h for h in w.habitants if h.vivant and M.age_de(p, h) >= age_min and h.menage.id not in pris
+             and w.table.statut[h.id] != M.P.ABSENT)
+    pris.add(h.menage.id)
+    return h
+
+
+def _grand_mere(p, X, G, U):
+    """G devient le parent de X et de U : pour l enfant de X, une grand-mere et un oncle ( ou une tante )."""
+    col = p.colonnes["habitant"]; d = p.domaine("population")
+    k = "mere" if col["sexe"][G.id] == M.FEMME else "pere"
+    col[k][X.id] = G.id; col[k][U.id] = G.id
+    d.enfants_de[G.id] = [X.id, U.id]
+
+
+def _lien(p, y):
+    ev = [x for x in p.socle.journal.recents if x["type"] == "placement" and x.get("enfant") == y.id]
+    return ev[-1]["lien"] if ev else None
+
+
+def test_orphelins_controles():
+    """Portes des orphelins ( 30/09, critere ecrit avant le code ), sur des menages construits d un adulte X et de son
+    enfant Y. P2, la mort de X : le jour meme, Y est chez sa grand-mere presente ( lien grand_parent ), chez son oncle
+    si la grand-mere est absente ( oncle_tante ), sinon dans une famille d accueil de son lieu avec un adulte present ;
+    la caisse du menage suit Y ( seul heritier ), le menage est dissous. P3, l absence de X ( comme la prison du domaine
+    21 ) : le soir meme Y est chez sa grand-mere, le menage de X reste ; X revenu, Y rentre le soir meme. P4
+    falsificateur : sans le balayage du soir, P3 laisse Y seul, et l invariant ( menages_sans_adulte ) comme la porte des
+    familles le voient a minuit. P5 : conservation tenue, aucune incoherence de famille, invariant nul chaque soir."""
+    w, p = T.monde(["population"]); T.jours(w, 1)
+    d = p.domaine("population"); tb = w.table; dis = p.col("menage", "dissous")
+    pris = set(); res = {}
+    # P2 a : grand-mere presente
+    A, X, Y = _foyer(p, w, pris); G = _ailleurs(p, w, pris, 45); U = _ailleurs(p, w, pris, 20); _grand_mere(p, X, G, U)
+    B = G.menage; a0, b0 = A.caisse, B.caisse
+    M.deceder(p, X, "accident")
+    res["grand_parent"] = (int(tb.menage[Y.id]) == B.id and _lien(p, Y) == "grand_parent" and abs(B.caisse - (a0 + b0)) <= 1e-6
+                           and A.caisse == 0 and dis[A.id] == 1)
+    # P2 b : grand-mere absente ( detenue ), l oncle ou la tante
+    A, X, Y = _foyer(p, w, pris); G = _ailleurs(p, w, pris, 45); U = _ailleurs(p, w, pris, 20); _grand_mere(p, X, G, U)
+    tb.statut[G.id] = M.P.ABSENT
+    M.deceder(p, X, "accident")
+    res["oncle_tante"] = int(tb.menage[Y.id]) == int(tb.menage[U.id]) and _lien(p, Y) == "oncle_tante"
+    tb.statut[G.id] = M.P.RESIDENT
+    # P2 c : aucune parente, une famille d accueil de son lieu, avec un adulte present
+    A, X, Y = _foyer(p, w, pris); lieu = int(tb.menages.domicile[A.id]); a0 = A.caisse
+    M.deceder(p, X, "accident")
+    F = Y.menage
+    res["accueil"] = (_lien(p, Y) == "accueil" and F.id != A.id and bool(M._adultes_presents(p, F))
+                      and int(tb.menages.domicile[F.id]) == lieu and A.caisse == 0 and dis[A.id] == 1)
+    # P3 : l absence de X, puis son retour
+    A, X, Y = _foyer(p, w, pris); G = _ailleurs(p, w, pris, 45); U = _ailleurs(p, w, pris, 20); _grand_mere(p, X, G, U)
+    tb.statut[X.id] = M.P.ABSENT                             # 6 h : le monde nait a l aube ( config.DATE_DEPART )
+    seuls = [len(M.menages_sans_adulte(p))]
+    T.jours(w, 0.75); seuls.append(len(M.menages_sans_adulte(p)))           # minuit : la fin du jour
+    garde = (int(tb.menage[Y.id]) == int(tb.menage[G.id]) and dis[A.id] == 0 and d.gardes.get(Y.id) == A.id)
+    tb.statut[X.id] = M.P.RESIDENT
+    T.jours(w, 1); seuls.append(len(M.menages_sans_adulte(p)))
+    res["absence_et_retour"] = garde and int(tb.menage[Y.id]) == A.id and Y.id not in d.gardes and _lien(p, Y) == "retour"
+    tenue, msg = p.socle.conservation.tenue()
+    anomalies = M.anomalies_familles(p)
+    # P4 : le falsificateur, sans le balayage du soir
+    w2, p2 = T.monde(["population"]); T.jours(w2, 1)
+    for lst in p2.routines.values(): lst[:] = [r for r in lst if r[2] is not M._recueillir]
+    pris2 = set(); A2, X2, Y2 = _foyer(p2, w2, pris2)
+    G2 = _ailleurs(p2, w2, pris2, 45); U2 = _ailleurs(p2, w2, pris2, 20); _grand_mere(p2, X2, G2, U2)
+    w2.table.statut[X2.id] = M.P.ABSENT
+    T.jours(w2, 0.75)
+    vu = A2.id in M.menages_sans_adulte(p2).tolist() and ("mineurs_seuls", A2.id) in M.anomalies_familles(p2)
+    ok = all(res.values()) and seuls == [1, 0, 0] and tenue and not anomalies and vu
+    return ok, (" ; ".join(f"{k} {v}" for k, v in res.items()) + f" ; menages sans adulte ( absence posee, soir, retour ) "
+                f"{seuls} ; {msg} ; incoherences {len(anomalies)} ; sans le balayage, le menage seul est vu : {vu}")
+
+
+def _sans_appel(p, k):
+    """Le falsificateur : l appel du domaine 21 a l arrestation ( `confier_si_seuls` ) neutralise."""
+    return None
+
+
+def test_orphelins_invariant():
+    """Porte des orphelins ( 30/09, amendee par le chef de projet : A TOUTE HEURE ) : Altis, tous les domaines livres ( la
+    prison du domaine 21 comprise ), echelle 20, graine du test, 40 jours : aucun menage habite sans adulte present juste
+    apres l installation ni apres AUCUN pas de 10 minutes ; conservation tenue. Falsificateur : sans l appel du domaine
+    21 ( `confier_si_seuls` neutralise ), les enfants des detenus de l installation sont seuls des la premiere mesure
+    ( 4 a la graine du test ), jusqu au balayage de 23 h 50."""
+    from ..porte_domaines import LIVRES
+    w, p = T.monde(LIVRES, echelle=20.0)
+    d = p.domaine("population")
+    vus = [len(M.menages_sans_adulte(p))]
+    for _ in range(40 * C.PAS_PAR_JOUR):
+        w.pas_suivant(); vus.append(len(M.menages_sans_adulte(p)))
+    tenue, msg = p.socle.conservation.tenue()
+    orig = M.confier_si_seuls; M.confier_si_seuls = _sans_appel
+    try:
+        w2, p2 = T.monde(LIVRES, echelle=20.0)
+        seuls = [len(M.menages_sans_adulte(p2))]
+        for _ in range(C.PAS_PAR_JOUR):
+            w2.pas_suivant(); seuls.append(len(M.menages_sans_adulte(p2)))
+    finally:
+        M.confier_si_seuls = orig
+    ok = max(vus) == 0 and tenue and seuls[0] >= 1
+    return ok, (f"{w.table.n} habitants, {len(vus)} mesures ( l installation, puis chaque pas de 40 jours ) : au plus "
+                f"{max(vus)} menage sans adulte ; {d.placements} placements, {len(d.gardes)} enfants confies le temps d une "
+                f"absence ; {msg} ; sans l appel du domaine 21 : {seuls[0]} menage(s) sans adulte a l installation, vus "
+                f"{sum(1 for x in seuls if x)} mesures sur {len(seuls)} du premier jour")
+
+
+def test_orphelins_arrestation():
+    """Porte de l arrestation ( 30/09, amendement du chef de projet, critere ecrit avant ) : a 0 h 30, l heure des delits,
+    le domaine 21 incarcere ( `_incarcerer` ) le seul adulte X d un menage construit, X et son enfant Y, une grand-mere
+    presente ailleurs. P7 : dans le MEME pas, Y est chez sa grand-mere, confie le temps de l absence, et l invariant ne
+    voit pas le menage ; conservation tenue. P8 falsificateur : sans l appel ( `confier_si_seuls` neutralise ), Y est vu
+    seul a l arrestation puis apres chaque pas jusqu a 23 h 50 ( 141 mesures ), et c est le balayage du soir qui le
+    confie a minuit."""
+    from . import d21_justice as J
+    def poser(w, p):
+        while w.minutes % (24 * 60) != 30: w.pas_suivant()          # le monde nait a 6 h : jusqu a 0 h 30
+        pris = set(); A, X, Y = _foyer(p, w, pris)
+        G = _ailleurs(p, w, pris, 45); U = _ailleurs(p, w, pris, 20); _grand_mere(p, X, G, U)
+        J._incarcerer(p, J._dom(p), X.id, J.PROVISOIRE, -1, p.jour + 5)
+        return A, Y, G
+    w, p = T.monde(["justice"])
+    A, Y, G = poser(w, p); tb = w.table
+    meme_pas = (int(tb.menage[Y.id]) == int(tb.menage[G.id]) and _lien(p, Y) == "grand_parent"
+                and A.id not in M.menages_sans_adulte(p).tolist() and p.domaine("population").gardes.get(Y.id) == A.id)
+    tenue, msg = p.socle.conservation.tenue()
+    orig = M.confier_si_seuls; M.confier_si_seuls = _sans_appel
+    try:
+        w2, p2 = T.monde(["justice"])
+        A2, Y2, G2 = poser(w2, p2)
+        vu = [A2.id in M.menages_sans_adulte(p2).tolist()]
+        while vu[-1] and len(vu) <= C.PAS_PAR_JOUR:
+            w2.pas_suivant(); vu.append(A2.id in M.menages_sans_adulte(p2).tolist())
+        minuit = w2.minutes % (24 * 60) == 0
+        confie = int(w2.table.menage[Y2.id]) == int(w2.table.menage[G2.id])
+    finally:
+        M.confier_si_seuls = orig
+    ok = meme_pas and tenue and sum(vu) == 141 and not vu[-1] and minuit and confie
+    return ok, (f"arrestation a 0 h 30 : confie dans le meme pas chez sa grand-mere {meme_pas} ; {msg} ; sans l appel : "
+                f"vu seul {sum(vu)} mesures, confie a minuit par le balayage {minuit and confie}")
+
+
 TESTS = [test_tables, test_mortalite_cohorte, test_fecondite_cohorte, test_recensement, test_personnes_et_familles,
-         test_etat_civil, test_heritage, test_migrer, test_pays_vivable, test_cout, test_faim_tue, test_placement_en_colonnes]
+         test_etat_civil, test_heritage, test_migrer, test_pays_vivable, test_cout, test_faim_tue, test_placement_en_colonnes,
+         test_orphelins_controles, test_orphelins_invariant, test_orphelins_arrestation]

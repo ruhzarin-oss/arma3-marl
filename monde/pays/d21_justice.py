@@ -970,6 +970,7 @@ def _incarcerer(p, S, hid, titre, ref, fin):
     tb.domicile[hid] = pr.lieu_n; tb.lieu[hid] = pr.lieu_n; tb.poste[hid] = MAISON_P
     ch["ju_detenu"][hid] = titre
     p.noter("incarceration", habitant=hid, prison=pr.id, titre="provisoire" if titre == PROVISOIRE else "peine", fin=int(fin))
+    POP.confier_si_seuls(p, int(tb.menage[hid]))            # ( 30/09, orphelins ) ses mineurs, dans le meme pas
     return det
 
 
