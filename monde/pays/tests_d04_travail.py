@@ -338,6 +338,18 @@ def test_indemnite_chomage():
 
 
 # ================================================================== l employeur sans travail, l employeur qui ne paie pas
+def _monde_industrie_e1(domaines, **kw):
+    """essais.monde avec les postes d E1 aux sites de d10 pendant la generation ( population.POSTES_PAR_SITE : 10 par mine
+    et par carriere, 6 par fonderie ; la cle de la raffinerie n est pas touchee ), puis les postes au reel rendus."""
+    from .. import population as PO
+    garde = {r: dict(v) for r, v in PO.POSTES_PAR_SITE.items()}
+    PO.POSTES_PAR_SITE["mineur"] = {**PO.POSTES_PAR_SITE["mineur"], "mine": 10, "carriere": 10}
+    PO.POSTES_PAR_SITE["ouvrier"] = {**PO.POSTES_PAR_SITE["ouvrier"], "fonderie": 6}
+    try: return T.monde(domaines, **kw)
+    finally:
+        for r, v in garde.items(): PO.POSTES_PAR_SITE[r] = v
+
+
 def test_disponibilite():
     """Porte ( HMT-126, seuils ecrits avant la mesure ) - controle positif : une fonderie mise a l arret a la main ( reprise
     par un domaine qui ne produit rien ) ; ses salaries se presentent a leur poste sans travail ; chacun est mis en
@@ -347,8 +359,11 @@ def test_disponibilite():
     indemnite de licenciement du bareme de la loi 4093/2012 payee ou due au centime, poste disparu ( effectif vise a 0 ).
     Falsificateurs : les salaries d une mine qui produit ne sont jamais sans travail ni en disponibilite ; un salarie de
     la fonderie qui reste chez lui ( horaire vide ) n est jamais mis en disponibilite ; conservation tenue. 2 000
-    habitants ( au moins 5 salaries suivis ) ; l effectif vise de la fonderie tombe a celui qui reste."""
-    w, p = T.monde(["travail"], echelle=4)
+    habitants ( au moins 5 salaries suivis ) ; l effectif vise de la fonderie tombe a celui qui reste. 30/09 ( HMT-140 ) :
+    l industrie au reel donne 2,31 postes par fonderie et par unite d echelle ( 6 avant ) : a 2 000 habitants, 9 nes,
+    4 salaries suivis. La porte teste la disponibilite, pas l effectif des sites : son monde garde les postes d E1 aux
+    sites de d10 ( _monde_industrie_e1 ), c est le decor de l essai, pas le pays."""
+    w, p = _monde_industrie_e1(["travail"], echelle=4)
     d = p.domaine("travail"); col = p.colonnes["habitant"]; d.garder_bulletins = True
     T.jours(w, 1)
     e = next(x for x in sorted(w.entreprises.values(), key=lambda x: x.id) if x.type == "fonderie")

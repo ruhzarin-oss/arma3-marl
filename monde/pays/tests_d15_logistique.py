@@ -7,7 +7,7 @@ totale, `Monde.chocs` ) ; sans fret, l ile a faim ; avec le fret, elle doit mang
 import math
 import time
 import numpy as np
-from .. import config as C, monde as W
+from .. import config as C, monde as W, population as PO
 from . import essais as T, d15_logistique as M, d14_transport as T14
 
 ILES = ("Altis", "Malden")
@@ -148,14 +148,27 @@ def _age_mer(p):
     return float(np.mean(h)) if h else 0.0, len(h)
 
 
+def _monde_malden_e1():
+    """Le monde de _monde_malden avec les convoyeurs d E1 ( 25 pour 500 habitants ) : population.convoyeurs_au_reel
+    lit CONVOYEURS_POUR_MILLE a la generation ; 50 pour 1 000 laisse les convoyeurs d E1 tels quels."""
+    vrai = PO.CONVOYEURS_POUR_MILLE
+    PO.CONVOYEURS_POUR_MILLE = 1000.0 * C.ROLES["convoyeur"][0] / sum(k for k, _, _ in C.ROLES.values())
+    try: return _monde_malden()
+    finally: PO.CONVOYEURS_POUR_MILLE = vrai
+
+
 def test_port_sature():
     """Porte : meme monde ( secheresse sur Malden ), 12 jours. Le port d Altis ne manutentionne plus que 0,2 % de sa
     capacite ( `regler_port` ) : le delai moyen des lots par mer ( decision -> livraison ; un lot non livre compte son
-    age ) est au moins 1,5 fois celui du port normal, et des departs ont ete retardes par le chargement."""
-    w0, p0 = _monde_malden()
+    age ) est au moins 1,5 fois celui du port normal, et des departs ont ete retardes par le chargement.
+    29/09 ( HMT-140 ) : la porte teste le PORT, pas la route. Avec les convoyeurs au reel ( 4,4 pour 1 000 habitants ),
+    ce monde de 500 habitants n a qu un convoyeur par marche : les lots n atteignent plus le quai d Altis en 12 jours
+    ( aucun depart retarde sur 1 graine sur 5, delai x1,13 a x1,89 ) et la porte ne voyait plus le port. Son monde garde
+    donc les convoyeurs d E1 ( 25 pour 500 habitants ), comme avant : c est le decor de l essai, pas le pays."""
+    w0, p0 = _monde_malden_e1()
     T.jours(w0, 12)
     a0, n0 = _age_mer(p0)
-    w1, p1 = _monde_malden()
+    w1, p1 = _monde_malden_e1()
     M.regler_port(p1, "Altis", facteur=0.002)
     T.jours(w1, 12)
     a1, n1 = _age_mer(p1)

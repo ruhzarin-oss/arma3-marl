@@ -104,12 +104,30 @@ def test_epuisement():
 
 
 # ================================================================== les machines
+def _monde_industrie_e1(domaines, **kw):
+    """essais.monde avec les postes d E1 aux sites de d10 pendant la generation ( population.POSTES_PAR_SITE : 10 par mine
+    et par carriere, 6 par fonderie ; la cle de la raffinerie n est pas touchee ), puis les postes au reel rendus."""
+    from .. import population as PO
+    garde = {r: dict(v) for r, v in PO.POSTES_PAR_SITE.items()}
+    PO.POSTES_PAR_SITE["mineur"] = {**PO.POSTES_PAR_SITE["mineur"], "mine": 10, "carriere": 10}
+    PO.POSTES_PAR_SITE["ouvrier"] = {**PO.POSTES_PAR_SITE["ouvrier"], "fonderie": 6}
+    try: return T.monde(domaines, **kw)
+    finally:
+        for r, v in garde.items(): PO.POSTES_PAR_SITE[r] = v
+
+
 def test_mtbf():
     """Porte : 1 500 machines de trois modeles, sans entretien, reparees a chaque panne, 4 pannes chacune, au pas du
     monde et par la loi du monde : le MTBF simule retrouve le MTBF declare a 2 % pres. Controles positifs : un MTBF
     declare deux fois plus court donne un MTBF simule de 0,48 a 0,52 fois ; une usure de vie de 0,5 le divise par
     1,5^( 1 / beta ) ( a 2 % pres ). Dans le monde ( 2 000 habitants, temoin : jamais d entretien, 30 jours, au moins 5
-    pannes ) : les pannes tirees s ecartent de la somme des hasards de moins de 3 ecarts-types."""
+    pannes ) : les pannes tirees s ecartent de la somme des hasards de moins de 3 ecarts-types. L attendu est la somme
+    des hasards des machines sur les heures-machines REELLEMENT faites. 30/09 ( HMT-140 ) : la porte teste la LOI DES
+    PANNES, pas l effectif des sites. Le parc suit l equipe a l installation, et l industrie au reel l a divise par 3 a 5
+    ( 2 000 habitants : 4,2 pannes attendues en 30 jours, contre 11,9 ; 5 000 habitants : 4,7 a 6,2 en 30 comme en 60
+    jours, ce monde sans domaine 4 cessant de produire vers le jour 30 ; 10 000 habitants : aucune heure-machine ). Son
+    monde garde donc les postes d E1 aux sites de d10 ( 10 par mine et par carriere, 6 par fonderie ), comme
+    _monde_malden_e1 garde les convoyeurs d E1 : c est le decor de l essai, pas le pays."""
     rng = np.random.default_rng(7)
     res = {}
     for nom in ("foreuse_jumbo", "chargeuse_souterraine", "pelle_hydraulique"):
@@ -120,7 +138,7 @@ def test_mtbf():
     r_moitie = float(M.simuler_flotte(moitie, 1500, 4, rng).mean()) / f.mtbf_h
     r_use = float(M.simuler_flotte(f, 1500, 4, rng, usure=0.5).mean()) / f.mtbf_h
     attendu_use = 1.5 ** (-1.0 / f.beta)
-    w, p = T.monde(["industrie"], echelle=4, modes={"entretenir_machine": "temoin"})
+    w, p = _monde_industrie_e1(["industrie"], echelle=4, modes={"entretenir_machine": "temoin"})
     T.jours(w, 30)
     st = p.domaine("industrie").stats
     z = (st["pannes"] - st["pannes_attendues"]) / math.sqrt(max(1e-9, st["pannes_attendues"]))
@@ -191,7 +209,9 @@ def test_accidents():
     chose en 15 jours a 2 000 habitants ) : les accidents tires s ecartent de leurs intensites de moins de 3 ecarts-types, et
     le taux attendu par heure travaillee, ramene au facteur, est de 0,86 a 1,15 fois celui d ESAW ( 0,85 vient de
     l heure travaillee ; les pannes reelles doivent en porter au moins un quinzieme de leur part ). ( 3 ) Un accident mortel passe par la population : le mort
-    a la cause accident."""
+    a la cause accident. 30/09 ( HMT-140 ) : l industrie au reel a divise les equipes, et le parc qui les suit, par 3 a
+    5 : a 2 000 habitants, aucune panne en 15 jours ( x0,850 ). La porte teste la loi des accidents, pas l effectif des
+    sites : son monde garde les postes d E1 aux sites de d10 ( _monde_industrie_e1 ), c est le decor de l essai."""
     rng = np.random.default_rng(3)
     lignes, ok1 = [], True
     for sec in ("B", "C24"):
@@ -206,7 +226,7 @@ def test_accidents():
         ok1 = ok1 and abs(z) <= 3 and abs(zm) <= 3 and 1.8 <= r2 <= 2.2
         lignes.append(f"{sec} : {k_nf} non mortels pour {nf * h:.0f} ( z {z:+.2f} ), {k_m} mortels pour {mo * 1e10:.0f} "
                       f"( z {zm:+.2f} ), facteur 2 : x{r2:.2f}")
-    w, p = T.monde(["industrie"], echelle=4)
+    w, p = _monde_industrie_e1(["industrie"], echelle=4)
     D_ = p.domaine("industrie"); D_.facteur_risque = 1000.0
     T.jours(w, 15)
     par, (att_nf, att_m) = M.accidents(p)

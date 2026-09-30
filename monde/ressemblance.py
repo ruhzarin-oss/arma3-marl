@@ -1052,8 +1052,10 @@ def main(argv=None):
     t0 = time.perf_counter()
     kw = {"graine": x.graine, "echelle": x.habitants / 500.0, "iles": tuple(x.iles.split(","))}
     if x.demographie is not None: kw["demographie"] = x.demographie
+    doms = _domaines(x.domaines)
+    kw["fret"] = "d15" if "logistique" in P.fermeture(doms if doms is not None else list(P.MODULE)) else "e1"   # 29/09
     w = W.Monde(**kw)
-    p = P.installer(w, _domaines(x.domaines))
+    p = P.installer(w, doms)
     t_inst = time.perf_counter() - t0
     print(f"monde : {w.table.n} habitants, {len(p.domaines)} domaines, coeur Rust "
           f"{'charge' if W.COEUR is not None else 'ABSENT'} ; installation {t_inst:.1f} s", flush=True)

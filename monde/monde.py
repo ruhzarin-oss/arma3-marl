@@ -107,9 +107,10 @@ class ParTravail:
 
 class Monde:
     def __init__(self, graine=C.GRAINE, cerveau="regles", epidemie_jour=2, journal=None, eleve=None, iles=("Altis",),
-                 echelle=1.0, demographie=None):
+                 echelle=1.0, demographie=None, fret="e1"):
         self.rng = np.random.default_rng(graine)
         self.graine = graine
+        self.fret = fret                                # 29/09 : qui porte le fret ( lu ; population.generer l applique )
         self.carte = K.Carte(iles=tuple(iles))
         self.table = P.Table(self.carte.par_n)          # les habitants en colonnes ( ce que lit le coeur Rust )
         self.table.code_ile = K.CODES_ILES[self.carte.iles[0]]      # le pays de ce monde : il entre dans chaque numero
@@ -117,7 +118,8 @@ class Monde:
         self._marche_du_lieu = np.array([l.marche.n if l.marche is not None else -1 for l in self.carte.par_n], np.int64)
         self._ile_du_lieu = np.array([self.carte.iles.index(l.ile) for l in self.carte.par_n], np.int16)
         # demographie ( None : le monde E1 ) : une population copiee sur un pays reel, voir population.generer
-        self.habitants, self.menages = P.generer(self.carte, self.rng, echelle, self.table, demographie)
+        # fret ( 29/09 ) : qui porte le fret de ce monde - « e1 », les convois du moteur ; « d15 », le domaine 15 ( population.generer )
+        self.habitants, self.menages = P.generer(self.carte, self.rng, echelle, self.table, demographie, fret)
         self.utiliser_coeur = COEUR is not None
         self._travaille_pas = -1                        # le pas ou la colonne « travaille » a ete remplie
         self.pas = 0

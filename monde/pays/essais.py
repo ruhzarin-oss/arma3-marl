@@ -9,7 +9,9 @@ FAMILLES_HORS_LIVRE_E1 = ("gouvernement", "marches")   # importer, exporter_or, 
 
 def monde(domaines, graine=C.GRAINE, echelle=1.0, modes=None, iles=("Altis",), demographie=None):
     """Un Monde E1 avec ses domaines ( et leurs dependances ) installes. `demographie` : voir population.generer."""
-    w = W.Monde(graine=graine, echelle=echelle, iles=iles, demographie=demographie)
+    # 29/09 ( HMT-140 ) : le fret est porte par le domaine 15 s il est installe, sinon par les convois du moteur
+    fret = "d15" if "logistique" in P.fermeture(domaines if domaines is not None else list(P.MODULE)) else "e1"
+    w = W.Monde(graine=graine, echelle=echelle, iles=iles, demographie=demographie, fret=fret)
     return w, P.installer(w, domaines, modes)
 
 

@@ -3,7 +3,8 @@
 Seuils ecrits le 27/09 AVANT la premiere mesure. Chaque porte a son controle positif ( elle refuse la population par
 defaut, ou voit un defaut pose expres ) et, la ou c est possible, un falsificateur.
   P1 defaut identique au bit : portes.sh ( les references des domaines ) ; ici en plus, l empreinte de la population
-     par defaut ( toutes les colonnes des habitants et des menages ) contre celle de la base f13be95.
+     par defaut ( toutes les colonnes des habitants et des menages ) contre celle de la base f13be95 ( 29/09 : avec les
+     convoyeurs et l industrie au reel, EMPREINTE_DEFAUT ).
   P2 pyramide : chaque groupe de 5 ans a 1 point de sa part, 0-14, 15-64 et 65 ans et plus a 1 point, rapport hommes /
      femmes a 0,03 ; le domaine 1 garde la pyramide.
   P3 menages : taille moyenne a 0,1 de 2,4, chaque taille ( 1 a 5, 6 et plus ) a 3 points, aucun mineur sans adulte ; le
@@ -28,6 +29,19 @@ GRAINE = 11
 # l empreinte de la population par defaut ( graine config.GRAINE, echelle 1 ) mesuree sur la base f13be95, avant toute
 # modification de ce chantier
 EMPREINTE_DEFAUT_F13BE95 = "6482559b883ff86bf0ddd7ea3769732499b277a5a58205656f5148cbce07a22f"
+# 29/09 ( HMT-140 ) : patch_convoyeurs change le monde par defaut des l echelle 1 ( 3 convoyeurs au lieu de 25, 22
+# hoteliers ) : l empreinte de reference devient celle-ci, mesuree sur l atelier convoyeurs-reels ( e8f1ee8 + le
+# correctif ). La population par defaut y est celle de l archive des references ( 5917fa8 + la chaine, patch_convoyeurs
+# compris ), metier par metier et sur les colonnes communes, aux echelles 1, 2, 4 et 20. L intention de P1 ne change
+# pas : le mode grec ne touche pas au monde par defaut.
+# ( etait 4fa2be081474862055eae3d10b171c39300ce856ca4029867cdc9af86671741b )
+# 29/09 ( HMT-140, suite ) : la cible ACCUEIL annuelle ( plus d hoteliers a la naissance ) et l industrie au reel
+# ( patch_industrie : 7 mineurs et 33 ouvriers a l echelle 1, au lieu de 40 et 40 ) changent encore le monde par defaut
+# ( ses convoyeurs restent ceux d E1 : le monde par defaut est un monde fret="e1", arbitrage du 29/09 ) ;
+# l empreinte est mesuree sur l atelier convoyeurs-reels ( 6b054bd + les deux correctifs ), ou la population par
+# defaut est celle de l archive des references ( la chaine, patch_industrie compris ), metier par metier et sur les
+# colonnes communes, aux echelles 1, 2, 4 et 20, et celle de l ancien moteur temoin.
+EMPREINTE_DEFAUT = "0c30902007a780c469ff87f5b7c8ea4bb90ebb86b19b51f72477c28bf660bcda"
 TRAVAILLEURS = [P.CODE_ROLE[r] for r in P.ROLES if P.TRAVAIL[r][0] and r not in ("enfant", "etudiant")]
 MILITAIRES = [P.CODE_ROLE[r] for r in ("soldat", "officier")]
 
@@ -164,8 +178,8 @@ def porte_p1():
     voit = empreinte(w) != e
     w.table.age[0] -= 0.1
     autre = empreinte(W.Monde(demographie="grece")) != e
-    ok = e == EMPREINTE_DEFAUT_F13BE95 and voit and autre
-    return ok, (f"empreinte par defaut {e[:16]} ( base f13be95 : {EMPREINTE_DEFAUT_F13BE95[:16]} ) ; controle positif : "
+    ok = e == EMPREINTE_DEFAUT and voit and autre
+    return ok, (f"empreinte par defaut {e[:16]} ( base f13be95, convoyeurs et industrie au reel : {EMPREINTE_DEFAUT[:16]} ) ; controle positif : "
                 f"un age change {'vu' if voit else 'NON VU'}, population grecque {'differente' if autre else 'IDENTIQUE'}")
 
 

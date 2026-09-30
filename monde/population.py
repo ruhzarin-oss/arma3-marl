@@ -604,26 +604,39 @@ def metier_possible(carte, role):
 # pour un puits, 40 ouvriers ( config.OUVRIERS_PAR_SITE ). Altis porte donc deja ses metiers : sur Altis, et sur toute
 # carte dont Altis est la premiere ile ( les autres iles n y ajoutent pas de site industriel ), rien ne change au bit.
 POSTES_PAR_SITE = {"mineur": {"mine": 10, "carriere": 10}, "petrolier": {"puits": 15}, "ouvrier": C.OUVRIERS_PAR_SITE}
-# Ceux que les sites n emploient pas travaillent dans les metiers OUVERTS de l ile ( ceux dont le lieu de travail y
-# existe ), de sorte que ces metiers prennent la structure de l emploi reel d une region d iles grecques : l Egee du Nord
-# ( EL41 : Lesbos, Limnos - l Altis du jeu -, Chios, Samos, Ikaria ; Agios Efstratios, la Stratis du jeu, en fait
-# partie ). Le surplus remplit d abord les metiers les plus en dessous de leur part reelle ( remplissage par le bas,
-# `_vers_le_reel` ) : le melange d E1 a deja 110 paysans pour 20 marchands et aucun hotelier, trois fois la part
-# agricole du reel ; un partage au prorata aurait encore gonfle l agriculture ( Stratis : 48 % de l emploi agricole
-# contre 34 %, mesure du 27/09 ). Emploi reel de l Egee du Nord, en milliers de personnes de 15-74 ans en 2024 :
-# agriculture et peche ( A ) 15,3 ; commerce, transport, hebergement et restauration ( G-I ) 21,9 ( Eurostat
-# lfst_r_lfe2en2 ), G-I partage comme les personnes occupees des unites locales de l Egee du
-# Nord en 2023 : commerce ( G ) 10 156, transport ( H ) 1 969, hebergement et restauration ( I ) 13 366 ( Eurostat
-# sbs_r_nuts2021, EMP_LOC_NR ). Construction ( F, 5,7 ), services aux entreprises ( M-N, 4,6 ) et autres services
-# ( R-U, 4,2 ) n ont pas de metier dans le moteur : leur part se reporte sur ces quatre ( a calibrer ). La peche est
-# faite par les paysans des villages cotiers ( domaine 9 ). Si les sites d une ile demandent PLUS de bras que le
-# melange d E1 ( Enoch : 7 centrales, 13 fonderies ), l industrie les prend aux metiers ouverts les plus au-dessus de
-# leur part reelle ( remplissage par le haut ) : la taille du pays reste celle que fixe l echelle.
+# Ceux que les sites n emploient pas ( les postes LIBERES, d ou qu ils viennent : industrie sans site, raffinerie a
+# son effectif reel, convoyeurs au reel ) travaillent dans les metiers OUVERTS de l ile ( ceux dont le lieu de travail y
+# existe ), de sorte que ces metiers prennent la structure ANNUELLE de l emploi reel de la GRECE. Le surplus remplit
+# d abord les metiers les plus en dessous de leur part reelle ( remplissage par le bas, `_vers_le_reel` ) : le melange
+# d E1 a deja 110 paysans pour 20 marchands, trois fois la part agricole du reel ; un partage au prorata aurait encore
+# gonfle l agriculture ( Stratis : 48 % de l emploi agricole contre 34 %, mesure du 27/09 ). Emploi de la Grece, moyenne
+# ANNUELLE des quatre trimestres, en milliers de personnes de 15-74 ans en 2024 ( Eurostat lfsa_egan2 ) : agriculture et
+# peche ( A ) 467,8, soit 11,0 % de l emploi ( 4 265,9 ) ; commerce ( G ) 712,9, soit 16,7 % ; transport ( H ) 240,4 ;
+# hebergement et restauration ( I ) 398,8. 30/09 ( HMT-179 ) : la cible etait celle d une region d iles, l Egee du Nord
+# ( EL41, lfst_r_lfe2en2 : A 15,3 et G-I 21,9 milliers sur 77,6 ) ; elle donnait a l agriculture 57 % du surplus
+# ( A / G = 1,32, contre 0,66 en Grece ) et 36 a 43 % d emploi agricole a la naissance sur les iles, contre 11 % en
+# Grece. Le pays simule est compare a la Grece ( ressemblance.py ) : sa cible est nationale.
+# 29/09 ( HMT-140 ) : le partage precedent venait des personnes occupees des unites locales ( Eurostat sbs_r_nuts2021 ),
+# qui comptent les saisonniers : l hebergement-restauration y pese 1,82 fois sa moyenne annuelle ( 725 726 contre
+# 398 800 en Grece ), et la cible donnait a l hotellerie 31 % des postes ouverts ( 14,8 % de l emploi de l Egee du Nord,
+# contre 9,35 % pour la Grece en moyenne annuelle ). L HOTELLERIE NE RECOIT PAS de postes liberes a la naissance : dans
+# le moteur elle n est que le tourisme saisonnier du domaine 28, qui embauche son personnel a la saison ( occupation des
+# lits de 0,08 en janvier a 0,93 en aout ) - c est le dessein d E1 ( config.ROLES : effectif 0 a la naissance, « on y
+# entre par l embauche » ). Un hotelier ne en surplus etait un chomeur d hiver ( bras « effectif reel » de la raffinerie :
+# +3,3 points de chomage ). Les CONVOYEURS non plus : ils ont leur regle au reel ( convoyeurs_au_reel, 4,4 pour 1 000
+# habitants ) et ne se recreent pas par le surplus. Restent l agriculture et la peche ( A ) et le commerce ( G ), les
+# metiers non saisonniers ouverts du moteur ; construction ( F, 5,7 ), transport hors fret ( H, taxis, cars, ports ),
+# hebergement-restauration hors tourisme ( I, cafes et tavernes des habitants ), services aux entreprises ( M-N, 4,6 ) et
+# autres services ( R-U, 4,2 ) n ont pas de metier dans le moteur : leur part se reporte sur ces deux ( a calibrer ).
+# La peche est faite par les paysans des villages cotiers ( domaine 9 ). Si les sites d une ile demandent PLUS de bras
+# que le melange d E1 ( Enoch : 7 centrales, 13 fonderies ), l industrie les prend aux metiers ouverts les plus
+# au-dessus de leur part reelle ( remplissage par le haut ) : la taille du pays reste celle que fixe l echelle.
+#   https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsa_egan2?geo=EL&time=2024&sex=T&age=Y15-74&unit=THS_PER
 #   https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfst_r_lfe2en2?geo=EL41&time=2024&age=Y15-74&sex=T&unit=THS_PER
-#   https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/sbs_r_nuts2021?geo=EL41&time=2023&indic_sbs=EMP_LOC_NR
-_G_I = 10156 + 1969 + 13366
-ACCUEIL = {"paysan": 15.3, "marchand": 21.9 * 10156 / _G_I, "convoyeur": 21.9 * 1969 / _G_I,
-           "hotellerie": 21.9 * 13366 / _G_I}
+#   https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/sbs_r_nuts2021?geo=EL&time=2023&indic_sbs=EMP_LOC_NR
+PARTS_ANNUELLES = {"paysan": 467.8, "marchand": 712.9, "convoyeur": 240.4,
+                   "hotellerie": 398.8}      # la structure annuelle des quatre metiers en Grece ( pour memoire )
+ACCUEIL = {r: PARTS_ANNUELLES[r] for r in ("paysan", "marchand")}   # ceux qui recoivent des postes liberes
 # Les hotels et restaurants d une ile : ou sont ses lits touristiques ( domaine 28, POIDS_LIEU : la capitale et ses
 # plages, les villes, les villages ). Un poste d hotellerie ne en surplus va la ou sont les lits.
 POIDS_HOTELLERIE = {"capitale": 4, "ville": 2, "village": 1}
@@ -713,15 +726,191 @@ def _lieux_ponderes(carte, role):
     return [l for l in lieux for _ in range(int(poids[l.type]) // g)]
 
 
-def generer(carte, rng, echelle=1.0, table=None, demographie=None):
+# ================================================================== l industrie au reel ( 29/09, HMT-140 cause 5, suite )
+# Le monde E1 donne 40 mineurs et 40 ouvriers par unite d echelle ( 500 habitants ) : a 10 000 habitants, Altis emploie
+# 735 personnes a ses six sites de d10 ( une mine, trois carrieres, deux fonderies ), 7 % de sa population, pour 0,15 a
+# 3,8 heures payees par personne et par jour ( session du moteur, 29/09 : 120 jours, graine 71 ). Le reel : 1,5 % de
+# l emploi grec ( B, C24, C25 ). Chaque site a desormais, par unite d echelle, le PLUS GRAND de deux niveaux, pour ne pas
+# affamer un site qui travaille :
+#  - le REEL : la part de son secteur dans l emploi de la Grece en 2024 ( Eurostat lfsa_egan22d, milliers de personnes de
+#    15-74 ans, 4 265,9 en tout ) - mine : minerais metalliques ( B07 ) 2,3 ; carriere : autres industries extractives
+#    ( B08 ) 4,6 ; fonderie : metallurgie ( C24 ) 17,1 et produits metalliques ( C25 ) 47,3, car la fonderie du moteur
+#    est une acierie integree avec forge et usinage ( d10, PLAN_ALTIS ). La part, portee aux 306 travailleurs civils d une
+#    unite d echelle ( config.ROLES ), se partage entre les sites du type sur Altis ;
+#  - le TRAVAIL FOURNI : les heures payees par jour du calendrier ( jours 11 a 120 ; le site du type qui travaille le plus,
+#    sur les deux mesures du moteur, avant et apres la reparation du demarrage ) en emplois a plein temps de 1 880 heures
+#    par an ( OCDE, comme d10 ; un site ferme le samedi, le dimanche et les feries : 8 heures par jour compteraient un
+#    ouvrier qui travaille 7 jours sur 7 ), rapportees aux nes : le recensement du domaine 4 ne laisse a son poste qu une
+#    partie des nes ( mine : 136 des 200 ).
+# Mine : travail 4,94 par unite ( reel 0,17 ) ; carriere : travail 0,83 ( reel 0,11 ) ; fonderie : reel 2,31 ( travail
+# 1,40 ). A 10 000 habitants : 99 a la mine, 17 par carriere, 46 par fonderie, soit 241 au lieu de 1 040.
+#   https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsa_egan22d?geo=EL&time=2024&sex=T&age=Y15-74&unit=THS_PER
+EMPLOI_GRECE_2024 = 4265.9
+EMPLOI_SECTEUR_2024 = {"mine": 2.3, "carriere": 4.6, "fonderie": 17.1 + 47.3}
+SITES_D_ALTIS = {"mine": 1, "carriere": 3, "fonderie": 2}
+# le site qui travaille le plus : heures payees par jour, equipe moyenne, nes ( Altis a l echelle 20 )
+TRAVAIL_MESURE = {"mine": (345.3, 135.8, 200), "carriere": (58.4, 137.3, 200), "fonderie": (98.0, 81.8, 120)}
+ECHELLE_MESURE = 20.0
+HEURES_PLEIN_TEMPS_J = 1880.0 / 365.0
+CIVILS_E1 = sum(k for r, (k, _, _) in C.ROLES.items() if r not in ("enfant", "retraite", "soldat", "officier"))
+LONGUEUR_SUITE = 1 << 16      # au-dela ( plus de ~ 65 000 travailleurs d un metier ), la suite recommence
+
+
+def postes_reels(t):
+    """Les postes d un site de d10 ( mine, carriere, fonderie ) par unite d echelle : max( reel, travail fourni )."""
+    reel = EMPLOI_SECTEUR_2024[t] / EMPLOI_GRECE_2024 * CIVILS_E1 / SITES_D_ALTIS[t]
+    h, equipe, nes = TRAVAIL_MESURE[t]
+    return max(reel, h / HEURES_PLEIN_TEMPS_J * nes / equipe / ECHELLE_MESURE)
+
+
+def _suite_des_postes(lieux, poids, longueur=LONGUEUR_SUITE):
+    """Les lieux dans l ordre ou ils recoivent leurs postes : un chacun d abord ( dans l ordre de la carte ), puis au plus
+    fort quotient poids / ( 2 s + 1 ), s les postes deja recus ( Sainte-Lague ) ; a egalite, le premier de la carte. Chaque
+    prefixe est un partage au prorata des poids, a une personne pres : le tour de role de la generation ( les N premiers
+    de la liste ) pourvoit chaque site comme ses postes, a toute echelle, meme avec des postes non entiers."""
+    w = np.asarray(poids, np.float64)
+    m = np.floor(longueur * w / w.sum()).astype(np.int64) + 3
+    site = np.repeat(np.arange(len(w)), m)
+    rang = np.concatenate([np.arange(k) for k in m.tolist()])
+    prio = np.where(rang == 0, np.inf, w[site] / (2.0 * rang + 1.0))
+    ordre = np.lexsort((site, -prio))[:longueur]
+    return [lieux[i] for i in site[ordre].tolist()]
+
+
+_SUITES = {}
+
+
+def _suite_en_cache(lieux, poids):
+    """_suite_des_postes, gardee pour les memes lieux ( les memes objets, tenus par le cache ) et les memes poids."""
+    cle = (tuple(id(l) for l in lieux), tuple(float(x) for x in poids))
+    v = _SUITES.get(cle)
+    if v is None:
+        if len(_SUITES) >= 16: _SUITES.pop(next(iter(_SUITES)))
+        v = _SUITES[cle] = (tuple(lieux), _suite_des_postes(lieux, poids))
+    return v[1]
+
+
+POSTES_REELS = {t: postes_reels(t) for t in SITES_D_ALTIS}
+POSTES_PAR_SITE["mineur"] = {**POSTES_PAR_SITE["mineur"], "mine": POSTES_REELS["mine"], "carriere": POSTES_REELS["carriere"]}
+POSTES_PAR_SITE["ouvrier"] = {**POSTES_PAR_SITE["ouvrier"], "fonderie": POSTES_REELS["fonderie"]}   # la raffinerie : inchangee
+
+_lieux_avant_industrie = _lieux_ponderes
+
+
+def _lieux_aux_postes(carte, role, *n):
+    """`_lieux_ponderes` ( la fonction d avant ) ; des postes non entiers ( les sites de d10 au reel ) sans effectif donne :
+    la suite de Sainte-Lague, dont chaque prefixe est au prorata des postes. Un effectif donne ( le bras de la raffinerie
+    partage lui-meme au plus fort reste ) ou des postes entiers gardent la fonction d avant."""
+    poids = POSTES_PAR_SITE.get(role)
+    if poids is None or (n and n[0] is not None): return _lieux_avant_industrie(carte, role, *n)
+    lieux = carte.de_type(*TRAVAIL[role][0])
+    if not lieux or all(float(poids[l.type]).is_integer() for l in lieux): return _lieux_avant_industrie(carte, role, *n)
+    return _suite_en_cache(lieux, [poids[l.type] for l in lieux])
+
+
+_lieux_ponderes = _lieux_aux_postes
+
+# ================================================================== les convoyeurs au reel ( 29/09, HMT-140 cause 5 )
+# Le monde E1 donne 25 convoyeurs pour 500 habitants ( config.ROLES ), 50 pour 1 000 : a 10 000 habitants, Altis lance
+# 56 convois de 4,7 km par jour, 51 heures de conduite, et laisse ~ 350 de ses ~ 440 convoyeurs sans travail des le jour
+# 5 ( mesure du 29/09, tronc 72f0873 ). Le reel : le fret routier et le demenagement ( NACE H49.4 ) emploient 45 591
+# personnes en Grece en 2024 ( Eurostat sbs_sc_ovw ; 37 183 en 2019, sbs_na_1a_se_r2 ) pour 10 375 764 habitants
+# ( demo_pjan ) : 4,4 pour 1 000 habitants, 1,07 % de l emploi. Au moins un convoyeur par marche : sans chauffeur a sa
+# capitale, aucun convoi n y part. Les autres sont verses aux metiers ouverts par le meme remplissage vers la structure
+# reelle ANNUELLE que les bras de l industrie ( population.ACCUEIL : agriculture et commerce ; ni l hotellerie,
+# saisonniere, que le domaine 28 embauche a la saison, ni les convoyeurs, qui ne se recreent pas ).
+#   https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/sbs_sc_ovw?geo=EL&nace_r2=H494&indic_sbs=EMP_NR&size_emp=TOTAL
+CONVOYEURS_POUR_MILLE = 1000.0 * 45591 / 10375764
+# ( 30/09 ) 4,4 pour 1 000 est un ratio d EMPLOI ( H49.4 : personnes occupees ) : il vaut pour les convoyeurs AU TRAVAIL
+# apres le recensement du domaine 4, qui ne laisse a leur poste qu une partie des nes ( monde E1, graine 71, 10 000
+# habitants, tronc e8f1ee8 : 363 convoyeurs au travail sur 500 nes ). Au mode par defaut, les nes sont la cible divisee
+# par cette survie ; une population copiee sur le reel ( `habitants` donne ) nait avec son statut : nes = cible.
+SURVIE_RECENSEMENT = 363 / 500
+ACCUEIL_CONVOYEURS = {"paysan": 467.8, "marchand": 712.9}   # = population.ACCUEIL ( porte ) : Grece, lfsa_egan2 2024
+
+
+def _metier_ouvert(carte, role):
+    types = TRAVAIL[role][0]
+    return not types or types == ("gouvernement",) or bool(carte.de_type(*types))
+
+
+def _remplir_vers(c, w, total):
+    """Le remplissage vers les parts w sans aller contre ( le meme que population._vers_le_reel )."""
+    c = np.asarray(c, np.float64); w = np.asarray(w, np.float64)
+    haut_ = total > c.sum()
+    f = (lambda l: np.maximum(c, l * w)) if haut_ else (lambda l: np.minimum(c, l * w))
+    lo, hi = 0.0, 1.0
+    while f(hi).sum() < total: hi *= 2.0
+    for _ in range(200):
+        mi = 0.5 * (lo + hi)
+        if f(mi).sum() < total: lo = mi
+        else: hi = mi
+    return f(hi)
+
+
+def _parts_entieres(total, poids):
+    """Le partage entier de total au prorata de poids, plus forts restes ( le meme que population._quotas )."""
+    poids = np.asarray(poids, np.float64)
+    if total <= 0 or poids.sum() <= 0: return np.zeros(len(poids), np.int64)
+    x = total * poids / poids.sum()
+    q = np.floor(x).astype(np.int64)
+    reste = int(total) - int(q.sum())
+    if reste > 0: q[np.argsort(-(x - q), kind="stable")[:reste]] += 1
+    return q
+
+
+def convoyeurs_au_reel(carte, eff, entiers=True, habitants=None):
+    """L etape de fin des effectifs : les convoyeurs ramenes a CONVOYEURS_POUR_MILLE des habitants EN EMPLOI ( monde E1 :
+    somme des effectifs, et les nes divises par SURVIE_RECENSEMENT ; `habitants` pour une population copiee sur un pays
+    reel, sans correction ), au moins un par capitale, jamais plus qu avant ; le surplus aux autres metiers ouverts, vers
+    la structure reelle. La somme ne change pas."""
+    if "convoyeur" not in eff or eff["convoyeur"] <= 0: return eff
+    eff = dict(eff)
+    n = float(sum(eff.values())) if habitants is None else float(habitants)
+    vise = CONVOYEURS_POUR_MILLE * n / 1000.0 / (SURVIE_RECENSEMENT if habitants is None else 1.0)
+    vise = max(vise, float(len(carte.capitales)))
+    k = min(eff["convoyeur"], max(1, int(round(vise))) if entiers else vise)
+    surplus = eff["convoyeur"] - k
+    ouverts = [r for r in ACCUEIL_CONVOYEURS if r != "convoyeur" and r in eff and _metier_ouvert(carte, r)]
+    if surplus <= 0 or not ouverts: return eff
+    eff["convoyeur"] = k
+    c = [float(eff[r]) for r in ouverts]
+    d = _remplir_vers(c, [ACCUEIL_CONVOYEURS[r] for r in ouverts], sum(c) + surplus) - np.asarray(c)
+    if entiers: d = _parts_entieres(int(surplus), np.maximum(d, 0.0))
+    for r, x in zip(ouverts, d.tolist()): eff[r] += int(x) if entiers else x
+    return eff
+
+
+_effectifs_avant_convoyeurs = effectifs
+FRETS = ("e1", "d15")      # qui porte le fret : les convois du moteur ( E1 ), ou le domaine 15
+
+
+def effectifs(carte, echelle, entiers=True, emploi_civil_par_habitant=None, fret="e1"):
+    """Les effectifs de la generation ( la fonction d avant ), puis, si le domaine 15 porte le fret ( fret="d15", le
+    monde complet ), les convoyeurs au reel en derniere etape. fret="e1" ( defaut ) : les convoyeurs d E1, au bit - les
+    convois du moteur, mecanisme d essai des mondes sans domaine 15, prennent leurs chauffeurs a la capitale du marche qui
+    paie et en demandent bien plus que le reel ( 29/09 : avec 3 chauffeurs a 500 habitants, 12 514 convois refuses en
+    40 jours et le marche de la mine sans gazole 20 jours ). Pour une population copiee sur un pays reel,
+    `emploi_civil_par_habitant` donne sa taille ( generer_reel : les postes civils sur l emploi civil par habitant ) :
+    c est sur elle que se comptent les 4,4 pour 1 000."""
+    if fret not in FRETS: raise ValueError(f"fret inconnu {fret!r} : {FRETS}")
+    eff = _effectifs_avant_convoyeurs(carte, echelle, entiers)
+    if fret == "e1": return eff
+    hab = None
+    if emploi_civil_par_habitant is not None:
+        civils = sum(v for r, v in eff.items() if r not in ("enfant", "retraite", "soldat", "officier"))
+        hab = int(round(civils / emploi_civil_par_habitant))
+    return convoyeurs_au_reel(carte, eff, entiers, hab)
+
+def generer(carte, rng, echelle=1.0, table=None, demographie=None, fret="e1"):
     """Cree la population et ses menages, deterministe a graine fixee. `echelle` multiplie chaque metier : le pays
     garde ses proportions, il change de taille. `demographie` ( None : le monde E1 ) : une population copiee sur un
     pays reel ( DEMOGRAPHIES ), voir `generer_reel`. Les metiers industriels suivent les sites de l ile ( effectifs )."""
-    if demographie is not None: return generer_reel(carte, rng, echelle, table, demographie)
+    if demographie is not None: return generer_reel(carte, rng, echelle, table, demographie, fret)
     table = table if table is not None else Table(carte.par_n)
     mt = TableMenages(table); table.menages = mt
     H = Population(table)
-    eff = effectifs(carte, echelle)
+    eff = effectifs(carte, echelle, fret=fret)
     for role, (n, classe, _) in C.ROLES.items():
         # 27/09 : un metier sans poste ne nait pas ( hotellerie d E1 : on y entre par l embauche ; industrie sans site )
         if eff[role] == 0: continue
@@ -1038,7 +1227,7 @@ def _reserver(table, champs, n):
     while table.capacite < n: _agrandir(table, champs)
 
 
-def generer_reel(carte, rng, echelle, table, demographie):
+def generer_reel(carte, rng, echelle, table, demographie, fret="e1"):
     """La population d un pays reel autour des travailleurs civils du monde E1. Pose `table.recensement` : ce que la
     generation sait et que les domaines relisent a leur recensement ( sexe, conjoint, mere, pere ; le metier cherche
     ou quitte des chomeurs et des inactifs ; le motif des inactifs ). Deterministe : tous les tirages par `rng`, dans
@@ -1048,7 +1237,7 @@ def generer_reel(carte, rng, echelle, table, demographie):
     mt = TableMenages(table); table.menages = mt
     # 1. les postes civils d E1 a l echelle, dans l ordre de config.ROLES ( le metier de repli du pays ) ; les metiers
     #    industriels ont les postes des sites de l ile, le reste va aux metiers ouverts ( effectifs, 27/09 )
-    eff = effectifs(carte, echelle)
+    eff = effectifs(carte, echelle, emploi_civil_par_habitant=R.emploi_par_habitant() - R.PART_MILITAIRES, fret=fret)
     postes = []
     for role in C.ROLES:
         if eff[role] == 0 or role in ("enfant", "retraite") + MILITAIRES: continue
@@ -1086,7 +1275,7 @@ def generer_reel(carte, rng, echelle, table, demographie):
     sans = np.nonzero(np.isin(statut, (S_CHOMAGE, S_FOYER, S_DECOURAGE)))[0]
     # le metier cherche suit les effectifs de l ile ( 27/09 : sur Altis, ceux d E1 ; sans mine, personne ne cherche
     # un poste de mineur )
-    unite = effectifs(carte, 1.0, entiers=False)
+    unite = effectifs(carte, 1.0, entiers=False, fret=fret)
     w = np.array([[unite[m] * (R.PART_HOMMES[m] if s == R.HOMME else 1.0 - R.PART_HOMMES[m]) for m in METIERS_LIBRES]
                   for s in (R.FEMME, R.HOMME)])
     w = np.cumsum(w / w.sum(axis=1, keepdims=True), axis=1)

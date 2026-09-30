@@ -233,6 +233,7 @@ def installer(w, domaines=None, modes=None):
     elif modes: p.modes.update(modes)
     for nom in fermeture(domaines if domaines is not None else list(MODULE)):
         if nom in p.domaines: continue
+        if nom == "logistique" and getattr(w, "fret", "e1") == "e1": importlib.import_module("warnings").warn(f"monde graine {getattr(w, 'graine', '?')}, iles {tuple(w.carte.iles)}, {w.table.n} habitants : fret=\"e1\" avec le domaine 15 ( logistique ) installe ; passer fret='d15' pour un monde complet", stacklevel=2)
         module = importlib.import_module(f".{MODULE[nom]}", __package__)
         p.domaines[nom] = module.installer(p)
     w.pas_suivant = Horloge(p)

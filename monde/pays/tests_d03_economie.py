@@ -231,12 +231,26 @@ def test_faillite():
 
 
 # ================================================================== le chomage
+def _monde_industrie_e1(domaines, **kw):
+    """essais.monde avec les postes d E1 aux sites de d10 pendant la generation ( population.POSTES_PAR_SITE : 10 par mine
+    et par carriere, 6 par fonderie ; la cle de la raffinerie n est pas touchee ), puis les postes au reel rendus."""
+    from .. import population as PO
+    garde = {r: dict(v) for r, v in PO.POSTES_PAR_SITE.items()}
+    PO.POSTES_PAR_SITE["mineur"] = {**PO.POSTES_PAR_SITE["mineur"], "mine": 10, "carriere": 10}
+    PO.POSTES_PAR_SITE["ouvrier"] = {**PO.POSTES_PAR_SITE["ouvrier"], "fonderie": 6}
+    try: return T.monde(domaines, **kw)
+    finally:
+        for r, v in garde.items(): PO.POSTES_PAR_SITE[r] = v
+
+
 def test_chomage():
     """Porte : licencier 5 mineurs par l API fait monter le chomage mesure d exactement 5 / actifs et le registre de 5 ;
     le lendemain ils n ont travaille aucune heure pendant que leurs collegues travaillaient ; en reembaucher 2 le fait
     baisser de 2. Falsificateur : un mineur prive de son lieu de travail a la main est compte chomeur mais pas inscrit
-    ( non inscrits = 1 )."""
-    w, p = T.monde(["economie"])
+    ( non inscrits = 1 ). 30/09 ( HMT-140 ) : a l echelle 1, la mine au reel n a plus que 4 mineurs ( 10 avant ). La
+    porte teste la mesure du chomage, pas l effectif des sites : son monde garde les postes d E1 aux sites de d10
+    ( _monde_industrie_e1 ), c est le decor de l essai."""
+    w, p = _monde_industrie_e1(["economie"])
     d = p.domaine("economie")
     T.jours(w, 1)
     mine = next(c.unite for c in d.unites if c.nature == "entreprise" and c.unite.type == "mine")
