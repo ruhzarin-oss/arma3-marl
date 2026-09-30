@@ -47,6 +47,8 @@ $PY $C/patch_blocus.py $ARBRE                       # 29/09 : le port pris, c es
 $PY $C/patch_fisc_drachmes.py $ARBRE                # 29/09 ( HMT-140 ) : bareme de l IR en drachmes, dividendes et IS hors du domaine 3
 $PY $C/patch_enfia_drachmes.py $ARBRE               # 29/09 ( regle 8 ) : l ENFIA en drachmes
 $PY $C/patch_passe_exercice.py $ARBRE  # ( 29/09 ) le controle d une entreprise redresse le passe exercice par exercice
+$PY $C/patch_pension_militaire.py $ARBRE          # 29/09 ( HMT-147 ) : la pension militaire, sans la penalite civile
+$PY $C/patch_ordinaire_defense.py $ARBRE          # 29/09 ( HMT-147 ) : l ordinaire de caserne aux achats de la defense
 ( cd $ARBRE && PYTHONPATH=$ARBRE $PY -m monde.porte_domaines --ecrire $REF/ref_domaines_refaite.json | tail -1 )
 if [ -f $REF/ref_domaines.json ]; then
   cmp -s $REF/ref_domaines_refaite.json $REF/ref_domaines.json && echo "REFERENCE DES DOMAINES REPRODUITE AU BIT" || echo "REFERENCE DES DOMAINES DIFFERENTE"

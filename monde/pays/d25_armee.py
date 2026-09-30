@@ -415,6 +415,21 @@ PART_CONSO_PIB = 0.68                    # le PIB rapporte, avant tout compte na
 SOLDE_CONSCRIT_MOIS_EUR = 8.80
 SOLDE_CONSCRIT_HORAIRE = SOLDE_CONSCRIT_MOIS_EUR * 12.0 / 365.0 / 8.0 / TR.EUROS_PAR_DRACHME
 DEPARTS_MAX_MOIS = 0.02                  # le plan de departs : 2 % des militaires de carriere par mois au plus ( a calibrer )
+# ( 29/09, HMT-147 ) La pension militaire ( bulletin des pensions de l etat-major de l armee de terre, 2024 ; loi 4387/2016
+# modifiee par la loi 4670/2020 ) : sans droit acquis au 31/12/2014, ( b ) 60 ans et 25 ans de service, ( c ) 40 ans de
+# service sans age ; ( a ) 67 ans et 15 ans est le droit commun du domaine 4 ; ( d4 ) la limite d age du grade n est pas
+# modelisee ( CHOIX : pas de source des limites par grade ). Le partant du plan de departs qui remplit ( b ) ou ( c ) part
+# en pension ( nationale et contributive du domaine 4 ), sans la penalite civile d avant 67 ans ; les autres partent au
+# chomage, comme avant. Le service se lit dans les jours cotises du domaine 4 ( la carriere, reconstituee au recensement ).
+PENSION_SERVICE_AN = 25.0
+PENSION_AGE = 60.0
+PENSION_SANS_AGE_AN = 40.0
+# ( 29/09, HMT-147 ) L ordinaire de caserne : l appele grec touche une solde symbolique ; l armee le loge et le NOURRIT.
+# A 19 h 30 ( avant l autoconsommation de 19 h 40 et le repas de 20 h ), une ration par appele present, achetee par l Etat
+# au marche de sa base au-dela d un jour de la demande des habitants ( comme le tourisme ), le reste importe au port, est
+# deposee au garde-manger de son menage. La depense va aux achats de la defense ( motif ordinaire_caserne ; l import sous
+# import_armement ) ; la solde ne bouge pas.
+RESERVE_ORDINAIRE_J = 1.0
 MARGE_REDUCTION = 1.05                   # on ne reduit qu au-dela de 5 % au-dessus de l effectif paye
 # Service national ( loi 3421/2005 et loi 4361/2016, armee de terre 12 mois depuis 2021, a verifier ) : les hommes,
 # a partir de 19 ans ; sursis d etudes jusqu a la fin des etudes ( au plus ~ 28 ans ) ; les femmes volontaires
@@ -565,7 +580,7 @@ class Armee:
     __slots__ = ("eff", "unites", "veh", "coll", "armureries", "par_base", "bases", "decideur", "activite", "imposee",
                  "compagnies", "patr_jour", "patr_hier", "ratelier", "mids", "idx_parc", "bids", "entrees", "sorties",
                  "stock0", "exemptes", "incorpores", "liberes", "depenses", "serie", "vise", "cmd_jour", "anomalies_vues",
-                 "loi", "loi_vue", "departs",
+                 "loi", "loi_vue", "departs", "pensionnes",
                  "ctx", "brigades", "armee_u", "patr_base", "dotes")
 
     def __init__(self):
@@ -598,6 +613,7 @@ class Armee:
         self.loi = None            # la loi de programmation en vigueur ( credits annuels de la defense )
         self.loi_vue = None        # ( exercice, debut ) de la loi de finances deja lue
         self.departs = 0           # militaires de carriere partis au plan de departs
+        self.pensionnes = 0        # ( 29/09, HMT-147 ) partants du plan de departs en pension militaire
         self.cmd_jour = {}             # compagnie -> action decidee ce matin ( pour la note )
         self.anomalies_vues = 0
         self.ctx = {}
@@ -1394,9 +1410,61 @@ def _reduire(p, d, v):
     ages = p.w.table.age[E["hid"][car]]
     partent = car[np.lexsort((E["hid"][car], -ages))][:n]
     for r in partent.tolist():
-        TR.rompre_contrat(p, PO.Habitant(p.w.table, int(E["hid"][r])), "reduction_effectifs", involontaire=False)
+        h = PO.Habitant(p.w.table, int(E["hid"][r]))
+        if _pension_ouverte(p, h.id):                   # ( 29/09, HMT-147 ) il part en pension militaire
+            TR.prendre_retraite(p, h, penalite=False); d.pensionnes += 1; p.compter("pension_militaire", 1.0)
+        else: TR.rompre_contrat(p, h, "reduction_effectifs", involontaire=False)
     d.departs += n; p.compter("depart_militaire", float(n))
     return n
+
+
+def _pension_ouverte(p, i):
+    """( 29/09, HMT-147 ) Le droit a la pension militaire : ( b ) 60 ans et 25 ans de service, ou ( c ) 40 ans de service."""
+    col = p.colonnes["habitant"]
+    ans = float(col["tr_jours_cotises"][i]) / TR.JOURS_ASSURANCE_AN
+    age = (p.jour - int(col["naissance_j"][i])) / POP.JOURS_AN
+    return (ans >= PENSION_SERVICE_AN and age >= PENSION_AGE) or ans >= PENSION_SANS_AGE_AN
+
+
+def _ordinaire(p):
+    """19 h 30 ( 29/09, HMT-147 ) : l ordinaire de caserne. Une ration par appele present a sa base, achetee au marche de
+    la base au-dela d un jour de la demande de ses habitants, le reste importe au port ; deposee au garde-manger du menage
+    de l appele. Paye par l Etat, aux achats de la defense."""
+    d = _dom(p); w = p.w; tb = w.table; n = tb.n; E = d.eff; L = p.socle.livre
+    rows = _lignes(d)
+    rows = rows[E["conscrit"][rows] == 1] if len(rows) else rows
+    if not len(rows): return 0.0
+    h = E["hid"][rows]
+    ok = (tb.vivant[h] == 1) & (tb.travail[h] == E["base"][rows])
+    rows, h = rows[ok], h[ok]
+    mm = PO.menages_inscrits(tb, n); mt = tb.menages
+    servi_tout = 0.0
+    for b in d.bases:
+        mids = mm[h[E["base"][rows] == b]]; mids = mids[mids >= 0]
+        besoin = C.NOURRITURE_PAR_JOUR * len(mids)
+        if besoin <= EPS: continue
+        lieu = w.carte.par_n[b]; q = 0.0
+        m = w.marches.get(lieu.marche.id) if lieu.marche is not None else None
+        if m is not None and m.prix["nourriture"] > 0:
+            em = p.domaine("economie").marches.get(m.lieu.id) if p.a("economie") else None
+            reserve = RESERVE_ORDINAIRE_J * (em.demande_lisse.get("nourriture", 0.0) if em is not None else 0.0)
+            q = min(besoin, max(0.0, m.stocks["nourriture"] - reserve))
+            if q > EPS:
+                paye = L.transferer(w.gouv, m, q * m.prix["nourriture"], "ordinaire_caserne")
+                q = paye / m.prix["nourriture"]
+                m.stocks["nourriture"] -= q; m.demande["nourriture"] += q
+                d.depenses["ordinaire"] = d.depenses.get("ordinaire", 0.0) + paye
+        qi = 0.0
+        if besoin - q > EPS:
+            tmp = EXT.StockE1({}, p.socle.catalogue)
+            qi, pi = EXT.importer_au_port(p, w.gouv, tmp, "nourriture", besoin - q, "import_armement", droits=False)
+            d.depenses["ordinaire"] = d.depenses.get("ordinaire", 0.0) + pi
+        servi = q + qi
+        if servi > EPS:
+            np.add.at(mt.garde_manger, mids, servi / len(mids))
+            servi_tout += servi; p.compter("ordinaire_caserne", servi)
+        if besoin - servi > EPS: p.compter("ordinaire_manquant", besoin - servi)
+    return servi_tout
 
 
 def _postes(p, d):
@@ -1742,7 +1810,7 @@ def _approvisionner(p):
 
 
 # ================================================================== l installation
-MOTIFS = (("dotation_initiale_armee", "achat"), ("tir_instruction", "achat"), ("tir_combat", "achat"),
+MOTIFS = (("ordinaire_caserne", "achat"), ("dotation_initiale_armee", "achat"), ("tir_instruction", "achat"), ("tir_combat", "achat"),
           ("entretien_militaire", "achat"), ("transfert_munitions", "achat"), ("perte_au_combat", "achat"))
 COLONNES_HABITANT = (("ar_rang", np.int32, -1), ("ar_appel", np.int32, PAS_APPEL))
 
@@ -1761,7 +1829,7 @@ def installer(p):
     J.declarer("loi_de_programmation", DOMAINE, "individuel", ("exercice", "pib", "personnel", "achats"))
     for t in ("decision_activite", "tir_instruction", "tir_combat", "import_munitions", "panne_militaire",
               "reparation_militaire", "maintenance_militaire", "appel_differe", "exemption_service", "arme_manquante",
-              "depart_militaire"):
+              "depart_militaire", "pension_militaire", "ordinaire_caserne", "ordinaire_manquant"):
         J.declarer(t, DOMAINE, "compte")
     ch = p.colonnes["habitant"]
     for nom, dt, v in COLONNES_HABITANT: ch.ajouter(nom, dt, v)
@@ -1798,6 +1866,7 @@ def installer(p):
     p.routine(9.0, 60, DOMAINE, _approvisionner)
     p.routine(16.0, 60, DOMAINE, _journee)
     p.routine(22 + 40 / 60, 60, DOMAINE, _soir)
+    p.routine(19.5, 60, DOMAINE, _ordinaire)             # ( 29/09, HMT-147 ) l ordinaire de caserne
     return d
 
 

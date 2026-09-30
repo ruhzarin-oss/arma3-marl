@@ -1623,6 +1623,7 @@ def _cloture(p, comptes):
         elif m == "commande publique": parts = {(l, "achats"): x for l, x in _ventiler(livraisons, s, "interieur").items()}
         elif m == "carburant du convoi": parts = {(l, "achats"): x for l, x in _ventiler(a.convois, s, "defense").items()}
         elif m == "electricite": parts = {("industrie", "achats"): s}
+        elif m == "ordinaire_caserne": parts = {("defense", "achats"): s}      # ( 29/09 ) l ordinaire des appeles
         elif m == "subvention": parts = {("subventions", "transferts"): s}
         elif m in ("interet_titre", "interet_avance_bc"): parts = {("dette", "interets"): s}
         elif m == "import_armement": parts = {("defense", "achats"): s}     # la guerre des iles ( guerre/moteur.py ), 26/09

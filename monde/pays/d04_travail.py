@@ -982,16 +982,17 @@ def _carriere_i(p, i, classe, rng, age, sexe, role_ref, age_fin=None):
     return annees
 
 
-def _liquider(p, d, h, age, nature="vieillesse", ecrire=True):
+def _liquider(p, d, h, age, nature="vieillesse", ecrire=True, penalite=True):
     """Liquide la pension de `h` ; rend la Pension ( ou None sans droit : moins de 15 ans d assurance ). Sans droit a
     62-66 ans, il attend 67 ans et l allocation des non-assures."""
-    return _liquider_i(p, d, h.id, age, nature, ecrire)
+    return _liquider_i(p, d, h.id, age, nature, ecrire, penalite)
 
 
-def _liquider_i(p, d, i, age, nature="vieillesse", ecrire=True):
+def _liquider_i(p, d, i, age, nature="vieillesse", ecrire=True, penalite=True):
     col = p.colonnes["habitant"]
     jours, assiette = float(col["tr_jours_cotises"][i]), float(col["tr_assiette"][i])
-    tot, nat, _, pen = calculer_pension(jours, assiette, age, invalidite=nature == "invalidite")
+    # ( 29/09 ) penalite=False : la pension militaire ( domaine 25 ), sans la penalite d avant l age legal
+    tot, nat, _, pen = calculer_pension(jours, assiette, age if penalite else max(age, AGE_LEGAL), invalidite=nature == "invalidite")
     pn = None
     if tot > 0.0:
         pn = Pension(tot, nat, pen, jours / JOURS_ASSURANCE_AN, age, p.jour, nature)
@@ -1719,7 +1720,7 @@ def _carrieres(p):
             p.compter("promotion", float(up.sum()))
 
 
-def prendre_retraite(p, h):
+def prendre_retraite(p, h, penalite=True):
     """`h` part a la retraite : il quitte son poste, sa pension est liquidee. Rend la Pension ( ou None )."""
     d = p.domaine("travail"); col = p.colonnes["habitant"]; i = h.id
     if h.id in d.grevistes: _sortir_de_greve(p, d, h)
@@ -1730,7 +1731,7 @@ def prendre_retraite(p, h):
     _fermer_contrat(col, i)
     col["tr_statut"][i] = RETRAITE; col["tr_syndique"][i] = 0
     d.indemnites.pop(i, None)
-    return _liquider(p, d, h, POP.age_de(p, h))
+    return _liquider(p, d, h, POP.age_de(p, h), penalite=penalite)
 
 
 def _contrat_par_defaut(p, d, h):
