@@ -1,6 +1,6 @@
 """Les portes du domaine 10 ( industrie et extraction ). Seuils ecrits avant la premiere mesure.
 python -m monde.pays.tests industrie"""
-import math, time
+import contextlib, math, time
 import numpy as np
 from .. import config as C, monde as W
 from ..socle import objets as O
@@ -13,6 +13,27 @@ def _site(p, id_):
 
 def _atelier(p, id_, nom):
     return next(a for a in _site(p, id_).ateliers if a.nom == nom)
+
+
+@contextlib.contextmanager
+def _activite_d_essai(forcer=False):
+    """( 30/09, HMT-155 ) La demande d essai. La production suit desormais la demande : dans un petit monde sans
+    chantier ni commande, les ateliers n ont plus de raison de tourner. Les portes qui ont besoin d activite ( bilans,
+    epuisement, pannes, decisions ) mettent, apres les regimes du matin, chaque atelier a plein, sauf celui qui travaille
+    a perte ( la regle du cout reste jugee ) ; forcer : lui aussi."""
+    orig = M._regimes
+    def regimes(p, D_, equilibre=False):
+        orig(p, D_, equilibre)
+        if equilibre: return
+        for s in D_.sites:
+            if not s.actif: continue
+            for a in s.ateliers:
+                if a.gisement is not None and a.gisement.reserve_t <= 0.0: continue
+                v = M.valeur_extraction(p, a) if a.gisement is not None else M.valeur_directeur(p, a)
+                a.regime = 1.0 if (forcer or M.cout_variable(p, a) <= v) else 0.0
+    M._regimes = regimes
+    try: yield
+    finally: M._regimes = orig
 
 
 # ================================================================== les recettes et les gisements
@@ -28,7 +49,9 @@ def test_bilan_matiere():
     ( AMENDEE le 29/09 AVANT la mesure, HMT-140 cause 5 : les sites gardent desormais 26 jours de matieres ( Sidenor ) et
     naissent avec ; un gisement peut attendre que ses clients aient entame leur stock. « Chaque gisement a donne » se juge
     sur 60 jours au lieu de 20, qui venaient de la politique du modele a 5 jours. Controle positif : un gisement vide au
-    depart ne livre rien en 60 jours, et la porte le voit. )"""
+    depart ne livre rien en 60 jours, et la porte le voit. )
+    ( AMENDEE le 30/09, HMT-155, AVANT la mesure : la production suit la demande ; ce petit monde n en a pas. Ses trois
+    mondes tournent sous _activite_d_essai : chaque atelier a plein, sauf a perte. Les seuils ne changent pas. )"""
     pires = []
     for r in M.RECETTES.values():
         (e, s), (fi, fo) = M.bilan_recette(r)
@@ -45,28 +68,29 @@ def test_bilan_matiere():
     gis = max(sum(r * M.MASSE_T[b] for b, r in M.Gisement(k, *g).rendements.items()) for k, g in M.GISEMENTS.items())
     donnees = (pire[0] <= 1e-3 and 0.6 <= co2 <= 0.95 and abs(gj_clinker / 3.5 - 1) <= 0.01 and 2000 <= kwh_fonte <= 2600
                and all(0.3 <= x <= 1.0 for x in laitiers) and 0.08 <= lait_acier <= 0.2 and 55 <= o2 <= 65 and gis < 1.0)
-    w, p = T.monde(["industrie"])
-    T.jours(w, 60)
-    ats = [a for s in p.domaine("industrie").sites for a in s.ateliers]
-    places = {}
-    for a in ats:
-        if a.recette is not None: places[a.recette.nom] = places.get(a.recette.nom, 0.0) + a.cumul_passes
-    a_perte = sorted({a.recette.nom for a in ats if a.recette is not None and a.cumul_passes <= 0
-                      and M.cout_variable(p, a) > M.valeur_directeur(p, a) and a.regime == 0.0})
-    gisements = {f"{a.site.id}:{a.nom}": a.cumul_minerai for a in ats if a.gisement is not None}
-    tourne = (all(v > 0 or k in a_perte for k, v in places.items()) and all(v > 0 for v in gisements.values()))
-    ecart, qui = M.ecart_audit(p)
-    tenue, msg = p.socle.conservation.tenue()
-    w2, p2 = T.monde(["industrie"])
-    p2.routine(6 + 10 / 60, 99, "porte", _electricite_hydraulique)
-    T.jours(w2, 10)
-    hydro = sum(a.cumul_passes for s in p2.domaine("industrie").sites for a in s.ateliers
-                if a.recette is not None and a.recette.nom == "fonte_electrique")
-    w3, p3 = T.monde(["industrie"])                  # controle positif : un gisement vide ne livre rien en 60 jours
-    vide = next(a for s in p3.domaine("industrie").sites for a in s.ateliers if a.gisement is not None)
-    vide.gisement.reserve_t = 0.0
-    T.jours(w3, 60)
-    vu_vide = not all(a.cumul_minerai > 0 for s in p3.domaine("industrie").sites for a in s.ateliers if a.gisement is not None)
+    with _activite_d_essai():
+        w, p = T.monde(["industrie"])
+        T.jours(w, 60)
+        ats = [a for s in p.domaine("industrie").sites for a in s.ateliers]
+        places = {}
+        for a in ats:
+            if a.recette is not None: places[a.recette.nom] = places.get(a.recette.nom, 0.0) + a.cumul_passes
+        a_perte = sorted({a.recette.nom for a in ats if a.recette is not None and a.cumul_passes <= 0
+                          and M.cout_variable(p, a) > M.valeur_directeur(p, a) and a.regime == 0.0})
+        gisements = {f"{a.site.id}:{a.nom}": a.cumul_minerai for a in ats if a.gisement is not None}
+        tourne = (all(v > 0 or k in a_perte for k, v in places.items()) and all(v > 0 for v in gisements.values()))
+        ecart, qui = M.ecart_audit(p)
+        tenue, msg = p.socle.conservation.tenue()
+        w2, p2 = T.monde(["industrie"])
+        p2.routine(6 + 10 / 60, 99, "porte", _electricite_hydraulique)
+        T.jours(w2, 10)
+        hydro = sum(a.cumul_passes for s in p2.domaine("industrie").sites for a in s.ateliers
+                    if a.recette is not None and a.recette.nom == "fonte_electrique")
+        w3, p3 = T.monde(["industrie"])                  # controle positif : un gisement vide ne livre rien en 60 jours
+        vide = next(a for s in p3.domaine("industrie").sites for a in s.ateliers if a.gisement is not None)
+        vide.gisement.reserve_t = 0.0
+        T.jours(w3, 60)
+        vu_vide = not all(a.cumul_minerai > 0 for s in p3.domaine("industrie").sites for a in s.ateliers if a.gisement is not None)
     ok = donnees and tourne and ecart <= 1e-9 and tenue and hydro > 0 and M.ecart_audit(p2)[0] <= 1e-9 and vu_vide
     return ok, (f"pire bilan de recette {pire[0]:.1e} ( {pire[1]}, {pire[2]} ) ; ciment {co2:.3f} t CO2/t, clinker "
                 f"{gj_clinker:.2f} GJ/t ; four a fonte {kwh_fonte:.0f} kWh/t ; laitier fonte {laitiers[0]:.2f} et {laitiers[1]:.2f}, "
@@ -82,20 +106,22 @@ def _electricite_hydraulique(p):
 
 
 def _epuiser(tonnes):
-    w, p = T.monde(["industrie"])
-    g = M.forcer_reserve(p, "mine@Mine01", "skarn", tonnes)
-    h0 = g.minerai_h()
-    for _ in range(40):
-        T.jours(w, 1)
-        if g.epuise_j >= 0: break
-    fin = g.epuise_j
-    extrait = g.extrait_t
-    T.jours(w, 2)
+    with _activite_d_essai(forcer=True):
+        w, p = T.monde(["industrie"])
+        g = M.forcer_reserve(p, "mine@Mine01", "skarn", tonnes)
+        h0 = g.minerai_h()
+        for _ in range(40):
+            T.jours(w, 1)
+            if g.epuise_j >= 0: break
+        fin = g.epuise_j
+        extrait = g.extrait_t
+        T.jours(w, 2)
     return w, p, g, h0, fin, extrait
 
 
 def test_epuisement():
-    """Porte : la mine d or ( qui tourne toujours plein ) sur un gisement neuf de 120 t : il s epuise, le minerai extrait
+    """Porte : la mine d or, mise a plein ( 30/09, HMT-155 : elle ne tourne plus toujours plein ; la porte la force par
+    _activite_d_essai, elle ne juge que l epuisement ), sur un gisement neuf de 120 t : il s epuise, le minerai extrait
     vaut la reserve a 1e-9 pres, plus rien n est extrait apres, l evenement est note, et le minerai par heure a la fin
     est 0,6 fois celui du debut ( decouverture de 0,2 a 1,0 ). Controle positif : 240 t durent de 1,7 a 2,3 fois plus
     longtemps ( la duree suit la reserve )."""
@@ -118,7 +144,8 @@ def test_mtbf():
     monde et par la loi du monde : le MTBF simule retrouve le MTBF declare a 2 % pres. Controles positifs : un MTBF
     declare deux fois plus court donne un MTBF simule de 0,48 a 0,52 fois ; une usure de vie de 0,5 le divise par
     1,5^( 1 / beta ) ( a 2 % pres ). Dans le monde ( 2 000 habitants, temoin : jamais d entretien, 30 jours, au moins 5
-    pannes ) : les pannes tirees s ecartent de la somme des hasards de moins de 3 ecarts-types."""
+    pannes ) : les pannes tirees s ecartent de la somme des hasards de moins de 3 ecarts-types. ( AMENDEE le 30/09,
+    HMT-155, AVANT la mesure : le monde temoin tourne sous _activite_d_essai, la production suivant la demande. )"""
     rng = np.random.default_rng(7)
     res = {}
     for nom in ("foreuse_jumbo", "chargeuse_souterraine", "pelle_hydraulique"):
@@ -129,8 +156,9 @@ def test_mtbf():
     r_moitie = float(M.simuler_flotte(moitie, 1500, 4, rng).mean()) / f.mtbf_h
     r_use = float(M.simuler_flotte(f, 1500, 4, rng, usure=0.5).mean()) / f.mtbf_h
     attendu_use = 1.5 ** (-1.0 / f.beta)
-    w, p = T.monde(["industrie"], echelle=4, modes={"entretenir_machine": "temoin"})
-    T.jours(w, 30)
+    with _activite_d_essai():                          # ( 30/09, HMT-155 ) la demande d essai
+        w, p = T.monde(["industrie"], echelle=4, modes={"entretenir_machine": "temoin"})
+        T.jours(w, 30)
     st = p.domaine("industrie").stats
     z = (st["pannes"] - st["pannes_attendues"]) / math.sqrt(max(1e-9, st["pannes_attendues"]))
     ok = (all(abs(r - 1) <= 0.02 for r in res.values()) and 0.48 <= r_moitie <= 0.52 and abs(r_use / attendu_use - 1) <= 0.02
@@ -276,8 +304,9 @@ def test_bien_hors_recette():
 
 # ================================================================== la decision
 def _entretien(mode, jours=45):
-    w, p = T.monde(["industrie"], modes={"entretenir_machine": mode})
-    T.jours(w, jours)
+    with _activite_d_essai():                          # ( 30/09, HMT-155 ) la demande d essai
+        w, p = T.monde(["industrie"], modes={"entretenir_machine": mode})
+        T.jours(w, jours)
     D_ = p.domaine("industrie"); dec = D_.decideur
     notes = dec.notes_par_action()
     n = sum(k for k, _ in notes.values())
@@ -289,7 +318,8 @@ def test_part_du_choix():
     """Porte de la decision : 45 jours, chaque machine en service d un atelier qui tourne decide chaque matin, au hasard :
     au moins 20 decisions par jour et 200 notes murees ( horizon 30 jours ), la note depend du choix
     ( part_du_choix >= 0,01, epsilon carre a jour egal ) et le hasard permute a jour egal ne fait pas aussi bien
-    ( p_permutation < 0,05 ) ; conservation tenue. La regle et le temoin sont compares ( sans seuil )."""
+    ( p_permutation < 0,05 ) ; conservation tenue. La regle et le temoin sont compares ( sans seuil ). ( AMENDEE le
+    30/09, HMT-155, AVANT la mesure : les mondes tournent sous _activite_d_essai, la production suivant la demande. )"""
     r = {m: _entretien(m) for m in ("hasard", "regle", "temoin")}
     h = r["hasard"]; dec = h["dec"]
     part, pp = dec.part_du_choix(), dec.p_permutation()

@@ -424,7 +424,8 @@ TYPES_REPRIS = tuple(PLAN_PAR_TYPE)
 REGIME_MIN = 0.25                 # un atelier d un bien du moteur ne descend pas sous un quart ( le moteur : 0,1 )
 PAS_REGIME = 0.25
 RESERVE_RESEAU_MIN = 50.0        # unites du reseau du moteur laissees en plus d une journee des autres sites
-STOCK_MIN_J = 2.0                 # sans client, un atelier remplit 2 jours de sa production nominale, puis s arrete
+STOCK_MIN_J = 2.0                 # le producteur garde 2 jours de son besoin ( commandes, clients a leur regime ) ; ( 30/09 )
+                                  # avant, sans client, 2 jours de sa production NOMINALE : un stock proportionnel a l equipe
 JOURS_STOCK = 5.0                 # avec clients : 5 jours de leur besoin
 JOURS_RATTRAPAGE = 3.0            # un manque de stock se comble en 3 jours
 JOURS_INTRANTS = 3.0              # un site garde 3 jours de ses intrants venus d ailleurs
@@ -667,6 +668,23 @@ def cout_variable(p, a):
     return par_t / g.rendements[a.directeur]
 
 
+def valeur_extraction(p, a):
+    """( 30/09, HMT-155 ) Drachmes par unite du bien directeur d un gisement, TOUS ses coproduits compris : chaque bien
+    qu il rend, a ce que le marche de la region paie au producteur ( bien du moteur : fer, zinc, or ) ou a son prix de
+    cession ( bien nouveau : cuivre, calcaire ), rapporte a l unite du directeur. Un gisement polymetallique ( le skarn :
+    fer, zinc, cuivre, or ) vit de l ensemble, comme les sulfures de Chalcidique vivent de l or et des concentres."""
+    g = a.gisement; m = p.w.marches[a.site.entreprise.lieu.marche.id]
+    v = math.fsum(r * (BIENS[b][2] if b in BIENS else m.prix[b] * (1.0 - m.marge)) for b, r in g.rendements.items())
+    return v / g.rendements[a.directeur]
+
+
+def _invendus_en_jours(p, e, b):
+    """( 30/09, HMT-155 ) Les invendus d un bien du moteur sur le site d une entreprise, en jours de la demande lissee de
+    son marche : un gisement dont les camions n emportent pas tout le voit, et descend."""
+    em = p.domaine("economie").marches[e.lieu.marche.id]
+    return max(0.0, e.stocks[b]) / max(ECO.DEMANDE_MIN, em.demande_lisse[b])
+
+
 def valeur_directeur(p, a):
     """Ce que rapporte une unite du bien directeur : le prix que le marche de la region paie au producteur pour un bien
     du moteur ( economie ), le prix de cession pour un bien nouveau."""
@@ -679,9 +697,9 @@ def valeur_directeur(p, a):
 def _regimes(p, D_, equilibre=False):
     """Chaque atelier regle son regime sur son bien directeur. Un bien du moteur ( fer, zinc, outils ) : par crans de
     0,25 sur la couverture du marche de sa region ( sous la cible : plus ; au-dela de deux fois : moins ), comme la regle
-    du moteur et de l economie ; un gisement qui donne de l or tourne plein ( l or se vend au prix mondial ). Un bien
-    nouveau : produire le besoin de ses clients ( ateliers aval a leur regime, commandes ), plus de quoi ramener le
-    stock du pays a sa cible en 3 jours ; sans client, remplir 2 jours de production et s arreter. Et le cout : un
+    du moteur et de l economie ; un gisement compte ses invendus, compare son cout a tous ses coproduits et peut
+    s arreter ( 30/09 ). Un bien nouveau : produire le besoin de ses clients ( ateliers aval a leur regime, commandes ),
+    plus de quoi ramener le stock du pays a sa cible en 3 jours ; sans besoin, rien ( 30/09 ). Et le cout : un
     atelier ne fait pas un bien nouveau a perte ( cout variable au-dessus du prix de cession : arret ) ; un bien du
     moteur perd un cran quand son prix ne couvre plus le cout variable, comme la regle de l economie. Un four a fonte
     electrique paie ~ 2 300 kWh par tonne : au tarif du moteur ( ~ 0,18 euro le kWh, le tarif reglemente grec ) il
@@ -697,12 +715,15 @@ def _regimes(p, D_, equilibre=False):
         if g is not None and g.reserve_t <= 0.0: a.regime = 0.0; continue
         b = a.directeur
         if b in BIENS: continue
-        if g is not None and "or" in g.rendements: a.regime = 1.0; a.couverture = 0.0; continue
         if equilibre: continue
-        couv = _demande_lissee(p, a.site.entreprise, b)
+        # ( 30/09, HMT-155 ) un gisement est borne par ses ventes : ses invendus comptent dans la couverture, son cout se
+        # compare a tous ses coproduits, et il peut s arreter ( avant : un gisement qui donne de l or tournait plein )
+        couv = _demande_lissee(p, a.site.entreprise, b) + (_invendus_en_jours(p, a.site.entreprise, b) if g is not None else 0.0)
         cible = ECO.COUVERTURE_CIBLE_J.get(b, 5.0)
         a.couverture = couv / (2.0 * cible)
-        if couv >= 2.0 * cible or cout_variable(p, a) > valeur_directeur(p, a): a.regime = max(REGIME_MIN, a.regime - PAS_REGIME)
+        valeur = valeur_extraction(p, a) if g is not None else valeur_directeur(p, a)
+        plancher = 0.0 if g is not None else REGIME_MIN
+        if couv >= 2.0 * cible or cout_variable(p, a) > valeur: a.regime = max(plancher, a.regime - PAS_REGIME)
         elif couv < cible: a.regime = min(1.0, a.regime + PAS_REGIME)
     for b in ORDRE_BIENS:
         prod = [a for a in ateliers if a.directeur == b and not (a.gisement is not None and a.gisement.reserve_t <= 0.0)]
@@ -714,10 +735,10 @@ def _regimes(p, D_, equilibre=False):
         nominal = math.fsum(a.nominal_j for a in prod)
         if nominal <= 0.0: continue
         lisse = math.fsum(s.besoin_lisse.get(b, 0.0) for s in D_.sites if s.actif)
-        cible = max(STOCK_MIN_J * nominal, STOCK_MIN_J * besoin + jours_de_stock(b) * lisse)   # ( 29/09 ) le niveau reel
+        cible = STOCK_MIN_J * besoin + jours_de_stock(b) * lisse   # ( 30/09, HMT-155 ) en jours de DEMANDE, sans plancher nominal
         dispo = cible if equilibre else _dispo_bien(D_, b, cat.id(b))
         r = min(1.0, max(0.0, (besoin + (cible - dispo) / JOURS_RATTRAPAGE) / nominal))
-        for a in prod: a.regime = r; a.couverture = dispo / (2.0 * cible)
+        for a in prod: a.regime = r; a.couverture = dispo / (2.0 * cible) if cible > 0.0 else 1.0
 
 
 def _matin(p):
