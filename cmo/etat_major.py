@@ -43,6 +43,8 @@ SOUTIEN = {
     "barriere": (4, 1, 0.5, 20.0, 80.0, 50.0, 0),
 }
 SOUTIEN["balayage"] = (5, 1, None, None, None, 40.0, 0)   # balayage de chasse sur la cible, ciel ouvert seulement
+SOUTIEN["reco"] = (6, 3, None, 20.0, 60.0, 15.0, 1)        # drones de reconnaissance : sur la cible, en stand-off si elle est couverte
+SOUTIEN["elint"] = (7, 3, None, 40.0, 100.0, 25.0, 0)      # avions d'écoute ( RC-135, Il-20M ) : en stand-off, passifs
 DEPLACEMENT_KM = 10.0                                     # une zone n'est redessinée que si elle bouge de plus
 ROLES_DEAD = ("dead", "bombardier")                       # qui part contre les défenses : armes à distance de sécurité
 ROLES_OCA = ("frappe", "dead", "bombardier")              # ciel ouvert : tous les frappeurs
@@ -170,7 +172,7 @@ class EtatMajor:
             roles = ROLES_DEAD
         else:
             b = g.bases[cible]
-            typ, cibles = "oca", [k for k in b["pistes"] + b["acces"] + b["depots"] if g.elements[k]["vivant"]]
+            typ, cibles = "oca", [k for k in b["pistes"] + b["acces"] + b["depots"] if g.percu(camp, k) < 100.0]
             roles = ROLES_OCA                            # ciel ouvert : les avions DEAD et les bombardiers frappent aussi
         mid = self._mission(ci, camp, typ, cibles, frappes)
         g.frappe[camp] = {"id": mid, "base": cible, "cibles": cibles, "type": typ}
@@ -225,7 +227,7 @@ class EtatMajor:
         base = DEC_DEAD if typ == "dead" else 1000
         mid = base + ci * 100 + self.k[camp] % 100
         self.missions[mid] = {"id": mid, "type": typ, "camp": camp, "cibles": list(cibles), "ouverte": True,
-                              "t0": g.tours, "degats0": {k: self._degats(k) for k in cibles}, "avions": set(), "pertes": 0}
+                              "t0": g.tours, "degats0": {k: self._degats(k, camp) for k in cibles}, "avions": set(), "pertes": 0}
         frappes.append((mid, camp, list(cibles)))
         return mid
 
@@ -244,11 +246,12 @@ class EtatMajor:
             if abs(m) in fermees:
                 del g.affecte[k]
 
-    def _degats(self, k):
+    def _degats(self, k, camp):
+        """Les dégâts d'une cible tels que le camp les CROIT ( évaluation des dégâts ) ; une unité au sol disparue est
+        détruite ( l'arme qui la frappe la voit tomber )."""
         if k in self.g.elements:
-            e = self.g.elements[k]
-            return 100.0 if not e["vivant"] else e["degats"]
-        return 0.0 if k in self.g.sol else 100.0          # une unité au sol disparue est détruite
+            return self.g.percu(camp, k)
+        return 0.0 if k in self.g.sol else 100.0
 
     def _escorteurs(self, camp, n):
         g = self.g
@@ -368,10 +371,18 @@ class EtatMajor:
                 ks = balayage
             else:
                 ks = [k for k, a in sorted(g.avions.items()) if a["camp"] == camp and a["role"] == role]
-            if not ks or (role in ("sead", "brouilleur") and not fr):
+            if not ks or (role in ("sead", "brouilleur", "reco", "elint") and not fr):
                 continue
             if role == "balayage":
                 P = T
+            elif role in ("reco", "elint"):
+                cov = self.couvrent(camp, T)
+                if role == "reco" and not cov:
+                    P = T
+                else:
+                    r = max((x[2] for x in cov), default=40.0)
+                    d = km(C, T)
+                    P = self._recul(camp, C, T, max(0.0, 1 - (r + marge + 10.0) / d) if d > 0 else 0.0, marge, marge_b)
             elif role == "sead":
                 cov = self.couvrent(camp, T)
                 P = (sum(p[0] for _, p, _ in cov) / len(cov), sum(p[1] for _, p, _ in cov) / len(cov)) if cov else T
@@ -415,7 +426,7 @@ class EtatMajor:
 
     def _clore(self, m):
         m["ouverte"] = False
-        degats = sum(max(0.0, self._degats(k) - d0) for k, d0 in m["degats0"].items())
+        degats = sum(max(0.0, self._degats(k, m["camp"]) - d0) for k, d0 in m["degats0"].items())
         m["degats"], m["efficacite"] = degats, degats / (m["pertes"] + 1)
         c = m["camp"]
         e = self.efficacite[c]

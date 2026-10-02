@@ -47,6 +47,7 @@ BASES_SOUTIEN = [
     ("Ivanovo-Severny", "Russia", 57.058, 40.981, 0, 4000, 0, 1, 4),
     ("Diaguilevo", "Russia", 54.643, 39.571, 120, 4000, 0, 1, 4),
     ("Engels", "Russia", 51.481, 46.200, 140, 4000, 0, 2, 6),           # 121e et 184e régiments ( Tu-160, Tu-95MS )
+    ("Miroslawiec", "Poland", 53.395, 16.083, 90, 2600, 0, 1, 4),       # 12e base de drones ( MQ-9A américains, TB2 )
     ("Soltsy-2", "Russia", 58.139, 30.330, 20, 4000, 0, 2, 4),          # 840e régiment ( Tu-22M3 )
 ]
 

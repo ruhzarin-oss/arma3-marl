@@ -48,6 +48,8 @@ PORTEE_FRAPPE_KM = 900.0
 SURGE_H = 72.0                                            # cadence « surge » les 3 premiers jours, puis soutenue ( le réel )
 TEMPO_SURGE, TEMPO_SOUTENU = 0, 1                         # air_operations_tempo de CMO ( 0 : défaut des camps, le surge )
 GARDE_CIBLE = 0.8                                         # on garde la cible tant qu'elle menace au moins 80 % de la pire
+BDA_AGE_S = 1800.0                                        # un contact vu depuis moins de 30 min montre l'état réel de la cible
+BDA_BASES = 3                                             # bases adverses suivies par la reconnaissance : la cible et les 2 d'avant
 _DETRUIT = re.compile(r"\] HMT-(\d+) \([^)]*\) has been destroyed!")
 
 
@@ -116,7 +118,8 @@ def chargements_db(flottes):
     return out
 
 
-MOTIFS_ROLE = {"guet": (r"Airborne Early Warning",), "ravitailleur": (r"^Tanker",), "brouilleur": (r"Offensive ECM",),
+MOTIFS_ROLE = {"reco": (r"^Recon", r"Battlefield Surveillance"), "elint": (r"ELINT",),
+               "guet": (r"Airborne Early Warning",), "ravitailleur": (r"^Tanker",), "brouilleur": (r"Offensive ECM",),
                "sead": (r"AARGM", r"HARM", r"ALARM", r"Kh-31P|Kh-58"),
                "bombardier": (r"Kh-101", r"JASSM-ER", r"Kh-32", r"Kh-555", r"Kh-22MA INS", r"JASSM")}
 JAMAIS = r"Nuclear|kT\b|Kh-102|Inert"                    # jamais d'arme nucléaire ni de munition inerte
@@ -227,6 +230,8 @@ class GuerreReelle:
         self.altitudes, self.affecte_avant = {}, {}
         self.brouillard = brouillard                     # l'état-major ne voit que ce que CMO montre à son camp
         self.vus = {c: {} for c in self.camps}           # camp -> { numéro adverse : ( classification, âge, lat, lon, n ) }
+        self.bda = {c: {} for c in self.camps}           # camp -> { élément adverse : [ dégâts PERÇUS %, tour de l'observation ] }
+        self.bda_bases = {c: [] for c in self.camps}     # camp -> bases adverses suivies ( dernières cibles )
         self.readytime = readytime or readytime_db()
         self.em = EM.EtatMajor(self, **(em_kw or {}))    # l'état-major : doctrine, DEAD avant OCA, escortes, apprentissage
 
@@ -470,7 +475,7 @@ class GuerreReelle:
     CHAMPS_ETAT = ("elements", "bases", "avions", "sol", "rang", "caisse", "verse", "depense", "stock_initial_m",
                    "a_remplacer", "pertes", "achats", "packs_achetes", "frappe", "k_frappe", "affecte", "patrouilles",
                    "refus_construction", "journal", "journal_pos", "tours", "bilans", "morts", "detruits", "altitudes",
-                   "debut", "tempo")
+                   "debut", "tempo", "bda", "bda_bases")
 
     def etat(self):
         e = {k: (sorted(v) if isinstance(v, set) else v) for k, v in ((k, getattr(self, k)) for k in self.CHAMPS_ETAT)}
@@ -485,6 +490,8 @@ class GuerreReelle:
             if k in e:
                 setattr(self, k, e[k])
         self.altitudes = {int(k): v for k, v in (e.get("altitudes") or {}).items()}
+        self.bda = {c: {int(k): v for k, v in (e.get("bda") or {}).get(c, {}).items()} for c in self.camps}
+        self.bda_bases = {c: [int(i) for i in (e.get("bda_bases") or {}).get(c, [])] for c in self.camps}
         if e.get("em"):
             self.em.charger(e["em"])
         self.elements, self.avions, self.sol, self.affecte = num(self.elements), num(self.avions), num(self.sol), num(self.affecte)
@@ -779,7 +786,7 @@ class GuerreReelle:
             n[a["base"]] = n.get(a["base"], 0) + 1
         menace = {}
         for i, b in self.bases.items():
-            if b["camp"] == camp or not b["op"]:
+            if b["camp"] == camp or not self.op_percu(camp, i):     # ce que le camp CROIT de la base
                 continue
             d = min(km(b["pos"], p) for p in miennes)
             if d <= PORTEE_FRAPPE_KM:
@@ -832,6 +839,47 @@ class GuerreReelle:
             adverses = sorted(k for k, s in self.sol.items() if s["camp"] != camp)
             self.vus[camp] = self.labo.vus(camp, adverses)["vus"] if adverses else {}
         self.em.renseigner()                             # la carte des menaces ( garnisons d'avant-guerre au premier tour )
+        self._evaluer_degats()
+
+    def _evaluer_degats(self):
+        """L'ÉVALUATION DES DÉGÂTS ( BDA ) : un camp ne connaît l'état d'une base adverse que par ce qu'il en VOIT. Pour
+        les bases suivies ( la cible et les deux d'avant ), un élément dont le contact a moins de BDA_AGE_S montre ses
+        dégâts réels ; la base observée, ses éléments détruits sont vus détruits. Sinon le camp garde ce qu'il croyait.
+        La reconnaissance ( drones, avions d'écoute ) et les avions qui frappent rafraîchissent les contacts."""
+        for camp in self.camps:
+            fr = self.frappe.get(camp)
+            suivies = self.bda_bases[camp]
+            if fr and fr.get("base") in self.bases and fr["base"] not in suivies:
+                suivies.append(fr["base"])
+            suivies[:] = [i for i in suivies if i in self.bases][-BDA_BASES:]
+            for i in suivies:
+                b = self.bases[i]
+                ks = b["pistes"] + b["acces"] + b["depots"]
+                vivants = [k for k in ks if self.elements[k]["vivant"]]
+                vus = self.labo.vus(camp, vivants)["vus"] if vivants else {}
+                frais = [k for k, v in vus.items() if v[1] <= BDA_AGE_S]
+                for k in frais:
+                    self.bda[camp][k] = [self.elements[k]["degats"], self.tours]
+                if frais:
+                    for k in ks:
+                        if not self.elements[k]["vivant"]:
+                            self.bda[camp][k] = [100.0, self.tours]
+
+    def percu(self, camp, k):
+        """Les dégâts d'un élément adverse tels que le camp les CROIT ( 0 : jamais vu endommagé )."""
+        if not self.brouillard:
+            e = self.elements[k]
+            return 100.0 if not e["vivant"] else e["degats"]
+        return self.bda[camp].get(k, [0.0])[0]
+
+    def op_percu(self, camp, i):
+        """La base adverse i est-elle opérationnelle aux yeux du camp ( même règle que _etat_bases, sur les dégâts perçus ) ?"""
+        if not self.brouillard:
+            return self.bases[i]["op"]
+        b = self.bases[i]
+        pistes = [k for k in b["pistes"] if self.percu(camp, k) < SEUIL_PISTE]
+        acces = [k for k in b["acces"] if self.percu(camp, k) < SEUIL_PISTE]
+        return bool(pistes) and (not b["acces"] or bool(acces)) and any(self.percu(camp, k) < 100.0 for k in b["depots"])
 
     def _cadence(self):
         """Surge les SURGE_H premières heures de la guerre ( temps du scénario ), puis cadence soutenue : une sortie par jour

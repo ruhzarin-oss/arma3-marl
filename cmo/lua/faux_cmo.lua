@@ -93,13 +93,13 @@ function ScenEdit_GetUnit(t)
         __newindex = function(_, k, v) if k == 'name' and not FAUX.renommer_refuse then u.name = v end end })
 end
 
-FAUX.caches, FAUX.contacts, FAUX.classif = {}, {}, {}
+FAUX.caches, FAUX.contacts, FAUX.classif, FAUX.ages = {}, {}, {}, {}
 function ScenEdit_GetContact(t)
     local c = FAUX.contacts[t.guid]
     if c == nil or c.side ~= t.side then return nil end
     local u = FAUX.unites[c.unite]
     if u == nil then return nil end
-    return { guid = t.guid, classificationlevel = FAUX.classif[t.side .. '/' .. u.guid] or 4, age = 10,
+    return { guid = t.guid, classificationlevel = FAUX.classif[t.side .. '/' .. u.guid] or 4, age = FAUX.ages[t.side .. '/' .. u.guid] or 10,
              latitude = u.latitude, longitude = u.longitude, areaofuncertainty = {} }
 end
 

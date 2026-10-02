@@ -56,6 +56,7 @@ INSTALLATIONS = [
     ("US-Europe/RAF Fairford 2021.inst", "OTAN", "United States", "soutien"),               # B-52H ( Bomber Task Force )
     (BC.fichier("Engels", "Russia"), "Russie-Chine", "Russia [1992-]", "soutien"),          # Tu-160M, Tu-95MSM
     (BC.fichier("Soltsy-2", "Russia"), "Russie-Chine", "Russia [1992-]", "soutien"),        # Tu-22M3M
+    (BC.fichier("Miroslawiec", "Poland"), "OTAN", "Poland", "soutien"),                     # drones MQ-9A et TB2
 ]
 
 # Les COPIES : CMO ne recrée pas un élément dont l'identifiant ( Member_GUID du fichier ) a déjà servi dans la partie, même
@@ -133,6 +134,12 @@ FLOTTES = [
     (BC.fichier("Engels", "Russia"), "Russia [1992-]", 7023, 4, "bombardier"),               # Tu-95MSM, Kh-101 ( ~20 prêts )
     (BC.fichier("Engels", "Russia"), "Russia [1992-]", 7021, 2, "bombardier"),               # Tu-160M, Kh-101 ( ~10 )
     (BC.fichier("Soltsy-2", "Russia"), "Russia [1992-]", 7022, 6, "bombardier"),             # Tu-22M3M, Kh-32 ( ~12 )
+    # la reconnaissance et l'évaluation des dégâts
+    (BC.fichier("Miroslawiec", "Poland"), "United States", 7473, 4, "reco"),                # MQ-9A ( détachement américain )
+    (BC.fichier("Miroslawiec", "Poland"), "Poland", 5395, 6, "reco"),                       # Bayraktar TB2 polonais ( 24 )
+    ("US-Europe/RAF Mildenhall 2021.inst", "United States", 5832, 2, "elint"),             # RC-135V Rivet Joint
+    (BC.fichier("Pskov-Kresty", "Russia"), "Russia [1992-]", 2178, 2, "elint"),             # Il-20M
+    (BC.fichier("Pskov-Kresty", "Russia"), "Russia [1992-]", 8324, 4, "reco"),              # Orion ( Inokhodets )
 ]
 
 # LES FORCES AU SOL ( 2026, copier le réel, À VALIDER ) : ( pays, dbid de l'unité mobile DB3000, nom, lat, lon ).

@@ -31,10 +31,12 @@ CHARG = {7087: {"aa": 7453, "frappe": 7492, "prix_m": 45, "nom": "F-16"},
          7712: {"aa": None, "frappe": None, "ravitailleur": 19801, "prix_m": 40, "nom": "KC-135R"},
          4518: {"aa": None, "frappe": None, "brouilleur": 22929, "prix_m": 70, "nom": "EA-18G"},
          7611: {"aa": None, "frappe": None, "sead": 34933, "prix_m": 30, "nom": "Tornado ECR"},
-         7023: {"aa": None, "frappe": None, "bombardier": 2324, "prix_m": 90, "nom": "Tu-95MSM"}}
+         7023: {"aa": None, "frappe": None, "bombardier": 2324, "prix_m": 90, "nom": "Tu-95MSM"},
+         7473: {"aa": None, "frappe": None, "reco": 8600, "prix_m": 32, "nom": "MQ-9A"},
+         5832: {"aa": None, "frappe": None, "elint": 8824, "prix_m": 150, "nom": "RC-135V"}}
 LOADOUTS = {7453: [(897, 4), (945, 2)], 7492: [(1001, 2), (945, 2)], 19291: [(2056, 2), (2053, 2)], 27000: [(1002, 4)],
             33510: [(3000, 2), (945, 2)], 8076: [], 19801: [], 22929: [(4000, 2)], 34933: [(4001, 2)], 2324: [(5000, 6)],
-            26997: [(5001, 4)]}
+            26997: [(5001, 4)], 8600: [], 8824: []}
 PRIX_ARME = {897: 1.0, 945: 0.45, 1001: 0.03, 2056: 0.6, 2053: 0.2, 1002: 0.02, 3000: 1.5, 4000: 1.2, 4001: 0.8, 5000: 13.0,
              5001: 0.6}
 # L'état-major : portées réelles de la DB3000 injectées ( S-400 215 km en l'air ; ATACMS 162 km, Iskander 270 km au sol ),
@@ -321,6 +323,7 @@ def e12_apprentissage_borne():
     import json
     with guerre() as (f, g):
         em = g.em
+        g.brouillard = False                             # l'apprentissage seul, sur les dégâts réels
 
         def noter(typ, degats, pertes, n):
             for i in range(n):
@@ -363,6 +366,7 @@ def e14_cible_la_plus_menacante():
     plus proche : un terrain vide à 30 km passe après Tchkalovsk et ses quatre Su-30 à 117 km. La cible en cours est gardée
     tant qu'elle menace au moins 80 % de la pire ( pas de valse des missions )."""
     with guerre() as (f, g):
+        g.brouillard = False                             # le choix seul, sans l'évaluation des dégâts ( e22 )
         tch = next(i for i, b in g.bases.items() if b["camp"] == "Russie-Chine")
         g.bases[99] = {"camp": "Russie-Chine", "pays": "Russia [1992-]", "op": True, "pos": (54.20, 19.50), "fichier": "Test/Leurre.inst",
                        "pistes": [], "acces": [], "depots": [], "groupe": None, "role": "chasse"}
@@ -518,12 +522,50 @@ def e21_balayage():
         assert f.lua("local m = FAUX.missions['OTAN/HMT-P505'] return m and m.type") == "AAW"
 
 
+def e22_evaluation_des_degats():
+    """L'évaluation des dégâts ( BDA ) : la piste de Tchkalovsk détruite SANS qu'aucun capteur de l'OTAN ne voie la base
+    ( contacts vieux de 2 h ), l'OTAN la croit encore ouverte et continue de la viser ; un contact frais ( reconnaissance,
+    avions qui frappent ) montre la piste détruite : la base sort des cibles."""
+    with guerre() as (f, g):
+        g.tour()
+        russe = next(i for i, b in g.bases.items() if b["camp"] == "Russie-Chine")
+        b = g.bases[russe]
+        vieux = " ".join(f"for _, u in pairs(FAUX.unites) do if u.name == 'HMT-{k}' then FAUX.ages['OTAN/' .. u.guid] = %s end end"
+                         for k in b["pistes"] + b["acces"] + b["depots"])
+        f.lua(vieux % tuple([7200] * len(b["pistes"] + b["acces"] + b["depots"])))
+        piste = b["pistes"][0]
+        f.detruire(piste)
+        journal(g, piste)
+        g.tour()
+        assert not b["op"] and g.frappe["OTAN"] and g.frappe["OTAN"]["base"] == russe, (b["op"], g.frappe["OTAN"])
+        assert g.percu("OTAN", piste) < 100.0
+        f.lua(vieux % tuple([60] * len(b["pistes"] + b["acces"] + b["depots"])))
+        g.tour()
+        assert g.percu("OTAN", piste) == 100.0 and g.frappe["OTAN"] is None, (g.bda["OTAN"], g.frappe["OTAN"])
+
+
+def e23_reconnaissance():
+    """La reconnaissance : les drones ( MQ-9A ) orbitent sur la cible quand aucune défense connue ne la couvre, l'avion
+    d'écoute ( RC-135V ) en stand-off ; chacun affecté à sa mission."""
+    fl = [("Test/Malbork.inst", "Poland", 7087, 8, 0.5), ("Test/Malbork.inst", "Poland", 7473, 2, "reco"),
+          ("Test/Malbork.inst", "Poland", 5832, 2, "elint"), ("Test/Tchkalovsk.inst", "Russia [1992-]", 6210, 4, 0.5)]
+    with guerre(bases=BASES_AIR, flottes=fl) as (f, g):
+        g.tour()
+        assert g.frappe["OTAN"]["type"] == "oca", g.frappe
+        tch = g.bases[g.frappe["OTAN"]["base"]]["pos"]
+        z = g.em.zones
+        assert GR.km(z[506], tch) < 1 and GR.km(z[507], tch) > 30, z
+        mal = [(k, a["role"]) for k, a in g.avions.items() if a["role"] in ("reco", "elint")
+               and g.affecte.get(k) != {"reco": 506, "elint": 507}[a["role"]]]
+        assert not mal, mal
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
          e13_rearmement_rate_rend_l_ancien_chargement, e14_cible_la_plus_menacante, e15_swing_role,
          e16_cadence_surge_puis_soutenue, e17_brouillard_de_guerre, e18_composante_air,
-         e19_bombardiers, e20_sead_russe, e21_balayage]
+         e19_bombardiers, e20_sead_russe, e21_balayage, e22_evaluation_des_degats, e23_reconnaissance]
 
 
 def controles():
@@ -600,7 +642,9 @@ def controles():
          ("pas de barrière de chasse", e18_composante_air, (EM.EtatMajor, "_barriere", lambda self, camp, zid: [])),
          ("les bombardiers restent au sol", e19_bombardiers, (EM, "ROLES_OCA", ("frappe", "dead"))),
          ("pas de SEAD sans avions dédiés", e20_sead_russe, (EM.EtatMajor, "_rearmer_sead", lambda self, camp: [])),
-         ("pas de balayage", e21_balayage, (EM, "SOUTIEN", {k: v for k, v in EM.SOUTIEN.items() if k != "balayage"}))]
+         ("pas de balayage", e21_balayage, (EM, "SOUTIEN", {k: v for k, v in EM.SOUTIEN.items() if k != "balayage"})),
+         ("l'état-major lit les dégâts réels", e22_evaluation_des_degats, (GR.GuerreReelle, "op_percu", lambda self, camp, i: self.bases[i]["op"])),
+         ("pas de reconnaissance", e23_reconnaissance, (EM, "SOUTIEN", {k: v for k, v in EM.SOUTIEN.items() if k != "reco"}))]
     for nom, test, (obj, attr, val) in m:
         with P.mutant(obj, attr, val):
             try:
