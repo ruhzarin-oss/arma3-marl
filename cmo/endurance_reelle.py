@@ -77,6 +77,9 @@ class EnduranceReelle:
                 self.g.ouvrir()
                 with open(os.path.join(self.reprendre, "theatre.json")) as h:
                     self.g.charger(json.load(h))
+                # un journal NEUF : après un redémarrage de CMO, l'ancien chemin n'est plus celui où CMO écrit ( 02/10 )
+                self.g.journal = self.g.labo.journal_messages(int(time.strftime("%Y%m%d%H%M%S")) % 10 ** 12)
+                self.g.journal_pos = 0
                 if self.completer:
                     self.noter("complete", **self.g.completer())
             else:
