@@ -121,11 +121,16 @@ def r6_releve_borne_aux_unites_mobiles():
 
 
 def r7_degats_relus():
+    """Les dégâts relus, y compris quand CMO rend le pourcentage en texte à la virgule ( « 99,9 » ) : calculés des points
+    restants ( 02/10 : six points d'accès de Šiauliai détruits à 99,9 % lus 0 )."""
     with banc() as (f, l):
         l.poser("OTAN", "site", 1712, 90_000_001, 52.3, 17.3)
+        l.poser("OTAN", "site", 353, 90_000_003, 52.31, 17.3)
         f.lua("FAUX_endommager(90000001, 40, true)")
-        e = l.etats([90_000_001, 90_000_002])
+        f.lua("FAUX_endommager_cmo(90000003, 1.0, 1000)")
+        e = l.etats([90_000_001, 90_000_002, 90_000_003])
         assert e["etats"][90_000_001] == (40, True, False) and e["absents"] == [90_000_002], e
+        assert abs(e["etats"][90_000_003][0] - 99.9) < 0.01, e
 
 
 def r8_table_rase_avec_une_vraie_base():
@@ -232,6 +237,10 @@ def controles():
           "local g = ScenEdit_GetMission ScenEdit_GetMission = function(s, n) local m = g(s, n) if m == nil then return nil end "
           "return setmetatable({}, {__index = m, __newindex = function() end}) end"),
          ("les appels ne sont plus découpés", r11_appels_en_paquets, None),
+         ("le pourcentage à la virgule lu comme 0", r7_degats_relus,
+          "local e = HMT_etats HMT_etats = function(R, ...) for _, k in ipairs({...}) do local x = HMT_recenser()[k] "
+          "local u = x and ScenEdit_GetUnit({guid = x.guid}) if u == nil then R('ABSENT', {k}) else local d = u.damage "
+          "R('ETAT', {k, tonumber(d.dp_percent_now) or 0, (d.fires ~= 'NoFire') and 1 or 0, 0}) end end end"),
          ("l'ouverture garde le vieux registre", r12_registre_refait_a_l_ouverture,
           "local r = HMT_recenser HMT_recensement = function(R) R('RECENSE', { 0 }) end"),
          ("la table rase ignore les orphelins", r9_table_rase_des_orphelins,

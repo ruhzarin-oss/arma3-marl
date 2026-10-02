@@ -505,7 +505,9 @@ class GuerreReelle:
         for b in self.bases.values():
             vit = lambda ks: [k for k in ks if self.elements[k]["vivant"]]        # noqa: E731
             pistes = [k for k in vit(b["pistes"]) if self.elements[k]["degats"] < SEUIL_PISTE]
-            b["op"] = bool(pistes) and (not b["acces"] or bool(vit(b["acces"]))) and bool(vit(b["depots"]))
+            # un point d'accès « n'est jamais détruit » dans CMO ( manuel ), mais à 99,9 % il ne sert plus ( 02/10, Šiauliai )
+            acces = [k for k in vit(b["acces"]) if self.elements[k]["degats"] < SEUIL_PISTE]
+            b["op"] = bool(pistes) and (not b["acces"] or bool(acces)) and bool(vit(b["depots"]))
 
     # ---- 4. l'argent : budget, avions remplacés par paires, munitions rachetées
     def _verser(self):

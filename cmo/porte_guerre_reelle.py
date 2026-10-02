@@ -131,9 +131,9 @@ def e3_une_piste_detruite_ferme_la_base():
         assert not g.bases[russe]["op"] and g.frappe["OTAN"] is None, (g.bases[russe], g.frappe)
         assert g.resume("Russie-Chine")["elements_perdus"] == 1
         polonaise = next(i for i, b in g.bases.items() if b["camp"] == "OTAN")
-        f.lua(f"FAUX_endommager({g.bases[polonaise]['pistes'][0]}, {GR.SEUIL_PISTE + 10})")
+        f.lua(f"FAUX_endommager_cmo({g.bases[polonaise]['acces'][0]}, 1.0, 1000)")   # accès à 99,9 %, texte à virgule
         g.tour()
-        assert not g.bases[polonaise]["op"]
+        assert not g.bases[polonaise]["op"], g.bases[polonaise]
 
 
 def e4_remplacer_par_paires():

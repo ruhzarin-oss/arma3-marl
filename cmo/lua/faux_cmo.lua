@@ -334,6 +334,17 @@ function ScenEdit_ImportInst(side, fichier)
     return #membres
 end
 
+-- Comme CMO 1.10 ( sonde du 02/10 ) : points restants en nombres, pourcentage en TEXTE à la virgule.
+function FAUX_endommager_cmo(numero, dp, startdp)
+    for _, u in pairs(FAUX.unites) do
+        if u.name == 'HMT-' .. numero then
+            local p = (startdp - dp) / startdp * 100
+            u.damage = { dp = dp, startdp = startdp, dp_percent = string.gsub(string.format('%.1f', p), '%.', ','),
+                         dp_percent_now = (string.gsub(string.format('%.1f', p), '%.', ',')), fires = 'NoFire', flood = 'NoFlooding' }
+        end
+    end
+end
+
 function FAUX_endommager(numero, pct, feu)
     for _, u in pairs(FAUX.unites) do
         if u.name == 'HMT-' .. numero then

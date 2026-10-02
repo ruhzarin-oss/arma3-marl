@@ -550,6 +550,16 @@ function HMT_adopter(R, camp, premier)
     R('ADOPTES', { camp, premier, k - premier })
 end
 
+-- Le pourcentage de dégâts, calculé des points restants ( dp / startdp, des nombres ). CMO rend dp_percent_now en TEXTE
+-- à la virgule française ( « 99,9 » ) : tonumber le lisait nil, compté 0 ( 02/10 : six points d'accès de Šiauliai détruits
+-- à 99,9 % vus intacts ; les entiers, « 27 », passaient ).
+local function pourcent(d)
+    local dp, s = tonumber(d.dp), tonumber(d.startdp)
+    if dp ~= nil and s ~= nil and s > 0 then return math.max(0, math.min(100, (s - dp) / s * 100)) end
+    local x = string.gsub(tostring(d.dp_percent_now or d.dp_percent or 0), ',', '.')
+    return tonumber(x) or 0
+end
+
 -- Les dégâts : ETAT numéro pourcentage_de_dégâts feu ( 0 / 1 ) inondation ( 0 / 1 ), ou ABSENT numéro.
 function HMT_etats(R, ...)
     for _, k in ipairs({ ... }) do
@@ -560,7 +570,7 @@ function HMT_etats(R, ...)
             local d = u.damage or {}
             local feu = (d.fires ~= nil and d.fires ~= 'NoFire') and 1 or 0
             local eau = (d.flood ~= nil and d.flood ~= 'NoFlooding') and 1 or 0
-            R('ETAT', { k, tonumber(d.dp_percent_now or d.dp_percent) or 0, feu, eau })
+            R('ETAT', { k, pourcent(d), feu, eau })
         end
     end
 end
