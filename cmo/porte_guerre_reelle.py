@@ -26,10 +26,14 @@ BASES = {"Test/Malbork.inst": (54.03, 19.13), "Test/Tchkalovsk.inst": (54.77, 20
 MEMBRES = [(757, "Runway"), (353, "Access"), (322, "Ammo 1"), (322, "Ammo 2"), (942, "AvGas")]
 CLASSES = {757: "piste", 353: "acces", 322: "depot", 942: "carburant"}
 CHARG = {7087: {"aa": 7453, "frappe": 7492, "prix_m": 45, "nom": "F-16"},
-         6210: {"aa": 19291, "frappe": 27000, "prix_m": 32, "nom": "Su-30"}}
+         6210: {"aa": 19291, "frappe": 27000, "prix_m": 32, "nom": "Su-30"},
+         1626: {"aa": None, "frappe": None, "guet": 8076, "prix_m": 300, "nom": "E-3A"},
+         7712: {"aa": None, "frappe": None, "ravitailleur": 19801, "prix_m": 40, "nom": "KC-135R"},
+         4518: {"aa": None, "frappe": None, "brouilleur": 22929, "prix_m": 70, "nom": "EA-18G"},
+         7611: {"aa": None, "frappe": None, "sead": 34933, "prix_m": 30, "nom": "Tornado ECR"}}
 LOADOUTS = {7453: [(897, 4), (945, 2)], 7492: [(1001, 2), (945, 2)], 19291: [(2056, 2), (2053, 2)], 27000: [(1002, 4)],
-            33510: [(3000, 2), (945, 2)]}
-PRIX_ARME = {897: 1.0, 945: 0.45, 1001: 0.03, 2056: 0.6, 2053: 0.2, 1002: 0.02, 3000: 1.5}
+            33510: [(3000, 2), (945, 2)], 8076: [], 19801: [], 22929: [(4000, 2)], 34933: [(4001, 2)]}
+PRIX_ARME = {897: 1.0, 945: 0.45, 1001: 0.03, 2056: 0.6, 2053: 0.2, 1002: 0.02, 3000: 1.5, 4000: 1.2, 4001: 0.8}
 # L'état-major : portées réelles de la DB3000 injectées ( S-400 215 km en l'air ; ATACMS 162 km, Iskander 270 km au sol ),
 # le chargement DEAD du F-16 ( JASSM-ER, 33510 ), 60 min de préparation.
 PORTEE_AIR, PORTEE_SOL = {1937: 215.0}, {3659: 162.0, 254: 270.0}
@@ -43,7 +47,7 @@ def prix_pack(lo):
 
 
 @contextlib.contextmanager
-def guerre(**kw):
+def guerre(bases=None, **kw):
     racine = tempfile.mkdtemp(prefix="porte_reelle_")
     etat = os.path.join(racine, "etat")
     f = FauxCMO(racine, camps=T.CAMPS, installations=tuple(x[0] for x in T.INSTALLATIONS))
@@ -51,7 +55,7 @@ def guerre(**kw):
         f.installer()
         for lo, armes in LOADOUTS.items():
             f.lua(f"FAUX.loadouts[{lo}] = {{ " + ", ".join(f"{{ {w}, {n} }}" for w, n in armes) + " }")
-        for fi, (la, lo) in BASES.items():
+        for fi, (la, lo) in (bases or BASES).items():
             f.lua(f"FAUX.fichiers_inst['{fi}'] = {{ "
                   + ", ".join(f"{{ {d}, '{n}', {la + j * 0.001}, {lo + j * 0.001} }}" for j, (d, n) in enumerate(MEMBRES)) + " }")
         f.demarrer()
@@ -424,11 +428,47 @@ def e17_brouillard_de_guerre():
         assert g.frappe["OTAN"]["type"] == "dead" and g.frappe["OTAN"]["cibles"] == [s400], g.frappe["OTAN"]
 
 
+# La composante air : la base polonaise à Poznań ( 360 km de Tchkalovsk, hors de portée du S-400 ), douze F-16, deux E-3A,
+# deux KC-135R, deux EA-18G, deux Tornado ECR.
+BASES_AIR = {"Test/Malbork.inst": (52.40, 16.90), "Test/Tchkalovsk.inst": (54.77, 20.40)}
+FLOTTES_AIR = [("Test/Malbork.inst", "Poland", 7087, 12, 0.5), ("Test/Malbork.inst", "Poland", 1626, 2, "guet"),
+               ("Test/Malbork.inst", "Poland", 7712, 2, "ravitailleur"), ("Test/Malbork.inst", "Poland", 4518, 2, "brouilleur"),
+               ("Test/Malbork.inst", "Poland", 7611, 2, "sead"), ("Test/Tchkalovsk.inst", "Russia [1992-]", 6210, 4, 0.5)]
+
+
+def e18_composante_air():
+    """Donne-lui toute la composante air ( Younes, 03/10 ) : le guet radar orbite radar allumé, le ravitailleur plus en
+    arrière, tous deux hors de portée du S-400 connu ( avec leurs marges ) ; le brouilleur en stand-off, brouillage allumé,
+    juste hors de portée ; la SEAD sur la défense ; une barrière de chasse avancée ( la paire de la base reste ) ; chaque
+    avion de soutien affecté à sa mission."""
+    with guerre(bases=BASES_AIR, flottes=FLOTTES_AIR, sol=SOL_EM) as (f, g):
+        s400 = next(k for k, s in g.sol.items() if s["dbid"] == 1937)
+        sp, r = g.sol[s400]["pos"], PORTEE_AIR[1937]
+        g.tour()
+        assert g.frappe["OTAN"]["type"] == "dead", g.frappe
+        z = g.em.zones
+
+        def mission(i):
+            return f.lua(f"local m = FAUX.missions['OTAN/HMT-P{i}'] return m and (m.genre .. '/' .. tostring(m.type))")
+        assert [mission(i) for i in range(500, 505)] == ["Support/nil"] * 3 + ["Patrol/SEAD", "Patrol/AAW"], [mission(i) for i in range(500, 505)]
+        assert f.lua("return FAUX.emcon['Mission/HMT-P500']") == "Radar=Active"
+        assert "OECM=Active" in f.lua("return FAUX.emcon['Mission/HMT-P502']")
+        marges = {500: 60, 501: 100, 502: 15, 504: 20}
+        assert all(GR.km(z[i], sp) >= r + m for i, m in marges.items()), {i: round(GR.km(z[i], sp)) for i in z}
+        assert GR.km(z[500], BASES_AIR["Test/Malbork.inst"]) > 30, z           # pas sur la base : en avant
+        assert GR.km(z[503], sp) < 1, z
+        roles = {"guet": 500, "ravitailleur": 501, "brouilleur": 502, "sead": 503}
+        mal = [(k, a["role"], g.affecte.get(k)) for k, a in g.avions.items() if a["role"] in roles and g.affecte.get(k) != roles[a["role"]]]
+        assert not mal, mal
+        bar = [k for k, m in g.affecte.items() if m == 504]
+        assert len(bar) == 2, bar                                              # 6 chasseurs : 2 gardent, 2 sur 4 en barrière
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
          e13_rearmement_rate_rend_l_ancien_chargement, e14_cible_la_plus_menacante, e15_swing_role,
-         e16_cadence_surge_puis_soutenue, e17_brouillard_de_guerre]
+         e16_cadence_surge_puis_soutenue, e17_brouillard_de_guerre, e18_composante_air]
 
 
 def controles():
@@ -465,6 +505,8 @@ def controles():
 
     def charger_sans_retour(self, lots):
         return vrai_charger(self, [x for x in lots if x[2] != 0]) if any(x[2] != 0 for x in lots) else {"charges": {}, "absents": []}
+    def recul_aveugle(self, camp, C, T, t, marge, marge_b):
+        return (C[0] + t * (T[0] - C[0]), C[1] + t * (T[1] - C[1]))
     vrai_p = EM.EtatMajor._p
 
     def portee_ignoree(self, quoi, dbid):
@@ -494,7 +536,10 @@ def controles():
          ("la cible est la base la plus proche", e14_cible_la_plus_menacante, (GR.GuerreReelle, "_choisir_cible", cible_la_plus_proche)),
          ("pas de swing-role", e15_swing_role, (EM.EtatMajor, "_basculer", lambda self, camp, vers: [])),
          ("la guerre reste en surge", e16_cadence_surge_puis_soutenue, (GR, "SURGE_H", 1e9)),
-         ("l'état-major voit tout", e17_brouillard_de_guerre, (EM.EtatMajor, "_connu", lambda self, camp, k: True))]
+         ("l'état-major voit tout", e17_brouillard_de_guerre, (EM.EtatMajor, "_connu", lambda self, camp, k: True)),
+         ("le soutien orbite sous le parapluie", e18_composante_air, (EM.EtatMajor, "_recul", recul_aveugle)),
+         ("le brouilleur ne brouille pas", e18_composante_air, (EM, "SOUTIEN", dict(EM.SOUTIEN, brouilleur=EM.SOUTIEN["brouilleur"][:6] + (1,)))),
+         ("pas de barrière de chasse", e18_composante_air, (EM.EtatMajor, "_barriere", lambda self, camp, zid: []))]
     for nom, test, (obj, attr, val) in m:
         with P.mutant(obj, attr, val):
             try:

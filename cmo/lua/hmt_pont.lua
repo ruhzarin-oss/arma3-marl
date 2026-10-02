@@ -348,6 +348,48 @@ function HMT_patrouille(R, id, camp, lat, lon, demi_km, tiers)
     R('PATROUILLE', { id, camp, existe and 0 or 1 })
 end
 
+-- LES MISSIONS DE ZONE de la composante air ( 03/10, sonde_soutien ) : genre 1 patrouille AAW ( barrière, balayage ),
+-- 2 patrouille SEAD, 3 SOUTIEN ( guet radar, ravitailleur, brouilleur : sur_place avions en permanence ). Nommées HMT-P<id>
+-- comme les patrouilles ( HMT_affecter sert à toutes ) ; la zone carrée est déplacée à chaque appel. emcon : 1 radar actif
+-- ( guet ), 2 brouillage actif ( OECM ). Rend ZONE id camp neuve.
+local GENRES_ZONE = { { 'Patrol', 'AAW' }, { 'Patrol', 'SEAD' }, { 'Support', nil } }
+function HMT_zone(R, id, camp, genre, lat, lon, demi_km, tiers, sur_place, emcon)
+    local cote = HMT_CAMPS[camp]
+    local gz = GENRES_ZONE[genre]
+    if cote == nil or gz == nil then error('HMT_REFUS 1') end
+    local nom = 'HMT-P' .. id
+    local dlat = demi_km / 111.32
+    local dlon = demi_km / (111.32 * math.cos(math.rad(lat)))
+    local coins = { { lat + dlat, lon - dlon }, { lat + dlat, lon + dlon }, { lat - dlat, lon + dlon }, { lat - dlat, lon - dlon } }
+    local ok, m = pcall(ScenEdit_GetMission, cote, nom)
+    local existe = ok and m ~= nil
+    local noms = {}
+    for i, c in ipairs(coins) do
+        noms[i] = nom .. '-' .. i
+        if existe then
+            ScenEdit_SetReferencePoint({ side = cote, name = noms[i], latitude = c[1], longitude = c[2] })
+        else
+            ScenEdit_AddReferencePoint({ side = cote, name = noms[i], latitude = c[1], longitude = c[2] })
+        end
+    end
+    if not existe then
+        local opts = { zone = noms }
+        if gz[2] ~= nil then opts.type = gz[2] end
+        if ScenEdit_AddMission(cote, nom, gz[1], opts) == nil then error('HMT_REFUS 6') end
+        local o = { OneThirdRule = (tiers == 1) }
+        if genre == 3 then
+            o.OnStation = sur_place
+            o.ActiveEMCON = (emcon > 0)
+        end
+        pcall(ScenEdit_SetMission, cote, nom, o)
+        if emcon == 1 then pcall(ScenEdit_SetEMCON, 'Mission', nom, 'Radar=Active') end
+        if emcon == 2 then pcall(ScenEdit_SetEMCON, 'Mission', nom, 'Radar=Active;OECM=Active') end
+    end
+    local okm, mm = pcall(ScenEdit_GetMission, cote, nom)
+    if okm and mm ~= nil then pcall(function() mm.Phase = 20 end) end
+    R('ZONE', { id, camp, existe and 0 or 1 })
+end
+
 function HMT_affecter(R, id, ...)
     local nom = 'HMT-P' .. id
     for _, k in ipairs({ ... }) do

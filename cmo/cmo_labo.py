@@ -640,6 +640,33 @@ class Labo:
             raise Incomplet(f"{n} escorteurs envoyés, reçu {out}")
         return out
 
+    def zones(self, zones=(), affectations=()) -> dict:
+        """Les missions de zone de la composante air, en UN envoi. zones : [ ( id, camp, genre 1 AAW / 2 SEAD / 3 soutien,
+        lat, lon, demi_km, tiers 0/1, sur_place, emcon 0/1/2 ) ] ( créées au premier appel, déplacées ensuite ) ;
+        affectations : [ ( id, [ numéros ] ) ]."""
+        corps, n_z, n_a = [], 0, 0
+        for i, camp, genre, la, lo, dk, tiers, sur, em in zones:
+            if camp not in self.camps:
+                raise Refus(f"camp {camp!r} inconnu")
+            corps.append(f"HMT_zone(R, {_ent(i, 1, 9999, 'id')}, {self.camps.index(camp) + 1}, {_ent(genre, 1, 3, 'genre')}, "
+                         f"{_num(la, -90, 90, 'lat'):.7f}, {_num(lo, -180, 180, 'lon'):.7f}, {_num(dk, 1, 200, 'demi_km'):.2f}, "
+                         f"{1 if tiers else 0}, {_ent(sur, 0, 20, 'sur_place')}, {_ent(em, 0, 2, 'emcon')})")
+            n_z += 1
+        for i, ks in affectations:
+            if ks:
+                corps += _appels("HMT_affecter", str(_ent(i, 1, 9999, 'id')), [str(_ent(k, 1, NUMERO_MAX, 'numero')) for k in ks])
+                n_a += len(ks)
+        if not corps:
+            return {"zones": [], "affectes": [], "absents": [], "refus": []}
+        r = self._exec(" ".join(corps))
+        out = {"zones": [(int(v[0]), bool(v[2])) for k, v in r["lignes"] if k == "ZONE"],
+               "affectes": [int(v[0]) for k, v in r["lignes"] if k == "AFFECTE"],
+               "absents": [int(v[0]) for k, v in r["lignes"] if k == "ABSENT"],
+               "refus": [int(v[0]) for k, v in r["lignes"] if k == "REFUSE"], "recu": r["recu"]}
+        if len(out["zones"]) != n_z or len(out["affectes"]) + len(out["absents"]) + len(out["refus"]) != n_a:
+            raise Incomplet(f"zones : {n_z} zones et {n_a} affectations envoyées, reçu {out}")
+        return out
+
     def vus(self, camp, numeros) -> dict:
         """Le brouillard de guerre : { numéro : ( classification 0-4, âge s, lat, lon, sommets d'incertitude ) } des unités
         adverses que `camp` voit dans CMO ; une unité absente du résultat n'est pas détectée."""

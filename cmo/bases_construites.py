@@ -27,6 +27,7 @@ PISTES = {2000: 43, 2600: 55, 3200: 35, 4000: 757}        # longueur ( m ) -> db
 # Abris pour avion LOURD ( 27, 1x Large ) : un Su-30 ou un Su-35 n'entre pas dans un abri « Medium » ( 4 ) ; guerre réelle
 # du 02/10 : 22 avions russes refusés par CMO ( REFUS 4 ) faute de place.
 ACCES, ABRI, DEPOT, CUVE, TOUR, AIRE = 353, 27, 325, 943, 3, 217
+AIRE_TRES_GRAND = 103                                     # « A/C Tarmac Space (4x Very Large Aircraft) » : E-3, KC-135, A-50, Il-78
 
 # nom, pays ( dossier ), lat, lon, cap de piste ( ° ), longueur ( m ), abris, dépôts, aires — À VALIDER
 BASES = [
@@ -38,6 +39,15 @@ BASES = [
     ("Khotilovo", "Russia", 57.650, 34.100, 80, 2600, 16, 4, 4),
 ]
 
+# Les bases des avions de SOUTIEN ( composante air complète, 03/10 ) absentes de CMO : guet radar de l'OTAN ( NAEW&CF,
+# Geilenkirchen ), A-50U ( 144e régiment, Ivanovo-Severny ), Il-78M ( 203e régiment, Diaguilevo près de Riazan ). Piste
+# longue ( 4 000 m, avions « très grands » ), aires pour très grands avions, pas d'abris. À VALIDER.
+BASES_SOUTIEN = [
+    ("Geilenkirchen", "Germany", 50.961, 6.042, 90, 4000, 0, 1, 6),
+    ("Ivanovo-Severny", "Russia", 57.058, 40.981, 0, 4000, 0, 1, 4),
+    ("Diaguilevo", "Russia", 54.643, 39.571, 120, 4000, 0, 1, 4),
+]
+
 
 def _point(lat, lon, cap, metres_long, metres_lat):
     """Décalage en mètres le long du cap ( avant ) et à sa droite ( lat ), en ( lat, lon )."""
@@ -47,7 +57,7 @@ def _point(lat, lon, cap, metres_long, metres_lat):
     return lat + dn / 111_320.0, lon + de / (111_320.0 * math.cos(math.radians(lat)))
 
 
-def construire(nom, lat, lon, cap, piste_m, abris, depots, aires, cuves=2):
+def construire(nom, lat, lon, cap, piste_m, abris, depots, aires, cuves=2, aire=AIRE):
     piste = PISTES[min(PISTES, key=lambda L: abs(L - piste_m))]
     membres = []
 
@@ -62,7 +72,7 @@ def construire(nom, lat, lon, cap, piste_m, abris, depots, aires, cuves=2):
     for i in range(abris):
         poser(ABRI, f"HAS {i + 1}", *_point(lat, lon, cap, -piste_m / 2 + (i + 0.5) * piste_m / max(1, abris), 600))
     for i in range(aires):
-        poser(AIRE, f"Tarmac {i + 1}", *_point(lat, lon, cap, -piste_m / 4 + i * 120, -350))
+        poser(aire, f"Tarmac {i + 1}", *_point(lat, lon, cap, -piste_m / 4 + i * 120, -350))
     for i in range(depots):
         poser(DEPOT, f"Ammo Bunker {i + 1}", *_point(lat, lon, cap, -400 + i * 250, 1200))
     for i in range(cuves):
@@ -79,8 +89,8 @@ def fichier(nom, pays):
 
 def ecrire(racine=CL.CMO):
     out = []
-    for nom, pays, *rest in BASES:
-        d = construire(nom, *rest)
+    for nom, pays, *rest in BASES + BASES_SOUTIEN:
+        d = construire(nom, *rest, aire=AIRE_TRES_GRAND if (nom, pays, *rest) in BASES_SOUTIEN else AIRE)
         chemin = os.path.join(racine, "ImportExport", fichier(nom, pays))
         os.makedirs(os.path.dirname(chemin), exist_ok=True)
         with open(chemin, "w", encoding="utf-8-sig") as g:

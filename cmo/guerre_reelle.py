@@ -110,7 +110,43 @@ def chargements_db(flottes):
         aa = cat[dbid]["loadout"] if dbid in cat else None
         fr = CAT.chargement_frappe(dbid)
         out[dbid] = {"aa": aa, "frappe": fr[0] if fr else None, "prix_m": prix or 50, "nom": nom}
+    for _, pays, dbid, n, part in flottes:                 # les flottes de soutien : le chargement de leur rôle
+        if isinstance(part, str):
+            out[dbid][part] = chargement_role(c, dbid, part)
     return out
+
+
+MOTIFS_ROLE = {"guet": (r"Airborne Early Warning",), "ravitailleur": (r"^Tanker",), "brouilleur": (r"Offensive ECM",),
+               "sead": (r"AARGM", r"HARM", r"ALARM", r"Kh-31P|Kh-58")}
+
+
+def chargement_role(c, dbid, role):
+    """Le chargement réel d'un avion de soutien pour son rôle ( guet radar, ravitaillement, brouillage, antiradar ), le
+    premier motif qui trouve l'emporte, jamais un chargement « Short-Range » ni hypothétique."""
+    import re as _re
+    lignes = c.execute("""select l.ID, l.Name from DataAircraftLoadouts al join DataLoadout l on l.ID = al.ComponentID
+        where al.ID = ? and coalesce(l.Hypothetical,0)=0 and l.Name not like '%Short-Range%'""", (dbid,)).fetchall()
+    for motif in MOTIFS_ROLE[role]:
+        cand = [i for i, n in lignes if _re.search(motif, n)]
+        if cand:
+            return min(cand)
+    return None
+
+
+def role_origine(a):
+    """Le rôle d'un avion dans sa flotte : un frappeur réarmé en DEAD ou basculé en chasse reste un frappeur."""
+    return a.get("bascule") or ("frappe" if a["role"] == "dead" else a["role"])
+
+
+def repartition(n, part, c):
+    """[ ( rôle, nombre ) ] d'une flotte : une part en frappe, le reste air-air ( par paires ) ; ou, flotte de soutien
+    ( la part est un rôle ), toute la flotte dans ce rôle."""
+    if isinstance(part, str):
+        return [(part, n)] if c.get(part) else []
+    if not c.get("aa"):
+        return []
+    n_fr = 2 * round(n * part / 2) if c.get("frappe") else 0
+    return [("frappe", n_fr), ("aa", 2 * ((n - n_fr) // 2))]
 
 
 def prix_pack_db():
@@ -261,7 +297,7 @@ class GuerreReelle:
         return self
 
     # ---- 0 bis. compléter un théâtre en cours ( corriger au fur et à mesure, Younes 02/10 ) : sans le reconstruire
-    ROLES_AIR = ("chasse", "transport", "aéronavale", "police du ciel balte", "hélicoptères", "aérodrome", "attaque")
+    ROLES_AIR = ("chasse", "transport", "aéronavale", "police du ciel balte", "hélicoptères", "aérodrome", "attaque", "soutien")
 
     def completer(self, attente_import=1.5, sommeil=None):
         """Ajoute à la guerre en cours ce que la construction n'a pas posé : une base aérienne importée à moins de 5
@@ -288,16 +324,15 @@ class GuerreReelle:
         voulus = {}
         for f, pays, dbid, n, part in self.flottes:
             c = self.charg.get(dbid, {})
-            n_fr = 2 * round(n * part / 2) if c.get("frappe") else 0
-            for role, m in (("frappe", n_fr), ("aa", 2 * ((n - n_fr) // 2))):
+            for role, m in repartition(n, part, c):
                 voulus[(f, pays, dbid, role)] = voulus.get((f, pays, dbid, role), 0) + m
         # tenus : vivants + perdus en attente de remplacement ( un perdu remplacé est un vivant ) ; par base d'ORIGINE
         tenus = {}
         for a in self.avions.values():
-            cle = (a.get("origine") or self.bases[a["base"]]["fichier"], a["pays"], a["dbid"], a["role"])
+            cle = (a.get("origine") or self.bases[a["base"]]["fichier"], a["pays"], a["dbid"], role_origine(a))
             tenus[cle] = tenus.get(cle, 0) + 1
         for pays, dbid, role, base in self.a_remplacer:
-            cle = (self.bases[base]["fichier"] if base in self.bases else None, pays, dbid, role)
+            cle = (self.bases[base]["fichier"] if base in self.bases else None, pays, dbid, "frappe" if role == "dead" else role)
             tenus[cle] = tenus.get(cle, 0) + 1
         for (f, pays, dbid, role), n in voulus.items():
             manque = n - tenus.get((f, pays, dbid, role), 0)
@@ -375,10 +410,9 @@ class GuerreReelle:
         for f, pays, dbid, n, part_frappe in self.flottes:
             i = self.base_de_fichier(f)
             c = self.charg.get(dbid, {})
-            if i is None or not c.get("aa"):
+            if i is None:
                 continue
-            n_fr = 2 * round(n * part_frappe / 2) if c.get("frappe") else 0
-            for role, m in (("frappe", n_fr), ("aa", 2 * ((n - n_fr) // 2))):
+            for role, m in repartition(n, part_frappe, c):
                 for _ in range(m):
                     k = self._numero(DEC_AVION, pays)
                     lots.setdefault((self.camp_de_pays(pays), dbid, c[role], self.bases[i]["groupe"]), []).append(k)
@@ -410,7 +444,9 @@ class GuerreReelle:
                 continue
             for j, (lo, n) in enumerate(sorted(self._besoins(i).items())):
                 packs = n * PACKS_INITIAUX
-                cout, _ = self.prix_pack(lo)
+                cout, armes = self.prix_pack(lo)
+                if not armes:                            # guet radar, ravitailleur : rien à stocker
+                    continue
                 self.stock_initial_m[b["pays"]] += cout * packs
                 lots.append((b["depots"][j % len(b["depots"])], lo, packs))
         for k in range(0, len(lots), 40):
@@ -595,6 +631,8 @@ class GuerreReelle:
                     total[w] = total.get(w, 0) + c
             for lo, n in sorted(self._besoins(i).items()):
                 cout, armes = self.prix_pack(lo)
+                if not armes:
+                    continue
                 dispo = min((total.get(w, 0) // q for w, q in armes), default=0)
                 if dispo >= SEUIL_PACKS * n:
                     continue
@@ -653,6 +691,19 @@ class GuerreReelle:
                 for k in ks:
                     if k in r["escortes"]:
                         self.affecte[k] = -fid                            # négatif : escorteur de la frappe fid
+        # la composante air : guet radar, ravitailleurs, brouilleurs, SEAD, barrière de chasse ( après la décision de frappe,
+        # dont dépendent la SEAD et le brouillage ; la barrière reprend des chasseurs aux patrouilles des bases )
+        zones, aff_z = [], []
+        for ci, camp in enumerate(self.camps):
+            z, a = self.em.soutiens(ci, camp)
+            zones += z
+            aff_z += a
+        if zones or aff_z:
+            r = self.labo.zones(zones, aff_z)
+            for zid, ks in aff_z:
+                for k in ks:
+                    if k in r["affectes"]:
+                        self.affecte[k] = zid
         if rearmes:
             self._rearmer(rearmes)
 

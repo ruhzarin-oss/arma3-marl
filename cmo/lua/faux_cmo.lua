@@ -161,6 +161,12 @@ function ScenEdit_SetMission(side, nom, t)
     return { name = nom, side = side }
 end
 
+FAUX.emcon = {}
+function ScenEdit_SetEMCON(genre, nom, texte)
+    FAUX.emcon[genre .. '/' .. nom] = texte
+    return true
+end
+
 function ScenEdit_DeleteMission(side, nom)
     local m = FAUX.missions[side .. '/' .. nom]
     if m == nil then error('mission not found') end

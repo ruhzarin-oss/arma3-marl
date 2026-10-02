@@ -46,7 +46,14 @@ INSTALLATIONS = [
      "Russie-Chine", "Russia [1992-]", "sol-air"),
     ("USSR-Russia/Western Military District/Western Military District EW/Western Military District EW 2013.inst",
      "Russie-Chine", "Russia [1992-]", "radar"),
-] + [(BC.fichier(nom, pays), "Russie-Chine", "Russia [1992-]", "chasse") for nom, pays, *_ in BC.BASES]
+] + [(BC.fichier(nom, pays), "Russie-Chine", "Russia [1992-]", "chasse") for nom, pays, *_ in BC.BASES] + [
+    # composante air complète ( 03/10 ) : les bases réelles des avions de soutien
+    ("US-Europe/RAF Mildenhall 2021.inst", "OTAN", "United States", "soutien"),            # 100th ARW, KC-135R
+    ("US-Europe/Spangdahlem Air Base 2021.inst", "OTAN", "United States", "soutien"),       # EA-18G ( déploiement de 2022 )
+    (BC.fichier("Geilenkirchen", "Germany"), "OTAN", "Germany [FRG/Reunified]", "soutien"),  # E-3A de l'OTAN
+    (BC.fichier("Ivanovo-Severny", "Russia"), "Russie-Chine", "Russia [1992-]", "soutien"),  # A-50U, Il-22PP
+    (BC.fichier("Diaguilevo", "Russia"), "Russie-Chine", "Russia [1992-]", "soutien"),       # Il-78M
+]
 
 # Les COPIES : CMO ne recrée pas un élément dont l'identifiant ( Member_GUID du fichier ) a déjà servi dans la partie, même
 # effacé ( 02/10 : Łask réimportée après une table rase n'a rendu qu'un élément sur 62 ). Chaque construction importe donc
@@ -108,6 +115,16 @@ FLOTTES = [
     (BC.fichier("Levachovo", "Russia"), "Russia [1992-]", 8333, 4, 0.5),            # Su-57 ( peu nombreux )
     ("Belarus/Baranovichi Air Base 2014.inst", "Belarus [1992-]", 7695, 8, 0.5),    # 61e base : Su-30SM
     ("Belarus/Baranovichi Air Base 2014.inst", "Belarus [1992-]", 5909, 8, 0.25),   # MiG-29
+] + [
+    # LA COMPOSANTE AIR COMPLÈTE ( 03/10, À VALIDER ) : la part est un RÔLE ( guet, ravitailleur, brouilleur, sead ).
+    (BC.fichier("Geilenkirchen", "Germany"), "Germany [FRG/Reunified]", 1626, 4, "guet"),        # E-3A ( NAEW&CF, 14 en tout )
+    ("Poland/33rd Airlift Air Base-Powidz Air Base 2016.inst", "Poland", 6812, 2, "guet"),     # Saab 340 AEW polonais ( 2 )
+    ("US-Europe/RAF Mildenhall 2021.inst", "United States", 7712, 6, "ravitailleur"),        # KC-135R ( 15 à Mildenhall )
+    ("US-Europe/Spangdahlem Air Base 2021.inst", "United States", 4518, 6, "brouilleur"),    # EA-18G ( 6 en 2022 )
+    ("Germany/Schleswig Air Base.inst", "Germany [FRG/Reunified]", 7611, 8, "sead"),        # Tornado ECR, AARGM ( TaktLwG 51 )
+    (BC.fichier("Ivanovo-Severny", "Russia"), "Russia [1992-]", 3461, 2, "guet"),            # A-50U ( ~6 restants )
+    (BC.fichier("Ivanovo-Severny", "Russia"), "Russia [1992-]", 4607, 2, "brouilleur"),      # Il-22PP Porubchtchik ( 3 )
+    (BC.fichier("Diaguilevo", "Russia"), "Russia [1992-]", 2687, 4, "ravitailleur"),         # Il-78M ( ~15 )
 ]
 
 # LES FORCES AU SOL ( 2026, copier le réel, À VALIDER ) : ( pays, dbid de l'unité mobile DB3000, nom, lat, lon ).

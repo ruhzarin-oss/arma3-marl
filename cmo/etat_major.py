@@ -29,6 +29,21 @@ ESCORTE_MAX = 8
 MARGE_KM = 10.0
 DEC_DEAD = 2000                                           # missions DEAD : 2 000 + camp x 100 + k ( les OCA : 1 000 + … )
 
+# LA COMPOSANTE AIR ( 03/10 ) : rôle -> ( décalage d'id, genre de mission CMO 1 AAW / 2 SEAD / 3 soutien, part de la route
+# depuis nos avions vers la cible, marge aux parapluies connus km, marge aux bases adverses km, demi-zone km, emcon ).
+# Le guet radar orbite au tiers de la route, hors de portée des SAM connus ; le ravitailleur plus en arrière ; le brouilleur
+# en stand-off, juste hors de portée des défenses qui couvrent la cible ; la SEAD sur les défenses de la cible ; la barrière
+# de chasse à mi-route ( CHOIX À VALIDER : parts et marges ).
+ZONE_BASE = 500
+SOUTIEN = {
+    "guet": (0, 3, 0.35, 60.0, 150.0, 25.0, 1),
+    "ravitailleur": (1, 3, 0.15, 100.0, 250.0, 30.0, 0),
+    "brouilleur": (2, 3, None, 15.0, 60.0, 15.0, 2),
+    "sead": (3, 2, None, None, None, 40.0, 0),
+    "barriere": (4, 1, 0.5, 20.0, 80.0, 50.0, 0),
+}
+DEPLACEMENT_KM = 10.0                                     # une zone n'est redessinée que si elle bouge de plus
+
 
 def km(a, b):
     la1, lo1, la2, lo2 = map(math.radians, (a[0], a[1], b[0], b[1]))
@@ -49,6 +64,7 @@ class EtatMajor:
         self.k = {c: 0 for c in g.camps}
         self.journal = []                                # décisions et notes, pour l'agent et pour Younes
         self.a_clore = []                                # ( camp, id ) des frappes à fermer dans CMO à ce tour
+        self.zones = {}                                  # id de zone -> ( lat, lon ) envoyée à CMO
 
     # ---- mémoire des portées ( la DB est lente : une lecture par type )
     def _p(self, quoi, dbid):
@@ -87,12 +103,25 @@ class EtatMajor:
         v = self.g.vus.get(camp, {}).get(k) if self.g.brouillard else None
         return (v[2], v[3]) if v and (v[2] or v[3]) else vrai
 
+    def _centre(self, camp, combat=True):
+        """Le centre de gravité des avions de combat du camp ( leurs bases, pondérées ) : les bases lointaines des avions de
+        soutien ( Mildenhall, Ivanovo ) ne tirent pas le front vers l'arrière. À défaut, le centre de ses bases."""
+        g, n = self.g, {}
+        for a in g.avions.values():
+            if a["camp"] == camp and (not combat or a["role"] in ("aa", "frappe", "dead")) and a["base"] in g.bases:
+                n[a["base"]] = n.get(a["base"], 0) + 1
+        pts = [(g.bases[i]["pos"], w) for i, w in n.items() if g.bases[i]["pos"]] or \
+              [(b["pos"], 1) for b in g.bases.values() if b["camp"] == camp and b["pos"]]
+        if not pts:
+            return None
+        s = sum(w for _, w in pts)
+        return (sum(p[0] * w for p, w in pts) / s, sum(p[1] * w for p, w in pts) / s)
+
     def couvrent(self, camp, cible_pos):
-        """Les parapluies adverses qui couvrent la cible, ou le milieu de la route depuis les bases du camp."""
-        miennes = [b["pos"] for b in self.g.bases.values() if b["camp"] == camp]
-        if not miennes:
+        """Les parapluies adverses qui couvrent la cible, ou le milieu de la route depuis nos avions de combat."""
+        centre = self._centre(camp)
+        if centre is None:
             return []
-        centre = (sum(p[0] for p in miennes) / len(miennes), sum(p[1] for p in miennes) / len(miennes))
         milieu = ((centre[0] + cible_pos[0]) / 2, (centre[1] + cible_pos[1]) / 2)
         return [(k, pos, r) for k, pos, r in self.parapluies(camp)
                 if km(pos, cible_pos) <= r + MARGE_KM or km(pos, milieu) <= r + MARGE_KM]
@@ -101,7 +130,7 @@ class EtatMajor:
     def planifier(self, ci, camp):
         g = self.g
         cible = g._choisir_cible(camp)
-        decision = {"camp": camp, "tour": g.tours, "cible": cible and g.bases[cible]["fichier"]}
+        decision = {"camp": camp, "tour": g.tours, "cible": g.bases[cible]["fichier"] if cible is not None else None}
         frappes, affect, escortes, rearmes = [], [], [], []
         if cible is None:
             decision["ordre"] = "aucune cible"
@@ -233,6 +262,83 @@ class EtatMajor:
                 out.append((k, lo, "dead"))
         return out
 
+    # ---- 2 bis. la composante air : guet, ravitaillement, brouillage, SEAD, barrière
+    def _recul(self, camp, C, T, t, marge, marge_b):
+        """Le point de la route C -> T à la part t, reculé vers C jusqu'à être à `marge` km hors de portée de chaque
+        parapluie adverse CONNU et à `marge_b` km de chaque base adverse opérationnelle."""
+        menaces = self.parapluies(camp)
+        bases = [b["pos"] for b in self.g.bases.values() if b["camp"] != camp and b["op"] and b["pos"]]
+        tt = t
+        while tt > 0:
+            P = (C[0] + tt * (T[0] - C[0]), C[1] + tt * (T[1] - C[1]))
+            if all(km(P, pos) >= r + marge for _, pos, r in menaces) and all(km(P, b) >= marge_b for b in bases):
+                return P
+            tt = round(tt - 0.05, 4)
+        return C
+
+    def _barriere(self, camp, zid):
+        """La barrière de chasse : à chaque base, au-delà de la paire qui la défend, la moitié des chasseurs ( par paires )
+        part en barrière avancée. Ceux qui y sont y restent ( pas de valse ) ; les escortes passent avant."""
+        g, par_base = self.g, {}
+        for k, a in sorted(g.avions.items()):
+            m = g.affecte.get(k, 0)
+            if a["camp"] == camp and a["role"] == "aa" and abs(m) < 1000:
+                par_base.setdefault(a["base"], []).append(k)
+        out = []
+        for base, ks in par_base.items():
+            voulus = (max(0, len(ks) - 2) // 2) // 2 * 2
+            deja = [k for k in ks if g.affecte.get(k) == zid]
+            libres = [k for k in ks if g.affecte.get(k) != zid]
+            out += deja[:voulus] + libres[:max(0, voulus - len(deja))]
+        return out
+
+    def soutiens(self, ci, camp):
+        """( zones, affectations ) des missions de la composante air du camp, pour labo.zones."""
+        g = self.g
+        C = self._centre(camp)
+        fr = g.frappe.get(camp)
+        T = g.bases[fr["base"]]["pos"] if fr and fr.get("base") in g.bases else self._centre_adverse(camp)
+        if C is None or T is None:
+            return [], []
+        zones, affect = [], []
+        for role, (dec, genre, t0, marge, marge_b, demi, emcon) in SOUTIEN.items():
+            zid = ZONE_BASE + ci * 10 + dec
+            if role == "barriere":
+                ks = self._barriere(camp, zid)
+            else:
+                ks = [k for k, a in sorted(g.avions.items()) if a["camp"] == camp and a["role"] == role]
+            if not ks or (role in ("sead", "brouilleur") and not fr):
+                continue
+            if role == "sead":
+                cov = self.couvrent(camp, T)
+                P = (sum(p[0] for _, p, _ in cov) / len(cov), sum(p[1] for _, p, _ in cov) / len(cov)) if cov else T
+            elif role == "brouilleur":
+                r = max((x[2] for x in self.couvrent(camp, T)), default=40.0)
+                d = km(C, T)
+                P = self._recul(camp, C, T, max(0.0, 1 - (r + 30.0) / d) if d > 0 else 0.0, marge, marge_b)
+            else:
+                P = self._recul(camp, C, T, t0, marge, marge_b)
+            sur_place = {"guet": 1, "ravitailleur": 2 if len(ks) >= 4 else 1, "brouilleur": 1}.get(role, 0)
+            ancien = self.zones.get(zid)
+            if ancien is None or km(ancien, P) > DEPLACEMENT_KM:
+                zones.append((zid, camp, genre, P[0], P[1], demi, 1, sur_place, emcon))
+                self.zones[zid] = P
+            nouveaux = [k for k in ks if g.affecte.get(k) != zid]
+            if genre in (1, 2):                              # une patrouille ne part que par vols de deux, de la même base
+                par_base = {}
+                for k in nouveaux:
+                    par_base.setdefault(g.avions[k]["base"], []).append(k)
+                nouveaux = [k for v in par_base.values() for k in v[:len(v) // 2 * 2]]
+            if nouveaux:
+                affect.append((zid, nouveaux))
+        return zones, affect
+
+    def _centre_adverse(self, camp):
+        pts = [b["pos"] for b in self.g.bases.values() if b["camp"] != camp and b["op"] and b["pos"]]
+        if not pts:
+            return None
+        return (sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts))
+
     # ---- 3. l'apprentissage
     def suivre(self, morts):
         """Chaque tour : les avions morts sont comptés contre la mission qui les employait."""
@@ -259,6 +365,7 @@ class EtatMajor:
 
     def etat(self):
         return {"part_dead": self.part_dead, "efficacite": self.efficacite, "k": self.k,
+                "zones": {str(i): list(p) for i, p in self.zones.items()},
                 "missions": {str(i): dict(m, avions=sorted(m["avions"])) for i, m in self.missions.items()},
                 "journal": self.journal[-200:]}
 
@@ -267,3 +374,4 @@ class EtatMajor:
         self.missions = {int(i): dict(m, avions=set(m["avions"]), degats0={int(k): v for k, v in m["degats0"].items()})
                          for i, m in e["missions"].items()}
         self.journal = e.get("journal", [])
+        self.zones = {int(i): tuple(p) for i, p in (e.get("zones") or {}).items()}
