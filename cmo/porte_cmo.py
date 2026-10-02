@@ -228,7 +228,8 @@ def p14b_runscript_qui_leve():
     fichier absent : l'actuateur ne doit pas avancer d'un numéro à chaque seconde."""
     with banc(lecteur="runscript_leve") as (f, l):
         time.sleep(0.5)                                  # une dizaine de passages sans commande
-        assert l.canari()["recu"]["n_cmd"] == 2, "l'actuateur a sauté des numéros sur des fichiers absents"
+        # ouverture = canari ( 1 ) + recensement du registre ( 2, depuis le 02/10 ) ; ce canari est donc la commande 3
+        assert l.canari()["recu"]["n_cmd"] == 3, "l'actuateur a sauté des numéros sur des fichiers absents"
         l.poser("Malden", "air", 3500, 1, 37.5, 24.3, 6000)
         assert l.etat_camps()["camps"]["Malden"]["hmt_vivants"] == 1
 

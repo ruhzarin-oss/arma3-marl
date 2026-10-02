@@ -387,6 +387,9 @@ class Labo:
             self.liaison.ouvrir(self.patience_ouverture)
             self.ouvert = True
             self.version = self.canari()
+            # le registre des numéros refait depuis les noms du scénario ouvert ( voir HMT_recensement )
+            self.version["recenses"] = int(_une(self._exec("HMT_recensement(R)", patience=max(30.0, self.liaison.patience))["lignes"],
+                                                "RECENSE", 1)[0])
         except BaseException:
             self.fermer()
             raise

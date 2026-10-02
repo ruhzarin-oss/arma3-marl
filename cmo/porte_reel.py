@@ -176,9 +176,22 @@ def r11_appels_en_paquets():
         assert len(l.stocks(ks)["absents"]) == 300
 
 
+def r12_registre_refait_a_l_ouverture():
+    """Un registre gardé d'une partie précédente ( les globales Lua survivent au rechargement, et une installation
+    réimportée reprend les mêmes guid ) ne doit pas bloquer l'adoption : l'ouverture du labo refait le registre."""
+    with banc() as (f, l):
+        l.importer("OTAN", BASE_TEST)
+        time.sleep(0.1)
+        f.lua("local g for k, u in pairs(FAUX.unites) do if u.type == 'Facility' then g = k end end "
+              "HMT_unites = HMT_unites or {} HMT_unites[90100001] = { guid = g, camp = 1 }")
+        l.fermer()
+        l.ouvrir()
+        assert len(l.adopter("OTAN", 90_100_001)["elements"]) == len(MEMBRES) + 1
+
+
 TESTS = [r1_armer_puis_relire_le_depot, r2_importer_et_numeroter_une_vraie_base, r3_pertes_et_depenses_de_cmo,
          r4_doctrine_ecrite_et_relue, r6_releve_borne_aux_unites_mobiles, r7_degats_relus, r8_table_rase_avec_une_vraie_base, r9_table_rase_des_orphelins,
-         r10_frappe_activee_et_ciblee, r11_appels_en_paquets]
+         r10_frappe_activee_et_ciblee, r11_appels_en_paquets, r12_registre_refait_a_l_ouverture]
 
 
 def r5_test():
@@ -219,6 +232,8 @@ def controles():
           "local g = ScenEdit_GetMission ScenEdit_GetMission = function(s, n) local m = g(s, n) if m == nil then return nil end "
           "return setmetatable({}, {__index = m, __newindex = function() end}) end"),
          ("les appels ne sont plus découpés", r11_appels_en_paquets, None),
+         ("l'ouverture garde le vieux registre", r12_registre_refait_a_l_ouverture,
+          "local r = HMT_recenser HMT_recensement = function(R) R('RECENSE', { 0 }) end"),
          ("la table rase ignore les orphelins", r9_table_rase_des_orphelins,
           "local v = VP_GetSide VP_GetSide = function(t) local s = v(t) local us = {} for _, x in ipairs(s.units) do "
           "if string.match(x.name or '', '^HMT') then us[#us + 1] = x end end s.units = us return s end")]

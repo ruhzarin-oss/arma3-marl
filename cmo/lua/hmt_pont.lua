@@ -160,6 +160,16 @@ function HMT_recenser()
     return HMT_unites
 end
 
+-- Le registre refait depuis les NOMS du scénario ouvert. Les globales Lua survivent au rechargement d'un scénario dans CMO,
+-- et une vraie installation réimportée reprend les MÊMES guid ( ceux de son fichier .inst ) : un registre gardé d'une
+-- partie précédente « reconnaissait » des unités neuves ( 02/10 : REFUS 3 à l'adoption de Łask ). cmo_labo l'appelle à
+-- chaque ouverture.
+function HMT_recensement(R)
+    local n = 0
+    for _ in pairs(HMT_recenser()) do n = n + 1 end
+    R('RECENSE', { n })
+end
+
 local function registre()
     if HMT_unites == nil then HMT_recenser() end
     return HMT_unites

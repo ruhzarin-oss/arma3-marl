@@ -194,9 +194,17 @@ class GuerreReelle:
             self.labo = None
         self.ouvert = False
 
-    def construire(self, attente_import=1.5, sommeil=None):
+    def construire(self, attente_import=1.5, sommeil=None, restes_max=300):
+        """Le théâtre dans le scénario ouvert. Refuse si le scénario en contient déjà un ( plus de restes_max unités HMT ) :
+        l'effacer en masse ralentirait CMO jusqu'au rechargement ( banc du 02/10 ) ; recharger, ou reprendre ( charger ).
+        Les restes d'une construction interrompue, eux, sont peu nombreux : table rase."""
         import time
         sommeil = sommeil or time.sleep
+        n = sum(c["hmt_vivants"] for c in self.labo.etat_camps()["camps"].values())
+        if n > restes_max:
+            raise CL.Refus(f"le scénario contient déjà {n} unités HMT : recharger un scénario propre, ou reprendre la guerre "
+                           "( endurance_reelle.py --reprendre <dossier> )")
+        self.labo.nettoyer()
         for i, (f, camp, pays, role) in enumerate(self.installations):
             self.labo.importer(camp, f)
             sommeil(attente_import)
