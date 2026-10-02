@@ -156,6 +156,9 @@ LIENS_PLEINS, LIENS_REF = 3.0, 0.4
 K_CULTE = 0.02               # un pratiquant
 DEUIL_MENAGE, DEUIL_PROCHE, DEUIL_MIN = -0.15, -0.08, -0.40
 DEMI_VIE_DEUIL_J = 90.0
+# ( 03/10, HMT-194 3c ) un soldat au front de la guerre d Arma garde le moral de chez lui : la faim de son menage, un
+# deuil chez lui, l isolement l atteignent ( lettres, telephone ; CHOIX : le jour meme, sans delai de courrier )
+MORAL_AU_FRONT = True
 FETE_PANIGYRI, FETE_RELIGIEUSE, FETE_SORTIE, PLAISIR_SORTIE, FETE_MAX = 0.06, 0.04, 0.03, 0.015, 0.15
 DEMI_VIE_FETE_J = 4.0
 MORAL_BAS = 0.35
@@ -680,10 +683,23 @@ def _realises(pl, s):
     return np.nonzero(pl.actif[:, s] & (T[:, AG.ARR] <= M_SOIR) & (T[:, AG.FIN] > T[:, AG.ARR]))[0]
 
 
+def _deuils_poses(p, n):
+    """( 03/10, HMT-194 3c ) Les deuils poses par un autre domaine dans w.deuils_poses ( [ ( habitants, part ) ] : la
+    guerre y met les camarades d un soldat tue ) frappent le soir, comme ceux de la famille, bornes a DEUIL_MIN."""
+    q = getattr(p.w, "deuils_poses", None)
+    if not q: return
+    de = p.colonnes["habitant"]["cul_deuil"]
+    for ids, part in q:
+        ids = np.asarray([int(i) for i in ids if 0 <= int(i) < n], np.int64)
+        if len(ids): de[ids] = np.maximum(DEUIL_MIN, de[ids].astype(np.float64) + part).astype(np.float32)
+    q.clear()
+
+
 def _deuils(p, d, n, mg):
     """Les deces pas encore pleures : le menage du defunt et ses proches ( conjoint, parents, enfants ) sont frappes ;
     le menage paie les obseques a sa paroisse ( ce qu il peut )."""
     col = p.colonnes["habitant"]; tb = p.w.table
+    _deuils_poses(p, n)                                  # ( 03/10, HMT-194 3c ) les camarades d un soldat tue
     morts = np.nonzero((col["deces_j"][:n] >= 0) & (col["cul_deuil_vu"][:n] == 0))[0]
     if not len(morts): return 0
     col["cul_deuil_vu"][morts] = 1
@@ -969,11 +985,22 @@ def _climat(p, d):
     d.climat_neg, d.climat_pos = neg, pos
 
 
+def _au_front(p, n):
+    """( 03/10, HMT-194 3c ) Les habitants au front de la guerre d Arma ( w.absents, destination « front » ) : ils
+    passent dans la passe du moral comme des residents. Les autres absents n y passent pas."""
+    out = np.zeros(n, bool)
+    if not MORAL_AU_FRONT: return out
+    for i, a in getattr(p.w, "absents", {}).items():
+        if 0 <= int(i) < n and isinstance(a, dict) and a.get("destination") == "front": out[int(i)] = True
+    return out
+
+
 def _moral_du_jour(p, d, n, mg, viv, cout, caisse, sortie, chocs):
     """La passe du moral : les causes durables ( faim, chomage, pauvrete, maladie, depression, croyances, liens,
     pratique ) tirent la part lente vers elles ; le deuil et la fete s eteignent ; le moral est leur somme bornee."""
     col = p.colonnes["habitant"]; tb = p.w.table
-    v = np.nonzero((tb.vivant[:n] == 1) & (tb.statut[:n] != PO.ABSENT) & (col["cul_base"][:n] >= 0))[0]
+    v = np.nonzero((tb.vivant[:n] == 1) & ((tb.statut[:n] != PO.ABSENT) | _au_front(p, n))     # ( HMT-194 3c ) le front
+                   & (col["cul_base"][:n] >= 0))[0]
     s7 = col["cul_sorties7"]
     s7[:n] = (((s7[:n].astype(np.int64) << 1) | sortie[:n]) & 0x7F).astype(np.uint8)
     if not len(v): return

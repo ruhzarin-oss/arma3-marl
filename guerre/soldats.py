@@ -12,7 +12,14 @@ lesion soit posee ( sinon le soin civil du moteur le prendrait ) :
      d25.blesser_soldat ) ; le soin, la mort de la phase aigue ou la guerison suivent le domaine 16 ;
   4. son tri d admission est recalcule ( domaine 17 : ESI, ISS ), comme au domaine 27 ;
   5. l unite ramasse ses coups ( guerre/logistique.rendre : la reserve du domaine 27 est rendue ).
-Un blesse n est evacue qu une fois."""
+Un blesse n est evacue qu une fois.
+
+3c, les camarades ( 03/10 ) : un soldat tue dans Arma ( guerre/moteur.morts_au_combat ) est pleure par les hommes de son
+unite directe au domaine 25 ( le groupe d un soldat ) comme un proche : la part de deuil DEUIL_PROCHE du domaine 23, bornee
+a DEUIL_MIN, qui s eteint comme tout deuil ( 90 jours ). Le deuil est depose dans w.deuils_poses ; le domaine 23 le
+frappe le soir avec ceux de la famille ( CHOIX : l unite l apprend le soir meme ), recompose le moral, et le domaine 25
+en part a 22 h 40. CHOIX : l unite directe, pas la compagnie. Le moral du soldat au front suit sa maison ( correctif du domaine 23,
+patch_moral_front.py )."""
 from monde import population as PO
 from monde.pays import d16_medecine as MED, d17_hopitaux as HM, d25_armee as A, d26_armee_soutien as S
 from . import logistique as LO, moteur as GM
@@ -65,3 +72,20 @@ def evacuer_blesses(w, releves=None):
         out.append((int(num), iss, cle, moyen))
     if out: w.noter("evacuation", blesses=len(out))
     return out
+
+
+def deuil_des_camarades(w, i):
+    """( 3c ) Le soldat i est tue : les hommes vivants de son unite directe ( domaine 25 ) le pleureront ce soir comme un
+    proche ( w.deuils_poses, lu par le domaine 23 ). Rend leurs numeros d habitant."""
+    p = w.pays
+    if p is None or not (p.a("armee") and p.a("culture")): return []
+    from monde.pays import d23_culture as CU
+    a = A._dom(p); E = a.eff; r = int(p.col("habitant", "ar_rang")[i])
+    if r < 0 or int(E["unite"][r]) < 0: return []
+    u = int(E["unite"][r]); tb = w.table
+    rows = A._lignes_actives(a)
+    cam = [int(E["hid"][x]) for x in rows[E["unite"][rows] == u].tolist() if int(E["hid"][x]) != int(i) and tb.vivant[int(E["hid"][x])]]
+    if not cam: return []
+    w.__dict__.setdefault("deuils_poses", []).append((cam, CU.DEUIL_PROCHE))
+    w.noter("deuil_camarades", soldat=int(i), camarades=len(cam))
+    return cam

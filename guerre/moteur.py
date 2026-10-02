@@ -221,6 +221,8 @@ def morts_au_combat(w, numeros):
         s = f.get(int(k))
         if s is None or s["etat"] == "mort": continue
         i = s["i"]; t = w.table
+        from guerre import soldats as SO
+        SO.deuil_des_camarades(w, i)                  # ( 03/10, HMT-194 3c ) son unite le pleure, avant que le domaine 25 le retire
         w.absents.pop(i, None); t.statut[i] = PO.RESIDENT
         h = w.habitants[i]
         if p is not None and p.a("population"): POP.deceder(p, h, "combat")
