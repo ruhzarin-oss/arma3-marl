@@ -686,6 +686,14 @@ def export_bloque(p, valeur):
     p.compter("export_blocus", valeur); return True
 
 
+def ports_hors_service(p):
+    """( 02/10, HMT-192 1b ) Les ports de l ile detruits par une frappe ( guerre/frappes.py : w.ports_hors_service, lieu ->
+    pas de fin de la reparation ), tant que la reparation n est pas finie ; la regle se relit a chaque appel."""
+    w = p.w; hs = getattr(w, "ports_hors_service", None)
+    if not hs: return ()
+    return tuple(sorted(l for l, fin in hs.items() if fin > w.pas and l in w.carte.lieux))
+
+
 def sous_blocus(p):
     """Le blocus ( 29/09, chef de projet ; Hodeidah 2017, Gaza ) : l ile a un port et l ennemi les tient tous. Rien
     n entre ni ne sort par la mer : les imports ( importer_au_port, declarer_import ) et les exports ( exporter_au_port )
@@ -694,9 +702,10 @@ def sous_blocus(p):
     ( elle force les blocus ). Choix ecrits ( a verifier ) : un aeroport libre ne rouvre ni le fret ni le tourisme ; les
     navires deja en mer font demi-tour ( leur arrivee est refusee )."""
     w = p.w
-    if not getattr(w, "occupations", None): return False
+    hs = ports_hors_service(p)                        # ( 02/10, HMT-192 1b ) un port detruit ne sert plus
+    if not getattr(w, "occupations", None) and not hs: return False
     ports = [l for l, x in w.carte.lieux.items() if x.type == "port"]
-    return bool(ports) and set(ports) <= set(ports_tenus(p))
+    return bool(ports) and set(ports) <= set(ports_tenus(p)) | set(hs)
 
 
 def importer_au_port(p, importateur, stock, bien, q, motif="import_biens", droits=True):
