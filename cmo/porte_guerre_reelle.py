@@ -278,7 +278,7 @@ def e11_dead_avant_la_frappe():
                         next(k for k, s in g.sol.items() if s["dbid"] == 3659 and s["pos"][0] < 53))
         g.caisse["Poland"] = 1000.0                       # de quoi payer les JASSM-ER ( sinon le réarmement attend )
         g.verse["Poland"] += 1000.0
-        avant = g.depense["Poland"]
+        avant, packs0 = g.depense["Poland"], g.packs_achetes["Poland"]
         g.tour()
         fr = g.frappe["OTAN"]
         assert fr["type"] == "dead" and fr["cibles"] == [s400], fr
@@ -291,6 +291,7 @@ def e11_dead_avant_la_frappe():
         assert len(dead) == 2 and g.depense["Poland"] > avant, (dead, g.depense)
         assert all(f.lua(f"for _, u in pairs(FAUX.unites) do if u.name == 'HMT-{k}' then return u.loadoutdbid end end") == 33510
                    for k in dead)
+        assert g.packs_achetes["Poland"] - packs0 == GR.PACKS_INITIAUX, g.packs_achetes   # le 2e puise dans le même achat
         g.tour()
         assert all(g.affecte.get(k) == mid for k in dead), (dead, g.affecte)
         esc = [k for k, m in g.affecte.items() if m == -mid]               # les avions DEAD partent escortés
@@ -333,9 +334,27 @@ def e12_apprentissage_borne():
         assert g2.em.part_dead == em.part_dead and g2.em.efficacite == em.efficacite
 
 
+def e13_rearmement_rate_rend_l_ancien_chargement():
+    """CMO laisse l'avion SANS armes ( chargement 3 ) quand le dépôt n'a pas les armes : l'état-major ne le croit pas
+    réarmé, et l'avion reprend aussitôt son ancien chargement ( 02/10 : trois avions refusés en direct )."""
+    with guerre(flottes=FLOTTES_EM, sol=SOL_EM) as (f, g):
+        g.caisse["Poland"] = 1000.0
+        g.verse["Poland"] += 1000.0
+        f.lua("local vrai = ScenEdit_SetLoadout "            # CMO laisse l'avion vide pour le JASSM-ER, comme le 02/10
+              "ScenEdit_SetLoadout = function(t) if t.LoadoutID ~= 33510 then return vrai(t) end "
+              "for _, x in pairs(FAUX.unites) do if x.name == t.UnitName then x.loadoutdbid = 3 end end return true end")
+        g.tour()
+        pol = [k for k, a in g.avions.items() if a["pays"] == "Poland" and a["role"] in ("frappe", "dead")]
+        assert all(g.avions[k]["role"] == "frappe" for k in pol), g.avions
+        lus = {k: f.lua(f"for _, u in pairs(FAUX.unites) do if u.name == 'HMT-{k}' then return u.loadoutdbid end end") for k in pol}
+        assert all(v == 7492 for v in lus.values()), lus
+        assert any("rendu" in d for d in g.em.journal), g.em.journal
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
-         e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne]
+         e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
+         e13_rearmement_rate_rend_l_ancien_chargement]
 
 
 def controles():
@@ -368,6 +387,10 @@ def controles():
         self.a_remplacer = []                            # oublie les pertes en attente : il les reposerait en double
         return vrai_completer(self, *a, **kw)
 
+    vrai_charger = CL.Labo.charger
+
+    def charger_sans_retour(self, lots):
+        return vrai_charger(self, [x for x in lots if x[2] != 0]) if any(x[2] != 0 for x in lots) else {"charges": {}, "absents": []}
     vrai_p = EM.EtatMajor._p
 
     def portee_ignoree(self, quoi, dbid):
@@ -385,7 +408,9 @@ def controles():
          ("le parapluie sol-air est ignoré", e11_dead_avant_la_frappe, (EM.EtatMajor, "couvrent", lambda self, camp, pos: [])),
          ("un lanceur est engagé hors de portée", e11_dead_avant_la_frappe, (EM.EtatMajor, "_p", portee_ignoree)),
          ("la frappe part sans escorte", e11_dead_avant_la_frappe, (EM.EtatMajor, "_escorteurs", lambda self, camp, n: [])),
-         ("l'apprentissage n'a pas de plancher", e12_apprentissage_borne, (EM, "PART_DEAD_MIN", 0.0))]
+         ("l'apprentissage n'a pas de plancher", e12_apprentissage_borne, (EM, "PART_DEAD_MIN", 0.0)),
+         ("un avion laissé vide reste vide", e13_rearmement_rate_rend_l_ancien_chargement,
+          (CL.Labo, "charger", charger_sans_retour))]
     for nom, test, (obj, attr, val) in m:
         with P.mutant(obj, attr, val):
             try:

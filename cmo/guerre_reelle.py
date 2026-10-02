@@ -649,31 +649,55 @@ class GuerreReelle:
             self._rearmer(rearmes)
 
     def _rearmer(self, lots):
-        """Avions de frappe posés réarmés pour la DEAD : le dépôt de leur base reçoit d'abord PACKS_INITIAUX chargements,
-        payés au prix réel par leur pays ; puis ScenEdit_SetLoadout, relu : sans les armes, CMO laisse l'avion vide."""
-        achats, charge = [], []
+        """Avions de frappe posés réarmés pour la DEAD. Le dépôt de leur base doit contenir les armes ( sinon CMO laisse
+        l'avion SANS armement, sonde du 02/10 ) : s'il ne peut armer l'avion, PACKS_INITIAUX chargements sont achetés au prix
+        réel par le pays ( la réserve suit au relevé des stocks ), puis ScenEdit_SetLoadout, relu. Refusé ( en vol, au roulage ), l'avion garde son chargement ; laissé vide,
+        il reprend aussitôt l'ancien."""
+        par_base, charge = {}, []
         for k, lo in lots:
             a = self.avions.get(k)
             b = self.bases.get(a["base"]) if a else None
             depots = [d for d in (b["depots"] if b else []) if self.elements[d]["vivant"]]
-            cout = self.prix_pack(lo)[0] * PACKS_INITIAUX
-            if not depots or self.caisse[a["pays"]] < cout:
-                continue
-            self.caisse[a["pays"]] -= cout
-            self.depense[a["pays"]] += cout
-            self.packs_achetes[a["pays"]] += PACKS_INITIAUX
-            achats.append((depots[0], lo, PACKS_INITIAUX))
-            charge.append((k, lo, self.readytime(lo)))
+            if depots:
+                par_base.setdefault(a["base"], (depots, []))[1].append((k, lo))
+        achats = []
+        for i, (depots, ks) in par_base.items():
+            total = {}
+            for s in self.labo.stocks(depots)["stocks"].values():
+                for w, (c, _) in s.items():
+                    total[w] = total.get(w, 0) + c
+            for k, lo in ks:
+                a = self.avions[k]
+                cout, armes = self.prix_pack(lo)
+                dispo = min((total.get(w, 0) // q for w, q in armes), default=0)
+                manque = PACKS_INITIAUX if dispo < 1 else 0  # de quoi armer cet avion : un lot ; la réserve, au relevé
+                if manque and self.caisse[a["pays"]] < manque * cout:
+                    continue
+                if manque:
+                    self.caisse[a["pays"]] -= manque * cout
+                    self.depense[a["pays"]] += manque * cout
+                    self.packs_achetes[a["pays"]] += manque
+                    achats.append((depots[0], lo, manque))
+                for w, q in armes:                          # le stock relu sert aussi aux suivants de la même base
+                    total[w] = total.get(w, 0) + manque * q - q
+                charge.append((k, lo, self.readytime(lo)))
         if achats:
             self.labo.armer(achats)
-        if charge:
-            r = self.labo.charger(charge)
-            for k, lo, _ in charge:
-                ok = r["charges"].get(k) == lo
-                if ok:
-                    self.avions[k].update(role="dead", loadout=lo)
-                    self.affecte.pop(k, None)
-                self.em.journal.append({"tour": self.tours, "rearme": k, "chargement": lo, "ok": ok})
+        if not charge:
+            return
+        r = self.labo.charger(charge)
+        rendre = []
+        for k, lo, _ in charge:
+            lu, ancien = r["charges"].get(k), self.avions[k]["loadout"]
+            if lu == lo:
+                self.avions[k].update(role="dead", loadout=lo)
+                self.affecte.pop(k, None)
+            elif lu is not None and lu != ancien:
+                rendre.append((k, ancien, 0))
+            self.em.journal.append({"tour": self.tours, "rearme": k, "chargement": lo, "ok": lu == lo, "lu": lu})
+        if rendre:
+            r2 = self.labo.charger(rendre)
+            self.em.journal.append({"tour": self.tours, "rendu": {k: r2["charges"].get(k) for k, _, _ in rendre}})
 
     def _choisir_cible(self, camp):
         """La base aérienne adverse opérationnelle la plus proche des bases du camp, à portée."""
