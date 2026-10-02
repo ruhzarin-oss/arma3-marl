@@ -1,160 +1,176 @@
 """LA LOGISTIQUE QUI COMMANDE LE COMBAT ( Arma a fond, etape 2a, HMT-193 ) : on ne tire que ce qui a ete paye et apporte.
+ALIGNEE le 02/10 sur les domaines 26 et 27 : la guerre d Arma passe par leurs chemins, elle ne tient pas une seconde
+verite a cote d eux.
 
-Le FRONT est un detenteur reel : une armurerie du domaine 25 hors des bases ( lieu « front » ), dans la liste des
-armureries, donc dans la conservation du domaine ( stock = depart + entrees - sorties comptees ). Tout mouvement passe
-par le grand livre :
-  emporter   un soldat mobilise emporte, pour chaque arme de sa dotation, la dotation de combat du domaine 25
-             ( DOTATION_COMBAT ), au plus ce que l armurerie de SA base a encore ( transfert_munitions vers le front ) ;
-  tirer      ce que le pont rend comme coups restants d un soldat fait la sortie tir_combat du front ( l arme principale
-             d abord : CHOIX, tant que le pont compte des coups et non des chargeurs - etape 6, CUP ) ;
-  mort       un soldat tue perd ce qu il portait ( perte_au_combat, nature perdu ) ;
-  convoi     un ravitaillement : un camion du domaine 25 en service a la base, le gazole de la garnison pour l aller et le
-             retour ( km x consommation du modele, brule au depart ), une route de distance x DETOUR / VITESSE_CONVOI ; la
-             charge quitte la base au depart ( vers le front, « en route » ) et n est remise aux soldats qu a l arrivee.
-CHOIX : DETOUR 1,3 ( le coefficient de circuite des routes mesure est de 1,2 a 1,4 ) ; VITESSE_CONVOI 40 km/h ( allure
-d un convoi militaire sur route, ordre de grandeur des manuels de mouvement ).
+Les coups qu un soldat porte sont une RESERVE du domaine 27 sur l armurerie de sa base ( d27.reserve, cle ( base,
+calibre ) ) : ils restent au livre de la base jusqu a ce qu ils soient tires, comme ceux des missions du domaine 27, et
+une mission du 27 ne peut pas les promettre une seconde fois.
+  emporter   la regle du domaine 27 ( `_hommes_bleus` ) : l arme principale ( le tireur antichar : son arme de poing ),
+             sa dotation de combat, au prorata de ce que la base a encore hors reserves, arrondi a l entier inferieur ;
+  tirer      les coups restants rendus par le pont : la difference est tiree a la base ( d25.tirer, tir_combat ), la
+             reserve baisse, le domaine 27 compte la demande et la sortie ( tirs, tirs_sortis ) ;
+  mort       l unite ramasse ce que portait le mort ( la reserve est rendue ) ; si le corps est abandonne
+             ( abandonne=True : l unite rompt, regle du domaine 27 ), c est une perte_au_combat ;
+  rendre     un evacue : l unite ramasse ses coups ( la reserve est rendue ) ;
+  convoi     un ravitaillement de la base vers le lieu le plus proche des soldats, par les moyens du domaine 26 : un
+             camion Steyr libre et son conducteur, reserves DANS le domaine 26 ( camion_libre, chauffeur_libre : il ne
+             les donne plus a ses propres convois ), le gazole de la garnison brule par son livre de flux
+             ( carburant_convoi_militaire ), la duree de route du domaine 15 ( duree_convoi_pas sur la vraie route ),
+             l usure du camion ( kilometres, Parc ). La charge est reservee au depart et remise a l arrivee ( avancer ).
+CHOIX : une garnison ne ravitaille que ses propres soldats ( la reserve d un soldat tient a une seule base ).
+Le ravitaillement de la base elle-meme ( depot de brigade -> garnison ) est celui du domaine 26 : sa decision S4 du
+matin, ou `d26.demander`.
 
-Rien ne change tant qu aucune fonction n est appelee ( porte L6 )."""
+Rien ne change tant qu aucune fonction n est appelee ( porte A6 )."""
 import math
 
-from monde import config as C
-from monde.pays import d25_armee as A
-from monde.socle import objets as O
+import numpy as np
 
-DETOUR = 1.3
-VITESSE_CONVOI_KMH = 40.0
-CAMION = "steyr_12m18"
-LIEU_FRONT = "front"
+from monde.pays import d15_logistique as LG, d25_armee as A, d26_armee_soutien as S, d27_armee_tactique as T
+
+EPS = 1e-9
 
 
 def _L(w):
-    return w.__dict__.setdefault("logistique", {"porte": {}, "convois": [], "camions_pris": {}, "prochain": 1})
+    return w.__dict__.setdefault("logistique", {"porte": {}, "convois": [], "prochain": 1})
 
 
-def front(w):
-    """L armurerie du front de l ile ( creee a la premiere demande, dans la liste des armureries du domaine 25 )."""
-    d = w.pays.domaines[A.DOMAINE]
-    for a in d.armureries:
-        if a.lieu == LIEU_FRONT: return a
-    a = A.Armurerie(-1, LIEU_FRONT); d.armureries.append(a)
-    return a
+def _cle(po):
+    return po["base"], po["cal"]
 
 
-def _rang(w, i):
-    col = w.pays.colonnes["habitant"]
-    return int(col["ar_rang"][i])
+def _reserver(p, cle, q):
+    r = T._dom(p).reserve
+    r[cle] = r.get(cle, 0.0) + q
 
 
-def _armes(d, r):
-    """( nom, calibre ) des armes individuelles de la ligne r : la principale, puis la secondaire."""
-    E = d.eff; out = []
-    for champ in ("arme_m", "arme2_m"):
-        k = int(E[champ][r])
-        if k >= 0 and A.ARMES[k].nom not in A.COLLECTIVES: out.append((A.ARMES[k].nom, A.ARMES[k].calibre))
-    return out
+def _liberer(p, cle, q):
+    r = T._dom(p).reserve
+    r[cle] = max(0.0, r.get(cle, 0.0) - q)
 
 
 def emporter(w, numeros):
-    """Chaque soldat mobilise emporte sa dotation de combat, au plus ce que sa base a encore. Rend { numero : { bien : q } }."""
+    """Chaque soldat mobilise emporte la dotation de combat de son arme, selon la regle du domaine 27. Un soldat qui
+    porte deja n emporte pas une seconde fois. Rend { numero : coups }."""
     from guerre import moteur as GM
-    p = w.pays; d = p.domaines[A.DOMAINE]; L = p.socle.livre; fr = front(w); f = GM._front(w); lg = _L(w)
-    out = {}
+    p = w.pays; f = GM._front(w); lg = _L(w); rang = p.col("habitant", "ar_rang")
+    ids, nums = [], []
     for num in numeros:
         s = f.get(int(num))
-        if s is None: continue
-        r = _rang(w, s["i"])
-        porte = {"base": None, "coups": {}, "armes": []}
-        if r >= 0:
-            b = int(d.eff["base"][r]); arm = d.armureries[d.par_base[b]]
-            porte["base"] = arm.lieu; porte["armes"] = _armes(d, r)
-            for nom, bien in porte["armes"]:
-                bid = d.bids[bien]
-                q = min(float(A.DOTATION_COMBAT[nom]), float(arm.stock[bid]))
-                if q > 0: q = L.deplacer(arm.stock, fr.stock, bid, q, "transfert_munitions")
-                porte["coups"][bien] = porte["coups"].get(bien, 0.0) + q
-        lg["porte"][int(num)] = porte; out[int(num)] = dict(porte["coups"])
-    return out
+        if s is None or int(num) in lg["porte"]: continue
+        if int(rang[s["i"]]) < 0:                       # hors des effectifs du domaine 25 : rien a emporter
+            lg["porte"][int(num)] = {"base": None, "cal": -1, "coups": 0.0}; continue
+        ids.append(int(s["i"])); nums.append(int(num))
+    if ids:
+        h = T._hommes_bleus(p, ids, np.zeros(len(ids), np.int16), False, T._dom(p).reserve)
+        for v, num in enumerate(nums):
+            c = int(h["cal"][v])
+            lg["porte"][num] = {"base": w.carte.par_n[int(h["base"][v])].id if c >= 0 else None, "cal": c,
+                                "coups": float(h["coups"][v]) if c >= 0 else 0.0}
+    return {int(num): coups(w, num) for num in numeros if int(num) in lg["porte"]}
 
 
 def coups(w, num):
-    return sum(_L(w)["porte"].get(int(num), {"coups": {}})["coups"].values())
+    po = _L(w)["porte"].get(int(num))
+    return 0.0 if po is None else po["coups"]
 
 
 def tirer(w, num, restant):
-    """Le pont rend `restant` coups pour le soldat `num` : la difference sort du front ( tir_combat ). Rend les coups tires."""
-    p = w.pays; d = p.domaines[A.DOMAINE]; fr = front(w)
-    po = _L(w)["porte"].get(int(num))
-    if po is None: return 0.0
-    tire = max(0.0, coups(w, num) - max(0.0, float(restant)))
-    reste = tire
-    for _nom, bien in po["armes"] or [(None, b) for b in po["coups"]]:
-        q = min(reste, po["coups"].get(bien, 0.0))
-        if q > 0:
-            q = A._sortir(p, d, fr, bien, q, "tir_combat"); po["coups"][bien] -= q; reste -= q
-            p.compter("tir_combat", q)
-    return tire - reste
+    """Le pont rend `restant` coups pour le soldat `num` : la difference est tiree a sa base. Rend les coups sortis."""
+    p = w.pays; po = _L(w)["porte"].get(int(num))
+    if po is None or po["cal"] < 0: return 0.0
+    q = max(0.0, po["coups"] - max(0.0, float(restant)))
+    if q <= EPS: return 0.0
+    lid, c = _cle(po); bien = A.NOMS_MUNITIONS[c]; t = T._dom(p)
+    sortis = A.tirer(p, lid, bien, q, "tir_combat")
+    t.tirs[(lid, bien)] = t.tirs.get((lid, bien), 0.0) + q
+    t.tirs_sortis[(lid, bien)] = t.tirs_sortis.get((lid, bien), 0.0) + sortis
+    _liberer(p, (lid, c), q); po["coups"] -= q
+    return sortis
 
 
-def mort(w, num):
-    """Le soldat tue perd ce qu il portait. Rend les coups perdus."""
-    p = w.pays; d = p.domaines[A.DOMAINE]; fr = front(w)
+def rendre(w, num):
+    """Un soldat qui quitte le front vivant ( evacue ) : l unite ramasse ses coups. Rend les coups rendus."""
     po = _L(w)["porte"].pop(int(num), None)
-    if po is None: return 0.0
-    perdu = 0.0
-    for bien, q in po["coups"].items():
-        if q > 0: perdu += A._sortir(p, d, fr, bien, q, "perte_au_combat", "perdu")
+    if po is None or po["cal"] < 0 or po["coups"] <= 0: return 0.0
+    _liberer(w.pays, _cle(po), po["coups"])
+    return po["coups"]
+
+
+def mort(w, num, abandonne=False):
+    """Un soldat tue : l unite ramasse ses coups ( rendus ), sauf si son corps est abandonne ( perte_au_combat ). Rend
+    les coups perdus."""
+    p = w.pays; po = _L(w)["porte"].get(int(num))
+    if po is None or po["cal"] < 0 or po["coups"] <= 0 or not abandonne:
+        rendre(w, num); return 0.0
+    _L(w)["porte"].pop(int(num))
+    lid, c = _cle(po); bien = A.NOMS_MUNITIONS[c]; t = T._dom(p); q = po["coups"]
+    perdu = A.tirer(p, lid, bien, q, "perte_au_combat")
+    t.tirs[(lid, bien + ":perte")] = t.tirs.get((lid, bien + ":perte"), 0.0) + q
+    t.tirs_sortis[(lid, bien + ":perte")] = t.tirs_sortis.get((lid, bien + ":perte"), 0.0) + perdu
+    _liberer(p, (lid, c), q)
     return perdu
 
 
-def _camion_libre(w, b):
-    d = w.pays.domaines[A.DOMAINE]; V = d.veh; pris = _L(w)["camions_pris"]
-    m = A.IDX_VEHICULE[CAMION]
-    for k in range(V.n):
-        if V["base"][k] == b and V["oid"][k] >= 0 and V["modele"][k] == m and V["etat"][k] == O.SERVICE \
-                and pris.get(int(V["oid"][k]), -1) <= int(w.pas):
-            return k
-    return -1
-
-
 def convoi(w, base_lieu, numeros, coups_par_soldat, destination):
-    """Un ravitaillement de la base vers `destination` ( x, y ) pour ces soldats. Rend { ok, raison, ... }."""
-    p = w.pays; d = p.domaines[A.DOMAINE]; L = p.socle.livre; fr = front(w); lg = _L(w)
-    lieu = w.carte.lieux[base_lieu]; b = lieu.n
-    arm = d.armureries[d.par_base[b]]
-    k = _camion_libre(w, b)
-    if k < 0: return {"ok": False, "raison": "aucun camion en service a la base"}
-    km_aller = math.dist(lieu.pos, destination) * DETOUR / 1000.0
-    besoin = 2.0 * km_aller * A.VEHICULE[CAMION].unites_par_km
-    g = w.garnisons.get(base_lieu)
-    if g is None or float(g["carburant"]) < besoin - 1e-9: return {"ok": False, "raison": "pas assez de gazole a la garnison"}
-    g["carburant"] -= besoin; w.flux["brule"]["carburant"] += besoin
-    pas_route = int(math.ceil(km_aller / VITESSE_CONVOI_KMH * C.PAS_PAR_JOUR / 24.0))
-    charge = {}
+    """Un ravitaillement de la base `base_lieu` vers le lieu le plus proche de `destination` ( x, y ), pour ceux de ces
+    soldats qui sont de cette base. Rend { ok, raison } ou { ok, id, camion, chauffeur, vers, km, depart, arrivee,
+    gazole, charge }."""
+    p = w.pays; d = S._dom(p); carte = w.carte; lg = _L(w)
+    o = carte.lieux[base_lieu]; b = o.n
+    t = carte.par_n[S._lieu_proche(p, d, float(destination[0]), float(destination[1]), carte.iles.index(o.ile))]
+    if t.id != o.id and not LG.route_praticable(p, o, t): return {"ok": False, "raison": "route coupee"}
+    camions = S._camions_libres(p, d, b)
+    if not camions: return {"ok": False, "raison": "aucun camion libre a la base ( domaine 26 )"}
+    h = S._chauffeur(p, d, b)
+    if h < 0: return {"ok": False, "raison": "aucun conducteur libre a la base ( domaine 26 )"}
+    km = carte.km_route(o, t) if t.id != o.id else 0.0
+    aller, retour = LG.duree_convoi_pas(p, o, t, km)
+    gaz = 2.0 * km * A.VEHICULE[S.CAMION].unites_par_km
+    if S._quantite(p, d, "base", b, "carburant") < gaz - EPS: return {"ok": False, "raison": "pas assez de gazole a la garnison"}
+    # la charge : de ce que la base a hors reserves, soldat par soldat, dans la limite d un camion de 5 t
+    charge, cals = {}, {}; kg = 0.0
     for num in numeros:
         po = lg["porte"].get(int(num))
-        if po is None: continue
-        for _nom, bien in po["armes"][:1]:              # le convoi apporte la munition de l arme principale
-            bid = d.bids[bien]
-            q = min(float(coups_par_soldat), float(arm.stock[bid]))
-            if q > 0: q = L.deplacer(arm.stock, fr.stock, bid, q, "transfert_munitions")
-            charge.setdefault(int(num), {})[bien] = charge.get(int(num), {}).get(bien, 0.0) + q
-    oid = int(d.veh["oid"][k])
-    lg["camions_pris"][oid] = int(w.pas) + 2 * pas_route
-    c = {"id": lg["prochain"], "base": base_lieu, "camion": oid, "depart": int(w.pas), "arrivee": int(w.pas) + pas_route,
-         "km_aller": km_aller, "gazole": besoin, "charge": charge, "livre": False}
-    lg["prochain"] += 1; lg["convois"].append(c)
-    w.noter("convoi", base=base_lieu, km=round(km_aller, 1), arrivee=c["arrivee"], soldats=len(charge))
-    return {"ok": True, **c}
+        if po is None or po["cal"] < 0 or po["base"] != base_lieu: continue
+        c = po["cal"]; bien = A.NOMS_MUNITIONS[c]
+        stock = float(A.armurerie(p, base_lieu).stock[A._dom(p).bids[bien]])
+        dispo = max(0.0, stock - T._dom(p).reserve.get((base_lieu, c), 0.0))
+        m = LG.masse_kg(p, bien)
+        q = float(math.floor(min(float(coups_par_soldat), dispo, max(0.0, S.CHARGE_CAMION_KG - kg) / max(EPS, m)) + EPS))
+        if q <= 0: continue
+        _reserver(p, (base_lieu, c), q); kg += q * m
+        charge[int(num)] = q; cals[int(num)] = c
+    if gaz > EPS: S._sortir(p, d, "base", b, "carburant", gaz, "carburant_convoi_militaire", "brule")
+    k = camions[0]; depart = S._depart(d, o.id, w.pas)
+    d.camion_libre[k] = depart + aller + retour; d.chauffeur_libre[h] = depart + aller + retour
+    V = A._dom(p).veh; parc = p.socle.parc
+    A._rouler(V, k, 2.0 * km)
+    parc.user(parc.objets[int(V["oid"][k])], 2.0 * km / A.VITESSE_USAGE_KMH)
+    c_ = {"id": lg["prochain"], "base": base_lieu, "camion": int(k), "chauffeur": int(h), "vers": t.id, "km": km,
+          "depart": int(depart), "arrivee": int(depart + aller), "gazole": gaz, "charge": charge, "cal": cals, "livre": False}
+    lg["prochain"] += 1; lg["convois"].append(c_)
+    w.noter("convoi", base=o.id, km=round(km, 1), arrivee=c_["arrivee"], soldats=len(charge))
+    return {"ok": True, **c_}
 
 
 def avancer(w):
-    """Les convois arrives remettent leur charge aux soldats. Rend les convois livres a cet appel."""
-    lg = _L(w); out = []
+    """Les convois arrives remettent leur charge aux soldats ; celle d un soldat parti entre-temps ( mort, evacue ) est
+    rendue a la base. Rend les convois livres a cet appel."""
+    p = w.pays; lg = _L(w); out = []
     for c in lg["convois"]:
         if c["livre"] or c["arrivee"] > int(w.pas): continue
-        for num, ch in c["charge"].items():
+        for num, q in c["charge"].items():
             po = lg["porte"].get(int(num))
-            if po is None: continue                      # mort en route : la charge reste au front, comptee
-            for bien, q in ch.items(): po["coups"][bien] = po["coups"].get(bien, 0.0) + q
+            if po is None: _liberer(p, (c["base"], c["cal"][num]), q); continue
+            po["coups"] += q
         c["livre"] = True; out.append(c["id"])
+    return out
+
+
+def portees(w):
+    """Les coups portes par les soldats et les missions, par base et par bien ( la reserve du domaine 27 )."""
+    out = {}
+    for (lid, c), q in sorted(T._dom(w.pays).reserve.items()):
+        if q > EPS: out.setdefault(lid, {})[A.NOMS_MUNITIONS[c]] = q
     return out

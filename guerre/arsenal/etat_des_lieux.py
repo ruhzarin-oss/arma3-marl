@@ -153,15 +153,15 @@ def etat_des_lieux(w):
         tot["valeur_dr"] += valeur
         for c in ("effectifs", "conscrits", "instruction"): tot[c] += eb[c]
         bases[eb["lieu"]] = eb
-    # ( 02/10, HMT-193 ) le front : les munitions emportees par les soldats et celles des convois en route
-    fr = next((a for a in d.armureries if a.lieu == "front" and a.lieu not in w.carte.lieux), None)
+    # ( 02/10, HMT-193, aligne sur le domaine 27 ) les coups portes par les soldats et les missions : la reserve du
+    # domaine 27, qui reste au stock de la base ( deja comptee plus haut, donc pas ajoutee aux totaux )
     front = None
-    if fr is not None:
-        front = {bien: round(float(fr.stock[d.bids[bien]]), 1) for bien in A.NOMS_MUNITIONS if float(fr.stock[d.bids[bien]]) > 0}
-        for bien in A.NOMS_MUNITIONS:
-            q = float(fr.stock[d.bids[bien]])
-            if q > 0: tot["munitions"][bien] = tot["munitions"].get(bien, 0.0) + q
-        tot["pieces"] += float(fr.stock[d.bids["pieces"]])
+    if p.a("armee_tactique"):
+        from monde.pays import d27_armee_tactique as T27
+        front = {}
+        for (lid, c), q in sorted(T27._dom(p).reserve.items()):
+            if q > 0: front.setdefault(lid, {})[A.NOMS_MUNITIONS[c]] = round(float(q), 1)
+        front = front or None
     detruits = {m.nom: parc.comptes[d.mids[m.nom]]["detruit"] for m in A.VEHICULES if parc.comptes[d.mids[m.nom]]["detruit"]}
     loi = getattr(d, "loi", None) or {}
     out = {"ile": getattr(w, "ile", None) or "?", "pas": int(w.pas),
