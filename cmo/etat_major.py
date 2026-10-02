@@ -65,6 +65,10 @@ class EtatMajor:
         self.journal = []                                # décisions et notes, pour l'agent et pour Younes
         self.a_clore = []                                # ( camp, id ) des frappes à fermer dans CMO à ce tour
         self.zones = {}                                  # id de zone -> ( lat, lon ) envoyée à CMO
+        # LA CARTE DES MENACES de chaque camp : les défenses sol-air adverses qu'il a identifiées ( contact classé >= 2 ) ou
+        # connues d'avance ( garnisons du temps de paix ), à leur dernière position connue, jusqu'à leur destruction.
+        self.memoire = {c: {} for c in g.camps}          # camp -> { numéro : [ lat, lon, tour ] }
+        self.avant_guerre = False                        # les garnisons connues d'avance sont-elles sur la carte ?
 
     # ---- mémoire des portées ( la DB est lente : une lecture par type )
     def _p(self, quoi, dbid):
@@ -90,18 +94,36 @@ class EtatMajor:
                 out.append((k, e["pos"], self._p("air", e["dbid"])))
         return out
 
+    def renseigner(self):
+        """La carte des menaces, chaque tour : une défense adverse vue et classée au moins « type connu » y entre ( ou y
+        est déplacée ) ; perdue de vue, elle y reste à sa dernière position ; détruite, elle en sort. Avant-guerre ( ou
+        à la première reprise ), les garnisons des défenses sol-air adverses y sont : l'OTAN sait où sont les S-400 de
+        Kaliningrad depuis le temps de paix, comme la Russie connaît les Patriot polonais."""
+        g = self.g
+        for camp in g.camps:
+            mem = self.memoire.setdefault(camp, {})
+            if not self.avant_guerre:
+                for k, s in g.sol.items():
+                    if s["camp"] != camp and self._p("air", s["dbid"]) >= DOC.PORTEE_MENACE_KM and k not in mem:
+                        mem[k] = [s["pos"][0], s["pos"][1], 0]
+            for k, v in g.vus.get(camp, {}).items():
+                if v[0] >= CLASSIF_MIN:
+                    mem[k] = [v[2], v[3], g.tours] if (v[2] or v[3]) else [*g.sol[k]["pos"], g.tours] if k in g.sol else None
+            for k in [k for k in mem if k not in g.sol or mem[k] is None]:
+                del mem[k]
+        self.avant_guerre = True
+
     def _connu(self, camp, k):
-        """Brouillard de guerre : une unité mobile adverse n'existe pour l'état-major que si son camp la voit dans CMO,
-        classée au moins « type connu » ( sinon il ne sait pas que c'est une défense sol-air )."""
+        """Brouillard de guerre : une unité mobile adverse n'existe pour l'état-major que si elle est sur la carte des
+        menaces de son camp ( identifiée, ou connue d'avance )."""
         if not self.g.brouillard:
             return True
-        v = self.g.vus.get(camp, {}).get(k)
-        return v is not None and v[0] >= CLASSIF_MIN
+        return k in self.memoire.get(camp, {})
 
     def _vu_ou(self, camp, k, vrai):
-        """La position que le camp CROIT : celle du contact, à défaut la vraie."""
-        v = self.g.vus.get(camp, {}).get(k) if self.g.brouillard else None
-        return (v[2], v[3]) if v and (v[2] or v[3]) else vrai
+        """La position que le camp CROIT : la dernière connue sur sa carte des menaces, à défaut la vraie."""
+        m = self.memoire.get(camp, {}).get(k) if self.g.brouillard else None
+        return (m[0], m[1]) if m else vrai
 
     def _centre(self, camp, combat=True):
         """Le centre de gravité des avions de combat du camp ( leurs bases, pondérées ) : les bases lointaines des avions de
@@ -366,6 +388,7 @@ class EtatMajor:
     def etat(self):
         return {"part_dead": self.part_dead, "efficacite": self.efficacite, "k": self.k,
                 "zones": {str(i): list(p) for i, p in self.zones.items()},
+                "memoire": {c: {str(k): v for k, v in m.items()} for c, m in self.memoire.items()}, "avant_guerre": self.avant_guerre,
                 "missions": {str(i): dict(m, avions=sorted(m["avions"])) for i, m in self.missions.items()},
                 "journal": self.journal[-200:]}
 
@@ -375,3 +398,6 @@ class EtatMajor:
                          for i, m in e["missions"].items()}
         self.journal = e.get("journal", [])
         self.zones = {int(i): tuple(p) for i, p in (e.get("zones") or {}).items()}
+        self.avant_guerre = e.get("avant_guerre", False)
+        if e.get("memoire") is not None:
+            self.memoire = {c: {int(k): v for k, v in m.items()} for c, m in e["memoire"].items()}

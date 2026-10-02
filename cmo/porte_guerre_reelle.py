@@ -411,13 +411,17 @@ def e16_cadence_surge_puis_soutenue():
 
 
 def e17_brouillard_de_guerre():
-    """L'état-major ne voit que ce que CMO montre à son camp ( u.ascontact, sonde du 03/10 ) : un S-400 non détecté
-    n'existe pas pour lui ( la frappe part sur la base, sous un parapluie qu'il ignore ) ; détecté mais seulement « milieu
-    connu » ( classification 1 ), il n'est pas encore une défense sol-air ; classé, il devient la cible d'une DEAD."""
+    """Le brouillard de guerre et la carte des menaces : les garnisons sol-air adverses sont connues d'avance ( le S-400
+    déclenche la DEAD dès le premier tour ). Une défense qui n'est PAS sur la carte ( arrivée ou déplacée en secret ) n'existe
+    pas pour l'état-major : la frappe part sur la base ; vue mais seulement « milieu connu » ( classe 1 ), toujours rien ;
+    classée, elle entre sur la carte ( DEAD ) ; perdue de vue ensuite, elle y RESTE à sa dernière position."""
     with guerre(flottes=FLOTTES_EM, sol=SOL_EM) as (f, g):
         s400 = next(k for k, s in g.sol.items() if s["dbid"] == 1937)
         trouver = f"for _, u in pairs(FAUX.unites) do if u.name == 'HMT-{s400}' then %s end end"
+        g.tour()
+        assert g.frappe["OTAN"]["type"] == "dead" and s400 in g.em.memoire["OTAN"], g.frappe["OTAN"]   # avant-guerre
         f.lua(trouver % "FAUX.caches['OTAN/' .. u.guid] = true")
+        del g.em.memoire["OTAN"][s400]                   # comme s'il avait bougé en secret
         g.tour()
         assert s400 not in g.vus["OTAN"] and g.frappe["OTAN"]["type"] == "oca", (g.vus["OTAN"], g.frappe["OTAN"])
         f.lua(trouver % "FAUX.caches['OTAN/' .. u.guid] = nil FAUX.classif['OTAN/' .. u.guid] = 1")
@@ -426,6 +430,9 @@ def e17_brouillard_de_guerre():
         f.lua(trouver % "FAUX.classif['OTAN/' .. u.guid] = 3")
         g.tour()
         assert g.frappe["OTAN"]["type"] == "dead" and g.frappe["OTAN"]["cibles"] == [s400], g.frappe["OTAN"]
+        f.lua(trouver % "FAUX.caches['OTAN/' .. u.guid] = true")
+        g.tour()
+        assert s400 not in g.vus["OTAN"] and g.frappe["OTAN"]["type"] == "dead", g.frappe["OTAN"]   # la carte se souvient
 
 
 # La composante air : la base polonaise à Poznań ( 360 km de Tchkalovsk, hors de portée du S-400 ), douze F-16, deux E-3A,
@@ -537,6 +544,9 @@ def controles():
          ("pas de swing-role", e15_swing_role, (EM.EtatMajor, "_basculer", lambda self, camp, vers: [])),
          ("la guerre reste en surge", e16_cadence_surge_puis_soutenue, (GR, "SURGE_H", 1e9)),
          ("l'état-major voit tout", e17_brouillard_de_guerre, (EM.EtatMajor, "_connu", lambda self, camp, k: True)),
+         ("la carte des menaces oublie", e17_brouillard_de_guerre,
+          (EM.EtatMajor, "_connu", lambda self, camp, k: (self.g.vus.get(camp, {}).get(k) or (0,))[0] >= EM.CLASSIF_MIN
+           or (not self.g.tours > 1 and k in self.memoire.get(camp, {})))),
          ("le soutien orbite sous le parapluie", e18_composante_air, (EM.EtatMajor, "_recul", recul_aveugle)),
          ("le brouilleur ne brouille pas", e18_composante_air, (EM, "SOUTIEN", dict(EM.SOUTIEN, brouilleur=EM.SOUTIEN["brouilleur"][:6] + (1,)))),
          ("pas de barrière de chasse", e18_composante_air, (EM.EtatMajor, "_barriere", lambda self, camp, zid: []))]

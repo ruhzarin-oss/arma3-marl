@@ -829,6 +829,7 @@ class GuerreReelle:
         for camp in self.camps:
             adverses = sorted(k for k, s in self.sol.items() if s["camp"] != camp)
             self.vus[camp] = self.labo.vus(camp, adverses)["vus"] if adverses else {}
+        self.em.renseigner()                             # la carte des menaces ( garnisons d'avant-guerre au premier tour )
 
     def _cadence(self):
         """Surge les SURGE_H premières heures de la guerre ( temps du scénario ), puis cadence soutenue : une sortie par jour
