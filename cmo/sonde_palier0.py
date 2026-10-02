@@ -84,6 +84,20 @@ CHAMPS_AVION = ["name", "guid", "side", "type", "subtype", "dbid", "classname", 
                 "altitude", "speed", "fuelstate", "weaponstate", "fuel", "mission", "base", "group", "proficiency",
                 "QuickTurnaround", "quickturnaround", "loadout", "sensors", "mounts", "magazines", "damage",
                 "throttle", "manualAltitude", "category", "avoidCavitation", "outOfComms", "fields"]
+BASE_REELLE = "Lithuania/Siauliai Air Base 2024.inst"    # 2024 : modèle récent livré avec CMO
+CHAR = 102                                                # T-72B3 ( DataGroundUnit, Russie )
+CHAMPS_SOL = ["name", "guid", "side", "type", "dbid", "classname", "latitude", "longitude", "speed", "unitstate",
+              "condition", "mounts", "magazines", "damage", "fields"]
+# Combien d'unités dans le camp jetable, les dix premières ( nom, dbid ), et le magasin du premier dépôt de munitions.
+COMPTER = ("local s = VP_GetSide({side = 'HMT-SONDE'}) local us = s and s.units or {} local t = {'unites ' .. #us} "
+           "local mag = nil "
+           "for i, u in ipairs(us) do "
+           "  if i <= 10 then local ok, x = pcall(ScenEdit_GetUnit, {guid = u.guid}) "
+           "    t[#t + 1] = (u.name or '?') .. ' dbid=' .. tostring(ok and x and x.dbid) end "
+           "  if mag == nil and string.find(string.lower(u.name or ''), 'ammo') then mag = u.guid end "
+           "end "
+           "if mag then local x = ScenEdit_GetUnit({guid = mag}) t[#t + 1] = 'DEPOT ' .. CHAMPS(x, {'name', 'magazines'}) end "
+           "SORTIE('{n}', table.concat(t, '\\n'))")
 CHAMPS_BASE = ["name", "guid", "side", "type", "dbid", "classname", "magazines", "mounts", "airbases",
                "hostedUnits", "hostedunits", "embarkedUnits", "unitstate", "condition", "damage", "fields"]
 
@@ -128,6 +142,23 @@ def etapes(wpn_aim120, wpn_aim9, wpn_reservoir):
     yield "mag_apres_e", lire.replace("{n}", "mag_apres_e")
     # La remise en état : l'avion 2 a reçu un loadout vide au départ ? on relit les deux avions après les essais.
     yield "avion_2", f"local u = ScenEdit_GetUnit({{guid = G({AV2})}}) SORTIE('avion_2', CHAMPS(u, {lua_liste(CHAMPS_AVION)}))"
+    # LES VRAIES INSTALLATIONS ( ImportExport/<pays>/*.inst, livrées avec CMO ) et LES TROUPES AU SOL, dans un camp
+    # JETABLE ( HMT-SONDE ) retiré à la fin avec tout ce qu'il contient : le scénario de guerre n'en garde rien.
+    yield "camp_sonde", "SORTIE('camp_sonde', ESSAI(ScenEdit_AddSide, {side = 'HMT-SONDE'}))"
+    yield "importer_a", f"SORTIE('importer_a', ESSAI(ScenEdit_ImportInst, 'HMT-SONDE', '{BASE_REELLE}'))"
+    yield "importe_a", COMPTER.replace("{n}", "importe_a")
+    yield "importer_b", f"SORTIE('importer_b', ESSAI(ScenEdit_ImportInst, 'HMT-SONDE', '{BASE_REELLE.replace('/', chr(92) * 2)}'))"
+    yield "importe_b", COMPTER.replace("{n}", "importe_b")
+    yield "sol_a", (f"SORTIE('sol_a', ESSAI(ScenEdit_AddUnit, {{side = 'HMT-SONDE', type = 'GroundUnit', unitname = 'SONDE-SOL-A', "
+                    f"dbid = {CHAR}, latitude = {LIEU[0] + 0.2}, longitude = {LIEU[1]}}}))")
+    yield "sol_b", (f"SORTIE('sol_b', ESSAI(ScenEdit_AddUnit, {{side = 'HMT-SONDE', type = 'Facility', unitname = 'SONDE-SOL-B', "
+                    f"dbid = {CHAR}, latitude = {LIEU[0] + 0.3}, longitude = {LIEU[1]}}}))")
+    yield "sol_lu", ("local t = {} for _, n in ipairs({'SONDE-SOL-A', 'SONDE-SOL-B'}) do "
+                     "local ok, u = pcall(ScenEdit_GetUnit, {side = 'HMT-SONDE', unitname = n}) "
+                     f"t[#t + 1] = n .. ' : ' .. (ok and u ~= nil and CHAMPS(u, {lua_liste(CHAMPS_SOL)}) or 'absent') end "
+                     "SORTIE('sol_lu', table.concat(t, '\\n----\\n'))")
+    yield "retirer_sonde", "SORTIE('retirer_sonde', ESSAI(ScenEdit_RemoveSide, {side = 'HMT-SONDE'}))"
+    yield "camps_apres", "local t = {} for _, s in ipairs(VP_GetSides()) do t[#t + 1] = s.name end SORTIE('camps_apres', table.concat(t, ', '))"
 
 
 def armes_du_loadout(loadout):
