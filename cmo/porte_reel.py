@@ -138,8 +138,19 @@ def r8_table_rase_avec_une_vraie_base():
         assert f.compter() == 0
 
 
+def r9_table_rase_des_orphelins():
+    """Un import interrompu avant l'adoption laisse des unités non HMT dans nos camps : la table rase les emporte aussi
+    ( 02/10 : 111 éléments de 4 bases construites restés invisibles ), et laisse les fantômes."""
+    with banc() as (f, l):
+        l.importer("Russie-Chine", BASE_TEST)
+        time.sleep(0.1)
+        assert f.compter() == len(MEMBRES) + 1
+        assert l.nettoyer()["avant"] == len(MEMBRES) + 1
+        assert f.compter() == 0
+
+
 TESTS = [r1_armer_puis_relire_le_depot, r2_importer_et_numeroter_une_vraie_base, r3_pertes_et_depenses_de_cmo,
-         r4_doctrine_ecrite_et_relue, r6_releve_borne_aux_unites_mobiles, r7_degats_relus, r8_table_rase_avec_une_vraie_base]
+         r4_doctrine_ecrite_et_relue, r6_releve_borne_aux_unites_mobiles, r7_degats_relus, r8_table_rase_avec_une_vraie_base, r9_table_rase_des_orphelins]
 
 
 def r5_test():
@@ -175,7 +186,10 @@ def controles():
           "local p = HMT_positions HMT_positions = function(R, a, b) return p(R) end"),
          ("la table rase oublie les groupes", r8_table_rase_avec_une_vraie_base,
           "local d = ScenEdit_DeleteUnit ScenEdit_DeleteUnit = function(t, x) local u = FAUX.unites[t.guid] "
-          "if u and u.type == 'Group' then return true end return d(t, x) end")]
+          "if u and u.type == 'Group' then return true end return d(t, x) end"),
+         ("la table rase ignore les orphelins", r9_table_rase_des_orphelins,
+          "local v = VP_GetSide VP_GetSide = function(t) local s = v(t) local us = {} for _, x in ipairs(s.units) do "
+          "if string.match(x.name or '', '^HMT') then us[#us + 1] = x end end s.units = us return s end")]
     for nom, test, code in m:
         banc = banc_mute(code)
         try:

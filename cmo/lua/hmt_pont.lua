@@ -378,14 +378,25 @@ end
 function HMT_nettoyer(R)
     -- Les éléments d'abord, les groupes ( une vraie base importée ) ensuite : supprimer un groupe peut emporter ses
     -- éléments, dont la suppression échouerait alors. Un groupe déjà parti n'est pas une faute ; HMT_recompter prouve.
+    -- Les ORPHELINS aussi : une unité de nos camps qui n'est pas HMT vient d'un import interrompu avant l'adoption
+    -- ( 02/10 : 111 éléments de 4 bases construites, invisibles à la table rase, restés dans le scénario ). Nos camps ne
+    -- contiennent que des unités HMT ; les fantômes ( rafales de canon, que GetUnit ne rend pas ) restent.
     local avant, acceptees, groupes = 0, 0, {}
-    for _, e in pairs(HMT_recenser()) do
+    local cibles = {}
+    for _, e in pairs(HMT_recenser()) do cibles[#cibles + 1] = e.guid end
+    for _, nom in ipairs(HMT_CAMPS) do
+        local ok, s = pcall(VP_GetSide, { side = nom })
+        for _, x in ipairs((ok and s and s.units) or {}) do
+            if not string.match(x.name or '', '^HMT%-%d+$') and unite(x.guid) ~= nil then cibles[#cibles + 1] = x.guid end
+        end
+    end
+    for _, g in ipairs(cibles) do
         avant = avant + 1
-        local u = unite(e.guid)
+        local u = unite(g)
         if u ~= nil and u.type == 'Group' then
-            groupes[#groupes + 1] = e.guid
+            groupes[#groupes + 1] = g
         else
-            local ok, r = pcall(ScenEdit_DeleteUnit, { guid = e.guid }, true)
+            local ok, r = pcall(ScenEdit_DeleteUnit, { guid = g }, true)
             if ok and r == true then acceptees = acceptees + 1 end
         end
     end
@@ -400,6 +411,12 @@ end
 function HMT_recompter(R)
     local m = 0
     for _ in pairs(HMT_recenser()) do m = m + 1 end
+    for _, nom in ipairs(HMT_CAMPS) do
+        local ok, s = pcall(VP_GetSide, { side = nom })
+        for _, x in ipairs((ok and s and s.units) or {}) do
+            if not string.match(x.name or '', '^HMT%-%d+$') and unite(x.guid) ~= nil then m = m + 1 end
+        end
+    end
     R('RESTANTES', { m })
 end
 

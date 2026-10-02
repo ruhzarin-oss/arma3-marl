@@ -25,6 +25,10 @@ end
 pcall(ScenEdit_SetTrigger, { description = DECLENCHEUR, mode = 'remove' })
 pcall(ScenEdit_SetAction, { description = ACTION, mode = 'remove' })
 
+-- Une guerre dure : le scénario neuf de CMO a une durée d'un jour, au-delà de laquelle il ne devrait plus tourner
+-- ( 02/10 : la guerre du 29/09 tournait au 02/10 dans un scénario fini le 30/09 ).
+pcall(ScenEdit_SetStartTime, { Duration = '365:00:00:00' })
+
 local ev = ScenEdit_SetEvent(EVENEMENT, { mode = 'add', IsRepeatable = true })
 ScenEdit_SetTrigger({ mode = 'add', type = 'RegularTime', Interval = '0', name = DECLENCHEUR })   -- '0' = 1 s
 ScenEdit_SetEventTrigger(ev.guid, { mode = 'add', name = DECLENCHEUR })

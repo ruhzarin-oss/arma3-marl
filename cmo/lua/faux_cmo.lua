@@ -321,3 +321,5 @@ function FAUX_endommager(numero, pct, feu)
         end
     end
 end
+
+function ScenEdit_SetStartTime(t) FAUX.duree = t.Duration return FAUX.temps end
