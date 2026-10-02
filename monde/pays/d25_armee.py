@@ -187,7 +187,7 @@ OPTIQUES = (
     CaracOptique("rco_x4", 4, 600, 0.45, 1500, "CUP_optic_RCO",
                  "Trijicon ACOG TA31 ( RCO de l US Army ) x 4 : reticule gradue jusqu a 800 m pour le 5,56 ; utile ~ 600 m "
                  "( a calibrer ), 0,45 kg"),
-    CaracOptique("lunette_x10", 10, 1000, 0.60, 1800, "CUP_optic_LeupoldMk4_10x40_LRT",
+    CaracOptique("lunette_x10", 10, 1000, 0.60, 1800, "CUP_optic_LeupoldMk4_10x40_LRT_Woodland",   # ( 02/10 ) le nom de CUP
                  "Leupold Mark 4 10 x 40 : lunette de tireur d elite, utile ~ 1 000 m ( a calibrer ), 0,6 kg"),
     CaracOptique("lunette_3x", 3, 700, 0.90, 3000, "CUP_optic_MAAWS_Scope",
                  "lunette 3 x du Carl Gustaf : la portee de la charge creuse sur cible fixe ( Saab, 700 m ) ; masse et prix "
