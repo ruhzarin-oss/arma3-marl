@@ -5,7 +5,7 @@ qui ne les remplit pas ne réarme pas ses avions ( guerre du 29/09, figée au to
 sur le budget du pays et livrée à sa base, comme dans le réel.
 
 CHOIX À VALIDER ( copier le réel ) : prix unitaires 2026 en millions de dollars, ordres de grandeur publics saisis de
-mémoire ( table PRIX_ARME_M ) ; le matériel russe à son prix russe, comme les avions ( catalogue.py ) ; les nacelles
+mémoire ( table PRIX_ARME_M, air-air et air-sol ; un missile russe à son prix russe estimé ) ; le matériel russe à son prix russe, comme les avions ( catalogue.py ) ; les nacelles
 ( brouillage, leurres, IRST ) ne se consomment pas : prix 0, mais stockées pour que le chargement soit complet.
 
     .venv312/bin/python cmo/munitions.py [loadout ...]
@@ -23,7 +23,15 @@ PRIX_ARME_M = [  # ( motif du nom de l'arme dans la base, prix en M$ ) : le prem
     (r"R-77M\b", 1.0), (r"R-77-1|RVV-SD", 0.6), (r"R-77\b|RVV-AE", 0.5), (r"R-27", 0.3), (r"R-74", 0.3), (r"R-73", 0.2),
     (r"R-37", 1.5), (r"PL-15", 1.0), (r"PL-10", 0.3),
     (r"Drop Tank", 0.03),
-    (r"Pod|IRST", 0.0),
+    # air-sol ( 02/10 ) : kits de guidage et corps de bombe, missiles de croisière et antiradar
+    (r"JASSM", 1.5), (r"Storm Shadow|SCALP", 1.0), (r"Taurus", 1.0), (r"Tomahawk", 2.0), (r"JSOW", 0.7),
+    (r"GBU-31|GBU-32|GBU-38|JDAM", 0.035), (r"GBU-1[026]|Paveway II|LGB", 0.03), (r"Paveway IV", 0.07),
+    (r"CPU-123", 0.05), (r"AGM-88|HARM|AARGM", 0.8), (r"ALARM", 0.6),
+    (r"Iskander|9M723", 3.0), (r"Kalibr|3M14", 1.0), (r"Kh-59", 1.0), (r"Kh-38", 0.6), (r"Kh-31", 0.6),
+    (r"Kh-58", 0.5), (r"Kh-29", 0.15), (r"PBK-500", 0.1), (r"KAB-", 0.05), (r"BetAB", 0.02),
+    (r"Mk ?84", 0.015), (r"Mk ?83", 0.01), (r"Mk ?82", 0.005), (r"CBU-", 0.015), (r"OFAB|FAB-", 0.003),
+    (r"Rocket|HYDRA|S-8|S-13|M/70", 0.003),
+    (r"Pod|IRST|EOTS", 0.0),
 ]
 
 

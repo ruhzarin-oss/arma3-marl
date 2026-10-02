@@ -45,6 +45,25 @@ def famille(nom):
     return None, None
 
 
+ROLES_FRAPPE = (3101, 3001, 3102, 3002)          # frappe terrestre, frappe terre/mer, à distance terrestre, à distance
+GUIDEE = re.compile(r"GBU|JDAM|LGB|Paveway|JSOW|JASSM|Storm Shadow|Taurus|PBK|KAB|Kh-|BetAB", re.I)
+
+
+def chargement_frappe(dbid, base=BASE):
+    """Le chargement d'attaque au sol d'un avion ( DB3000 ) : une arme GUIDÉE d'abord ( comme les armées en 2026 ), les
+    bombes anti-pistes BetAB comptant comme telles ; à défaut le premier chargement de frappe. ( id, nom, rôle ) ou None."""
+    c = sqlite3.connect(f"file:{base}?mode=ro", uri=True)
+    repli = None
+    for role in ROLES_FRAPPE:
+        for i, nom in c.execute("""select l.ID, l.Name from DataAircraftLoadouts al join DataLoadout l on l.ID = al.ComponentID
+                where al.ID = ? and l.LoadoutRole = ? and coalesce(l.Hypothetical,0)=0 and l.Name not like '%Short-Range%'
+                order by l.ID""", (dbid, role)):
+            if GUIDEE.search(nom):
+                return i, nom, role
+            repli = repli or (i, nom, role)
+    return repli
+
+
 def catalogue(pays, base=BASE, annee=2026):
     c = sqlite3.connect(f"file:{base}?mode=ro", uri=True)
     rows = c.execute(f"""select a.ID, a.Name, a.YearCommissioned from DataAircraft a
