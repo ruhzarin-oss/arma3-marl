@@ -53,6 +53,9 @@ INSTALLATIONS = [
     (BC.fichier("Geilenkirchen", "Germany"), "OTAN", "Germany [FRG/Reunified]", "soutien"),  # E-3A de l'OTAN
     (BC.fichier("Ivanovo-Severny", "Russia"), "Russie-Chine", "Russia [1992-]", "soutien"),  # A-50U, Il-22PP
     (BC.fichier("Diaguilevo", "Russia"), "Russie-Chine", "Russia [1992-]", "soutien"),       # Il-78M
+    ("US-Europe/RAF Fairford 2021.inst", "OTAN", "United States", "soutien"),               # B-52H ( Bomber Task Force )
+    (BC.fichier("Engels", "Russia"), "Russie-Chine", "Russia [1992-]", "soutien"),          # Tu-160M, Tu-95MSM
+    (BC.fichier("Soltsy-2", "Russia"), "Russie-Chine", "Russia [1992-]", "soutien"),        # Tu-22M3M
 ]
 
 # Les COPIES : CMO ne recrée pas un élément dont l'identifiant ( Member_GUID du fichier ) a déjà servi dans la partie, même
@@ -125,6 +128,11 @@ FLOTTES = [
     (BC.fichier("Ivanovo-Severny", "Russia"), "Russia [1992-]", 3461, 2, "guet"),            # A-50U ( ~6 restants )
     (BC.fichier("Ivanovo-Severny", "Russia"), "Russia [1992-]", 4607, 2, "brouilleur"),      # Il-22PP Porubchtchik ( 3 )
     (BC.fichier("Diaguilevo", "Russia"), "Russia [1992-]", 2687, 4, "ravitailleur"),         # Il-78M ( ~15 )
+    # les bombardiers et leurs missiles de croisière ( jamais un chargement nucléaire )
+    ("US-Europe/RAF Fairford 2021.inst", "United States", 4893, 4, "bombardier"),            # B-52H, JASSM-ER + MALD
+    (BC.fichier("Engels", "Russia"), "Russia [1992-]", 7023, 4, "bombardier"),               # Tu-95MSM, Kh-101 ( ~20 prêts )
+    (BC.fichier("Engels", "Russia"), "Russia [1992-]", 7021, 2, "bombardier"),               # Tu-160M, Kh-101 ( ~10 )
+    (BC.fichier("Soltsy-2", "Russia"), "Russia [1992-]", 7022, 6, "bombardier"),             # Tu-22M3M, Kh-32 ( ~12 )
 ]
 
 # LES FORCES AU SOL ( 2026, copier le réel, À VALIDER ) : ( pays, dbid de l'unité mobile DB3000, nom, lat, lon ).

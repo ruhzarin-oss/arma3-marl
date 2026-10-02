@@ -30,10 +30,13 @@ CHARG = {7087: {"aa": 7453, "frappe": 7492, "prix_m": 45, "nom": "F-16"},
          1626: {"aa": None, "frappe": None, "guet": 8076, "prix_m": 300, "nom": "E-3A"},
          7712: {"aa": None, "frappe": None, "ravitailleur": 19801, "prix_m": 40, "nom": "KC-135R"},
          4518: {"aa": None, "frappe": None, "brouilleur": 22929, "prix_m": 70, "nom": "EA-18G"},
-         7611: {"aa": None, "frappe": None, "sead": 34933, "prix_m": 30, "nom": "Tornado ECR"}}
+         7611: {"aa": None, "frappe": None, "sead": 34933, "prix_m": 30, "nom": "Tornado ECR"},
+         7023: {"aa": None, "frappe": None, "bombardier": 2324, "prix_m": 90, "nom": "Tu-95MSM"}}
 LOADOUTS = {7453: [(897, 4), (945, 2)], 7492: [(1001, 2), (945, 2)], 19291: [(2056, 2), (2053, 2)], 27000: [(1002, 4)],
-            33510: [(3000, 2), (945, 2)], 8076: [], 19801: [], 22929: [(4000, 2)], 34933: [(4001, 2)]}
-PRIX_ARME = {897: 1.0, 945: 0.45, 1001: 0.03, 2056: 0.6, 2053: 0.2, 1002: 0.02, 3000: 1.5, 4000: 1.2, 4001: 0.8}
+            33510: [(3000, 2), (945, 2)], 8076: [], 19801: [], 22929: [(4000, 2)], 34933: [(4001, 2)], 2324: [(5000, 6)],
+            26997: [(5001, 4)]}
+PRIX_ARME = {897: 1.0, 945: 0.45, 1001: 0.03, 2056: 0.6, 2053: 0.2, 1002: 0.02, 3000: 1.5, 4000: 1.2, 4001: 0.8, 5000: 13.0,
+             5001: 0.6}
 # L'état-major : portées réelles de la DB3000 injectées ( S-400 215 km en l'air ; ATACMS 162 km, Iskander 270 km au sol ),
 # le chargement DEAD du F-16 ( JASSM-ER, 33510 ), 60 min de préparation.
 PORTEE_AIR, PORTEE_SOL = {1937: 215.0}, {3659: 162.0, 254: 270.0}
@@ -471,11 +474,56 @@ def e18_composante_air():
         assert len(bar) == 2, bar                                              # 6 chasseurs : 2 gardent, 2 sur 4 en barrière
 
 
+def e19_bombardiers():
+    """Les bombardiers ( Tu-95MSM et ses Kh-101 ) rejoignent la frappe de la base ennemie, avec les frappeurs ; tirant de
+    loin, ils ne réclament pas d'escorte."""
+    fl = T.FLOTTES + [("Test/Tchkalovsk.inst", "Russia [1992-]", 7023, 2, "bombardier")]
+    with guerre(flottes=fl) as (f, g):
+        bomb = sorted(k for k, a in g.avions.items() if a["role"] == "bombardier")
+        g.tour()
+        fr = g.frappe["Russie-Chine"]
+        assert len(bomb) == 2 and fr["type"] == "oca" and all(g.affecte.get(k) == fr["id"] for k in bomb), (bomb, fr, g.affecte)
+        esc = [k for k, m in g.affecte.items() if m == -fr["id"]]
+        assert not esc, esc                              # 2 frappeurs : pas d'escorte de plus ( 2 aa seulement à la base )
+
+
+def e20_sead_russe():
+    """Sans avions SEAD dédiés, la Russie réarme une paire de Su-30 en Kh-31P quand un Patriot couvre sa cible ; la paire
+    part en patrouille SEAD sur la défense ; les autres frappeurs ne sont pas pris en double."""
+    sol = T.SOL + [("Poland", 3653, "Patriot", 54.05, 19.16)]
+    kw = dict(EM_KW, portee_air=lambda d: {3653: 60.0, 1937: 215.0}.get(d, 0.0),
+              charg_mission=lambda d, m: {"dead": {7087: 33510}, "sead": {6210: 26997}}.get(m, {}).get(d))
+    with guerre(sol=sol, em_kw=kw) as (f, g):
+        g.caisse["Russia [1992-]"] = 1000.0
+        g.verse["Russia [1992-]"] += 1000.0
+        g.tour()
+        assert g.frappe["Russie-Chine"]["type"] == "dead", g.frappe
+        sead = sorted(k for k, a in g.avions.items() if a["role"] == "sead")
+        assert len(sead) == 2 and all(g.avions[k]["camp"] == "Russie-Chine" and g.avions[k]["bascule"] == "frappe" for k in sead), g.avions
+        assert all(f.lua(f"for _, u in pairs(FAUX.unites) do if u.name == 'HMT-{k}' then return u.loadoutdbid end end") == 26997 for k in sead)
+        g.tour()
+        assert all(g.affecte.get(k) == 513 for k in sead), g.affecte
+        assert f.lua("local m = FAUX.missions['Russie-Chine/HMT-P513'] return m and m.type") == "SEAD"
+
+
+def e21_balayage():
+    """Ciel ouvert ( frappe OCA ) : la moitié de la chasse avancée balaie la cible, l'autre tient la barrière."""
+    fl = [("Test/Malbork.inst", "Poland", 7087, 16, 0.25), ("Test/Tchkalovsk.inst", "Russia [1992-]", 6210, 4, 0.5)]
+    with guerre(bases=BASES_AIR, flottes=fl) as (f, g):
+        g.tour()
+        assert g.frappe["OTAN"]["type"] == "oca", g.frappe
+        tch = g.bases[g.frappe["OTAN"]["base"]]["pos"]
+        bal, bar = ([k for k, m in g.affecte.items() if m == z] for z in (505, 504))
+        assert len(bal) == 2 and len(bar) == 2 and GR.km(g.em.zones[505], tch) < 1, (bal, bar, g.em.zones)
+        assert f.lua("local m = FAUX.missions['OTAN/HMT-P505'] return m and m.type") == "AAW"
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
          e13_rearmement_rate_rend_l_ancien_chargement, e14_cible_la_plus_menacante, e15_swing_role,
-         e16_cadence_surge_puis_soutenue, e17_brouillard_de_guerre, e18_composante_air]
+         e16_cadence_surge_puis_soutenue, e17_brouillard_de_guerre, e18_composante_air,
+         e19_bombardiers, e20_sead_russe, e21_balayage]
 
 
 def controles():
@@ -549,7 +597,10 @@ def controles():
            or (not self.g.tours > 1 and k in self.memoire.get(camp, {})))),
          ("le soutien orbite sous le parapluie", e18_composante_air, (EM.EtatMajor, "_recul", recul_aveugle)),
          ("le brouilleur ne brouille pas", e18_composante_air, (EM, "SOUTIEN", dict(EM.SOUTIEN, brouilleur=EM.SOUTIEN["brouilleur"][:6] + (1,)))),
-         ("pas de barrière de chasse", e18_composante_air, (EM.EtatMajor, "_barriere", lambda self, camp, zid: []))]
+         ("pas de barrière de chasse", e18_composante_air, (EM.EtatMajor, "_barriere", lambda self, camp, zid: [])),
+         ("les bombardiers restent au sol", e19_bombardiers, (EM, "ROLES_OCA", ("frappe", "dead"))),
+         ("pas de SEAD sans avions dédiés", e20_sead_russe, (EM.EtatMajor, "_rearmer_sead", lambda self, camp: [])),
+         ("pas de balayage", e21_balayage, (EM, "SOUTIEN", {k: v for k, v in EM.SOUTIEN.items() if k != "balayage"}))]
     for nom, test, (obj, attr, val) in m:
         with P.mutant(obj, attr, val):
             try:

@@ -42,7 +42,11 @@ SOUTIEN = {
     "sead": (3, 2, None, None, None, 40.0, 0),
     "barriere": (4, 1, 0.5, 20.0, 80.0, 50.0, 0),
 }
+SOUTIEN["balayage"] = (5, 1, None, None, None, 40.0, 0)   # balayage de chasse sur la cible, ciel ouvert seulement
 DEPLACEMENT_KM = 10.0                                     # une zone n'est redessinée que si elle bouge de plus
+ROLES_DEAD = ("dead", "bombardier")                       # qui part contre les défenses : armes à distance de sécurité
+ROLES_OCA = ("frappe", "dead", "bombardier")              # ciel ouvert : tous les frappeurs
+SEAD_PAR_CAMP = 2                                         # sans avions SEAD dédiés, une paire de frappeurs réarmée en antiradar
 
 
 def km(a, b):
@@ -163,11 +167,11 @@ class EtatMajor:
         menaces = self.couvrent(camp, g.bases[cible]["pos"])
         if menaces:
             typ, cibles = "dead", sorted(k for k, _, _ in menaces)
-            roles = ("dead",)
+            roles = ROLES_DEAD
         else:
             b = g.bases[cible]
             typ, cibles = "oca", [k for k in b["pistes"] + b["acces"] + b["depots"] if g.elements[k]["vivant"]]
-            roles = ("frappe", "dead")                   # ciel ouvert : les avions DEAD frappent aussi la base
+            roles = ROLES_OCA                            # ciel ouvert : les avions DEAD et les bombardiers frappent aussi
         mid = self._mission(ci, camp, typ, cibles, frappes)
         g.frappe[camp] = {"id": mid, "base": cible, "cibles": cibles, "type": typ}
         decision.update(ordre=typ, mission=mid, cibles=len(cibles), parapluies=len(menaces))
@@ -181,14 +185,23 @@ class EtatMajor:
         if libres or lanceurs:
             affect.append((mid, libres + lanceurs))
         # l'escorte : une paire par ESCORTE_PAR_FRAPPEURS frappeurs, prise là où il y a le plus de chasseurs
-        avions_mid = [k for k, m in g.affecte.items() if m == mid and k in g.avions]   # un lanceur au sol ne s'escorte pas
-        n_esc = min(ESCORTE_MAX, 2 * math.ceil(len(avions_mid + libres) / ESCORTE_PAR_FRAPPEURS))
+        # un lanceur au sol ne s'escorte pas, un bombardier qui tire de loin non plus
+        avions_mid = [k for k, m in g.affecte.items() if m == mid and k in g.avions and g.avions[k]["role"] != "bombardier"]
+        n_esc = min(ESCORTE_MAX, 2 * math.ceil(len(avions_mid + [k for k in libres if g.avions[k]["role"] != "bombardier"])
+                                               / ESCORTE_PAR_FRAPPEURS))
         deja = [k for k, m in g.affecte.items() if m == -mid]
         if n_esc > len(deja):
             escortes.append((mid, self._escorteurs(camp, n_esc - len(deja))))
         # les réarmements : des frappeurs au sol deviennent DEAD tant que la part voulue n'est pas atteinte ; ceux qui n'ont
         # pas d'arme à distance passent en chasse pendant la DEAD et reviennent à la frappe quand le ciel est ouvert
-        rearmes = (self._rearmer(camp) + self._basculer(camp, "aa")) if typ == "dead" else self._basculer(camp, "frappe")
+        if typ == "dead":
+            rearmes = self._rearmer_sead(camp)
+            pris = {k for k, *_ in rearmes}
+            rearmes += [x for x in self._rearmer(camp) if x[0] not in pris]
+            pris |= {k for k, *_ in rearmes}
+            rearmes += [x for x in self._basculer(camp, "aa") if x[0] not in pris]
+        else:
+            rearmes = self._basculer(camp, "frappe")
         decision["engages"] = len(libres) + len(lanceurs)
         self.journal.append(decision)
         return frappes, affect, escortes, rearmes
@@ -266,6 +279,23 @@ class EtatMajor:
                 out.append((k, ch["frappe"], "frappe"))
         return out
 
+    def _rearmer_sead(self, camp):
+        """[ ( numéro, chargement antiradar, « sead » ) ] : un camp SANS avions SEAD dédiés ( la Russie n'a pas de Tornado
+        ECR ) réarme une paire de frappeurs posés en Kh-31P / Kh-58, comme ses Su-30SM et Su-35S en Ukraine."""
+        g = self.g
+        if sum(1 for a in g.avions.values() if a["camp"] == camp and a["role"] == "sead") >= SEAD_PAR_CAMP:
+            return []
+        out = []
+        for k, a in sorted(g.avions.items()):
+            if len(out) >= SEAD_PAR_CAMP:
+                break
+            if a["camp"] != camp or a["role"] != "frappe" or g.altitudes.get(k, 0) > 500 or abs(g.affecte.get(k, 0)) >= 1000:
+                continue
+            lo = self._cm(a["dbid"], "sead")
+            if lo:
+                out.append((k, lo, "sead"))
+        return out[:len(out) // 2 * 2]
+
     def _rearmer(self, camp):
         """[ ( numéro, nouveau chargement, « dead » ) ] : des frappeurs posés deviennent DEAD jusqu'à la part voulue."""
         g = self.g
@@ -298,9 +328,10 @@ class EtatMajor:
             tt = round(tt - 0.05, 4)
         return C
 
-    def _barriere(self, camp, zid):
-        """La barrière de chasse : à chaque base, au-delà de la paire qui la défend, la moitié des chasseurs ( par paires )
-        part en barrière avancée. Ceux qui y sont y restent ( pas de valse ) ; les escortes passent avant."""
+    def _barriere(self, camp, zids):
+        """La chasse avancée ( barrière et balayage ) : à chaque base, au-delà de la paire qui la défend, la moitié des
+        chasseurs ( par paires ). Ceux qui y sont y restent ( pas de valse ) ; les escortes passent avant."""
+        zids = {zids} if isinstance(zids, int) else set(zids)
         g, par_base = self.g, {}
         for k, a in sorted(g.avions.items()):
             m = g.affecte.get(k, 0)
@@ -309,8 +340,8 @@ class EtatMajor:
         out = []
         for base, ks in par_base.items():
             voulus = (max(0, len(ks) - 2) // 2) // 2 * 2
-            deja = [k for k in ks if g.affecte.get(k) == zid]
-            libres = [k for k in ks if g.affecte.get(k) != zid]
+            deja = [k for k in ks if g.affecte.get(k) in zids]
+            libres = [k for k in ks if g.affecte.get(k) not in zids]
             out += deja[:voulus] + libres[:max(0, voulus - len(deja))]
         return out
 
@@ -323,15 +354,25 @@ class EtatMajor:
         if C is None or T is None:
             return [], []
         zones, affect = [], []
+        zb, zs = ZONE_BASE + ci * 10 + SOUTIEN["barriere"][0], ZONE_BASE + ci * 10 + SOUTIEN.get("balayage", (5,))[0]
+        chasse = self._barriere(camp, (zb, zs))
+        balayage = []
+        if "balayage" in SOUTIEN and fr and fr.get("type") == "oca" and len(chasse) >= 4:   # ciel ouvert : on balaie la cible
+            n = len(chasse) // 2 // 2 * 2
+            balayage = ([k for k in chasse if g.affecte.get(k) == zs] + [k for k in chasse if g.affecte.get(k) != zs])[:n]
         for role, (dec, genre, t0, marge, marge_b, demi, emcon) in SOUTIEN.items():
             zid = ZONE_BASE + ci * 10 + dec
             if role == "barriere":
-                ks = self._barriere(camp, zid)
+                ks = [k for k in chasse if k not in balayage]
+            elif role == "balayage":
+                ks = balayage
             else:
                 ks = [k for k, a in sorted(g.avions.items()) if a["camp"] == camp and a["role"] == role]
             if not ks or (role in ("sead", "brouilleur") and not fr):
                 continue
-            if role == "sead":
+            if role == "balayage":
+                P = T
+            elif role == "sead":
                 cov = self.couvrent(camp, T)
                 P = (sum(p[0] for _, p, _ in cov) / len(cov), sum(p[1] for _, p, _ in cov) / len(cov)) if cov else T
             elif role == "brouilleur":

@@ -35,6 +35,7 @@ PRIX_M = [  # ( motif du nom, famille, prix en M$ ) : le premier motif qui corre
     (r"E-3[A-G]? Sentry|Sentry AEW", "E-3", 300), (r"E-7|Wedgetail", "E-7", 500), (r"Saab 340 AEW|S 100", "Saab 340 AEW", 30),
     (r"KC-135", "KC-135", 40), (r"KC-46", "KC-46", 165), (r"A.330.*MRTT", "A330 MRTT", 300), (r"EA-18G", "EA-18G", 70),
     (r"A-50", "A-50", 330), (r"Il-78", "Il-78", 50), (r"Il-22", "Il-22", 60),
+    (r"B-52", "B-52H", 85), (r"B-1B", "B-1B", 300), (r"Tu-95", "Tu-95MS", 90), (r"Tu-160", "Tu-160M", 250), (r"Tu-22M", "Tu-22M3", 60),
     (r"^Su-57", "Su-57", 45), (r"^Su-35", "Su-35", 38), (r"^Su-34", "Su-34", 36), (r"^Su-30", "Su-30", 32),
     (r"^Su-27", "Su-27", 20), (r"^MiG-31", "MiG-31", 30), (r"^MiG-35", "MiG-35", 30), (r"^MiG-29", "MiG-29", 20),
 ]

@@ -117,7 +117,9 @@ def chargements_db(flottes):
 
 
 MOTIFS_ROLE = {"guet": (r"Airborne Early Warning",), "ravitailleur": (r"^Tanker",), "brouilleur": (r"Offensive ECM",),
-               "sead": (r"AARGM", r"HARM", r"ALARM", r"Kh-31P|Kh-58")}
+               "sead": (r"AARGM", r"HARM", r"ALARM", r"Kh-31P|Kh-58"),
+               "bombardier": (r"Kh-101", r"JASSM-ER", r"Kh-32", r"Kh-555", r"Kh-22MA INS", r"JASSM")}
+JAMAIS = r"Nuclear|kT\b|Kh-102|Inert"                    # jamais d'arme nucléaire ni de munition inerte
 
 
 def chargement_role(c, dbid, role):
@@ -127,7 +129,7 @@ def chargement_role(c, dbid, role):
     lignes = c.execute("""select l.ID, l.Name from DataAircraftLoadouts al join DataLoadout l on l.ID = al.ComponentID
         where al.ID = ? and coalesce(l.Hypothetical,0)=0 and l.Name not like '%Short-Range%'""", (dbid,)).fetchall()
     for motif in MOTIFS_ROLE[role]:
-        cand = [i for i, n in lignes if _re.search(motif, n)]
+        cand = [i for i, n in lignes if _re.search(motif, n) and not _re.search(JAMAIS, n)]
         if cand:
             return min(cand)
     return None
@@ -510,7 +512,7 @@ class GuerreReelle:
                 if k in self.avions:
                     a = self.avions.pop(k)
                     self.pertes[a["pays"]] += 1
-                    self.a_remplacer.append((a["pays"], a["dbid"], a["role"], a["base"]))
+                    self.a_remplacer.append((a["pays"], a["dbid"], role_origine(a), a["base"]))
                     self.affecte.pop(k, None)
                     origine = a.get("origine") or (self.bases[a["base"]]["fichier"] if a["base"] in self.bases else None)
                     self.morts.append({"numero": k, "genre": "avion", "pays": a["pays"], "tour": self.tours,
@@ -533,7 +535,7 @@ class GuerreReelle:
                 if k in self.avions:
                     a = self.avions.pop(k)
                     self.pertes[a["pays"]] += 1
-                    self.a_remplacer.append((a["pays"], a["dbid"], a["role"], a["base"]))
+                    self.a_remplacer.append((a["pays"], a["dbid"], role_origine(a), a["base"]))
                     genre, pays = "avion", a["pays"]
                 else:
                     genre, pays = "sol", self.sol.pop(k)["pays"]
@@ -751,9 +753,9 @@ class GuerreReelle:
             lu, ancien = r["charges"].get(k), self.avions[k]["loadout"]
             if lu == lo:
                 a, role = self.avions[k], roles[k]
-                if role == "aa" and a["role"] == "frappe":
-                    a["bascule"] = "frappe"                       # swing-role : il reviendra à la frappe
-                elif role != "aa":
+                if role in ("aa", "sead") and a["role"] == "frappe":
+                    a["bascule"] = "frappe"                       # swing-role : il reste un frappeur de sa flotte
+                elif role not in ("aa", "sead"):
                     a.pop("bascule", None)
                 a.update(role=role, loadout=lo)
                 self.affecte.pop(k, None)
