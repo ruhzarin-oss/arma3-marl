@@ -277,14 +277,21 @@ def lire_cfgpatches(data):
 
 
 # ================================================================== la resolution de l heritage
+def _externe(v):
+    """Une declaration « class X; » jamais definie : elle renvoie a la classe heritee ou exterieure, elle ne la masque
+    pas ( la porte du 02/10 a 21 h 04 a ete REFUSEE pour HitPoints >> HitHull du Slammer, masque ainsi )."""
+    return isinstance(v, Classe) and v.base is None
+
+
 def membre(c, nom, _vus=None):
-    """( valeur ou Classe, classe ou l entree est definie ) en suivant l heritage ; ( None, None ) si absent."""
+    """( valeur ou Classe, classe ou l entree est definie ) en suivant l heritage ; ( None, None ) si absent. Une
+    declaration externe ne compte pas : on cherche plus haut."""
     k = nom.lower(); vus = _vus if _vus is not None else set()
     while c is not None:
         if id(c) in vus: return None, None       # boucle d heritage : on s arrete
         vus.add(id(c))
         e = c.entrees.get(k)
-        if e is not None: return e[1], c
+        if e is not None and not _externe(e[1]): return e[1], c
         c = classe_de_base(c)
     return None, None
 
@@ -297,7 +304,7 @@ def classe_de_base(c):
     cont = c.conteneur
     while cont is not None:
         e = cont.entrees.get(k)
-        if e is not None and isinstance(e[1], Classe) and e[1] is not c: return e[1]
+        if e is not None and isinstance(e[1], Classe) and e[1] is not c and not _externe(e[1]): return e[1]
         b = classe_de_base(cont)
         if b is not None:
             v, _ = membre(b, k)
