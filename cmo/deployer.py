@@ -17,7 +17,10 @@ import cmo_labo as CL                                     # noqa: E402
 FICHIERS = ("hmt_pont.lua", "installer.lua")
 
 
-def deployer(racine: str = CL.CMO, base_lua: str = CL.BASE_WINDOWS, camps=CL.CAMPS) -> str:
+FICHIER_INST = re.compile(r"[A-Za-z0-9 _\-\[\]\(\)\.,&/]{1,160}\.inst")
+
+
+def deployer(racine: str = CL.CMO, base_lua: str = CL.BASE_WINDOWS, camps=CL.CAMPS, installations=()) -> str:
     """`racine` : le dossier de CMO vu d'ici ; `base_lua` : le même dossier vu de CMO ( chemin Windows ), pour loadfile ;
     `camps` : les camps du théâtre ( lettres, chiffres, espace et tiret seulement : ils vont en clair dans un fichier Lua )."""
     if "'" in base_lua or "\\" in base_lua or not base_lua.endswith("/"):
@@ -25,6 +28,9 @@ def deployer(racine: str = CL.CMO, base_lua: str = CL.BASE_WINDOWS, camps=CL.CAM
     for c in camps:
         if not re.fullmatch(r"[A-Za-z0-9 \-]{1,40}", c):
             raise ValueError(f"nom de camp refusé : {c!r}")
+    for f in installations:                              # du texte qui entre dans CMO : écrit ici, jamais par l'agent
+        if not FICHIER_INST.fullmatch(f) or ".." in f or f.startswith("/"):
+            raise ValueError(f"fichier d'installation refusé : {f!r}")
     dest = os.path.join(racine, "Lua", "hmt_pont")
     os.makedirs(dest, exist_ok=True)
     for f in FICHIERS:
@@ -34,7 +40,8 @@ def deployer(racine: str = CL.CMO, base_lua: str = CL.BASE_WINDOWS, camps=CL.CAM
     tmp = os.path.join(dest, ".hmt_config.lua.tmp")
     with open(tmp, "w", encoding="utf-8") as g:
         g.write(f"-- écrit par cmo/deployer.py : le dossier de CMO vu de CMO ( pour loadfile ) et les camps du théâtre.\n"
-                f"HMT_BASE = '{base_lua}'\nHMT_CAMPS_CONFIG = {{ {', '.join(repr(c) for c in camps)} }}\n")
+                f"HMT_BASE = '{base_lua}'\nHMT_CAMPS_CONFIG = {{ {', '.join(repr(c) for c in camps)} }}\n"
+                f"HMT_INSTALLATIONS_CONFIG = {{ {', '.join(repr(f) for f in installations)} }}\n")
     os.replace(tmp, os.path.join(dest, "hmt_config.lua"))
     return dest
 

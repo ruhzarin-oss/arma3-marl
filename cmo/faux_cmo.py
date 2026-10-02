@@ -17,12 +17,13 @@ import deployer                                           # noqa: E402
 
 class FauxCMO:
     def __init__(self, racine, *, periode=0.05, build="v1.10 - Build 1900.20", lecteur="loadfile", ecriture_lente=0.0,
-                 tronquer=0, camps=None):
+                 tronquer=0, camps=None, installations=()):
         self.racine = racine
         self.periode, self.ecriture_lente, self.tronquer = periode, ecriture_lente, tronquer
         self.sortie = os.path.join(racine, "ImportExport")
         os.makedirs(self.sortie, exist_ok=True)
-        self.pont = deployer.deployer(racine, racine.rstrip("/") + "/", *([camps] if camps else []))
+        self.pont = deployer.deployer(racine, racine.rstrip("/") + "/", *([camps] if camps else [deployer.CL.CAMPS]),
+                                      installations=installations)
         self.verrou = threading.Lock()
         self.pause_ = False
         self.stop = False

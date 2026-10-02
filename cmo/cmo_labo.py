@@ -54,14 +54,23 @@ SORTIE = f"{CMO}/ImportExport"
 ETAT = "/mnt/data/hmt/etat"
 FICHIER_CERTIF = "cmo_build_certifie.json"
 
-VERSION_LUA = 7                     # = HMT_VERSION de lua/hmt_pont.lua
+VERSION_LUA = 8                     # = HMT_VERSION de lua/hmt_pont.lua
 CAMPS = ("Stratis", "Malden")       # = HMT_CAMPS, même ordre ; index Lua = index Python + 1
-GENRES = ("air", "navire", "sous_marin", "site")      # = HMT_GENRES ( Air, Ship, Submarine, Facility )
+GENRES = ("air", "navire", "sous_marin", "site", "vehicule")   # = HMT_GENRES ( Air, Ship, Submarine, Facility, Vehicle )
+# = HMT_DOCTRINE : les réglages de doctrine qu'un outil peut toucher, par index ( le texte reste dans le Lua ).
+DOCTRINE = ("quick_turnaround_for_aircraft", "air_operations_tempo", "bingo_threshold", "fuel_state_rtb",
+            "weapon_state_rtb", "weapon_control_status_air", "weapon_control_status_surface",
+            "weapon_control_status_subsurface", "weapon_control_status_land", "engage_opportunity_targets",
+            "use_nuclear_weapons", "withdraw_on_damage", "withdraw_on_fuel")
+TYPES_BILAN = {0: "autre", 1: "avion", 2: "navire", 3: "sous_marin", 4: "installation", 5: "arme", 6: "vehicule",
+               7: "satellite"}                       # = HMT_TYPES
 NUMERO_MAX = 99_999_999             # guerre_cmo décale les numéros de front par camp : chaque île numérote depuis 1
 LECTEURS = {1: "loadfile", 2: "RunScript"}
 REFUS_LUA = {1: "camp inconnu", 2: "genre inconnu", 3: "numéro déjà tenu par une unité vivante",
              4: "CMO refuse d'ajouter l'unité (dbid, loadout ou position)", 5: "numéro inconnu ou unité détruite",
-             6: "CMO refuse la mission ou l'affectation", 7: "base inconnue ou détruite", 8: "base d'un autre camp"}
+             6: "CMO refuse la mission ou l'affectation", 7: "base inconnue ou détruite", 8: "base d'un autre camp",
+             9: "réglage de doctrine inconnu", 10: "installation inconnue ( index hors de HMT_INSTALLATIONS )",
+             11: "CMO refuse de renommer l'unité importée"}
 # = SCRIPT de lua/installer.lua, au caractère près : c'est ce que l'événement exécute toutes les secondes.
 ACTION_EVENEMENT = ("if HMT_tic == nil then ScenEdit_RunScript('hmt_pont/hmt_config.lua') "
                     "ScenEdit_RunScript('hmt_pont/hmt_pont.lua') end HMT_tic()")
@@ -346,9 +355,10 @@ def recharger(*, pont: str = PONT, sortie: str = SORTIE, etat: str = ETAT, **kw)
 class Labo:
     def __init__(self, *, pont: str = PONT, sortie: str = SORTIE, etat: str = ETAT, strict: bool = True,
                  battement_max: float = BATTEMENT_MAX, patience: float = PATIENCE, patience_ouverture: float = 8.0,
-                 compiler: bool = True, camps=CAMPS):
+                 compiler: bool = True, camps=CAMPS, installations=()):
         self.pont, self.sortie, self.etat, self.strict = pont, sortie, etat, strict
         self.camps = tuple(camps)
+        self.installations = tuple(installations)       # = HMT_INSTALLATIONS ( deployer.py --installations )
         self.patience_ouverture = patience_ouverture
         self.ecrivain = VerrouEcrivain(os.path.join(etat, "cmo_pont.ecrivain"))
         self.liaison = Liaison(pont, sortie, battement_max=battement_max, patience=patience, compiler=compiler)
@@ -400,6 +410,7 @@ class Labo:
         if n_camps != len(self.camps) or sig != signature_camps(self.camps):
             raise Incomplet(f"CMO joue {int(n_camps)} camps ( signature {int(sig)} ), le module attend {list(self.camps)} "
                             f"( signature {signature_camps(self.camps)} ) : redéployer avec ces camps ( deployer.py --camps )")
+        self._verifier_installations(r)
         certifie = build_certifie(self.etat)
         if build != certifie and self.strict:
             raise Incomplet(f"CMO en build {build}, le banc pontcmo a certifié {certifie} : Steam a mis CMO à jour. "
@@ -407,6 +418,13 @@ class Labo:
         temps = next((v[0] for c, v in r["lignes"] if c == "TEMPS" and v), None)   # heure du scénario, UTC Unix
         return {"pont": "vivant", "actuateur_n": n_act, "version_lua": version, "build": build,
                 "build_certifie": certifie, "lecteur": LECTEURS.get(int(lecteur), "?"), "temps": temps, "recu": r["recu"]}
+
+    def _verifier_installations(self, r):
+        n_inst, sig_inst = _une(r["lignes"], "INST_SIG", 2)
+        if n_inst != len(self.installations) or sig_inst != signature_camps(self.installations):
+            raise Incomplet(f"CMO connaît {int(n_inst)} installations ( signature {int(sig_inst)} ), le module en attend "
+                            f"{len(self.installations)} ( signature {signature_camps(self.installations)} ) : redéployer avec "
+                            "le même théâtre ( deployer.py ), sinon un index importerait la mauvaise base")
 
     def etat_camps(self) -> dict:
         """Compte le JEU, pas une mémoire : relu dans CMO à chaque appel. total = -1 si CMO ne rend pas la liste."""
@@ -557,10 +575,14 @@ class Labo:
             raise Incomplet(f"missions : {n_pat} patrouilles et {n_aff} affectations envoyées, reçu {out}")
         return out
 
-    def positions(self) -> dict:
+    def positions(self, mini: int | None = None, maxi: int | None = None) -> dict:
         """{ camp : [ ( numéro, lat, lon, alt ) ] } des vivants, et { camp : [ numéro ] } des morts depuis le dernier
-        relevé. Un mort n'est rendu qu'une fois : c'est le moteur qui le garde."""
-        r = self._exec("HMT_positions(R)", patience=max(10.0, self.liaison.patience))
+        relevé, pour les numéros de [ mini, maxi ] ( tous sans bornes ). Un mort n'est rendu qu'une fois : c'est le moteur
+        qui le garde. Les éléments fixes des vraies bases restent hors bornes : morts par le journal, dégâts par etats()."""
+        bornes = ""
+        if mini is not None or maxi is not None:
+            bornes = f", {_ent(mini or 1, 1, NUMERO_MAX, 'mini')}, {_ent(maxi or NUMERO_MAX, 1, NUMERO_MAX, 'maxi')}"
+        r = self._exec(f"HMT_positions(R{bornes})", patience=max(10.0, self.liaison.patience))
         vivants, morts = {c: [] for c in self.camps}, {c: [] for c in self.camps}
         for cle, v in r["lignes"]:
             if cle == "U":
@@ -588,6 +610,107 @@ class Labo:
         if restantes != 0:
             raise ErreurLabo(f"table rase NON prouvée : {int(restantes)} unité(s) HMT restent sur {int(avant)}")
         return {"avant": int(avant), "apres": 0, "recu": r2["recu"]}
+
+    # ---- v8 : la guerre réelle ( 02/10 ) -------------------------------------------------------------------------
+    def armer(self, lots) -> dict:
+        """Remplir des dépôts en UN envoi. lots : [ ( numéro du dépôt, loadout, packs ) ] ; un pack = les armes d'un
+        chargement complet ( ScenEdit_FillMagsForLoadout ). Rend { numéro : armes ajoutées } et les absents."""
+        args, n = [], 0
+        for k, lo, p in lots:
+            args += [str(_ent(k, 1, NUMERO_MAX, "numero")), str(_ent(lo, 1, 10_000_000, "loadout")), str(_ent(p, 1, 10_000, "packs"))]
+            n += 1
+        if not n:
+            return {"armes": {}, "absents": []}
+        r = self._exec(f"HMT_armer(R, {', '.join(args)})")
+        out = {"armes": {int(v[0]): int(v[3]) for c, v in r["lignes"] if c == "ARME"},
+               "absents": [int(v[0]) for c, v in r["lignes"] if c == "ABSENT"], "recu": r["recu"]}
+        if len(out["armes"]) + len(out["absents"]) != len({k for k, _, _ in lots}):
+            raise Incomplet(f"{n} dépôts à armer, reçu {out}")
+        return out
+
+    def stocks(self, numeros) -> dict:
+        """{ numéro : { arme : ( courant, capacité ) } } relus dans les magasins de CMO, et les absents ( détruits )."""
+        ks = [str(_ent(k, 1, NUMERO_MAX, "numero")) for k in numeros]
+        if not ks:
+            return {"stocks": {}, "absents": []}
+        r = self._exec(f"HMT_stocks(R, {', '.join(ks)})")
+        st, annonces = {}, {}
+        for c, v in r["lignes"]:
+            if c == "STOCK":
+                st.setdefault(int(v[0]), {})[int(v[1])] = (int(v[2]), int(v[3]))
+            elif c == "MAGASINS":
+                annonces[int(v[0])] = int(v[1])
+                st.setdefault(int(v[0]), {})
+        absents = [int(v[0]) for c, v in r["lignes"] if c == "ABSENT"]
+        for k, n in annonces.items():
+            if len(st[k]) != n:
+                raise Incomplet(f"dépôt {k} : {n} lignes de stock annoncées, {len(st[k])} lues")
+        if len(annonces) + len(absents) != len(set(ks)):
+            raise Incomplet(f"{len(ks)} dépôts relus, {len(annonces)} rendus, {len(absents)} absents")
+        return {"stocks": st, "absents": absents, "recu": r["recu"]}
+
+    def bilan(self, camp: str) -> dict:
+        """Pertes et dépenses d'un camp telles que CMO les compte : { ( type, dbid ) : nombre }, type de TYPES_BILAN."""
+        if camp not in self.camps:
+            raise Refus(f"camp {camp!r} inconnu")
+        r = self._exec(f"HMT_bilan(R, {self.camps.index(camp) + 1})")
+        pertes = {(TYPES_BILAN.get(int(v[1]), "autre"), int(v[2])): int(v[3]) for c, v in r["lignes"] if c == "PERTE"}
+        depenses = {(TYPES_BILAN.get(int(v[1]), "autre"), int(v[2])): int(v[3]) for c, v in r["lignes"] if c == "DEPENSE"}
+        _, np, nd = _une(r["lignes"], "BILAN", 3)
+        if len(pertes) != np or len(depenses) != nd:
+            raise Incomplet(f"bilan de {camp} : {int(np)} pertes et {int(nd)} dépenses annoncées, {len(pertes)} et {len(depenses)} lues")
+        return {"pertes": pertes, "depenses": depenses, "recu": r["recu"]}
+
+    def doctrine(self, camp: str, cle: str, valeur: int) -> dict:
+        """Un réglage de doctrine du camp ( cle dans DOCTRINE ), relu dans CMO après écriture."""
+        if camp not in self.camps:
+            raise Refus(f"camp {camp!r} inconnu")
+        if cle not in DOCTRINE:
+            raise Refus(f"réglage de doctrine {cle!r} hors de la liste permise {list(DOCTRINE)}")
+        v = _ent(valeur, 0, 100, "valeur")
+        r = self._exec(f"HMT_doctrine(R, {self.camps.index(camp) + 1}, {DOCTRINE.index(cle) + 1}, {v})")
+        _, _, lu = _une(r["lignes"], "DOCTRINE", 3)
+        if int(lu) != v:
+            raise Incomplet(f"doctrine {cle} de {camp} : écrit {v}, relu {int(lu)} dans CMO")
+        return {"cle": cle, "valeur": int(lu), "recu": r["recu"]}
+
+    def importer(self, camp: str, fichier: str) -> dict:
+        """Une vraie installation livrée avec CMO ( fichier de la liste du théâtre, déployée avec le Lua ), importée dans
+        le camp sous ses noms d'origine. adopter() la numérote ensuite, dans une autre commande."""
+        if camp not in self.camps:
+            raise Refus(f"camp {camp!r} inconnu")
+        if fichier not in self.installations:
+            raise Refus(f"installation {fichier!r} hors de la liste du théâtre")
+        r = self._exec(f"HMT_importer(R, {self.camps.index(camp) + 1}, {self.installations.index(fichier) + 1})")
+        _, _, n = _une(r["lignes"], "IMPORTE", 3)
+        if n < 1:
+            raise Incomplet(f"CMO n'a importé aucun élément de {fichier!r} ( rendu {n} )")
+        return {"fichier": fichier, "elements": int(n), "recu": r["recu"]}
+
+    def adopter(self, camp: str, premier: int) -> dict:
+        """Numérote HMT-<premier>… les unités du camp qui ne sont pas encore HMT ( l'installation qu'on vient d'importer ).
+        Rend [ ( numéro, dbid, lat, lon, groupe ) ] : groupe = la base elle-même, qui accueille les avions."""
+        if camp not in self.camps:
+            raise Refus(f"camp {camp!r} inconnu")
+        k0 = _ent(premier, 1, NUMERO_MAX, "premier")
+        r = self._exec(f"HMT_adopter(R, {self.camps.index(camp) + 1}, {k0})", patience=max(20.0, self.liaison.patience))
+        el = [(int(v[0]), int(v[1]), v[2], v[3], bool(v[4])) for c, v in r["lignes"] if c == "ADOPTE"]
+        _, _, n = _une(r["lignes"], "ADOPTES", 3)
+        if len(el) != n or [e[0] for e in el] != list(range(k0, k0 + int(n))):
+            raise Incomplet(f"adoption : {int(n)} annoncées, {len(el)} lues, numéros {[e[0] for e in el][:5]}…")
+        return {"elements": el, "recu": r["recu"]}
+
+    def etats(self, numeros) -> dict:
+        """{ numéro : ( dégâts en %, feu, inondation ) } relus dans CMO, et les absents ( détruits )."""
+        ks = [str(_ent(k, 1, NUMERO_MAX, "numero")) for k in numeros]
+        if not ks:
+            return {"etats": {}, "absents": []}
+        r = self._exec(f"HMT_etats(R, {', '.join(ks)})")
+        out = {"etats": {int(v[0]): (v[1], bool(v[2]), bool(v[3])) for c, v in r["lignes"] if c == "ETAT"},
+               "absents": [int(v[0]) for c, v in r["lignes"] if c == "ABSENT"], "recu": r["recu"]}
+        if len(out["etats"]) + len(out["absents"]) != len(set(ks)):
+            raise Incomplet(f"{len(ks)} états demandés, {len(out['etats'])} rendus, {len(out['absents'])} absents")
+        return out
 
     def lua(self, code: str, *, par_humain: bool = False, patience: float | None = None) -> dict:
         """Lua brut, dans le corps d'une commande ( `R(CLE, {nombres})` pour rendre ). Réservé à une demande HUMAINE

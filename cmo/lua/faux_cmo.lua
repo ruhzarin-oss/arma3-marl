@@ -4,7 +4,10 @@
 
 FAUX = { camps = {}, unites = {}, n_guid = 0, temps = 1790000000, build = 'v1.10 - Build 1900.20',
          dbid_refuse = -1, runscript_leve = false, a_retirer = {},
-         evenements = {}, declencheurs = {}, actions = {} }
+         evenements = {}, declencheurs = {}, actions = {},
+         -- v8 : chargements ( loadout -> { { arme, n } } ), fichiers .inst ( nom -> { { dbid, nom, lat, lon } } ),
+         -- pertes et dépenses par camp, doctrines par camp, renommage refusé ( essai de mutant )
+         loadouts = {}, fichiers_inst = {}, bilans = {}, doctrines = {}, renommer_refuse = false }
 
 local function guid()
     FAUX.n_guid = FAUX.n_guid + 1
@@ -36,7 +39,8 @@ function VP_GetSide(t)
             for _, u in pairs(FAUX.unites) do
                 if u.side == s.name then us[#us + 1] = { name = u.name, guid = u.guid } end
             end
-            return { name = s.name, guid = s.guid, units = us }
+            local b = FAUX.bilans[s.name] or {}
+            return { name = s.name, guid = s.guid, units = us, losses = b.losses or {}, expenditures = b.expenditures or {} }
         end
     end
     error('side not found')
@@ -55,7 +59,8 @@ function ScenEdit_AddUnit(t)
         return nil
     end
     local u = { guid = guid(), name = t.unitname, side = t.side, type = t.type, dbid = t.dbid, base = t.base,
-                latitude = la, longitude = lo, altitude = t.altitude or 0 }
+                latitude = la, longitude = lo, altitude = t.altitude or 0, magazines = {},
+                damage = { dp_percent_now = 0, fires = 'NoFire', flood = 'NoFlooding' } }
     FAUX.unites[u.guid] = u
     return copie(u)
 end
@@ -73,6 +78,7 @@ function ScenEdit_SetUnit(t)
     local u = FAUX.unites[t.guid]
     if u == nil then error('unit not found') end
     if t.course and t.course[1] then u.latitude, u.longitude = t.course[1].latitude, t.course[1].longitude end
+    if t.newname and not FAUX.renommer_refuse then u.name = t.newname end
     return copie(u)
 end
 
@@ -236,4 +242,74 @@ end
 -- Un rechargement de scénario : unités et événements restent ( ils sont dans la sauvegarde ), les globales Lua non.
 function FAUX_recharger()
     HMT_tic, HMT_n, HMT_coeur, HMT_unites, HMT_attendu, HMT_commande = nil, nil, nil, nil, nil, nil
+end
+
+-- ==== v8 : magasins, bilans, doctrine, import de vraies installations, dégâts =========================================
+local function trouver(t)
+    local u = t.guid and FAUX.unites[t.guid]
+    if u == nil and t.unitname then
+        for _, x in pairs(FAUX.unites) do if x.name == t.unitname then u = x end end
+    end
+    return u
+end
+
+local function ajouter(u, arme, n)
+    if #u.magazines == 0 then u.magazines[1] = { mag_dbid = 1185, mag_name = 'Munitions', mag_capacity = 10000, mag_weapons = {} } end
+    local m = u.magazines[1]
+    for _, w in ipairs(m.mag_weapons) do
+        if w.wpn_dbid == arme then w.wpn_current = w.wpn_current + n return end
+    end
+    m.mag_weapons[#m.mag_weapons + 1] = { wpn_dbid = arme, wpn_current = n, wpn_maxcap = 10000 }
+end
+
+-- Comme CMO 1.10 ( sonde du 02/10 ) : une table de textes, une ligne « Successfully added » par arme du chargement.
+function ScenEdit_FillMagsForLoadout(t)
+    local u = trouver(t)
+    if u == nil then error('unit not found') end
+    local lignes = { 'Attempting to add ' .. t.quantity .. 'x packs of loadout: #' .. t.loadoutid }
+    for _, a in ipairs(FAUX.loadouts[t.loadoutid] or {}) do
+        ajouter(u, a[1], a[2] * t.quantity)
+        lignes[#lignes + 1] = 'Successfully added ' .. (a[2] * t.quantity) .. 'x stores of type: ' .. a[1]
+    end
+    return lignes
+end
+
+function ScenEdit_AddWeaponToUnitMagazine(t)
+    local u = trouver(t)
+    if u == nil then error('unit not found') end
+    ajouter(u, t.wpn_dbid, t.number)
+    return t.number
+end
+
+function ScenEdit_SetDoctrine(sel, t)
+    local d = FAUX.doctrines[sel.side] or {}
+    for k, v in pairs(t) do d[k] = v end
+    FAUX.doctrines[sel.side] = d
+    return true
+end
+function ScenEdit_GetDoctrine(sel) return FAUX.doctrines[sel.side] or {} end
+
+-- Un fichier .inst : ses éléments sous leurs noms d'origine, plus le groupe ( la base ), comme CMO ; rend le nombre
+-- d'éléments ( 92 pour Šiauliai 2024, le groupe en plus ).
+function ScenEdit_ImportInst(side, fichier)
+    local membres = FAUX.fichiers_inst[fichier]
+    if membres == nil then error('file not found: ' .. fichier) end
+    local g = { guid = guid(), name = fichier, side = side, type = 'Group', dbid = 0, latitude = membres[1][3],
+                longitude = membres[1][4], altitude = 0, magazines = {}, damage = { dp_percent_now = 0, fires = 'NoFire', flood = 'NoFlooding' } }
+    FAUX.unites[g.guid] = g
+    for _, m in ipairs(membres) do
+        local u = { guid = guid(), name = m[2], side = side, type = 'Facility', dbid = m[1], latitude = m[3], longitude = m[4],
+                    altitude = 0, magazines = {}, damage = { dp_percent_now = 0, fires = 'NoFire', flood = 'NoFlooding' } }
+        FAUX.unites[u.guid] = u
+    end
+    return #membres
+end
+
+function FAUX_endommager(numero, pct, feu)
+    for _, u in pairs(FAUX.unites) do
+        if u.name == 'HMT-' .. numero then
+            u.damage.dp_percent_now = pct
+            if feu then u.damage.fires = 'MinorFire' end
+        end
+    end
 end

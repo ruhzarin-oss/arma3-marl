@@ -1,0 +1,208 @@
+#!/usr/bin/env python3
+"""porte_reel — les outils v8 du pont ( guerre réelle, 02/10 ) face à faux_cmo : remplir et relire un dépôt, importer une
+vraie installation et la numéroter, lire pertes et dépenses, régler la doctrine, lire les dégâts, poser un véhicule,
+relever les seules unités mobiles. Chaque mutant retire une règle ; la porte doit alors échouer.
+
+    .venv312/bin/python cmo/porte_reel.py [--controles]
+"""
+import contextlib
+import os
+import shutil
+import sys
+import tempfile
+import time
+
+ICI = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, ICI)
+import cmo_labo as CL                                     # noqa: E402
+import porte_cmo as P                                     # noqa: E402
+from faux_cmo import FauxCMO                              # noqa: E402
+
+CAMPS = ("OTAN", "Russie-Chine")
+BASE_TEST = "Test/Base Reelle 2024.inst"
+INSTALLATIONS = ("Lithuania/Siauliai Air Base 2024.inst", BASE_TEST)
+# Une vraie base de papier : une piste, deux dépôts de munitions, une cuve ( dbid de la DB3000 ).
+MEMBRES = [(757, "Runway (4000m)", 55.89, 23.39), (322, "Ammo Bunker (Surface)", 55.891, 23.392),
+           (322, "Ammo Bunker (Surface)", 55.892, 23.393), (942, "AvGas (750k Liter Underground Tank)", 55.888, 23.388)]
+F16_7453 = [(897, 4), (945, 2), (1763, 2)]               # 4 AIM-120C-5, 2 AIM-9X, 2 réservoirs ( DB3000 )
+
+
+@contextlib.contextmanager
+def banc(installations=INSTALLATIONS, labo_installations=None):
+    racine = tempfile.mkdtemp(prefix="porte_reel_")
+    etat = os.path.join(racine, "etat")
+    f = FauxCMO(racine, camps=CAMPS, installations=installations)
+    try:
+        f.installer()
+        f.lua("FAUX.loadouts[7453] = { " + ", ".join(f"{{ {w}, {n} }}" for w, n in F16_7453) + " }")
+        f.lua(f"FAUX.fichiers_inst['{BASE_TEST}'] = {{ "
+              + ", ".join(f"{{ {d}, '{n}', {la}, {lo} }}" for d, n, la, lo in MEMBRES) + " }")
+        f.demarrer()
+        CL.certifier("1.10.1900.20", {"porte": True}, etat)
+        l = CL.Labo(pont=f.pont, sortie=f.sortie, etat=etat, camps=CAMPS,
+                    installations=installations if labo_installations is None else labo_installations, **P.RAPIDE)
+        l.ouvrir()
+        try:
+            yield f, l
+        finally:
+            l.fermer()
+        if f.erreurs:
+            raise AssertionError(f"HMT_tic a levé : {f.erreurs[:2]}")
+    finally:
+        f.arreter()
+        shutil.rmtree(racine, ignore_errors=True)
+
+
+def r1_armer_puis_relire_le_depot():
+    """Quatre packs du chargement du F-16 : 16 AIM-120C-5, 8 AIM-9X, 8 réservoirs, relus dans le magasin."""
+    with banc() as (f, l):
+        l.poser("OTAN", "site", 1712, 90_000_001, 52.3, 17.3)
+        r = l.armer([(90_000_001, 7453, 4)])
+        assert r["armes"] == {90_000_001: 3}, r
+        st = l.stocks([90_000_001])["stocks"][90_000_001]
+        assert {w: c for w, (c, _) in st.items()} == {897: 16, 945: 8, 1763: 8}, st
+        l.armer([(90_000_001, 7453, 1)])
+        assert l.stocks([90_000_001])["stocks"][90_000_001][897][0] == 20
+
+
+def r2_importer_et_numeroter_une_vraie_base():
+    """Import d'une vraie installation, numérotation HMT ; le registre la retrouve après un rechargement du scénario."""
+    with banc() as (f, l):
+        assert l.importer("OTAN", BASE_TEST)["elements"] == len(MEMBRES)
+        time.sleep(0.1)
+        el = l.adopter("OTAN", 90_100_001)["elements"]
+        assert len(el) == len(MEMBRES) + 1 and sum(1 for e in el if e[4]) == 1, el
+        assert sorted(e[1] for e in el if not e[4]) == sorted(d for d, *_ in MEMBRES)
+        f.recharger()                                    # les globales Lua tombent : le registre se refait par les noms
+        time.sleep(0.1)
+        depots = [e[0] for e in el if e[1] == 322]
+        r = l.armer([(k, 7453, 2) for k in depots])
+        assert sorted(r["armes"]) == sorted(depots) and not r["absents"], r
+        assert l.etats([e[0] for e in el])["absents"] == []
+
+
+def r3_pertes_et_depenses_de_cmo():
+    """Les pertes et dépenses que CMO compte, par type et dbid ( avions et installations ne se confondent pas )."""
+    with banc() as (f, l):
+        f.lua("FAUX.bilans['OTAN'] = { losses = { { type = 'Aircraft', dbid = 7087, count = 3 }, "
+              "{ type = 'Facility', dbid = 7087, count = 1 } }, expenditures = { { type = 'Weapon', dbid = 897, count = 12 } } }")
+        b = l.bilan("OTAN")
+        assert b["pertes"] == {("avion", 7087): 3, ("installation", 7087): 1}, b
+        assert b["depenses"] == {("arme", 897): 12}, b
+        assert l.bilan("Russie-Chine")["pertes"] == {}
+
+
+def r4_doctrine_ecrite_et_relue():
+    with banc() as (f, l):
+        assert l.doctrine("OTAN", "quick_turnaround_for_aircraft", 0)["valeur"] == 0
+        assert l.doctrine("OTAN", "air_operations_tempo", 0)["valeur"] == 0
+        assert f.lua("return FAUX.doctrines['OTAN'].quick_turnaround_for_aircraft") == 0
+        P.leve(CL.Refus, l.doctrine, "OTAN", "io_open", 1)
+
+
+def r5_meme_liste_d_installations_des_deux_cotes():
+    """Un index n'a de sens que si CMO et le module ont la même liste : sinon l'ouverture refuse."""
+    with banc(labo_installations=(BASE_TEST,)) as (f, l):
+        raise AssertionError("le labo s'est ouvert avec une autre liste d'installations que CMO")
+
+
+def r6_releve_borne_aux_unites_mobiles():
+    """positions( mini, maxi ) ne relève que les numéros demandés : les milliers d'éléments fixes restent dehors."""
+    with banc() as (f, l):
+        l.poser("OTAN", "site", 1712, 90_000_001, 52.3, 17.3)
+        l.poser("OTAN", "air", 7087, 10_100_001, 52.3, 17.3, alt=8000, loadout=7453)
+        l.poser("OTAN", "vehicule", 102, 20_000_001, 52.4, 17.3)
+        p = l.positions(10_000_000, 29_999_999)
+        assert sorted(k for k, *_ in p["vivants"]["OTAN"]) == [10_100_001, 20_000_001], p
+        f.detruire(90_000_001)
+        f.detruire(20_000_001)
+        p = l.positions(10_000_000, 29_999_999)
+        assert p["morts"]["OTAN"] == [20_000_001], p        # la base détruite n'est pas dans le relevé borné
+
+
+def r7_degats_relus():
+    with banc() as (f, l):
+        l.poser("OTAN", "site", 1712, 90_000_001, 52.3, 17.3)
+        f.lua("FAUX_endommager(90000001, 40, true)")
+        e = l.etats([90_000_001, 90_000_002])
+        assert e["etats"][90_000_001] == (40, True, False) and e["absents"] == [90_000_002], e
+
+
+def r8_table_rase_avec_une_vraie_base():
+    """La table rase emporte aussi une base importée ( éléments puis groupe ), et le recompte le prouve."""
+    with banc() as (f, l):
+        l.importer("OTAN", BASE_TEST)
+        time.sleep(0.1)
+        l.adopter("OTAN", 90_100_001)
+        assert l.nettoyer()["avant"] == len(MEMBRES) + 1
+        assert f.compter() == 0
+
+
+TESTS = [r1_armer_puis_relire_le_depot, r2_importer_et_numeroter_une_vraie_base, r3_pertes_et_depenses_de_cmo,
+         r4_doctrine_ecrite_et_relue, r6_releve_borne_aux_unites_mobiles, r7_degats_relus, r8_table_rase_avec_une_vraie_base]
+
+
+def r5_test():
+    try:
+        r5_meme_liste_d_installations_des_deux_cotes()
+    except CL.Incomplet as e:
+        assert "installations" in str(e), e
+        return
+    raise AssertionError("aucun refus")
+
+
+r5_test.__name__ = "r5_meme_liste_d_installations_des_deux_cotes"
+TESTS.insert(4, r5_test)
+
+
+def controles():
+    """Chaque mutant se pose dans le Lua du faux CMO après l'installation ( ou dans le module ) ; la porte doit échouer."""
+    global banc
+    rates, vrai_banc = [], banc
+
+    def banc_mute(code_lua):
+        @contextlib.contextmanager
+        def b(*a, **kw):
+            with vrai_banc(*a, **kw) as (f, l):
+                f.lua(code_lua)
+                yield f, l
+        return b
+
+    m = [("l'armement ne remplit pas le dépôt", r1_armer_puis_relire_le_depot,
+          "HMT_armer = function(R, k, lo, n) R('ARME', { k, lo, n, 3 }) end"),
+         ("l'adoption ne renomme pas", r2_importer_et_numeroter_une_vraie_base, "FAUX.renommer_refuse = true"),
+         ("le relevé ignore ses bornes", r6_releve_borne_aux_unites_mobiles,
+          "local p = HMT_positions HMT_positions = function(R, a, b) return p(R) end"),
+         ("la table rase oublie les groupes", r8_table_rase_avec_une_vraie_base,
+          "local d = ScenEdit_DeleteUnit ScenEdit_DeleteUnit = function(t, x) local u = FAUX.unites[t.guid] "
+          "if u and u.type == 'Group' then return true end return d(t, x) end")]
+    for nom, test, code in m:
+        banc = banc_mute(code)
+        try:
+            test()
+            rates.append(nom)
+            print(f"  RATÉ   mutant « {nom} » : {test.__name__} passe encore", flush=True)
+        except Exception as e:
+            print(f"  TUÉ    mutant « {nom} » par {test.__name__} ({type(e).__name__})", flush=True)
+        finally:
+            banc = vrai_banc
+    with P.mutant(CL.Labo, "_verifier_installations", lambda self, r: None):
+        try:
+            r5_test()
+            rates.append("la liste d'installations n'est plus vérifiée")
+            print("  RATÉ   mutant « liste d'installations non vérifiée » : r5 passe encore", flush=True)
+        except Exception as e:
+            print(f"  TUÉ    mutant « liste d'installations non vérifiée » par r5 ({type(e).__name__})", flush=True)
+    controles.n = len(m) + 1
+    return rates
+
+
+if __name__ == "__main__":
+    print("porte_reel : les outils v8 du pont face à faux_cmo")
+    e = P.passer(TESTS)
+    print(f"{len(TESTS) - len(e)}/{len(TESTS)} tests passent")
+    if "--controles" in sys.argv:
+        r = controles()
+        print(f"{controles.n - len(r)}/{controles.n} mutants tués")
+        sys.exit(1 if e or r else 0)
+    sys.exit(1 if e else 0)

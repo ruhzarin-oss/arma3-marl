@@ -15,11 +15,22 @@
 -- Codes du reçu : 0 exécutée, 1 erreur Lua pendant l'exécution, 2 le fichier ne compile pas, 3 refus ( detail =
 -- code de REFUS_LUA dans cmo_labo.py ).
 
-HMT_VERSION = 7
+HMT_VERSION = 8
 -- Les camps : ceux de hmt_config.lua ( écrit par deployer.py depuis le théâtre ), sinon la guerre des îles. Même ordre que
 -- Labo( camps = ... ) ; le canari rend leur signature, calculée des deux côtés.
 HMT_CAMPS = HMT_CAMPS_CONFIG or { 'Stratis', 'Malden' }
-HMT_GENRES = { 'Air', 'Ship', 'Submarine', 'Facility' }      -- = GENRES de cmo_labo.py
+HMT_GENRES = { 'Air', 'Ship', 'Submarine', 'Facility', 'Vehicle' }   -- = GENRES de cmo_labo.py ; Vehicle : un véhicule
+-- seul de DataGroundUnit ( T-72B3 ), les formations au sol étant des Facility mobiles ( sonde du 02/10 )
+-- Les vraies installations livrées avec CMO ( ImportExport/<pays>/*.inst ), écrites par deployer.py depuis le théâtre :
+-- le moteur n'envoie qu'un INDEX dans cette liste, jamais un nom de fichier.
+HMT_INSTALLATIONS = HMT_INSTALLATIONS_CONFIG or {}
+-- Les réglages de doctrine que le moteur peut toucher ( index = DOCTRINE de cmo_labo.py ) ; valeurs relues dans CMO.
+HMT_DOCTRINE = { 'quick_turnaround_for_aircraft', 'air_operations_tempo', 'bingo_threshold', 'fuel_state_rtb',
+                 'weapon_state_rtb', 'weapon_control_status_air', 'weapon_control_status_surface',
+                 'weapon_control_status_subsurface', 'weapon_control_status_land', 'engage_opportunity_targets',
+                 'use_nuclear_weapons', 'withdraw_on_damage', 'withdraw_on_fuel' }
+-- Types des lignes de pertes et dépenses de CMO, en nombre ( = TYPES_BILAN de cmo_labo.py ).
+HMT_TYPES = { Aircraft = 1, Ship = 2, Submarine = 3, Facility = 4, Weapon = 5, Vehicle = 6, Satellite = 7 }
 HMT_n = HMT_n or 0                                           -- dernière commande prise
 HMT_coeur = HMT_coeur or 0                                   -- battements depuis le chargement
 HMT_attendu = HMT_attendu or 0                               -- commande en cours de lecture
@@ -163,17 +174,20 @@ end
 -- --- LES OUTILS : appelés par les commandes, avec des nombres seulement.
 -- La signature des noms de camps : somme des octets pondérés par leur place, modulo 1 000 000 007 ( = signature_camps
 -- de cmo_labo.py ). Aucun nom ne remonte : un nombre suffit à savoir si les deux côtés parlent des mêmes camps.
-function HMT_signature_camps()
+function HMT_signature_liste(liste)
     local s = 0
-    for i, nom in ipairs(HMT_CAMPS) do
+    for i, nom in ipairs(liste) do
         for j = 1, #nom do s = (s + string.byte(nom, j) * (i * 31 + j)) % 1000000007 end
     end
     return s
 end
 
+function HMT_signature_camps() return HMT_signature_liste(HMT_CAMPS) end
+
 function HMT_canari(R)
     R('CANARI', { HMT_n, HMT_VERSION, #HMT_CAMPS, HMT_lecteur() })
     R('CAMPS_SIG', { HMT_signature_camps() })
+    R('INST_SIG', { #HMT_INSTALLATIONS, HMT_signature_liste(HMT_INSTALLATIONS) })
     local b = {}
     for x in string.gmatch(tostring(GetBuildNumber()), '%d+') do b[#b + 1] = tonumber(x) end
     R('BUILD', b)
@@ -335,11 +349,16 @@ function HMT_affecter(R, id, ...)
     end
 end
 
--- Les vivants ( U camp numéro lat lon alt ) et les morts depuis le dernier relevé ( MORT camp numéro ).
-function HMT_positions(R)
+-- Les vivants ( U camp numéro lat lon alt ) et les morts depuis le dernier relevé ( MORT camp numéro ), pour les
+-- numéros de [ min, max ] ( tous sans bornes ). Les milliers d'éléments fixes des vraies bases restent hors du relevé :
+-- leurs morts viennent du journal de CMO, leurs dégâts de HMT_etats ( 29/09 : sonder des milliers d'installations
+-- avait ralenti CMO à x0,13 ).
+function HMT_positions(R, min, max)
     local reg = registre()
     local numeros = {}
-    for k in pairs(reg) do numeros[#numeros + 1] = k end
+    for k in pairs(reg) do
+        if (min == nil or k >= min) and (max == nil or k <= max) then numeros[#numeros + 1] = k end
+    end
     table.sort(numeros)
     for _, k in ipairs(numeros) do
         local e = reg[k]
@@ -357,11 +376,22 @@ end
 -- vrai, mais GetUnit et la liste du camp la montrent encore dans le même passage ). La preuve est donc HMT_recompter,
 -- une autre commande, donc un autre passage.
 function HMT_nettoyer(R)
-    local avant, acceptees = 0, 0
+    -- Les éléments d'abord, les groupes ( une vraie base importée ) ensuite : supprimer un groupe peut emporter ses
+    -- éléments, dont la suppression échouerait alors. Un groupe déjà parti n'est pas une faute ; HMT_recompter prouve.
+    local avant, acceptees, groupes = 0, 0, {}
     for _, e in pairs(HMT_recenser()) do
         avant = avant + 1
-        local ok, r = pcall(ScenEdit_DeleteUnit, { guid = e.guid }, true)
-        if ok and r == true then acceptees = acceptees + 1 end
+        local u = unite(e.guid)
+        if u ~= nil and u.type == 'Group' then
+            groupes[#groupes + 1] = e.guid
+        else
+            local ok, r = pcall(ScenEdit_DeleteUnit, { guid = e.guid }, true)
+            if ok and r == true then acceptees = acceptees + 1 end
+        end
+    end
+    for _, g in ipairs(groupes) do
+        pcall(ScenEdit_DeleteUnit, { guid = g }, true)
+        acceptees = acceptees + 1
     end
     HMT_unites = nil
     R('NETTOYE', { avant, acceptees })
@@ -371,4 +401,134 @@ function HMT_recompter(R)
     local m = 0
     for _ in pairs(HMT_recenser()) do m = m + 1 end
     R('RESTANTES', { m })
+end
+
+-- ==== VERSION 8 : la guerre réelle ( 02/10 ) ==========================================================================
+
+local function vivante(numero)
+    local e = registre()[numero]
+    if e == nil then return nil, nil end
+    return e, unite(e.guid)
+end
+
+-- Remplir le dépôt d'une unité HMT ( aérodrome, dépôt de munitions d'une vraie base ) avec N « packs » d'un chargement :
+-- ScenEdit_FillMagsForLoadout ajoute N fois les armes du chargement ( sonde du 02/10 : 4 packs du F-16 7453 = 16
+-- AIM-120C-5, 8 AIM-9X, 8 réservoirs ). Rend ARME numéro loadout packs lignes_réussies, ou ABSENT numéro.
+function HMT_armer(R, ...)
+    local t = { ... }
+    if #t % 3 ~= 0 then error('HMT_armer : numéro, loadout, packs par dépôt') end
+    for i = 1, #t, 3 do
+        local k, lo, n = t[i], t[i + 1], t[i + 2]
+        local e, u = vivante(k)
+        if u == nil then
+            R('ABSENT', { k })
+        else
+            local ok, r = pcall(ScenEdit_FillMagsForLoadout, { guid = e.guid, loadoutid = lo, quantity = n })
+            local reussi = 0
+            if ok and type(r) == 'table' then
+                for _, ligne in pairs(r) do
+                    if string.find(tostring(ligne), 'Successfully', 1, true) then reussi = reussi + 1 end
+                end
+            end
+            R('ARME', { k, lo, n, reussi })
+        end
+    end
+end
+
+-- Les stocks des magasins : STOCK numéro arme courant capacité, pour chaque arme de chaque magasin.
+function HMT_stocks(R, ...)
+    for _, k in ipairs({ ... }) do
+        local e, u = vivante(k)
+        if u == nil then
+            R('ABSENT', { k })
+        else
+            local n = 0
+            for _, m in pairs(u.magazines or {}) do
+                for _, w in pairs(m.mag_weapons or {}) do
+                    R('STOCK', { k, w.wpn_dbid, w.wpn_current or 0, w.wpn_maxcap or 0 })
+                    n = n + 1
+                end
+            end
+            R('MAGASINS', { k, n })
+        end
+    end
+end
+
+-- Les pertes et dépenses d'un camp, telles que CMO les compte ( VP_GetSide().losses / .expenditures ) :
+-- PERTE camp type dbid nombre et DEPENSE camp type dbid nombre ( type = HMT_TYPES ; les dbid d'avions et
+-- d'installations se recouvrent ). C'est le coût réel de la guerre, rendu à l'économie du moteur.
+function HMT_bilan(R, camp)
+    local cote = HMT_CAMPS[camp]
+    if cote == nil then error('HMT_REFUS 1') end
+    local s = VP_GetSide({ side = cote })
+    local np, nd = 0, 0
+    for _, x in pairs(s.losses or {}) do
+        R('PERTE', { camp, HMT_TYPES[x.type] or 0, x.dbid or 0, x.count or 0 })
+        np = np + 1
+    end
+    for _, x in pairs(s.expenditures or {}) do
+        R('DEPENSE', { camp, HMT_TYPES[x.type] or 0, x.dbid or 0, x.count or 0 })
+        nd = nd + 1
+    end
+    R('BILAN', { camp, np, nd })
+end
+
+-- Un réglage de doctrine du camp, par son index dans HMT_DOCTRINE ; la valeur est relue dans CMO.
+function HMT_doctrine(R, camp, i, valeur)
+    local cote, cle = HMT_CAMPS[camp], HMT_DOCTRINE[i]
+    if cote == nil then error('HMT_REFUS 1') end
+    if cle == nil then error('HMT_REFUS 9') end
+    ScenEdit_SetDoctrine({ side = cote }, { [cle] = valeur })
+    local d = ScenEdit_GetDoctrine({ side = cote }) or {}
+    R('DOCTRINE', { camp, i, tonumber(d[cle]) or -1 })
+end
+
+-- Importer une vraie installation ( index dans HMT_INSTALLATIONS ) dans un camp. CMO crée ses éléments sous leurs noms
+-- d'origine : HMT_adopter les numérote ensuite, dans un AUTRE passage ( comme une suppression, l'import peut n'être
+-- visible qu'au passage suivant ).
+function HMT_importer(R, camp, idx)
+    local cote, fichier = HMT_CAMPS[camp], HMT_INSTALLATIONS[idx]
+    if cote == nil then error('HMT_REFUS 1') end
+    if fichier == nil then error('HMT_REFUS 10') end
+    local n = ScenEdit_ImportInst(cote, fichier)
+    R('IMPORTE', { camp, idx, tonumber(n) or -1 })
+end
+
+-- Numéroter HMT-<premier>, HMT-<premier + 1>… chaque unité du camp qui n'est pas encore HMT ( l'installation qu'on vient
+-- d'importer : nos camps ne contiennent que des unités HMT ). Le groupe ( la base elle-même, dbid 0 ) est numéroté aussi :
+-- c'est lui qui accueille les avions. Rend ADOPTE numéro dbid lat lon groupe ( 1 = groupe ).
+function HMT_adopter(R, camp, premier)
+    local cote = HMT_CAMPS[camp]
+    if cote == nil then error('HMT_REFUS 1') end
+    local reg = registre()
+    local s = VP_GetSide({ side = cote })
+    local k = premier
+    for _, x in ipairs(s.units or {}) do
+        if not string.match(x.name or '', '^HMT%-%d+$') then
+            if reg[k] ~= nil and unite(reg[k].guid) ~= nil then error('HMT_REFUS 3') end
+            local u = ScenEdit_SetUnit({ guid = x.guid, newname = 'HMT-' .. k })
+            local v = unite(x.guid)
+            if v == nil or v.name ~= 'HMT-' .. k then error('HMT_REFUS 11') end
+            reg[k] = { guid = x.guid, camp = camp }
+            local groupe = (v.type == 'Group') and 1 or 0
+            R('ADOPTE', { k, v.dbid or 0, v.latitude or 0, v.longitude or 0, groupe })
+            k = k + 1
+        end
+    end
+    R('ADOPTES', { camp, premier, k - premier })
+end
+
+-- Les dégâts : ETAT numéro pourcentage_de_dégâts feu ( 0 / 1 ) inondation ( 0 / 1 ), ou ABSENT numéro.
+function HMT_etats(R, ...)
+    for _, k in ipairs({ ... }) do
+        local e, u = vivante(k)
+        if u == nil then
+            R('ABSENT', { k })
+        else
+            local d = u.damage or {}
+            local feu = (d.fires ~= nil and d.fires ~= 'NoFire') and 1 or 0
+            local eau = (d.flood ~= nil and d.flood ~= 'NoFlooding') and 1 or 0
+            R('ETAT', { k, tonumber(d.dp_percent_now or d.dp_percent) or 0, feu, eau })
+        end
+    end
 end
