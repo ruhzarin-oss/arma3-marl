@@ -74,7 +74,31 @@ def _sondes_r7():
     return s
 
 
-JEUX = {"r6": _sondes, "r7": _sondes_r7}
+def _sondes_r8():
+    """Sixieme jugement ( R8 ) : des classes FEUILLES ( variantes ) qui heritent presque tout de leur base."""
+    s = []
+    for u in ("B_Soldier_GL_F", "B_soldier_AA_F", "O_Soldier_TL_F", "I_Soldier_AT_F", "B_recon_F", "O_sniper_F",
+              "I_crew_F", "B_Pilot_F", "C_man_1", "B_diver_F"):
+        for k in ("camouflage", "sensitivityEar", "audible", "armorStructural"): s.append(("n", ("CfgVehicles", u, k)))
+    for v in ("B_MBT_01_TUSK_F", "B_APC_Tracked_01_CRV_F", "B_APC_Tracked_01_AA_F", "O_MRAP_02_hmg_F", "I_MRAP_03_hmg_F",
+              "B_Truck_01_ammo_F", "O_Truck_02_fuel_F", "B_Heli_Transport_01_F", "O_Heli_Light_02_unarmed_F",
+              "I_Heli_light_03_unarmed_F"):
+        for k in ("fuelCapacity", "maxSpeed", "armor"): s.append(("n", ("CfgVehicles", v, k)))
+        s.append(("t", ("CfgVehicles", v, "crew")))
+    for w in ("arifle_MX_Black_F", "arifle_MXC_khk_F", "arifle_TRG21_F", "arifle_Mk20_plain_F", "srifle_EBR_F",
+              "srifle_GM6_camo_F", "LMG_Mk200_F", "hgun_ACPC2_F", "arifle_CTAR_blk_F", "launch_RPG32_F"):
+        for k in ("inertia", "dexterity", "maxZeroing"): s.append(("n", ("CfgWeapons", w, k)))
+        s.append(("a", ("CfgWeapons", w, "magazines")))
+    for m in ("30Rnd_65x39_caseless_mag_Tracer", "30Rnd_556x45_Stanag_Tracer_Red", "20Rnd_762x51_Mag",
+              "200Rnd_65x39_cased_Box_Tracer", "9Rnd_45ACP_Mag"):
+        for k in ("count", "initSpeed", "mass"): s.append(("n", ("CfgMagazines", m, k)))
+    s += [("n", ("CfgVehicles", "B_Pilot_F", "hmt_nexiste_pas")), ("n", ("CfgWeapons", "arifle_TRG21_F", "hmt_bidon")),
+          ("c", ("CfgVehicles", "HMT_variante_bidon_F")), ("c", ("CfgMagazines", "HMT_chargeur_bidon")),
+          ("t", ("CfgVehicles", "C_man_1", "hmt_texte_bidon")), ("a", ("CfgWeapons", "hgun_ACPC2_F", "hmt_tableau_bidon"))]
+    return s
+
+
+JEUX = {"r6": _sondes, "r7": _sondes_r7, "r8": _sondes_r8}
 
 SONDES = _sondes()
 JEU_COURANT = "r6"
@@ -160,7 +184,7 @@ def juger(rpt):
     I1 = presentes == n and fin
     I2 = not autres_mods
     P = n >= 60 and herite >= 10 and absents_jeu >= 5
-    if JEU_COURANT == "r7": P = P and n >= 120 and herite >= 30      # R7 : critere ecrit le 02/10 avant la mesure
+    if JEU_COURANT in ("r7", "r8"): P = P and n >= 120 and herite >= 30   # R7, R8 : criteres ecrits le 02/10 avant la mesure
     R6 = fausses == 0
     print(f"instrument : {presentes}/{n} lignes, fin {'vue' if fin else 'ABSENTE'} : {'OUI' if I1 else 'NON'}")
     print(f"instrument : mods du journal {sorted(mods)} ; hors defaut {autres_mods} : {'OUI' if I2 else 'NON'}")
