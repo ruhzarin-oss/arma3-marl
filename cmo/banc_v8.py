@@ -31,7 +31,8 @@ SIAULIAI = "Lithuania/Siauliai Air Base 2024.inst"
 INSTALLATIONS = (SIAULIAI,)
 PREMIER = 90_100_001
 F16, LOADOUT = 7087, 7453
-AVIONS = (10_100_001, 10_100_002)
+AVIONS = (10_100_001, 10_100_002)                       # un VOL de deux : une patrouille ne part que par vols ( sonde du
+# 02/10 : un avion seul par base reste au parking indéfiniment, deux décollent en 2 min 45 )
 
 
 def banc(dossier=None):
@@ -69,8 +70,7 @@ def banc(dossier=None):
         etape("armer", lambda: l.armer([(k, LOADOUT, 10) for k in depots]))
         time.sleep(2)
         etape("stocks", lambda: {k: {w: c for w, (c, _) in s.items()} for k, s in l.stocks(depots[:3])["stocks"].items()})
-        etape("poser_sur_groupe", lambda: l.poser_base_lots([("OTAN", F16, LOADOUT, groupe, [AVIONS[0]])]))
-        etape("poser_sur_piste", lambda: l.poser_base_lots([("OTAN", F16, LOADOUT, pistes[0], [AVIONS[1]])]))
+        etape("poser_sur_groupe", lambda: l.poser_base_lots([("OTAN", F16, LOADOUT, groupe, list(AVIONS))]))
         etape("doctrine_lue", lambda: l.lua("local d = ScenEdit_GetDoctrine({side = 'OTAN'}) R('D', {d.quick_turnaround_for_aircraft, "
                                             "d.air_operations_tempo})", par_humain=True)["lignes"])
         etape("doctrine_rotation_rapide", lambda: l.doctrine("OTAN", "quick_turnaround_for_aircraft", 0)["valeur"])
@@ -79,7 +79,7 @@ def banc(dossier=None):
         etape("etats_pistes", lambda: l.etats(pistes + ([groupe] if groupe else []))["etats"])
         etape("patrouille", lambda: l.missions([(1, "OTAN", 56.5, 23.0, 20, 0)], [(1, list(AVIONS))]))
         vols = []
-        for _ in range(12):
+        for _ in range(16):
             time.sleep(15)
             try:
                 p = l.positions(10_000_000, 29_999_999)
