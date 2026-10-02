@@ -24,7 +24,8 @@ PRIX_ARME_M = [  # ( motif du nom de l'arme dans la base, prix en M$ ) : le prem
     (r"R-37", 1.5), (r"PL-15", 1.0), (r"PL-10", 0.3),
     (r"Drop Tank", 0.03),
     # air-sol ( 02/10 ) : kits de guidage et corps de bombe, missiles de croisière et antiradar
-    (r"JASSM", 1.5), (r"Storm Shadow|SCALP", 1.0), (r"Taurus", 1.0), (r"Tomahawk", 2.0), (r"JSOW", 0.7),
+    (r"JASSM", 1.5), (r"Storm Shadow|SCALP", 1.0), (r"GBU-53|StormBreaker", 0.25), (r"GBU-39|SDB", 0.04),
+    (r"SPEAR EW", 0.3), (r"SPEAR", 0.4), (r"ATACMS|MGM-140", 1.5), (r"GMLRS|M30|M31", 0.16), (r"Taurus", 1.0), (r"Tomahawk", 2.0), (r"JSOW", 0.7),
     (r"GBU-31|GBU-32|GBU-38|JDAM", 0.035), (r"GBU-1[026]|Paveway II|LGB", 0.03), (r"Paveway IV", 0.07),
     (r"CPU-123", 0.05), (r"AGM-88|HARM|AARGM", 0.8), (r"ALARM", 0.6),
     (r"Iskander|9M723", 3.0), (r"Kalibr|3M14", 1.0), (r"Kh-59", 1.0), (r"Kh-38", 0.6), (r"Kh-31", 0.6),

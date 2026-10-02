@@ -17,7 +17,7 @@ F16, LO_FRAPPE = 7087, 7492
 LIEU_BASE, LIEU_CIBLE = (54.03, 19.13), (54.70, 20.40)   # Malbork ; Kaliningrad ( schématique )
 
 
-def main(duree_s=900):
+def main(duree_s=1800):
     out = {"releves": []}
     with CL.Labo(camps=T.CAMPS, installations=T.FICHIERS) as l:
         def une(nom, corps, attente=30):

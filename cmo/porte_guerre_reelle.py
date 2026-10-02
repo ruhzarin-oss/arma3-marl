@@ -15,6 +15,7 @@ import time
 ICI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ICI)
 import cmo_labo as CL                                     # noqa: E402
+import etat_major as EM                                  # noqa: E402
 import guerre_reelle as GR                                # noqa: E402
 import porte_cmo as P                                     # noqa: E402
 from faux_cmo import FauxCMO                              # noqa: E402
@@ -26,8 +27,14 @@ MEMBRES = [(757, "Runway"), (353, "Access"), (322, "Ammo 1"), (322, "Ammo 2"), (
 CLASSES = {757: "piste", 353: "acces", 322: "depot", 942: "carburant"}
 CHARG = {7087: {"aa": 7453, "frappe": 7492, "prix_m": 45, "nom": "F-16"},
          6210: {"aa": 19291, "frappe": 27000, "prix_m": 32, "nom": "Su-30"}}
-LOADOUTS = {7453: [(897, 4), (945, 2)], 7492: [(1001, 2), (945, 2)], 19291: [(2056, 2), (2053, 2)], 27000: [(1002, 4)]}
-PRIX_ARME = {897: 1.0, 945: 0.45, 1001: 0.03, 2056: 0.6, 2053: 0.2, 1002: 0.02}
+LOADOUTS = {7453: [(897, 4), (945, 2)], 7492: [(1001, 2), (945, 2)], 19291: [(2056, 2), (2053, 2)], 27000: [(1002, 4)],
+            33510: [(3000, 2), (945, 2)]}
+PRIX_ARME = {897: 1.0, 945: 0.45, 1001: 0.03, 2056: 0.6, 2053: 0.2, 1002: 0.02, 3000: 1.5}
+# L'état-major : portées réelles de la DB3000 injectées ( S-400 215 km en l'air ; ATACMS 162 km, Iskander 270 km au sol ),
+# le chargement DEAD du F-16 ( JASSM-ER, 33510 ), 60 min de préparation.
+PORTEE_AIR, PORTEE_SOL = {1937: 215.0}, {3659: 162.0, 254: 270.0}
+EM_KW = {"portee_air": lambda d: PORTEE_AIR.get(d, 0.0), "portee_sol": lambda d: PORTEE_SOL.get(d, 0.0),
+         "charg_mission": lambda d, m: {7087: 33510}.get(d) if m == "dead" else None}
 
 
 def prix_pack(lo):
@@ -49,6 +56,8 @@ def guerre(**kw):
                   + ", ".join(f"{{ {d}, '{n}', {la + j * 0.001}, {lo + j * 0.001} }}" for j, (d, n) in enumerate(MEMBRES)) + " }")
         f.demarrer()
         CL.certifier("1.10.1900.20", {"porte": True}, etat)
+        kw.setdefault("em_kw", EM_KW)
+        kw.setdefault("readytime", lambda lo: 60)
         g = GR.GuerreReelle("papier_reel", classer=lambda d: "groupe" if d == 0 else CLASSES.get(d, "autre"),
                             chargements=CHARG, prix_pack=prix_pack, prix_arme=PRIX_ARME.get,
                             labo_kw=dict(pont=f.pont, sortie=f.sortie, etat=etat, **P.RAPIDE), **kw)
@@ -202,7 +211,7 @@ def e8_reprendre_sans_reconstruire():
         e = json.loads(json.dumps(g.etat()))
         n = f.compter()
         g2 = GR.GuerreReelle("papier_reel", labo=g.labo, classer=g.classer, chargements=CHARG, prix_pack=prix_pack,
-                             prix_arme=PRIX_ARME.get).charger(e)
+                             prix_arme=PRIX_ARME.get, em_kw=EM_KW, readytime=lambda lo: 60).charger(e)
         assert g2.resume("OTAN") == g.resume("OTAN") and g2.caisse == g.caisse and g2.bases.keys() == g.bases.keys()
         g2.tour()
         assert f.compter() == n and g2.tours == 2, (f.compter(), n, g2.tours)
@@ -252,9 +261,81 @@ def e10_mort_pendant_une_bascule():
         assert g.pertes["Poland"] == 1
 
 
+# Le théâtre de l'état-major : huit F-16 polonais ( quatre en frappe ), un S-400 russe à Gvardeïsk qui couvre Tchkalovsk,
+# un HIMARS à 95 km du S-400 et un autre à Poznań, hors de portée.
+FLOTTES_EM = [("Test/Malbork.inst", "Poland", 7087, 8, 0.5), ("Test/Tchkalovsk.inst", "Russia [1992-]", 6210, 4, 0.5)]
+SOL_EM = T.SOL + [("Russia [1992-]", 1937, "S-400", 54.65, 21.07), ("Poland", 3659, "HIMARS Poznan", 52.40, 16.90)]
+
+
+def e11_dead_avant_la_frappe():
+    """Mets-toi en mode chef d'état-major ( Younes, 02/10 ) : la base russe sous le parapluie d'un S-400 intact n'est PAS
+    frappée ; une mission DEAD vise le S-400, avec le seul lanceur À PORTÉE et une ESCORTE ; des frappeurs posés sont
+    réarmés en JASSM-ER ( dépôt rempli au prix réel, chargement relu dans CMO ), puis engagés en DEAD. Le S-400 détruit, la
+    mission DEAD est fermée dans CMO et notée, la frappe de la base part avec frappeurs et avions DEAD."""
+    with guerre(flottes=FLOTTES_EM, sol=SOL_EM) as (f, g):
+        s400 = next(k for k, s in g.sol.items() if s["dbid"] == 1937)
+        proche, loin = (next(k for k, s in g.sol.items() if s["dbid"] == 3659 and s["pos"][0] > 54),
+                        next(k for k, s in g.sol.items() if s["dbid"] == 3659 and s["pos"][0] < 53))
+        g.caisse["Poland"] = 1000.0                       # de quoi payer les JASSM-ER ( sinon le réarmement attend )
+        g.verse["Poland"] += 1000.0
+        avant = g.depense["Poland"]
+        g.tour()
+        fr = g.frappe["OTAN"]
+        assert fr["type"] == "dead" and fr["cibles"] == [s400], fr
+        mid = fr["id"]
+        assert g.affecte.get(proche) == mid and loin not in g.affecte, (g.affecte, proche, loin)
+        frappeurs = [k for k, a in g.avions.items() if a["pays"] == "Poland" and a["role"] in ("frappe", "dead")]
+        assert not any(g.affecte.get(k) == mid for k in frappeurs if g.avions[k]["role"] == "frappe"), g.affecte
+        assert not any(m == -mid for m in g.affecte.values()), g.affecte   # le lanceur seul ne demande pas d'escorte
+        dead = [k for k in frappeurs if g.avions[k]["role"] == "dead"]
+        assert len(dead) == 2 and g.depense["Poland"] > avant, (dead, g.depense)
+        assert all(f.lua(f"for _, u in pairs(FAUX.unites) do if u.name == 'HMT-{k}' then return u.loadoutdbid end end") == 33510
+                   for k in dead)
+        g.tour()
+        assert all(g.affecte.get(k) == mid for k in dead), (dead, g.affecte)
+        esc = [k for k, m in g.affecte.items() if m == -mid]               # les avions DEAD partent escortés
+        assert len(esc) == 2 and all(f.lua(f"for _, u in pairs(FAUX.unites) do if u.name == 'HMT-{k}' then return u.escorte end end")
+                                     for k in esc), esc
+        f.detruire(s400)
+        g.tour()
+        fr2 = g.frappe["OTAN"]
+        assert fr2["type"] == "oca" and fr2["id"] != mid, fr2
+        assert f.lua(f"return FAUX.missions['OTAN/HMT-F{mid}'] == nil"), "la mission DEAD n'est pas fermée dans CMO"
+        assert all(g.affecte.get(k) == fr2["id"] for k in frappeurs), (frappeurs, g.affecte)
+        note = next(d for d in g.em.journal if d.get("cloture") == mid)
+        assert note["type"] == "dead" and note["degats"] == 100.0 and g.em.part_dead["OTAN"] > EM.PART_DEAD_DEPART, note
+
+
+def e12_apprentissage_borne():
+    """L'état-major apprend : des missions DEAD qui perdent des avions sans rien détruire font baisser la part d'avions
+    réarmés en DEAD, jamais sous 0,2 ; des DEAD qui détruisent la font monter, jamais au-dessus de 0,8 ( choix à valider ).
+    L'apprentissage survit à une reprise ( état JSON )."""
+    import json
+    with guerre() as (f, g):
+        em = g.em
+
+        def noter(typ, degats, pertes, n):
+            for i in range(n):
+                m = {"id": 9000 + len(em.missions), "type": typ, "camp": "OTAN", "cibles": [1], "ouverte": True, "t0": 0,
+                     "degats0": {1: 100.0 - degats}, "avions": set(), "pertes": pertes}
+                em.missions[m["id"]] = m
+                g.elements[1] = {"vivant": True, "degats": 100.0 if degats else 0.0}
+                em._clore(m)
+        noter("dead", 0.0, 4, 30)
+        assert abs(em.part_dead["OTAN"] - 0.2) < 1e-9, em.part_dead
+        noter("dead", 100.0, 0, 30)
+        noter("oca", 0.0, 4, 30)
+        assert abs(em.part_dead["OTAN"] - 0.8) < 1e-9, em.part_dead
+        g.elements.pop(1)
+        e = json.loads(json.dumps(g.etat()))
+        g2 = GR.GuerreReelle("papier_reel", labo=g.labo, classer=g.classer, chargements=CHARG, prix_pack=prix_pack,
+                             prix_arme=PRIX_ARME.get, em_kw=EM_KW, readytime=lambda lo: 60).charger(e)
+        assert g2.em.part_dead == em.part_dead and g2.em.efficacite == em.efficacite
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
-         e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule]
+         e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne]
 
 
 def controles():
@@ -287,6 +368,11 @@ def controles():
         self.a_remplacer = []                            # oublie les pertes en attente : il les reposerait en double
         return vrai_completer(self, *a, **kw)
 
+    vrai_p = EM.EtatMajor._p
+
+    def portee_ignoree(self, quoi, dbid):
+        return 1e6 if quoi == "sol" else vrai_p(self, quoi, dbid)
+
     def cible_amie(self, camp):
         return next((i for i, b in self.bases.items() if b["camp"] == camp), None)
     m = [("l'état des bases n'est jamais relu", e3_une_piste_detruite_ferme_la_base, (GR.GuerreReelle, "_etat_bases", lambda self: None)),
@@ -295,7 +381,11 @@ def controles():
          ("la frappe vise sa propre base", e2_defense_et_frappe, (GR.GuerreReelle, "_choisir_cible", cible_amie)),
          ("une mort hors relevé bloque la guerre", e10_mort_pendant_une_bascule, (GR.GuerreReelle, "_relever", relever_strict)),
          ("le complément repose les pertes en attente", e9_completer_en_cours_de_guerre,
-          (GR.GuerreReelle, "completer", completer_oublieux))]
+          (GR.GuerreReelle, "completer", completer_oublieux)),
+         ("le parapluie sol-air est ignoré", e11_dead_avant_la_frappe, (EM.EtatMajor, "couvrent", lambda self, camp, pos: [])),
+         ("un lanceur est engagé hors de portée", e11_dead_avant_la_frappe, (EM.EtatMajor, "_p", portee_ignoree)),
+         ("la frappe part sans escorte", e11_dead_avant_la_frappe, (EM.EtatMajor, "_escorteurs", lambda self, camp, n: [])),
+         ("l'apprentissage n'a pas de plancher", e12_apprentissage_borne, (EM, "PART_DEAD_MIN", 0.0))]
     for nom, test, (obj, attr, val) in m:
         with P.mutant(obj, attr, val):
             try:

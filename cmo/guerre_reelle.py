@@ -35,6 +35,7 @@ ICI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ICI)
 import cmo_labo as CL                                     # noqa: E402
 import budgets as BU                                      # noqa: E402
+import etat_major as EM                                   # noqa: E402
 
 DEC_AVION, DEC_SOL, DEC_INST = 10_000_000, 20_000_000, 90_000_000
 MOBILES = (DEC_AVION, DEC_INST - 1)
@@ -120,6 +121,17 @@ def prix_pack_db():
     return prix
 
 
+def readytime_db():
+    """Minutes de préparation réelles d'un chargement ( DataLoadout.ReadyTime ), 60 à défaut."""
+    import sqlite3
+    c = sqlite3.connect(f"file:{CL_DB}?mode=ro", uri=True)
+
+    def rt(loadout):
+        r = c.execute("select ReadyTime from DataLoadout where ID = ?", (loadout,)).fetchone()
+        return int(r[0]) if r and r[0] else 60
+    return rt
+
+
 def prix_arme_db():
     import sqlite3
     import munitions as M
@@ -136,7 +148,8 @@ def prix_arme_db():
 
 class GuerreReelle:
     def __init__(self, theatre="baltique_reel", *, labo=None, labo_kw=None, periode_min=1.0, installations=None,
-                 flottes=None, sol=None, classer=None, chargements=None, prix_pack=None, prix_arme=None):
+                 flottes=None, sol=None, classer=None, chargements=None, prix_pack=None, prix_arme=None, em_kw=None,
+                 readytime=None):
         self.T = importlib.import_module(f"theatres.{theatre}")
         self.camps, self.pays = tuple(self.T.CAMPS), list(self.T.PAYS)
         self.installations = list(installations if installations is not None else self.T.INSTALLATIONS)
@@ -169,6 +182,9 @@ class GuerreReelle:
         self.achats = {p: 0 for p in self.pays}
         self.packs_achetes = {p: 0 for p in self.pays}
         self.refus_construction = []                     # ce que CMO a refusé de poser, et pourquoi ( code REFUS_LUA )
+        self.altitudes, self.affecte_avant = {}, {}
+        self.readytime = readytime or readytime_db()
+        self.em = EM.EtatMajor(self, **(em_kw or {}))    # l'état-major : doctrine, DEAD avant OCA, escortes, apprentissage
 
     # ---- numéros
     def _numero(self, dec, pays):
@@ -409,16 +425,22 @@ class GuerreReelle:
     # ---- l'état du théâtre, pour reprendre une guerre sans le reconstruire ( le scénario garde les unités HMT )
     CHAMPS_ETAT = ("elements", "bases", "avions", "sol", "rang", "caisse", "verse", "depense", "stock_initial_m",
                    "a_remplacer", "pertes", "achats", "packs_achetes", "frappe", "k_frappe", "affecte", "patrouilles",
-                   "refus_construction", "journal", "journal_pos", "tours", "bilans", "morts", "detruits")
+                   "refus_construction", "journal", "journal_pos", "tours", "bilans", "morts", "detruits", "altitudes")
 
     def etat(self):
-        return {k: (sorted(v) if isinstance(v, set) else v) for k, v in ((k, getattr(self, k)) for k in self.CHAMPS_ETAT)}
+        e = {k: (sorted(v) if isinstance(v, set) else v) for k, v in ((k, getattr(self, k)) for k in self.CHAMPS_ETAT)}
+        e["em"] = self.em.etat()
+        return e
 
     def charger(self, e):
         """L'inverse de etat() après un aller-retour JSON ( les clés numériques y deviennent du texte )."""
         num = lambda d: {int(k): v for k, v in d.items()}          # noqa: E731
         for k in self.CHAMPS_ETAT:
-            setattr(self, k, e[k])
+            if k in e:
+                setattr(self, k, e[k])
+        self.altitudes = {int(k): v for k, v in (e.get("altitudes") or {}).items()}
+        if e.get("em"):
+            self.em.charger(e["em"])
         self.elements, self.avions, self.sol, self.affecte = num(self.elements), num(self.avions), num(self.sol), num(self.affecte)
         self.bases = num(self.bases)
         for b in self.bases.values():
@@ -436,8 +458,9 @@ class GuerreReelle:
         p = self.labo.positions(*MOBILES)
         vus, nouveaux = set(), []
         for camp, us in p["vivants"].items():
-            for k, *_ in us:
+            for k, _la, _lo, alt in us:
                 vus.add(k)
+                self.altitudes[k] = alt
         for camp, ks in p["morts"].items():
             for k in ks:
                 if k in self.avions:
@@ -518,6 +541,7 @@ class GuerreReelle:
     def _remplacer(self):
         paires = {}
         for pays, dbid, role, base in self.a_remplacer:
+            role = "frappe" if role == "dead" else role          # le remplaçant arrive en frappeur : l'état-major le réarme
             paires.setdefault((pays, dbid, role, base), 0)
             paires[(pays, dbid, role, base)] += 1
         reste, lots, demandes = [], {}, []
@@ -596,31 +620,17 @@ class GuerreReelle:
             for k in ks:
                 if k in r["affectes"]:
                     self.affecte[k] = pid
-        frappes, aff_f = [], []
+        frappes, aff_f, escortes, rearmes = [], [], [], []
         for ci, camp in enumerate(self.camps):
-            f = self.frappe[camp]
-            if f is None or f["base"] not in self.bases or not self.bases[f["base"]]["op"]:
-                cible = self._choisir_cible(camp)
-                if cible is None:
-                    self.frappe[camp] = None
-                    continue
-                self.k_frappe[camp] += 1
-                fid = 1000 + ci * 100 + self.k_frappe[camp]
-                b = self.bases[cible]
-                cibles = [k for k in b["pistes"] + b["acces"] + b["depots"] if self.elements[k]["vivant"]]
-                self.frappe[camp] = {"id": fid, "base": cible, "cibles": cibles}
-                frappes.append((fid, camp, cibles))
-                for k, m in list(self.affecte.items()):
-                    if m >= 1000 and (m - 1000) // 100 == ci:
-                        del self.affecte[k]                               # réaffectés à la nouvelle frappe
-            f = self.frappe[camp]
-            libres = sorted(k for k, a in self.avions.items() if a["camp"] == camp and a["role"] == "frappe"
-                            and k not in self.affecte)
-            libres = libres[:len(libres) // 2 * 2]
-            lanceurs = sorted(k for k, s in self.sol.items() if s["camp"] == camp and k not in self.affecte
-                              and s["dbid"] in getattr(self.T, "LANCEURS", set()))
-            if libres or lanceurs:
-                aff_f.append((f["id"], libres + lanceurs))
+            f, a, e, rr = self.em.planifier(ci, camp)
+            frappes += f
+            aff_f += a
+            escortes += e
+            rearmes += rr
+        if self.em.a_clore:
+            r = self.labo.clore(self.em.a_clore)
+            self.em.journal.append({"tour": self.tours, "clos": r["clos"]})
+            self.em.a_clore = []
         if frappes or aff_f:
             r = self.labo.frappes(frappes, aff_f)
             for fid, ks in aff_f:
@@ -629,6 +639,41 @@ class GuerreReelle:
                         self.affecte[k] = fid
                     elif k in self.sol:
                         self.affecte[k] = -1                              # refusé par CMO : on ne redemande pas
+        if escortes:
+            r = self.labo.escortes(escortes)
+            for fid, ks in escortes:
+                for k in ks:
+                    if k in r["escortes"]:
+                        self.affecte[k] = -fid                            # négatif : escorteur de la frappe fid
+        if rearmes:
+            self._rearmer(rearmes)
+
+    def _rearmer(self, lots):
+        """Avions de frappe posés réarmés pour la DEAD : le dépôt de leur base reçoit d'abord PACKS_INITIAUX chargements,
+        payés au prix réel par leur pays ; puis ScenEdit_SetLoadout, relu : sans les armes, CMO laisse l'avion vide."""
+        achats, charge = [], []
+        for k, lo in lots:
+            a = self.avions.get(k)
+            b = self.bases.get(a["base"]) if a else None
+            depots = [d for d in (b["depots"] if b else []) if self.elements[d]["vivant"]]
+            cout = self.prix_pack(lo)[0] * PACKS_INITIAUX
+            if not depots or self.caisse[a["pays"]] < cout:
+                continue
+            self.caisse[a["pays"]] -= cout
+            self.depense[a["pays"]] += cout
+            self.packs_achetes[a["pays"]] += PACKS_INITIAUX
+            achats.append((depots[0], lo, PACKS_INITIAUX))
+            charge.append((k, lo, self.readytime(lo)))
+        if achats:
+            self.labo.armer(achats)
+        if charge:
+            r = self.labo.charger(charge)
+            for k, lo, _ in charge:
+                ok = r["charges"].get(k) == lo
+                if ok:
+                    self.avions[k].update(role="dead", loadout=lo)
+                    self.affecte.pop(k, None)
+                self.em.journal.append({"tour": self.tours, "rearme": k, "chargement": lo, "ok": ok})
 
     def _choisir_cible(self, camp):
         """La base aérienne adverse opérationnelle la plus proche des bases du camp, à portée."""
@@ -651,7 +696,9 @@ class GuerreReelle:
     # ---- un tour
     def tour(self):
         self.tours += 1
+        self.affecte_avant = dict(self.affecte)
         morts = self._relever()
+        self.em.suivre(morts)
         detruits = self._lire_journal()
         self._etat_bases()
         self._verser()
@@ -664,6 +711,7 @@ class GuerreReelle:
         self.temps = c["temps"]
         return {"tour": self.tours, "temps": self.temps, "rtt_ms": c["recu"]["rtt_ms"], "morts": morts,
                 "detruits": detruits, "achats": achats, "munitions": len(munitions),
+                "decisions": [d for d in self.em.journal if d.get("tour") == self.tours],
                 "camps": {cp: self.resume(cp) for cp in self.camps}}
 
     def resume(self, camp):

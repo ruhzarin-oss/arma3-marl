@@ -59,7 +59,7 @@ function ScenEdit_AddUnit(t)
         return nil
     end
     local u = { guid = guid(), name = t.unitname, side = t.side, type = t.type, dbid = t.dbid, base = t.base,
-                latitude = la, longitude = lo, altitude = t.altitude or 0, magazines = {},
+                latitude = la, longitude = lo, altitude = t.altitude or 0, magazines = {}, loadoutdbid = t.loadoutid,
                 damage = { dp_percent_now = 0, fires = 'NoFire', flood = 'NoFlooding' } }
     FAUX.unites[u.guid] = u
     return copie(u)
@@ -138,12 +138,47 @@ function ScenEdit_SetMission(side, nom, t)
     return { name = nom, side = side }
 end
 
-function ScenEdit_AssignUnitToMission(guid, nom)
+function ScenEdit_DeleteMission(side, nom)
+    local m = FAUX.missions[side .. '/' .. nom]
+    if m == nil then error('mission not found') end
+    FAUX.missions[side .. '/' .. nom] = nil
+    for _, u in pairs(FAUX.unites) do
+        if u.side == side and u.mission == nom then u.mission, u.escorte = nil, nil end
+    end
+    return true
+end
+
+function ScenEdit_AssignUnitToMission(guid, nom, escorte)
     local u = FAUX.unites[guid]
     if u == nil then return false end
     local m = FAUX.missions[u.side .. '/' .. nom]
     if m == nil then return false end
     u.mission = nom
+    u.escorte = escorte == true
+    return true
+end
+
+-- Comme CMO 1.10 ( sonde du 02/10 ) : par guid, rend false ; par nom, rend true, et l'avion n'a le chargement que si le
+-- dépôt de sa base contient ses armes ( sinon chargement 3, sans armes ).
+function ScenEdit_SetLoadout(t)
+    if t.UnitName == nil then return false end
+    local u
+    for _, x in pairs(FAUX.unites) do if x.name == t.UnitName then u = x end end
+    if u == nil then error('unit not found') end
+    local base = u.base and FAUX.unites[u.base]
+    local stock = {}
+    for _, x in pairs(FAUX.unites) do
+        if base and x.side == base.side and math.abs(x.latitude - base.latitude) < 0.05 and math.abs(x.longitude - base.longitude) < 0.05 then
+            for _, m in ipairs(x.magazines or {}) do
+                for _, w in ipairs(m.mag_weapons or {}) do stock[w.wpn_dbid] = (stock[w.wpn_dbid] or 0) + w.wpn_current end
+            end
+        end
+    end
+    local complet = true
+    for _, a in ipairs(FAUX.loadouts[t.LoadoutID] or {}) do
+        if (stock[a[1]] or 0) < a[2] then complet = false end
+    end
+    u.loadoutdbid = complet and t.LoadoutID or 3
     return true
 end
 local function voler()

@@ -623,6 +623,56 @@ class Labo:
             raise Incomplet(f"frappes : {n_f} missions, {n_c} cibles, {n_a} affectations envoyées, reçu {out}")
         return out
 
+    def escortes(self, lots) -> dict:
+        """Des chasseurs en escorte de frappes, en UN envoi. lots : [ ( id de la frappe, [ numéros ] ) ]."""
+        corps, n = [], 0
+        for i, ks in lots:
+            if ks:
+                corps += _appels("HMT_escorter", str(_ent(i, 1, 9999, "id")), [str(_ent(k, 1, NUMERO_MAX, "numero")) for k in ks])
+                n += len(ks)
+        if not corps:
+            return {"escortes": [], "absents": [], "refus": []}
+        r = self._exec(" ".join(corps))
+        out = {"escortes": [int(v[0]) for k, v in r["lignes"] if k == "ESCORTE"],
+               "absents": [int(v[0]) for k, v in r["lignes"] if k == "ABSENT"],
+               "refus": [int(v[0]) for k, v in r["lignes"] if k == "REFUSE"], "recu": r["recu"]}
+        if len(out["escortes"]) + len(out["absents"]) + len(out["refus"]) != n:
+            raise Incomplet(f"{n} escorteurs envoyés, reçu {out}")
+        return out
+
+    def clore(self, lots) -> dict:
+        """Fermer des frappes, en UN envoi. lots : [ ( camp, id ) ]. Rend { id : 1 effacée, 2 désactivée, 0 absente }."""
+        par_camp = {}
+        for camp, i in lots:
+            if camp not in self.camps:
+                raise Refus(f"camp {camp!r} inconnu")
+            par_camp.setdefault(camp, []).append(str(_ent(i, 1, 9999, "id")))
+        if not par_camp:
+            return {"clos": {}}
+        corps = []
+        for camp, ids in par_camp.items():
+            corps += _appels("HMT_clore", str(self.camps.index(camp) + 1), ids)
+        r = self._exec(" ".join(corps))
+        out = {"clos": {int(v[0]): int(v[1]) for c, v in r["lignes"] if c == "CLOS"}, "recu": r["recu"]}
+        if len(out["clos"]) != len({i for _, i in lots}):
+            raise Incomplet(f"{len(lots)} frappes à fermer, reçu {out}")
+        return out
+
+    def charger(self, lots) -> dict:
+        """Réarmer des avions posés, en UN envoi. lots : [ ( numéro, chargement, minutes de préparation ) ]. Rend
+        { numéro : chargement relu } ( 3 = sans armes : le dépôt n'avait pas les armes ) et les absents."""
+        args = []
+        for k, lo, mn in lots:
+            args += [str(_ent(k, 1, NUMERO_MAX, "numero")), str(_ent(lo, 1, 10_000_000, "chargement")), str(_ent(mn, 0, 10_000, "minutes"))]
+        if not args:
+            return {"charges": {}, "absents": []}
+        r = self._exec(" ".join(_appels("HMT_charger", "", args, par=3)))
+        out = {"charges": {int(v[0]): int(v[3]) for c, v in r["lignes"] if c == "CHARGE"},
+               "absents": [int(v[0]) for c, v in r["lignes"] if c == "ABSENT"], "recu": r["recu"]}
+        if len(out["charges"]) + len(out["absents"]) != len(lots):
+            raise Incomplet(f"{len(lots)} réarmements envoyés, reçu {out}")
+        return out
+
     def positions(self, mini: int | None = None, maxi: int | None = None) -> dict:
         """{ camp : [ ( numéro, lat, lon, alt ) ] } des vivants, et { camp : [ numéro ] } des morts depuis le dernier
         relevé, pour les numéros de [ mini, maxi ] ( tous sans bornes ). Un mort n'est rendu qu'une fois : c'est le moteur

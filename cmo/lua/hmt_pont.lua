@@ -619,3 +619,56 @@ function HMT_affecter_frappe(R, id, ...)
         end
     end
 end
+
+-- L'ESCORTE d'une frappe : des chasseurs affectés à la mission HMT-F<id> comme escorteurs ( 3e argument de
+-- ScenEdit_AssignUnitToMission, sonde du 02/10 ).
+function HMT_escorter(R, id, ...)
+    local nom = 'HMT-F' .. id
+    for _, k in ipairs({ ... }) do
+        local e = registre()[k]
+        if e == nil or unite(e.guid) == nil then
+            R('ABSENT', { k })
+        else
+            local ok, r = pcall(ScenEdit_AssignUnitToMission, e.guid, nom, true)
+            if ok and r ~= false then R('ESCORTE', { k, id }) else R('REFUSE', { k, 6 }) end
+        end
+    end
+end
+
+-- FERMER des frappes : ScenEdit_DeleteMission retire la mission et rend ses avions libres ( les avions en vol rentrent ) ;
+-- sinon la mission est désactivée. Rend CLOS id méthode ( 1 effacée, 2 désactivée, 0 absente ou refusée ).
+function HMT_clore(R, camp, ...)
+    local cote = HMT_CAMPS[camp]
+    if cote == nil then error('HMT_REFUS 1') end
+    for _, id in ipairs({ ... }) do
+        local nom = 'HMT-F' .. id
+        local ok, m = pcall(ScenEdit_GetMission, cote, nom)
+        local meth = 0
+        if ok and m ~= nil then
+            if pcall(ScenEdit_DeleteMission, cote, nom) then
+                local ok2, m2 = pcall(ScenEdit_GetMission, cote, nom)
+                if not (ok2 and m2 ~= nil) then meth = 1 end
+            end
+            if meth == 0 and pcall(ScenEdit_SetMission, cote, nom, { isactive = false }) then meth = 2 end
+        end
+        R('CLOS', { id, meth })
+    end
+end
+
+-- RÉARMER un avion posé : par son NOM ( par guid, ScenEdit_SetLoadout rend false : sonde du 02/10 ). Le dépôt de sa base
+-- doit déjà contenir les armes, sinon CMO le laisse sans armement ( chargement 3 ). Rend CHARGE numéro voulu ok lu.
+function HMT_charger(R, ...)
+    local t = { ... }
+    if #t % 3 ~= 0 then error('HMT_charger : numéro, chargement, minutes par avion') end
+    for i = 1, #t, 3 do
+        local k, lo, minutes = t[i], t[i + 1], t[i + 2]
+        local e = registre()[k]
+        if e == nil or unite(e.guid) == nil then
+            R('ABSENT', { k })
+        else
+            local ok, r = pcall(ScenEdit_SetLoadout, { UnitName = 'HMT-' .. k, LoadoutID = lo, TimeToReady_Minutes = minutes })
+            local u = unite(e.guid)
+            R('CHARGE', { k, lo, (ok and r == true) and 1 or 0, tonumber(u and u.loadoutdbid) or 0 })
+        end
+    end
+end
