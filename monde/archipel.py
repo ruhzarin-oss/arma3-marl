@@ -33,12 +33,13 @@ def graine_ile(graine, ile):
     return int.from_bytes(hashlib.sha256(f"{graine}:{ile}".encode()).digest()[:4], "little")
 
 
-def creer_ile(ile, graine, echelle, llm=False, demographie=None):
+def creer_ile(ile, graine, echelle, llm=False, demographie=None, arsenal_budget=False):
     """Un pays : son monde, ses domaines, son etalon-or ( F1 ) ; avec `llm`, son gouvernement est joue par Qwen, qui
     sait de quel pays il est le gouvernement et dans quelle monnaie il compte. `demographie` : voir population.generer."""
     w = W.Monde(graine=graine_ile(graine, ile), iles=(ile,), echelle=echelle, cerveau="llm" if llm else "regles",
                 demographie=demographie)
     w.echelle_convois = float(echelle)
+    if arsenal_budget: w.arsenal_budget = True      # ( 02/10, HMT-191 0c ) l arsenal de depart paye par le budget
     P.installer(w, LIVRES)
     OR.installer(w, w.pays)
     if llm and w.cerveau is not None and hasattr(w.cerveau, "consigne"):
