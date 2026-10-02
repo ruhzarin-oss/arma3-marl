@@ -351,10 +351,66 @@ def e13_rearmement_rate_rend_l_ancien_chargement():
         assert any("rendu" in d for d in g.em.journal), g.em.journal
 
 
+def e14_cible_la_plus_menacante():
+    """La cible est la base adverse qui MENACE le plus ( avions basés / distance à la plus proche de nos bases ), pas la
+    plus proche : un terrain vide à 30 km passe après Tchkalovsk et ses quatre Su-30 à 117 km. La cible en cours est gardée
+    tant qu'elle menace au moins 80 % de la pire ( pas de valse des missions )."""
+    with guerre() as (f, g):
+        tch = next(i for i, b in g.bases.items() if b["camp"] == "Russie-Chine")
+        g.bases[99] = {"camp": "Russie-Chine", "pays": "Russia [1992-]", "op": True, "pos": (54.20, 19.50), "fichier": "Test/Leurre.inst",
+                       "pistes": [], "acces": [], "depots": [], "groupe": None, "role": "chasse"}
+        assert g._choisir_cible("OTAN") == tch, g._choisir_cible("OTAN")
+        g.avions[99999] = {"pays": "Russia [1992-]", "camp": "Russie-Chine", "dbid": 6210, "base": 99, "role": "aa", "loadout": 19291}
+        g.frappe["OTAN"] = {"id": 1001, "base": 99, "cibles": []}
+        assert g._choisir_cible("OTAN") == 99                       # 2/50 >= 0,8 x 5/117 : gardée
+        g.frappe["OTAN"] = None
+        assert g._choisir_cible("OTAN") == tch                      # sans cible en cours : la pire
+        del g.avions[99999], g.bases[99]
+
+
+def e15_swing_role():
+    """Un frappeur SANS arme à distance de sécurité ne va pas sous le parapluie : pendant la DEAD il repasse en chasse
+    ( chargement air-air relu dans CMO, patrouille ) ; le S-400 détruit, il revient à la frappe et part sur la base."""
+    kw = dict(EM_KW, charg_mission=lambda d, m: None)            # aucun chargement DEAD
+    with guerre(flottes=FLOTTES_EM, sol=SOL_EM, em_kw=kw) as (f, g):
+        s400 = next(k for k, s in g.sol.items() if s["dbid"] == 1937)
+        frappeurs = sorted(k for k, a in g.avions.items() if a["pays"] == "Poland" and a["role"] == "frappe")
+        g.tour()
+        assert g.frappe["OTAN"]["type"] == "dead"
+        assert all(g.avions[k]["role"] == "aa" and g.avions[k]["bascule"] == "frappe" for k in frappeurs), g.avions
+        assert all(f.lua(f"for _, u in pairs(FAUX.unites) do if u.name == 'HMT-{k}' then return u.loadoutdbid end end") == 7453
+                   for k in frappeurs)
+        g.tour()
+        assert all(100 <= g.affecte.get(k, 0) < 1000 for k in frappeurs), g.affecte    # en patrouille
+        f.detruire(s400)
+        for k in frappeurs:                                         # posés entre deux patrouilles
+            f.lua(f"for _, u in pairs(FAUX.unites) do if u.name == 'HMT-{k}' then u.mission = nil u.altitude = 0 end end")
+        g.tour()
+        assert g.frappe["OTAN"]["type"] == "oca"
+        assert all(g.avions[k]["role"] == "frappe" and "bascule" not in g.avions[k] for k in frappeurs), g.avions
+        g.tour()
+        assert all(g.affecte.get(k) == g.frappe["OTAN"]["id"] for k in frappeurs), g.affecte
+
+
+def e16_cadence_surge_puis_soutenue():
+    """Les trois premiers jours de guerre en « surge » ( doctrine air_operations_tempo 0 ), puis cadence soutenue ( 1 ) :
+    une sortie par jour et par pilote, comme les campagnes réelles."""
+    with guerre() as (f, g):
+        g.tour()
+        assert f.lua("return FAUX.doctrines['OTAN'].air_operations_tempo") == 0 and g.debut is not None
+        f.lua("FAUX.temps = FAUX.temps + 71 * 3600")
+        g.tour()
+        assert f.lua("return FAUX.doctrines['OTAN'].air_operations_tempo") == 0
+        f.lua("FAUX.temps = FAUX.temps + 2 * 3600")
+        g.tour()
+        assert all(f.lua(f"return FAUX.doctrines['{c}'].air_operations_tempo") == 1 for c in T.CAMPS) and g.tempo == 1
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
-         e13_rearmement_rate_rend_l_ancien_chargement]
+         e13_rearmement_rate_rend_l_ancien_chargement, e14_cible_la_plus_menacante, e15_swing_role,
+         e16_cadence_surge_puis_soutenue]
 
 
 def controles():
@@ -396,6 +452,12 @@ def controles():
     def portee_ignoree(self, quoi, dbid):
         return 1e6 if quoi == "sol" else vrai_p(self, quoi, dbid)
 
+    def cible_la_plus_proche(self, camp):                       # l'ancienne règle : la plus proche du centre du camp
+        miennes = [b["pos"] for b in self.bases.values() if b["camp"] == camp]
+        c = (sum(p[0] for p in miennes) / len(miennes), sum(p[1] for p in miennes) / len(miennes))
+        cand = [(GR.km(b["pos"], c), i) for i, b in self.bases.items() if b["camp"] != camp and b["op"]]
+        return min(cand)[1] if cand else None
+
     def cible_amie(self, camp):
         return next((i for i, b in self.bases.items() if b["camp"] == camp), None)
     m = [("l'état des bases n'est jamais relu", e3_une_piste_detruite_ferme_la_base, (GR.GuerreReelle, "_etat_bases", lambda self: None)),
@@ -410,7 +472,10 @@ def controles():
          ("la frappe part sans escorte", e11_dead_avant_la_frappe, (EM.EtatMajor, "_escorteurs", lambda self, camp, n: [])),
          ("l'apprentissage n'a pas de plancher", e12_apprentissage_borne, (EM, "PART_DEAD_MIN", 0.0)),
          ("un avion laissé vide reste vide", e13_rearmement_rate_rend_l_ancien_chargement,
-          (CL.Labo, "charger", charger_sans_retour))]
+          (CL.Labo, "charger", charger_sans_retour)),
+         ("la cible est la base la plus proche", e14_cible_la_plus_menacante, (GR.GuerreReelle, "_choisir_cible", cible_la_plus_proche)),
+         ("pas de swing-role", e15_swing_role, (EM.EtatMajor, "_basculer", lambda self, camp, vers: [])),
+         ("la guerre reste en surge", e16_cadence_surge_puis_soutenue, (GR, "SURGE_H", 1e9))]
     for nom, test, (obj, attr, val) in m:
         with P.mutant(obj, attr, val):
             try:

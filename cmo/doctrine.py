@@ -15,6 +15,14 @@ LES PHASES D'UNE CAMPAGNE AÉRIENNE
   EN PERMANENCE : défense aérienne de ses bases et de ses moyens rares ( radars volants, ravitailleurs ).
 
 LES RÈGLES TACTIQUES
+  - Défense COURTE portée ( moins de 30 km : Pantsir, Tor, MANPADS ) : on vole au-dessus de son plafond. Défense de MOYENNE
+    ou LONGUE portée ( Buk, Patriot, S-300, S-400 ) : c'est un parapluie.
+  - On frappe d'abord ce qui MENACE le plus : la base qui aligne le plus d'avions le plus près des siennes ( Kaliningrad,
+    bulle au milieu de l'OTAN, avant Baranovitchi ).
+  - Un avion sans arme à distance de sécurité ne va pas sous le parapluie : pendant la DEAD, il repasse en chasse ( escorte,
+    défense des bases ), et revient à la frappe quand le ciel est ouvert ( « swing-role » ).
+  - Cadence : effort intense ( « surge » ) les trois premiers jours, puis effort durable, une sortie par jour et par pilote
+    ( 1991, 1999, 2022 ).
   - On ne frappe JAMAIS sous un parapluie sol-air intact avec des armes de courte portée : soit on le détruit d'abord,
     soit on tire de plus loin que sa portée ( arme à distance de sécurité ), soit on pénètre en avion furtif.
   - Un paquet, pas un vol isolé : frappeurs + escorte de chasse + tireurs antiradar ( + brouilleur ).
@@ -38,7 +46,9 @@ MISSIONS = {
     "interdiction": "Frappe des lanceurs, postes de commandement et de la logistique",
     "escorte": "Chasseurs qui accompagnent un paquet de frappe",
 }
-PORTEE_LONGUE_KM = 100.0                                  # au-delà, un site sol-air « couvre » une région : DEAD d'abord
+# Une défense qui porte à 30 km ou plus menace un avion à moyenne altitude ( Buk, Patriot, S-300, S-400 ) : DEAD d'abord.
+# En dessous ( Pantsir, Tor, Strela, MANPADS ), on vole au-dessus de leur plafond, comme la doctrine réelle depuis 1991.
+PORTEE_MENACE_KM = 30.0
 
 ARME_DISTANCE = re.compile(r"JASSM|Storm Shadow|SCALP|Taurus|Kh-59|Kh-38|Kh-101|Kh-555|Kalibr|Tomahawk|SPEAR", re.I)
 ARME_ANTIRADAR = re.compile(r"HARM|AARGM|ALARM|Kh-31P|Kh-58|Kh-25MP", re.I)

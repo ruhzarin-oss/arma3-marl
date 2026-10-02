@@ -5,7 +5,7 @@ mode chef d'état-major ».
 À chaque tour, pour chaque camp :
   1. SITUATION : la base aérienne adverse à frapper ( la plus proche encore opérationnelle ) ; les PARAPLUIES sol-air
      adverses vivants ( unités et éléments d'installations, portée air réelle de la DB3000 ) qui la couvrent ou couvrent la
-     route ( portée >= doctrine.PORTEE_LONGUE_KM ).
+     route ( portée >= doctrine.PORTEE_MENACE_KM ).
   2. DÉCISION : parapluie intact -> mission DEAD contre lui ( avions armés d'armes à distance de sécurité, d'antiradars
      ou d'armes furtives ; lanceurs sol-sol À PORTÉE ) ; les frappeurs ordinaires attendent. Ciel ouvert -> frappe OCA de la
      base ( frappeurs + lanceurs à portée ). Chaque frappe reçoit une ESCORTE de chasseurs, prise sur les bases les mieux
@@ -41,7 +41,7 @@ class EtatMajor:
         self.portee_air = portee_air or DOC.portee_sol_air
         self.portee_sol = portee_sol or DOC.portee_sol_sol
         self.charg_mission = charg_mission or DOC.chargement
-        self._cache = {}
+        self._cache, self._charg = {}, {}
         self.part_dead = {c: PART_DEAD_DEPART for c in g.camps}
         self.efficacite = {c: {"dead": 1.0, "oca": 1.0} for c in g.camps}
         self.missions = {}                               # id -> { type, camp, cibles, avions, t0, degats0, pertes, ouverte }
@@ -56,15 +56,20 @@ class EtatMajor:
             self._cache[cle] = {"air": self.portee_air, "sol": self.portee_sol}[quoi](dbid) if dbid else 0.0
         return self._cache[cle]
 
+    def _cm(self, dbid, mission):
+        if (dbid, mission) not in self._charg:
+            self._charg[(dbid, mission)] = self.charg_mission(dbid, mission)
+        return self._charg[(dbid, mission)]
+
     # ---- 1. la situation
     def parapluies(self, camp):
         """[ ( numéro, position, portée air km ) ] des défenses sol-air adverses VIVANTES à longue portée."""
         out = []
         for k, s in self.g.sol.items():
-            if s["camp"] != camp and self._p("air", s["dbid"]) >= DOC.PORTEE_LONGUE_KM:
+            if s["camp"] != camp and self._p("air", s["dbid"]) >= DOC.PORTEE_MENACE_KM:
                 out.append((k, s["pos"], self._p("air", s["dbid"])))
         for k, e in self.g.elements.items():
-            if e["camp"] != camp and e["vivant"] and e["classe"] in ("sol-air", "radar") and self._p("air", e["dbid"]) >= DOC.PORTEE_LONGUE_KM:
+            if e["camp"] != camp and e["vivant"] and e["classe"] in ("sol-air", "radar") and self._p("air", e["dbid"]) >= DOC.PORTEE_MENACE_KM:
                 out.append((k, e["pos"], self._p("air", e["dbid"])))
         return out
 
@@ -111,13 +116,14 @@ class EtatMajor:
         if libres or lanceurs:
             affect.append((mid, libres + lanceurs))
         # l'escorte : une paire par ESCORTE_PAR_FRAPPEURS frappeurs, prise là où il y a le plus de chasseurs
-        n_esc = min(ESCORTE_MAX, 2 * math.ceil(len([k for k in g.affecte if g.affecte[k] == mid] + libres) / ESCORTE_PAR_FRAPPEURS))
+        avions_mid = [k for k, m in g.affecte.items() if m == mid and k in g.avions]   # un lanceur au sol ne s'escorte pas
+        n_esc = min(ESCORTE_MAX, 2 * math.ceil(len(avions_mid + libres) / ESCORTE_PAR_FRAPPEURS))
         deja = [k for k, m in g.affecte.items() if m == -mid]
         if n_esc > len(deja):
             escortes.append((mid, self._escorteurs(camp, n_esc - len(deja))))
-        # les réarmements : des frappeurs au sol deviennent DEAD tant que la part voulue n'est pas atteinte
-        if typ == "dead":
-            rearmes = self._rearmer(camp)
+        # les réarmements : des frappeurs au sol deviennent DEAD tant que la part voulue n'est pas atteinte ; ceux qui n'ont
+        # pas d'arme à distance passent en chasse pendant la DEAD et reviennent à la frappe quand le ciel est ouvert
+        rearmes = (self._rearmer(camp) + self._basculer(camp, "aa")) if typ == "dead" else self._basculer(camp, "frappe")
         decision["engages"] = len(libres) + len(lanceurs)
         self.journal.append(decision)
         return frappes, affect, escortes, rearmes
@@ -180,8 +186,23 @@ class EtatMajor:
                 break
         return choix[: len(choix) // 2 * 2]
 
+    def _basculer(self, camp, vers):
+        """[ ( numéro, chargement, rôle ) ] des avions posés et libres qui changent de rôle ( swing-role ) : vers « aa »,
+        les frappeurs sans chargement DEAD ; vers « frappe », ceux qui avaient basculé."""
+        g, out = self.g, []
+        for k, a in sorted(g.avions.items()):
+            m = g.affecte.get(k, 0)
+            if a["camp"] != camp or g.altitudes.get(k, 0) > 500 or abs(m) >= 1000:
+                continue
+            ch = g.charg.get(a["dbid"], {})
+            if vers == "aa" and a["role"] == "frappe" and not self._cm(a["dbid"], "dead") and ch.get("aa"):
+                out.append((k, ch["aa"], "aa"))
+            elif vers == "frappe" and a["role"] == "aa" and a.get("bascule") == "frappe" and ch.get("frappe"):
+                out.append((k, ch["frappe"], "frappe"))
+        return out
+
     def _rearmer(self, camp):
-        """[ ( numéro, nouveau chargement ) ] : des frappeurs posés deviennent DEAD jusqu'à la part voulue."""
+        """[ ( numéro, nouveau chargement, « dead » ) ] : des frappeurs posés deviennent DEAD jusqu'à la part voulue."""
         g = self.g
         frappe = [k for k, a in g.avions.items() if a["camp"] == camp and a["role"] in ("frappe", "dead")]
         dead = [k for k in frappe if g.avions[k]["role"] == "dead"]
@@ -193,9 +214,9 @@ class EtatMajor:
             a = g.avions[k]
             if a["role"] != "frappe" or g.altitudes.get(k, 0) > 500:
                 continue
-            lo = self.charg_mission(a["dbid"], "dead")
+            lo = self._cm(a["dbid"], "dead")
             if lo:
-                out.append((k, lo))
+                out.append((k, lo, "dead"))
         return out
 
     # ---- 3. l'apprentissage

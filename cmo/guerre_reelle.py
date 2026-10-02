@@ -45,6 +45,9 @@ SEUIL_PACKS, CIBLE_PACKS = 2, 4                           # par avion : on rach�
 N_STOCKS, N_BILAN = 5, 10                                 # tours entre deux relevés des dépôts, des bilans de CMO
 DEMI_ZONE_KM = 30.0
 PORTEE_FRAPPE_KM = 900.0
+SURGE_H = 72.0                                            # cadence « surge » les 3 premiers jours, puis soutenue ( le réel )
+TEMPO_SURGE, TEMPO_SOUTENU = 0, 1                         # air_operations_tempo de CMO ( 0 : défaut des camps, le surge )
+GARDE_CIBLE = 0.8                                         # on garde la cible tant qu'elle menace au moins 80 % de la pire
 _DETRUIT = re.compile(r"\] HMT-(\d+) \([^)]*\) has been destroyed!")
 
 
@@ -178,6 +181,7 @@ class GuerreReelle:
         self.affecte = {}                                # numéro -> id de mission
         self.patrouilles = set()
         self.bilans, self.tours, self.temps, self.ouvert = {}, 0, None, False
+        self.debut, self.tempo = None, TEMPO_SURGE        # temps du scénario au premier tour ; cadence en cours
         self.pertes = {p: 0 for p in self.pays}
         self.achats = {p: 0 for p in self.pays}
         self.packs_achetes = {p: 0 for p in self.pays}
@@ -251,7 +255,7 @@ class GuerreReelle:
         self._armer_initial()
         self._poser_sol()
         for camp in self.camps:
-            self.labo.doctrine(camp, "air_operations_tempo", 0)      # cadence soutenue « Surge » : c'est la guerre
+            self.labo.doctrine(camp, "air_operations_tempo", TEMPO_SURGE)   # l'ouverture de la campagne : surge
         return self
 
     # ---- 0 bis. compléter un théâtre en cours ( corriger au fur et à mesure, Younes 02/10 ) : sans le reconstruire
@@ -425,7 +429,8 @@ class GuerreReelle:
     # ---- l'état du théâtre, pour reprendre une guerre sans le reconstruire ( le scénario garde les unités HMT )
     CHAMPS_ETAT = ("elements", "bases", "avions", "sol", "rang", "caisse", "verse", "depense", "stock_initial_m",
                    "a_remplacer", "pertes", "achats", "packs_achetes", "frappe", "k_frappe", "affecte", "patrouilles",
-                   "refus_construction", "journal", "journal_pos", "tours", "bilans", "morts", "detruits", "altitudes")
+                   "refus_construction", "journal", "journal_pos", "tours", "bilans", "morts", "detruits", "altitudes",
+                   "debut", "tempo")
 
     def etat(self):
         e = {k: (sorted(v) if isinstance(v, set) else v) for k, v in ((k, getattr(self, k)) for k in self.CHAMPS_ETAT)}
@@ -653,8 +658,9 @@ class GuerreReelle:
         l'avion SANS armement, sonde du 02/10 ) : s'il ne peut armer l'avion, PACKS_INITIAUX chargements sont achetés au prix
         réel par le pays ( la réserve suit au relevé des stocks ), puis ScenEdit_SetLoadout, relu. Refusé ( en vol, au roulage ), l'avion garde son chargement ; laissé vide,
         il reprend aussitôt l'ancien."""
-        par_base, charge = {}, []
-        for k, lo in lots:
+        par_base, charge, roles = {}, [], {}
+        for k, lo, role in lots:
+            roles[k] = role
             a = self.avions.get(k)
             b = self.bases.get(a["base"]) if a else None
             depots = [d for d in (b["depots"] if b else []) if self.elements[d]["vivant"]]
@@ -690,24 +696,45 @@ class GuerreReelle:
         for k, lo, _ in charge:
             lu, ancien = r["charges"].get(k), self.avions[k]["loadout"]
             if lu == lo:
-                self.avions[k].update(role="dead", loadout=lo)
+                a, role = self.avions[k], roles[k]
+                if role == "aa" and a["role"] == "frappe":
+                    a["bascule"] = "frappe"                       # swing-role : il reviendra à la frappe
+                elif role != "aa":
+                    a.pop("bascule", None)
+                a.update(role=role, loadout=lo)
                 self.affecte.pop(k, None)
             elif lu is not None and lu != ancien:
                 rendre.append((k, ancien, 0))
-            self.em.journal.append({"tour": self.tours, "rearme": k, "chargement": lo, "ok": lu == lo, "lu": lu})
+            self.em.journal.append({"tour": self.tours, "rearme": k, "role": roles[k], "chargement": lo, "ok": lu == lo, "lu": lu})
         if rendre:
             r2 = self.labo.charger(rendre)
             self.em.journal.append({"tour": self.tours, "rendu": {k: r2["charges"].get(k) for k, _, _ in rendre}})
 
     def _choisir_cible(self, camp):
-        """La base aérienne adverse opérationnelle la plus proche des bases du camp, à portée."""
-        miennes = [b["pos"] for b in self.bases.values() if b["camp"] == camp]
+        """La base aérienne adverse opérationnelle qui MENACE le plus le camp : ses avions basés, rapportés à sa distance à
+        la plus proche des bases du camp ( le réel : Kaliningrad, bulle au milieu de l'OTAN, avant Baranovitchi ). On garde
+        la cible en cours tant qu'elle menace au moins GARDE_CIBLE de la pire : pas de valse des missions."""
+        miennes = [b["pos"] for b in self.bases.values() if b["camp"] == camp and b["op"]] or \
+                  [b["pos"] for b in self.bases.values() if b["camp"] == camp]
         if not miennes:
             return None
-        centre = (sum(p[0] for p in miennes) / len(miennes), sum(p[1] for p in miennes) / len(miennes))
-        cand = [(km(b["pos"], centre), i) for i, b in self.bases.items() if b["camp"] != camp and b["op"]]
-        cand = [x for x in cand if x[0] <= PORTEE_FRAPPE_KM]
-        return min(cand)[1] if cand else None
+        n = {}
+        for a in self.avions.values():
+            n[a["base"]] = n.get(a["base"], 0) + 1
+        menace = {}
+        for i, b in self.bases.items():
+            if b["camp"] == camp or not b["op"]:
+                continue
+            d = min(km(b["pos"], p) for p in miennes)
+            if d <= PORTEE_FRAPPE_KM:
+                menace[i] = (n.get(i, 0) + 1) / max(d, 50.0)
+        if not menace:
+            return None
+        pire = max(menace, key=lambda i: (menace[i], -i))
+        cours = (self.frappe.get(camp) or {}).get("base")
+        if cours in menace and menace[cours] >= GARDE_CIBLE * menace[pire]:
+            return cours
+        return pire
 
     # ---- 6. les bilans de CMO
     def _bilans(self):
@@ -733,10 +760,24 @@ class GuerreReelle:
             self._bilans()
         c = self.labo.canari()
         self.temps = c["temps"]
+        self._cadence()
         return {"tour": self.tours, "temps": self.temps, "rtt_ms": c["recu"]["rtt_ms"], "morts": morts,
                 "detruits": detruits, "achats": achats, "munitions": len(munitions),
                 "decisions": [d for d in self.em.journal if d.get("tour") == self.tours],
                 "camps": {cp: self.resume(cp) for cp in self.camps}}
+
+    def _cadence(self):
+        """Surge les SURGE_H premières heures de la guerre ( temps du scénario ), puis cadence soutenue : une sortie par jour
+        et par pilote, comme les campagnes réelles ( 1991, 1999, 2022 )."""
+        if self.temps is None:
+            return
+        if self.debut is None:
+            self.debut = self.temps
+        if self.tempo == TEMPO_SURGE and self.temps - self.debut >= SURGE_H * 3600:
+            for camp in self.camps:
+                self.labo.doctrine(camp, "air_operations_tempo", TEMPO_SOUTENU)
+            self.tempo = TEMPO_SOUTENU
+            self.em.journal.append({"tour": self.tours, "cadence": "soutenue", "apres_h": round((self.temps - self.debut) / 3600, 1)})
 
     def resume(self, camp):
         bases = [b for b in self.bases.values() if b["camp"] == camp]
