@@ -152,7 +152,7 @@ def prix_arme_db():
 class GuerreReelle:
     def __init__(self, theatre="baltique_reel", *, labo=None, labo_kw=None, periode_min=1.0, installations=None,
                  flottes=None, sol=None, classer=None, chargements=None, prix_pack=None, prix_arme=None, em_kw=None,
-                 readytime=None):
+                 readytime=None, brouillard=True):
         self.T = importlib.import_module(f"theatres.{theatre}")
         self.camps, self.pays = tuple(self.T.CAMPS), list(self.T.PAYS)
         self.installations = list(installations if installations is not None else self.T.INSTALLATIONS)
@@ -187,6 +187,8 @@ class GuerreReelle:
         self.packs_achetes = {p: 0 for p in self.pays}
         self.refus_construction = []                     # ce que CMO a refusé de poser, et pourquoi ( code REFUS_LUA )
         self.altitudes, self.affecte_avant = {}, {}
+        self.brouillard = brouillard                     # l'état-major ne voit que ce que CMO montre à son camp
+        self.vus = {c: {} for c in self.camps}           # camp -> { numéro adverse : ( classification, âge, lat, lon, n ) }
         self.readytime = readytime or readytime_db()
         self.em = EM.EtatMajor(self, **(em_kw or {}))    # l'état-major : doctrine, DEAD avant OCA, escortes, apprentissage
 
@@ -435,6 +437,7 @@ class GuerreReelle:
     def etat(self):
         e = {k: (sorted(v) if isinstance(v, set) else v) for k, v in ((k, getattr(self, k)) for k in self.CHAMPS_ETAT)}
         e["em"] = self.em.etat()
+        e["vus"] = self.vus                              # le renseignement du dernier tour ( affichage ; refait à chaque tour )
         return e
 
     def charger(self, e):
@@ -755,6 +758,7 @@ class GuerreReelle:
         self._verser()
         achats = self._remplacer()
         munitions = self._racheter_munitions() if self.tours % N_STOCKS == 1 else []
+        self._renseigner()
         self._ordonner()
         if self.tours % N_BILAN == 1:
             self._bilans()
@@ -765,6 +769,15 @@ class GuerreReelle:
                 "detruits": detruits, "achats": achats, "munitions": len(munitions),
                 "decisions": [d for d in self.em.journal if d.get("tour") == self.tours],
                 "camps": {cp: self.resume(cp) for cp in self.camps}}
+
+    def _renseigner(self):
+        """Le renseignement du tour : pour chaque camp, les unités au sol adverses ( mobiles ) que ses capteurs voient dans
+        CMO. Les installations fixes ( bases, sites sol-air enterrés ) sont connues d'avance, comme dans le réel."""
+        if not self.brouillard:
+            return
+        for camp in self.camps:
+            adverses = sorted(k for k, s in self.sol.items() if s["camp"] != camp)
+            self.vus[camp] = self.labo.vus(camp, adverses)["vus"] if adverses else {}
 
     def _cadence(self):
         """Surge les SURGE_H premières heures de la guerre ( temps du scénario ), puis cadence soutenue : une sortie par jour

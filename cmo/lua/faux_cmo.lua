@@ -76,8 +76,31 @@ function ScenEdit_GetUnit(t)
     local c = copie(u)
     c.name = nil
     return setmetatable(c, {
-        __index = function(_, k) if k == 'name' then return u.name end end,
+        __index = function(_, k)
+            if k == 'name' then return u.name end
+            if k == 'ascontact' then                      -- comme CMO 1.10 : les camps qui la voient ( tous, sauf caché )
+                local t = {}
+                for _, s in ipairs(FAUX.camps) do
+                    if s.name ~= u.side and not FAUX.caches[s.name .. '/' .. u.guid] then
+                        local cg = 'C-' .. s.guid .. '-' .. u.guid
+                        FAUX.contacts[cg] = { unite = u.guid, side = s.name }
+                        t[#t + 1] = { guid = cg, name = 'contact', side = s.guid }
+                    end
+                end
+                return t
+            end
+        end,
         __newindex = function(_, k, v) if k == 'name' and not FAUX.renommer_refuse then u.name = v end end })
+end
+
+FAUX.caches, FAUX.contacts, FAUX.classif = {}, {}, {}
+function ScenEdit_GetContact(t)
+    local c = FAUX.contacts[t.guid]
+    if c == nil or c.side ~= t.side then return nil end
+    local u = FAUX.unites[c.unite]
+    if u == nil then return nil end
+    return { guid = t.guid, classificationlevel = FAUX.classif[t.side .. '/' .. u.guid] or 4, age = 10,
+             latitude = u.latitude, longitude = u.longitude, areaofuncertainty = {} }
 end
 
 function ScenEdit_SetUnit(t)

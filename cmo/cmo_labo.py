@@ -640,6 +640,22 @@ class Labo:
             raise Incomplet(f"{n} escorteurs envoyés, reçu {out}")
         return out
 
+    def vus(self, camp, numeros) -> dict:
+        """Le brouillard de guerre : { numéro : ( classification 0-4, âge s, lat, lon, sommets d'incertitude ) } des unités
+        adverses que `camp` voit dans CMO ; une unité absente du résultat n'est pas détectée."""
+        if camp not in self.camps:
+            raise Refus(f"camp {camp!r} inconnu")
+        ks = [str(_ent(k, 1, NUMERO_MAX, "numero")) for k in numeros]
+        if not ks:
+            return {"vus": {}}
+        appels = _appels("HMT_vus", str(self.camps.index(camp) + 1), ks)
+        r = self._exec(" ".join(appels))
+        out = {"vus": {int(v[0]): (int(v[1]), float(v[2]), float(v[3]), float(v[4]), int(v[5]))
+                       for c, v in r["lignes"] if c == "VU"}, "recu": r["recu"]}
+        if sum(1 for c, _ in r["lignes"] if c == "VUS") != len(appels):
+            raise Incomplet(f"vus : {len(appels)} appels, reçu {r['lignes'][-3:]}")
+        return out
+
     def clore(self, lots) -> dict:
         """Fermer des frappes, en UN envoi. lots : [ ( camp, id ) ]. Rend { id : 1 effacée, 2 désactivée, 0 absente }."""
         par_camp = {}

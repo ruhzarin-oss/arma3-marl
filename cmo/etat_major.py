@@ -22,6 +22,7 @@ import math
 import doctrine as DOC
 
 PART_DEAD_DEPART, PART_DEAD_MIN, PART_DEAD_MAX = 0.5, 0.2, 0.8
+CLASSIF_MIN = 2                                           # brouillard : un contact « type connu » au moins pour savoir que c'est un SAM
 APPRENTISSAGE = 0.3                                       # pas des poids multiplicatifs
 ESCORTE_PAR_FRAPPEURS = 4                                 # une paire d'escorte par 4 frappeurs, au plus ESCORTE_MAX
 ESCORTE_MAX = 8
@@ -66,12 +67,25 @@ class EtatMajor:
         """[ ( numéro, position, portée air km ) ] des défenses sol-air adverses VIVANTES à longue portée."""
         out = []
         for k, s in self.g.sol.items():
-            if s["camp"] != camp and self._p("air", s["dbid"]) >= DOC.PORTEE_MENACE_KM:
-                out.append((k, s["pos"], self._p("air", s["dbid"])))
+            if s["camp"] != camp and self._p("air", s["dbid"]) >= DOC.PORTEE_MENACE_KM and self._connu(camp, k):
+                out.append((k, self._vu_ou(camp, k, s["pos"]), self._p("air", s["dbid"])))
         for k, e in self.g.elements.items():
             if e["camp"] != camp and e["vivant"] and e["classe"] in ("sol-air", "radar") and self._p("air", e["dbid"]) >= DOC.PORTEE_MENACE_KM:
                 out.append((k, e["pos"], self._p("air", e["dbid"])))
         return out
+
+    def _connu(self, camp, k):
+        """Brouillard de guerre : une unité mobile adverse n'existe pour l'état-major que si son camp la voit dans CMO,
+        classée au moins « type connu » ( sinon il ne sait pas que c'est une défense sol-air )."""
+        if not self.g.brouillard:
+            return True
+        v = self.g.vus.get(camp, {}).get(k)
+        return v is not None and v[0] >= CLASSIF_MIN
+
+    def _vu_ou(self, camp, k, vrai):
+        """La position que le camp CROIT : celle du contact, à défaut la vraie."""
+        v = self.g.vus.get(camp, {}).get(k) if self.g.brouillard else None
+        return (v[2], v[3]) if v and (v[2] or v[3]) else vrai
 
     def couvrent(self, camp, cible_pos):
         """Les parapluies adverses qui couvrent la cible, ou le milieu de la route depuis les bases du camp."""

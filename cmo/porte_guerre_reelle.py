@@ -406,11 +406,29 @@ def e16_cadence_surge_puis_soutenue():
         assert all(f.lua(f"return FAUX.doctrines['{c}'].air_operations_tempo") == 1 for c in T.CAMPS) and g.tempo == 1
 
 
+def e17_brouillard_de_guerre():
+    """L'état-major ne voit que ce que CMO montre à son camp ( u.ascontact, sonde du 03/10 ) : un S-400 non détecté
+    n'existe pas pour lui ( la frappe part sur la base, sous un parapluie qu'il ignore ) ; détecté mais seulement « milieu
+    connu » ( classification 1 ), il n'est pas encore une défense sol-air ; classé, il devient la cible d'une DEAD."""
+    with guerre(flottes=FLOTTES_EM, sol=SOL_EM) as (f, g):
+        s400 = next(k for k, s in g.sol.items() if s["dbid"] == 1937)
+        trouver = f"for _, u in pairs(FAUX.unites) do if u.name == 'HMT-{s400}' then %s end end"
+        f.lua(trouver % "FAUX.caches['OTAN/' .. u.guid] = true")
+        g.tour()
+        assert s400 not in g.vus["OTAN"] and g.frappe["OTAN"]["type"] == "oca", (g.vus["OTAN"], g.frappe["OTAN"])
+        f.lua(trouver % "FAUX.caches['OTAN/' .. u.guid] = nil FAUX.classif['OTAN/' .. u.guid] = 1")
+        g.tour()
+        assert g.vus["OTAN"][s400][0] == 1 and g.frappe["OTAN"]["type"] == "oca", (g.vus["OTAN"], g.frappe["OTAN"])
+        f.lua(trouver % "FAUX.classif['OTAN/' .. u.guid] = 3")
+        g.tour()
+        assert g.frappe["OTAN"]["type"] == "dead" and g.frappe["OTAN"]["cibles"] == [s400], g.frappe["OTAN"]
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
          e13_rearmement_rate_rend_l_ancien_chargement, e14_cible_la_plus_menacante, e15_swing_role,
-         e16_cadence_surge_puis_soutenue]
+         e16_cadence_surge_puis_soutenue, e17_brouillard_de_guerre]
 
 
 def controles():
@@ -475,7 +493,8 @@ def controles():
           (CL.Labo, "charger", charger_sans_retour)),
          ("la cible est la base la plus proche", e14_cible_la_plus_menacante, (GR.GuerreReelle, "_choisir_cible", cible_la_plus_proche)),
          ("pas de swing-role", e15_swing_role, (EM.EtatMajor, "_basculer", lambda self, camp, vers: [])),
-         ("la guerre reste en surge", e16_cadence_surge_puis_soutenue, (GR, "SURGE_H", 1e9))]
+         ("la guerre reste en surge", e16_cadence_surge_puis_soutenue, (GR, "SURGE_H", 1e9)),
+         ("l'état-major voit tout", e17_brouillard_de_guerre, (EM.EtatMajor, "_connu", lambda self, camp, k: True))]
     for nom, test, (obj, attr, val) in m:
         with P.mutant(obj, attr, val):
             try:

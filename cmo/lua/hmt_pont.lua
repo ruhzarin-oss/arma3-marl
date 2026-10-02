@@ -635,6 +635,52 @@ function HMT_escorter(R, id, ...)
     end
 end
 
+-- LE BROUILLARD DE GUERRE : ce que le camp `camp` sait des unités ( numéros ) de l'autre. u.ascontact liste les camps qui
+-- voient l'unité ( sonde du 03/10 : { guid du contact, nom, side = guid du camp } ) ; le contact donne la classification
+-- ( 0 inconnu, 1 milieu connu, 2 type connu, 3 classe connue, 4 identifié ), l'âge ( s ), la position estimée et les sommets
+-- de sa zone d'incertitude. Rend VU numéro classification âge lat lon sommets pour chaque unité vue, puis VUS camp.
+function HMT_vus(R, camp, ...)
+    local cote = HMT_CAMPS[camp]
+    if cote == nil then error('HMT_REFUS 1') end
+    local s = VP_GetSide({ side = cote })
+    local sg, index = s and s.guid, nil
+    local function contact(g)
+        local ok, ct = pcall(ScenEdit_GetContact, { side = cote, guid = g })
+        if ok and ct ~= nil then return ct end
+        if index == nil then                              -- repli : la liste des contacts du camp ( sonde du 03/10 )
+            index = {}
+            local okl, cs = pcall(ScenEdit_GetContacts, cote)
+            for _, c in ipairs((okl and cs) or {}) do
+                local okg, gg = pcall(function() return c.guid end)
+                if okg and gg then index[gg] = c end
+            end
+        end
+        return index[g]
+    end
+    for _, k in ipairs({ ... }) do
+        local e = registre()[k]
+        local u = e and unite(e.guid)
+        if u ~= nil then
+            local ok, ac = pcall(function() return u.ascontact end)
+            for _, c in pairs((ok and ac) or {}) do
+                if c.side == sg then
+                    local ct = contact(c.guid)
+                    if ct ~= nil then
+                        local n = 0
+                        for _ in pairs(ct.areaofuncertainty or {}) do n = n + 1 end
+                        R('VU', { k, tonumber(ct.classificationlevel) or 0, tonumber(ct.age) or 0, tonumber(ct.latitude) or 0,
+                                  tonumber(ct.longitude) or 0, n })
+                    else
+                        R('VU', { k, 0, 0, 0, 0, -1 })
+                    end
+                    break
+                end
+            end
+        end
+    end
+    R('VUS', { camp })
+end
+
 -- FERMER des frappes : ScenEdit_DeleteMission retire la mission et rend ses avions libres ( les avions en vol rentrent ) ;
 -- sinon la mission est désactivée. Rend CLOS id méthode ( 1 effacée, 2 désactivée, 0 absente ou refusée ).
 function HMT_clore(R, camp, ...)
