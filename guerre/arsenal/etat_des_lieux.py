@@ -153,10 +153,19 @@ def etat_des_lieux(w):
         tot["valeur_dr"] += valeur
         for c in ("effectifs", "conscrits", "instruction"): tot[c] += eb[c]
         bases[eb["lieu"]] = eb
+    # ( 02/10, HMT-193 ) le front : les munitions emportees par les soldats et celles des convois en route
+    fr = next((a for a in d.armureries if a.lieu == "front" and a.lieu not in w.carte.lieux), None)
+    front = None
+    if fr is not None:
+        front = {bien: round(float(fr.stock[d.bids[bien]]), 1) for bien in A.NOMS_MUNITIONS if float(fr.stock[d.bids[bien]]) > 0}
+        for bien in A.NOMS_MUNITIONS:
+            q = float(fr.stock[d.bids[bien]])
+            if q > 0: tot["munitions"][bien] = tot["munitions"].get(bien, 0.0) + q
+        tot["pieces"] += float(fr.stock[d.bids["pieces"]])
     detruits = {m.nom: parc.comptes[d.mids[m.nom]]["detruit"] for m in A.VEHICULES if parc.comptes[d.mids[m.nom]]["detruit"]}
     loi = getattr(d, "loi", None) or {}
-    out = {"ile": ",".join(getattr(w, "iles", None) or ()) or "?", "pas": int(w.pas),
-           "jour": int(p.jour), "bases": bases, "ile_totaux": tot, "vehicules_detruits": detruits,
+    out = {"ile": getattr(w, "ile", None) or "?", "pas": int(w.pas),
+           "jour": int(p.jour), "bases": bases, "front": front, "ile_totaux": tot, "vehicules_detruits": detruits,
            "valeur_eur": round(tot["valeur_dr"] * A.EUROS, 0),
            "achats_defense_an_dr": round(loi.get("achats_an", 0.0), 2) if loi else None,
            "anomalies": [list(map(str, a)) for a in A.anomalies(p)],
