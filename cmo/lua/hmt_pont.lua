@@ -497,6 +497,9 @@ end
 -- Numéroter HMT-<premier>, HMT-<premier + 1>… chaque unité du camp qui n'est pas encore HMT ( l'installation qu'on vient
 -- d'importer : nos camps ne contiennent que des unités HMT ). Le groupe ( la base elle-même, dbid 0 ) est numéroté aussi :
 -- c'est lui qui accueille les avions. Rend ADOPTE numéro dbid lat lon groupe ( 1 = groupe ).
+-- Renommer = écrire la propriété name de l'unité ( sonde du 02/10 : ScenEdit_SetUnit{ newname } et { name } sont ignorés
+-- sans erreur ). La liste du camp contient aussi des fantômes : des rafales de canon tirées, que GetUnit ne rend pas ;
+-- on les saute.
 function HMT_adopter(R, camp, premier)
     local cote = HMT_CAMPS[camp]
     if cote == nil then error('HMT_REFUS 1') end
@@ -504,14 +507,14 @@ function HMT_adopter(R, camp, premier)
     local s = VP_GetSide({ side = cote })
     local k = premier
     for _, x in ipairs(s.units or {}) do
-        if not string.match(x.name or '', '^HMT%-%d+$') then
+        local u = (not string.match(x.name or '', '^HMT%-%d+$')) and unite(x.guid) or nil
+        if u ~= nil then
             if reg[k] ~= nil and unite(reg[k].guid) ~= nil then error('HMT_REFUS 3') end
-            local u = ScenEdit_SetUnit({ guid = x.guid, newname = 'HMT-' .. k })
-            local v = unite(x.guid)
-            if v == nil or v.name ~= 'HMT-' .. k then error('HMT_REFUS 11') end
+            u.name = 'HMT-' .. k
+            if u.name ~= 'HMT-' .. k then error('HMT_REFUS 11') end
             reg[k] = { guid = x.guid, camp = camp }
-            local groupe = (v.type == 'Group') and 1 or 0
-            R('ADOPTE', { k, v.dbid or 0, v.latitude or 0, v.longitude or 0, groupe })
+            local groupe = (u.type == 'Group') and 1 or 0
+            R('ADOPTE', { k, u.dbid or 0, u.latitude or 0, u.longitude or 0, groupe })
             k = k + 1
         end
     end

@@ -65,20 +65,25 @@ function ScenEdit_AddUnit(t)
     return copie(u)
 end
 
+-- Comme CMO : un objet dont on lit les champs, et dont la propriété name s'écrit ( le seul renommage qui marche en 1.10,
+-- sonde du 02/10 ) ; les autres écritures ne touchent pas l'unité.
 function ScenEdit_GetUnit(t)
     local u = t.guid and FAUX.unites[t.guid]
     if u == nil and t.unitname then
         for _, x in pairs(FAUX.unites) do if x.name == t.unitname then u = x end end
     end
-    if u == nil then return nil end
-    return copie(u)
+    if u == nil or u.fantome then return nil end
+    local c = copie(u)
+    c.name = nil
+    return setmetatable(c, {
+        __index = function(_, k) if k == 'name' then return u.name end end,
+        __newindex = function(_, k, v) if k == 'name' and not FAUX.renommer_refuse then u.name = v end end })
 end
 
 function ScenEdit_SetUnit(t)
     local u = FAUX.unites[t.guid]
     if u == nil then error('unit not found') end
     if t.course and t.course[1] then u.latitude, u.longitude = t.course[1].latitude, t.course[1].longitude end
-    if t.newname and not FAUX.renommer_refuse then u.name = t.newname end
     return copie(u)
 end
 
@@ -235,7 +240,7 @@ end
 
 function FAUX_compter()
     local k = 0
-    for _ in pairs(FAUX.unites) do k = k + 1 end
+    for _, u in pairs(FAUX.unites) do if not u.fantome then k = k + 1 end end
     return k
 end
 
@@ -297,6 +302,9 @@ function ScenEdit_ImportInst(side, fichier)
     local g = { guid = guid(), name = fichier, side = side, type = 'Group', dbid = 0, latitude = membres[1][3],
                 longitude = membres[1][4], altitude = 0, magazines = {}, damage = { dp_percent_now = 0, fires = 'NoFire', flood = 'NoFlooding' } }
     FAUX.unites[g.guid] = g
+    local r = { guid = guid(), name = '20mm/85 M61A1 Vulcan Burst [100 rnds]', side = side, type = 'Weapon', dbid = 0,
+                latitude = 0, longitude = 0, fantome = true }
+    FAUX.unites[r.guid] = r
     for _, m in ipairs(membres) do
         local u = { guid = guid(), name = m[2], side = side, type = 'Facility', dbid = m[1], latitude = m[3], longitude = m[4],
                     altitude = 0, magazines = {}, damage = { dp_percent_now = 0, fires = 'NoFire', flood = 'NoFlooding' } }
