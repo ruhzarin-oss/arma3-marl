@@ -34,7 +34,8 @@ DOSSIER = os.path.join(CL.ETAT, "cmo_reelle")
 
 
 class EnduranceReelle:
-    def __init__(self, heures, theatre="baltique_reel", *, dossier=None, periode_s=60.0, guerre_kw=None, labo_kw=None):
+    def __init__(self, heures, theatre="baltique_reel", *, dossier=None, periode_s=60.0, guerre_kw=None, labo_kw=None,
+                 reprendre=None):
         self.dossier = dossier or os.path.join(DOSSIER, time.strftime("%Y%m%d_%H%M%S"))
         os.makedirs(self.dossier, exist_ok=True)
         self.duree, self.theatre, self.periode = 3600 * heures, theatre, periode_s
@@ -43,6 +44,7 @@ class EnduranceReelle:
         self.pannes, self.panne_depuis, self.erreurs = [], None, {}
         self.vitesses, self.rtt, self.dernier_temps = [], [], None
         self.tirs = []                                   # ( secondes, { camp : munitions tirées } )
+        self.reprendre = reprendre                       # dossier d'une endurance précédente : son theatre.json
 
     def noter(self, quoi, **d):
         with open(os.path.join(self.dossier, "tours.jsonl"), "a") as g:
@@ -69,13 +71,21 @@ class EnduranceReelle:
         try:
             self.g = GR.GuerreReelle(self.theatre, periode_min=self.periode / 60.0, labo_kw=dict(
                 {"patience": 60.0, "battement_max": 30.0, "patience_ouverture": 120.0}, **self.labo_kw), **self.guerre_kw)
-            self.g.ouvrir(journal_id=int(time.strftime("%Y%m%d%H%M%S")) % 10 ** 12)
             t = time.monotonic()
-            self.g.construire()
+            if self.reprendre:                           # même scénario, unités HMT déjà là : on ne reconstruit rien
+                self.g.ouvrir()
+                with open(os.path.join(self.reprendre, "theatre.json")) as h:
+                    self.g.charger(json.load(h))
+            else:
+                self.g.ouvrir(journal_id=int(time.strftime("%Y%m%d%H%M%S")) % 10 ** 12)
+                self.g.construire()
+            with open(os.path.join(self.dossier, "theatre.json"), "w") as h:
+                json.dump(self.g.etat(), h, ensure_ascii=False, default=str)
             self.pertes_cmo_debut = self._pertes_cmo()       # CMO compte depuis la création du scénario : on part d'ici
             self.noter("construit", s=round(time.monotonic() - t), bases=len(self.g.bases), avions=len(self.g.avions),
                        sol=len(self.g.sol), elements=len(self.g.elements), journal=self.g.journal,
-                       stock_initial_m={p: round(v) for p, v in self.g.stock_initial_m.items() if v})
+                       stock_initial_m={p: round(v) for p, v in self.g.stock_initial_m.items() if v},
+                       refus=self.g.refus_construction, repris_de=self.reprendre)
             prochain = time.time()
             while not self.stop and time.time() < fin and not os.path.exists(stop):
                 if time.time() < prochain:
@@ -99,6 +109,8 @@ class EnduranceReelle:
                            vitesse=self.vitesses[-1] if self.vitesses else None)
                 if r["tour"] % 10 == 0:
                     self.rapport()
+                    with open(os.path.join(self.dossier, "theatre.json"), "w") as h:
+                        json.dump(self.g.etat(), h, ensure_ascii=False, default=str)
         except Exception as e:                           # R1 : un plantage hors pont est un échec, noté puis relevé
             self.plantage = f"{type(e).__name__}: {e}"
             self.noter("plantage", message=self.plantage[:500], trace=traceback.format_exc()[-2000:])
@@ -161,4 +173,5 @@ class EnduranceReelle:
 if __name__ == "__main__":
     h = float(sys.argv[sys.argv.index("--heures") + 1]) if "--heures" in sys.argv else 6.0
     th = sys.argv[sys.argv.index("--theatre") + 1] if "--theatre" in sys.argv else "baltique_reel"
-    print(json.dumps(EnduranceReelle(h, th).tourner(), ensure_ascii=False, indent=1, default=str))
+    rep = sys.argv[sys.argv.index("--reprendre") + 1] if "--reprendre" in sys.argv else None
+    print(json.dumps(EnduranceReelle(h, th, reprendre=rep).tourner(), ensure_ascii=False, indent=1, default=str))

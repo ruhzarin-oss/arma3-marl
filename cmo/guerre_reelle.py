@@ -167,6 +167,7 @@ class GuerreReelle:
         self.pertes = {p: 0 for p in self.pays}
         self.achats = {p: 0 for p in self.pays}
         self.packs_achetes = {p: 0 for p in self.pays}
+        self.refus_construction = []                     # ce que CMO a refusé de poser, et pourquoi ( code REFUS_LUA )
 
     # ---- numéros
     def _numero(self, dec, pays):
@@ -250,6 +251,9 @@ class GuerreReelle:
             if k in poses:
                 self.avions[k] = {"pays": pays, "camp": self.camp_de_pays(pays), "dbid": dbid, "base": i, "role": role,
                                   "loadout": lo}
+            else:
+                self.refus_construction.append({"genre": "avion", "numero": k, "code": r["refus"].get(k), "pays": pays,
+                                                "dbid": dbid, "loadout": lo, "base": self.bases[i]["fichier"]})
 
     def _besoins(self, i):
         """{ loadout : avions de la base i qui l'emportent }."""
@@ -280,8 +284,34 @@ class GuerreReelle:
             lots.setdefault((self.camp_de_pays(pays), dbid), []).append((k, la, lo))
         if lots:
             r = self.labo.poser_lots([(camp, "site", dbid, poses, 0.0, 0) for (camp, dbid), poses in lots.items()])
-            for k in r["refus"]:
-                self.sol.pop(k, None)
+            for k, code in r["refus"].items():
+                s = self.sol.pop(k, None)
+                self.refus_construction.append({"genre": "sol", "numero": k, "code": code, **(s or {})})
+
+    # ---- l'état du théâtre, pour reprendre une guerre sans le reconstruire ( le scénario garde les unités HMT )
+    CHAMPS_ETAT = ("elements", "bases", "avions", "sol", "rang", "caisse", "verse", "depense", "stock_initial_m",
+                   "a_remplacer", "pertes", "achats", "packs_achetes", "frappe", "k_frappe", "affecte", "patrouilles",
+                   "refus_construction", "journal", "journal_pos", "tours", "bilans", "morts", "detruits")
+
+    def etat(self):
+        return {k: (sorted(v) if isinstance(v, set) else v) for k, v in ((k, getattr(self, k)) for k in self.CHAMPS_ETAT)}
+
+    def charger(self, e):
+        """L'inverse de etat() après un aller-retour JSON ( les clés numériques y deviennent du texte )."""
+        num = lambda d: {int(k): v for k, v in d.items()}          # noqa: E731
+        for k in self.CHAMPS_ETAT:
+            setattr(self, k, e[k])
+        self.elements, self.avions, self.sol, self.affecte = num(self.elements), num(self.avions), num(self.sol), num(self.affecte)
+        self.bases = num(self.bases)
+        for b in self.bases.values():
+            b["pos"] = tuple(b["pos"]) if b["pos"] else None
+        for x in self.elements.values():
+            x["pos"] = tuple(x["pos"])
+        for s in self.sol.values():
+            s["pos"] = tuple(s["pos"])
+        self.patrouilles = set(self.patrouilles)
+        self.a_remplacer = [tuple(x) for x in self.a_remplacer]
+        return self
 
     # ---- 1. relevé des unités mobiles
     def _relever(self):

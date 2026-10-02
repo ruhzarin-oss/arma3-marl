@@ -84,6 +84,17 @@ _RE_ECHO = re.compile(r"^ECHO (\d+) (\d+) (\d+) (\d+) (\d+) (\d+)$")
 _RE_R = re.compile(r"^R ([A-Z_]+)((?: [-+0-9.eE]+)*)$")
 
 
+ARGS_MAX = 180                      # valeurs par appel Lua : au-delà de ~250, « function or expression needs too many
+                                    # registers » ( guerre réelle du 02/10 : HMT_etats de 300 numéros ne compilait pas )
+
+
+def _appels(nom, tete, valeurs, par=1):
+    """Des appels « nom(R, tete, v1, v2…) » de ARGS_MAX valeurs au plus, sans couper un groupe de `par` valeurs."""
+    taille = max(par, ARGS_MAX // par * par)
+    tete = f", {tete}" if tete else ""
+    return [f"{nom}(R{tete}, {', '.join(valeurs[i:i + taille])})" for i in range(0, len(valeurs), taille)]
+
+
 def signature_camps(camps) -> int:
     """= HMT_signature_camps du Lua : somme des octets UTF-8 pondérés par leur place, modulo 1 000 000 007."""
     s = 0
@@ -478,9 +489,9 @@ class Labo:
                 raise Refus(f"camp {camp!r} inconnu")
             if not ks:
                 continue
-            corps.append(f"HMT_poser_base_lot(R, {self.camps.index(camp) + 1}, {_ent(dbid, 1, 10_000_000, 'dbid')}, "
-                         f"{_ent(loadout, 0, 10_000_000, 'loadout')}, {_ent(base, 1, NUMERO_MAX, 'base')}, "
-                         f"{', '.join(str(_ent(k, 1, NUMERO_MAX, 'numero')) for k in ks)})")
+            corps += _appels("HMT_poser_base_lot", f"{self.camps.index(camp) + 1}, {_ent(dbid, 1, 10_000_000, 'dbid')}, "
+                             f"{_ent(loadout, 0, 10_000_000, 'loadout')}, {_ent(base, 1, NUMERO_MAX, 'base')}",
+                             [str(_ent(k, 1, NUMERO_MAX, 'numero')) for k in ks])
             n += len(ks)
         if not corps:
             return {"poses": [], "refus": {}}
@@ -507,7 +518,7 @@ class Labo:
             for k, la, lo in poses:
                 args += [str(_ent(k, 1, NUMERO_MAX, "numero")), f"{_num(la, -90, 90, 'lat'):.7f}",
                          f"{_num(lo, -180, 180, 'lon'):.7f}"]
-            corps.append(f"HMT_poser_lot(R, {c}, {g}, {d}, {a:.1f}, {lod}, {', '.join(args)})")
+            corps += _appels("HMT_poser_lot", f"{c}, {g}, {d}, {a:.1f}, {lod}", args, par=3)
             n += len(poses)
         if not corps:
             return {"poses": [], "refus": {}}
@@ -529,7 +540,7 @@ class Labo:
             if not ks:
                 continue
             ks = [str(_ent(k, 1, NUMERO_MAX, "numero")) for k in ks]
-            corps.append(f"HMT_aller_tous(R, {_num(la, -90, 90, 'lat'):.7f}, {_num(lo, -180, 180, 'lon'):.7f}, {', '.join(ks)})")
+            corps += _appels("HMT_aller_tous", f"{_num(la, -90, 90, 'lat'):.7f}, {_num(lo, -180, 180, 'lon'):.7f}", ks)
             n += len(ks)
         if not corps:
             return {"ordonnes": [], "absents": []}
@@ -561,8 +572,7 @@ class Labo:
             n_pat += 1
         for i, ks in affectations:
             if ks:
-                corps.append(f"HMT_affecter(R, {_ent(i, 1, 9999, 'id')}, "
-                             f"{', '.join(str(_ent(k, 1, NUMERO_MAX, 'numero')) for k in ks)})")
+                corps += _appels("HMT_affecter", str(_ent(i, 1, 9999, 'id')), [str(_ent(k, 1, NUMERO_MAX, 'numero')) for k in ks])
                 n_aff += len(ks)
         if not corps:
             return {"patrouilles": [], "affectes": [], "absents": [], "refus": []}
@@ -583,19 +593,25 @@ class Labo:
             if camp not in self.camps:
                 raise Refus(f"camp {camp!r} inconnu")
             ks = [str(_ent(k, 1, NUMERO_MAX, "cible")) for k in cibles]
-            corps.append(f"HMT_frappe(R, {_ent(i, 1, 9999, 'id')}, {self.camps.index(camp) + 1}"
-                         + (", " + ", ".join(ks) if ks else "") + ")")
+            corps += (_appels("HMT_frappe", f"{_ent(i, 1, 9999, 'id')}, {self.camps.index(camp) + 1}", ks) if ks
+                      else [f"HMT_frappe(R, {_ent(i, 1, 9999, 'id')}, {self.camps.index(camp) + 1})"])
             n_f += 1
             n_c += len(ks)
         for i, ks in affectations:
             if ks:
-                corps.append(f"HMT_affecter_frappe(R, {_ent(i, 1, 9999, 'id')}, "
-                             f"{', '.join(str(_ent(k, 1, NUMERO_MAX, 'numero')) for k in ks)})")
+                corps += _appels("HMT_affecter_frappe", str(_ent(i, 1, 9999, 'id')),
+                                 [str(_ent(k, 1, NUMERO_MAX, 'numero')) for k in ks])
                 n_a += len(ks)
         if not corps:
             return {"frappes": [], "cibles": [], "affectes": [], "absents": [], "refus": []}
         r = self._exec(" ".join(corps))
-        out = {"frappes": [(int(v[0]), bool(v[2]), int(v[3])) for k, v in r["lignes"] if k == "FRAPPE"],
+        par_id = {}
+        for k, v in r["lignes"]:
+            if k == "FRAPPE":                            # une ligne par appel : une frappe à beaucoup de cibles en fait plusieurs
+                i0, neuve, n = int(v[0]), bool(v[2]), int(v[3])
+                a = par_id.get(i0)
+                par_id[i0] = (i0, neuve if a is None else a[1], n + (a[2] if a else 0))
+        out = {"frappes": list(par_id.values()),
                "cibles": [int(v[0]) for k, v in r["lignes"] if k == "CIBLE"],
                "affectes": [int(v[0]) for k, v in r["lignes"] if k == "AFFECTE"],
                "absents": [int(v[0]) for k, v in r["lignes"] if k == "ABSENT"],
@@ -650,7 +666,7 @@ class Labo:
             n += 1
         if not n:
             return {"armes": {}, "absents": []}
-        r = self._exec(f"HMT_armer(R, {', '.join(args)})")
+        r = self._exec(" ".join(_appels("HMT_armer", "", args, par=3)))
         out = {"armes": {int(v[0]): int(v[3]) for c, v in r["lignes"] if c == "ARME"},
                "absents": [int(v[0]) for c, v in r["lignes"] if c == "ABSENT"], "recu": r["recu"]}
         if len(out["armes"]) + len(out["absents"]) != len({k for k, _, _ in lots}):
@@ -662,7 +678,7 @@ class Labo:
         ks = [str(_ent(k, 1, NUMERO_MAX, "numero")) for k in numeros]
         if not ks:
             return {"stocks": {}, "absents": []}
-        r = self._exec(f"HMT_stocks(R, {', '.join(ks)})")
+        r = self._exec(" ".join(_appels("HMT_stocks", "", ks)))
         st, annonces = {}, {}
         for c, v in r["lignes"]:
             if c == "STOCK":
@@ -734,7 +750,7 @@ class Labo:
         ks = [str(_ent(k, 1, NUMERO_MAX, "numero")) for k in numeros]
         if not ks:
             return {"etats": {}, "absents": []}
-        r = self._exec(f"HMT_etats(R, {', '.join(ks)})")
+        r = self._exec(" ".join(_appels("HMT_etats", "", ks)))
         out = {"etats": {int(v[0]): (v[1], bool(v[2]), bool(v[3])) for c, v in r["lignes"] if c == "ETAT"},
                "absents": [int(v[0]) for c, v in r["lignes"] if c == "ABSENT"], "recu": r["recu"]}
         if len(out["etats"]) + len(out["absents"]) != len(set(ks)):

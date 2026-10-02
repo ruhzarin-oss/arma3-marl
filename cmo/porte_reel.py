@@ -165,9 +165,20 @@ def r10_frappe_activee_et_ciblee():
         assert all(abs(la - 54.70) < 1e-6 and a > 500 for _, la, _, a in p), p
 
 
+def r11_appels_en_paquets():
+    """450 numéros d'un coup ( dégâts, stocks ) : le module découpe en appels de ARGS_MAX valeurs ( 02/10 : 300 numéros
+    en un appel ne compilaient pas, « too many registers » ), et tout revient."""
+    with banc() as (f, l):
+        l.poser_lot("OTAN", "site", 1712, [(90_000_001 + i, 52.0 + i * 0.001, 17.0) for i in range(150)])
+        ks = list(range(90_000_001, 90_000_451))
+        e = l.etats(ks)
+        assert len(e["etats"]) == 150 and len(e["absents"]) == 300, (len(e["etats"]), len(e["absents"]))
+        assert len(l.stocks(ks)["absents"]) == 300
+
+
 TESTS = [r1_armer_puis_relire_le_depot, r2_importer_et_numeroter_une_vraie_base, r3_pertes_et_depenses_de_cmo,
          r4_doctrine_ecrite_et_relue, r6_releve_borne_aux_unites_mobiles, r7_degats_relus, r8_table_rase_avec_une_vraie_base, r9_table_rase_des_orphelins,
-         r10_frappe_activee_et_ciblee]
+         r10_frappe_activee_et_ciblee, r11_appels_en_paquets]
 
 
 def r5_test():
@@ -207,10 +218,20 @@ def controles():
          ("la frappe reste en attente", r10_frappe_activee_et_ciblee,
           "local g = ScenEdit_GetMission ScenEdit_GetMission = function(s, n) local m = g(s, n) if m == nil then return nil end "
           "return setmetatable({}, {__index = m, __newindex = function() end}) end"),
+         ("les appels ne sont plus découpés", r11_appels_en_paquets, None),
          ("la table rase ignore les orphelins", r9_table_rase_des_orphelins,
           "local v = VP_GetSide VP_GetSide = function(t) local s = v(t) local us = {} for _, x in ipairs(s.units) do "
           "if string.match(x.name or '', '^HMT') then us[#us + 1] = x end end s.units = us return s end")]
     for nom, test, code in m:
+        if code is None:                                 # mutant du module, pas du Lua
+            with P.mutant(CL, "ARGS_MAX", 100_000):
+                try:
+                    test()
+                    rates.append(nom)
+                    print(f"  RATÉ   mutant « {nom} » : {test.__name__} passe encore", flush=True)
+                except Exception as e:
+                    print(f"  TUÉ    mutant « {nom} » par {test.__name__} ({type(e).__name__})", flush=True)
+            continue
         banc = banc_mute(code)
         try:
             test()

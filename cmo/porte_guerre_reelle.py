@@ -193,8 +193,23 @@ def e7_l_argent_se_conserve():
         assert g.depense["Poland"] > 0
 
 
+def e8_reprendre_sans_reconstruire():
+    """L'état du théâtre, passé par JSON, suffit à reprendre la guerre dans le même scénario : mêmes bases, avions, forces
+    au sol, caisses ; le tour suivant marche sans rien reposer."""
+    import json
+    with guerre() as (f, g):
+        g.tour()
+        e = json.loads(json.dumps(g.etat()))
+        n = f.compter()
+        g2 = GR.GuerreReelle("papier_reel", labo=g.labo, classer=g.classer, chargements=CHARG, prix_pack=prix_pack,
+                             prix_arme=PRIX_ARME.get).charger(e)
+        assert g2.resume("OTAN") == g.resume("OTAN") and g2.caisse == g.caisse and g2.bases.keys() == g.bases.keys()
+        g2.tour()
+        assert f.compter() == n and g2.tours == 2, (f.compter(), n, g2.tours)
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
-         e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve]
+         e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire]
 
 
 def controles():
