@@ -35,7 +35,7 @@ DOSSIER = os.path.join(CL.ETAT, "cmo_reelle")
 
 class EnduranceReelle:
     def __init__(self, heures, theatre="baltique_reel", *, dossier=None, periode_s=60.0, guerre_kw=None, labo_kw=None,
-                 reprendre=None):
+                 reprendre=None, completer=False):
         self.dossier = dossier or os.path.join(DOSSIER, time.strftime("%Y%m%d_%H%M%S"))
         os.makedirs(self.dossier, exist_ok=True)
         self.duree, self.theatre, self.periode = 3600 * heures, theatre, periode_s
@@ -45,6 +45,7 @@ class EnduranceReelle:
         self.vitesses, self.rtt, self.dernier_temps = [], [], None
         self.tirs = []                                   # ( secondes, { camp : munitions tirées } )
         self.reprendre = reprendre                       # dossier d'une endurance précédente : son theatre.json
+        self.completer = completer                       # ajouter ce que la construction n'avait pas posé
 
     def noter(self, quoi, **d):
         with open(os.path.join(self.dossier, "tours.jsonl"), "a") as g:
@@ -76,11 +77,12 @@ class EnduranceReelle:
                 self.g.ouvrir()
                 with open(os.path.join(self.reprendre, "theatre.json")) as h:
                     self.g.charger(json.load(h))
+                if self.completer:
+                    self.noter("complete", **self.g.completer())
             else:
                 self.g.ouvrir(journal_id=int(time.strftime("%Y%m%d%H%M%S")) % 10 ** 12)
                 self.g.construire()
-            with open(os.path.join(self.dossier, "theatre.json"), "w") as h:
-                json.dump(self.g.etat(), h, ensure_ascii=False, default=str)
+            self._sauver()
             self.pertes_cmo_debut = self._pertes_cmo()       # CMO compte depuis la création du scénario : on part d'ici
             self.noter("construit", s=round(time.monotonic() - t), bases=len(self.g.bases), avions=len(self.g.avions),
                        sol=len(self.g.sol), elements=len(self.g.elements), journal=self.g.journal,
@@ -107,10 +109,9 @@ class EnduranceReelle:
                 self.tirs.append((round(time.time() - self.t0), tirs))
                 self.noter("tour", **{k: r[k] for k in ("tour", "morts", "detruits", "achats", "munitions", "camps")},
                            vitesse=self.vitesses[-1] if self.vitesses else None)
+                self._sauver()                           # à CHAQUE tour : une reprise ne perd aucun mort déjà relevé
                 if r["tour"] % 10 == 0:
                     self.rapport()
-                    with open(os.path.join(self.dossier, "theatre.json"), "w") as h:
-                        json.dump(self.g.etat(), h, ensure_ascii=False, default=str)
         except Exception as e:                           # R1 : un plantage hors pont est un échec, noté puis relevé
             self.plantage = f"{type(e).__name__}: {e}"
             self.noter("plantage", message=self.plantage[:500], trace=traceback.format_exc()[-2000:])
@@ -120,6 +121,12 @@ class EnduranceReelle:
             if self.g is not None:
                 self.g.fermer()
         return v
+
+    def _sauver(self):
+        tmp = os.path.join(self.dossier, ".theatre.json.tmp")
+        with open(tmp, "w") as h:
+            json.dump(self.g.etat(), h, ensure_ascii=False, default=str)
+        os.replace(tmp, os.path.join(self.dossier, "theatre.json"))
 
     def _pertes_cmo(self):
         return {c: sum(n for (t, _), n in self.g.labo.bilan(c)["pertes"].items() if t == "avion") for c in self.g.camps}
@@ -174,4 +181,5 @@ if __name__ == "__main__":
     h = float(sys.argv[sys.argv.index("--heures") + 1]) if "--heures" in sys.argv else 6.0
     th = sys.argv[sys.argv.index("--theatre") + 1] if "--theatre" in sys.argv else "baltique_reel"
     rep = sys.argv[sys.argv.index("--reprendre") + 1] if "--reprendre" in sys.argv else None
-    print(json.dumps(EnduranceReelle(h, th, reprendre=rep).tourner(), ensure_ascii=False, indent=1, default=str))
+    print(json.dumps(EnduranceReelle(h, th, reprendre=rep, completer="--completer" in sys.argv).tourner(),
+                     ensure_ascii=False, indent=1, default=str))

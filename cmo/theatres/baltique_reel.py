@@ -48,7 +48,40 @@ INSTALLATIONS = [
      "Russie-Chine", "Russia [1992-]", "radar"),
 ] + [(BC.fichier(nom, pays), "Russie-Chine", "Russia [1992-]", "chasse") for nom, pays, *_ in BC.BASES]
 
-FICHIERS = tuple(f for f, *_ in INSTALLATIONS)
+# Les COPIES : CMO ne recrée pas un élément dont l'identifiant ( Member_GUID du fichier ) a déjà servi dans la partie, même
+# effacé ( 02/10 : Łask réimportée après une table rase n'a rendu qu'un élément sur 62 ). Chaque construction importe donc
+# une copie du fichier aux identifiants NEUFS, sous ImportExport/HMT/Copies/ ; les bases construites le sont déjà.
+COPIES = "HMT/Copies/"
+
+
+def fichier_cmo(f):
+    return f if f.startswith("HMT/") else COPIES + f
+
+
+def rafraichir_copies(racine=None):
+    """Réécrit les copies ( identifiants neufs ) et les bases construites. Rend le nombre de fichiers écrits."""
+    import json
+    import os
+    import uuid
+    import cmo_labo as CL
+    racine = racine or CL.CMO
+    n = len(BC.ecrire(racine))
+    for f, *_ in INSTALLATIONS:
+        if f.startswith("HMT/"):
+            continue
+        with open(os.path.join(racine, "ImportExport", f), encoding="utf-8-sig") as g:
+            d = json.load(g)
+        for m in d.get("MemberRecords") or []:
+            m["Member_GUID"] = str(uuid.uuid4())
+        chemin = os.path.join(racine, "ImportExport", fichier_cmo(f))
+        os.makedirs(os.path.dirname(chemin), exist_ok=True)
+        with open(chemin, "w", encoding="utf-8-sig") as g:
+            json.dump(d, g, ensure_ascii=False, indent=2)
+        n += 1
+    return n
+
+
+FICHIERS = tuple(fichier_cmo(f) for f, *_ in INSTALLATIONS)
 
 # LES FLOTTES ( 2026, copier le réel, À VALIDER ) : ( fichier de la base, pays, dbid de l'avion, nombre, part en frappe ).
 # Les avions sont posés PAR PAIRES ( une patrouille ne part que par vols, sonde du 02/10 ) ; la part en frappe reçoit le
@@ -84,7 +117,7 @@ SOL = [
     ("Russia [1992-]", 1934, "Pantsir-S1, Tchkalovsk", 54.78, 20.42),
     ("Russia [1992-]", 1934, "Pantsir-S1, Baltiïsk", 54.65, 19.93),
     ("Russia [1992-]", 254, "Iskander-M, 152e brigade ( Tcherniakhovsk )", 54.63, 21.81),
-    ("Russia [1992-]", 1894, "Bastion-P, défense côtière ( Baltiïsk )", 54.67, 19.96),
+    ("Russia [1992-]", 1894, "Bastion-P, défense côtière ( Baltiïsk )", 54.70, 20.15),   # à terre ( 54,67/19,96 : refusé, REFUS 4 )
     ("Russia [1992-]", 1918, "T-90A, 11e corps ( Goussev )", 54.59, 22.20),
     ("Russia [1992-]", 1918, "T-90A, 11e corps ( Goussev )", 54.60, 22.25),
     ("Russia [1992-]", 1953, "2S19 Msta-S, 244e brigade d'artillerie", 54.74, 20.62),

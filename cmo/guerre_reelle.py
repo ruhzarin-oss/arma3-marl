@@ -147,6 +147,7 @@ class GuerreReelle:
         self.prix_pack = prix_pack or prix_pack_db()
         self.prix_arme = prix_arme or prix_arme_db()
         self.labo, self.labo_kw, self.possede = labo, labo_kw or {}, labo is None
+        self.fichier_cmo = getattr(self.T, "fichier_cmo", lambda f: f)
         self.periode_min = periode_min
         self.debit = {p: BU.millions_par_minute(p, self.T.PAYS[p][1]) for p in self.pays}
         self.caisse = {p: 0.0 for p in self.pays}
@@ -180,7 +181,7 @@ class GuerreReelle:
     # ---- 0. construire le théâtre ( une fois, dans un scénario propre )
     def ouvrir(self, journal_id=None):
         if self.labo is None:
-            fichiers = tuple(f for f, *_ in self.installations)
+            fichiers = tuple(self.fichier_cmo(f) for f, *_ in self.installations)
             self.labo = CL.Labo(camps=self.camps, installations=fichiers, **self.labo_kw).ouvrir()
         self.labo.hostiles(*self.camps[:2])
         if journal_id:
@@ -205,8 +206,10 @@ class GuerreReelle:
             raise CL.Refus(f"le scénario contient déjà {n} unités HMT : recharger un scénario propre, ou reprendre la guerre "
                            "( endurance_reelle.py --reprendre <dossier> )")
         self.labo.nettoyer()
+        if hasattr(self.T, "rafraichir_copies"):
+            self.T.rafraichir_copies()                   # identifiants neufs : voir theatres/baltique_reel.COPIES
         for i, (f, camp, pays, role) in enumerate(self.installations):
-            self.labo.importer(camp, f)
+            self.labo.importer(camp, self.fichier_cmo(f))
             sommeil(attente_import)
             el = self.labo.adopter(camp, DEC_INST + i * 1000 + 1)["elements"]
             b = {"groupe": None, "pistes": [], "acces": [], "depots": [], "camp": camp, "pays": pays, "role": role,
@@ -234,6 +237,113 @@ class GuerreReelle:
         for camp in self.camps:
             self.labo.doctrine(camp, "air_operations_tempo", 0)      # cadence soutenue « Surge » : c'est la guerre
         return self
+
+    # ---- 0 bis. compléter un théâtre en cours ( corriger au fur et à mesure, Younes 02/10 ) : sans le reconstruire
+    ROLES_AIR = ("chasse", "transport", "aéronavale", "police du ciel balte", "hélicoptères", "aérodrome", "attaque")
+
+    def completer(self, attente_import=1.5, sommeil=None):
+        """Ajoute à la guerre en cours ce que la construction n'a pas posé : une base aérienne importée à moins de 5
+        éléments ( réimportée d'une copie aux identifiants neufs, numérotée après ses restes ), les avions jamais posés
+        ou refusés par CMO ( sur leur base, sinon DISPERSÉS sur la base la plus proche de leur camp qui les accepte ), les
+        forces au sol refusées ( aux coordonnées actuelles du théâtre ). Rend ce qui a été ajouté."""
+        import time
+        sommeil = sommeil or time.sleep
+        if hasattr(self.T, "rafraichir_copies"):
+            self.T.rafraichir_copies()
+        ajoute = {"bases": [], "avions": 0, "sol": 0, "refus": []}
+        for i, (f, camp, pays, role) in enumerate(self.installations):
+            mes = [k for k, e in self.elements.items() if e["inst"] == i]
+            if role not in self.ROLES_AIR or len(mes) >= 5:
+                continue
+            self.labo.importer(camp, self.fichier_cmo(f))
+            sommeil(attente_import)
+            debut = max(mes) + 1 if mes else DEC_INST + i * 1000 + 1
+            el = self.labo.adopter(camp, debut)["elements"]
+            self._enregistrer(i, f, camp, pays, role, el)
+            if i in self.bases:
+                ajoute["bases"].append(f)
+        # les avions : la flotte voulue moins ce qui vole, attend son remplacement ou est déjà perdu
+        voulus = {}
+        for f, pays, dbid, n, part in self.flottes:
+            c = self.charg.get(dbid, {})
+            n_fr = 2 * round(n * part / 2) if c.get("frappe") else 0
+            for role, m in (("frappe", n_fr), ("aa", 2 * ((n - n_fr) // 2))):
+                voulus[(f, pays, dbid, role)] = voulus.get((f, pays, dbid, role), 0) + m
+        # tenus : vivants + perdus en attente de remplacement ( un perdu remplacé est un vivant ) ; par base d'ORIGINE
+        tenus = {}
+        for a in self.avions.values():
+            cle = (a.get("origine") or self.bases[a["base"]]["fichier"], a["pays"], a["dbid"], a["role"])
+            tenus[cle] = tenus.get(cle, 0) + 1
+        for pays, dbid, role, base in self.a_remplacer:
+            cle = (self.bases[base]["fichier"] if base in self.bases else None, pays, dbid, role)
+            tenus[cle] = tenus.get(cle, 0) + 1
+        for (f, pays, dbid, role), n in voulus.items():
+            manque = n - tenus.get((f, pays, dbid, role), 0)
+            manque -= manque % 2
+            if manque <= 0:
+                continue
+            lo = self.charg[dbid][role]
+            camp = self.camp_de_pays(pays)
+            i0 = self.base_de_fichier(f)
+            ordre = [i0] if i0 is not None else []
+            depart = self.bases[i0]["pos"] if i0 is not None else None
+            autres = sorted((i for i, b in self.bases.items() if b["camp"] == camp and i != i0),
+                            key=lambda i: km(self.bases[i]["pos"], depart) if depart else 0)
+            for i in ordre + autres:
+                if manque <= 0:
+                    break
+                ks = [self._numero(DEC_AVION, pays) for _ in range(manque)]
+                r = self.labo.poser_base_lots([(camp, dbid, lo, self.bases[i]["groupe"], ks)])
+                for k in r["poses"]:
+                    self.avions[k] = {"pays": pays, "camp": camp, "dbid": dbid, "base": i, "role": role, "loadout": lo,
+                                      "origine": f}
+                depots = [k for k in self.bases[i]["depots"] if self.elements[k]["vivant"]]
+                if r["poses"] and depots:                # leurs munitions d'avant-guerre, comme à la construction
+                    packs = len(r["poses"]) * PACKS_INITIAUX
+                    self.labo.armer([(depots[0], lo, packs)])
+                    self.stock_initial_m[pays] += self.prix_pack(lo)[0] * packs
+                ajoute["avions"] += len(r["poses"])
+                manque -= len(r["poses"])
+            if manque > 0:
+                ajoute["refus"].append({"genre": "avion", "fichier": f, "pays": pays, "dbid": dbid, "role": role, "manque": manque})
+        # les forces au sol refusées, aux coordonnées actuelles du théâtre
+        par_nom = {nom: (pays, dbid, la, lo) for pays, dbid, nom, la, lo in self.sol_ob}
+        restes = []
+        for x in self.refus_construction:
+            if x.get("genre") != "sol" or x.get("nom") not in par_nom:
+                restes.append(x)
+                continue
+            pays, dbid, la, lo = par_nom[x["nom"]]
+            k = self._numero(DEC_SOL, pays)
+            r = self.labo.poser_lots([(self.camp_de_pays(pays), "site", dbid, [(k, la, lo)], 0.0, 0)])
+            if k in r["poses"]:
+                self.sol[k] = {"pays": pays, "camp": self.camp_de_pays(pays), "dbid": dbid, "nom": x["nom"], "pos": (la, lo)}
+                ajoute["sol"] += 1
+            else:
+                restes.append(dict(x, code=r["refus"].get(k)))
+        self.refus_construction = [x for x in restes if x.get("genre") != "avion"] + ajoute["refus"]
+        return ajoute
+
+    def _enregistrer(self, i, f, camp, pays, role, el):
+        b = self.bases.get(i) or {"groupe": None, "pistes": [], "acces": [], "depots": [], "camp": camp, "pays": pays,
+                                  "role": role, "pos": None, "op": False, "fichier": f}
+        for k, dbid, la, lo, groupe in el:
+            cl = "groupe" if groupe else self.classer(dbid)
+            self.elements[k] = {"inst": i, "dbid": dbid, "classe": cl, "pos": (la, lo), "camp": camp, "vivant": True,
+                                "degats": 0.0}
+            if groupe:
+                b["groupe"], b["pos"] = k, (la, lo)
+            elif cl in ("piste", "acces", "depot"):
+                b[{"piste": "pistes", "acces": "acces", "depot": "depots"}[cl]].append(k)
+        if b["pos"] is None and el:
+            b["pos"] = (sum(e[2] for e in el) / len(el), sum(e[3] for e in el) / len(el))
+        if b["pistes"] and b["groupe"]:
+            b["op"] = True
+            self.bases[i] = b
+            if b["depots"]:
+                self.labo.armer([(b["depots"][j % len(b["depots"])], lo, n * PACKS_INITIAUX)
+                                 for j, (lo, n) in enumerate(sorted(self._besoins(i).items()))] or [])
+        return b
 
     def base_de_fichier(self, f):
         return next((i for i, b in self.bases.items() if b["fichier"] == f), None)
@@ -335,7 +445,9 @@ class GuerreReelle:
                     self.pertes[a["pays"]] += 1
                     self.a_remplacer.append((a["pays"], a["dbid"], a["role"], a["base"]))
                     self.affecte.pop(k, None)
-                    self.morts.append({"numero": k, "genre": "avion", "pays": a["pays"], "tour": self.tours})
+                    origine = a.get("origine") or (self.bases[a["base"]]["fichier"] if a["base"] in self.bases else None)
+                    self.morts.append({"numero": k, "genre": "avion", "pays": a["pays"], "tour": self.tours,
+                                       "cle": [origine, a["pays"], a["dbid"], a["role"]]})
                     nouveaux.append(k)
                 elif k in self.sol:
                     s = self.sol.pop(k)
@@ -344,7 +456,23 @@ class GuerreReelle:
                     nouveaux.append(k)
         perdus = (set(self.avions) | set(self.sol)) - vus - set(nouveaux)
         if perdus:
-            raise CL.Incomplet(f"unités {sorted(perdus)[:5]} ni vivantes ni mortes dans CMO")
+            # Ni dans les vivants ni dans les morts : morte pendant une bascule ( sa mort a été relevée par le processus
+            # d'avant, puis le registre refait depuis les noms l'a oubliée : 02/10, avion 10100024 ). On demande à CMO :
+            # absente, c'est une mort constatée, comptée une fois ; présente, c'est une vraie incohérence.
+            r = self.labo.etats(sorted(perdus))
+            if r["etats"]:
+                raise CL.Incomplet(f"unités {sorted(r['etats'])[:5]} vivantes dans CMO mais absentes du relevé")
+            for k in r["absents"]:
+                if k in self.avions:
+                    a = self.avions.pop(k)
+                    self.pertes[a["pays"]] += 1
+                    self.a_remplacer.append((a["pays"], a["dbid"], a["role"], a["base"]))
+                    genre, pays = "avion", a["pays"]
+                else:
+                    genre, pays = "sol", self.sol.pop(k)["pays"]
+                self.affecte.pop(k, None)
+                self.morts.append({"numero": k, "genre": genre, "pays": pays, "tour": self.tours, "constatee": True})
+                nouveaux.append(k)
         return nouveaux
 
     # ---- 2. le journal : éléments d'installations détruits
@@ -401,7 +529,7 @@ class GuerreReelle:
                 lo = self.charg[dbid][role]
                 self.caisse[pays] -= 2 * prix
                 lots.setdefault((self.camp_de_pays(pays), dbid, lo, self.bases[dest]["groupe"]), []).extend(ks)
-                demandes += [(k, pays, dbid, dest, role, lo, prix) for k in ks]
+                demandes += [(k, pays, dbid, dest, role, lo, prix, base) for k in ks]
                 n -= 2
             reste += [(pays, dbid, role, base)] * n
         self.a_remplacer = reste
@@ -409,15 +537,15 @@ class GuerreReelle:
             return []
         r = self.labo.poser_base_lots([(camp, d, lo, g, ks) for (camp, d, lo, g), ks in lots.items()])
         poses = set(r["poses"])
-        for k, pays, dbid, dest, role, lo, prix in demandes:
+        for k, pays, dbid, dest, role, lo, prix, origine in demandes:
             if k in poses:
                 self.avions[k] = {"pays": pays, "camp": self.camp_de_pays(pays), "dbid": dbid, "base": dest, "role": role,
-                                  "loadout": lo}
+                                  "loadout": lo, "origine": self.bases[origine]["fichier"] if origine in self.bases else None}
                 self.depense[pays] += prix
                 self.achats[pays] += 1
             else:
                 self.caisse[pays] += prix
-                self.a_remplacer.append((pays, dbid, role, dest))
+                self.a_remplacer.append((pays, dbid, role, origine))
         return sorted(poses)
 
     def _racheter_munitions(self):
@@ -469,7 +597,7 @@ class GuerreReelle:
         frappes, aff_f = [], []
         for ci, camp in enumerate(self.camps):
             f = self.frappe[camp]
-            if f is None or not self.bases[f["base"]]["op"]:
+            if f is None or f["base"] not in self.bases or not self.bases[f["base"]]["op"]:
                 cible = self._choisir_cible(camp)
                 if cible is None:
                     self.frappe[camp] = None
@@ -542,5 +670,5 @@ class GuerreReelle:
                 "sol": sum(1 for s in self.sol.values() if s["camp"] == camp),
                 "bases_op": sum(1 for b in bases if b["op"]), "bases": len(bases),
                 "elements_perdus": sum(1 for d in self.detruits if d["camp"] == camp),
-                "frappe": self.frappe[camp] and self.bases[self.frappe[camp]["base"]]["fichier"],
+                "frappe": self.frappe[camp] and self.bases.get(self.frappe[camp]["base"], {}).get("fichier"),
                 "bilan": self.bilans.get(camp)}

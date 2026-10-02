@@ -24,7 +24,9 @@ import cmo_labo as CL                                     # noqa: E402
 
 DOSSIER = "HMT"                                          # sous ImportExport/
 PISTES = {2000: 43, 2600: 55, 3200: 35, 4000: 757}        # longueur ( m ) -> dbid de la DB3000
-ACCES, ABRI, DEPOT, CUVE, TOUR, AIRE = 353, 4, 325, 943, 3, 217
+# Abris pour avion LOURD ( 27, 1x Large ) : un Su-30 ou un Su-35 n'entre pas dans un abri « Medium » ( 4 ) ; guerre réelle
+# du 02/10 : 22 avions russes refusés par CMO ( REFUS 4 ) faute de place.
+ACCES, ABRI, DEPOT, CUVE, TOUR, AIRE = 353, 27, 325, 943, 3, 217
 
 # nom, pays ( dossier ), lat, lon, cap de piste ( ° ), longueur ( m ), abris, dépôts, aires — À VALIDER
 BASES = [

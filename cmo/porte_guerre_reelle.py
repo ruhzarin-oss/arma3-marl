@@ -208,8 +208,53 @@ def e8_reprendre_sans_reconstruire():
         assert f.compter() == n and g2.tours == 2, (f.compter(), n, g2.tours)
 
 
+def e9_completer_en_cours_de_guerre():
+    """Corriger au fur et à mesure ( Younes, 02/10 ) : une base absente et ses avions sont ajoutés à la guerre en cours,
+    sans rien reconstruire ; un avion perdu au combat et en attente de remplacement n'est pas reposé en double."""
+    with guerre() as (f, g):
+        g.tour()
+        russe = next(i for i, b in g.bases.items() if b["camp"] == "Russie-Chine")
+        # comme si la base russe et ses avions n'avaient jamais été posés : retirés de CMO et de l'état
+        absents = [k for k, a in g.avions.items() if a["base"] == russe] + [k for k, e in g.elements.items() if e["inst"] == russe]
+        for k in absents:
+            f.detruire(k)
+            g.avions.pop(k, None)
+            g.elements.pop(k, None)
+            g.affecte.pop(k, None)
+        del g.bases[russe]
+        g.frappe = {c: None for c in g.camps}
+        pol = sorted(k for k, a in g.avions.items() if a["pays"] == "Poland" and a["role"] == "aa")
+        f.detruire(pol[0])
+        f.detruire(pol[1])
+        g.caisse["Poland"] = 0.0                          # pas d'argent : les deux pertes restent en attente
+        g.tour()
+        assert len(g.a_remplacer) == 2, g.a_remplacer
+        a = g.completer(attente_import=0.1)
+        assert a["bases"] == ["Test/Tchkalovsk.inst"] and russe in g.bases, a
+        assert a["avions"] == 4, a                       # les quatre russes ; pas les deux polonais en attente
+        assert sum(1 for x in g.avions.values() if x["camp"] == "Russie-Chine" and x["base"] == russe) == 4
+        st = stocks(g, "Russie-Chine")
+        assert st.get(2056, 0) >= 2 * GR.PACKS_INITIAUX, st
+        g.tour()
+        assert g.frappe["OTAN"] and g.frappe["OTAN"]["base"] == russe, g.frappe
+
+
+def e10_mort_pendant_une_bascule():
+    """Un avion meurt et sa mort est relevée par un autre processus ( le registre l'oublie ) : le moteur constate auprès
+    de CMO qu'il n'existe plus et le compte mort une fois ; une unité présente mais hors relevé reste une erreur."""
+    with guerre() as (f, g):
+        g.tour()
+        k = sorted(k for k, a in g.avions.items() if a["pays"] == "Poland")[0]
+        f.detruire(k)
+        f.lua("HMT_positions(function() end)")           # le relevé d'un autre processus consomme la mort
+        g.tour()
+        assert k not in g.avions and any(m["numero"] == k and m.get("constatee") for m in g.morts), g.morts
+        assert g.pertes["Poland"] == 1
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
-         e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire]
+         e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
+         e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule]
 
 
 def controles():
@@ -228,12 +273,29 @@ def controles():
             self.caisse[p] = avant[p] - (self.depense[p] - self.depense[p])
         return r
 
+    def relever_strict(self):
+        p = self.labo.positions(*GR.MOBILES)
+        vus = {k for us in p["vivants"].values() for k, *_ in us}
+        morts = {k for ks in p["morts"].values() for k in ks}
+        perdus = (set(self.avions) | set(self.sol)) - vus - morts
+        if perdus:
+            raise CL.Incomplet(f"unités {sorted(perdus)[:5]} ni vivantes ni mortes dans CMO")
+        return []
+    vrai_completer = GR.GuerreReelle.completer
+
+    def completer_oublieux(self, *a, **kw):
+        self.a_remplacer = []                            # oublie les pertes en attente : il les reposerait en double
+        return vrai_completer(self, *a, **kw)
+
     def cible_amie(self, camp):
         return next((i for i, b in self.bases.items() if b["camp"] == camp), None)
     m = [("l'état des bases n'est jamais relu", e3_une_piste_detruite_ferme_la_base, (GR.GuerreReelle, "_etat_bases", lambda self: None)),
          ("un avion seul est remplacé", e4_remplacer_par_paires, (GR.GuerreReelle, "_remplacer", remplacer_un_par_un)),
          ("les munitions sont gratuites", e7_l_argent_se_conserve, (GR.GuerreReelle, "_racheter_munitions", munitions_gratuites)),
-         ("la frappe vise sa propre base", e2_defense_et_frappe, (GR.GuerreReelle, "_choisir_cible", cible_amie))]
+         ("la frappe vise sa propre base", e2_defense_et_frappe, (GR.GuerreReelle, "_choisir_cible", cible_amie)),
+         ("une mort hors relevé bloque la guerre", e10_mort_pendant_une_bascule, (GR.GuerreReelle, "_relever", relever_strict)),
+         ("le complément repose les pertes en attente", e9_completer_en_cours_de_guerre,
+          (GR.GuerreReelle, "completer", completer_oublieux))]
     for nom, test, (obj, attr, val) in m:
         with P.mutant(obj, attr, val):
             try:
