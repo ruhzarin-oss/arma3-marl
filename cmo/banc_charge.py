@@ -50,8 +50,9 @@ def par_paliers(paliers, mesure_s=60):
     BC.ecrire()
     deployer.deployer(camps=T.CAMPS, installations=T.FICHIERS)
     CL.recharger()
-    with CL.Labo(camps=T.CAMPS, installations=T.FICHIERS) as l:
-        l.nettoyer()
+    with CL.Labo(camps=T.CAMPS, installations=T.FICHIERS, patience=120.0, battement_max=60.0) as l:
+        res["nettoyer_avant"] = l.nettoyer()["avant"]
+        l.lua("pcall(ScenEdit_SetStartTime, { Duration = '365:00:00:00' })", par_humain=True)
         l.hostiles(*T.CAMPS)
         res["paliers"].append({"roles": [], "elements": 0, "vitesse": mesurer(l, mesure_s, res, "vide")})
         total = 0
@@ -67,12 +68,18 @@ def par_paliers(paliers, mesure_s=60):
                 except CL.ErreurLabo as e:
                     print(f"{f} : {e}", flush=True)
             total += n
-            v = mesurer(l, mesure_s, res, "+".join(sorted(roles)))
+            try:
+                v = mesurer(l, mesure_s, res, "+".join(sorted(roles)))
+            except CL.ErreurLabo as e:                   # CMO trop lent pour répondre : c'est une mesure, pas une panne
+                v = f"{type(e).__name__}: {e}"[:200]
             res["paliers"].append({"roles": sorted(roles), "elements": n, "total": total, "vitesse": v})
             print(f"PALIER {sorted(roles)} : +{n} éléments ( {total} au total ), vitesse {v}", flush=True)
             with open(sortie, "w") as g:
                 json.dump(res, g, ensure_ascii=False, indent=1, default=str)
-        l.nettoyer()
+        t_n = time.monotonic()
+        res["nettoyer_apres"] = l.nettoyer()["avant"]
+        res["nettoyer_s"] = round(time.monotonic() - t_n, 1)
+        res["vitesse_apres_nettoyage"] = mesurer(l, mesure_s, res, "apres_nettoyage")
     with open(sortie, "w") as g:
         json.dump(res, g, ensure_ascii=False, indent=1, default=str)
     return res
