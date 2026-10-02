@@ -32,6 +32,7 @@ PRIX_ARME_M = [  # ( motif du nom de l'arme dans la base, prix en M$ ) : le prem
     (r"Mk ?84", 0.015), (r"Mk ?83", 0.01), (r"Mk ?82", 0.005), (r"CBU-", 0.015), (r"OFAB|FAB-", 0.003),
     (r"Rocket|HYDRA|S-8|S-13|M/70", 0.003),
     (r"Pod|IRST|EOTS", 0.0),
+    (r"Burst|GAU-|GSh-|M61|Mauser|BK 27|Aden|DEFA", 0.0),     # obus de canon : négligeables au budget
 ]
 
 

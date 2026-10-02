@@ -49,19 +49,35 @@ ROLES_FRAPPE = (3101, 3001, 3102, 3002)          # frappe terrestre, frappe terr
 GUIDEE = re.compile(r"GBU|JDAM|LGB|Paveway|JSOW|JASSM|Storm Shadow|Taurus|PBK|KAB|Kh-|BetAB", re.I)
 
 
+def _puissance(c, loadout):
+    """La puissance d'un chargement contre une installation : somme, sur ses armes air-sol, du nombre x points de dégâts de
+    l'ogive ( DataWarhead ), x 1,5 pour une ogive perforante ( type 2009 : abris durcis, dépôts enterrés ). Sonde du
+    02/10 : deux GBU-12 ( 130 points chacune ) n'ont fait que 2,4 % de dégâts à un dépôt enterré de 3 200 points."""
+    total = 0.0
+    for (rid,) in c.execute("select ComponentID from DataLoadoutWeapons where ID = ?", (loadout,)):
+        w, n = c.execute("select ComponentID, DefaultLoad from DataWeaponRecord where ID = ?", (rid,)).fetchone()
+        t = c.execute("select Type, coalesce(LandRangeMax, 0) from DataWeapon where ID = ?", (w,)).fetchone()
+        if not t or t[0] in (3001, 3002, 3003, 3004, 2004) or t[1] <= 0:
+            continue                                     # nacelles, réservoirs, canon, armes sans portée contre le sol
+        for dp, typ in c.execute("""select h.DamagePoints, h.Type from DataWeaponWarheads ww join DataWarhead h
+                on h.ID = ww.ComponentID where ww.ID = ?""", (w,)):
+            total += n * (dp or 0) * (1.5 if typ == 2009 else 1.0)
+    return total
+
+
 def chargement_frappe(dbid, base=BASE):
-    """Le chargement d'attaque au sol d'un avion ( DB3000 ) : une arme GUIDÉE d'abord ( comme les armées en 2026 ), les
-    bombes anti-pistes BetAB comptant comme telles ; à défaut le premier chargement de frappe. ( id, nom, rôle ) ou None."""
+    """Le chargement d'attaque au sol d'un avion ( DB3000 ) : parmi ses chargements de frappe GUIDÉS ( comme les armées en
+    2026, bombes anti-pistes BetAB comprises ), le plus PUISSANT contre une installation ( _puissance ) ; à défaut de
+    guidé, le plus puissant tout court. ( id, nom, rôle ) ou None."""
     c = sqlite3.connect(f"file:{base}?mode=ro", uri=True)
-    repli = None
+    guides, autres = [], []
     for role in ROLES_FRAPPE:
         for i, nom in c.execute("""select l.ID, l.Name from DataAircraftLoadouts al join DataLoadout l on l.ID = al.ComponentID
                 where al.ID = ? and l.LoadoutRole = ? and coalesce(l.Hypothetical,0)=0 and l.Name not like '%Short-Range%'
                 order by l.ID""", (dbid, role)):
-            if GUIDEE.search(nom):
-                return i, nom, role
-            repli = repli or (i, nom, role)
-    return repli
+            (guides if GUIDEE.search(nom) else autres).append((_puissance(c, i), -i, i, nom, role))
+    choix = max(guides) if guides else (max(autres) if autres else None)
+    return (choix[2], choix[3], choix[4]) if choix else None
 
 
 def catalogue(pays, base=BASE, annee=2026):
