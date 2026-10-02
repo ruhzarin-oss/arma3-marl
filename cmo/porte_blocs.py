@@ -137,8 +137,28 @@ def b8_pertes_d_un_camp_a_tiret():
     assert c == {11100021: "carburant", 10100003: "combat"}, c
 
 
+def b9_un_avion_gare_ne_tient_pas_le_ciel():
+    """Un avion posé sur sa base ne défend pas le drapeau : l'avion ennemi qui vole au-dessus le prend en TENUE tours.
+    Guerre du 29/09 : 21 avions russes cloués au sol à Tchkalovsk ont bloqué ce drapeau 160 tours sous 18 avions de l'OTAN."""
+    with guerre() as (f, g):
+        n = next(d["n"] for d in g.drapeaux if d["nom"].startswith("Tchkalovsk"))
+        pos = g.drapeaux[n]["pos"]
+        russe, polonais = 11_100_001, 10_100_001
+        g.avions = {russe: {"pays": "Russia [1992-]", "camp": "Russie-Chine", "famille": "Su-35", "base": n},
+                    polonais: {"pays": "Poland", "camp": "OTAN", "famille": "F-16", "base": 1}}
+        g.positions = {russe: pos, polonais: pos}
+        g.altitudes = {russe: 120.0, polonais: 8000.0}
+        for _ in range(g.tenue):
+            g._drapeaux()
+        assert g.proprio[n] == "OTAN", (g.proprio[n], g.seul[n])
+        g.altitudes[russe] = 8000.0                      # le Russe décolle : le ciel est disputé, le compte retombe
+        g._drapeaux()
+        assert g.seul[n] == (None, 0), g.seul[n]
+
+
 TESTS = [b1_ouverture, b2_credit_de_depart_et_budget, b3_offensive_en_paquet, b4_tenir_trois_tours,
-         b5_le_qg_gagne_la_guerre, b6_morts_par_pays_une_fois, b7_quatre_envois_et_plafond, b8_pertes_d_un_camp_a_tiret]
+         b5_le_qg_gagne_la_guerre, b6_morts_par_pays_une_fois, b7_quatre_envois_et_plafond, b8_pertes_d_un_camp_a_tiret,
+         b9_un_avion_gare_ne_tient_pas_le_ciel]
 
 
 def controles():
@@ -163,7 +183,8 @@ def controles():
         vrai_init(self, *a, **kw)
     m = [("l'offensive part sans masse", b3_offensive_en_paquet, (GB.GuerreBlocs, "__init__", sans_masse)),
          ("un seul tour suffit à prendre", b4_tenir_trois_tours, (GB.GuerreBlocs, "__init__", tenue_un)),
-         ("les achats sont gratuits", b2_credit_de_depart_et_budget, (GB.GuerreBlocs, "_acheter", achat_gratuit))]
+         ("les achats sont gratuits", b2_credit_de_depart_et_budget, (GB.GuerreBlocs, "_acheter", achat_gratuit)),
+         ("un avion garé tient le ciel", b9_un_avion_gare_ne_tient_pas_le_ciel, (GB.GuerreBlocs, "en_vol", lambda self, k: True))]
     for nom, test, (obj, attr, val) in m:
         with P.mutant(obj, attr, val):
             try:
@@ -172,6 +193,7 @@ def controles():
                 print(f"  RATÉ   mutant « {nom} » : {test.__name__} passe encore", flush=True)
             except Exception as e:
                 print(f"  TUÉ    mutant « {nom} » par {test.__name__} ({type(e).__name__})", flush=True)
+    controles.n = len(m)
     return rates
 
 
@@ -181,5 +203,5 @@ if __name__ == "__main__":
     print(f"{len(TESTS) - len(e)}/{len(TESTS)} tests passent")
     r = controles() if "--controles" in sys.argv else []
     if "--controles" in sys.argv:
-        print(f"{3 - len(r)}/3 mutants tués")
+        print(f"{controles.n - len(r)}/{controles.n} mutants tués")
     sys.exit(1 if e or r else 0)

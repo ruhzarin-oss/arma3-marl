@@ -5,7 +5,9 @@ de CMO, et c'est l'IA de CMO qui vole et combat. Un tour = 4 envois : relevé, a
 
 LES RÈGLES ( chacune est une constante, à valider par Younes ) :
 - un drapeau change de main quand un camp est SEUL dans le ciel à moins de RAYON_KM pendant TENUE_TOURS tours de suite
-  ( guerre du 29/09 : un seul avion de passage faisait basculer une zone, 116 bascules en 6 h ) ;
+  ( guerre du 29/09 : un seul avion de passage faisait basculer une zone, 116 bascules en 6 h ) ; SEULS LES AVIONS EN VOL
+  ( plus de EN_VOL_M ) comptent : un avion garé ne tient pas le ciel ( guerre du 29/09 au 30/09 : 21 avions russes cloués
+  au sol à Tchkalovsk ont bloqué ce drapeau 160 tours sous 18 avions de l'OTAN ) ;
 - prendre le QG adverse gagne la guerre ; sinon le score cumule la valeur des drapeaux tenus à chaque tour ;
 - chaque pays reçoit par tour son budget d'équipement du théâtre, plus un crédit de départ de CREDIT_INITIAL_MIN minutes ;
   il achète la famille la plus chère qu'il peut payer, et la pose sur celle de ses bases qui a le moins d'avions ;
@@ -35,6 +37,7 @@ PART_DEFENSE = 1 / 3
 CREDIT_INITIAL_MIN = 30.0
 PLAFOND_TOTAL = 96
 DEMI_ZONE_KM = 15.0
+EN_VOL_M = 500.0                                         # altitude de CMO ; les bases du théâtre sont sous 250 m
 CAPACITE_BASE = 120                                      # 80 hangars et 40 places ( Single-Unit Airfield )
 
 
@@ -76,6 +79,7 @@ class GuerreBlocs:
         self.achats, self.pertes, self.rang = ({p: 0 for p in self.pays} for _ in range(3))
         self.avions = {}                                 # numéro -> { pays, camp, famille, base }
         self.positions = {}                              # numéro -> ( lat, lon ) au dernier relevé
+        self.altitudes = {}                              # numéro -> altitude ( m ) au dernier relevé
         self.score = {c: 0 for c in self.camps}
         self.offensive, self.defense = {c: None for c in self.camps}, {c: None for c in self.camps}
         self.zone_mission, self.affecte = {}, {}         # id -> n posé ; numéro -> id
@@ -125,10 +129,11 @@ class GuerreBlocs:
         p = self.labo.positions()
         vus = set()
         for camp, us in p["vivants"].items():
-            for k, la, lo, _alt in us:
+            for k, la, lo, alt in us:
                 if self.pays_de(k):
                     vus.add(k)
                     self.positions[k] = (la, lo)
+                    self.altitudes[k] = alt
         nouveaux = []
         for camp, ks in p["morts"].items():
             for k in ks:
@@ -139,6 +144,7 @@ class GuerreBlocs:
                     nouveaux.append(k)
                     del self.avions[k]
                     self.positions.pop(k, None)
+                    self.altitudes.pop(k, None)
                     self.affecte.pop(k, None)
         perdus = set(self.avions) - vus
         if perdus:
@@ -146,11 +152,14 @@ class GuerreBlocs:
         return nouveaux
 
     # ---- 2. les drapeaux : seul dans le ciel TENUE tours de suite
+    def en_vol(self, k):
+        return self.altitudes.get(k, 0.0) > EN_VOL_M
+
     def _drapeaux(self):
         flips = []
         for d in self.drapeaux:
             presents = {self.avions[k]["camp"] for k, pos in self.positions.items()
-                        if k in self.avions and km(pos, d["pos"]) <= self.rayon}
+                        if k in self.avions and self.en_vol(k) and km(pos, d["pos"]) <= self.rayon}
             if len(presents) != 1:
                 self.seul[d["n"]] = (None, 0)
                 continue
@@ -198,6 +207,7 @@ class GuerreBlocs:
             if k in poses:
                 self.avions[k] = {"pays": p, "camp": camp, "famille": choix["famille"], "base": base}
                 self.positions[k] = self.drapeaux[base]["pos"]
+                self.altitudes[k] = 0.0
                 self.depense[p] += choix["prix_m"]
                 self.achats[p] += 1
             else:                                        # refusé par CMO : rien de payé

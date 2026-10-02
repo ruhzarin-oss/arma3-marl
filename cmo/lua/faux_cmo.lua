@@ -126,6 +126,7 @@ local function voler()
             local la, lo = 0, 0
             for _, n in ipairs(m.zone) do local p = FAUX.rp[u.side .. '/' .. n] la, lo = la + p.lat, lo + p.lon end
             u.latitude, u.longitude = la / #m.zone, lo / #m.zone
+            if u.type == 'Air' then u.altitude = 8000 end   -- en mission, il vole ; posé sur sa base, il reste à 0
         end
     end
 end
