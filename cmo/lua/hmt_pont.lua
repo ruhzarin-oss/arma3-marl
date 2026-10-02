@@ -333,6 +333,8 @@ function HMT_patrouille(R, id, camp, lat, lon, demi_km, tiers)
         error('HMT_REFUS 6')
     end
     if tiers ~= nil then pcall(ScenEdit_SetMission, cote, nom, { OneThirdRule = (tiers == 1) }) end
+    local okm, mm = pcall(ScenEdit_GetMission, cote, nom)
+    if okm and mm ~= nil then pcall(function() mm.Phase = 20 end) end
     R('PATROUILLE', { id, camp, existe and 0 or 1 })
 end
 
@@ -549,6 +551,51 @@ function HMT_etats(R, ...)
             local feu = (d.fires ~= nil and d.fires ~= 'NoFire') and 1 or 0
             local eau = (d.flood ~= nil and d.flood ~= 'NoFlooding') and 1 or 0
             R('ETAT', { k, tonumber(d.dp_percent_now or d.dp_percent) or 0, feu, eau })
+        end
+    end
+end
+
+-- LES FRAPPES : une mission de frappe terrestre par identifiant, nommée HMT-F<id>, créée au premier appel. Une frappe neuve
+-- naît « OnHold » et attend des vols de QUATRE ( sonde du 02/10 : deux F-16 affectés sont restés 15 min au parking ) : on
+-- l'ACTIVE ( Phase 20 ) et on la règle en vols de deux. Les cibles sont des unités HMT du camp adverse, affectées par guid
+-- ( par nom, ScenEdit_AssignUnitAsTarget ne fait rien ). Rend CIBLE numéro id, ABSENT ou REFUSE, puis FRAPPE.
+function HMT_frappe(R, id, camp, ...)
+    local cote = HMT_CAMPS[camp]
+    if cote == nil then error('HMT_REFUS 1') end
+    local nom = 'HMT-F' .. id
+    local ok, m = pcall(ScenEdit_GetMission, cote, nom)
+    local existe = ok and m ~= nil
+    if not existe then
+        if ScenEdit_AddMission(cote, nom, 'Strike', { type = 'Land' }) == nil then error('HMT_REFUS 6') end
+        pcall(ScenEdit_SetMission, cote, nom, { StrikeFlightSize = 2, StrikeUseFlightSize = false })
+    end
+    local mm = ScenEdit_GetMission(cote, nom)
+    pcall(function() mm.Phase = 20 end)
+    local n = 0
+    for _, k in ipairs({ ... }) do
+        local e = registre()[k]
+        if e == nil or unite(e.guid) == nil then
+            R('ABSENT', { k })
+        elseif e.camp == camp then
+            R('REFUSE', { k, 8 })
+        else
+            local ok2 = pcall(ScenEdit_AssignUnitAsTarget, e.guid, nom)
+            if ok2 then R('CIBLE', { k, id }) n = n + 1 else R('REFUSE', { k, 6 }) end
+        end
+    end
+    R('FRAPPE', { id, camp, existe and 0 or 1, n })
+end
+
+-- Affecter des unités à une mission de frappe ( même règle que HMT_affecter pour les patrouilles ).
+function HMT_affecter_frappe(R, id, ...)
+    local nom = 'HMT-F' .. id
+    for _, k in ipairs({ ... }) do
+        local e = registre()[k]
+        if e == nil or unite(e.guid) == nil then
+            R('ABSENT', { k })
+        else
+            local ok, r = pcall(ScenEdit_AssignUnitToMission, e.guid, nom)
+            if ok and r ~= false then R('AFFECTE', { k, id }) else R('REFUSE', { k, 6 }) end
         end
     end
 end

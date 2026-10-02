@@ -109,11 +109,27 @@ end
 function ScenEdit_GetMission(side, nom)
     local m = FAUX.missions[side .. '/' .. nom]
     if m == nil then return nil end
-    return { name = nom, side = side }
+    return setmetatable({ name = nom, side = side }, {
+        __index = function(_, k) if k == 'Phase' then return m.Phase end end,
+        __newindex = function(_, k, v) if k == 'Phase' then m.Phase = v end end })
 end
 function ScenEdit_AddMission(side, nom, genre, opts)
-    FAUX.missions[side .. '/' .. nom] = { side = side, genre = genre, type = opts.type, zone = opts.zone, unites = {} }
+    FAUX.missions[side .. '/' .. nom] = { side = side, genre = genre, type = opts.type, zone = opts.zone, unites = {},
+                                          cibles = {}, Phase = (genre == 'Strike') and 30 or 20 }
     return { name = nom, side = side }
+end
+-- Comme CMO 1.10 : l'affectation de cible se fait par guid ( par nom : rien ) ; la mission rendue par GetMission laisse
+-- écrire sa phase ( m.Phase = 20 ).
+function ScenEdit_AssignUnitAsTarget(g, nom)
+    local u = FAUX.unites[g]
+    if u == nil then return {} end
+    for cle, m in pairs(FAUX.missions) do
+        if m.genre == 'Strike' and m.side ~= u.side and cle == m.side .. '/' .. nom then
+            m.cibles[#m.cibles + 1] = g
+            return { g }
+        end
+    end
+    error('mission not found')
 end
 function ScenEdit_SetMission(side, nom, t)
     local m = FAUX.missions[side .. '/' .. nom]
@@ -133,11 +149,16 @@ end
 local function voler()
     for _, u in pairs(FAUX.unites) do
         local m = u.mission and FAUX.missions[u.side .. '/' .. u.mission]
-        if m then
+        if m and m.zone then
             local la, lo = 0, 0
             for _, n in ipairs(m.zone) do local p = FAUX.rp[u.side .. '/' .. n] la, lo = la + p.lat, lo + p.lon end
             u.latitude, u.longitude = la / #m.zone, lo / #m.zone
             if u.type == 'Air' then u.altitude = 8000 end   -- en mission, il vole ; posé sur sa base, il reste à 0
+        elseif m and m.genre == 'Strike' and m.Phase == 20 and #m.cibles > 0 then
+            -- une frappe ACTIVE mène l'avion sur sa première cible ( une frappe « OnHold » le laisse au parking, comme CMO )
+            local c = FAUX.unites[m.cibles[1]]
+            if c then u.latitude, u.longitude = c.latitude, c.longitude end
+            if u.type == 'Air' then u.altitude = 8000 end
         end
     end
 end

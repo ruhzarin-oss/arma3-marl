@@ -575,6 +575,35 @@ class Labo:
             raise Incomplet(f"missions : {n_pat} patrouilles et {n_aff} affectations envoyées, reçu {out}")
         return out
 
+    def frappes(self, frappes=(), affectations=()) -> dict:
+        """Les missions de frappe d'un tour en UN envoi. frappes : [ ( id, camp, [ numéros des cibles ennemies ] ) ] ( créée,
+        activée et réglée en vols de deux au premier appel ; les cibles s'ajoutent ) ; affectations : [ ( id, [ numéros ] ) ]."""
+        corps, n_f, n_c, n_a = [], 0, 0, 0
+        for i, camp, cibles in frappes:
+            if camp not in self.camps:
+                raise Refus(f"camp {camp!r} inconnu")
+            ks = [str(_ent(k, 1, NUMERO_MAX, "cible")) for k in cibles]
+            corps.append(f"HMT_frappe(R, {_ent(i, 1, 9999, 'id')}, {self.camps.index(camp) + 1}"
+                         + (", " + ", ".join(ks) if ks else "") + ")")
+            n_f += 1
+            n_c += len(ks)
+        for i, ks in affectations:
+            if ks:
+                corps.append(f"HMT_affecter_frappe(R, {_ent(i, 1, 9999, 'id')}, "
+                             f"{', '.join(str(_ent(k, 1, NUMERO_MAX, 'numero')) for k in ks)})")
+                n_a += len(ks)
+        if not corps:
+            return {"frappes": [], "cibles": [], "affectes": [], "absents": [], "refus": []}
+        r = self._exec(" ".join(corps))
+        out = {"frappes": [(int(v[0]), bool(v[2]), int(v[3])) for k, v in r["lignes"] if k == "FRAPPE"],
+               "cibles": [int(v[0]) for k, v in r["lignes"] if k == "CIBLE"],
+               "affectes": [int(v[0]) for k, v in r["lignes"] if k == "AFFECTE"],
+               "absents": [int(v[0]) for k, v in r["lignes"] if k == "ABSENT"],
+               "refus": [int(v[0]) for k, v in r["lignes"] if k == "REFUSE"], "recu": r["recu"]}
+        if len(out["frappes"]) != n_f or len(out["cibles"]) + len(out["affectes"]) + len(out["absents"]) + len(out["refus"]) != n_c + n_a:
+            raise Incomplet(f"frappes : {n_f} missions, {n_c} cibles, {n_a} affectations envoyées, reçu {out}")
+        return out
+
     def positions(self, mini: int | None = None, maxi: int | None = None) -> dict:
         """{ camp : [ ( numéro, lat, lon, alt ) ] } des vivants, et { camp : [ numéro ] } des morts depuis le dernier
         relevé, pour les numéros de [ mini, maxi ] ( tous sans bornes ). Un mort n'est rendu qu'une fois : c'est le moteur

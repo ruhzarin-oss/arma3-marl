@@ -49,6 +49,12 @@ def main(duree_s=900):
         une("avions_affectes", "local t = {} for _, k in ipairs({%d, %d}) do local e = HMT_recenser()[k] "
                                "t[#t + 1] = ESSAI(ScenEdit_AssignUnitToMission, e.guid, 'HMT-F1') end SORTIE('avions_affectes', table.concat(t, ' ; '))" % AV)
         une("mission_lue", "local m = ScenEdit_GetMission('OTAN', 'HMT-F1') SORTIE('mission_lue', CHAMPS(m, {'isactive', 'unitlist', 'targetlist', 'subtype'}))")
+        une("activer", "local m = ScenEdit_GetMission('OTAN', 'HMT-F1') "
+                       "local a = ESSAI(function() m.Phase = 20 return tostring(m.Phase) end) "
+                       "local b = ESSAI(ScenEdit_SetMission, 'OTAN', 'HMT-F1', {StrikeFlightSize = 2, StrikeUseFlightSize = false}) "
+                       "SORTIE('activer', 'phase ' .. a .. '\\nsetmission ' .. b)", 60)
+        une("relu", "local m = ScenEdit_GetMission('OTAN', 'HMT-F1') local s = m.strikemission.Strike "
+                    "SORTIE('relu', 'phase ' .. tostring(m.Phase) .. ' taille ' .. tostring(s.StrikeFlightSize) .. ' use ' .. tostring(s.StrikeUseFlightSize))", 60)
         t0 = time.time()
         while time.time() - t0 < duree_s:
             time.sleep(20)

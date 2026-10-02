@@ -149,8 +149,25 @@ def r9_table_rase_des_orphelins():
         assert f.compter() == 0
 
 
+def r10_frappe_activee_et_ciblee():
+    """Une frappe naît active et en vols de deux, ses cibles sont des unités ennemies ( une cible amie est refusée ), et
+    l'avion affecté rejoint sa cible ( le faux CMO, comme CMO, laisse au parking un avion d'une frappe « OnHold » )."""
+    with banc() as (f, l):
+        l.poser("Russie-Chine", "site", 325, 92_000_001, 54.70, 20.40)
+        l.poser("OTAN", "site", 1712, 90_000_001, 54.03, 19.13)
+        l.poser_base_lots([("OTAN", 7087, 7492, 90_000_001, [10_100_001, 10_100_002])])
+        r = l.frappes([(1, "OTAN", [92_000_001, 90_000_001])], [(1, [10_100_001, 10_100_002])])
+        assert r["frappes"] == [(1, True, 1)] and r["cibles"] == [92_000_001] and r["refus"] == [90_000_001], r
+        assert sorted(r["affectes"]) == [10_100_001, 10_100_002], r
+        assert f.lua("return FAUX.missions['OTAN/HMT-F1'].Phase") == 20
+        time.sleep(0.2)
+        p = l.positions(10_000_000, 29_999_999)["vivants"]["OTAN"]
+        assert all(abs(la - 54.70) < 1e-6 and a > 500 for _, la, _, a in p), p
+
+
 TESTS = [r1_armer_puis_relire_le_depot, r2_importer_et_numeroter_une_vraie_base, r3_pertes_et_depenses_de_cmo,
-         r4_doctrine_ecrite_et_relue, r6_releve_borne_aux_unites_mobiles, r7_degats_relus, r8_table_rase_avec_une_vraie_base, r9_table_rase_des_orphelins]
+         r4_doctrine_ecrite_et_relue, r6_releve_borne_aux_unites_mobiles, r7_degats_relus, r8_table_rase_avec_une_vraie_base, r9_table_rase_des_orphelins,
+         r10_frappe_activee_et_ciblee]
 
 
 def r5_test():
@@ -187,6 +204,9 @@ def controles():
          ("la table rase oublie les groupes", r8_table_rase_avec_une_vraie_base,
           "local d = ScenEdit_DeleteUnit ScenEdit_DeleteUnit = function(t, x) local u = FAUX.unites[t.guid] "
           "if u and u.type == 'Group' then return true end return d(t, x) end"),
+         ("la frappe reste en attente", r10_frappe_activee_et_ciblee,
+          "local g = ScenEdit_GetMission ScenEdit_GetMission = function(s, n) local m = g(s, n) if m == nil then return nil end "
+          "return setmetatable({}, {__index = m, __newindex = function() end}) end"),
          ("la table rase ignore les orphelins", r9_table_rase_des_orphelins,
           "local v = VP_GetSide VP_GetSide = function(t) local s = v(t) local us = {} for _, x in ipairs(s.units) do "
           "if string.match(x.name or '', '^HMT') then us[#us + 1] = x end end s.units = us return s end")]
