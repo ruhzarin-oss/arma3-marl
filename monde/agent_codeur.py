@@ -18,9 +18,15 @@ from .archipel import Archipel
 from .pays import d06_etat as ET
 
 MODELE = "qwen3.8:27b"
-# 32 768 jetons tiennent sur la RTX 3090 avec le modele ( 17 Go ) ; a 49 152 le modele ne tenait plus ( 26/09 ). La
-# consigne ( ~9 000 caracteres ), l historique et la reflexion doivent y tenir ensemble : sinon, reponse vide
-CONTEXTE = 32768
+# 32 768 jetons tenaient sur la RTX 3090 avec le modele ( 17 Go ) ; a 49 152 le modele ne tenait plus ( 26/09 ). Depuis
+# HMT-195 ( 02/10 ), Ollama garde le cache de contexte en q8_0 ( OLLAMA_KV_CACHE_TYPE ) : 65 536 jetons pour les 2 Go que
+# prenaient 32 768 en f16. Sans ce reglage du service, 65 536 deborderait de la carte. La consigne ( ~9 000 caracteres ),
+# l historique et la reflexion doivent y tenir ensemble : un prompt trop long est coupe par le debut, sans erreur.
+CONTEXTE = 65536
+# Budget de sortie, reflexion comprise ( HMT-195 : 16 000 avant ; 6 versions sur 72 l epuisaient sans ecrire de code ).
+JETONS = 40000
+# Echantillonnage du fabricant ( fiche Ollama de qwen3.8:27b ) : Qwen deconseille les basses temperatures en reflexion.
+ECHANTILLONNAGE = {"temperature": 1.0, "top_p": 0.95, "top_k": 20}
 HISTORIQUE_K = 3
 HOTE = "http://localhost:11434"
 DOSSIER = "/mnt/data/hmt/agent_codeur"
@@ -191,12 +197,12 @@ Exemple de bulletin ( JSON ) :
 Reponds par UN SEUL bloc ```python contenant la fonction gouverner ( et ses aides si tu veux ), rien d autre."""
 
 
-def demander(prompt, penser=True, jetons=16000):
+def demander(prompt, penser=True, jetons=JETONS):
     """Une reponse de l agent. S il a reflechi jusqu a epuiser sa sortie sans ecrire de code ( 26/09 : versions 5 et 6,
     40 000 caracteres de reflexion et rien d autre ), on lui redemande le code, sans reflexion cette fois."""
     def appel(texte, pense, n):
         corps = {"model": MODELE, "stream": False, "think": pense, "prompt": texte,
-                 "options": {"temperature": 0.4, "num_predict": n, "num_ctx": CONTEXTE}}
+                 "options": dict(ECHANTILLONNAGE, num_predict=n, num_ctx=CONTEXTE)}
         req = urllib.request.Request(HOTE + "/api/generate", data=json.dumps(corps).encode(), headers={"Content-Type": "application/json"})
         return json.loads(urllib.request.urlopen(req, timeout=3600).read())
     r = appel(prompt, penser, jetons)
