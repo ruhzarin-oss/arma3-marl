@@ -67,6 +67,7 @@ def guerre(bases=None, **kw):
         f.demarrer()
         CL.certifier("1.10.1900.20", {"porte": True}, etat)
         kw.setdefault("em_kw", EM_KW)
+        kw.setdefault("generation", False)               # la génération de force a son test ( e25 )
         kw.setdefault("readytime", lambda lo: 60)
         g = GR.GuerreReelle("papier_reel", classer=lambda d: "groupe" if d == 0 else CLASSES.get(d, "autre"),
                             chargements=CHARG, prix_pack=prix_pack, prix_arme=PRIX_ARME.get,
@@ -583,13 +584,33 @@ def e24_reserve_et_production():
         assert len(g.renforts) == 1 and not g.a_remplacer, (g.renforts, g.a_remplacer, g.reserve["Poland|7087"])
 
 
+def e25_generation_de_force():
+    """Le moteur CHOISIT ses forces ( Younes, 03/10 ) : face à 4 avions russes menaçants, sa chasse ( 2 ) est en déficit :
+    il engage une paire de F-16 de la réserve en chasse, et une paire de frappeurs pour les cibles, qui arrivent après le
+    convoyage. Il s'adapte : un ratio de chasse doublé ( menace jugée plus forte ) double l'engagement suivant."""
+    with guerre(generation=True) as (f, g):
+        g.tour()
+        eng = [r for r in g.renforts if r.get("engage") and r["pays"] == "Poland"]
+        assert sorted((r["role"], r["n"]) for r in eng) == [("aa", 2), ("frappe", 2)], g.renforts
+        d = next(x for x in g.em.journal if x.get("camp") == "OTAN" and "besoins" in x)
+        assert d["besoins"]["aa"] == [4, 2] and d["besoins"]["_menace_air"] == 4, d
+        g.em.ratio["OTAN"]["aa"] = 2.0
+        for _ in range(10):
+            g.tour()
+        d = [x for x in g.em.journal if x.get("camp") == "OTAN" and "besoins" in x][-1]
+        (besoin, tenu), menace = d["besoins"]["aa"], d["besoins"]["_menace_air"]
+        assert d["tour"] == 11 and menace >= 4 and besoin == 2 * menace, d                 # la menace lue, au ratio doublé
+        attendu = min(EM.MAX_PAR_DECISION, besoin - tenu) // 2 * 2
+        assert ["Poland", 7087, "aa", attendu] == d["engage"][0][:4] and attendu >= 4, d
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
          e13_rearmement_rate_rend_l_ancien_chargement, e14_cible_la_plus_menacante, e15_swing_role,
          e16_cadence_surge_puis_soutenue, e17_brouillard_de_guerre, e18_composante_air,
          e19_bombardiers, e20_sead_russe, e21_balayage, e22_evaluation_des_degats, e23_reconnaissance,
-         e24_reserve_et_production]
+         e24_reserve_et_production, e25_generation_de_force]
 
 
 def controles():
@@ -674,6 +695,8 @@ def controles():
          ("pas de balayage", e21_balayage, (EM, "SOUTIEN", {k: v for k, v in EM.SOUTIEN.items() if k != "balayage"})),
          ("l'état-major lit les dégâts réels", e22_evaluation_des_degats, (GR.GuerreReelle, "op_percu", lambda self, camp, i: self.bases[i]["op"])),
          ("un avion s'achète en guerre", e24_reserve_et_production, (GR.GuerreReelle, "_remplacer", remplacer_sans_reserve)),
+         ("le moteur n'engage rien", e25_generation_de_force, (EM.EtatMajor, "engager", lambda self, camp: [])),
+         ("la menace n'est pas lue", e25_generation_de_force, (EM, "PORTEE_MENACE_AIR_KM", 0.0)),
          ("pas de reconnaissance", e23_reconnaissance, (EM, "SOUTIEN", {k: v for k, v in EM.SOUTIEN.items() if k != "reco"}))]
     for nom, test, (obj, attr, val) in m:
         with P.mutant(obj, attr, val):

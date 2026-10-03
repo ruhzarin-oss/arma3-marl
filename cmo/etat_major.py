@@ -46,6 +46,13 @@ SOUTIEN["balayage"] = (5, 1, None, None, None, 40.0, 0)   # balayage de chasse s
 SOUTIEN["reco"] = (6, 3, None, 20.0, 60.0, 15.0, 1)        # drones de reconnaissance : sur la cible, en stand-off si elle est couverte
 SOUTIEN["elint"] = (7, 3, None, 40.0, 100.0, 25.0, 0)      # avions d'écoute ( RC-135, Il-20M ) : en stand-off, passifs
 DEPLACEMENT_KM = 10.0                                     # une zone n'est redessinée que si elle bouge de plus
+# LA GÉNÉRATION DE FORCE ( 03/10, Younes : « le moteur choisit lui-même les forces qu'il emploie, adaptation à la menace » ) :
+# tous les ENGAGER_TOURS tours, l'état-major évalue la menace et ses besoins, puis engage depuis la réserve nationale les
+# types les plus aptes ( valeur apprise par type et rôle ). Ratios de départ ( APPRIS ensuite ) et bornes : À VALIDER.
+ENGAGER_TOURS = 10
+RATIO_DEPART = {"aa": 1.0, "frappe": 1.0}                 # chasseurs par avion adverse menaçant ; frappeurs par cible
+MAX_PAR_DECISION = 8                                      # avions engagés par rôle et par décision : une montée en puissance
+PORTEE_MENACE_AIR_KM = 1500.0
 ROLES_DEAD = ("dead", "bombardier")                       # qui part contre les défenses : armes à distance de sécurité
 ROLES_OCA = ("frappe", "dead", "bombardier")              # ciel ouvert : tous les frappeurs
 SEAD_PAR_CAMP = 2                                         # sans avions SEAD dédiés, une paire de frappeurs réarmée en antiradar
@@ -75,6 +82,8 @@ class EtatMajor:
         # connues d'avance ( garnisons du temps de paix ), à leur dernière position connue, jusqu'à leur destruction.
         self.memoire = {c: {} for c in g.camps}          # camp -> { numéro : [ lat, lon, tour ] }
         self.avant_guerre = False                        # les garnisons connues d'avance sont-elles sur la carte ?
+        self.ratio = {c: dict(RATIO_DEPART) for c in g.camps}     # appris ( étape 3 )
+        self.valeur = {}                                 # « dbid|rôle » -> valeur apprise d'un type dans un rôle ( 1 au départ )
 
     # ---- mémoire des portées ( la DB est lente : une lecture par type )
     def _p(self, quoi, dbid):
@@ -413,6 +422,76 @@ class EtatMajor:
             return None
         return (sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts))
 
+    # ---- 2 ter. la génération de force : besoins, puis engagement depuis la réserve
+    def besoins(self, camp):
+        """{ rôle : ( besoin, au théâtre ) } : la chasse selon la MENACE AÉRIENNE ( avions adverses de combat basés à moins
+        de PORTEE_MENACE_AIR_KM de nos avions, connus par le renseignement d'ordre de bataille ), au moins une paire par base ;
+        la frappe selon les cibles de la mission en cours ( éléments de la base, ou défenses à détruire ), au moins 4."""
+        g = self.g
+        C = self._centre(camp)
+        menace = 0
+        if C is not None:
+            for a in g.avions.values():
+                b = g.bases.get(a["base"])
+                if a["camp"] != camp and a["role"] in ("aa", "frappe", "dead", "bombardier") and b and b["op"] \
+                        and km(b["pos"], C) <= PORTEE_MENACE_AIR_KM:
+                    menace += 1
+        mes_bases = sum(1 for b in g.bases.values() if b["camp"] == camp and b["op"])
+        fr = g.frappe.get(camp)
+        cibles = len(fr["cibles"]) if fr else 0
+        tenus = {"aa": 0, "frappe": 0}
+        for a in g.avions.values():
+            if a["camp"] == camp:
+                r = "frappe" if a["role"] in ("frappe", "dead") or a.get("bascule") == "frappe" else a["role"]
+                if r in tenus:
+                    tenus[r] += 1
+        for r in g.renforts:
+            if g.camp_de_pays(r["pays"]) == camp and r["role"] in tenus:
+                tenus[r["role"]] += r["n"]
+        return {"aa": (max(2 * mes_bases, math.ceil(self.ratio[camp]["aa"] * menace)), tenus["aa"]),
+                "frappe": (max(4, math.ceil(self.ratio[camp]["frappe"] * cibles)), tenus["frappe"]),
+                "_menace_air": menace}
+
+    def engager(self, camp):
+        """[ ( pays, dbid, rôle, n, base ) ] : pour chaque rôle en déficit, les types de la réserve des pays du camp qui
+        savent le tenir ( un chargement pour ce rôle ), le plus VALABLE d'abord ( valeur apprise ), puis le plus abondant ;
+        par paires, au plus MAX_PAR_DECISION par rôle ; vers la base d'attache de la flotte, ou la plus proche qui tient."""
+        g, out = self.g, []
+        bes = self.besoins(camp)
+        for role in ("aa", "frappe"):
+            besoin, tenu = bes[role]
+            manque = min(MAX_PAR_DECISION, max(0, besoin - tenu))
+            cand = []
+            for cle, n in g.reserve.items():
+                pays, dbid = cle.rsplit("|", 1)
+                dbid = int(dbid)
+                if g.camp_de_pays(pays) != camp or n < 2 or not g.charg.get(dbid, {}).get(role):
+                    continue
+                cand.append((-self.valeur.get(f"{dbid}|{role}", 1.0), -n, pays, dbid))
+            for _, _, pays, dbid in sorted(cand):
+                if manque < 2:
+                    break
+                k = min(manque, int(g.reserve[f"{pays}|{dbid}"])) // 2 * 2
+                base = self._base_attache(pays, dbid)
+                if k >= 2 and base is not None:
+                    out.append((pays, dbid, role, k, base))
+                    manque -= k
+        self.journal.append({"camp": camp, "tour": g.tours, "besoins": {r: list(v) if isinstance(v, tuple) else v for r, v in bes.items()},
+                             "engage": [list(x) for x in out]})
+        return out
+
+    def _base_attache(self, pays, dbid):
+        g = self.g
+        for f, p, d, *_ in g.flottes:
+            if p == pays and d == dbid:
+                i = g.base_de_fichier(f)
+                if i is not None and g.bases[i]["op"]:
+                    return i
+        ops = [i for i, b in g.bases.items() if b["op"] and g.camp_de_pays(b["pays"]) == g.camp_de_pays(pays)]
+        mien = [i for i in ops if g.bases[i]["pays"] == pays] or ops
+        C = self._centre(g.camp_de_pays(pays))
+        return min(mien, key=lambda i: km(g.bases[i]["pos"], C) if C else 0) if mien else None
+
     # ---- 3. l'apprentissage
     def suivre(self, morts):
         """Chaque tour : les avions morts sont comptés contre la mission qui les employait."""
@@ -439,7 +518,7 @@ class EtatMajor:
 
     def etat(self):
         return {"part_dead": self.part_dead, "efficacite": self.efficacite, "k": self.k,
-                "zones": {str(i): list(p) for i, p in self.zones.items()},
+                "zones": {str(i): list(p) for i, p in self.zones.items()}, "ratio": self.ratio, "valeur": self.valeur,
                 "memoire": {c: {str(k): v for k, v in m.items()} for c, m in self.memoire.items()}, "avant_guerre": self.avant_guerre,
                 "missions": {str(i): dict(m, avions=sorted(m["avions"])) for i, m in self.missions.items()},
                 "journal": self.journal[-200:]}
@@ -451,5 +530,7 @@ class EtatMajor:
         self.journal = e.get("journal", [])
         self.zones = {int(i): tuple(p) for i, p in (e.get("zones") or {}).items()}
         self.avant_guerre = e.get("avant_guerre", False)
+        self.ratio = e.get("ratio") or self.ratio
+        self.valeur = e.get("valeur") or {}
         if e.get("memoire") is not None:
             self.memoire = {c: {int(k): v for k, v in m.items()} for c, m in e["memoire"].items()}

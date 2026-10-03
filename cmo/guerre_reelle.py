@@ -197,7 +197,7 @@ def prix_arme_db():
 class GuerreReelle:
     def __init__(self, theatre="baltique_reel", *, labo=None, labo_kw=None, periode_min=1.0, installations=None,
                  flottes=None, sol=None, classer=None, chargements=None, prix_pack=None, prix_arme=None, em_kw=None,
-                 readytime=None, brouillard=True, reserve=None):
+                 readytime=None, brouillard=True, reserve=None, generation=True):
         self.T = importlib.import_module(f"theatres.{theatre}")
         self.camps, self.pays = tuple(self.T.CAMPS), list(self.T.PAYS)
         self.installations = list(installations if installations is not None else self.T.INSTALLATIONS)
@@ -230,6 +230,7 @@ class GuerreReelle:
         # LA RÉSERVE NATIONALE ( inventaires.py ) : « pays|dbid » -> avions disponibles hors du théâtre ; les renforts en
         # route vers le théâtre, posés à leur arrivée ( délai de convoyage )
         self.reserve_injectee = reserve
+        self.generation = generation                     # l'état-major engage-t-il lui-même ses forces ?
         self.reserve, self.renforts = {}, []
         self.pertes = {p: 0 for p in self.pays}
         self.achats = {p: 0 for p in self.pays}
@@ -616,13 +617,22 @@ class GuerreReelle:
         au_theatre = {}
         for a in self.avions.values():
             au_theatre[(a["pays"], a["dbid"])] = au_theatre.get((a["pays"], a["dbid"]), 0) + 1
-        self.reserve = {f"{p}|{d}": float(max(0, n - au_theatre.get((p, d), 0))) for (p, d), n in base.items()}
+        self.reserve = {f"{p}|{d}": float(max(0, n - au_theatre.get((p, d), 0))) for (p, d), n in base.items() if p in self.pays}
 
     def _produire(self):
         for (p, d), par_mois in INV.PRODUCTION_MOIS.items():
             cle = f"{p}|{d}"
             if cle in self.reserve:
                 self.reserve[cle] += par_mois * self.periode_min / (30 * 24 * 60)
+
+    def _engager(self):
+        """La génération de force : ce que l'état-major de chaque camp décide d'engager part de la réserve et arrive au
+        théâtre après le délai de convoyage."""
+        for camp in self.camps:
+            for pays, dbid, role, n, base in self.em.engager(camp):
+                self.reserve[f"{pays}|{dbid}"] -= n
+                self.renforts.append({"pays": pays, "dbid": dbid, "role": role, "n": n, "origine": base,
+                                      "arrivee": (self.temps or 0) + INV.delai_s(pays), "engage": True})
 
     def _remplacer(self):
         """Une perte se comble par la RÉSERVE nationale, par paires ( une patrouille ne part que par vols de deux ), jamais
@@ -869,6 +879,8 @@ class GuerreReelle:
         self._verser()
         self._ouvrir_reserve()
         self._produire()
+        if self.generation and self.tours % EM.ENGAGER_TOURS == 1:
+            self._engager()
         achats = self._remplacer()
         munitions = self._racheter_munitions() if self.tours % N_STOCKS == 1 else []
         self._renseigner()
