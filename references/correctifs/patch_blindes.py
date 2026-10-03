@@ -27,6 +27,8 @@ ses blindes qui sont a sa base et en service : le M113A1 de chaque groupe et le 
               aluminium du M113 en fait ~ 40 ), 0,12 pour un char ( l arc frontal du 2A6 resiste ; flancs et arriere ) -
               CHOIX. Chaque homme de l equipage est touche avec la chance 0,6 ( CHOIX ) ; les munitions de bord sont
               perdues ( perte_au_combat ) ; le vehicule sort du Parc ( detruit ) a la cloture.
+LA SIGNATURE un element qui a des blindes intacts se montre au domaine 26 comme un vehicule ( F_POSTURE 3,0 : un M113 se
+              voit de loin ; ajoute le 03/10 avec la reconnaissance, A3 ).
 Les exercices ( tir simule ) n emmenent pas de blindes : ils restent identiques au bit. BLINDES = False rend le domaine
 d avant ( porte A2, B5 ).
    python patch_blindes.py racine_de_l_arbre"""
@@ -296,6 +298,12 @@ def _impact(p, m, v, zone, arme_tireur):
     ("""              "rupture", "decision_exfiltration", "qualification_tactique", "note_exercice", "repli_impossible"):
 """, """              "rupture", "decision_exfiltration", "qualification_tactique", "note_exercice", "repli_impossible",
               "blindes_engages", "roquettes_tirees", "blinde_detruit", "blinde_perdu"):     # ( HMT-198 A2 )
+"""),
+    ("""            S.deplacer_entite(p, e.ent, e.x, e.y, SIGNATURE_FEU if e.fait_feu else (e.cond.posture if fixe else e.posture_sig))
+""", """            # ( 03/10, HMT-198 A2 ) un element qui a des blindes intacts se voit comme un vehicule ( F_POSTURE du d26 )
+            vis = e.fait_feu or any(vh["intact"] and m.elts[int(m.h["elt"][vh["equipage"][0]])] is e
+                                    for vh in (getattr(m, "vehicules", None) or ()))
+            S.deplacer_entite(p, e.ent, e.x, e.y, SIGNATURE_FEU if vis else (e.cond.posture if fixe else e.posture_sig))
 """),
     ("""    if m.mode == "combat" and m.rupture: _perdre_materiel(p, m)
 """, """    if m.mode == "combat" and m.rupture: _perdre_materiel(p, m)

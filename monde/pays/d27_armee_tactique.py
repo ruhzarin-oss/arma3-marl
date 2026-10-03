@@ -1026,7 +1026,10 @@ def _detecter(p, m, pts):
             # debout apres une occupation, accroupis apres une infiltration - et l embuscade couchee se voyait a 231 m de
             # jour ; les postes adverses gardent la posture ou ils sont poses, accroupie comme les menaces d Arma )
             fixe = e.side == 0 and e.cond is not None and e.cond.mode == "fixe"
-            S.deplacer_entite(p, e.ent, e.x, e.y, SIGNATURE_FEU if e.fait_feu else (e.cond.posture if fixe else e.posture_sig))
+            # ( 03/10, HMT-198 A2 ) un element qui a des blindes intacts se voit comme un vehicule ( F_POSTURE du d26 )
+            vis = e.fait_feu or any(vh["intact"] and m.elts[int(m.h["elt"][vh["equipage"][0]])] is e
+                                    for vh in (getattr(m, "vehicules", None) or ()))
+            S.deplacer_entite(p, e.ent, e.x, e.y, SIGNATURE_FEU if vis else (e.cond.posture if fixe else e.posture_sig))
     bleus = [i for i, e in enumerate(m.elts) if e.side == 0]
     rouges = [i for i, e in enumerate(m.elts) if e.side == 1 and len(_actifs(m, i)) and E26["vivant"][e.ent]]
     if not rouges or not bleus: return

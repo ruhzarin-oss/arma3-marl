@@ -121,6 +121,23 @@ def defenseur(wB, o):
     return (sections[0], "leger") if sections else (u, "leger")
 
 
+def point_d_approche(wB, o, distance):
+    """( 03/10, HMT-198 ) Le point a `distance` de l objectif d ou part la marche d approche : du cote du port, ou
+    debarque le transport. CHOIX : quand le port est l objectif ou en est a moins de `distance` ( le lieu port de chaque
+    ile EST son objectif port01 : l assaut partait de l objectif meme, deja arrive ), le chaland debarque plus loin sur la
+    cote et l approche vient du lieu de l ile le plus proche a `distance` au moins."""
+    c = wB.carte; ile = c.par_n[0].ile; ox, oy = float(o["pos"][0]), float(o["pos"][1])
+    port = c.port(ile) or c.gouvernement
+    dx, dy = port.pos[0] - ox, port.pos[1] - oy; L = math.hypot(dx, dy)
+    if L < distance:
+        cands = sorted((math.hypot(l.pos[0] - ox, l.pos[1] - oy), l.n) for l in c.par_n
+                       if l.ile == ile and math.hypot(l.pos[0] - ox, l.pos[1] - oy) >= distance)
+        if cands:
+            l = c.par_n[cands[0][1]]; dx, dy = l.pos[0] - ox, l.pos[1] - oy; L = math.hypot(dx, dy)
+    L = max(1.0, L)
+    return (ox + distance * dx / L, oy + distance * dy / L)
+
+
 def _camp(pB, nom_ile):
     d = S._dom(pB); nom = f"expedition_{nom_ile}"
     if not any(c.nom == nom for c in d.camps): S.poser_camp(pB, nom, None, 30, cote="EAST", visible=True)
@@ -134,10 +151,7 @@ def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert=None):
     pB = wB.pays; c = wB.carte; ile = c.par_n[0].ile; ii = c.iles.index(ile)
     o = objectif(ile, oid); ox, oy = float(o["pos"][0]), float(o["pos"][1])
     n = len(cp["numero"])
-    if depart is None:
-        port = c.port(ile) or c.gouvernement
-        dx, dy = port.pos[0] - ox, port.pos[1] - oy; L = max(1.0, math.hypot(dx, dy))
-        depart = (ox + DISTANCE_ASSAUT * dx / L, oy + DISTANCE_ASSAUT * dy / L)
+    if depart is None: depart = point_d_approche(wB, o, DISTANCE_ASSAUT)
     if u == -1:
         u, couvert_def = defenseur(wB, o)
         if couvert_def is not None and couvert is None: couvert = couvert_def
@@ -238,6 +252,7 @@ def rapatrier(wA, r):
 
 # ------------------------------------------------------------------ 4b-2 : l operation, du depart au retour
 DISTANCE_LARGAGE = 1500.0               # CHOIX : la zone de saut a 1,5 km de l objectif, hors de son feu direct
+BUTS_OPERATION = ("assaut", "reconnaissance")   # ( HMT-198 A3 ) attaquer l objectif, ou aller le voir ( guerre/reconnaissance )
 
 
 def _ops(w): return w.__dict__.setdefault("operations", [])
@@ -274,15 +289,18 @@ def membres_a_projeter(wA, hommes):
     return out[:int(hommes)]
 
 
-def lancer_operation(wA, nom_A, oid, modele, hommes, parachutage=False, couvert=None):
+def lancer_operation(wA, nom_A, oid, modele, hommes, parachutage=False, couvert=None, but="assaut"):
     """Une operation de A contre l objectif `oid` de l autre ile : elle ne part que si le transport peut la porter
     ( projection.raison_refus : rien n est mobilise sinon ) ; puis mobilisation, dotation de combat, traversee. Rend
     { ok, raison } ou l operation."""
     from . import projection as PR
+    if but not in BUTS_OPERATION: return {"ok": False, "raison": f"but inconnu {but!r}"}
     raison = PR.raison_refus(wA, modele, hommes, parachutage)
     if raison: return {"ok": False, "raison": raison}
-    nums = GM.mobiliser(wA, hommes, ids=membres_a_projeter(wA, hommes)); LO.emporter(wA, nums)
+    # ( HMT-198 A3 ) une reconnaissance part en equipe ( la mobilisation ordinaire ) et sans mortiers
+    nums = GM.mobiliser(wA, hommes, ids=None if but == "reconnaissance" else membres_a_projeter(wA, hommes)); LO.emporter(wA, nums)
     cp = corps(wA, nums)
+    if but == "reconnaissance": cp["mortiers"] = {"tubes": 0, "obus": 0.0, "base": None}
     t = PR.traverser(wA, modele, len(cp["numero"]), parachutage)
     if not t["ok"]:
         demobiliser(wA, nums); return {"ok": False, "raison": t["raison"]}
@@ -296,7 +314,7 @@ def lancer_operation(wA, nom_A, oid, modele, hommes, parachutage=False, couvert=
     cal = A.NOMS_MUNITIONS.index("roquette_84")
     for lid, q in sorted(roquettes_par_base(cp).items()): res[(lid, cal)] = res.get((lid, cal), 0.0) + q
     ops = _ops(wA)
-    op = {"id": len(ops) + 1, "attaquant": nom_A, "objectif": oid, "modele": modele, "parachutage": bool(parachutage),
+    op = {"id": len(ops) + 1, "attaquant": nom_A, "objectif": oid, "modele": modele, "parachutage": bool(parachutage), "but": but,
           "couvert": couvert, "numeros": [int(n) for n in cp["numero"]], "corps": cp, "traversee": t["id"],
           "depart": t["depart"], "arrivee": t["arrivee"], "retour": t["retour"], "etat": "en_route", "assaut": None,
           "rapatriement": None}
@@ -315,13 +333,18 @@ def avancer_operations(wA, wB):
             depart = None
             if op["parachutage"]:
                 c = wB.carte; ile = c.par_n[0].ile; o = objectif(ile, op["objectif"])
-                port = c.port(ile) or c.gouvernement
-                dx, dy = port.pos[0] - o["pos"][0], port.pos[1] - o["pos"][1]; L = max(1.0, math.hypot(dx, dy))
-                depart = (o["pos"][0] + DISTANCE_LARGAGE * dx / L, o["pos"][1] + DISTANCE_LARGAGE * dy / L)
-            r = assaut(wB, op["attaquant"], op["corps"], op["objectif"], depart=depart, couvert=op["couvert"],
-                       seed=(9000 + op["id"],))
+                depart = point_d_approche(wB, o, DISTANCE_LARGAGE)
+            if op.get("but") == "reconnaissance":            # ( 03/10, HMT-198 A3 ) voir, sans se battre
+                from . import reconnaissance as RC
+                r = RC.reconnaitre(wB, op["attaquant"], op["corps"], op["objectif"], seed=(9000 + op["id"],))
+                r["vehicules_detruits"] = 0
+                RC._renseignement(wA)[op["objectif"]] = dict(r["rapport"], detectee=r["detectee"], pas_A=int(wA.pas))
+            else:
+                r = assaut(wB, op["attaquant"], op["corps"], op["objectif"], depart=depart, couvert=op["couvert"],
+                           seed=(9000 + op["id"],))
             op["assaut"] = {k: r[k] for k in ("arrives", "dommages", "sorts", "restants", "defenseur", "obus_tires", "mortiers",
                                               "roquettes", "vehicules_detruits")}
+            if "rapport" in r: op["assaut"]["rapport"] = r["rapport"]
             op["assaut"]["pas"] = int(wB.pas); op["assaut"]["depart_assaut"] = depart
             op["etat"] = "au_retour"; evts.append(("assaut", op["id"]))
         if op["etat"] == "au_retour" and int(wA.pas) >= op["retour"]:

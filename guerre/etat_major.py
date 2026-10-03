@@ -30,7 +30,7 @@ MODELE = "qwen3.8:27b"
 CONTEXTE = 32768
 JOURS_JEU = 2                              # l horizon d un jeu de guerre ( jours du moteur )
 GRAINE_ESTIMATION = 9001                   # l ile adverse estimee ( CHOIX : une graine que ni l un ni l autre ne joue )
-ACTIONS = ("acheter", "operation", "attendre")
+ACTIONS = ("acheter", "operation", "reconnaissance", "attendre")
 QUESTIONS_FICHES = ("acheter un chaland ou un avion de transport", "traverser vers une autre ile, duree et carburant",
                     "attaquer l objectif d une autre ile", "une ile peut-elle encore se battre",
                     "que fait la destruction d une centrale, d une fonderie ou d un depot", "chance de toucher et couvert")
@@ -45,6 +45,11 @@ CE QUE TU PEUX ORDONNER ( une liste d actions par mode d action ) :
       - des soldats mobilises emportent leur dotation de combat, traversent ( 120 km : ~ 6 h en chaland, ~ 35 min en avion,
       carburant brule ), attaquent l objectif a l arrivee ( a 800 m du chaland, a 1,5 km d un saut ), reviennent avec le
       transport ; un objectif atteint est detruit a proportion des hommes qui l atteignent encore en etat de combattre ;
+  {{"type": "reconnaissance", "objectif": "<id>", "modele": "lcu" | "c130j", "hommes": 4 a 30, "parachutage": vrai|faux}}
+      - une equipe va VOIR l objectif sans se battre : elle s infiltre jusqu a 600 m, observe 20 minutes, revient avec
+      le transport ; son rapport ( hommes vus, blindes vus, mortiers, age ) entre dans le renseignement de la situation ;
+      elle ne voit que ce que voient ses yeux ( un homme couche a ~ 60 m, accroupi a ~ 230 m, un blinde ou un element
+      qui tire a ~ 1,6 km ) et peut etre vue ;
   {{"type": "attendre"}}.
 CE QUE LE MOTEUR A DEJA MONTRE :
   - une BASE est defendue par sa compagnie, retranchee : un raid de 24 a 60 hommes contre elle ECHOUE toujours ( 40 a 50 %
@@ -53,7 +58,13 @@ CE QUE LE MOTEUR A DEJA MONTRE :
   - un objectif atteint est detruit a proportion des hommes qui l atteignent ( une base : ses vehicules, munitions et
     pieces ; un depot : son carburant ; une centrale : ses groupes en panne ; un port : le blocus ) ;
   - une ile ne peut plus combattre sans soldat apte ou sans munition d arme individuelle ( guerre/fin.py ) ;
-  - une ile tient ~ 35 jours de combat sur ses depots ; sans port ni devises, elle ne se ravitaille plus.
+  - une ile tient ~ 35 jours de combat sur ses depots ; sans port ni devises, elle ne se ravitaille plus ;
+  - ( A1 ) une compagnie qui defend tire au MORTIER de 81 mm sur ce qu elle voit : elle cloue l assaillant a 800 m ;
+    une operation emporte les mortiers de ses compagnies ( 2 tubes et 120 obus par section d appui ) ;
+  - ( A2 ) une unite qui defend se bat avec ses BLINDES ( M113 et M1114 a mitrailleuse de 12,7 mm, Leopard ) : la caisse
+    arrete les balles et les eclats ; seules les ROQUETTES de 84 mm des tireurs antichar de l operation ( 6 chacun, un
+    par groupe ) les detruisent ;
+  - le renseignement de la situation ( par objectif ) vient de tes reconnaissances : jamais de la verite adverse.
 """
 
 
@@ -71,7 +82,7 @@ def situation(w, nom_A, nom_B):
     ops = []
     for op in EX._ops(w):
         a = op.get("assaut") or {}
-        ops.append({"id": op["id"], "objectif": op["objectif"], "modele": op["modele"], "hommes": len(op["numeros"]),
+        ops.append({"id": op["id"], "but": op.get("but", "assaut"), "objectif": op["objectif"], "modele": op["modele"], "hommes": len(op["numeros"]),
                     "etat": op["etat"], "arrives": a.get("arrives"), "dommages": a.get("dommages"),
                     "hors_de_combat": len(a.get("sorts", [])) if a else None, "defendu": a.get("defenseur") is not None if a else None})
     vus = {}
@@ -80,11 +91,15 @@ def situation(w, nom_A, nom_B):
         if a: vus[op["objectif"]] = max(vus.get(op["objectif"], 0.0), float(a.get("dommages") or 0.0))
     cibles = [{"id": o["id"], "type": o["type"], "detruit_constate": round(vus.get(o["id"], 0.0), 3)}
               for o in OB.objectifs_carte(nom_B.lower())]
+    from . import reconnaissance as RC                  # ( HMT-198 A3 ) ce que nos reconnaissances ont vu, et quand
+    rens = {oid: {"age_h": round((int(w.pas) - int(r["pas_A"])) / 6.0, 1), "hommes_vus": r["hommes_vus"],
+                  "blindes_vus": r["blindes_vus"], "mortiers_vus": r["mortiers_vus"], "equipe_vue": r["detectee"]}
+            for oid, r in sorted(RC._renseignement(w).items())}
     return {"ile": nom_A, "adversaire": nom_B, "jour": int(w.jour), "peut_combattre": e["peut_combattre"],
             "capacite": {k: e["capacite"][k] for k in ("aptes", "jours_munitions_min", "jours_carburant", "jours_vivres",
                                                         "vehicules_en_service", "blocus")},
             "volonte": e["volonte"], "devises_euros": round(_devises(w)), "flotte": flotte, "operations": ops,
-            "objectifs_adverses": cibles}
+            "objectifs_adverses": cibles, "renseignement": rens}
 
 
 # ------------------------------------------------------------------ 2. les modes d action
@@ -106,6 +121,9 @@ def valider(w, nom_B, action):
     if par and m != "c130j": return None, "un parachutage demande un avion"
     h = int(action.get("hommes", 0))
     if not 1 <= h <= 2000: return None, f"hommes hors [1 ; 2000] : {h}"
+    if t == "reconnaissance":
+        if not 1 <= h <= 30: return None, f"une reconnaissance : hommes hors [1 ; 30] : {h}"
+        return {"type": "reconnaissance", "objectif": oid, "modele": m, "hommes": h, "parachutage": par}, None
     return {"type": "operation", "objectif": oid, "modele": m, "hommes": h, "parachutage": par}, None
 
 
@@ -184,6 +202,8 @@ def executer(w, nom_A, nom_B, actions):
         if v is None: out.append((a, {"ok": False, "raison": raison})); continue
         if v["type"] == "acheter": r = PR.acheter(w, v["modele"], v["nombre"]); r = {"ok": r["achetes"] > 0, **r}
         elif v["type"] == "operation": r = EX.lancer_operation(w, nom_A, v["objectif"], v["modele"], v["hommes"], v["parachutage"])
+        elif v["type"] == "reconnaissance":
+            r = EX.lancer_operation(w, nom_A, v["objectif"], v["modele"], v["hommes"], v["parachutage"], but="reconnaissance")
         else: r = {"ok": True}
         out.append((v, {k: x for k, x in r.items() if k != "corps"}))
     return out
