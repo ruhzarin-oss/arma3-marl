@@ -41,9 +41,11 @@ FENETRE_TAUX = 60                                         # tours ( 1 h de jeu )
 # Élasticités de la copie ( choix à valider ) : dégâts ~ mult_frappe^1 ; pertes ~ mult_frappe^0,6 x mult_aa^-0,3
 
 
-def appeler_ollama(messages, modele=MODELE, delai=180):
+def appeler_ollama(messages, modele=MODELE, delai=600):
+    # mode RÉFLEXION ( 03/10 : sans lui, Qwen lisait « supériorité adverse » à 106 chasseurs contre 50 ) : il raisonne
+    # d'abord ( message.thinking ), puis rend le JSON ( message.content ) ; il a 30 min de jeu pour décider
     corps = json.dumps({"model": modele, "messages": messages, "stream": False, "format": "json", "keep_alive": -1,
-                        "think": False, "options": {"temperature": 0.2, "num_predict": 400}}).encode()
+                        "think": True, "options": {"temperature": 0.2, "num_predict": 3000}}).encode()
     req = urllib.request.Request(OLLAMA, data=corps, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=delai) as r:
         return json.loads(r.read())["message"]["content"]
@@ -87,15 +89,29 @@ class ChefQwen:
         fr = g.frappe.get(camp)
         synth = lambda f: {"chasseurs": f.get("aa", 0), "frappeurs": sum(f.get(r, 0) for r in ("frappe", "dead", "bombardier")),   # noqa: E731
                            "soutien": sum(f.get(r, 0) for r in ("guet", "ravitailleur", "brouilleur", "sead", "reco", "elint"))}
-        t1 = max(0, g.tours - FENETRE_TAUX)
-        n = max(1, g.tours - t1)
-        taux = {"elements_adverses_detruits_par_tour": round(sum(1 for d in g.detruits if d["camp"] != camp and d["tour"] > t1) / n, 3),
-                "avions_perdus_par_tour": round(sum(1 for m in g.morts if m["genre"] == "avion" and g.camp_de_pays(m["pays"]) == camp
-                                                    and m["tour"] > t1) / n, 3),
-                "avions_adverses_abattus_par_tour": round(sum(1 for m in g.morts if m["genre"] == "avion"
-                                                              and g.camp_de_pays(m["pays"]) != camp and m["tour"] > t1) / n, 3)}
+        def taux_depuis(t1):
+            n = max(1, g.tours - t1)
+            return {"elements_adverses_detruits_par_tour": round(sum(1 for d in g.detruits if d["camp"] != camp and d["tour"] > t1) / n, 3),
+                    "avions_perdus_par_tour": round(sum(1 for m in g.morts if m["genre"] == "avion" and g.camp_de_pays(m["pays"]) == camp
+                                                        and m["tour"] > t1) / n, 3),
+                    "avions_adverses_abattus_par_tour": round(sum(1 for m in g.morts if m["genre"] == "avion"
+                                                                  and g.camp_de_pays(m["pays"]) != camp and m["tour"] > t1) / n, 3)}
+        heure, guerre = taux_depuis(max(0, g.tours - FENETRE_TAUX)), taux_depuis(0)
+        # la copie mêle l'heure écoulée et toute la guerre : une heure creuse ne condamne pas l'offensive ( 03/10 )
+        taux = {k: round(0.5 * heure[k] + 0.5 * guerre[k], 3) for k in heure}
+        s_moi, s_lui = synth(forces), synth(adverses)
+        bases_adv_op = sum(1 for b in bases_adv if b["operationnelle_percue"])
+        rapport = {"chasse": f"{s_moi['chasseurs']} contre {s_lui['chasseurs']} ( "
+                             + ("AVANTAGE À NOUS" if s_moi["chasseurs"] > 1.2 * s_lui["chasseurs"] else
+                                "AVANTAGE À L'ADVERSAIRE" if s_lui["chasseurs"] > 1.2 * s_moi["chasseurs"] else "équilibre") + " )",
+                   "frappe": f"{s_moi['frappeurs']} contre {s_lui['frappeurs']}"}
+        objectif = {"bases_aeriennes_adverses_operationnelles_percues": bases_adv_op, "bases_aeriennes_adverses": len(bases_adv),
+                    "elements_adverses_detruits_depuis_le_debut": sum(1 for d in g.detruits if d["camp"] != camp),
+                    "nos_elements_detruits_depuis_le_debut": sum(1 for d in g.detruits if d["camp"] == camp)}
         return {"camp": camp, "tour": g.tours, "phase_tempo": "surge" if g.tempo == 0 else "soutenu",
-                "synthese": synth(forces), "synthese_adverse_estimee": synth(adverses), "taux_heure_ecoulee": taux,
+                "rapport_de_forces": rapport, "objectif": objectif,
+                "synthese": s_moi, "synthese_adverse_estimee": s_lui, "taux_heure_ecoulee": taux,
+                "taux_detail": {"heure_ecoulee": heure, "toute_la_guerre": guerre},
                 "forces": forces, "forces_adverses_estimees": adverses,
                 "bases_adverses": sorted(bases_adv, key=lambda x: -x["avions_estimes"])[:8],
                 "menaces_sol_air_connues": len(em.memoire.get(camp, {})),
