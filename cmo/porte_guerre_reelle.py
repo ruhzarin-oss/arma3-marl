@@ -733,6 +733,17 @@ def e29_frappe_antinavire():
         assert f.lua(f"return FAUX.missions['OTAN/HMT-F{an['id']}'] == nil"), "l'ancienne frappe antinavire n'est pas fermée"
 
 
+def e30_registre_perime():
+    """Une unité VIVANTE que le registre du pont a oubliée ( 03/10 : navires « vivants mais absents du relevé », tours
+    refusés ) : le moteur refait le registre depuis les noms et la retrouve ; il ne la compte pas morte, aucun tour n'échoue."""
+    with guerre() as (f, g):
+        g.tour()
+        k = sorted(k for k, a in g.avions.items() if a["pays"] == "Poland")[0]
+        f.lua(f"HMT_unites[{k}] = nil")
+        g.tour()
+        assert k in g.avions and not any(m["numero"] == k for m in g.morts), g.morts
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
@@ -740,7 +751,7 @@ TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_f
          e16_cadence_surge_puis_soutenue, e17_brouillard_de_guerre, e18_composante_air,
          e19_bombardiers, e20_sead_russe, e21_balayage, e22_evaluation_des_degats, e23_reconnaissance,
          e24_reserve_et_production, e25_generation_de_force, e26_apprentissage_des_forces, e27_chef_qwen,
-         e28_composante_navale, e29_frappe_antinavire]
+         e28_composante_navale, e29_frappe_antinavire, e30_registre_perime]
 
 
 def controles():
@@ -837,6 +848,7 @@ def controles():
          ("pas de balayage", e21_balayage, (EM, "SOUTIEN", {k: v for k, v in EM.SOUTIEN.items() if k != "balayage"})),
          ("l'état-major lit les dégâts réels", e22_evaluation_des_degats, (GR.GuerreReelle, "op_percu", lambda self, camp, i: self.bases[i]["op"])),
          ("un avion s'achète en guerre", e24_reserve_et_production, (GR.GuerreReelle, "_remplacer", remplacer_sans_reserve)),
+         ("le registre périmé n'est pas refait", e30_registre_perime, (CL.Labo, "recenser", lambda self: 0)),
          ("pas de frappe antinavire", e29_frappe_antinavire, (EM.EtatMajor, "antinavire", lambda self, ci, camp: ([], []))),
          ("la carte oublie les navires", e29_frappe_antinavire, (EM.EtatMajor, "renseigner", renseigner_sans_navires)),
          ("pas de marine", e28_composante_navale, (EM.EtatMajor, "marine", lambda self, ci, camp: ([], []))),

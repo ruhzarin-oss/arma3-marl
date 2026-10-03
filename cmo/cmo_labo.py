@@ -690,6 +690,10 @@ class Labo:
             raise Incomplet(f"zones : {n_z} zones et {n_a} affectations envoyées, reçu {out}")
         return out
 
+    def recenser(self) -> int:
+        """Refait le registre des numéros depuis les noms du scénario ( HMT_recensement ) ; rend le nombre d'unités HMT."""
+        return int(_une(self._exec("HMT_recensement(R)", patience=max(30.0, self.liaison.patience))["lignes"], "RECENSE", 1)[0])
+
     def vus(self, camp, numeros) -> dict:
         """Le brouillard de guerre : { numéro : ( classification 0-4, âge s, lat, lon, sommets d'incertitude ) } des unités
         adverses que `camp` voit dans CMO ; une unité absente du résultat n'est pas détectée."""

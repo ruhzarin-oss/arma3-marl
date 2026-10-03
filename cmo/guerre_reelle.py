@@ -618,6 +618,19 @@ class GuerreReelle:
                 nouveaux.append(k)
         perdus = (set(self.avions) | set(self.sol) | (set(self.navires) - fixes)) - vus - set(nouveaux)
         if perdus:
+            # 03/10 : des navires vivants manquaient au relevé ( registre périmé ) ; on refait d'abord le registre depuis les
+            # noms du scénario et on relève à nouveau, avant de conclure à une mort ou à une incohérence
+            self.labo.recenser()
+            p2 = self.labo.positions(*MOBILES)
+            for camp, us in p2["vivants"].items():
+                for k, la, lo, alt in us:
+                    if k in perdus:
+                        vus.add(k)
+                        self.altitudes[k] = alt
+                        if k in self.navires:
+                            self.navires[k]["pos"] = (la, lo)
+            perdus -= vus
+        if perdus:
             # Ni dans les vivants ni dans les morts : morte pendant une bascule ( sa mort a été relevée par le processus
             # d'avant, puis le registre refait depuis les noms l'a oubliée : 02/10, avion 10100024 ). On demande à CMO :
             # absente, c'est une mort constatée, comptée une fois ; présente, c'est une vraie incohérence.
