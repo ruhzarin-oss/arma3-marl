@@ -177,3 +177,54 @@ SOL = [
 
 # Les lanceurs de missiles sol-sol affectés aux frappes ( Iskander russes et biélorusses, HIMARS, Homar-K ).
 LANCEURS = {254, 3609, 3659, 5244, 4649, 4650}
+
+
+# LA COMPOSANTE NAVALE ( 03/10, recherche « marines_baltique_2026.md », DB3000 relue ) : ( pays, dbid, nom, nombre engagé,
+# lat, lon de la RADE ( un point de mer devant le port : aucune base navale de la Baltique n'existe dans CMO ), rôle, genre ).
+# Unités de combat seulement ( pas encore les mines, l'amphibie ni les vedettes ) ; disponibilité réelle appliquée ( les
+# frégates allemandes, basées en mer du Nord, sont en baie de Kiel ). CHOIX À VALIDER : rades, nombres, frégates allemandes.
+_R, _DE, _DK, _PL, _SE, _FI, _EE = ("Russia [1992-]", "Germany [FRG/Reunified]", "Denmark", "Poland", "Sweden", "Finland",
+                                    "Estonia [1992-]")
+_BALTIYSK, _KRONSTADT = (54.70, 19.60), (59.98, 29.30)
+NAVIRES = [
+    (_R, 596, "Neustrashimy", 2, *_BALTIYSK, "fregate", "navire"),
+    (_R, 2813, "Steregushchiy ( Redut )", 3, *_BALTIYSK, "corvette", "navire"),
+    (_R, 2411, "Buyan-M ( Kalibr )", 4, *_BALTIYSK, "lance_missiles", "navire"),
+    (_R, 3294, "Karakurt ( Kalibr )", 2, *_BALTIYSK, "lance_missiles", "navire"),
+    (_R, 3295, "Karakurt Pantsir-M ( Kalibr )", 1, *_BALTIYSK, "lance_missiles", "navire"),
+    (_R, 3295, "Karakurt Pantsir-M ( Kalibr ), Kronstadt", 1, *_KRONSTADT, "lance_missiles", "navire"),
+    (_R, 2992, "Tarantul III ( Moskit )", 4, *_BALTIYSK, "lance_missiles", "navire"),
+    (_R, 1101, "Nanuchka III ( P-120 )", 2, *_BALTIYSK, "lance_missiles", "navire"),
+    (_R, 31, "Parchim II", 3, *_KRONSTADT, "corvette", "navire"),
+    (_R, 31, "Parchim II, Baltiïsk", 3, *_BALTIYSK, "corvette", "navire"),
+    (_R, 371, "Kilo 877EKM ( Dmitrov )", 1, *_KRONSTADT, "sous_marin", "sous_marin"),
+    (_R, 780, "Lada 677 ( Velikiye Luki )", 1, *_KRONSTADT, "sous_marin", "sous_marin"),
+    (_R, 771, "Kilo 636.3 ( mer Noire )", 1, *_KRONSTADT, "sous_marin", "sous_marin"),
+    (_R, 2217, "Bal ( Kh-35U ), Donskoïé", 2, 54.93, 20.00, "cotier", "site"),
+    (_R, 2217, "Bal ( Kh-35U ), Kotlin", 2, 60.03, 29.72, "cotier", "site"),
+    (_DE, 4510, "F124 Sachsen", 2, 54.55, 10.40, "fregate", "navire"),
+    (_DE, 2512, "F125 Baden-Württemberg", 2, 54.55, 10.40, "fregate", "navire"),
+    (_DE, 2489, "F123 Brandenburg", 2, 54.55, 10.40, "fregate", "navire"),
+    (_DE, 1283, "K130 Braunschweig", 6, 54.25, 12.05, "corvette", "navire"),
+    (_DE, 498, "U212A lot 1", 1, 54.52, 10.05, "sous_marin", "sous_marin"),
+    (_DE, 743, "U212A lot 2", 1, 54.52, 10.05, "sous_marin", "sous_marin"),
+    (_DK, 5235, "Iver Huitfeldt", 3, 55.33, 11.00, "fregate", "navire"),
+    (_DK, 4357, "Absalon", 2, 55.33, 11.00, "fregate", "navire"),
+    (_PL, 3660, "Oliver Hazard Perry ( Kościuszko )", 1, 54.55, 18.75, "fregate", "navire"),
+    (_PL, 4484, "Kaszub", 1, 54.55, 18.75, "corvette", "navire"),
+    (_PL, 3015, "Orkan ( RBS-15 )", 3, 54.55, 18.75, "lance_missiles", "navire"),
+    (_PL, 2145, "NSM côtier, Siemirowice", 4, 54.42, 17.76, "cotier", "site"),
+    (_SE, 755, "Visby", 4, 56.05, 15.65, "corvette", "navire"),
+    (_SE, 3830, "Gävle", 2, 58.95, 18.60, "corvette", "navire"),
+    (_SE, 710, "Gotland", 3, 56.05, 15.65, "sous_marin", "sous_marin"),
+    (_SE, 168, "Södermanland", 1, 56.05, 15.65, "sous_marin", "sous_marin"),
+    (_SE, 4884, "RBS-15KA côtier, Karlskrona", 2, 56.20, 15.50, "cotier", "site"),
+    (_FI, 4643, "Hamina ( Gabriel V )", 4, 59.98, 24.35, "lance_missiles", "navire"),
+    (_FI, 3212, "Rauma ( RBS-15 )", 2, 59.70, 22.50, "lance_missiles", "navire"),
+    (_FI, 1590, "MTO 85M côtier, Upinniemi", 3, 60.03, 24.36, "cotier", "site"),
+    (_EE, 3416, "Blue Spear côtier", 1, 59.35, 24.10, "cotier", "site"),
+]
+# Les zones navales de chaque camp ( lat, lon, demi-côté km ) : l'OTAN tient la Baltique centrale et barre les approches de
+# Baltiïsk ( sous-marins ) ; la Russie tient les approches de Kaliningrad et le golfe de Finlande ( ses sous-marins ).
+ZONES_NAVALES = {"OTAN": {"mer": (55.6, 18.0, 60.0), "asm": (55.2, 19.0, 35.0)},
+                 "Russie-Chine": {"mer": (55.0, 19.3, 35.0), "asm": (59.95, 27.5, 30.0)}}

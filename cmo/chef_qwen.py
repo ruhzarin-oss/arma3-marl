@@ -27,12 +27,18 @@ PERIODE_TOURS = 30                                        # une décision par ca
 HORIZON_TOURS = 30                                        # le bilan prévision / résultat se fait 30 tours après la décision
 MULT_MIN, MULT_MAX = 0.5, 2.0                             # bornes des multiplicateurs que Qwen peut demander
 APPRENDRE = 0.3                                           # pas du recalage de l'estimateur
-SYSTEME = ("Tu es le chef d'état-major du camp {camp} dans une guerre aérienne réelle simulée par Command: Modern "
-           "Operations. Tu décides la STRATÉGIE ; la tactique est exécutée par CMO. Méthode : lis la situation, compare les "
-           "modes d'action et leurs prévisions ( jouées sur une copie ), choisis celui qui sert le mieux l'objectif ( détruire "
-           "la capacité aérienne adverse en préservant tes forces ), ou ajuste-le dans les bornes. Réponds UNIQUEMENT en JSON : "
+SYSTEME = ("Tu es le chef d'état-major du camp {camp} dans une guerre réelle simulée par Command: Modern Operations. Tu "
+           "décides la STRATÉGIE ; la tactique est exécutée par CMO. Objectif : détruire la capacité militaire adverse ( bases "
+           "aériennes, défenses, flotte ) en préservant tes forces, dont les réserves sont FINIES. Tes leviers : « cible » = "
+           "index d'une base adverse à frapper en priorité ( null = le choix de ton état-major ) ; « mult_frappe » multiplie le "
+           "nombre de frappeurs engagés par cible ; « mult_aa » multiplie le nombre de chasseurs par avion adverse menaçant ; "
+           "« reserves » = engager ( faire venir des renforts de la réserve nationale ) ou garder. Méthode : lis la situation "
+           "( synthese, taux observés sur l'heure écoulée ), compare les modes d'action et leurs prévisions jouées sur une copie "
+           "calée sur ces taux, choisis-en un ou ajuste-le dans les bornes. Réponds UNIQUEMENT en JSON : "
            '{{"mode": "<id>", "raison": "<3 phrases au plus>", "cible": <index de base ou null>, '
            '"mult_aa": <0.5 à 2>, "mult_frappe": <0.5 à 2>, "reserves": "engager" ou "garder"}}')
+FENETRE_TAUX = 60                                         # tours ( 1 h de jeu ) sur lesquels les taux sont observés
+# Élasticités de la copie ( choix à valider ) : dégâts ~ mult_frappe^1 ; pertes ~ mult_frappe^0,6 x mult_aa^-0,3
 
 
 def appeler_ollama(messages, modele=MODELE, delai=180):
@@ -49,7 +55,7 @@ class ChefQwen:
         self.appeler = appeler or appeler_ollama
         self.savoir = savoir                             # rechercher(question, k) -> [ fiches ] ( base de connaissance )
         self.dossier = dossier
-        self.coef = {c: {"degats_par_frappeur_tour": 0.5, "pertes_par_frappeur_tour": 0.01, "echange_air": 1.0}
+        self.coef = {c: {"e_degats": 1.0, "e_pertes_frappe": 0.6, "e_pertes_chasse": -0.3, "biais_degats": 1.0, "biais_pertes": 1.0}
                      for c in g.camps}
         self.en_cours = {}                               # camp -> fil Qwen en vol
         self.reponses = {}                               # camp -> ( décision brute, contexte ) prête à appliquer
@@ -79,7 +85,17 @@ class ChefQwen:
         infligees = {"avions": sum(1 for m in g.morts if m["genre"] == "avion" and g.camp_de_pays(m["pays"]) != camp and m["tour"] > t0),
                      "elements": sum(1 for d in g.detruits if d["camp"] != camp and d["tour"] > t0)}
         fr = g.frappe.get(camp)
+        synth = lambda f: {"chasseurs": f.get("aa", 0), "frappeurs": sum(f.get(r, 0) for r in ("frappe", "dead", "bombardier")),   # noqa: E731
+                           "soutien": sum(f.get(r, 0) for r in ("guet", "ravitailleur", "brouilleur", "sead", "reco", "elint"))}
+        t1 = max(0, g.tours - FENETRE_TAUX)
+        n = max(1, g.tours - t1)
+        taux = {"elements_adverses_detruits_par_tour": round(sum(1 for d in g.detruits if d["camp"] != camp and d["tour"] > t1) / n, 3),
+                "avions_perdus_par_tour": round(sum(1 for m in g.morts if m["genre"] == "avion" and g.camp_de_pays(m["pays"]) == camp
+                                                    and m["tour"] > t1) / n, 3),
+                "avions_adverses_abattus_par_tour": round(sum(1 for m in g.morts if m["genre"] == "avion"
+                                                              and g.camp_de_pays(m["pays"]) != camp and m["tour"] > t1) / n, 3)}
         return {"camp": camp, "tour": g.tours, "phase_tempo": "surge" if g.tempo == 0 else "soutenu",
+                "synthese": synth(forces), "synthese_adverse_estimee": synth(adverses), "taux_heure_ecoulee": taux,
                 "forces": forces, "forces_adverses_estimees": adverses,
                 "bases_adverses": sorted(bases_adv, key=lambda x: -x["avions_estimes"])[:8],
                 "menaces_sol_air_connues": len(em.memoire.get(camp, {})),
@@ -96,14 +112,15 @@ class ChefQwen:
                 {"id": "defendre", "cible": None, "mult_aa": 1.5, "mult_frappe": 0.7, "reserves": "garder"}]
 
     def jouer(self, camp, mode, sit):
-        """La copie : l'issue à l'horizon d'un mode d'action, prédite par les taux observés du camp."""
-        c = self.coef[camp]
-        frappeurs = sum(sit["forces"].get(r, 0) for r in ("frappe", "dead", "bombardier")) * mode["mult_frappe"]
-        chasse = sit["forces"].get("aa", 0) * mode["mult_aa"]
-        menace = sum(sit["forces_adverses_estimees"].get(r, 0) for r in ("aa", "frappe", "dead", "bombardier"))
-        degats = c["degats_par_frappeur_tour"] * frappeurs * HORIZON_TOURS / 100.0        # éléments détruits ( équivalent )
-        pertes = c["pertes_par_frappeur_tour"] * frappeurs * HORIZON_TOURS
-        pertes += max(0.0, menace - chasse) * 0.02 * HORIZON_TOURS / max(0.25, c["echange_air"])  # chasse en sous-nombre
+        """La copie : l'issue à l'horizon d'un mode d'action, à partir des taux OBSERVÉS sur l'heure écoulée ( dégâts
+        infligés, avions perdus par tour ), modulés par les multiplicateurs du mode ( élasticités ) et par le biais appris
+        aux bilans précédents ( prévu contre obtenu )."""
+        c, t = self.coef[camp], sit["taux_heure_ecoulee"]
+        mf, ma = mode["mult_frappe"], mode["mult_aa"]
+        degats = t["elements_adverses_detruits_par_tour"] * HORIZON_TOURS * mf ** c["e_degats"] * c["biais_degats"]
+        pertes = t["avions_perdus_par_tour"] * HORIZON_TOURS * mf ** c["e_pertes_frappe"] * ma ** c["e_pertes_chasse"] * c["biais_pertes"]
+        if mode.get("reserves") == "garder":
+            pertes *= 1.0                                # garder ne change pas l'heure qui vient ; il préserve la suite
         return {"elements_detruits": round(degats, 2), "avions_perdus": round(pertes, 2)}
 
     # ---- 3. la décision ( fil à part )
@@ -188,11 +205,11 @@ class ChefQwen:
                       "avions_perdus": sum(1 for m in g.morts if m["genre"] == "avion" and g.camp_de_pays(m["pays"]) == camp and t0 < m["tour"] <= t1)}
             rec["bilan"] = obtenu
             c = self.coef[camp]
-            frappeurs = max(1.0, sum(rec["forces"].get(r, 0) for r in ("frappe", "dead", "bombardier")) * rec["decision"]["mult_frappe"])
-            c["degats_par_frappeur_tour"] = (1 - APPRENDRE) * c["degats_par_frappeur_tour"] + APPRENDRE * (
-                100.0 * obtenu["elements_detruits"] / (frappeurs * HORIZON_TOURS))
-            c["pertes_par_frappeur_tour"] = (1 - APPRENDRE) * c["pertes_par_frappeur_tour"] + APPRENDRE * (
-                obtenu["avions_perdus"] / (frappeurs * HORIZON_TOURS))
+            # le recalage : le biais de la copie suit le rapport obtenu / prévu ( borné, pour qu'un zéro ne l'efface pas )
+            for cle, k in (("elements_detruits", "biais_degats"), ("avions_perdus", "biais_pertes")):
+                prevu, vu = rec["prevision"][cle], obtenu[cle]
+                rapport = (vu + 0.5) / (prevu + 0.5)
+                c[k] = min(4.0, max(0.25, c[k] * rapport ** APPRENDRE))
             g.em.journal.append({"camp": camp, "tour": g.tours, "bilan_chef": {"prevu": rec["prevision"], "obtenu": obtenu,
                                                                               "coef": {k: round(v, 4) for k, v in c.items()}}})
             self._archiver({"camp": camp, "tour": g.tours, "bilan_de": t0, "prevu": rec["prevision"], "obtenu": obtenu})
@@ -216,4 +233,6 @@ class ChefQwen:
         return {"coef": self.coef, "decisions": [{k: v for k, v in r.items() if k != "messages"} for r in self.decisions[-40:]]}
 
     def charger(self, e):
-        self.coef = e.get("coef") or self.coef
+        for camp, v in (e.get("coef") or {}).items():    # un état d'avant la copie calée sur les taux est ignoré
+            if camp in self.coef and "e_degats" in v:
+                self.coef[camp] = v

@@ -104,3 +104,28 @@ def chargement(dbid, mission, base=None):
         if cand:
             return max(cand, key=lambda x: ("Long" in x[1] or "ER" in x[1], -x[0]))[0]
     return None
+
+
+def portee_navire_sol(dbid, base=None):
+    """Portée sol maximale ( km ) des armes d'un navire ( Kalibr, Tomahawk… ) : affûts et magasins de DataShip."""
+    c = _c(base)
+    out = []
+    for t_aff, t_mag in (("DataShipMounts", "DataShipMagazines"),):
+        try:
+            for (mid,) in c.execute(f"select ComponentID from {t_aff} where ID = ?", (dbid,)):
+                for (wr,) in c.execute("select ComponentID from DataMountWeapons where ID = ?", (mid,)):
+                    r = c.execute("select ComponentID from DataWeaponRecord where ID = ?", (wr,)).fetchone()
+                    if r:
+                        w = c.execute("select coalesce(LandRangeMax,0) from DataWeapon where ID = ?", (r[0],)).fetchone()
+                        if w:
+                            out.append(w[0])
+            for (mg,) in c.execute(f"select ComponentID from {t_mag} where ID = ?", (dbid,)):
+                for (wr,) in c.execute("select ComponentID from DataMagazineWeapons where ID = ?", (mg,)):
+                    r = c.execute("select ComponentID from DataWeaponRecord where ID = ?", (wr,)).fetchone()
+                    if r:
+                        w = c.execute("select coalesce(LandRangeMax,0) from DataWeapon where ID = ?", (r[0],)).fetchone()
+                        if w:
+                            out.append(w[0])
+        except sqlite3.OperationalError:
+            continue
+    return max(out, default=0.0)

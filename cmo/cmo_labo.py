@@ -588,6 +588,29 @@ class Labo:
             raise Incomplet(f"missions : {n_pat} patrouilles et {n_aff} affectations envoyées, reçu {out}")
         return out
 
+    def frappes_navales(self, frappes=()) -> dict:
+        """Les frappes antinavire d'un tour : [ ( id, camp, [ numéros des navires ennemis ] ) ] ; les affectations passent par
+        frappes( affectations=… ) ( même nom de mission HMT-F<id> )."""
+        corps, n_f, n_c = [], 0, 0
+        for i, camp, cibles in frappes:
+            if camp not in self.camps:
+                raise Refus(f"camp {camp!r} inconnu")
+            ks = [str(_ent(k, 1, NUMERO_MAX, "cible")) for k in cibles]
+            corps += (_appels("HMT_frappe_navale", f"{_ent(i, 1, 9999, 'id')}, {self.camps.index(camp) + 1}", ks) if ks
+                      else [f"HMT_frappe_navale(R, {_ent(i, 1, 9999, 'id')}, {self.camps.index(camp) + 1})"])
+            n_f += 1
+            n_c += len(ks)
+        if not corps:
+            return {"frappes": [], "cibles": [], "absents": [], "refus": []}
+        r = self._exec(" ".join(corps))
+        out = {"frappes": sorted({int(v[0]) for k, v in r["lignes"] if k == "FRAPPE"}),
+               "cibles": [int(v[0]) for k, v in r["lignes"] if k == "CIBLE"],
+               "absents": [int(v[0]) for k, v in r["lignes"] if k == "ABSENT"],
+               "refus": [int(v[0]) for k, v in r["lignes"] if k == "REFUSE"], "recu": r["recu"]}
+        if len(out["frappes"]) != n_f or len(out["cibles"]) + len(out["absents"]) + len(out["refus"]) != n_c:
+            raise Incomplet(f"frappes navales : {n_f} missions, {n_c} cibles envoyées, reçu {out}")
+        return out
+
     def frappes(self, frappes=(), affectations=()) -> dict:
         """Les missions de frappe d'un tour en UN envoi. frappes : [ ( id, camp, [ numéros des cibles ennemies ] ) ] ( créée,
         activée et réglée en vols de deux au premier appel ; les cibles s'ajoutent ) ; affectations : [ ( id, [ numéros ] ) ]."""
@@ -648,7 +671,7 @@ class Labo:
         for i, camp, genre, la, lo, dk, tiers, sur, em in zones:
             if camp not in self.camps:
                 raise Refus(f"camp {camp!r} inconnu")
-            corps.append(f"HMT_zone(R, {_ent(i, 1, 9999, 'id')}, {self.camps.index(camp) + 1}, {_ent(genre, 1, 3, 'genre')}, "
+            corps.append(f"HMT_zone(R, {_ent(i, 1, 9999, 'id')}, {self.camps.index(camp) + 1}, {_ent(genre, 1, 6, 'genre')}, "
                          f"{_num(la, -90, 90, 'lat'):.7f}, {_num(lo, -180, 180, 'lon'):.7f}, {_num(dk, 1, 200, 'demi_km'):.2f}, "
                          f"{1 if tiers else 0}, {_ent(sur, 0, 20, 'sur_place')}, {_ent(em, 0, 2, 'emcon')})")
             n_z += 1

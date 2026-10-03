@@ -674,13 +674,43 @@ def e27_chef_qwen():
         assert any("bilan_chef" in x for x in g.em.journal)
 
 
+NAVIRES_TEST = [("Russia [1992-]", 9001, "Karakurt", 2, 54.70, 19.80, "lance_missiles", "navire"),
+                ("Russia [1992-]", 9002, "Kilo", 1, 54.75, 19.60, "sous_marin", "sous_marin"),
+                ("Poland", 9003, "Kormoran", 2, 54.60, 18.70, "corvette", "navire")]
+ZONES_TEST = {"Russie-Chine": {"mer": (55.0, 19.5, 30.0), "asm": (55.3, 18.5, 30.0)}, "OTAN": {"mer": (55.0, 18.5, 40.0)}}
+
+
+def e28_composante_navale():
+    """La marine : les navires réels posés en rade ; frégates et corvettes en CONTRÔLE DE LA MER, sous-marins en LUTTE
+    ANTI-SOUS-MARINE ; les lance-missiles de croisière ( Karakurt, Kalibr ) engagés dans la frappe de la base ennemie À
+    PORTÉE ; un navire coulé est compté une fois, et le complément ne le repose pas."""
+    kw = dict(EM_KW, portee_nav=lambda d: {9001: 1500.0}.get(d, 0.0))
+    with guerre(navires=NAVIRES_TEST, zones_navales=ZONES_TEST, em_kw=kw) as (f, g):
+        assert len(g.navires) == 5, g.navires
+        g.tour()
+        fr = g.frappe["Russie-Chine"]
+        kara = sorted(k for k, n in g.navires.items() if n["nom"] == "Karakurt")
+        assert all(g.affecte.get(k) == fr["id"] for k in kara), (kara, fr, g.affecte)
+        kilo = next(k for k, n in g.navires.items() if n["nom"] == "Kilo")
+        korm = sorted(k for k, n in g.navires.items() if n["nom"] == "Kormoran")
+        assert g.affecte.get(kilo) == 611 and all(g.affecte.get(k) == 600 for k in korm), g.affecte
+        typ = lambda c, i: f.lua(f"local m = FAUX.missions['{c}/HMT-P{i}'] return m and m.type")       # noqa: E731
+        # pas de frégate russe ici : pas de contrôle de la mer russe ; le Kilo en lutte ASM, les Kormoran en contrôle de la mer
+        assert (typ("Russie-Chine", 610), typ("Russie-Chine", 611), typ("OTAN", 600)) == (None, "SUB", "SEA")
+        f.detruire(korm[0])
+        g.tour()
+        assert korm[0] not in g.navires and any(m["genre"] == "navire" and m["numero"] == korm[0] for m in g.morts)
+        assert g.completer_navires() == [] and len(g.navires) == 4
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
          e13_rearmement_rate_rend_l_ancien_chargement, e14_cible_la_plus_menacante, e15_swing_role,
          e16_cadence_surge_puis_soutenue, e17_brouillard_de_guerre, e18_composante_air,
          e19_bombardiers, e20_sead_russe, e21_balayage, e22_evaluation_des_degats, e23_reconnaissance,
-         e24_reserve_et_production, e25_generation_de_force, e26_apprentissage_des_forces, e27_chef_qwen]
+         e24_reserve_et_production, e25_generation_de_force, e26_apprentissage_des_forces, e27_chef_qwen,
+         e28_composante_navale]
 
 
 def controles():
@@ -722,6 +752,11 @@ def controles():
 
     def charger_sans_retour(self, lots):
         return vrai_charger(self, [x for x in lots if x[2] != 0]) if any(x[2] != 0 for x in lots) else {"charges": {}, "absents": []}
+    vrai_p_nav = EM.EtatMajor._p
+
+    def portee_nav_nulle(self, quoi, dbid):
+        return 0.0 if quoi == "nav" else vrai_p_nav(self, quoi, dbid)
+
     def recul_aveugle(self, camp, C, T, t, marge, marge_b):
         return (C[0] + t * (T[0] - C[0]), C[1] + t * (T[1] - C[1]))
     vrai_p = EM.EtatMajor._p
@@ -765,6 +800,8 @@ def controles():
          ("pas de balayage", e21_balayage, (EM, "SOUTIEN", {k: v for k, v in EM.SOUTIEN.items() if k != "balayage"})),
          ("l'état-major lit les dégâts réels", e22_evaluation_des_degats, (GR.GuerreReelle, "op_percu", lambda self, camp, i: self.bases[i]["op"])),
          ("un avion s'achète en guerre", e24_reserve_et_production, (GR.GuerreReelle, "_remplacer", remplacer_sans_reserve)),
+         ("pas de marine", e28_composante_navale, (EM.EtatMajor, "marine", lambda self, ci, camp: ([], []))),
+         ("un Kalibr tire hors de portée", e28_composante_navale, (EM.EtatMajor, "_p", portee_nav_nulle)),
          ("la décision du chef n'est pas appliquée", e27_chef_qwen, (CQ.ChefQwen, "appliquer", lambda self: None)),
          ("le chef dépasse ses bornes", e27_chef_qwen, (CQ, "MULT_MAX", 5.0)),
          ("l'état-major n'apprend rien de ses pertes", e26_apprentissage_des_forces, (EM.EtatMajor, "apprendre_forces", lambda self, camp: None)),

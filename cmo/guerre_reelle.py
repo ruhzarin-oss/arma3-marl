@@ -39,6 +39,7 @@ import etat_major as EM                                   # noqa: E402
 import inventaires as INV                                 # noqa: E402
 
 DEC_AVION, DEC_SOL, DEC_INST = 10_000_000, 20_000_000, 90_000_000
+DEC_NAV = 30_000_000                                      # navires et sous-marins ( dans les mobiles relevés à chaque tour )
 MOBILES = (DEC_AVION, DEC_INST - 1)
 SEUIL_PISTE = 50.0                                        # % de dégâts au-delà duquel une piste ne sert plus
 PACKS_INITIAUX = 4                                        # chargements complets en dépôt par avion avant la guerre
@@ -197,12 +198,17 @@ def prix_arme_db():
 class GuerreReelle:
     def __init__(self, theatre="baltique_reel", *, labo=None, labo_kw=None, periode_min=1.0, installations=None,
                  flottes=None, sol=None, classer=None, chargements=None, prix_pack=None, prix_arme=None, em_kw=None,
-                 readytime=None, brouillard=True, reserve=None, generation=True, chef=None, dossier=None):
+                 readytime=None, brouillard=True, reserve=None, generation=True, chef=None, dossier=None,
+                 navires=None, zones_navales=None):
         self.T = importlib.import_module(f"theatres.{theatre}")
         self.camps, self.pays = tuple(self.T.CAMPS), list(self.T.PAYS)
         self.installations = list(installations if installations is not None else self.T.INSTALLATIONS)
         self.flottes = list(flottes if flottes is not None else self.T.FLOTTES)
         self.sol_ob = list(sol if sol is not None else self.T.SOL)
+        # LA COMPOSANTE NAVALE ( 03/10 ) : ( pays, dbid, nom, nombre, lat, lon de la rade, rôle, genre navire / sous_marin )
+        self.flotte_navale = list(navires if navires is not None else getattr(self.T, "NAVIRES", []))
+        self.zones_navales = dict(zones_navales if zones_navales is not None else getattr(self.T, "ZONES_NAVALES", {}))
+        self.navires = {}                                # numéro -> { pays, camp, dbid, nom, rôle, genre, pos }
         self.classer = classer or classer_db()
         self.charg = chargements if chargements is not None else chargements_db(self.flottes)
         self.prix_pack = prix_pack or prix_pack_db()
@@ -319,6 +325,7 @@ class GuerreReelle:
         self._poser_flottes()
         self._armer_initial()
         self._poser_sol()
+        self._poser_navires(self.flotte_navale)
         for camp in self.camps:
             self.labo.doctrine(camp, "air_operations_tempo", TEMPO_SURGE)   # l'ouverture de la campagne : surge
         return self
@@ -409,6 +416,7 @@ class GuerreReelle:
             else:
                 restes.append(dict(x, code=r["refus"].get(k)))
         self.refus_construction = [x for x in restes if x.get("genre") != "avion"] + ajoute["refus"]
+        ajoute["navires"] = len(self.completer_navires())
         return ajoute
 
     def _enregistrer(self, i, f, camp, pays, role, el):
@@ -494,11 +502,45 @@ class GuerreReelle:
                 s = self.sol.pop(k, None)
                 self.refus_construction.append({"genre": "sol", "numero": k, "code": code, **(s or {})})
 
+    def _poser_navires(self, liste):
+        """Les navires et sous-marins réels, posés en mer devant leur port ( la rade du théâtre ), en ligne à 2 km d'écart ;
+        un refus de CMO ( à terre, par exemple ) est gardé pour le rapport."""
+        lots = {}
+        for pays, dbid, nom, nombre, la, lo, role, genre in liste:
+            if pays not in self.pays:
+                continue
+            for j in range(int(nombre)):
+                k = self._numero(DEC_NAV, pays)
+                p = (la + 0.018 * (j % 4), lo + 0.03 * (j // 4))
+                self.navires[k] = {"pays": pays, "camp": self.camp_de_pays(pays), "dbid": dbid, "nom": nom, "role": role,
+                                   "genre": genre, "pos": p}
+                lots.setdefault((self.camp_de_pays(pays), genre, dbid), []).append((k, *p))
+        if not lots:
+            return []
+        r = self.labo.poser_lots([(camp, genre, dbid, poses, 0.0, 0) for (camp, genre, dbid), poses in lots.items()])
+        for k, code in r["refus"].items():
+            n = self.navires.pop(k, None)
+            self.refus_construction.append({"genre": "navire", "numero": k, "code": code, **(n or {})})
+        return sorted(r["poses"])
+
+    def completer_navires(self):
+        """Corriger au fur et à mesure : les navires de la flotte qui n'ont jamais été posés ( ni vivants ni perdus ) le sont."""
+        tenus = {}
+        for n in self.navires.values():
+            tenus[(n["pays"], n["dbid"], n["nom"])] = tenus.get((n["pays"], n["dbid"], n["nom"]), 0) + 1
+        for m in self.morts:
+            if m["genre"] == "navire" and m.get("cle"):
+                c = tuple(m["cle"][:3])
+                tenus[c] = tenus.get(c, 0) + 1
+        manque = [(p, d, nom, n - tenus.get((p, d, nom), 0), la, lo, r, ge) for p, d, nom, n, la, lo, r, ge in self.flotte_navale
+                  if n - tenus.get((p, d, nom), 0) > 0]
+        return self._poser_navires(manque)
+
     # ---- l'état du théâtre, pour reprendre une guerre sans le reconstruire ( le scénario garde les unités HMT )
     CHAMPS_ETAT = ("elements", "bases", "avions", "sol", "rang", "caisse", "verse", "depense", "stock_initial_m",
                    "a_remplacer", "pertes", "achats", "packs_achetes", "frappe", "k_frappe", "affecte", "patrouilles",
                    "refus_construction", "journal", "journal_pos", "tours", "bilans", "morts", "detruits", "altitudes",
-                   "debut", "tempo", "bda", "bda_bases", "reserve", "renforts")
+                   "debut", "tempo", "bda", "bda_bases", "reserve", "renforts", "navires")
 
     def etat(self):
         e = {k: (sorted(v) if isinstance(v, set) else v) for k, v in ((k, getattr(self, k)) for k in self.CHAMPS_ETAT)}
@@ -538,9 +580,11 @@ class GuerreReelle:
         p = self.labo.positions(*MOBILES)
         vus, nouveaux = set(), []
         for camp, us in p["vivants"].items():
-            for k, _la, _lo, alt in us:
+            for k, la, lo, alt in us:
                 vus.add(k)
                 self.altitudes[k] = alt
+                if k in self.navires:
+                    self.navires[k]["pos"] = (la, lo)
         for camp, ks in p["morts"].items():
             for k in ks:
                 if k in self.avions:
@@ -557,7 +601,13 @@ class GuerreReelle:
                     self.affecte.pop(k, None)
                     self.morts.append({"numero": k, "genre": "sol", "pays": s["pays"], "tour": self.tours})
                     nouveaux.append(k)
-        perdus = (set(self.avions) | set(self.sol)) - vus - set(nouveaux)
+                elif k in self.navires:
+                    n = self.navires.pop(k)
+                    self.affecte.pop(k, None)
+                    self.morts.append({"numero": k, "genre": "navire", "pays": n["pays"], "tour": self.tours,
+                                       "cle": [n["pays"], n["dbid"], n["nom"], n["role"]]})
+                    nouveaux.append(k)
+        perdus = (set(self.avions) | set(self.sol) | set(self.navires)) - vus - set(nouveaux)
         if perdus:
             # Ni dans les vivants ni dans les morts : morte pendant une bascule ( sa mort a été relevée par le processus
             # d'avant, puis le registre refait depuis les noms l'a oubliée : 02/10, avion 10100024 ). On demande à CMO :
@@ -571,6 +621,8 @@ class GuerreReelle:
                     self.pertes[a["pays"]] += 1
                     self.a_remplacer.append((a["pays"], a["dbid"], role_origine(a), a["base"]))
                     genre, pays = "avion", a["pays"]
+                elif k in self.navires:
+                    genre, pays = "navire", self.navires.pop(k)["pays"]
                 else:
                     genre, pays = "sol", self.sol.pop(k)["pays"]
                 self.affecte.pop(k, None)
@@ -784,6 +836,10 @@ class GuerreReelle:
             z, a = self.em.soutiens(ci, camp)
             zones += z
             aff_z += a
+        for ci, camp in enumerate(self.camps):            # la composante navale
+            z, a = self.em.marine(ci, camp)
+            zones += z
+            aff_z += a
         if zones or aff_z:
             r = self.labo.zones(zones, aff_z)
             for zid, ks in aff_z:
@@ -924,7 +980,8 @@ class GuerreReelle:
         if not self.brouillard:
             return
         for camp in self.camps:
-            adverses = sorted(k for k, s in self.sol.items() if s["camp"] != camp)
+            adverses = sorted([k for k, s in self.sol.items() if s["camp"] != camp] +
+                              [k for k, n in self.navires.items() if n["camp"] != camp])
             self.vus[camp] = self.labo.vus(camp, adverses)["vus"] if adverses else {}
         self.em.renseigner()                             # la carte des menaces ( garnisons d'avant-guerre au premier tour )
         self._evaluer_degats()

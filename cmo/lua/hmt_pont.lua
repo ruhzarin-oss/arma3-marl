@@ -352,7 +352,9 @@ end
 -- 2 patrouille SEAD, 3 SOUTIEN ( guet radar, ravitailleur, brouilleur : sur_place avions en permanence ). Nommées HMT-P<id>
 -- comme les patrouilles ( HMT_affecter sert à toutes ) ; la zone carrée est déplacée à chaque appel. emcon : 1 radar actif
 -- ( guet ), 2 brouillage actif ( OECM ). Rend ZONE id camp neuve.
-local GENRES_ZONE = { { 'Patrol', 'AAW' }, { 'Patrol', 'SEAD' }, { 'Support', nil } }
+-- 4 lutte antinavire ( SUR_SEA ), 5 lutte anti-sous-marine ( SUB ), 6 contrôle de la mer ( SEA ) : la composante navale.
+local GENRES_ZONE = { { 'Patrol', 'AAW' }, { 'Patrol', 'SEAD' }, { 'Support', nil }, { 'Patrol', 'SUR_SEA' },
+                      { 'Patrol', 'SUB' }, { 'Patrol', 'SEA' } }
 function HMT_zone(R, id, camp, genre, lat, lon, demi_km, tiers, sur_place, emcon)
     local cote = HMT_CAMPS[camp]
     local gz = GENRES_ZONE[genre]
@@ -629,6 +631,35 @@ function HMT_frappe(R, id, camp, ...)
     local existe = ok and m ~= nil
     if not existe then
         if ScenEdit_AddMission(cote, nom, 'Strike', { type = 'Land' }) == nil then error('HMT_REFUS 6') end
+        pcall(ScenEdit_SetMission, cote, nom, { StrikeFlightSize = 2, StrikeUseFlightSize = false })
+    end
+    local mm = ScenEdit_GetMission(cote, nom)
+    pcall(function() mm.Phase = 20 end)
+    local n = 0
+    for _, k in ipairs({ ... }) do
+        local e = registre()[k]
+        if e == nil or unite(e.guid) == nil then
+            R('ABSENT', { k })
+        elseif e.camp == camp then
+            R('REFUSE', { k, 8 })
+        else
+            local ok2 = pcall(ScenEdit_AssignUnitAsTarget, e.guid, nom)
+            if ok2 then R('CIBLE', { k, id }) n = n + 1 else R('REFUSE', { k, 6 }) end
+        end
+    end
+    R('FRAPPE', { id, camp, existe and 0 or 1, n })
+end
+
+-- LES FRAPPES NAVALES : une mission de frappe antinavire ( Strike, type Sea ) HMT-F<id>, mêmes règles que HMT_frappe
+-- ( activée, vols de deux, cibles navales ennemies par guid ). Rend CIBLE / ABSENT / REFUSE puis FRAPPE.
+function HMT_frappe_navale(R, id, camp, ...)
+    local cote = HMT_CAMPS[camp]
+    if cote == nil then error('HMT_REFUS 1') end
+    local nom = 'HMT-F' .. id
+    local ok, m = pcall(ScenEdit_GetMission, cote, nom)
+    local existe = ok and m ~= nil
+    if not existe then
+        if ScenEdit_AddMission(cote, nom, 'Strike', { type = 'Sea' }) == nil then error('HMT_REFUS 6') end
         pcall(ScenEdit_SetMission, cote, nom, { StrikeFlightSize = 2, StrikeUseFlightSize = false })
     end
     local mm = ScenEdit_GetMission(cote, nom)

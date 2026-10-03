@@ -65,6 +65,7 @@ RATIO_MIN, RATIO_MAX = 0.5, 3.0
 EFFICACITE_MIN = 50.0                                     # % de dégâts par avion perdu en dessous duquel la frappe coûte trop
 ROLES_DEAD = ("dead", "bombardier")                       # qui part contre les défenses : armes à distance de sécurité
 ROLES_OCA = ("frappe", "dead", "bombardier")              # ciel ouvert : tous les frappeurs
+PORTEE_TERRE_MIN_KM = 50.0                                # en dessous ( canon seul ), un lance-missiles est antinavire pur
 SEAD_PAR_CAMP = 2                                         # sans avions SEAD dédiés, une paire de frappeurs réarmée en antiradar
 
 
@@ -75,11 +76,12 @@ def km(a, b):
 
 
 class EtatMajor:
-    def __init__(self, g, *, portee_air=None, portee_sol=None, charg_mission=None):
+    def __init__(self, g, *, portee_air=None, portee_sol=None, charg_mission=None, portee_nav=None):
         self.g = g
         self.portee_air = portee_air or DOC.portee_sol_air
         self.portee_sol = portee_sol or DOC.portee_sol_sol
         self.charg_mission = charg_mission or DOC.chargement
+        self.portee_nav = portee_nav or DOC.portee_navire_sol
         self._cache, self._charg = {}, {}
         self.part_dead = {c: PART_DEAD_DEPART for c in g.camps}
         self.efficacite = {c: {"dead": 1.0, "oca": 1.0} for c in g.camps}
@@ -105,7 +107,7 @@ class EtatMajor:
     def _p(self, quoi, dbid):
         cle = (quoi, dbid)
         if cle not in self._cache:
-            self._cache[cle] = {"air": self.portee_air, "sol": self.portee_sol}[quoi](dbid) if dbid else 0.0
+            self._cache[cle] = {"air": self.portee_air, "sol": self.portee_sol, "nav": self.portee_nav}[quoi](dbid) if dbid else 0.0
         return self._cache[cle]
 
     def _cm(self, dbid, mission):
@@ -209,6 +211,9 @@ class EtatMajor:
         lanceurs = sorted(k for k, s in g.sol.items() if s["camp"] == camp and g.affecte.get(k) not in (mid, -1)
                           and s["dbid"] in getattr(g.T, "LANCEURS", set())
                           and any(p and km(s["pos"], p) <= self._p("sol", s["dbid"]) for p in positions))
+        lanceurs += sorted(k for k, n in g.navires.items() if n["camp"] == camp and n["role"] == "lance_missiles"
+                           and g.affecte.get(k) not in (mid, -1)
+                           and any(p and km(n["pos"], p) <= self._p("nav", n["dbid"]) for p in positions))
         if libres or lanceurs:
             affect.append((mid, libres + lanceurs))
         # l'escorte : une paire par ESCORTE_PAR_FRAPPEURS frappeurs, prise là où il y a le plus de chasseurs
@@ -428,6 +433,34 @@ class EtatMajor:
                 for k in nouveaux:
                     par_base.setdefault(g.avions[k]["base"], []).append(k)
                 nouveaux = [k for v in par_base.values() for k in v[:len(v) // 2 * 2]]
+            if nouveaux:
+                affect.append((zid, nouveaux))
+        return zones, affect
+
+    # ---- 2 quater. la composante navale : contrôle de la mer, lutte anti-sous-marine, frappes navales
+    ZONE_NAVALE = 600                                    # 600 + camp x 10 + ( 0 contrôle de la mer, 1 lutte ASM )
+    ROLES_MER = ("fregate", "corvette", "patrouilleur")      # les batteries côtières ( « cotier » ) tirent depuis la terre
+
+    def marine(self, ci, camp):
+        """( zones, affectations ) navales du camp : frégates et corvettes en CONTRÔLE DE LA MER, sous-marins en LUTTE
+        ANTI-SOUS-MARINE, dans les zones du théâtre ( choix du réel, à valider ). Les lance-missiles de croisière vont aux
+        frappes ( planifier ) ; les chasseurs de mines restent au port."""
+        g = self.g
+        zn = g.zones_navales.get(camp) or {}
+        zones, affect = [], []
+        for cle, genre, roles, dec in (("mer", 6, self.ROLES_MER, 0), ("asm", 5, ("sous_marin",), 1)):
+            if cle not in zn:
+                continue
+            la, lo, demi = zn[cle]
+            zid = self.ZONE_NAVALE + ci * 10 + dec
+            ks = [k for k, n in sorted(g.navires.items()) if n["camp"] == camp and (n["role"] in roles or
+                  ( cle == "mer" and n["role"] == "lance_missiles" and self._p("nav", n["dbid"]) < PORTEE_TERRE_MIN_KM ))]
+            if not ks:
+                continue
+            if zid not in self.zones:
+                zones.append((zid, camp, genre, la, lo, demi, 0, 0, 0))
+                self.zones[zid] = (la, lo)
+            nouveaux = [k for k in ks if g.affecte.get(k) != zid]
             if nouveaux:
                 affect.append((zid, nouveaux))
         return zones, affect
