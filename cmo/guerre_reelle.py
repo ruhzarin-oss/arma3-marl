@@ -607,7 +607,16 @@ class GuerreReelle:
                     self.morts.append({"numero": k, "genre": "navire", "pays": n["pays"], "tour": self.tours,
                                        "cle": [n["pays"], n["dbid"], n["nom"], n["role"]]})
                     nouveaux.append(k)
-        perdus = (set(self.avions) | set(self.sol) | set(self.navires)) - vus - set(nouveaux)
+        # les batteries côtières sont des installations FIXES, hors du relevé des mobiles : leur mort est constatée auprès de
+        # CMO tous les N_STOCKS tours ( 03/10 : 5 batteries vues « vivantes mais absentes du relevé », tours refusés )
+        fixes = {k for k, n in self.navires.items() if n.get("genre") == "site"}
+        if fixes and self.tours % N_STOCKS == 0:
+            for k in self.labo.etats(sorted(fixes))["absents"]:
+                n = self.navires.pop(k)
+                self.morts.append({"numero": k, "genre": "navire", "pays": n["pays"], "tour": self.tours, "constatee": True,
+                                   "cle": [n["pays"], n["dbid"], n["nom"], n["role"]]})
+                nouveaux.append(k)
+        perdus = (set(self.avions) | set(self.sol) | (set(self.navires) - fixes)) - vus - set(nouveaux)
         if perdus:
             # Ni dans les vivants ni dans les morts : morte pendant une bascule ( sa mort a été relevée par le processus
             # d'avant, puis le registre refait depuis les noms l'a oubliée : 02/10, avion 10100024 ). On demande à CMO :

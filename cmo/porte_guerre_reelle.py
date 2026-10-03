@@ -675,6 +675,7 @@ def e27_chef_qwen():
 
 
 NAVIRES_TEST = [("Russia [1992-]", 9001, "Karakurt", 2, 54.70, 19.80, "lance_missiles", "navire"),
+                ("Poland", 9004, "NSM côtier", 1, 54.42, 17.76, "cotier", "site"),
                 ("Russia [1992-]", 9002, "Kilo", 1, 54.75, 19.60, "sous_marin", "sous_marin"),
                 ("Poland", 9003, "Kormoran", 2, 54.60, 18.70, "corvette", "navire")]
 ZONES_TEST = {"Russie-Chine": {"mer": (55.0, 19.5, 30.0), "asm": (55.3, 18.5, 30.0)}, "OTAN": {"mer": (55.0, 18.5, 40.0)}}
@@ -686,7 +687,7 @@ def e28_composante_navale():
     PORTÉE ; un navire coulé est compté une fois, et le complément ne le repose pas."""
     kw = dict(EM_KW, portee_nav=lambda d: {9001: 1500.0}.get(d, 0.0))
     with guerre(navires=NAVIRES_TEST, zones_navales=ZONES_TEST, em_kw=kw) as (f, g):
-        assert len(g.navires) == 5, g.navires
+        assert len(g.navires) == 6, g.navires             # dont une batterie côtière ( installation fixe )
         g.tour()
         fr = g.frappe["Russie-Chine"]
         kara = sorted(k for k, n in g.navires.items() if n["nom"] == "Karakurt")
@@ -700,7 +701,14 @@ def e28_composante_navale():
         f.detruire(korm[0])
         g.tour()
         assert korm[0] not in g.navires and any(m["genre"] == "navire" and m["numero"] == korm[0] for m in g.morts)
-        assert g.completer_navires() == [] and len(g.navires) == 4
+        assert g.completer_navires() == [] and len(g.navires) == 5
+        for _ in range(6):                                # la batterie fixe, hors du relevé des mobiles, ne bloque aucun tour
+            g.tour()
+        nsm = next(k for k, n in g.navires.items() if n["nom"] == "NSM côtier")
+        f.detruire(nsm)
+        for _ in range(6):
+            g.tour()
+        assert nsm not in g.navires and any(m["numero"] == nsm for m in g.morts)
 
 
 def e29_frappe_antinavire():
