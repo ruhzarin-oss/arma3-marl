@@ -36,6 +36,7 @@ sys.path.insert(0, ICI)
 import cmo_labo as CL                                     # noqa: E402
 import budgets as BU                                      # noqa: E402
 import etat_major as EM                                   # noqa: E402
+import inventaires as INV                                 # noqa: E402
 
 DEC_AVION, DEC_SOL, DEC_INST = 10_000_000, 20_000_000, 90_000_000
 MOBILES = (DEC_AVION, DEC_INST - 1)
@@ -196,7 +197,7 @@ def prix_arme_db():
 class GuerreReelle:
     def __init__(self, theatre="baltique_reel", *, labo=None, labo_kw=None, periode_min=1.0, installations=None,
                  flottes=None, sol=None, classer=None, chargements=None, prix_pack=None, prix_arme=None, em_kw=None,
-                 readytime=None, brouillard=True):
+                 readytime=None, brouillard=True, reserve=None):
         self.T = importlib.import_module(f"theatres.{theatre}")
         self.camps, self.pays = tuple(self.T.CAMPS), list(self.T.PAYS)
         self.installations = list(installations if installations is not None else self.T.INSTALLATIONS)
@@ -226,6 +227,10 @@ class GuerreReelle:
         self.patrouilles = set()
         self.bilans, self.tours, self.temps, self.ouvert = {}, 0, None, False
         self.debut, self.tempo = None, TEMPO_SURGE        # temps du scénario au premier tour ; cadence en cours
+        # LA RÉSERVE NATIONALE ( inventaires.py ) : « pays|dbid » -> avions disponibles hors du théâtre ; les renforts en
+        # route vers le théâtre, posés à leur arrivée ( délai de convoyage )
+        self.reserve_injectee = reserve
+        self.reserve, self.renforts = {}, []
         self.pertes = {p: 0 for p in self.pays}
         self.achats = {p: 0 for p in self.pays}
         self.packs_achetes = {p: 0 for p in self.pays}
@@ -341,6 +346,9 @@ class GuerreReelle:
         for a in self.avions.values():
             cle = (a.get("origine") or self.bases[a["base"]]["fichier"], a["pays"], a["dbid"], role_origine(a))
             tenus[cle] = tenus.get(cle, 0) + 1
+        for r in self.renforts:                          # en route vers le théâtre : déjà tenus
+            cle = (self.bases[r["origine"]]["fichier"] if r["origine"] in self.bases else None, r["pays"], r["dbid"], r["role"])
+            tenus[cle] = tenus.get(cle, 0) + r["n"]
         for pays, dbid, role, base in self.a_remplacer:
             cle = (self.bases[base]["fichier"] if base in self.bases else None, pays, dbid, "frappe" if role == "dead" else role)
             tenus[cle] = tenus.get(cle, 0) + 1
@@ -478,7 +486,7 @@ class GuerreReelle:
     CHAMPS_ETAT = ("elements", "bases", "avions", "sol", "rang", "caisse", "verse", "depense", "stock_initial_m",
                    "a_remplacer", "pertes", "achats", "packs_achetes", "frappe", "k_frappe", "affecte", "patrouilles",
                    "refus_construction", "journal", "journal_pos", "tours", "bilans", "morts", "detruits", "altitudes",
-                   "debut", "tempo", "bda", "bda_bases")
+                   "debut", "tempo", "bda", "bda_bases", "reserve", "renforts")
 
     def etat(self):
         e = {k: (sorted(v) if isinstance(v, set) else v) for k, v in ((k, getattr(self, k)) for k in self.CHAMPS_ETAT)}
@@ -594,40 +602,80 @@ class GuerreReelle:
             self.caisse[p] += self.debit[p] * self.periode_min
             self.verse[p] += self.debit[p] * self.periode_min
 
+    def _ouvrir_reserve(self):
+        """La réserve nationale au premier tour ( construction ou reprise d'une guerre d'avant l'inventaire ) : les avions
+        disponibles de chaque pays moins ceux déjà au théâtre."""
+        if self.reserve:
+            return
+        if self.reserve_injectee is not None:
+            base = {tuple(k.split("|")) if isinstance(k, str) else k: v for k, v in self.reserve_injectee.items()}
+            base = {(p, int(d)): v for (p, d), v in base.items()}
+        else:
+            noms = {d: c.get("nom") for d, c in self.charg.items()}
+            base = INV.engageables(noms)
+        au_theatre = {}
+        for a in self.avions.values():
+            au_theatre[(a["pays"], a["dbid"])] = au_theatre.get((a["pays"], a["dbid"]), 0) + 1
+        self.reserve = {f"{p}|{d}": float(max(0, n - au_theatre.get((p, d), 0))) for (p, d), n in base.items()}
+
+    def _produire(self):
+        for (p, d), par_mois in INV.PRODUCTION_MOIS.items():
+            cle = f"{p}|{d}"
+            if cle in self.reserve:
+                self.reserve[cle] += par_mois * self.periode_min / (30 * 24 * 60)
+
     def _remplacer(self):
+        """Une perte se comble par la RÉSERVE nationale, par paires ( une patrouille ne part que par vols de deux ), jamais
+        par un achat ; le renfort part de sa base d'attache et n'arrive au théâtre qu'après le délai de convoyage. Réserve
+        vide : la perte attend la production."""
         paires = {}
         for pays, dbid, role, base in self.a_remplacer:
             role = "frappe" if role == "dead" else role          # le remplaçant arrive en frappeur : l'état-major le réarme
             paires.setdefault((pays, dbid, role, base), 0)
             paires[(pays, dbid, role, base)] += 1
-        reste, lots, demandes = [], {}, []
+        reste = []
         for (pays, dbid, role, base), n in paires.items():
-            prix = self.charg[dbid]["prix_m"]
-            ops = [i for i, b in self.bases.items() if b["op"] and self.camp_de_pays(b["pays"]) == self.camp_de_pays(pays)]
-            dest = base if base in ops else (min(ops, key=lambda i: km(self.bases[i]["pos"], self.bases[base]["pos"]))
-                                             if ops else None)
-            while n >= 2 and dest is not None and self.caisse[pays] >= 2 * prix:
-                ks = [self._numero(DEC_AVION, pays) for _ in range(2)]
-                lo = self.charg[dbid][role]
-                self.caisse[pays] -= 2 * prix
-                lots.setdefault((self.camp_de_pays(pays), dbid, lo, self.bases[dest]["groupe"]), []).extend(ks)
-                demandes += [(k, pays, dbid, dest, role, lo, prix, base) for k in ks]
+            cle = f"{pays}|{dbid}"
+            while n >= 2 and self.reserve.get(cle, 0.0) >= 2:
+                self.reserve[cle] -= 2
+                self.renforts.append({"pays": pays, "dbid": dbid, "role": role, "n": 2, "origine": base,
+                                      "arrivee": (self.temps or 0) + INV.delai_s(pays)})
                 n -= 2
             reste += [(pays, dbid, role, base)] * n
         self.a_remplacer = reste
+        return self._arrivees()
+
+    def _arrivees(self):
+        """Les renforts arrivés au théâtre sont posés sur leur base d'origine si elle tient, sinon sur la plus proche de leur
+        camp ; une pose refusée retourne à la réserve."""
+        prets = [r for r in self.renforts if (self.temps or 0) >= r["arrivee"]]
+        if not prets:
+            return []
+        self.renforts = [r for r in self.renforts if r not in prets]
+        lots, demandes = {}, []
+        for r in prets:
+            pays, dbid, role, base = r["pays"], r["dbid"], r["role"], r["origine"]
+            ops = [i for i, b in self.bases.items() if b["op"] and self.camp_de_pays(b["pays"]) == self.camp_de_pays(pays)]
+            ref = self.bases[base]["pos"] if base in self.bases else None
+            dest = base if base in ops else (min(ops, key=lambda i: km(self.bases[i]["pos"], ref) if ref else 0) if ops else None)
+            lo = self.charg.get(dbid, {}).get(role)
+            if dest is None or not lo:
+                self.reserve[f"{pays}|{dbid}"] = self.reserve.get(f"{pays}|{dbid}", 0.0) + r["n"]
+                continue
+            ks = [self._numero(DEC_AVION, pays) for _ in range(r["n"])]
+            lots.setdefault((self.camp_de_pays(pays), dbid, lo, self.bases[dest]["groupe"]), []).extend(ks)
+            demandes += [(k, pays, dbid, dest, role, lo, base) for k in ks]
         if not lots:
             return []
-        r = self.labo.poser_base_lots([(camp, d, lo, g, ks) for (camp, d, lo, g), ks in lots.items()])
-        poses = set(r["poses"])
-        for k, pays, dbid, dest, role, lo, prix, origine in demandes:
+        res = self.labo.poser_base_lots([(camp, d, lo, g, ks) for (camp, d, lo, g), ks in lots.items()])
+        poses = set(res["poses"])
+        for k, pays, dbid, dest, role, lo, origine in demandes:
             if k in poses:
                 self.avions[k] = {"pays": pays, "camp": self.camp_de_pays(pays), "dbid": dbid, "base": dest, "role": role,
                                   "loadout": lo, "origine": self.bases[origine]["fichier"] if origine in self.bases else None}
-                self.depense[pays] += prix
-                self.achats[pays] += 1
+                self.achats[pays] += 1                   # « achats » : les renforts posés ( le nom reste pour les rapports )
             else:
-                self.caisse[pays] += prix
-                self.a_remplacer.append((pays, dbid, role, origine))
+                self.reserve[f"{pays}|{dbid}"] = self.reserve.get(f"{pays}|{dbid}", 0.0) + 1
         return sorted(poses)
 
     def _racheter_munitions(self):
@@ -819,6 +867,8 @@ class GuerreReelle:
         detruits = self._lire_journal()
         self._etat_bases()
         self._verser()
+        self._ouvrir_reserve()
+        self._produire()
         achats = self._remplacer()
         munitions = self._racheter_munitions() if self.tours % N_STOCKS == 1 else []
         self._renseigner()

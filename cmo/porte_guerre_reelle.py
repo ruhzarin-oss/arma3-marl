@@ -17,6 +17,7 @@ sys.path.insert(0, ICI)
 import cmo_labo as CL                                     # noqa: E402
 import etat_major as EM                                  # noqa: E402
 import guerre_reelle as GR                                # noqa: E402
+import inventaires as INV                                 # noqa: E402
 import porte_cmo as P                                     # noqa: E402
 from faux_cmo import FauxCMO                              # noqa: E402
 from theatres import papier_reel as T                     # noqa: E402
@@ -155,19 +156,24 @@ def e3_une_piste_detruite_ferme_la_base():
 
 
 def e4_remplacer_par_paires():
-    """Un avion perdu n'est pas remplacé seul ( une patrouille ne part que par vols ) ; le deuxième perdu, la paire est
-    rachetée au prix réel sur une base opérationnelle du pays."""
+    """Un avion perdu n'est pas remplacé seul ( une patrouille ne part que par vols ) ; au deuxième, une paire part de la
+    RÉSERVE nationale ( jamais d'achat : en guerre, un avion ne s'achète pas ) et n'arrive au théâtre qu'après le délai de
+    convoyage ( 6 h )."""
     with guerre() as (f, g):
         g.tour()
-        g.caisse["Poland"] = 1000.0
-        g.verse["Poland"] += 1000.0
+        r0 = g.reserve["Poland|7087"]
         pol = sorted(k for k, a in g.avions.items() if a["pays"] == "Poland" and a["role"] == "aa")
         f.detruire(pol[0])
         g.tour()
-        assert g.achats["Poland"] == 0 and len(g.a_remplacer) == 1, (g.achats, g.a_remplacer)
+        assert g.achats["Poland"] == 0 and len(g.a_remplacer) == 1 and not g.renforts, (g.a_remplacer, g.renforts)
         f.detruire(pol[1])
         g.tour()
-        assert g.achats["Poland"] == 2 and not g.a_remplacer, (g.achats, g.a_remplacer)
+        assert len(g.renforts) == 1 and g.reserve["Poland|7087"] == r0 - 2 and g.achats["Poland"] == 0, (g.renforts, g.reserve)
+        assert sum(1 for a in g.avions.values() if a["pays"] == "Poland") == 2
+        f.lua("FAUX.temps = FAUX.temps + 7 * 3600")
+        g.tour()                                         # l'heure du scénario est relue en fin de tour : posé au suivant
+        g.tour()
+        assert g.achats["Poland"] == 2 and not g.renforts and not g.a_remplacer, (g.achats, g.renforts)
         assert sum(1 for a in g.avions.values() if a["pays"] == "Poland") == 4
 
 
@@ -244,7 +250,7 @@ def e9_completer_en_cours_de_guerre():
         pol = sorted(k for k, a in g.avions.items() if a["pays"] == "Poland" and a["role"] == "aa")
         f.detruire(pol[0])
         f.detruire(pol[1])
-        g.caisse["Poland"] = 0.0                          # pas d'argent : les deux pertes restent en attente
+        g.reserve["Poland|7087"] = 0.0                    # réserve vide : les deux pertes restent en attente
         g.tour()
         assert len(g.a_remplacer) == 2, g.a_remplacer
         a = g.completer(attente_import=0.1)
@@ -560,12 +566,30 @@ def e23_reconnaissance():
         assert not mal, mal
 
 
+def e24_reserve_et_production():
+    """Réserve nationale vide : la perte n'est PAS remplacée ( aucun achat, quel que soit l'argent ) ; la production
+    mensuelle remplit la réserve au rythme réel et la paire repart vers le théâtre."""
+    with guerre() as (f, g):
+        g.tour()
+        g.reserve["Poland|7087"] = 0.0
+        g.caisse["Poland"] = 1e6
+        pol = sorted(k for k, a in g.avions.items() if a["pays"] == "Poland" and a["role"] == "aa")
+        f.detruire(pol[0])
+        f.detruire(pol[1])
+        g.tour()
+        assert len(g.a_remplacer) == 2 and not g.renforts, (g.a_remplacer, g.renforts)
+        with P.mutant(INV, "PRODUCTION_MOIS", {("Poland", 7087): 2.0 * 30 * 24 * 60 / g.periode_min}):
+            g.tour()
+        assert len(g.renforts) == 1 and not g.a_remplacer, (g.renforts, g.a_remplacer, g.reserve["Poland|7087"])
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
          e13_rearmement_rate_rend_l_ancien_chargement, e14_cible_la_plus_menacante, e15_swing_role,
          e16_cadence_surge_puis_soutenue, e17_brouillard_de_guerre, e18_composante_air,
-         e19_bombardiers, e20_sead_russe, e21_balayage, e22_evaluation_des_degats, e23_reconnaissance]
+         e19_bombardiers, e20_sead_russe, e21_balayage, e22_evaluation_des_degats, e23_reconnaissance,
+         e24_reserve_et_production]
 
 
 def controles():
@@ -576,6 +600,11 @@ def controles():
         self.a_remplacer = [x for x in self.a_remplacer for _ in (0, 1)]       # chaque perte compte double : achat seul
         return vrai_remplacer(self)
     vrai_racheter = GR.GuerreReelle._racheter_munitions
+
+    def remplacer_sans_reserve(self):
+        for c in self.reserve:
+            self.reserve[c] = 1e9
+        return vrai_remplacer(self)
 
     def munitions_gratuites(self):
         avant = dict(self.caisse)
@@ -644,6 +673,7 @@ def controles():
          ("pas de SEAD sans avions dédiés", e20_sead_russe, (EM.EtatMajor, "_rearmer_sead", lambda self, camp: [])),
          ("pas de balayage", e21_balayage, (EM, "SOUTIEN", {k: v for k, v in EM.SOUTIEN.items() if k != "balayage"})),
          ("l'état-major lit les dégâts réels", e22_evaluation_des_degats, (GR.GuerreReelle, "op_percu", lambda self, camp, i: self.bases[i]["op"])),
+         ("un avion s'achète en guerre", e24_reserve_et_production, (GR.GuerreReelle, "_remplacer", remplacer_sans_reserve)),
          ("pas de reconnaissance", e23_reconnaissance, (EM, "SOUTIEN", {k: v for k, v in EM.SOUTIEN.items() if k != "reco"}))]
     for nom, test, (obj, attr, val) in m:
         with P.mutant(obj, attr, val):
