@@ -24,7 +24,7 @@ import numpy as np
 
 from monde import population as PO
 from monde.pays import d16_medecine as MED, d17_hopitaux as HM, d25_armee as A, d26_armee_soutien as S
-from monde.pays import d27_armee_tactique as T
+from monde.pays import d07_exterieur as X, d27_armee_tactique as T
 from . import frappes as FR, logistique as LO, moteur as GM, objectifs as OB
 
 DISTANCE_ASSAUT = 800.0
@@ -107,9 +107,12 @@ def defenseur(wB, o):
     compagnie, retranchee ( couvert dur ) ; un autre objectif ( port, centrale, depot, fonderie, aerodrome ) est garde
     par UNE SECTION de la compagnie la plus proche, a couvert leger ( la garde des points sensibles ) ."""
     pB = wB.pays; U = A._dom(pB).unites; n = U.n; carte = wB.carte
+    g = _gardes(wB).get(o["id"])                         # ( HMT-198 S3 ) une compagnie posee la par l etat-major
+    if g is not None and len(T._aptes(pB, g)): return g, "dur"
+    pris = set(_gardes(wB).values())
     best = None
     for u in range(n):
-        if int(U["niveau"][u]) != A.COMPAGNIE or int(U["base"][u]) < 0: continue
+        if int(U["niveau"][u]) != A.COMPAGNIE or int(U["base"][u]) < 0 or u in pris: continue
         if not len(T._aptes(pB, u)): continue
         b = carte.par_n[int(U["base"][u])]
         dd = math.hypot(b.pos[0] - o["pos"][0], b.pos[1] - o["pos"][1])
@@ -119,6 +122,38 @@ def defenseur(wB, o):
     if o["type"] == "base": return u, "dur"
     sections = [x for x in range(n) if int(U["parent"][x]) == u and int(U["niveau"][x]) == A.SECTION and len(T._aptes(pB, x))]
     return (sections[0], "leger") if sections else (u, "leger")
+
+
+def _gardes(w): return w.__dict__.setdefault("gardes", {})               # ( S3 ) objectif -> compagnie qui le tient
+def _subies(w): return w.__dict__.setdefault("attaques_subies", [])     # ( S3 ) ce que l ile sait des attaques qu elle subit
+
+
+def renforcer(w, oid):
+    """( 03/10, HMT-198 S3 ) L etat-major envoie une COMPAGNIE tenir l objectif `oid` de son ile, retranchee ( couvert
+    dur ) : la plus proche qui n en tient pas deja un. Sa base est alors defendue par la compagnie la plus proche qui
+    reste ( `defenseur` ). Le transport en camion brule le gazole de sa garnison ( la regle du domaine 27 : 16 hommes par
+    camion, aller et retour, 1,3 de detour, au-dela de 2 km ). Rend { ok, raison, unite, hommes, gazole, km }."""
+    c = w.carte; ile = c.par_n[0].ile
+    if oid not in {x["id"] for x in OB.objectifs_carte(ile.lower())}: return {"ok": False, "raison": f"objectif inconnu {oid!r}"}
+    if oid in _gardes(w): return {"ok": False, "raison": "objectif deja tenu"}
+    o = objectif(ile, oid); p = w.pays; U = A._dom(p).unites
+    pris = set(_gardes(w).values()); best = None
+    for u in range(U.n):
+        if int(U["niveau"][u]) != A.COMPAGNIE or int(U["base"][u]) < 0 or u in pris: continue
+        n = len(T._aptes(p, u))
+        if not n: continue
+        b = c.par_n[int(U["base"][u])]
+        dd = math.hypot(b.pos[0] - o["pos"][0], b.pos[1] - o["pos"][1])
+        if best is None or dd < best[0]: best = (dd, u, n, b)
+    if best is None: return {"ok": False, "raison": "aucune compagnie libre"}
+    dd, u, n, b = best; km = dd / 1000.0
+    q = math.ceil(n / T.PLACES_CAMION) * 2.0 * 1.3 * km * A.VEHICULE["steyr_12m18"].unites_par_km if km > T.KM_TRANSPORT else 0.0
+    g = w.garnisons[b.id]; cat = p.socle.catalogue
+    if g.get("carburant", 0.0) < q: return {"ok": False, "raison": "pas assez de gazole a la garnison"}
+    if q > 0: p.socle.livre.puits(X.StockE1(g, cat), cat.id("carburant"), q, "brule", "carburant_tactique")
+    _gardes(w)[oid] = int(u)
+    w.noter("renfort", objectif=oid, unite=int(u), hommes=n)
+    return {"ok": True, "raison": None, "unite": int(u), "hommes": n, "gazole": q, "km": km}
 
 
 def point_d_approche(wB, o, distance):
@@ -202,6 +237,8 @@ def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert=None):
     frappe = None
     if dommages > 0:
         frappe = FR.frapper(wB, o, {cc["i"]: dommages for cc in o["composants"]}) if o.get("composants") else None
+    _subies(wB).append({"pas": int(wB.pas), "type": "assaut", "attaquant": nom_ile_A, "objectif": oid, "hommes": n,
+                        "arrives": arrives, "dommages": dommages})                  # ( S3 ) l ile attaquee le sait
     wB.noter("assaut", attaquant=nom_ile_A, objectif=oid, hommes=n, arrives=arrives, pertes=len(sorts),
              defenseur=-1 if u is None else int(u))
     return {"mission": m, "arrives": arrives, "dommages": dommages, "frappe": frappe, "sorts": sorts, "garde_rompue": libre,

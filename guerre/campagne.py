@@ -14,7 +14,7 @@ La doctrine fixe ( le temoin ) : acheter trois chalands, puis chaque jour ou ils
 portent sur le premier but non atteint, dans l ordre port, centrale, depot. CHOIX : l adversaire se defend sans contre-
 attaquer ( pas encore de stratege chez lui ).
 
-   python -m guerre.campagne Stratis 2081 Malden 2082 qwen 4"""
+   python -m guerre.campagne Stratis 2081 Malden 2082 qwen 4 [ defense | qwen ]"""
 import json
 import pickle
 import sys
@@ -22,7 +22,7 @@ import time
 
 from monde import archipel as AR, tests as T
 from monde.pays import d07_exterieur as X
-from . import etat_major as EM, fin as FI, frappes as FR, projection as PR
+from . import etat_major as EM, expedition as EX, fin as FI, frappes as FR, projection as PR
 
 BUTS = (("blocus", "port01"), ("centrale", "centrale01"), ("depot", "depot01"))
 SEUIL_BUT = 0.5
@@ -55,13 +55,18 @@ CONSIGNE_BUTS = ("\nLES BUTS DE GUERRE fixes par le gouvernement : 1. le BLOCUS 
                  "quand l objectif est detruit a moitie au moins. Atteins le plus de buts en perdant le moins d hommes.\n")
 
 
-def campagne(nom_A, g_A, nom_B, g_B, chef, jours=4, echelle=20, index=None, journal=None):
-    """La campagne. Rend { buts, bilan, tours }."""
+CONSIGNE_DEFENSE = ("\nTU DEFENDS : l adversaire veut le BLOCUS de ton ile ( ton port, port01 ), ta CENTRALE ( centrale01 ) et ton "
+                    "DEPOT de carburant ( depot01 ). Garde-les en perdant le moins d hommes ; tu peux aussi l attaquer.\n")
+
+
+def campagne(nom_A, g_A, nom_B, g_B, chef, jours=4, echelle=20, index=None, journal=None, chef_B=None):
+    """La campagne. chef_B ( S3 ) : le stratege du defenseur ( defense : son temoin ; qwen ; None : il ne fait rien ).
+    Rend { buts, bilan, tours, tours_B }."""
     t0 = time.time()
     wA = AR.creer_ile(nom_A, g_A, echelle); T.jours(wA, 1)
     wB = AR.creer_ile(nom_B, g_B, echelle); T.jours(wB, 1)
     av = {"aptes_A": FI.aptes(wA), "aptes_B": FI.aptes(wB), "devises_A": EM._devises(wA)}
-    tours = []
+    tours = []; tours_B = []
     ancienne = EM.FICHE_DE_COMMANDEMENT
     EM.FICHE_DE_COMMANDEMENT = ancienne + CONSIGNE_BUTS.replace("{B}", "{B}")
     try:
@@ -71,6 +76,15 @@ def campagne(nom_A, g_A, nom_B, g_B, chef, jours=4, echelle=20, index=None, jour
             else: tr = EM.tour(wA, nom_A, nom_B, chef="qwen", index=index, echelle=echelle)
             tours.append({k: tr.get(k) for k in ("jour", "chef", "modes", "jeux", "choix", "execution", "duree_s")}
                          | {"ordre": (tr.get("decision") or {}).get("reponse", "")[:600]})
+            pas_B = int(wB.pas)
+            if chef_B == "defense": tb = _tour_temoin(wB, nom_B, nom_A, EM.doctrine_defense, echelle)
+            elif chef_B == "qwen":
+                EM.FICHE_DE_COMMANDEMENT = ancienne + CONSIGNE_DEFENSE
+                try: tb = EM.tour(wB, nom_B, nom_A, chef="qwen", index=index, echelle=echelle)
+                finally: EM.FICHE_DE_COMMANDEMENT = ancienne + CONSIGNE_BUTS
+            else: tb = None
+            if tb is not None:
+                tours_B.append({k: tb.get(k) for k in ("jour", "chef", "modes", "choix", "execution", "duree_s")} | {"pas": pas_B})
             EM.avancer(wA, wB, int(wA.pas) + TOUR_PAS)
         EM.avancer(wA, wB, int(wA.pas) + TOUR_PAS)          # le dernier retour
     finally:
@@ -79,7 +93,8 @@ def campagne(nom_A, g_A, nom_B, g_B, chef, jours=4, echelle=20, index=None, jour
     bilan = {"buts_atteints": sum(buts.values()), "pertes_A": av["aptes_A"] - FI.aptes(wA), "pertes_B": av["aptes_B"] - FI.aptes(wB),
              "devises_depensees_A": round(av["devises_A"] - EM._devises(wA)), "degats_B": dict(FR._etat(wB)),
              "peut_combattre_B": FI.peut_combattre(wB)[0], "duree_s": round(time.time() - t0)}
-    out = {"chef": chef, "A": [nom_A, g_A], "B": [nom_B, g_B], "buts": buts, "bilan": bilan, "tours": tours}
+    out = {"chef": chef, "chef_B": chef_B, "A": [nom_A, g_A], "B": [nom_B, g_B], "buts": buts, "bilan": bilan, "tours": tours,
+           "tours_B": tours_B, "subies_B": list(EX._subies(wB))}
     if journal is not None: journal.append(out)
     return out
 
@@ -101,8 +116,10 @@ def domine(a, b):
 if __name__ == "__main__":
     a = sys.argv[1:]
     idx = None
-    if a[4] == "qwen":
+    chef_B = a[6] if len(a) > 6 else None
+    if a[4] == "qwen" or chef_B == "qwen":
         from .connaissance import index as IX
         idx = IX.ouvrir()
-    r = campagne(a[0], int(a[1]), a[2], int(a[3]), a[4], int(a[5]) if len(a) > 5 else 4, index=idx)
-    print(json.dumps({k: r[k] for k in ("chef", "buts", "bilan")}, ensure_ascii=False, default=str))
+    r = campagne(a[0], int(a[1]), a[2], int(a[3]), a[4], int(a[5]) if len(a) > 5 else 4, index=idx, chef_B=chef_B)
+    print(json.dumps({k: r[k] for k in ("chef", "chef_B", "buts", "bilan")}, ensure_ascii=False, default=str))
+    for t in r["tours_B"]: print("  B jour", t["jour"], json.dumps(t["execution"], ensure_ascii=False, default=str)[:300])

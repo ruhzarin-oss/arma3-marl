@@ -30,7 +30,7 @@ MODELE = "qwen3.8:27b"
 CONTEXTE = 32768
 JOURS_JEU = 2                              # l horizon d un jeu de guerre ( jours du moteur )
 GRAINE_ESTIMATION = 9001                   # l ile adverse estimee ( CHOIX : une graine que ni l un ni l autre ne joue )
-ACTIONS = ("acheter", "operation", "reconnaissance", "attendre")
+ACTIONS = ("acheter", "operation", "reconnaissance", "renforcer", "attendre")
 QUESTIONS_FICHES = ("acheter un chaland ou un avion de transport", "traverser vers une autre ile, duree et carburant",
                     "attaquer l objectif d une autre ile", "une ile peut-elle encore se battre",
                     "que fait la destruction d une centrale, d une fonderie ou d un depot", "chance de toucher et couvert")
@@ -50,6 +50,8 @@ CE QUE TU PEUX ORDONNER ( une liste d actions par mode d action ) :
       le transport ; son rapport ( hommes vus, blindes vus, mortiers, age ) entre dans le renseignement de la situation ;
       elle ne voit que ce que voient ses yeux ( un homme couche a ~ 60 m, accroupi a ~ 230 m, un blinde ou un element
       qui tire a ~ 1,6 km ) et peut etre vue ;
+  {{"type": "renforcer", "objectif": "<id d un objectif de TON ile>"}} - une compagnie part le tenir, retranchee
+      ( le camion brule le gazole de sa garnison ) ; sa base est alors gardee par la compagnie la plus proche qui reste ;
   {{"type": "attendre"}}.
 CE QUE LE MOTEUR A DEJA MONTRE :
   - une BASE est defendue par sa compagnie, retranchee : un raid de 24 a 60 hommes contre elle ECHOUE toujours ( 40 a 50 %
@@ -99,7 +101,9 @@ def situation(w, nom_A, nom_B):
             "capacite": {k: e["capacite"][k] for k in ("aptes", "jours_munitions_min", "jours_carburant", "jours_vivres",
                                                         "vehicules_en_service", "blocus")},
             "volonte": e["volonte"], "devises_euros": round(_devises(w)), "flotte": flotte, "operations": ops,
-            "objectifs_adverses": cibles, "renseignement": rens}
+            "objectifs_adverses": cibles, "renseignement": rens,
+            "gardes": {oid: {"unite": u, "hommes": len(EX.T._aptes(w.pays, u))} for oid, u in sorted(EX._gardes(w).items())},
+            "attaques_subies": EX._subies(w)[-10:]}
 
 
 # ------------------------------------------------------------------ 2. les modes d action
@@ -108,6 +112,10 @@ def valider(w, nom_B, action):
     if not isinstance(action, dict) or action.get("type") not in ACTIONS: return None, f"action inconnue {action!r}"
     t = action["type"]
     if t == "attendre": return {"type": "attendre"}, None
+    if t == "renforcer":                                  # ( HMT-198 S3 ) un objectif de SON ile
+        oid = action.get("objectif"); ile = w.carte.par_n[0].ile
+        if oid not in {o["id"] for o in OB.objectifs_carte(ile.lower())}: return None, f"objectif de {ile} inconnu {oid!r}"
+        return {"type": "renforcer", "objectif": oid}, None
     m = action.get("modele")
     if m not in PR.MODELES: return None, f"modele inconnu {m!r}"
     if t == "acheter":
@@ -184,6 +192,16 @@ def doctrine_fixe(sit):
     return [{"nom": "doctrine", "actions": [{"type": "operation", "objectif": cibles[0]["id"], "modele": "lcu", "hommes": 800}], "raison": "doctrine"}]
 
 
+def doctrine_defense(sit):
+    """( HMT-198 S3 ) Le temoin du defenseur : chaque jour, une compagnie de plus tient le premier objectif non tenu,
+    dans l ordre : ceux qu on vient d attaquer ( le plus recent d abord ), puis le port, la centrale, le depot."""
+    tenus = set(sit.get("gardes", {}))
+    ordre = [a["objectif"] for a in reversed(sit.get("attaques_subies", []))] + ["port01", "centrale01", "depot01"]
+    for oid in ordre:
+        if oid not in tenus: return [{"nom": "defense", "actions": [{"type": "renforcer", "objectif": oid}], "raison": f"tenir {oid}"}]
+    return [{"nom": "defense", "actions": [{"type": "attendre"}], "raison": "tout est tenu"}]
+
+
 def mauvais_stratege(sit):
     """Le controle : un avion, puis des raids de 10 parachutistes sur la base la plus forte."""
     fl = sit["flotte"]["c130j"]
@@ -202,6 +220,7 @@ def executer(w, nom_A, nom_B, actions):
         if v is None: out.append((a, {"ok": False, "raison": raison})); continue
         if v["type"] == "acheter": r = PR.acheter(w, v["modele"], v["nombre"]); r = {"ok": r["achetes"] > 0, **r}
         elif v["type"] == "operation": r = EX.lancer_operation(w, nom_A, v["objectif"], v["modele"], v["hommes"], v["parachutage"])
+        elif v["type"] == "renforcer": r = EX.renforcer(w, v["objectif"])
         elif v["type"] == "reconnaissance":
             r = EX.lancer_operation(w, nom_A, v["objectif"], v["modele"], v["hommes"], v["parachutage"], but="reconnaissance")
         else: r = {"ok": True}
@@ -210,9 +229,10 @@ def executer(w, nom_A, nom_B, actions):
 
 
 def avancer(wA, wB, pas):
-    """Les deux mondes jusqu au pas `pas`, les operations de A contre B a chaque pas."""
+    """Les deux mondes jusqu au pas `pas`, les operations de A contre B et ( S3 ) de B contre A a chaque pas."""
     while int(wA.pas) < pas:
         wA.pas_suivant(); wB.pas_suivant(); EX.avancer_operations(wA, wB)
+        if EX._ops(wB): EX.avancer_operations(wB, wA)
 
 
 def estimation(nom_B, echelle, w_A, graine=GRAINE_ESTIMATION, cache={}):
@@ -285,7 +305,7 @@ def tour(wA, nom_A, nom_B, chef="qwen", index=None, echelle=20, journal=None):
         jeux = [jouer(wA, nom_A, nom_B, m, echelle=echelle) for m in modes]
         k, trace["decision"] = decider_qwen(sit, modes, jeux)
     else:
-        modes = doctrine_fixe(sit) if chef == "doctrine" else mauvais_stratege(sit)
+        modes = doctrine_fixe(sit) if chef == "doctrine" else doctrine_defense(sit) if chef == "defense" else mauvais_stratege(sit)
         jeux = [jouer(wA, nom_A, nom_B, m, echelle=echelle) for m in modes]; k = 0
     trace["modes"] = modes; trace["jeux"] = [j["bilan"] for j in jeux]; trace["choix"] = k
     trace["execution"] = [(x, {kk: r.get(kk) for kk in ("ok", "raison", "achetes", "arrivee")}) for x, r in executer(wA, nom_A, nom_B, modes[k].get("actions", []))]

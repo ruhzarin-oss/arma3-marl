@@ -190,9 +190,19 @@ def mobiliser(w, n, ids=None):
     parmi ceux qui le peuvent ; sans, les premiers presents."""
     f = _front(w)
     t, nn = w.table, w.table.n
-    deja = {x["i"] for x in f.values()}
+    # ( 03/10, HMT-198 ) DEFAUT CORRIGE : tout soldat deja passe par le front etait ecarte, meme rentre sain ( la
+    # deuxieme vague d une guerre partait vide ). Un soldat RENTRE peut repartir ; un blesse encore a l hopital, ou un
+    # detenu, ne part pas ( la regle d27._aptes ).
+    p = w.pays
+    hop = set()
+    if p.a("hopitaux"):
+        from monde.pays import d17_hopitaux as HM
+        hop = {int(h) for h in HM._dom(p).actifs}
+    deja = {x["i"] for x in f.values() if x["etat"] not in ("rentre", "blesse")}
     codes = [PO.CODE_ROLE[r] for r in ROLES_MILITAIRES]
     ok = (t.vivant[:nn] == 1) & (t.statut[:nn] == PO.RESIDENT) & sum((t.role[:nn] == c) for c in codes).astype(bool)
+    if hop: ok[[i for i in hop if 0 <= i < nn]] = False
+    if "ju_detenu" in p.colonnes["habitant"]: ok &= p.col("habitant", "ju_detenu")[:nn] == 0
     if ids is None: cands = [int(i) for i in ok.nonzero()[0] if int(i) not in deja][:max(0, int(n))]
     else: cands = [int(i) for i in ids if 0 <= int(i) < nn and ok[int(i)] and int(i) not in deja][:max(0, int(n))]
     out = []

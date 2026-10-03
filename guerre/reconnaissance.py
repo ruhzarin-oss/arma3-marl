@@ -91,6 +91,8 @@ def reconnaitre(wB, nom_A, cp, oid, seed=None, dist_op=DIST_OP, approche="infilt
     detectee = S.connaissance(pB, S.CAMP_NATIONAL, ent) is not None
     if S._dom(pB).ent["vivant"][ent]: S.retirer_entite(pB, ent)
     rapport = rapport_de(pB, m, camp, oid)
+    if detectee: EX._subies(wB).append({"pas": int(wB.pas), "type": "reconnaissance", "attaquant": nom_A, "objectif": oid,
+                                        "hommes": n})                # ( S3 ) une equipe vue : l ile le sait
     rapport["pris_a_partie"] = pris_a_partie
     wB.noter("reconnaissance", attaquant=nom_A, objectif=oid, hommes=n, vus=rapport["hommes_vus"], pertes=len(sorts))
     return {"mission": m, "rapport": rapport, "detectee": detectee, "sorts": sorts, "restants": restants,
