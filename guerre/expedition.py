@@ -51,7 +51,10 @@ def objectif(ile, oid):
 
 
 def defenseur(wB, o):
-    """La compagnie de B la plus proche de l objectif ( sa base ), ou None."""
+    """( unite, couvert ) qui defend l objectif, ou ( None, None ). CHOIX ( 03/10, l etat-major de Qwen a montre qu une
+    compagnie entiere et retranchee devant chaque objectif rendait toute attaque vaine ) : une BASE est defendue par sa
+    compagnie, retranchee ( couvert dur ) ; un autre objectif ( port, centrale, depot, fonderie, aerodrome ) est garde
+    par UNE SECTION de la compagnie la plus proche, a couvert leger ( la garde des points sensibles ) ."""
     pB = wB.pays; U = A._dom(pB).unites; n = U.n; carte = wB.carte
     best = None
     for u in range(n):
@@ -60,7 +63,11 @@ def defenseur(wB, o):
         b = carte.par_n[int(U["base"][u])]
         dd = math.hypot(b.pos[0] - o["pos"][0], b.pos[1] - o["pos"][1])
         if best is None or dd < best[0]: best = (dd, u)
-    return None if best is None else best[1]
+    if best is None: return None, None
+    u = best[1]
+    if o["type"] == "base": return u, "dur"
+    sections = [x for x in range(n) if int(U["parent"][x]) == u and int(U["niveau"][x]) == A.SECTION and len(T._aptes(pB, x))]
+    return (sections[0], "leger") if sections else (u, "leger")
 
 
 def _camp(pB, nom_ile):
@@ -69,7 +76,7 @@ def _camp(pB, nom_ile):
     return nom
 
 
-def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert="dur"):
+def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert=None):
     """L assaut des hommes `cp` ( corps ) sur l objectif `oid` de B, defendu par l unite u ( -1 : la plus proche ; None :
     personne ). couvert : celui des defenseurs ( dur : une base fortifiee ; leger : surpris hors de ses positions ). Rend { mission, arrives, dommages, frappe, sorts : [ ( numero, etat, zone, arme, ais, iss ) ],
     restants : { numero : coups } }."""
@@ -80,7 +87,9 @@ def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert="dur"):
         port = c.port(ile) or c.gouvernement
         dx, dy = port.pos[0] - ox, port.pos[1] - oy; L = max(1.0, math.hypot(dx, dy))
         depart = (ox + DISTANCE_ASSAUT * dx / L, oy + DISTANCE_ASSAUT * dy / L)
-    if u == -1: u = defenseur(wB, o)
+    if u == -1:
+        u, couvert_def = defenseur(wB, o)
+        if couvert_def is not None and couvert is None: couvert = couvert_def
     sorts = []; restants = {int(k): float(q) for k, q in zip(cp["numero"].tolist(), cp["coups"].tolist())}; avant = None
     if u is None or n == 0:
         arrives = n; m = None
@@ -89,7 +98,7 @@ def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert="dur"):
         ent = S.poser_entite(pB, camp, depart[0], depart[1], ii, "debout", n, 0.0)
         cond = T.Conduite("bond", "objectif", regard="objectif", feu="libre")
         m = T.nouvelle_mission(pB, "defense", u, (ox, oy), (ox, oy), adverses=[(ent, n, cond, [(ox, oy)], None)],
-                               mode="combat", voix=True, couvert_poste=couvert, seed=seed,
+                               mode="combat", voix=True, couvert_poste=couvert or "dur", seed=seed,
                                axe=S.azimut(ox, oy, depart[0], depart[1]), ile=ii)
         rouges = np.nonzero(m.h["side"] == 1)[0]
         for k in CHAMPS: m.h[k][rouges] = cp[k]
@@ -172,7 +181,7 @@ def demobiliser(wA, numeros):
     return out
 
 
-def lancer_operation(wA, nom_A, oid, modele, hommes, parachutage=False, couvert="dur"):
+def lancer_operation(wA, nom_A, oid, modele, hommes, parachutage=False, couvert=None):
     """Une operation de A contre l objectif `oid` de l autre ile : elle ne part que si le transport peut la porter
     ( projection.raison_refus : rien n est mobilise sinon ) ; puis mobilisation, dotation de combat, traversee. Rend
     { ok, raison } ou l operation."""
