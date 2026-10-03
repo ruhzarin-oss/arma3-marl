@@ -5,7 +5,8 @@ O1  le refus : sans transport ou au-dela de sa capacite, refuse avec sa raison ;
 O2  la chaine par la mer ( 2 chalands, 60 hommes ) : assaut au pas d arrivee, pas avant ; avant le retour aucun blesse de
     A evacue, aucun survivant rentre ; au pas du retour, blesses evacues, survivants residents, carburant du retour brule.
 O3  le parachutage ( 1 C-130J, 60 hommes ) : l assaut part a 1,5 km de l objectif ; 65 parachutistes refuses.
-O4  les morts : l arme de chaque mort de A sort du Parc ( detruit ), ses coups en perte_au_combat ; anomalies vides.
+O4  les morts : l arme de chaque mort de A sort du Parc ( detruit ), ses coups en perte_au_combat ; anomalies vides
+    ( amende 03/10, M5 : lues apres deux jours du moteur ).
 O5  identite : sans operation, A et B identiques au bit sur 2 jours.
 python -m guerre.porte_operation [ graine_A graine_B ]"""
 import json
@@ -111,6 +112,7 @@ def main(gA=2051, gB=2052):
     det1 = sum(c["detruit"] for c in parc.comptes)
     perte1 = sorties(w4, "perte_au_combat")
     T.jours(w4, 1)                     # le domaine 25 retire ses morts a sa routine du jour ( comme apres une mort dans Arma )
+    T.jours(wA, 2)                     # ( amende 03/10, M5 ) de meme pour les morts de O2
     O4 = (rap["morts"] == [num] and oa not in parc.objets and det1 - det0 == 1 and rap["armes_perdues"] == 1
           and abs(perte1 - perte0 - reste) <= 1e-9 and not w4.table.vivant[i]
           and not A.anomalies(p4) and not A.anomalies(wA.pays))

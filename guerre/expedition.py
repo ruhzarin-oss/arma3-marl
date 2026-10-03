@@ -28,6 +28,7 @@ from monde.pays import d27_armee_tactique as T
 from . import frappes as FR, logistique as LO, moteur as GM, objectifs as OB
 
 DISTANCE_ASSAUT = 800.0
+EMPORTER_MORTIERS = True               # ( HMT-198 A1-bis ) l expedition emporte les mortiers de ses sections d appui
 CHAMPS = ("tir", "portee", "prot", "casque", "arme", "cal", "coups", "disc", "stress", "moral")
 
 
@@ -42,7 +43,28 @@ def corps(wA, numeros):
     out = {"numero": np.array(nums, np.int64), "hid": np.array(ids, np.int64)}
     for k in CHAMPS: out[k] = h[k].copy()
     out["coups"] = np.array([LO.coups(wA, n) for n in nums], np.float64)     # ce qu ils portent vraiment
+    a = A._dom(pA); rg = A._rangs(pA, ids)
+    out["spec"] = a.eff["spec"][rg].astype(np.int64).copy()
+    out["mortiers"] = mortiers_emportes(wA, out) if EMPORTER_MORTIERS else {"tubes": 0, "obus": 0.0, "base": None}
     return out
+
+
+def mortiers_emportes(wA, cp):
+    """( 03/10, HMT-198 A1-bis ) Les mortiers que l expedition emporte : les tubes des bases de ses servants ( specialite
+    MORTIER ), deux servants par tube, et leur dotation de combat d obus ( 60 par tube ), au plus ce que l armurerie a hors
+    reserves. Rend { tubes, obus, base }."""
+    pA = wA.pays; a = A._dom(pA); K = a.coll; E = a.eff
+    serv = [k for k, sp in enumerate(cp["spec"].tolist()) if sp == A.MORTIER]
+    if len(serv) < T.SERVANTS_PAR_TUBE: return {"tubes": 0, "obus": 0.0, "base": None}
+    rg = A._rangs(pA, cp["hid"][serv])
+    b = int(E["base"][rg[0]])
+    im = A.IDX_ARME["mortier_81"]
+    dispo = sum(1 for k in range(K.n) if int(K["oid"][k]) >= 0 and int(K["modele"][k]) == im and int(K["base"][k]) == b)
+    tubes = min(dispo, len(serv) // T.SERVANTS_PAR_TUBE)
+    lid = wA.carte.par_n[b].id; cal = A.NOMS_MUNITIONS.index("obus_81")
+    stock = float(A.armurerie(pA, lid).stock[a.bids["obus_81"]]) - T._dom(pA).reserve.get((lid, cal), 0.0)
+    obus = float(max(0.0, min(A.DOTATION_COMBAT.get("mortier_81", 0) * tubes, math.floor(stock))))
+    return {"tubes": int(tubes) if obus > 0 else 0, "obus": obus, "base": lid}
 
 
 def objectif(ile, oid):
@@ -91,6 +113,7 @@ def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert=None):
         u, couvert_def = defenseur(wB, o)
         if couvert_def is not None and couvert is None: couvert = couvert_def
     sorts = []; restants = {int(k): float(q) for k, q in zip(cp["numero"].tolist(), cp["coups"].tolist())}; avant = None
+    obus_tires = 0.0
     if u is None or n == 0:
         arrives = n; m = None
     else:
@@ -103,6 +126,10 @@ def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert=None):
         rouges = np.nonzero(m.h["side"] == 1)[0]
         for k in CHAMPS: m.h[k][rouges] = cp[k]
         avant = {k: m.h[k][rouges].copy() for k in CHAMPS}
+        Mx = cp.get("mortiers") or {}
+        if Mx.get("tubes", 0) > 0 and "spec" in cp:          # ( HMT-198 A1-bis ) ses mortiers tirent de son cote
+            m.mortiers_adverses = {"servants": [int(rouges[k]) for k, sp in enumerate(cp["spec"].tolist()) if sp == A.MORTIER],
+                                   "tubes": int(Mx["tubes"]), "obus": float(Mx["obus"]), "tires": 0.0}
         T.executer(pB, m)
         h = m.h
         lesion = {}
@@ -117,6 +144,7 @@ def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert=None):
                 sorts.append((num, "mort" if iss >= 75 else "blesse", zone, arme, ais, iss))
             elif int(h["actif"][v]) == 1 and e_r.arrive: arrives += 1
         if ent is not None and S._dom(pB).ent["vivant"][ent]: S.retirer_entite(pB, ent)
+        obus_tires = float((getattr(m, "mortiers_adverses", None) or {}).get("tires", 0.0))
     dommages = min(1.0, arrives / n) if n else 0.0
     frappe = None
     if dommages > 0:
@@ -124,7 +152,8 @@ def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert=None):
     wB.noter("assaut", attaquant=nom_ile_A, objectif=oid, hommes=n, arrives=arrives, pertes=len(sorts),
              defenseur=-1 if u is None else int(u))
     return {"mission": m, "arrives": arrives, "dommages": dommages, "frappe": frappe, "sorts": sorts,
-            "restants": restants, "objectif": o, "defenseur": u, "rouges_avant": avant}
+            "restants": restants, "objectif": o, "defenseur": u, "rouges_avant": avant, "obus_tires": obus_tires,
+            "mortiers": cp.get("mortiers")}
 
 
 def rapatrier(wA, r):
@@ -134,6 +163,12 @@ def rapatrier(wA, r):
     sort = {num: (etat, zone, arme) for num, etat, zone, arme, _a, _i in r["sorts"]}
     for num, reste in sorted(r["restants"].items()):
         out["tires"] += LO.tirer(wA, num, reste)
+    Mx = r.get("mortiers") or {}
+    if Mx.get("base") and Mx.get("tubes", 0) > 0:          # ( HMT-198 A1-bis ) les obus : la reserve rendue, les tires payes
+        cal = A.NOMS_MUNITIONS.index("obus_81"); res = T._dom(pA).reserve; cle = (Mx["base"], cal)
+        res[cle] = max(0.0, res.get(cle, 0.0) - float(Mx["obus"]))
+        q = float(r.get("obus_tires", 0.0))
+        if q > 0: out["obus_tires"] = A.tirer(pA, Mx["base"], "obus_81", q, "tir_combat")
     port = wA.carte.port(wA.carte.par_n[0].ile) or wA.carte.gouvernement
     for num, (etat, zone, arme) in sorted(sort.items()):
         s = f.get(num)
@@ -181,6 +216,23 @@ def demobiliser(wA, numeros):
     return out
 
 
+def membres_a_projeter(wA, hommes):
+    """( 03/10, HMT-198 ) Qui part : des COMPAGNIES entieres ( on projette des unites constituees, pas des soldats tires
+    au hasard ), jusqu a l effectif demande ; dans chaque compagnie, les servants de mortier d abord ( l appui accompagne
+    l assaut : CHOIX ), puis les autres. Rend les habitants, dans l ordre."""
+    pA = wA.pays; a = A._dom(pA); U = a.unites; E = a.eff; t = wA.table
+    out = []
+    for u in range(U.n):
+        if int(U["niveau"][u]) != A.COMPAGNIE: continue
+        ids = [int(i) for i in A.membres(pA, u, actifs_seulement=True).tolist() if t.vivant[int(i)] and int(t.statut[int(i)]) == PO.RESIDENT]
+        if not ids: continue
+        rg = A._rangs(pA, ids)
+        ids = [i for _s, i in sorted(zip((0 if int(E["spec"][r]) == A.MORTIER else 1 for r in rg.tolist()), ids), key=lambda x: x[0])]
+        out.extend(ids)
+        if len(out) >= hommes: break
+    return out[:int(hommes)]
+
+
 def lancer_operation(wA, nom_A, oid, modele, hommes, parachutage=False, couvert=None):
     """Une operation de A contre l objectif `oid` de l autre ile : elle ne part que si le transport peut la porter
     ( projection.raison_refus : rien n est mobilise sinon ) ; puis mobilisation, dotation de combat, traversee. Rend
@@ -188,8 +240,12 @@ def lancer_operation(wA, nom_A, oid, modele, hommes, parachutage=False, couvert=
     from . import projection as PR
     raison = PR.raison_refus(wA, modele, hommes, parachutage)
     if raison: return {"ok": False, "raison": raison}
-    nums = GM.mobiliser(wA, hommes); LO.emporter(wA, nums)
+    nums = GM.mobiliser(wA, hommes, ids=membres_a_projeter(wA, hommes)); LO.emporter(wA, nums)
     cp = corps(wA, nums)
+    Mx = cp.get("mortiers") or {}
+    if Mx.get("tubes", 0) > 0:                             # ( HMT-198 A1-bis ) les obus emportes sont reserves
+        cal = A.NOMS_MUNITIONS.index("obus_81"); res = T._dom(wA.pays).reserve
+        res[(Mx["base"], cal)] = res.get((Mx["base"], cal), 0.0) + float(Mx["obus"])
     t = PR.traverser(wA, modele, len(cp["numero"]), parachutage)
     if not t["ok"]:
         demobiliser(wA, nums); return {"ok": False, "raison": t["raison"]}
@@ -218,7 +274,7 @@ def avancer_operations(wA, wB):
                 depart = (o["pos"][0] + DISTANCE_LARGAGE * dx / L, o["pos"][1] + DISTANCE_LARGAGE * dy / L)
             r = assaut(wB, op["attaquant"], op["corps"], op["objectif"], depart=depart, couvert=op["couvert"],
                        seed=(9000 + op["id"],))
-            op["assaut"] = {k: r[k] for k in ("arrives", "dommages", "sorts", "restants", "defenseur")}
+            op["assaut"] = {k: r[k] for k in ("arrives", "dommages", "sorts", "restants", "defenseur", "obus_tires", "mortiers")}
             op["assaut"]["pas"] = int(wB.pas); op["assaut"]["depart_assaut"] = depart
             op["etat"] = "au_retour"; evts.append(("assaut", op["id"]))
         if op["etat"] == "au_retour" and int(wA.pas) >= op["retour"]:

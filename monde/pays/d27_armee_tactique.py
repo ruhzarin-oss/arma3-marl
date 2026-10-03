@@ -457,7 +457,7 @@ class Mission:
                  "violations", "feu_sur_contact", "couvert_poste", "base_lid", "chef", "compagnie", "qual", "nuit",
                  "fenetre_s", "cibles", "t_det", "zone_emb", "morts", "blesses", "neutr_adv", "detecte_par_adv", "pts", "axe",
                  "compromis", "n_impacts", "n_arretes", "expo_debout", "expo_marche", "sig_debout", "sig_n",
-                 "lesions_adverses", "mortiers")
+                 "lesions_adverses", "mortiers", "mortiers_adverses")
 
     def __init__(self, id, tactique, unite, mode, voix, ile, depart, objectif, roe, critere, rng):
         self.id, self.tactique, self.unite, self.mode, self.voix = id, tactique, unite, mode, voix
@@ -478,6 +478,7 @@ class Mission:
         self.sig_debout = self.sig_n = 0               # sous-pas de marche de la manoeuvre vus debout, et en tout
         self.lesions_adverses = []                     # ( 03/10, HMT-197 4b ) ( homme, zone, arme, AIS, arretee )
         self.mortiers = None                           # ( 03/10, HMT-198 A1 ) les mortiers de l unite et leurs servants
+        self.mortiers_adverses = None                  # ( 03/10, HMT-198 A1-bis ) ceux de l adversaire ( guerre/expedition )
 
 
 class Tactiques:
@@ -1156,6 +1157,7 @@ def _sous_pas(p, m, dt, attend):
         tgt.tireurs_de.add(i)
         if hits.sum(): impacts.setdefault(j, []).extend((int(k2), int(x)) for k2, x in zip(tireurs.tolist(), hits.tolist()) if x)
     _tir_indirect(p, m, debout, rng, dt)                       # ( 03/10, HMT-198 A1 ) les mortiers
+    _tir_indirect_adverse(p, m, debout, rng, dt)               # ( 03/10, HMT-198 A1-bis ) ceux de l adversaire
     # les impacts : chacun sur un homme actif de l element cible, au prorata de son exposition
     for j in sorted(impacts):
         for tireur, nh in impacts[j]:
@@ -1237,6 +1239,47 @@ def _tir_indirect(p, m, debout, rng, dt):
     m.tirs[cle] = m.tirs.get(cle, 0.0) + n; M["tires"] += n
     t.feu_recu += n / dt
     p.compter("coups_tires", float(n))
+    return n
+
+
+def _tir_indirect_adverse(p, m, debout, rng, dt):
+    """( 03/10, HMT-198 A1-bis ) Le tir des mortiers de l adversaire ( m.mortiers_adverses ) sur notre element que son
+    camp connait. Rend les obus tires."""
+    M = getattr(m, "mortiers_adverses", None)
+    if not TIR_INDIRECT or not M or m.mode != "combat": return 0
+    h = m.h
+    serv = [v for v in M["servants"] if h["actif"][v] == 1]
+    tubes = min(int(M["tubes"]), len(serv) // SERVANTS_PAR_TUBE)
+    if tubes <= 0 or M["obus"] - M["tires"] < 1: return 0
+    e0 = m.elts[int(h["elt"][serv[0]])]; x0, y0 = e0.x, e0.y
+    cibles = []
+    for j, t in enumerate(m.elts):
+        if t.side != 0 or not len(_actifs(m, j)) or t.ent < 0: continue
+        c = _connaissance(p, e0.camp, t.ent)
+        if c is None or c["age_h"] * 60.0 > AGE_MAX_TIR_MIN: continue
+        dd = math.hypot(c["x"] - x0, c["y"] - y0)
+        if PORTEE_MIN_MORTIER <= dd <= A.ARME["mortier_81"].portee_m: cibles.append((dd, j, c))
+    if not cibles: return 0
+    dd, j, c = min(cibles, key=lambda x: (x[0], x[1]))
+    n = int(math.floor(CADENCE_MORTIER_CPM * dt / 60.0 * tubes + rng.random()))
+    n = int(min(n, math.floor(M["obus"] - M["tires"])))
+    if n <= 0: return 0
+    t = m.elts[j]
+    sig = math.sqrt(float(c["sigma_m"]) ** 2 + (CEP_PART_PORTEE * dd / 1.1774) ** 2)
+    cz = np.cumsum(P_ZONE_EXPOSE)
+    for _ in range(n):
+        act = _actifs(m, j)
+        if not len(act): break
+        ix, iy = float(c["x"]) + rng.normal(0.0, sig), float(c["y"]) + rng.normal(0.0, sig)
+        r = np.hypot(t.x + h["dx"][act] - ix, t.y + h["dy"][act] - iy)
+        f_eclat = (debout[act] + (1.0 - debout[act]) * F_COUCHE_ECLAT) * (F_DUR_ECLAT if t.couvert == 2 else 1.0)
+        pr = P_ECLAT * np.clip(1.0 - (r / RAYON_ECLAT_M) ** 2, 0.0, 1.0) * f_eclat
+        for v in act[rng.random(len(act)) < pr].tolist():
+            if h["actif"][v] != 1: continue
+            z = ZONES[min(4, int(np.searchsorted(cz, rng.random())))]
+            _impact(p, m, int(v), z, A.IDX_ARME["mortier_81"])
+    M["tires"] += n
+    t.feu_recu += n / dt
     return n
 
 

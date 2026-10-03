@@ -183,15 +183,18 @@ def _front(w):
     return w.guerre_front
 
 
-def mobiliser(w, n):
+def mobiliser(w, n, ids=None):
     """Designe n soldats presents ( soldat ou officier, vivants, residents, pas deja au front ), les fait partir au
-    front, et rend leurs numeros de front. Moins de n si l armee n en a plus : le pays ne se fabrique pas de soldats."""
+    front, et rend leurs numeros de front. Moins de n si l armee n en a plus : le pays ne se fabrique pas de soldats.
+    `ids` ( 03/10, HMT-198 ) : les habitants a mobiliser, dans cet ordre ( des unites constituees : guerre/expedition ),
+    parmi ceux qui le peuvent ; sans, les premiers presents."""
     f = _front(w)
     t, nn = w.table, w.table.n
     deja = {x["i"] for x in f.values()}
     codes = [PO.CODE_ROLE[r] for r in ROLES_MILITAIRES]
     ok = (t.vivant[:nn] == 1) & (t.statut[:nn] == PO.RESIDENT) & sum((t.role[:nn] == c) for c in codes).astype(bool)
-    cands = [int(i) for i in ok.nonzero()[0] if int(i) not in deja][:max(0, int(n))]
+    if ids is None: cands = [int(i) for i in ok.nonzero()[0] if int(i) not in deja][:max(0, int(n))]
+    else: cands = [int(i) for i in ids if 0 <= int(i) < nn and ok[int(i)] and int(i) not in deja][:max(0, int(n))]
     out = []
     for i in cands:
         k = w.guerre_prochain_numero; w.guerre_prochain_numero += 1

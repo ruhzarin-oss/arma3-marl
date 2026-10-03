@@ -6,7 +6,8 @@ X2  controle positif sans defenseur : tous arrivent, dommages 1, la frappe appli
 X3  le combat : pertes de B par le domaine 27 ( mort par deceder cause combat, ou evacuation ) ; chaque homme de A hors de
     combat mort ou blesse dans A ; coups tires par A = somme( portes - restants ) en tir_combat ; anomalies vides.
 X4  controle positif des statistiques ( amende ) : 5 graines de mission, couvert leger : pertes de B avec les vrais
-    tireurs > avec tir 0.
+    tireurs > avec tir 0. ( amende 03/10, M5 : tir indirect coupe, le resultat ouvert en information ; anomalies de X3
+    lues apres deux jours du moteur )
 X5  identite : sans expedition, A et B identiques au bit sur 2 jours.
 python -m guerre.porte_expedition [ graine_A graine_B ]"""
 import json
@@ -89,6 +90,7 @@ def main(gA=2041, gB=2042):
     evA = {int(x[1]) for x in S._dom(pA).evacuations}
     okA_bless = all((f[n]["i"] in evA) or (f[n]["i"] in deceA) for n in bless_att)
     ok_tir = abs((sorties(wA, "tir_combat") - avant_tir) - att_tir) <= 1e-6
+    T.jours(wA, 2); T.jours(wB, 2)          # ( amende 03/10, M5 ) le domaine 25 retire ses morts a sa routine du jour
     anB, anA = anomalies(wB), anomalies(wA, avec27=False)
     X3 = okB and okA_morts and okA_bless and ok_tir and not anB and not anA and len(r3["sorts"]) + len(mortsB) + len(blessesB) > 0
     R["X3"] = {"ok": X3, "defenseur": r3["defenseur"], "arrives": r3["arrives"], "dommages": r3["dommages"],
@@ -99,14 +101,24 @@ def main(gA=2041, gB=2042):
     print(f"  X3 combat : {'OUI' if X3 else 'NON'} {R['X3']}", flush=True)
     # X4 ( amende avant la mesure ) : 5 graines de mission, couvert leger, vrais tireurs contre tir 0
     tot = {False: 0, True: 0}
+    TT.TIR_INDIRECT = False                 # ( amende 03/10, M5 ) le tir de A, isole des mortiers du defenseur ( A1 )
     for sg in range(5):
         for zero in (False, True):
             c = {k: v.copy() for k, v in cp.items()}
             if zero: c["tir"][:] = 0.0
             w4 = pickle.loads(octB); r4 = EX.assaut(w4, "Stratis", c, oid, seed=(6000 + sg,), couvert="leger")
             m4 = r4["mission"]; tot[zero] += len(set(m4.morts)) + len(set(m4.blesses) - set(m4.morts))
+    TT.TIR_INDIRECT = True
+    info = {False: 0, True: 0}               # en information : les memes missions, tir indirect ouvert
+    for sg in range(5):
+        for zero in (False, True):
+            c = {k: v.copy() for k, v in cp.items()}
+            if zero: c["tir"][:] = 0.0
+            w4 = pickle.loads(octB); r4 = EX.assaut(w4, "Stratis", c, oid, seed=(6000 + sg,), couvert="leger")
+            m4 = r4["mission"]; info[zero] += len(set(m4.morts)) + len(set(m4.blesses) - set(m4.morts))
     X4 = tot[False] > tot[True]
-    R["X4"] = {"ok": X4, "pertes_B_vrais": tot[False], "pertes_B_tir0": tot[True]}
+    R["X4"] = {"ok": X4, "pertes_B_vrais": tot[False], "pertes_B_tir0": tot[True],
+               "info_tir_indirect_ouvert": {"vrais": info[False], "tir0": info[True]}}
     print(f"  X4 statistiques : {'OUI' if X4 else 'NON'} {R['X4']}", flush=True)
     # X5
     ident = True
