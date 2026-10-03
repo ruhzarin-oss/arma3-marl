@@ -659,11 +659,15 @@ class GuerreReelle:
                     self.a_remplacer.append((a["pays"], a["dbid"], role_origine(a), a["base"]))
                     genre, pays = "avion", a["pays"]
                 elif k in self.navires:
-                    genre, pays = "navire", self.navires.pop(k)["pays"]
+                    n = self.navires.pop(k)
+                    genre, pays = "navire", n["pays"]
                 else:
                     genre, pays = "sol", self.sol.pop(k)["pays"]
                 self.affecte.pop(k, None)
-                self.morts.append({"numero": k, "genre": genre, "pays": pays, "tour": self.tours, "constatee": True})
+                m = {"numero": k, "genre": genre, "pays": pays, "tour": self.tours, "constatee": True}
+                if genre == "navire":                    # son identité, pour qu'un complément ne le ressuscite pas ( 03/10 )
+                    m["cle"] = [n["pays"], n["dbid"], n["nom"], n["role"]]
+                self.morts.append(m)
                 nouveaux.append(k)
         return nouveaux
 

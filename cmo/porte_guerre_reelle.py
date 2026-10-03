@@ -702,11 +702,18 @@ def e28_composante_navale():
         f.detruire(korm[0])
         g.tour()
         assert korm[0] not in g.navires and any(m["genre"] == "navire" and m["numero"] == korm[0] for m in g.morts)
-        assert g.completer_navires() == [] and len(g.navires) == 5
+        f.detruire(korm[1])                                # coulé, mort relevée par un autre processus ( constatée )
+        f.lua("HMT_positions(function() end)")
+        g.tour()
+        assert any(m["numero"] == korm[1] and m.get("constatee") and m.get("cle") for m in g.morts), g.morts[-2:]
+        assert g.completer_navires() == [], "un navire coulé ressuscité par le complément"
+        assert len(g.navires) == 5 - 1, len(g.navires)
         e = json.loads(json.dumps(g.etat()))                # la reprise : les navires gardent leurs numéros entiers
         g.charger(e)
-        assert all(isinstance(k, int) for k in g.navires) and len(g.navires) == 5, list(g.navires)[:3]
+        assert all(isinstance(k, int) for k in g.navires) and len(g.navires) == 4, list(g.navires)[:3]
         for _ in range(6):                                # la batterie fixe, hors du relevé des mobiles, ne bloque aucun tour
+            pass
+        for _ in range(6):
             g.tour()
         nsm = next(k for k, n in g.navires.items() if n["nom"] == "NSM côtier")
         f.detruire(nsm)
