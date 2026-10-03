@@ -76,12 +76,13 @@ def km(a, b):
 
 
 class EtatMajor:
-    def __init__(self, g, *, portee_air=None, portee_sol=None, charg_mission=None, portee_nav=None):
+    def __init__(self, g, *, portee_air=None, portee_sol=None, charg_mission=None, portee_nav=None, portee_mer=None):
         self.g = g
         self.portee_air = portee_air or DOC.portee_sol_air
         self.portee_sol = portee_sol or DOC.portee_sol_sol
         self.charg_mission = charg_mission or DOC.chargement
         self.portee_nav = portee_nav or DOC.portee_navire_sol
+        self._portee_mer = portee_mer
         self._cache, self._charg = {}, {}
         self.part_dead = {c: PART_DEAD_DEPART for c in g.camps}
         self.efficacite = {c: {"dead": 1.0, "oca": 1.0} for c in g.camps}
@@ -90,6 +91,9 @@ class EtatMajor:
         self.journal = []                                # décisions et notes, pour l'agent et pour Younes
         self.a_clore = []                                # ( camp, id ) des frappes à fermer dans CMO à ce tour
         self.zones = {}                                  # id de zone -> ( lat, lon ) envoyée à CMO
+        self.antinav = {c: None for c in g.camps}        # la frappe antinavire en cours de chaque camp { id, cibles }
+        self.k_an = {c: 0 for c in g.camps}
+        self.portee_mer = self._portee_mer or DOC.portee_navire_mer
         # LA CARTE DES MENACES de chaque camp : les défenses sol-air adverses qu'il a identifiées ( contact classé >= 2 ) ou
         # connues d'avance ( garnisons du temps de paix ), à leur dernière position connue, jusqu'à leur destruction.
         self.memoire = {c: {} for c in g.camps}          # camp -> { numéro : [ lat, lon, tour ] }
@@ -141,8 +145,9 @@ class EtatMajor:
                         mem[k] = [s["pos"][0], s["pos"][1], 0]
             for k, v in g.vus.get(camp, {}).items():
                 if v[0] >= CLASSIF_MIN:
-                    mem[k] = [v[2], v[3], g.tours] if (v[2] or v[3]) else [*g.sol[k]["pos"], g.tours] if k in g.sol else None
-            for k in [k for k in mem if k not in g.sol or mem[k] is None]:
+                    vrai = g.sol[k]["pos"] if k in g.sol else g.navires[k]["pos"] if k in g.navires else None
+                    mem[k] = [v[2], v[3], g.tours] if (v[2] or v[3]) else [*vrai, g.tours] if vrai else None
+            for k in [k for k in mem if (k not in g.sol and k not in g.navires) or mem[k] is None]:
                 del mem[k]
         self.avant_guerre = True
 
@@ -454,7 +459,8 @@ class EtatMajor:
             la, lo, demi = zn[cle]
             zid = self.ZONE_NAVALE + ci * 10 + dec
             ks = [k for k, n in sorted(g.navires.items()) if n["camp"] == camp and (n["role"] in roles or
-                  ( cle == "mer" and n["role"] == "lance_missiles" and self._p("nav", n["dbid"]) < PORTEE_TERRE_MIN_KM ))]
+                  ( cle == "mer" and n["role"] == "lance_missiles" and ( self._p("nav", n["dbid"]) < PORTEE_TERRE_MIN_KM
+                                                                        or abs(g.affecte.get(k, 0)) < 1000 ) ))]
             if not ks:
                 continue
             if zid not in self.zones:
@@ -464,6 +470,62 @@ class EtatMajor:
             if nouveaux:
                 affect.append((zid, nouveaux))
         return zones, affect
+
+    DEC_ANTINAVIRE = 3000                                # 3 000 + camp x 100 + k
+    PORTEE_ANTINAVIRE_KM = 400.0
+
+    def antinavire(self, ci, camp):
+        """( frappes navales, affectations ) : les navires ennemis CONNUS ( carte des menaces ) à moins de
+        PORTEE_ANTINAVIRE_KM de nos forces et hors des parapluies sol-air connus sont la cible d'une frappe antinavire ;
+        elle emploie les frappeurs inemployés ( pendant la DEAD, ils attendaient ) et les lance-missiles à portée."""
+        g = self.g
+        C = self._centre(camp)
+        cur = self.antinav.get(camp)
+        cibles = []
+        if C is not None:
+            for k in self.memoire.get(camp, {}):
+                n = g.navires.get(k)
+                if not n or n["camp"] == camp:
+                    continue
+                P = self._vu_ou(camp, k, n["pos"])
+                if km(P, C) <= self.PORTEE_ANTINAVIRE_KM and not any(km(pos, P) <= r + MARGE_KM for _, pos, r in self.parapluies(camp)):
+                    cibles.append(k)
+        cibles.sort()
+        frappes, affect = [], []
+        if not cibles:
+            if cur:
+                self.a_clore.append((camp, cur["id"]))
+                for k, m in list(g.affecte.items()):
+                    if m == cur["id"]:
+                        del g.affecte[k]
+                self.antinav[camp] = None
+            return frappes, affect
+        if not cur or set(cur["cibles"]) != set(cibles):
+            if cur:
+                self.a_clore.append((camp, cur["id"]))
+                for k, m in list(g.affecte.items()):
+                    if m == cur["id"]:
+                        del g.affecte[k]
+            self.k_an[camp] += 1
+            cur = self.antinav[camp] = {"id": self.DEC_ANTINAVIRE + ci * 100 + self.k_an[camp] % 100, "cibles": cibles}
+            frappes.append((cur["id"], camp, cibles))
+        mid = cur["id"]
+        positions = [self._vu_ou(camp, k, g.navires[k]["pos"]) for k in cibles if k in g.navires]
+        avions = [k for k, a in sorted(g.avions.items()) if a["camp"] == camp and a["role"] == "frappe"
+                  and abs(g.affecte.get(k, 0)) < 1000][: 2 * len(cibles)]
+        avions = avions[:len(avions) // 2 * 2]
+        nav = [k for k, n in sorted(g.navires.items()) if n["camp"] == camp and n["role"] == "lance_missiles"
+               and abs(g.affecte.get(k, 0)) < 1000 and g.affecte.get(k) != mid
+               and any(km(n["pos"], p) <= self._pm(n["dbid"]) for p in positions)]
+        if avions or nav:
+            affect.append((mid, avions + nav))
+        return frappes, affect
+
+    def _pm(self, dbid):
+        cle = ("mer", dbid)
+        if cle not in self._cache:
+            self._cache[cle] = self.portee_mer(dbid) if dbid else 0.0
+        return self._cache[cle]
 
     def _centre_adverse(self, camp):
         pts = [b["pos"] for b in self.g.bases.values() if b["camp"] != camp and b["op"] and b["pos"]]
@@ -616,7 +678,7 @@ class EtatMajor:
 
     def etat(self):
         return {"part_dead": self.part_dead, "efficacite": self.efficacite, "k": self.k,
-                "zones": {str(i): list(p) for i, p in self.zones.items()}, "ratio": self.ratio, "valeur": self.valeur, "dernier_bilan": self.dernier_bilan,
+                "zones": {str(i): list(p) for i, p in self.zones.items()}, "antinav": self.antinav, "k_an": self.k_an, "ratio": self.ratio, "valeur": self.valeur, "dernier_bilan": self.dernier_bilan,
                 "cible_imposee": self.cible_imposee, "mult_chef": self.mult_chef, "reserves_gardees": self.reserves_gardees,
                 "memoire": {c: {str(k): v for k, v in m.items()} for c, m in self.memoire.items()}, "avant_guerre": self.avant_guerre,
                 "missions": {str(i): dict(m, avions=sorted(m["avions"])) for i, m in self.missions.items()},
@@ -628,6 +690,8 @@ class EtatMajor:
                          for i, m in e["missions"].items()}
         self.journal = e.get("journal", [])
         self.zones = {int(i): tuple(p) for i, p in (e.get("zones") or {}).items()}
+        self.antinav = e.get("antinav") or self.antinav
+        self.k_an = e.get("k_an") or self.k_an
         self.avant_guerre = e.get("avant_guerre", False)
         self.ratio = e.get("ratio") or self.ratio
         self.valeur = e.get("valeur") or {}

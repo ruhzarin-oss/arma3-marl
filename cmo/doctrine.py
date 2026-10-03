@@ -106,6 +106,30 @@ def chargement(dbid, mission, base=None):
     return None
 
 
+def portee_navire_mer(dbid, base=None):
+    """Portée antinavire maximale ( km ) des armes d'un navire ( SurfaceRangeMax ) : affûts et magasins de DataShip."""
+    return _portee_navire(dbid, "SurfaceRangeMax", base)
+
+
+def _portee_navire(dbid, colonne, base=None):
+    c = _c(base)
+    out = []
+    try:
+        ids = [m for (m,) in c.execute("select ComponentID from DataShipMounts where ID = ?", (dbid,))]
+        recs = [wr for mid in ids for (wr,) in c.execute("select ComponentID from DataMountWeapons where ID = ?", (mid,))]
+        mags = [m for (m,) in c.execute("select ComponentID from DataShipMagazines where ID = ?", (dbid,))]
+        recs += [wr for mg in mags for (wr,) in c.execute("select ComponentID from DataMagazineWeapons where ID = ?", (mg,))]
+        for wr in recs:
+            r = c.execute("select ComponentID from DataWeaponRecord where ID = ?", (wr,)).fetchone()
+            if r:
+                w = c.execute(f"select coalesce({colonne},0) from DataWeapon where ID = ?", (r[0],)).fetchone()
+                if w:
+                    out.append(w[0])
+    except sqlite3.OperationalError:
+        return 0.0
+    return max(out, default=0.0)
+
+
 def portee_navire_sol(dbid, base=None):
     """Portée sol maximale ( km ) des armes d'un navire ( Kalibr, Tomahawk… ) : affûts et magasins de DataShip."""
     c = _c(base)

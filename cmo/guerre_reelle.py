@@ -836,10 +836,26 @@ class GuerreReelle:
             z, a = self.em.soutiens(ci, camp)
             zones += z
             aff_z += a
+        an_f, an_a = [], []
         for ci, camp in enumerate(self.camps):            # la composante navale
             z, a = self.em.marine(ci, camp)
             zones += z
             aff_z += a
+            f2, a2 = self.em.antinavire(ci, camp)
+            an_f += f2
+            an_a += a2
+        if self.em.a_clore:
+            r = self.labo.clore(self.em.a_clore)
+            self.em.journal.append({"tour": self.tours, "clos": r["clos"]})
+            self.em.a_clore = []
+        if an_f:
+            self.labo.frappes_navales(an_f)
+        if an_a:
+            r = self.labo.frappes((), an_a)
+            for fid, ks in an_a:
+                for k in ks:
+                    if k in r["affectes"]:
+                        self.affecte[k] = fid
         if zones or aff_z:
             r = self.labo.zones(zones, aff_z)
             for zid, ks in aff_z:

@@ -703,6 +703,28 @@ def e28_composante_navale():
         assert g.completer_navires() == [] and len(g.navires) == 4
 
 
+def e29_frappe_antinavire():
+    """La guerre navale : les navires ennemis IDENTIFIÉS entrent sur la carte des menaces ; à moins de 400 km et hors des
+    parapluies connus, ils sont la cible d'une frappe antinavire ( Strike de type Sea ) ; un frappeur qui attendait y est
+    engagé ; le navire coulé, la frappe se referme sur les autres."""
+    kw = dict(EM_KW, portee_nav=lambda d: {9001: 1500.0}.get(d, 0.0), portee_mer=lambda d: 0.0)
+    with guerre(navires=NAVIRES_TEST, zones_navales=ZONES_TEST, em_kw=kw) as (f, g):
+        g.tour()
+        russes = sorted(k for k, n in g.navires.items() if n["camp"] == "Russie-Chine")
+        an = g.em.antinav["OTAN"]
+        assert an and an["cibles"] == russes and all(k in g.em.memoire["OTAN"] for k in russes), (an, g.em.memoire["OTAN"])
+        assert f.lua(f"local m = FAUX.missions['OTAN/HMT-F{an['id']}'] return m and (m.type .. '/' .. #m.cibles)") == f"Sea/{len(russes)}"
+        libre = sorted(k for k, a in g.avions.items() if a["pays"] == "Poland" and a["role"] == "frappe")[:2]
+        for k in libre:
+            g.affecte.pop(k, None)                        # comme pendant une DEAD : des frappeurs qui attendent
+        g.em.frappe_libre = True
+        f.detruire(russes[0])
+        g.tour()
+        an2 = g.em.antinav["OTAN"]
+        assert an2["cibles"] == russes[1:] and an2["id"] != an["id"], an2
+        assert f.lua(f"return FAUX.missions['OTAN/HMT-F{an['id']}'] == nil"), "l'ancienne frappe antinavire n'est pas fermée"
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
@@ -710,7 +732,7 @@ TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_f
          e16_cadence_surge_puis_soutenue, e17_brouillard_de_guerre, e18_composante_air,
          e19_bombardiers, e20_sead_russe, e21_balayage, e22_evaluation_des_degats, e23_reconnaissance,
          e24_reserve_et_production, e25_generation_de_force, e26_apprentissage_des_forces, e27_chef_qwen,
-         e28_composante_navale]
+         e28_composante_navale, e29_frappe_antinavire]
 
 
 def controles():
@@ -752,6 +774,13 @@ def controles():
 
     def charger_sans_retour(self, lots):
         return vrai_charger(self, [x for x in lots if x[2] != 0]) if any(x[2] != 0 for x in lots) else {"charges": {}, "absents": []}
+    vrai_renseigner = EM.EtatMajor.renseigner
+
+    def renseigner_sans_navires(self):
+        vrai_renseigner(self)
+        for c, m in self.memoire.items():
+            for k in [k for k in m if k in self.g.navires]:
+                del m[k]
     vrai_p_nav = EM.EtatMajor._p
 
     def portee_nav_nulle(self, quoi, dbid):
@@ -800,6 +829,8 @@ def controles():
          ("pas de balayage", e21_balayage, (EM, "SOUTIEN", {k: v for k, v in EM.SOUTIEN.items() if k != "balayage"})),
          ("l'état-major lit les dégâts réels", e22_evaluation_des_degats, (GR.GuerreReelle, "op_percu", lambda self, camp, i: self.bases[i]["op"])),
          ("un avion s'achète en guerre", e24_reserve_et_production, (GR.GuerreReelle, "_remplacer", remplacer_sans_reserve)),
+         ("pas de frappe antinavire", e29_frappe_antinavire, (EM.EtatMajor, "antinavire", lambda self, ci, camp: ([], []))),
+         ("la carte oublie les navires", e29_frappe_antinavire, (EM.EtatMajor, "renseigner", renseigner_sans_navires)),
          ("pas de marine", e28_composante_navale, (EM.EtatMajor, "marine", lambda self, ci, camp: ([], []))),
          ("un Kalibr tire hors de portée", e28_composante_navale, (EM.EtatMajor, "_p", portee_nav_nulle)),
          ("la décision du chef n'est pas appliquée", e27_chef_qwen, (CQ.ChefQwen, "appliquer", lambda self: None)),
