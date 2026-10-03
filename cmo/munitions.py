@@ -28,12 +28,13 @@ PRIX_ARME_M = [  # ( motif du nom de l'arme dans la base, prix en M$ ) : le prem
     (r"SPEAR EW", 0.3), (r"SPEAR", 0.4), (r"ATACMS|MGM-140", 1.5), (r"GMLRS|M30|M31", 0.16), (r"Taurus", 1.0), (r"Tomahawk", 2.0), (r"JSOW", 0.7),
     (r"GBU-31|GBU-32|GBU-38|JDAM", 0.035), (r"GBU-1[026]|Paveway II|LGB", 0.03), (r"Paveway IV", 0.07),
     (r"CPU-123", 0.05), (r"AGM-88|HARM|AARGM", 0.8), (r"ALARM", 0.6),
-    (r"ADM-160|MALD", 0.35), (r"Kh-101", 13.0), (r"Kh-555", 2.0), (r"Kh-32", 3.0), (r"Kh-22", 1.0), (r"Kinzhal|Kh-47", 10.0),
+    (r"ADM-160|MALD", 0.35), (r"AGM-114|Hellfire", 0.15), (r"AGM-179|JAGM", 0.25), (r"MAM-L|MAM-C", 0.03), (r"Kh-50\b", 5.0), (r"Kh-101", 13.0), (r"Kh-555", 2.0), (r"Kh-32", 3.0), (r"Kh-22", 1.0), (r"Kinzhal|Kh-47", 10.0),
     (r"Iskander|9M723", 3.0), (r"Kalibr|3M14", 1.0), (r"Kh-59", 1.0), (r"Kh-38", 0.6), (r"Kh-31", 0.6),
     (r"Kh-58", 0.5), (r"Kh-29", 0.15), (r"PBK-500", 0.1), (r"KAB-", 0.05), (r"BetAB", 0.02),
     (r"Mk ?84", 0.015), (r"Mk ?83", 0.01), (r"Mk ?82", 0.005), (r"CBU-", 0.015), (r"OFAB|FAB-", 0.003),
     (r"Rocket|HYDRA|S-8|S-13|M/70", 0.003),
     (r"Pod|IRST|EOTS", 0.0),
+    (r"Payload|Recon|Surveillance|Gorgon|Sensor|EO/IR|MX-15|ELINT|Turret", 0.0),   # capteurs des drones et avions de reco
     (r"Burst|GAU-|GSh-|M61|Mauser|BK 27|Aden|DEFA", 0.0),     # obus de canon : négligeables au budget
 ]
 

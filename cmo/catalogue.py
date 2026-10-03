@@ -80,6 +80,8 @@ def chargement_frappe(dbid, base=BASE):
         for i, nom in c.execute("""select l.ID, l.Name from DataAircraftLoadouts al join DataLoadout l on l.ID = al.ComponentID
                 where al.ID = ? and l.LoadoutRole = ? and coalesce(l.Hypothetical,0)=0 and l.Name not like '%Short-Range%'
                 order by l.ID""", (dbid, role)):
+            if re.search(r"Nuclear|kT\b|Kh-102|Inert", nom):      # JAMAIS d'arme nucléaire ni de munition inerte
+                continue
             (guides if GUIDEE.search(nom) else autres).append((_puissance(c, i), -i, i, nom, role))
     choix = max(guides) if guides else (max(autres) if autres else None)
     return (choix[2], choix[3], choix[4]) if choix else None

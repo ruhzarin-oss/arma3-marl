@@ -112,9 +112,12 @@ def chargements_db(flottes):
         aa = cat[dbid]["loadout"] if dbid in cat else None
         fr = CAT.chargement_frappe(dbid)
         out[dbid] = {"aa": aa, "frappe": fr[0] if fr else None, "prix_m": prix or 50, "nom": nom}
-    for _, pays, dbid, n, part in flottes:                 # les flottes de soutien : le chargement de leur rôle
+    soutien_seul = {d for _, _, d, _, p in flottes if isinstance(p, str)} - {d for _, _, d, _, p in flottes if not isinstance(p, str)}
+    for _, pays, dbid, n, part in flottes:                 # les flottes de soutien : le chargement de leur rôle, et lui seul
         if isinstance(part, str):
             out[dbid][part] = chargement_role(c, dbid, part)
+            if dbid in soutien_seul:
+                out[dbid]["aa"] = out[dbid]["frappe"] = None
     return out
 
 
