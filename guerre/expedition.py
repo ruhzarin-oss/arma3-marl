@@ -29,6 +29,7 @@ from . import frappes as FR, logistique as LO, moteur as GM, objectifs as OB
 
 DISTANCE_ASSAUT = 800.0
 EMPORTER_MORTIERS = True               # ( HMT-198 A1-bis ) l expedition emporte les mortiers de ses sections d appui
+EMPORTER_ROQUETTES = True              # ( HMT-198 A2 ) ses tireurs antichar emportent leurs roquettes de 84 mm
 CHAMPS = ("tir", "portee", "prot", "casque", "arme", "cal", "coups", "disc", "stress", "moral")
 
 
@@ -46,6 +47,34 @@ def corps(wA, numeros):
     a = A._dom(pA); rg = A._rangs(pA, ids)
     out["spec"] = a.eff["spec"][rg].astype(np.int64).copy()
     out["mortiers"] = mortiers_emportes(wA, out) if EMPORTER_MORTIERS else {"tubes": 0, "obus": 0.0, "base": None}
+    out["at"], out["at_lid"] = roquettes_emportees(wA, out)
+    return out
+
+
+def roquettes_emportees(wA, cp):
+    """( 03/10, HMT-198 A2 ) Les roquettes de 84 mm de ses tireurs antichar ( specialite ANTICHAR, le Carl Gustaf en arme
+    principale ) : la dotation de combat ( 6 ), au plus ce que l armurerie de leur base a hors reserves. Rend ( roquettes
+    par homme, base de chacun ou "" )."""
+    n = len(cp["numero"]); at = np.zeros(n); lids = np.array([""] * n, dtype=object)
+    if n == 0 or not EMPORTER_ROQUETTES: return at, lids
+    pA = wA.pays; a = A._dom(pA); E = a.eff
+    rg = A._rangs(pA, cp["hid"]); ic = A.IDX_ARME["carl_gustaf_m3"]; cal = A.NOMS_MUNITIONS.index("roquette_84")
+    dot = A.DOTATION_COMBAT.get("carl_gustaf_m3", 0); pris = {}
+    for k in range(n):
+        if int(E["spec"][rg[k]]) != A.ANTICHAR or int(E["arme_m"][rg[k]]) != ic: continue
+        lid = wA.carte.par_n[int(E["base"][rg[k]])].id
+        stock = float(A.armurerie(pA, lid).stock[a.bids["roquette_84"]]) - T._dom(pA).reserve.get((lid, cal), 0.0) - pris.get(lid, 0.0)
+        q = float(max(0.0, min(dot, math.floor(stock))))
+        if q <= 0: continue
+        at[k] = q; lids[k] = lid; pris[lid] = pris.get(lid, 0.0) + q
+    return at, lids
+
+
+def roquettes_par_base(cp):
+    """{ base : roquettes emportees } ( la reserve de l operation )."""
+    out = {}
+    for q, lid in zip(cp.get("at", []), cp.get("at_lid", [])):
+        if lid and q > 0: out[lid] = out.get(lid, 0.0) + float(q)
     return out
 
 
@@ -113,7 +142,8 @@ def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert=None):
         u, couvert_def = defenseur(wB, o)
         if couvert_def is not None and couvert is None: couvert = couvert_def
     sorts = []; restants = {int(k): float(q) for k, q in zip(cp["numero"].tolist(), cp["coups"].tolist())}; avant = None
-    obus_tires = 0.0
+    obus_tires = 0.0; vehicules_detruits = 0
+    roquettes = [(int(cp["numero"][k]), cp["at_lid"][k], float(q), float(q)) for k, q in enumerate(cp.get("at", [])) if q > 0]
     if u is None or n == 0:
         arrives = n; m = None
     else:
@@ -125,6 +155,7 @@ def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert=None):
                                axe=S.azimut(ox, oy, depart[0], depart[1]), ile=ii)
         rouges = np.nonzero(m.h["side"] == 1)[0]
         for k in CHAMPS: m.h[k][rouges] = cp[k]
+        if "at" in cp and "at" in m.h: m.h["at"][rouges] = cp["at"]          # ( HMT-198 A2 ) leurs roquettes
         avant = {k: m.h[k][rouges].copy() for k in CHAMPS}
         Mx = cp.get("mortiers") or {}
         if Mx.get("tubes", 0) > 0 and "spec" in cp:          # ( HMT-198 A1-bis ) ses mortiers tirent de son cote
@@ -145,6 +176,10 @@ def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert=None):
             elif int(h["actif"][v]) == 1 and e_r.arrive: arrives += 1
         if ent is not None and S._dom(pB).ent["vivant"][ent]: S.retirer_entite(pB, ent)
         obus_tires = float((getattr(m, "mortiers_adverses", None) or {}).get("tires", 0.0))
+        if "at" in cp and "at" in h:                         # ( HMT-198 A2 ) ( numero, base, emportees, restantes )
+            roquettes = [(int(cp["numero"][k]), cp["at_lid"][k], float(cp["at"][k]), float(h["at"][v]))
+                         for k, v in enumerate(rouges.tolist()) if cp["at"][k] > 0]
+        vehicules_detruits = sum(1 for vh in getattr(m, "vehicules", []) if not vh["intact"])
     dommages = min(1.0, arrives / n) if n else 0.0
     frappe = None
     if dommages > 0:
@@ -153,7 +188,7 @@ def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert=None):
              defenseur=-1 if u is None else int(u))
     return {"mission": m, "arrives": arrives, "dommages": dommages, "frappe": frappe, "sorts": sorts,
             "restants": restants, "objectif": o, "defenseur": u, "rouges_avant": avant, "obus_tires": obus_tires,
-            "mortiers": cp.get("mortiers")}
+            "mortiers": cp.get("mortiers"), "roquettes": roquettes, "vehicules_detruits": vehicules_detruits}
 
 
 def rapatrier(wA, r):
@@ -169,6 +204,12 @@ def rapatrier(wA, r):
         res[cle] = max(0.0, res.get(cle, 0.0) - float(Mx["obus"]))
         q = float(r.get("obus_tires", 0.0))
         if q > 0: out["obus_tires"] = A.tirer(pA, Mx["base"], "obus_81", q, "tir_combat")
+    cal = A.NOMS_MUNITIONS.index("roquette_84"); res = T._dom(pA).reserve
+    for num, lid, q0, q1 in r.get("roquettes", []):      # ( HMT-198 A2 ) la reserve rendue, les tirees payees, celles d un mort perdues
+        res[(lid, cal)] = max(0.0, res.get((lid, cal), 0.0) - q0)
+        if q0 - q1 > 0: out["roquettes_tirees"] = out.get("roquettes_tirees", 0.0) + A.tirer(pA, lid, "roquette_84", q0 - q1, "tir_combat")
+        if q1 > 0 and sort.get(num, ("",))[0] == "mort":
+            out["roquettes_perdues"] = out.get("roquettes_perdues", 0.0) + A.tirer(pA, lid, "roquette_84", q1, "perte_au_combat")
     port = wA.carte.port(wA.carte.par_n[0].ile) or wA.carte.gouvernement
     for num, (etat, zone, arme) in sorted(sort.items()):
         s = f.get(num)
@@ -186,7 +227,7 @@ def rapatrier(wA, r):
         wA.absents.pop(i, None); t = wA.table; t.statut[i] = PO.RESIDENT; t.poste[i] = PO.CODE_POSTE["maison"]
         t.lieu[i] = port.n
         ev = S.evacuer(pA, i, lieu=port.id) if pA.a("armee_soutien") else None
-        A.blesser_soldat(pA, i, zone, arme)
+        T.blesser_soldat(pA, i, zone, arme)                  # ( HMT-198 A2 ) une arme de bord aussi ( la M2HB )
         if ev is not None and t.vivant[i]:
             ps = ev["passage"]; hab = PO.Habitant(t, i); ps.esi = HM.esi(pA, hab); ps.iss = HM._iss(pA, hab)
             pA.compter("evacuation_tactique")
@@ -242,13 +283,18 @@ def lancer_operation(wA, nom_A, oid, modele, hommes, parachutage=False, couvert=
     if raison: return {"ok": False, "raison": raison}
     nums = GM.mobiliser(wA, hommes, ids=membres_a_projeter(wA, hommes)); LO.emporter(wA, nums)
     cp = corps(wA, nums)
-    Mx = cp.get("mortiers") or {}
-    if Mx.get("tubes", 0) > 0:                             # ( HMT-198 A1-bis ) les obus emportes sont reserves
-        cal = A.NOMS_MUNITIONS.index("obus_81"); res = T._dom(wA.pays).reserve
-        res[(Mx["base"], cal)] = res.get((Mx["base"], cal), 0.0) + float(Mx["obus"])
     t = PR.traverser(wA, modele, len(cp["numero"]), parachutage)
     if not t["ok"]:
         demobiliser(wA, nums); return {"ok": False, "raison": t["raison"]}
+    # ( 03/10, HMT-198 A2 ) les obus et les roquettes emportes sont reserves une fois la traversee partie ( avant, un
+    # refus de la traversee laissait la reserve des obus engagee )
+    res = T._dom(wA.pays).reserve
+    Mx = cp.get("mortiers") or {}
+    if Mx.get("tubes", 0) > 0:                             # ( HMT-198 A1-bis ) les obus
+        cal = A.NOMS_MUNITIONS.index("obus_81")
+        res[(Mx["base"], cal)] = res.get((Mx["base"], cal), 0.0) + float(Mx["obus"])
+    cal = A.NOMS_MUNITIONS.index("roquette_84")
+    for lid, q in sorted(roquettes_par_base(cp).items()): res[(lid, cal)] = res.get((lid, cal), 0.0) + q
     ops = _ops(wA)
     op = {"id": len(ops) + 1, "attaquant": nom_A, "objectif": oid, "modele": modele, "parachutage": bool(parachutage),
           "couvert": couvert, "numeros": [int(n) for n in cp["numero"]], "corps": cp, "traversee": t["id"],
@@ -274,7 +320,8 @@ def avancer_operations(wA, wB):
                 depart = (o["pos"][0] + DISTANCE_LARGAGE * dx / L, o["pos"][1] + DISTANCE_LARGAGE * dy / L)
             r = assaut(wB, op["attaquant"], op["corps"], op["objectif"], depart=depart, couvert=op["couvert"],
                        seed=(9000 + op["id"],))
-            op["assaut"] = {k: r[k] for k in ("arrives", "dommages", "sorts", "restants", "defenseur", "obus_tires", "mortiers")}
+            op["assaut"] = {k: r[k] for k in ("arrives", "dommages", "sorts", "restants", "defenseur", "obus_tires", "mortiers",
+                                              "roquettes", "vehicules_detruits")}
             op["assaut"]["pas"] = int(wB.pas); op["assaut"]["depart_assaut"] = depart
             op["etat"] = "au_retour"; evts.append(("assaut", op["id"]))
         if op["etat"] == "au_retour" and int(wA.pas) >= op["retour"]:

@@ -7,7 +7,8 @@ X3  le combat : pertes de B par le domaine 27 ( mort par deceder cause combat, o
     combat mort ou blesse dans A ; coups tires par A = somme( portes - restants ) en tir_combat ; anomalies vides.
 X4  controle positif des statistiques ( amende ) : 5 graines de mission, couvert leger : pertes de B avec les vrais
     tireurs > avec tir 0. ( amende 03/10, M5 : tir indirect coupe, le resultat ouvert en information ; anomalies de X3
-    lues apres deux jours du moteur )
+    lues apres deux jours du moteur ; amende 03/10, A2 : blindes coupes aussi ; X3 compte les coups des armes
+    individuelles, obus et roquettes ayant leurs comptes )
 X5  identite : sans expedition, A et B identiques au bit sur 2 jours.
 python -m guerre.porte_expedition [ graine_A graine_B ]"""
 import json
@@ -28,6 +29,12 @@ SORTIE = "/mnt/data/hmt/arsenal/porte_expedition.json"
 def sorties(w, motif):
     d = w.pays.domaines[A.DOMAINE]
     return sum(v for (b, m), v in d.sorties.items() if m == motif)
+
+
+def sorties_individuelles(w, motif):
+    """( amende 03/10, A2 ) les munitions des armes individuelles : obus et roquettes ont leurs comptes ( M3, B4 )."""
+    d = w.pays.domaines[A.DOMAINE]
+    return sum(v for (b, m), v in d.sorties.items() if m == motif and b not in ("obus_81", "roquette_84"))
 
 
 def morts_combat(w):
@@ -80,7 +87,7 @@ def main(gA=2041, gB=2042):
     deceB = morts_combat(wB)
     evB = {int(x[1]) for x in S._dom(pB).evacuations}
     okB = mortsB <= deceB and all((b in evB) or (b in deceB) for b in blessesB)
-    avant_tir = sorties(wA, "tir_combat"); avant_perte = sorties(wA, "perte_au_combat")
+    avant_tir = sorties_individuelles(wA, "tir_combat"); avant_perte = sorties(wA, "perte_au_combat")
     porte = {int(n): LO.coups(wA, int(n)) for n in cp["numero"]}
     att_tir = sum(max(0.0, porte[n] - r3["restants"][n]) for n in porte)
     rap = EX.rapatrier(wA, r3)
@@ -89,26 +96,27 @@ def main(gA=2041, gB=2042):
     okA_morts = all(f[n]["i"] in deceA for n in morts_att)
     evA = {int(x[1]) for x in S._dom(pA).evacuations}
     okA_bless = all((f[n]["i"] in evA) or (f[n]["i"] in deceA) for n in bless_att)
-    ok_tir = abs((sorties(wA, "tir_combat") - avant_tir) - att_tir) <= 1e-6
+    ok_tir = abs((sorties_individuelles(wA, "tir_combat") - avant_tir) - att_tir) <= 1e-6
     T.jours(wA, 2); T.jours(wB, 2)          # ( amende 03/10, M5 ) le domaine 25 retire ses morts a sa routine du jour
     anB, anA = anomalies(wB), anomalies(wA, avec27=False)
     X3 = okB and okA_morts and okA_bless and ok_tir and not anB and not anA and len(r3["sorts"]) + len(mortsB) + len(blessesB) > 0
     R["X3"] = {"ok": X3, "defenseur": r3["defenseur"], "arrives": r3["arrives"], "dommages": r3["dommages"],
                "B": {"morts": len(mortsB), "blesses": len(blessesB), "ok": okB},
                "A": {"morts": len(morts_att), "blesses": len(bless_att), "morts_ok": okA_morts, "blesses_ok": okA_bless},
-               "coups_tires_A": [att_tir, sorties(wA, "tir_combat") - avant_tir], "perte_au_combat_A": sorties(wA, "perte_au_combat") - avant_perte,
+               "coups_tires_A": [att_tir, sorties_individuelles(wA, "tir_combat") - avant_tir], "perte_au_combat_A": sorties(wA, "perte_au_combat") - avant_perte,
                "anomalies_B": [str(a) for a in anB[:5]], "anomalies_A": [str(a) for a in anA[:5]], "issue": m.issue if m else None}
     print(f"  X3 combat : {'OUI' if X3 else 'NON'} {R['X3']}", flush=True)
     # X4 ( amende avant la mesure ) : 5 graines de mission, couvert leger, vrais tireurs contre tir 0
     tot = {False: 0, True: 0}
     TT.TIR_INDIRECT = False                 # ( amende 03/10, M5 ) le tir de A, isole des mortiers du defenseur ( A1 )
+    TT.BLINDES = False                      # ( amende 03/10, A2 ) et de ses blindes
     for sg in range(5):
         for zero in (False, True):
             c = {k: v.copy() for k, v in cp.items()}
             if zero: c["tir"][:] = 0.0
             w4 = pickle.loads(octB); r4 = EX.assaut(w4, "Stratis", c, oid, seed=(6000 + sg,), couvert="leger")
             m4 = r4["mission"]; tot[zero] += len(set(m4.morts)) + len(set(m4.blesses) - set(m4.morts))
-    TT.TIR_INDIRECT = True
+    TT.TIR_INDIRECT = True; TT.BLINDES = True
     info = {False: 0, True: 0}               # en information : les memes missions, tir indirect ouvert
     for sg in range(5):
         for zero in (False, True):

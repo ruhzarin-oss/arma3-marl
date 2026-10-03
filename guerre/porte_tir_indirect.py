@@ -3,7 +3,7 @@
 
 T1  controle positif ( amende avant la mesure ) : adversaire repere avancant de 1 500 m ; sur 5 graines de mission,
     ( a ) des adversaires hors de combat par eclats d obus, ( b ) la defense perd strictement moins d hommes avec les
-    mortiers que sans.
+    mortiers que sans. ( amende 03/10, A2 : blindes coupes ; les comptes T2 sur les memes graines, tout ouvert )
 T2  les comptes : obus demandes = obus sortis ( tir_combat ), <= dotation ( 60 x tubes ) et <= stock ; anomalies vides.
 T3  controles negatifs : adversaire inconnu ( immobile a 3 km, jamais repere ), repere a 6 km, unite sans mortier :
     0 obus.
@@ -78,6 +78,7 @@ def main(graine=2071):
             if not arrete and int(m_.h["actif"][v]) == 1: eclats[0] += 1
         return orig(p_, m_, v, zone, arme)
     TT._impact = espion
+    TT.BLINDES = False                     # ( amende 03/10, A2 ) T1 isole les mortiers des blindes de la defense
     for sg in range(5):
         for ouvert in (True, False):
             TT.TIR_INDIRECT = ouvert
@@ -87,10 +88,15 @@ def main(graine=2071):
             tot[ouvert] += int(m.neutr_adv); pertes[ouvert] += len(set(m.morts)) + len(set(m.blesses) - set(m.morts))
             if ouvert:
                 M = m.mortiers or {}; t_ = float(M.get("tires", 0.0)); obus += t_
-                comptes.append({"tires": t_, "sortis": sortis(w, "obus_81") - s0, "dotation": M.get("dotation"), "stock": st0,
-                                "tubes": len(M.get("tubes", []))})
-                anom += [str(a) for a in TT.anomalies(p)]
-    TT.TIR_INDIRECT = True; TT._impact = orig
+    TT.TIR_INDIRECT = True; TT._impact = orig; TT.BLINDES = True
+    for sg in range(5):                    # ( amende 03/10, A2 ) les comptes T2 avec tout ouvert, memes graines
+        w = pickle.loads(oct_); p = w.pays
+        s0 = sortis(w, "obus_81"); st0 = float(A.armurerie(p, w.carte.par_n[int(A._dom(p).unites["base"][u])].id).stock[A._dom(p).bids["obus_81"]])
+        m = mission(w, u, 1500.0, seed=7100 + sg)
+        M = m.mortiers or {}; t_ = float(M.get("tires", 0.0))
+        comptes.append({"tires": t_, "sortis": sortis(w, "obus_81") - s0, "dotation": M.get("dotation"), "stock": st0,
+                        "tubes": len(M.get("tubes", []))})
+        anom += [str(a) for a in TT.anomalies(p)]
     T1 = eclats[0] > 0 and pertes[True] < pertes[False] and obus > 0
     T2 = all(abs(c["tires"] - c["sortis"]) <= 1e-9 and c["tires"] <= (c["dotation"] or 0) + 1e-9 and c["tires"] <= c["stock"] + 1e-9
              for c in comptes) and not anom

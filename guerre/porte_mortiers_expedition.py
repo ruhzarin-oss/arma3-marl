@@ -4,7 +4,8 @@
 M1  l emport : tubes = min( tubes de la base des servants, servants / 2 ), obus = min( 60 x tubes, stock hors reserves ) ;
     lancer_operation reserve exactement ces obus.
 M2  controle positif : sur 5 graines de mission, le defenseur perd strictement plus d hommes avec les mortiers de
-    l expedition que sans ; plus de 0 obus.
+    l expedition que sans ; plus de 0 obus. ( amende 03/10, A2 : blindes coupes ; les comptes M3 sur les memes graines,
+    tout ouvert )
 M3  les comptes : obus tires <= emportes ; au rapatriement, tir_combat d obus_81 de l attaquant + exactement les tires ;
     sa reserve revient a ce qu elle etait.
 M4  controle negatif : un corps sans servant n emporte aucun tube, aucun obus.
@@ -68,6 +69,7 @@ def main(gA=2091, gB=2092):
     print(f"  M1 emport : {'OUI' if M1 else 'NON'} {R['M1']}", flush=True)
     # M2 et M3
     tot = {True: 0, False: 0}; obus = 0.0; comptes = []
+    TT.BLINDES = False                     # ( amende 03/10, A2 ) M2 isole les mortiers de l expedition des blindes de B
     for sg in range(5):
         for avec in (True, False):
             c = {k: (v.copy() if hasattr(v, "copy") else v) for k, v in cp.items()}
@@ -75,8 +77,14 @@ def main(gA=2091, gB=2092):
             wb = pickle.loads(octB)
             r = EX.assaut(wb, "Stratis", c, oid, seed=(9100 + sg,))
             tot[avec] += pertes(r["mission"])
+            if avec: obus += r["obus_tires"]
+    TT.BLINDES = True
+    for sg in range(5):                    # ( amende 03/10, A2 ) les comptes M3 avec tout ouvert, memes graines
+        for avec in (True,):
+            c = {k: (v.copy() if hasattr(v, "copy") else v) for k, v in cp.items()}
+            wb = pickle.loads(octB)
+            r = EX.assaut(wb, "Stratis", c, oid, seed=(9100 + sg,))
             if avec:
-                obus += r["obus_tires"]
                 wa = pickle.loads(pickle.dumps(w, protocol=4)); pa = wa.pays
                 ra = TT._dom(pa).reserve; ra[(lid, cal)] = ra.get((lid, cal), 0.0) + Mx["obus"]      # comme lancer_operation
                 s0 = sortis(wa, "obus_81"); r_av = ra.get((lid, cal), 0.0)
