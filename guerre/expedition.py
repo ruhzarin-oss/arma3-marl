@@ -156,7 +156,7 @@ def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert=None):
         u, couvert_def = defenseur(wB, o)
         if couvert_def is not None and couvert is None: couvert = couvert_def
     sorts = []; restants = {int(k): float(q) for k, q in zip(cp["numero"].tolist(), cp["coups"].tolist())}; avant = None
-    obus_tires = 0.0; vehicules_detruits = 0
+    obus_tires = 0.0; vehicules_detruits = 0; libre = False
     roquettes = [(int(cp["numero"][k]), cp["at_lid"][k], float(q), float(q)) for k, q in enumerate(cp.get("at", [])) if q > 0]
     if u is None or n == 0:
         arrives = n; m = None
@@ -181,13 +181,17 @@ def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert=None):
         for v, zone, arme, ais, arrete in getattr(m, "lesions_adverses", []):
             if not arrete: lesion[int(v)] = (zone, arme, int(ais))
         e_r = next(e for e in m.elts if e.side == 1)
+        # ( 03/10, HMT-198 ) une garde qui ROMPT ou est aneantie laisse l objectif : les assaillants encore en etat de
+        # combattre l atteignent ( CHOIX ; avant, le domaine 27 closait la mission des le repli de la garde et l assaut
+        # ne comptait aucun arrive : une garde qui fuyait rendait l assaut nul )
+        libre = bool(m.rupture) or m.issue == "aneanti"
         arrives = 0
         for k, v in enumerate(rouges.tolist()):
             num = int(cp["numero"][k]); restants[num] = float(h["coups"][v])
             if v in lesion:
                 zone, arme, ais = lesion[v]; iss = MED.iss_depuis_ais({zone: ais})
                 sorts.append((num, "mort" if iss >= 75 else "blesse", zone, arme, ais, iss))
-            elif int(h["actif"][v]) == 1 and e_r.arrive: arrives += 1
+            elif int(h["actif"][v]) == 1 and (e_r.arrive or libre): arrives += 1
         if ent is not None and S._dom(pB).ent["vivant"][ent]: S.retirer_entite(pB, ent)
         obus_tires = float((getattr(m, "mortiers_adverses", None) or {}).get("tires", 0.0))
         if "at" in cp and "at" in h:                         # ( HMT-198 A2 ) ( numero, base, emportees, restantes )
@@ -200,7 +204,7 @@ def assaut(wB, nom_ile_A, cp, oid, u=-1, depart=None, seed=None, couvert=None):
         frappe = FR.frapper(wB, o, {cc["i"]: dommages for cc in o["composants"]}) if o.get("composants") else None
     wB.noter("assaut", attaquant=nom_ile_A, objectif=oid, hommes=n, arrives=arrives, pertes=len(sorts),
              defenseur=-1 if u is None else int(u))
-    return {"mission": m, "arrives": arrives, "dommages": dommages, "frappe": frappe, "sorts": sorts,
+    return {"mission": m, "arrives": arrives, "dommages": dommages, "frappe": frappe, "sorts": sorts, "garde_rompue": libre,
             "restants": restants, "objectif": o, "defenseur": u, "rouges_avant": avant, "obus_tires": obus_tires,
             "mortiers": cp.get("mortiers"), "roquettes": roquettes, "vehicules_detruits": vehicules_detruits}
 

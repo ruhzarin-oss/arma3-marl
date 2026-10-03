@@ -13,7 +13,7 @@ from . import campagne as CA
 from .connaissance import index as IX
 
 SORTIE = "/mnt/data/hmt/arsenal/porte_campagne.json"
-PAIRES = ((2081, 2082), (2083, 2084), (2085, 2086))
+PAIRES = ((2087, 2088), (2089, 2090), (2093, 2094))      # ( 03/10 06 h 40 ) rejouee sur graines neuves apres les defauts du port et de la garde ; la premiere mesure : 2081 a 2086, REFUSEE
 
 
 def main():
