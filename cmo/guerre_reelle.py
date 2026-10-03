@@ -558,6 +558,9 @@ class GuerreReelle:
                 setattr(self, k, e[k])
         self.altitudes = {int(k): v for k, v in (e.get("altitudes") or {}).items()}
         self.bda = {c: {int(k): v for k, v in (e.get("bda") or {}).get(c, {}).items()} for c in self.camps}
+        # les navires : numéros entiers et positions en tuple ( 03/10 : relus en texte à la reprise, ils manquaient au
+        # relevé et chaque tour était refusé )
+        self.navires = {int(k): dict(v, pos=tuple(v["pos"])) for k, v in (e.get("navires") or {}).items()}
         self.bda_bases = {c: [int(i) for i in (e.get("bda_bases") or {}).get(c, [])] for c in self.camps}
         if e.get("em"):
             self.em.charger(e["em"])

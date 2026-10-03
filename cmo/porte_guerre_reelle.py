@@ -702,6 +702,9 @@ def e28_composante_navale():
         g.tour()
         assert korm[0] not in g.navires and any(m["genre"] == "navire" and m["numero"] == korm[0] for m in g.morts)
         assert g.completer_navires() == [] and len(g.navires) == 5
+        e = json.loads(json.dumps(g.etat()))                # la reprise : les navires gardent leurs numéros entiers
+        g.charger(e)
+        assert all(isinstance(k, int) for k in g.navires) and len(g.navires) == 5, list(g.navires)[:3]
         for _ in range(6):                                # la batterie fixe, hors du relevé des mobiles, ne bloque aucun tour
             g.tour()
         nsm = next(k for k, n in g.navires.items() if n["nom"] == "NSM côtier")
