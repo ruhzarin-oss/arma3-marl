@@ -140,15 +140,13 @@ def traverser(w, nom, hommes, parachutage=False, km=None):
     sont reserves jusqu a leur retour. Rend { ok, raison } ou { ok, id, engins, depart, arrivee, retour, carburant }."""
     p = w.pays; d = S._dom(p); P = _P(w); m = MODELES[nom]
     km = KM_TRAVERSEE if km is None else float(km)
-    if parachutage and m.genre != "avion": return {"ok": False, "raison": "un parachutage demande un avion"}
+    raison = raison_refus(w, nom, hommes, parachutage, km)
+    if raison: return {"ok": False, "raison": raison}
     par = m.parachutistes if parachutage else m.hommes
-    besoin = math.ceil(int(hommes) / par) if par > 0 else 10 ** 9
+    besoin = math.ceil(int(hommes) / par)
     lib = libres(w, nom)
-    if not lib: return {"ok": False, "raison": f"aucun {nom} libre"}
-    if besoin > len(lib): return {"ok": False, "raison": f"capacite : {hommes} hommes demandent {besoin} {nom}, {len(lib)} libres"}
     h = duree_h(w, nom, km)
     q = m.unites_h() * h * besoin
-    if _stock_carburant(w, nom) < q - EPS: return {"ok": False, "raison": f"pas assez de {m.carburant} pour l aller"}
     _motif(p)
     S._sortir(p, d, "depot", d.national.k, m.carburant, q, MOTIF_CARBURANT, "brule")
     pas = max(1, math.ceil(h * C.PAS_PAR_JOUR / 24.0 - 1e-9))
@@ -160,6 +158,21 @@ def traverser(w, nom, hommes, parachutage=False, km=None):
     P["prochaine"] += 1; P["traversees"].append(t)
     w.noter("traversee", modele=nom, engins=len(engins), hommes=int(hommes), arrivee=t["arrivee"])
     return {"ok": True, **t}
+
+
+def raison_refus(w, nom, hommes, parachutage=False, km=None):
+    """Pourquoi une traversee ne peut pas partir ( None : elle peut ) : parachutage sans avion, aucun engin libre,
+    capacite, carburant de l aller."""
+    m = MODELES[nom]; km = KM_TRAVERSEE if km is None else float(km)
+    if parachutage and m.genre != "avion": return "un parachutage demande un avion"
+    par = m.parachutistes if parachutage else m.hommes
+    besoin = math.ceil(int(hommes) / par) if par > 0 else 10 ** 9
+    lib = libres(w, nom)
+    if not lib: return f"aucun {nom} libre"
+    if besoin > len(lib): return f"capacite : {hommes} hommes demandent {besoin} {nom}, {len(lib)} libres"
+    q = m.unites_h() * duree_h(w, nom, km) * besoin
+    if _stock_carburant(w, nom) < q - EPS: return f"pas assez de {m.carburant} pour l aller"
+    return None
 
 
 MOTIF_CARBURANT = "carburant_projection"

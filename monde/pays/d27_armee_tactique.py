@@ -437,7 +437,8 @@ class Mission:
                  "ordre_emis_s", "ordres", "fini", "issue", "resultat", "rupture", "h", "elts", "pendants", "tirs",
                  "violations", "feu_sur_contact", "couvert_poste", "base_lid", "chef", "compagnie", "qual", "nuit",
                  "fenetre_s", "cibles", "t_det", "zone_emb", "morts", "blesses", "neutr_adv", "detecte_par_adv", "pts", "axe",
-                 "compromis", "n_impacts", "n_arretes", "expo_debout", "expo_marche", "sig_debout", "sig_n")
+                 "compromis", "n_impacts", "n_arretes", "expo_debout", "expo_marche", "sig_debout", "sig_n",
+                 "lesions_adverses")
 
     def __init__(self, id, tactique, unite, mode, voix, ile, depart, objectif, roe, critere, rng):
         self.id, self.tactique, self.unite, self.mode, self.voix = id, tactique, unite, mode, voix
@@ -456,6 +457,7 @@ class Mission:
         self.n_impacts, self.n_arretes = [0, 0], [0, 0]
         self.expo_debout = self.expo_marche = 0.0      # homme-secondes debout et en marche de la manoeuvre
         self.sig_debout = self.sig_n = 0               # sous-pas de marche de la manoeuvre vus debout, et en tout
+        self.lesions_adverses = []                     # ( 03/10, HMT-197 4b ) ( homme, zone, arme, AIS, arretee )
 
 
 class Tactiques:
@@ -1159,6 +1161,8 @@ def _impact(p, m, v, zone, arme_tireur):
     h = m.h
     arme = A.ARMES[arme_tireur].nom if arme_tireur >= 0 else ARME_ADVERSE
     ais, arrete = lesion(zone, arme, int(h["prot"][v]), int(h["casque"][v]))
+    if int(h["side"][v]) == 1 and hasattr(m, "lesions_adverses"):     # ( 03/10, HMT-197 4b ) le sort de l adversaire
+        m.lesions_adverses.append((int(v), zone, arme, int(ais), bool(arrete)))
     p.compter("impact")
     sd = int(h["side"][v]); m.n_impacts[sd] += 1; m.n_arretes[sd] += int(arrete)
     if arrete:
