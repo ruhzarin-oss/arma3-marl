@@ -153,3 +153,20 @@ def portee_navire_sol(dbid, base=None):
         except sqlite3.OperationalError:
             continue
     return max(out, default=0.0)
+
+
+def portee_site_mer(dbid, base=None):
+    """Portée antinavire maximale ( km ) d'une batterie côtière ( installation ) : SurfaceRangeMax de ses armes."""
+    c = _c(base)
+    out = []
+    comp = [m for (m,) in c.execute("select ComponentID from DataFacilityMounts where ID = ?", (dbid,))]
+    recs = [wr for mid in comp for (wr,) in c.execute("select ComponentID from DataMountWeapons where ID = ?", (mid,))]
+    mags = [m for (m,) in c.execute("select ComponentID from DataFacilityMagazines where ID = ?", (dbid,))]
+    recs += [wr for mg in mags for (wr,) in c.execute("select ComponentID from DataMagazineWeapons where ID = ?", (mg,))]
+    for wr in recs:
+        r = c.execute("select ComponentID from DataWeaponRecord where ID = ?", (wr,)).fetchone()
+        if r:
+            w = c.execute("select coalesce(SurfaceRangeMax,0) from DataWeapon where ID = ?", (r[0],)).fetchone()
+            if w:
+                out.append(w[0])
+    return max(out, default=0.0)

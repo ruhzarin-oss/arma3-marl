@@ -685,7 +685,7 @@ def e28_composante_navale():
     """La marine : les navires réels posés en rade ; frégates et corvettes en CONTRÔLE DE LA MER, sous-marins en LUTTE
     ANTI-SOUS-MARINE ; les lance-missiles de croisière ( Karakurt, Kalibr ) engagés dans la frappe de la base ennemie À
     PORTÉE ; un navire coulé est compté une fois, et le complément ne le repose pas."""
-    kw = dict(EM_KW, portee_nav=lambda d: {9001: 1500.0}.get(d, 0.0))
+    kw = dict(EM_KW, portee_nav=lambda d: {9001: 1500.0}.get(d, 0.0), portee_mer=lambda d: 0.0, portee_site_mer=lambda d: 0.0)
     with guerre(navires=NAVIRES_TEST, zones_navales=ZONES_TEST, em_kw=kw) as (f, g):
         assert len(g.navires) == 6, g.navires             # dont une batterie côtière ( installation fixe )
         g.tour()
@@ -718,7 +718,7 @@ def e29_frappe_antinavire():
     """La guerre navale : les navires ennemis IDENTIFIÉS entrent sur la carte des menaces ; à moins de 400 km et hors des
     parapluies connus, ils sont la cible d'une frappe antinavire ( Strike de type Sea ) ; un frappeur qui attendait y est
     engagé ; le navire coulé, la frappe se referme sur les autres."""
-    kw = dict(EM_KW, portee_nav=lambda d: {9001: 1500.0}.get(d, 0.0), portee_mer=lambda d: 0.0)
+    kw = dict(EM_KW, portee_nav=lambda d: {9001: 1500.0}.get(d, 0.0), portee_mer=lambda d: 0.0, portee_site_mer=lambda d: 0.0)
     with guerre(navires=NAVIRES_TEST, zones_navales=ZONES_TEST, em_kw=kw) as (f, g):
         g.tour()
         russes = sorted(k for k, n in g.navires.items() if n["camp"] == "Russie-Chine")
@@ -747,6 +747,20 @@ def e30_registre_perime():
         assert k in g.avions and not any(m["numero"] == k for m in g.morts), g.morts
 
 
+def e31_antinavire_sous_parapluie():
+    """Les navires russes sous le S-400 de Gvardeïsk : AUCUN avion n'est envoyé contre eux ; la batterie NSM côtière dont
+    l'arme antinavire porte jusqu'à eux est engagée ( frappe à distance de sécurité )."""
+    kw = dict(EM_KW, portee_nav=lambda d: {9001: 1500.0}.get(d, 0.0), portee_mer=lambda d: 0.0,
+              portee_site_mer=lambda d: {9004: 300.0}.get(d, 0.0))
+    sol = T.SOL + [("Russia [1992-]", 1937, "S-400", 54.65, 21.07)]
+    with guerre(navires=NAVIRES_TEST, zones_navales=ZONES_TEST, sol=sol, em_kw=kw) as (f, g):
+        g.tour()
+        an = g.em.antinav["OTAN"]
+        nsm = next(k for k, n in g.navires.items() if n["nom"] == "NSM côtier")
+        assert an and g.affecte.get(nsm) == an["id"], (an, g.affecte.get(nsm))
+        assert not any(m == an["id"] for k, m in g.affecte.items() if k in g.avions), "un avion envoyé sous le parapluie"
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
@@ -754,7 +768,7 @@ TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_f
          e16_cadence_surge_puis_soutenue, e17_brouillard_de_guerre, e18_composante_air,
          e19_bombardiers, e20_sead_russe, e21_balayage, e22_evaluation_des_degats, e23_reconnaissance,
          e24_reserve_et_production, e25_generation_de_force, e26_apprentissage_des_forces, e27_chef_qwen,
-         e28_composante_navale, e29_frappe_antinavire, e30_registre_perime]
+         e28_composante_navale, e29_frappe_antinavire, e30_registre_perime, e31_antinavire_sous_parapluie]
 
 
 def controles():
