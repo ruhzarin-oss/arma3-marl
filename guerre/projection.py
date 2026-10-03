@@ -117,11 +117,13 @@ def acheter(w, nom, n=1):
 
 
 def libres(w, nom):
+    """Les engins du modele qui ne sont pas en traversee ( reserves jusqu a leur retour )."""
     P = _P(w)
     return [o for o, x in sorted(P["flotte"].items()) if x == nom and P["libre"].get(o, -1) <= int(w.pas)]
 
 
 def duree_h(w, nom, km=None):
+    """La duree d une traversee en heures : km / vitesse du modele, plus le roulage, la montee et l approche d un avion."""
     m = MODELES[nom]
     if km is None: km = KM_TRAVERSEE
     return km / m.vitesse_kmh + m.bloc_h

@@ -46,6 +46,7 @@ def corps(wA, numeros):
 
 
 def objectif(ile, oid):
+    """L objectif reel `oid` de la carte de l ile ( guerre/objectifs.objectifs_carte )."""
     return next(o for o in OB.objectifs_carte(ile.lower()) if o["id"] == oid)
 
 

@@ -71,6 +71,7 @@ def emporter(w, numeros):
 
 
 def coups(w, num):
+    """Les coups que porte le soldat au front `num` ( sa reserve au domaine 27 )."""
     po = _L(w)["porte"].get(int(num))
     return 0.0 if po is None else po["coups"]
 

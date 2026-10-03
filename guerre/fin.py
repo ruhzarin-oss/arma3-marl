@@ -71,6 +71,8 @@ def aptes(w):
 
 
 def capacite(w):
+    """Ce qu une ile peut encore faire : militaires aptes, jours de combat par munition, de gazole et de vivres ( stocks
+    de l ile / besoins d un jour de combat de ses garnisons ), vehicules en service, objectifs reels touches, blocus."""
     p = _p(w); a = A._dom(p); V = a.veh
     st = stocks_ile(w); carb, mun, rat = besoins_ile(w)
     jours_mun = {k: (st.get(k, 0.0) / q if q > EPS else None) for k, q in sorted(mun.items())}
@@ -97,6 +99,8 @@ def peut_combattre(w):
 
 
 def volonte(w):
+    """Ce que la population et l armee endurent, sans seuil : moral civil et militaire, menages affames, morts au combat
+    ( et pour 1 000 habitants ), part des recettes de l Etat depensee en armes."""
     p = _p(w); tb = w.table; n = tb.n; col = p.colonnes["habitant"]
     viv = tb.vivant[:n] == 1
     out = {}
@@ -118,5 +122,6 @@ def volonte(w):
 
 
 def etat(w):
+    """L etat de guerre d une ile : peut-elle encore combattre ( et pourquoi pas ), sa capacite, sa volonte."""
     ok, raison = peut_combattre(w)
     return {"jour": int(w.jour), "peut_combattre": ok, "raison": raison, "capacite": capacite(w), "volonte": volonte(w)}
