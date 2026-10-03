@@ -828,6 +828,35 @@ def e34_helicopteres_appui():
         assert not any(ap and g.affecte.get(k) == ap["id"] for k in helis), "hélicoptère envoyé sous le S-400"
 
 
+def e35_stocks_nationaux_de_munitions():
+    """Les STOCKS NATIONAUX : la Pologne n'a que 2 JASSM-ER ; le réarmement DEAD n'en achète qu'un chargement ( 1 avion
+    réarmé au lieu de 2 ), le stock tombe à 0, et sans production il ne remonte pas ; avec une production, il remonte."""
+    noms = lambda lo: {33510: [("AGM-158B JASSM-ER", 2), ("AIM-9X", 2)]}.get(lo, [])        # noqa: E731
+    with guerre(flottes=FLOTTES_EM, sol=SOL_EM, stocks={("Poland", r"JASSM-ER"): (2, 0)}, noms_armes=noms) as (f, g):
+        g.caisse["Poland"] = 1000.0
+        g.verse["Poland"] += 1000.0
+        g.tour()
+        dead = [k for k, a in g.avions.items() if a["pays"] == "Poland" and a["role"] == "dead"]
+        assert len(dead) == 1 and g.stocks_mun["Poland|JASSM-ER"][0] == 0, (dead, g.stocks_mun)
+        g.stocks_mun["Poland|JASSM-ER"][1] = 2.0 * 30 * 24 * 60 / g.periode_min       # 2 par tour
+        g.tour()
+        assert g.stocks_mun["Poland|JASSM-ER"][0] >= 2 - 1e-9 or len([k for k, a in g.avions.items() if a["role"] == "dead"]) >= 2
+
+
+def e36_forces_terrestres_2026():
+    """Les forces terrestres réelles de 2026 sont posées UNE fois par le complément ; un lance-roquettes désigné par son
+    rôle ( et non par la liste LANCEURS du théâtre ) est un lanceur pour les frappes et l'appui."""
+    s26 = [("Poland", 5244, "Homar-K, 1re brigade d'artillerie", 54.21, 21.74), ("Russia [1992-]", 1918, "T-90A de réserve", 54.71, 20.60)]
+    with guerre(sol_2026=s26, roles_terre={5244: "lanceur", 1918: "blinde"}) as (f, g):
+        g.tour()
+        assert len(g.completer_sol()) == 2 and len(g.completer_sol()) == 0, g.sol_noms
+        homar = next(k for k, s in g.sol.items() if s.get("nom", "").startswith("Homar-K"))
+        assert 5244 in g.lanceurs and g.roles_terre[5244] == "lanceur"
+        f.detruire(homar)
+        g.tour()
+        assert homar not in g.sol and len(g.completer_sol()) == 0, "une unité détruite reposée"
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
@@ -836,7 +865,8 @@ TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_f
          e19_bombardiers, e20_sead_russe, e21_balayage, e22_evaluation_des_degats, e23_reconnaissance,
          e24_reserve_et_production, e25_generation_de_force, e26_apprentissage_des_forces, e27_chef_qwen,
          e28_composante_navale, e29_frappe_antinavire, e30_registre_perime, e31_antinavire_sous_parapluie,
-         e32_manoeuvre_terrestre, e33_appui_feu, e34_helicopteres_appui]
+         e32_manoeuvre_terrestre, e33_appui_feu, e34_helicopteres_appui, e35_stocks_nationaux_de_munitions,
+         e36_forces_terrestres_2026]
 
 
 def controles():
@@ -934,6 +964,8 @@ def controles():
          ("l'état-major lit les dégâts réels", e22_evaluation_des_degats, (GR.GuerreReelle, "op_percu", lambda self, camp, i: self.bases[i]["op"])),
          ("un avion s'achète en guerre", e24_reserve_et_production, (GR.GuerreReelle, "_remplacer", remplacer_sans_reserve)),
          ("le registre périmé n'est pas refait", e30_registre_perime, (CL.Labo, "recenser", lambda self: 0)),
+         ("les stocks nationaux ne limitent rien", e35_stocks_nationaux_de_munitions, (GR.GuerreReelle, "packs_permis",
+                                                                                      lambda self, pays, lo, packs: packs)),
          ("on attaque sans le rapport de forces", e32_manoeuvre_terrestre, (EM.EtatMajor, "RAPPORT_ATTAQUE", 0.1)),
          ("pas d'appui feu", e33_appui_feu, (EM.EtatMajor, "appui", lambda self, ci, camp: ([], []))),
          ("pas de frappe antinavire", e29_frappe_antinavire, (EM.EtatMajor, "antinavire", lambda self, ci, camp: ([], []))),

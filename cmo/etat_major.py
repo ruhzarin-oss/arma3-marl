@@ -223,7 +223,7 @@ class EtatMajor:
         libres = libres[:len(libres) // 2 * 2]
         positions = [self._position(k) for k in cibles]
         lanceurs = sorted(k for k, s in g.sol.items() if s["camp"] == camp and g.affecte.get(k) not in (mid, -1)
-                          and s["dbid"] in getattr(g.T, "LANCEURS", set())
+                          and s["dbid"] in g.lanceurs
                           and any(p and km(s["pos"], p) <= self._p("sol", s["dbid"]) for p in positions))
         lanceurs += sorted(k for k, n in g.navires.items() if n["camp"] == camp and n["role"] == "lance_missiles"
                            and g.affecte.get(k) not in (mid, -1)

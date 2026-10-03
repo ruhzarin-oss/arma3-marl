@@ -246,3 +246,13 @@ OBJECTIFS_TERRE = {
     "OTAN": {"attaque": [("Goussev ( 11e corps, Iskander )", 54.59, 22.20, 1.0)],
              "tenir": [("Passage de Suwałki", 54.15, 23.20, 1.0), ("Vilnius", 54.69, 25.28, 0.8)]},
 }
+
+
+# LES FORCES TERRESTRES RÉELLES DE 2026 ( 03/10, theatres/forces_terre_2026.py : recherche sourcée, DB3000 relue ; une
+# ligne = une compagnie ou une batterie ; les doublons possibles avec les sites sol-air déjà posés sont écartés ; les pays
+# hors du théâtre ( Canada, France ) aussi ). Posées une fois par le complément ( completer_sol ).
+from theatres import forces_terre_2026 as _FT                  # noqa: E402
+SOL_2026 = [(p, d, n, la, lo) for p, d, n, la, lo, r in _FT.SOL_2026 if "DOUBLON" not in n and p in PAYS]
+ROLES_TERRE = {**ROLES_TERRE, **{d: r for d, r in _FT.ROLES_TERRE.items() if r in ("blinde", "mecanise", "infanterie",
+                                                                               "artillerie", "lanceur")}}
+STOCKS_MUNITIONS = {k: v for k, v in _FT.STOCKS_MUNITIONS.items() if v[0] is not None and k[0] in PAYS}

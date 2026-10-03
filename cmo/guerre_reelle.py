@@ -160,6 +160,18 @@ def repartition(n, part, c):
     return [("frappe", n_fr), ("aa", 2 * ((n - n_fr) // 2))]
 
 
+def noms_armes_db():
+    """{ chargement : [ ( nom de l'arme, nombre ) ] } paresseux, lu dans la DB3000 ( pour les stocks nationaux )."""
+    import munitions as M
+    cache = {}
+
+    def noms(loadout):
+        if loadout not in cache:
+            cache[loadout] = [(a["nom"], a["n"]) for a in M.armes(loadout)]
+        return cache[loadout]
+    return noms
+
+
 def prix_pack_db():
     import munitions as M
     cache = {}
@@ -200,7 +212,8 @@ class GuerreReelle:
     def __init__(self, theatre="baltique_reel", *, labo=None, labo_kw=None, periode_min=1.0, installations=None,
                  flottes=None, sol=None, classer=None, chargements=None, prix_pack=None, prix_arme=None, em_kw=None,
                  readytime=None, brouillard=True, reserve=None, generation=True, chef=None, dossier=None,
-                 navires=None, zones_navales=None, roles_terre=None, objectifs_terre=None):
+                 navires=None, zones_navales=None, roles_terre=None, objectifs_terre=None, sol_2026=None, stocks=None,
+                 noms_armes=None):
         self.T = importlib.import_module(f"theatres.{theatre}")
         self.camps, self.pays = tuple(self.T.CAMPS), list(self.T.PAYS)
         self.installations = list(installations if installations is not None else self.T.INSTALLATIONS)
@@ -215,6 +228,13 @@ class GuerreReelle:
         self.objectifs_terre = dict(objectifs_terre if objectifs_terre is not None else getattr(self.T, "OBJECTIFS_TERRE", {}))
         for d in getattr(self.T, "LANCEURS", set()):
             self.roles_terre.setdefault(d, "lanceur")
+        self.lanceurs = set(getattr(self.T, "LANCEURS", set())) | {d for d, r in self.roles_terre.items() if r == "lanceur"}
+        self.sol_2026 = list(sol_2026 if sol_2026 is not None else getattr(self.T, "SOL_2026", []))
+        self.sol_noms = set()                            # les noms des unités au sol déjà posées ( complément sans doublon )
+        # LES STOCKS NATIONAUX DE MUNITIONS ( 03/10 ) : ( pays, motif du nom d'arme ) -> [ stock, production par mois ]
+        self.stocks_mun = {f"{p}|{m}": [float(v[0]), float(v[1] or 0)] for (p, m), v in
+                           (stocks if stocks is not None else getattr(self.T, "STOCKS_MUNITIONS", {})).items()}
+        self.noms_armes = noms_armes or noms_armes_db()
         self.classer = classer or classer_db()
         self.charg = chargements if chargements is not None else chargements_db(self.flottes)
         self.prix_pack = prix_pack or prix_pack_db()
@@ -427,6 +447,7 @@ class GuerreReelle:
                 restes.append(dict(x, code=r["refus"].get(k)))
         self.refus_construction = [x for x in restes if x.get("genre") != "avion"] + ajoute["refus"]
         ajoute["navires"] = len(self.completer_navires())
+        ajoute["sol_2026"] = len(self.completer_sol())
         return ajoute
 
     def _enregistrer(self, i, f, camp, pays, role, el):
@@ -533,6 +554,27 @@ class GuerreReelle:
             self.refus_construction.append({"genre": "navire", "numero": k, "code": code, **(n or {})})
         return sorted(r["poses"])
 
+    def completer_sol(self):
+        """Les forces terrestres réelles de 2026 ( SOL_2026 ) jamais posées le sont, UNE fois ( par nom ) : une unité posée puis
+        détruite n'est pas reposée."""
+        poses = self.sol_noms | {s.get("nom") for s in self.sol.values()}
+        lots, noms = {}, {}
+        for pays, dbid, nom, la, lo in self.sol_2026:
+            if nom in poses or pays not in self.pays:
+                continue
+            k = self._numero(DEC_SOL, pays)
+            self.sol[k] = {"pays": pays, "camp": self.camp_de_pays(pays), "dbid": dbid, "nom": nom, "pos": (la, lo)}
+            lots.setdefault((self.camp_de_pays(pays), dbid), []).append((k, la, lo))
+            noms[k] = nom
+        if not lots:
+            return []
+        r = self.labo.poser_lots([(camp, "site", dbid, poses_, 0.0, 0) for (camp, dbid), poses_ in lots.items()])
+        for k, code in r["refus"].items():
+            s = self.sol.pop(k, None)
+            self.refus_construction.append({"genre": "sol", "numero": k, "code": code, **(s or {})})
+        self.sol_noms |= set(noms.values())              # posée ou refusée : on ne la retente pas à chaque complément
+        return sorted(r["poses"])
+
     def completer_navires(self):
         """Corriger au fur et à mesure : les navires de la flotte qui n'ont jamais été posés ( ni vivants ni perdus ) le sont."""
         tenus = {}
@@ -550,7 +592,7 @@ class GuerreReelle:
     CHAMPS_ETAT = ("elements", "bases", "avions", "sol", "rang", "caisse", "verse", "depense", "stock_initial_m",
                    "a_remplacer", "pertes", "achats", "packs_achetes", "frappe", "k_frappe", "affecte", "patrouilles",
                    "refus_construction", "journal", "journal_pos", "tours", "bilans", "morts", "detruits", "altitudes",
-                   "debut", "tempo", "bda", "bda_bases", "reserve", "renforts", "navires")
+                   "debut", "tempo", "bda", "bda_bases", "reserve", "renforts", "navires", "stocks_mun", "sol_noms")
 
     def etat(self):
         e = {k: (sorted(v) if isinstance(v, set) else v) for k, v in ((k, getattr(self, k)) for k in self.CHAMPS_ETAT)}
@@ -571,6 +613,7 @@ class GuerreReelle:
         # les navires : numéros entiers et positions en tuple ( 03/10 : relus en texte à la reprise, ils manquaient au
         # relevé et chaque tour était refusé )
         self.navires = {int(k): dict(v, pos=tuple(v["pos"])) for k, v in (e.get("navires") or {}).items()}
+        self.sol_noms = set(e.get("sol_noms") or [])
         self.bda_bases = {c: [int(i) for i in (e.get("bda_bases") or {}).get(c, [])] for c in self.camps}
         if e.get("em"):
             self.em.charger(e["em"])
@@ -732,6 +775,26 @@ class GuerreReelle:
             cle = f"{p}|{d}"
             if cle in self.reserve:
                 self.reserve[cle] += par_mois * self.periode_min / (30 * 24 * 60)
+        for v in self.stocks_mun.values():                # les munitions sortent d'usine au rythme réel
+            v[0] += v[1] * self.periode_min / (30 * 24 * 60)
+
+    def packs_permis(self, pays, lo, packs):
+        """Combien de chargements complets le STOCK NATIONAL permet ( 03/10 : JASSM, Kh-101, Kalibr… s'épuisent en quelques
+        jours dans une vraie guerre ) ; le stock est débité. Une arme sans stock connu n'est limitée que par l'argent."""
+        import re as _re
+        lim = packs
+        besoins = []
+        for nom, n in self.noms_armes(lo) or []:
+            for cle, v in self.stocks_mun.items():
+                p, motif = cle.split("|", 1)
+                if p == pays and _re.search(motif, nom or ""):
+                    besoins.append((v, n))
+                    lim = min(lim, int(v[0] // max(1, n)))
+                    break
+        lim = max(0, lim)
+        for v, n in besoins:
+            v[0] -= lim * n
+        return lim
 
     def _engager(self):
         """La génération de force : ce que l'état-major de chaque camp décide d'engager part de la réserve et arrive au
@@ -818,6 +881,7 @@ class GuerreReelle:
                 packs = CIBLE_PACKS * n - dispo
                 payeur = b["pays"]
                 packs = min(packs, int(self.caisse[payeur] // cout)) if cout > 0 else packs
+                packs = self.packs_permis(payeur, lo, packs) if packs > 0 else packs
                 if packs <= 0:
                     continue
                 self.caisse[payeur] -= packs * cout
@@ -943,6 +1007,10 @@ class GuerreReelle:
                 manque = PACKS_INITIAUX if dispo < 1 else 0  # de quoi armer cet avion : un lot ; la réserve, au relevé
                 if manque and self.caisse[a["pays"]] < manque * cout:
                     continue
+                if manque:
+                    manque = self.packs_permis(a["pays"], lo, manque)
+                    if manque < 1:
+                        continue                         # le stock national est vide : pas de réarmement
                 if manque:
                     self.caisse[a["pays"]] -= manque * cout
                     self.depense[a["pays"]] += manque * cout
