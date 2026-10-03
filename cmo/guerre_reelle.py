@@ -126,7 +126,8 @@ def chargements_db(flottes):
 MOTIFS_ROLE = {"reco": (r"^Recon", r"Battlefield Surveillance"), "elint": (r"ELINT",),
                "guet": (r"Airborne Early Warning",), "ravitailleur": (r"^Tanker",), "brouilleur": (r"Offensive ECM",),
                "sead": (r"AARGM", r"HARM", r"ALARM", r"Kh-31P|Kh-58"),
-               "bombardier": (r"Kh-101", r"JASSM-ER", r"Kh-32", r"Kh-555", r"Kh-22MA INS", r"JASSM")}
+               "bombardier": (r"Kh-101", r"JASSM-ER", r"Kh-32", r"Kh-555", r"Kh-22MA INS", r"JASSM"),
+               "helico": (r"JAGM", r"Hellfire", r"LMUR", r"Vikhr|Scallion", r"Ataka|Spiral")}
 JAMAIS = r"Nuclear|kT\b|Kh-102|Inert"                    # jamais d'arme nucléaire ni de munition inerte
 
 

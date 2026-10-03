@@ -44,10 +44,13 @@ PRESENTS = [
     ("Russia [1992-]", 8324, 20),               # Orion
     ("Belarus [1992-]", 7695, 16),              # Su-30SM / SM2
     ("Belarus [1992-]", 5909, 20),              # MiG-29 actifs ( ~32 sur le papier )
+    ("United States", 7913, 24),                # AH-64E d'une brigade d'aviation de combat en rotation
+    ("Russia [1992-]", 5072, 20),               # Ka-52M ( 15e brigade, Ostrov ; l'essentiel en Ukraine )
+    ("Russia [1992-]", 8100, 10),               # Mi-28NM
 ]
 
 # Disponibilité technique ( part des avions présents en état de voler ), premier motif qui correspond
-DISPO = [(r"F-35", 0.50), (r"F-16", 0.70), (r"F/A-18|Hornet", 0.75), (r"Gripen|JAS 39", 0.80), (r"Typhoon|EF2000|Eurofighter", 0.65),
+DISPO = [(r"AH-64|Ka-52|Mi-28", 0.70), (r"F-35", 0.50), (r"F-16", 0.70), (r"F/A-18|Hornet", 0.75), (r"Gripen|JAS 39", 0.80), (r"Typhoon|EF2000|Eurofighter", 0.65),
          (r"Tornado", 0.60), (r"MiG-29|MiG-31", 0.60), (r"^Su-", 0.65), (r"FA-50", 0.75), (r"Tu-|B-52|B-1", 0.60), (r"", 0.70)]
 
 # Production par mois qui renforce la réserve d'un pays en guerre ( à valider )

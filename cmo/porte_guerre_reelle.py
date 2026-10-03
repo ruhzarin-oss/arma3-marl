@@ -36,12 +36,13 @@ CHARG = {7087: {"aa": 7453, "frappe": 7492, "prix_m": 45, "nom": "F-16"},
          7611: {"aa": None, "frappe": None, "sead": 34933, "prix_m": 30, "nom": "Tornado ECR"},
          7023: {"aa": None, "frappe": None, "bombardier": 2324, "prix_m": 90, "nom": "Tu-95MSM"},
          7473: {"aa": None, "frappe": None, "reco": 8600, "prix_m": 32, "nom": "MQ-9A"},
-         5832: {"aa": None, "frappe": None, "elint": 8824, "prix_m": 150, "nom": "RC-135V"}}
+         5832: {"aa": None, "frappe": None, "elint": 8824, "prix_m": 150, "nom": "RC-135V"},
+         7913: {"aa": None, "frappe": None, "helico": 26111, "prix_m": 35, "nom": "AH-64E"}}
 LOADOUTS = {7453: [(897, 4), (945, 2)], 7492: [(1001, 2), (945, 2)], 19291: [(2056, 2), (2053, 2)], 27000: [(1002, 4)],
             33510: [(3000, 2), (945, 2)], 8076: [], 19801: [], 22929: [(4000, 2)], 34933: [(4001, 2)], 2324: [(5000, 6)],
-            26997: [(5001, 4)], 8600: [], 8824: []}
+            26997: [(5001, 4)], 8600: [], 8824: [], 26111: [(5002, 8)]}
 PRIX_ARME = {897: 1.0, 945: 0.45, 1001: 0.03, 2056: 0.6, 2053: 0.2, 1002: 0.02, 3000: 1.5, 4000: 1.2, 4001: 0.8, 5000: 13.0,
-             5001: 0.6}
+             5001: 0.6, 5002: 0.25}
 # L'état-major : portées réelles de la DB3000 injectées ( S-400 215 km en l'air ; ATACMS 162 km, Iskander 270 km au sol ),
 # le chargement DEAD du F-16 ( JASSM-ER, 33510 ), 60 min de préparation.
 PORTEE_AIR, PORTEE_SOL = {1937: 215.0}, {3659: 162.0, 254: 270.0}
@@ -798,6 +799,25 @@ def e33_appui_feu():
         assert f.lua(f"local m = FAUX.missions['OTAN/HMT-F{ap['id']}'] return m and m.type") == "Land"
 
 
+def e34_helicopteres_appui():
+    """Les hélicoptères d'attaque ( AH-64E ) appuient les troupes : contre les T-90 connus à découvert près de l'Abrams,
+    la frappe d'appui les engage ; sous un parapluie sol-air connu, jamais."""
+    fl = T.FLOTTES + [("Test/Malbork.inst", "Poland", 7913, 2, "helico")]
+    with guerre(sol=SOL_TERRE, roles_terre=ROLES_TEST, objectifs_terre=OBJ_TEST, flottes=fl) as (f, g):
+        g.tour()
+        g.tour()
+        ap = g.em.appui_cours["OTAN"]
+        helis = [k for k, a in g.avions.items() if a["role"] == "helico"]
+        assert ap and len(helis) == 2 and all(g.affecte.get(k) == ap["id"] for k in helis), (ap, helis, g.affecte)
+    sol = SOL_TERRE + [("Russia [1992-]", 1937, "S-400", 54.55, 22.30)]
+    with guerre(sol=sol, roles_terre=ROLES_TEST, objectifs_terre=OBJ_TEST, flottes=fl) as (f, g):
+        g.tour()
+        g.tour()
+        ap = g.em.appui_cours["OTAN"]
+        helis = [k for k, a in g.avions.items() if a["role"] == "helico"]
+        assert not any(ap and g.affecte.get(k) == ap["id"] for k in helis), "hélicoptère envoyé sous le S-400"
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
@@ -806,7 +826,7 @@ TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_f
          e19_bombardiers, e20_sead_russe, e21_balayage, e22_evaluation_des_degats, e23_reconnaissance,
          e24_reserve_et_production, e25_generation_de_force, e26_apprentissage_des_forces, e27_chef_qwen,
          e28_composante_navale, e29_frappe_antinavire, e30_registre_perime, e31_antinavire_sous_parapluie,
-         e32_manoeuvre_terrestre, e33_appui_feu]
+         e32_manoeuvre_terrestre, e33_appui_feu, e34_helicopteres_appui]
 
 
 def controles():

@@ -57,6 +57,7 @@ INSTALLATIONS = [
     (BC.fichier("Engels", "Russia"), "Russie-Chine", "Russia [1992-]", "soutien"),          # Tu-160M, Tu-95MSM
     (BC.fichier("Soltsy-2", "Russia"), "Russie-Chine", "Russia [1992-]", "soutien"),        # Tu-22M3M
     (BC.fichier("Miroslawiec", "Poland"), "OTAN", "Poland", "soutien"),                     # drones MQ-9A et TB2
+    (BC.fichier("Ostrov", "Russia"), "Russie-Chine", "Russia [1992-]", "hélicoptères"),      # 15e brigade d'aviation de l'armée de terre
 ]
 
 # Les COPIES : CMO ne recrée pas un élément dont l'identifiant ( Member_GUID du fichier ) a déjà servi dans la partie, même
@@ -140,6 +141,10 @@ FLOTTES = [
     ("US-Europe/RAF Mildenhall 2021.inst", "United States", 5832, 2, "elint"),             # RC-135V Rivet Joint
     (BC.fichier("Pskov-Kresty", "Russia"), "Russia [1992-]", 2178, 2, "elint"),             # Il-20M
     (BC.fichier("Pskov-Kresty", "Russia"), "Russia [1992-]", 8324, 4, "reco"),              # Orion ( Inokhodets )
+    # les hélicoptères d'attaque, pour l'appui feu des troupes ( jamais sous un parapluie connu )
+    ("Poland/33rd Airlift Air Base-Powidz Air Base 2016.inst", "United States", 7913, 8, "helico"),  # AH-64E, brigade en rotation
+    (BC.fichier("Ostrov", "Russia"), "Russia [1992-]", 5072, 8, "helico"),                   # Ka-52M ( 15e brigade, très engagée en Ukraine )
+    (BC.fichier("Ostrov", "Russia"), "Russia [1992-]", 8100, 4, "helico"),                   # Mi-28NM
 ]
 
 # LES FORCES AU SOL ( 2026, copier le réel, À VALIDER ) : ( pays, dbid de l'unité mobile DB3000, nom, lat, lon ).
