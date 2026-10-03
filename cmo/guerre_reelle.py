@@ -197,7 +197,7 @@ def prix_arme_db():
 class GuerreReelle:
     def __init__(self, theatre="baltique_reel", *, labo=None, labo_kw=None, periode_min=1.0, installations=None,
                  flottes=None, sol=None, classer=None, chargements=None, prix_pack=None, prix_arme=None, em_kw=None,
-                 readytime=None, brouillard=True, reserve=None, generation=True):
+                 readytime=None, brouillard=True, reserve=None, generation=True, chef=None, dossier=None):
         self.T = importlib.import_module(f"theatres.{theatre}")
         self.camps, self.pays = tuple(self.T.CAMPS), list(self.T.PAYS)
         self.installations = list(installations if installations is not None else self.T.INSTALLATIONS)
@@ -243,6 +243,17 @@ class GuerreReelle:
         self.bda_bases = {c: [] for c in self.camps}     # camp -> bases adverses suivies ( dernières cibles )
         self.readytime = readytime or readytime_db()
         self.em = EM.EtatMajor(self, **(em_kw or {}))    # l'état-major : doctrine, DEAD avant OCA, escortes, apprentissage
+        self.chef = None                                 # le chef d'état-major Qwen ( chef_qwen.py ), au-dessus de l'état-major
+        if chef is not None:
+            import chef_qwen as CQ
+            savoir = None
+            try:
+                sys.path.insert(0, os.path.join(os.path.dirname(ICI), "savoir"))
+                import savoir as SV                      # la base de connaissance de CMO ( si elle est là )
+                savoir = SV.rechercher
+            except Exception:
+                savoir = None
+            self.chef = chef if not isinstance(chef, str) else CQ.ChefQwen(self, savoir=savoir, dossier=dossier)
 
     # ---- numéros
     def _numero(self, dec, pays):
@@ -493,6 +504,8 @@ class GuerreReelle:
         e = {k: (sorted(v) if isinstance(v, set) else v) for k, v in ((k, getattr(self, k)) for k in self.CHAMPS_ETAT)}
         e["em"] = self.em.etat()
         e["vus"] = self.vus                              # le renseignement du dernier tour ( affichage ; refait à chaque tour )
+        if self.chef is not None:
+            e["chef"] = self.chef.etat()
         return e
 
     def charger(self, e):
@@ -506,6 +519,8 @@ class GuerreReelle:
         self.bda_bases = {c: [int(i) for i in (e.get("bda_bases") or {}).get(c, [])] for c in self.camps}
         if e.get("em"):
             self.em.charger(e["em"])
+        if self.chef is not None and e.get("chef"):
+            self.chef.charger(e["chef"])
         self.elements, self.avions, self.sol, self.affecte = num(self.elements), num(self.avions), num(self.sol), num(self.affecte)
         self.bases = num(self.bases)
         for b in self.bases.values():
@@ -856,6 +871,11 @@ class GuerreReelle:
         if not menace:
             return None
         pire = max(menace, key=lambda i: (menace[i], -i))
+        impose = self.em.cible_imposee.get(camp)         # le chef d'état-major a désigné la cible prioritaire
+        if impose is not None:
+            impose = int(impose)
+            if impose in menace:
+                return impose
         cours = (self.frappe.get(camp) or {}).get("base")
         if cours in menace and menace[cours] >= GARDE_CIBLE * menace[pire]:
             return cours
@@ -880,6 +900,8 @@ class GuerreReelle:
         self._verser()
         self._ouvrir_reserve()
         self._produire()
+        if self.chef is not None:
+            self.chef.tour()                             # décisions stratégiques arrivées, bilans, nouvelles demandes
         if self.generation and self.tours % EM.ENGAGER_TOURS == 1:
             self._engager()
         achats = self._remplacer()

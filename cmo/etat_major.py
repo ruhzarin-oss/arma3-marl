@@ -95,6 +95,11 @@ class EtatMajor:
         self.ratio = {c: dict(RATIO_DEPART) for c in g.camps}     # appris ( étape 3 )
         self.valeur = {}                                 # « dbid|rôle » -> valeur apprise d'un type dans un rôle ( 1 au départ )
         self.dernier_bilan = {c: 0 for c in g.camps}     # tour du dernier bilan d'apprentissage des forces
+        # les leviers STRATÉGIQUES du chef d'état-major ( Qwen, chef_qwen.py ) : cible prioritaire, multiplicateurs des
+        # ratios, réserves gardées
+        self.cible_imposee = {c: None for c in g.camps}
+        self.mult_chef = {c: {"aa": 1.0, "frappe": 1.0} for c in g.camps}
+        self.reserves_gardees = {c: False for c in g.camps}
 
     # ---- mémoire des portées ( la DB est lente : une lecture par type )
     def _p(self, quoi, dbid):
@@ -459,8 +464,9 @@ class EtatMajor:
         for r in g.renforts:
             if g.camp_de_pays(r["pays"]) == camp and r["role"] in tenus:
                 tenus[r["role"]] += r["n"]
-        return {"aa": (max(2 * mes_bases, math.ceil(self.ratio[camp]["aa"] * menace)), tenus["aa"]),
-                "frappe": (max(4, math.ceil(self.ratio[camp]["frappe"] * cibles)), tenus["frappe"]),
+        m = self.mult_chef.get(camp, {"aa": 1.0, "frappe": 1.0})
+        return {"aa": (max(2 * mes_bases, math.ceil(self.ratio[camp]["aa"] * m["aa"] * menace)), tenus["aa"]),
+                "frappe": (max(4, math.ceil(self.ratio[camp]["frappe"] * m["frappe"] * cibles)), tenus["frappe"]),
                 "_menace_air": menace}
 
     def apprendre_forces(self, camp):
@@ -517,7 +523,7 @@ class EtatMajor:
         par paires, au plus MAX_PAR_DECISION par rôle ; vers la base d'attache de la flotte, ou la plus proche qui tient."""
         g, out = self.g, []
         bes = self.besoins(camp)
-        for role in ("aa", "frappe"):
+        for role in (() if self.reserves_gardees.get(camp) else ("aa", "frappe")):   # le chef peut garder ses réserves
             besoin, tenu = bes[role]
             manque = min(MAX_PAR_DECISION, max(0, besoin - tenu))
             cand = []
@@ -578,6 +584,7 @@ class EtatMajor:
     def etat(self):
         return {"part_dead": self.part_dead, "efficacite": self.efficacite, "k": self.k,
                 "zones": {str(i): list(p) for i, p in self.zones.items()}, "ratio": self.ratio, "valeur": self.valeur, "dernier_bilan": self.dernier_bilan,
+                "cible_imposee": self.cible_imposee, "mult_chef": self.mult_chef, "reserves_gardees": self.reserves_gardees,
                 "memoire": {c: {str(k): v for k, v in m.items()} for c, m in self.memoire.items()}, "avant_guerre": self.avant_guerre,
                 "missions": {str(i): dict(m, avions=sorted(m["avions"])) for i, m in self.missions.items()},
                 "journal": self.journal[-200:]}
@@ -592,5 +599,8 @@ class EtatMajor:
         self.ratio = e.get("ratio") or self.ratio
         self.valeur = e.get("valeur") or {}
         self.dernier_bilan = e.get("dernier_bilan") or self.dernier_bilan
+        self.cible_imposee = e.get("cible_imposee") or self.cible_imposee
+        self.mult_chef = e.get("mult_chef") or self.mult_chef
+        self.reserves_gardees = e.get("reserves_gardees") or self.reserves_gardees
         if e.get("memoire") is not None:
             self.memoire = {c: {int(k): v for k, v in m.items()} for c, m in e["memoire"].items()}

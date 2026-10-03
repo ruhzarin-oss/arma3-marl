@@ -18,6 +18,8 @@ import cmo_labo as CL                                     # noqa: E402
 import etat_major as EM                                  # noqa: E402
 import guerre_reelle as GR                                # noqa: E402
 import inventaires as INV                                 # noqa: E402
+import chef_qwen as CQ                                    # noqa: E402
+import json                                               # noqa: E402
 import porte_cmo as P                                     # noqa: E402
 from faux_cmo import FauxCMO                              # noqa: E402
 from theatres import papier_reel as T                     # noqa: E402
@@ -634,13 +636,51 @@ def e26_apprentissage_des_forces():
         assert abs(em.ratio["OTAN"]["aa"] - 3.0) < 1e-9, em.ratio                 # borne haute ( à valider )
 
 
+def e27_chef_qwen():
+    """Le chef d'état-major ( Qwen, ici un faux qui répond comme lui ) : à la période, il reçoit la situation et trois modes
+    d'action JOUÉS sur la copie ( prévisions ) ; sa décision, BORNÉE ( multiplicateur 3 ramené à 2 ), devient la cible
+    prioritaire et les ratios de l'état-major ; une réponse illisible laisse « poursuivre » ; à l'horizon, le résultat
+    obtenu est comparé à la prévision et l'estimateur se recale."""
+    import chef_qwen as CQ
+    vus = []
+
+    def faux(messages):
+        vus.append(json.loads(messages[1]["content"]))
+        if len(vus) == 1:
+            russe = next(b["index"] for b in vus[0]["situation"]["bases_adverses"])
+            return json.dumps({"mode": "concentrer", "raison": "la base russe concentre la menace", "cible": russe,
+                               "mult_aa": 1.0, "mult_frappe": 3.0, "reserves": "engager"})
+        return "ce n'est pas du JSON"
+    with guerre() as (f, g):
+        g.chef = CQ.ChefQwen(g, appeler=faux)
+        g.tour()
+        g.tour()                                          # tour 2 : les deux camps demandent
+        for th in g.chef.en_cours.values():
+            th.join(5)
+        g.tour()                                          # tour 3 : décisions appliquées
+        modes = vus[0]["modes_d_action"]
+        assert [m["id"] for m in modes] == ["poursuivre", "concentrer", "defendre"] and all("prevision" in m for m in modes)
+        decs = {d["camp"]: d["decision"] for d in g.chef.decisions}
+        russe = next(i for i, b in g.bases.items() if b["camp"] == "Russie-Chine")
+        ot = decs["OTAN"] if decs["OTAN"]["id"] == "concentrer" else decs["Russie-Chine"]
+        autre = decs["Russie-Chine"] if ot is decs["OTAN"] else decs["OTAN"]
+        assert ot["mult_frappe"] == 2.0 and ot["valide"] and autre["id"] == "poursuivre" and not autre["valide"], decs
+        assert g.em.mult_chef[[c for c, d in decs.items() if d is ot][0]]["frappe"] == 2.0
+        if decs["OTAN"] is ot:
+            assert g.em.cible_imposee["OTAN"] == russe and g.frappe["OTAN"]["base"] == russe
+        for _ in range(CQ.HORIZON_TOURS):
+            g.tour()
+        assert all(d["bilan"] is not None for d in g.chef.decisions[:2]), [d["bilan"] for d in g.chef.decisions]
+        assert any("bilan_chef" in x for x in g.em.journal)
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
          e13_rearmement_rate_rend_l_ancien_chargement, e14_cible_la_plus_menacante, e15_swing_role,
          e16_cadence_surge_puis_soutenue, e17_brouillard_de_guerre, e18_composante_air,
          e19_bombardiers, e20_sead_russe, e21_balayage, e22_evaluation_des_degats, e23_reconnaissance,
-         e24_reserve_et_production, e25_generation_de_force, e26_apprentissage_des_forces]
+         e24_reserve_et_production, e25_generation_de_force, e26_apprentissage_des_forces, e27_chef_qwen]
 
 
 def controles():
@@ -725,6 +765,8 @@ def controles():
          ("pas de balayage", e21_balayage, (EM, "SOUTIEN", {k: v for k, v in EM.SOUTIEN.items() if k != "balayage"})),
          ("l'état-major lit les dégâts réels", e22_evaluation_des_degats, (GR.GuerreReelle, "op_percu", lambda self, camp, i: self.bases[i]["op"])),
          ("un avion s'achète en guerre", e24_reserve_et_production, (GR.GuerreReelle, "_remplacer", remplacer_sans_reserve)),
+         ("la décision du chef n'est pas appliquée", e27_chef_qwen, (CQ.ChefQwen, "appliquer", lambda self: None)),
+         ("le chef dépasse ses bornes", e27_chef_qwen, (CQ, "MULT_MAX", 5.0)),
          ("l'état-major n'apprend rien de ses pertes", e26_apprentissage_des_forces, (EM.EtatMajor, "apprendre_forces", lambda self, camp: None)),
          ("le moteur n'engage rien", e25_generation_de_force, (EM.EtatMajor, "engager", lambda self, camp: [])),
          ("la menace n'est pas lue", e25_generation_de_force, (EM, "PORTEE_MENACE_AIR_KM", 0.0)),

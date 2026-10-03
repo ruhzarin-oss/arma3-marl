@@ -35,7 +35,7 @@ DOSSIER = os.path.join(CL.ETAT, "cmo_reelle")
 
 class EnduranceReelle:
     def __init__(self, heures, theatre="baltique_reel", *, dossier=None, periode_s=60.0, guerre_kw=None, labo_kw=None,
-                 reprendre=None, completer=False):
+                 reprendre=None, completer=False, chef_qwen=False):
         self.dossier = dossier or os.path.join(DOSSIER, time.strftime("%Y%m%d_%H%M%S"))
         os.makedirs(self.dossier, exist_ok=True)
         self.duree, self.theatre, self.periode = 3600 * heures, theatre, periode_s
@@ -46,6 +46,7 @@ class EnduranceReelle:
         self.tirs = []                                   # ( secondes, { camp : munitions tirées } )
         self.reprendre = reprendre                       # dossier d'une endurance précédente : son theatre.json
         self.completer = completer                       # ajouter ce que la construction n'avait pas posé
+        self.chef_qwen = chef_qwen                       # Qwen chef d'état-major au-dessus de l'état-major ( chef_qwen.py )
 
     def noter(self, quoi, **d):
         with open(os.path.join(self.dossier, "tours.jsonl"), "a") as g:
@@ -70,6 +71,8 @@ class EnduranceReelle:
         self.t0 = time.time()
         fin, stop = self.t0 + self.duree, os.path.join(self.dossier, "STOP")
         try:
+            if self.chef_qwen:
+                self.guerre_kw = dict(self.guerre_kw, chef="qwen", dossier=self.dossier)
             self.g = GR.GuerreReelle(self.theatre, periode_min=self.periode / 60.0, labo_kw=dict(
                 {"patience": 60.0, "battement_max": 30.0, "patience_ouverture": 120.0}, **self.labo_kw), **self.guerre_kw)
             t = time.monotonic()
@@ -184,5 +187,6 @@ if __name__ == "__main__":
     h = float(sys.argv[sys.argv.index("--heures") + 1]) if "--heures" in sys.argv else 6.0
     th = sys.argv[sys.argv.index("--theatre") + 1] if "--theatre" in sys.argv else "baltique_reel"
     rep = sys.argv[sys.argv.index("--reprendre") + 1] if "--reprendre" in sys.argv else None
-    print(json.dumps(EnduranceReelle(h, th, reprendre=rep, completer="--completer" in sys.argv).tourner(),
+    print(json.dumps(EnduranceReelle(h, th, reprendre=rep, completer="--completer" in sys.argv,
+                                     chef_qwen="--chef-qwen" in sys.argv).tourner(),
                      ensure_ascii=False, indent=1, default=str))
