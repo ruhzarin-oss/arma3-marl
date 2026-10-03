@@ -604,13 +604,43 @@ def e25_generation_de_force():
         assert ["Poland", 7087, "aa", attendu] == d["engage"][0][:4] and attendu >= 4, d
 
 
+def e26_apprentissage_des_forces():
+    """L'état-major apprend de ses pertes : la chasse polonaise perd 3 avions sans en abattre -> plus de chasseurs par avion
+    menaçant ; une fenêtre où les Russes perdent plus -> on redescend doucement ; la valeur des F-16 en chasse tombe avec
+    leurs pertes ; les ratios restent dans leurs bornes ( 0,5 à 3 )."""
+    with guerre() as (f, g):
+        g.tour()
+        em = g.em
+        pol = sorted(k for k, a in g.avions.items() if a["pays"] == "Poland" and a["role"] == "aa")
+        ru = sorted(k for k, a in g.avions.items() if a["pays"] != "Poland")
+
+        def perdre(ks):
+            for k in ks:
+                a = g.avions[k]
+                g.morts.append({"numero": k, "genre": "avion", "pays": a["pays"], "tour": g.tours,
+                                "cle": [None, a["pays"], a["dbid"], a["role"]]})
+        perdre(pol[:2])
+        g.detruits.append({"numero": 1, "classe": "piste", "camp": "OTAN", "inst": 0, "tour": g.tours})
+        em.apprendre_forces("OTAN")
+        assert abs(em.ratio["OTAN"]["aa"] - 1.25) < 1e-9 and em.valeur["7087|aa"] < 1.0, (em.ratio, em.valeur)
+        g.tours += 1
+        perdre(ru[:3])
+        em.apprendre_forces("OTAN")
+        assert em.ratio["OTAN"]["aa"] < 1.25, em.ratio
+        for _ in range(40):
+            g.tours += 1
+            perdre(pol[:2])
+            em.apprendre_forces("OTAN")
+        assert abs(em.ratio["OTAN"]["aa"] - 3.0) < 1e-9, em.ratio                 # borne haute ( à valider )
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
          e13_rearmement_rate_rend_l_ancien_chargement, e14_cible_la_plus_menacante, e15_swing_role,
          e16_cadence_surge_puis_soutenue, e17_brouillard_de_guerre, e18_composante_air,
          e19_bombardiers, e20_sead_russe, e21_balayage, e22_evaluation_des_degats, e23_reconnaissance,
-         e24_reserve_et_production, e25_generation_de_force]
+         e24_reserve_et_production, e25_generation_de_force, e26_apprentissage_des_forces]
 
 
 def controles():
@@ -695,6 +725,7 @@ def controles():
          ("pas de balayage", e21_balayage, (EM, "SOUTIEN", {k: v for k, v in EM.SOUTIEN.items() if k != "balayage"})),
          ("l'état-major lit les dégâts réels", e22_evaluation_des_degats, (GR.GuerreReelle, "op_percu", lambda self, camp, i: self.bases[i]["op"])),
          ("un avion s'achète en guerre", e24_reserve_et_production, (GR.GuerreReelle, "_remplacer", remplacer_sans_reserve)),
+         ("l'état-major n'apprend rien de ses pertes", e26_apprentissage_des_forces, (EM.EtatMajor, "apprendre_forces", lambda self, camp: None)),
          ("le moteur n'engage rien", e25_generation_de_force, (EM.EtatMajor, "engager", lambda self, camp: [])),
          ("la menace n'est pas lue", e25_generation_de_force, (EM, "PORTEE_MENACE_AIR_KM", 0.0)),
          ("pas de reconnaissance", e23_reconnaissance, (EM, "SOUTIEN", {k: v for k, v in EM.SOUTIEN.items() if k != "reco"}))]

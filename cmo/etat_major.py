@@ -19,6 +19,11 @@ CHOIX À VALIDER PAR YOUNES : les seuils ( PART_DEAD initiale et bornes, taille 
 """
 import math
 
+
+def role_flotte(a):
+    """Le rôle d'un avion dans sa flotte ( un frappeur réarmé en DEAD ou basculé en chasse reste un frappeur )."""
+    return a.get("bascule") or ("frappe" if a["role"] == "dead" else a["role"])
+
 import doctrine as DOC
 
 PART_DEAD_DEPART, PART_DEAD_MIN, PART_DEAD_MAX = 0.5, 0.2, 0.8
@@ -53,6 +58,11 @@ ENGAGER_TOURS = 10
 RATIO_DEPART = {"aa": 1.0, "frappe": 1.0}                 # chasseurs par avion adverse menaçant ; frappeurs par cible
 MAX_PAR_DECISION = 8                                      # avions engagés par rôle et par décision : une montée en puissance
 PORTEE_MENACE_AIR_KM = 1500.0
+# L'APPRENTISSAGE DES FORCES ( étape 3 ) : à chaque décision, le bilan de la fenêtre écoulée ajuste les ratios ( bornés ) et
+# la valeur de chaque type dans chaque rôle ( sa survie ). À VALIDER : pas, bornes, seuil d'efficacité.
+PAS_FORCES = 0.25
+RATIO_MIN, RATIO_MAX = 0.5, 3.0
+EFFICACITE_MIN = 50.0                                     # % de dégâts par avion perdu en dessous duquel la frappe coûte trop
 ROLES_DEAD = ("dead", "bombardier")                       # qui part contre les défenses : armes à distance de sécurité
 ROLES_OCA = ("frappe", "dead", "bombardier")              # ciel ouvert : tous les frappeurs
 SEAD_PAR_CAMP = 2                                         # sans avions SEAD dédiés, une paire de frappeurs réarmée en antiradar
@@ -84,6 +94,7 @@ class EtatMajor:
         self.avant_guerre = False                        # les garnisons connues d'avance sont-elles sur la carte ?
         self.ratio = {c: dict(RATIO_DEPART) for c in g.camps}     # appris ( étape 3 )
         self.valeur = {}                                 # « dbid|rôle » -> valeur apprise d'un type dans un rôle ( 1 au départ )
+        self.dernier_bilan = {c: 0 for c in g.camps}     # tour du dernier bilan d'apprentissage des forces
 
     # ---- mémoire des portées ( la DB est lente : une lecture par type )
     def _p(self, quoi, dbid):
@@ -452,6 +463,54 @@ class EtatMajor:
                 "frappe": (max(4, math.ceil(self.ratio[camp]["frappe"] * cibles)), tenus["frappe"]),
                 "_menace_air": menace}
 
+    def apprendre_forces(self, camp):
+        """Le bilan de la fenêtre écoulée depuis la dernière décision, et ce que l'état-major en apprend :
+        - CHASSE : nos pertes ( avions et éléments d'installations ) supérieures aux avions adverses abattus -> plus de
+          chasseurs par avion menaçant ; l'inverse -> on redescend doucement ( économie des forces ) ; rien -> rien appris ;
+        - FRAPPE : missions closes dans la fenêtre ; des dégâts sans perte -> plus de frappeurs par cible ; des pertes pour
+          moins de EFFICACITE_MIN % de dégâts par avion perdu -> moins ;
+        - VALEUR d'un type dans un rôle : moyenne glissante de sa survie dans la fenêtre ( les types qui meurent passent
+          après les autres à l'engagement suivant ).
+        Ratios bornés à [ RATIO_MIN, RATIO_MAX ]."""
+        g = self.g
+        t0 = self.dernier_bilan.get(camp, 0)
+        dans = lambda t: t0 < t <= g.tours                                      # noqa: E731
+        avions = [m for m in g.morts if m["genre"] == "avion" and dans(m["tour"])]
+        mes_avions = [m for m in avions if g.camp_de_pays(m["pays"]) == camp]
+        leurs_avions = [m for m in avions if g.camp_de_pays(m["pays"]) != camp]
+        mes_elements = [d for d in g.detruits if d["camp"] == camp and dans(d["tour"])]
+        r = self.ratio[camp]
+        subi, inflige = len(mes_avions) + len(mes_elements), len(leurs_avions)
+        if subi > inflige:
+            r["aa"] = min(RATIO_MAX, r["aa"] * (1 + PAS_FORCES))
+        elif inflige > subi:
+            r["aa"] = max(RATIO_MIN, r["aa"] * (1 - PAS_FORCES / 3))
+        clos = [x for x in self.journal if x.get("camp") == camp and "cloture" in x and dans(x["tour"])]
+        degats, pertes = sum(x["degats"] for x in clos), sum(x["pertes"] for x in clos)
+        if clos and degats > 0 and pertes == 0:
+            r["frappe"] = min(RATIO_MAX, r["frappe"] * (1 + PAS_FORCES))
+        elif clos and pertes > 0 and degats / pertes < EFFICACITE_MIN:
+            r["frappe"] = max(RATIO_MIN, r["frappe"] * (1 - PAS_FORCES))
+        presents = {}
+        for a in g.avions.values():
+            if a["camp"] == camp:
+                cle = f'{a["dbid"]}|{role_flotte(a)}'
+                presents[cle] = presents.get(cle, 0) + 1
+        perdus = {}
+        for m in mes_avions:
+            if m.get("cle"):
+                cle = f'{m["cle"][2]}|{"frappe" if m["cle"][3] == "dead" else m["cle"][3]}'
+                perdus[cle] = perdus.get(cle, 0) + 1
+        for cle in set(presents) | set(perdus):
+            n = presents.get(cle, 0) + perdus.get(cle, 0)
+            survie = 1.0 - perdus.get(cle, 0) / n if n else 1.0
+            self.valeur[cle] = (1 - PAS_FORCES) * self.valeur.get(cle, 1.0) + PAS_FORCES * survie
+        self.dernier_bilan[camp] = g.tours
+        self.journal.append({"camp": camp, "tour": g.tours, "apprentissage": {
+            "ratio": {k: round(v, 3) for k, v in r.items()}, "subi": subi, "inflige_air": inflige,
+            "missions_closes": len(clos), "degats": round(degats, 1), "pertes_frappe": pertes,
+            "valeurs_basses": {k: round(v, 2) for k, v in self.valeur.items() if v < 0.9}}})
+
     def engager(self, camp):
         """[ ( pays, dbid, rôle, n, base ) ] : pour chaque rôle en déficit, les types de la réserve des pays du camp qui
         savent le tenir ( un chargement pour ce rôle ), le plus VALABLE d'abord ( valeur apprise ), puis le plus abondant ;
@@ -518,7 +577,7 @@ class EtatMajor:
 
     def etat(self):
         return {"part_dead": self.part_dead, "efficacite": self.efficacite, "k": self.k,
-                "zones": {str(i): list(p) for i, p in self.zones.items()}, "ratio": self.ratio, "valeur": self.valeur,
+                "zones": {str(i): list(p) for i, p in self.zones.items()}, "ratio": self.ratio, "valeur": self.valeur, "dernier_bilan": self.dernier_bilan,
                 "memoire": {c: {str(k): v for k, v in m.items()} for c, m in self.memoire.items()}, "avant_guerre": self.avant_guerre,
                 "missions": {str(i): dict(m, avions=sorted(m["avions"])) for i, m in self.missions.items()},
                 "journal": self.journal[-200:]}
@@ -532,5 +591,6 @@ class EtatMajor:
         self.avant_guerre = e.get("avant_guerre", False)
         self.ratio = e.get("ratio") or self.ratio
         self.valeur = e.get("valeur") or {}
+        self.dernier_bilan = e.get("dernier_bilan") or self.dernier_bilan
         if e.get("memoire") is not None:
             self.memoire = {c: {int(k): v for k, v in m.items()} for c, m in e["memoire"].items()}

@@ -629,6 +629,7 @@ class GuerreReelle:
         """La génération de force : ce que l'état-major de chaque camp décide d'engager part de la réserve et arrive au
         théâtre après le délai de convoyage."""
         for camp in self.camps:
+            self.em.apprendre_forces(camp)
             for pays, dbid, role, n, base in self.em.engager(camp):
                 self.reserve[f"{pays}|{dbid}"] -= n
                 self.renforts.append({"pays": pays, "dbid": dbid, "role": role, "n": n, "origine": base,
