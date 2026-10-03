@@ -265,6 +265,10 @@ class GuerreReelle:
             except Exception:
                 savoir = None
             self.chef = chef if not isinstance(chef, str) else CQ.ChefQwen(self, savoir=savoir, dossier=dossier)
+            try:
+                self.chef.commandement = SV.commandement() if savoir else None      # la fiche de commandement, fixe
+            except Exception:
+                self.chef.commandement = None
 
     # ---- numéros
     def _numero(self, dec, pays):

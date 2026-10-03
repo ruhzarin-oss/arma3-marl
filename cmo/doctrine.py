@@ -36,6 +36,8 @@ import re
 import sqlite3
 
 BASE = "/mnt/data/hmt/etat/cmo_db/DB3K_519.db3"
+NM_KM = 1.852                                             # la DB3000 donne ses portées en MILLES NAUTIQUES ( 03/10 : lues en km,
+                                                          # les parapluies étaient 1,85 fois trop courts : S-400 398 km, pas 215 )
 
 PHASES = ("superiorite", "interdiction", "appui")
 MISSIONS = {
@@ -84,12 +86,12 @@ def _armes_installation(c, fid):
 
 def portee_sol_air(dbid, base=None):
     """Portée air maximale ( km ) d'une unité au sol ou d'un élément d'installation : 0 si elle ne tire pas en l'air."""
-    return max((a for _, a, _ in _armes_installation(_c(base), dbid)), default=0.0)
+    return NM_KM * max((a for _, a, _ in _armes_installation(_c(base), dbid)), default=0.0)
 
 
 def portee_sol_sol(dbid, base=None):
     """Portée sol maximale ( km ) d'un lanceur : ATACMS 162, Iskander 270… ; 0 s'il ne frappe pas au sol."""
-    return max((s for _, _, s in _armes_installation(_c(base), dbid)), default=0.0)
+    return NM_KM * max((s for _, _, s in _armes_installation(_c(base), dbid)), default=0.0)
 
 
 def chargement(dbid, mission, base=None):
@@ -127,7 +129,7 @@ def _portee_navire(dbid, colonne, base=None):
                     out.append(w[0])
     except sqlite3.OperationalError:
         return 0.0
-    return max(out, default=0.0)
+    return NM_KM * max(out, default=0.0)
 
 
 def portee_navire_sol(dbid, base=None):
@@ -152,7 +154,7 @@ def portee_navire_sol(dbid, base=None):
                             out.append(w[0])
         except sqlite3.OperationalError:
             continue
-    return max(out, default=0.0)
+    return NM_KM * max(out, default=0.0)
 
 
 def portee_site_mer(dbid, base=None):
@@ -169,4 +171,4 @@ def portee_site_mer(dbid, base=None):
             w = c.execute("select coalesce(SurfaceRangeMax,0) from DataWeapon where ID = ?", (r[0],)).fetchone()
             if w:
                 out.append(w[0])
-    return max(out, default=0.0)
+    return NM_KM * max(out, default=0.0)

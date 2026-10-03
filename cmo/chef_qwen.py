@@ -149,9 +149,14 @@ class ChefQwen:
             m["prevision"] = self.jouer(camp, m, sit)
         fiches = []
         if self.savoir:
-            try:
-                fiches = self.savoir("doctrine campagne aérienne supériorité aérienne SEAD DEAD OCA défense aérienne réserves", 4)
-                fiches += self.savoir("commandement", 1)
+            try:                                         # la base de connaissance ( 18 944 fiches, porte du 03/10 franchie )
+                mission = (sit.get("mission_en_cours") or {}).get("type") or "oca"
+                fiches = self.savoir(f"doctrine {mission} supériorité aérienne défense aérienne réserves rapport de forces", 3)
+                fiches += self.savoir("lutte antinavire contrôle de la mer sous-marins doctrine", 1)
+                fiches += self.savoir("manœuvre terrestre rapport de forces appui feu", 1)
+                cmd = getattr(self, "commandement", None)
+                if cmd:
+                    fiches = [cmd] + fiches
             except Exception:                            # la base de connaissance est un plus, jamais une panne
                 fiches = []
         messages = [{"role": "system", "content": SYSTEME.format(camp=camp)},
