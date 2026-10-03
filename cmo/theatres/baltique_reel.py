@@ -228,3 +228,16 @@ NAVIRES = [
 # Baltiïsk ( sous-marins ) ; la Russie tient les approches de Kaliningrad et le golfe de Finlande ( ses sous-marins ).
 ZONES_NAVALES = {"OTAN": {"mer": (55.6, 18.0, 60.0), "asm": (55.2, 19.0, 35.0)},
                  "Russie-Chine": {"mer": (55.0, 19.3, 35.0), "asm": (59.95, 27.5, 30.0)}}
+
+
+# LA COMPOSANTE TERRESTRE ( 03/10 ) : rôle des unités au sol ( DB3000 ) et objectifs de chaque camp ( lat, lon, poids ).
+# Le réel : la Russie veut le passage de Suwałki ( relier Kaliningrad à la Biélorussie ) ; l'OTAN le tient, défend Vilnius et
+# menace Goussev ( 11e corps, brigade d'Iskander de Tcherniakhovsk ). CHOIX À VALIDER : objectifs, poids, rôles.
+ROLES_TERRE = {1918: "blinde", 2045: "mecanise", 1953: "artillerie", 4881: "blinde", 3516: "blinde", 3548: "artillerie",
+               2048: "artillerie", 4469: "artillerie"}
+OBJECTIFS_TERRE = {
+    "Russie-Chine": {"attaque": [("Passage de Suwałki", 54.15, 23.20, 1.0)],
+                     "tenir": [("Goussev", 54.59, 22.20, 1.0), ("Kaliningrad", 54.71, 20.51, 1.0)]},
+    "OTAN": {"attaque": [("Goussev ( 11e corps, Iskander )", 54.59, 22.20, 1.0)],
+             "tenir": [("Passage de Suwałki", 54.15, 23.20, 1.0), ("Vilnius", 54.69, 25.28, 0.8)]},
+}

@@ -199,7 +199,7 @@ class GuerreReelle:
     def __init__(self, theatre="baltique_reel", *, labo=None, labo_kw=None, periode_min=1.0, installations=None,
                  flottes=None, sol=None, classer=None, chargements=None, prix_pack=None, prix_arme=None, em_kw=None,
                  readytime=None, brouillard=True, reserve=None, generation=True, chef=None, dossier=None,
-                 navires=None, zones_navales=None):
+                 navires=None, zones_navales=None, roles_terre=None, objectifs_terre=None):
         self.T = importlib.import_module(f"theatres.{theatre}")
         self.camps, self.pays = tuple(self.T.CAMPS), list(self.T.PAYS)
         self.installations = list(installations if installations is not None else self.T.INSTALLATIONS)
@@ -209,6 +209,11 @@ class GuerreReelle:
         self.flotte_navale = list(navires if navires is not None else getattr(self.T, "NAVIRES", []))
         self.zones_navales = dict(zones_navales if zones_navales is not None else getattr(self.T, "ZONES_NAVALES", {}))
         self.navires = {}                                # numéro -> { pays, camp, dbid, nom, rôle, genre, pos }
+        # LA COMPOSANTE TERRESTRE ( 03/10 ) : rôle des unités au sol par dbid, objectifs de chaque camp
+        self.roles_terre = dict(roles_terre if roles_terre is not None else getattr(self.T, "ROLES_TERRE", {}))
+        self.objectifs_terre = dict(objectifs_terre if objectifs_terre is not None else getattr(self.T, "OBJECTIFS_TERRE", {}))
+        for d in getattr(self.T, "LANCEURS", set()):
+            self.roles_terre.setdefault(d, "lanceur")
         self.classer = classer or classer_db()
         self.charg = chargements if chargements is not None else chargements_db(self.flottes)
         self.prix_pack = prix_pack or prix_pack_db()
@@ -588,6 +593,8 @@ class GuerreReelle:
                 self.altitudes[k] = alt
                 if k in self.navires:
                     self.navires[k]["pos"] = (la, lo)
+                elif k in self.sol:
+                    self.sol[k]["pos"] = (la, lo)          # les forces terrestres manœuvrent ( 03/10 )
         for camp, ks in p["morts"].items():
             for k in ks:
                 if k in self.avions:
@@ -869,6 +876,17 @@ class GuerreReelle:
             f2, a2 = self.em.antinavire(ci, camp)
             an_f += f2
             an_a += a2
+        ordres_terre = []
+        for ci, camp in enumerate(self.camps):            # la composante terrestre : manœuvre et appui feu
+            if self.tours % EM.TERRE_TOURS == 1:
+                ordres_terre += self.em.terre(camp)
+            f3, a3 = self.em.appui(ci, camp)
+            an_f_terre = f3
+            if f3:
+                self.labo.frappes(f3, ())
+            an_a += a3
+        if ordres_terre:
+            self.labo.aller_tous(ordres_terre)
         if self.em.a_clore:
             r = self.labo.clore(self.em.a_clore)
             self.em.journal.append({"tour": self.tours, "clos": r["clos"]})

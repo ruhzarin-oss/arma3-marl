@@ -55,6 +55,7 @@ DEPLACEMENT_KM = 10.0                                     # une zone n'est redes
 # tous les ENGAGER_TOURS tours, l'état-major évalue la menace et ses besoins, puis engage depuis la réserve nationale les
 # types les plus aptes ( valeur apprise par type et rôle ). Ratios de départ ( APPRIS ensuite ) et bornes : À VALIDER.
 ENGAGER_TOURS = 10
+TERRE_TOURS = 5                                           # la manœuvre terrestre est revue tous les 5 tours
 RATIO_DEPART = {"aa": 1.0, "frappe": 1.0}                 # chasseurs par avion adverse menaçant ; frappeurs par cible
 MAX_PAR_DECISION = 8                                      # avions engagés par rôle et par décision : une montée en puissance
 PORTEE_MENACE_AIR_KM = 1500.0
@@ -94,6 +95,9 @@ class EtatMajor:
         self.a_clore = []                                # ( camp, id ) des frappes à fermer dans CMO à ce tour
         self.zones = {}                                  # id de zone -> ( lat, lon ) envoyée à CMO
         self.antinav = {c: None for c in g.camps}        # la frappe antinavire en cours de chaque camp { id, cibles }
+        self.appui_cours = {c: None for c in g.camps}    # la frappe d'appui feu terrestre en cours
+        self.k_ap = {c: 0 for c in g.camps}
+        self.ordres_terre = {}                           # numéro -> [ lat, lon ] du dernier ordre de mouvement envoyé
         self.k_an = {c: 0 for c in g.camps}
         self.portee_mer = self._portee_mer or DOC.portee_navire_mer
         self.portee_site_mer = self._portee_site_mer or DOC.portee_site_mer
@@ -474,6 +478,128 @@ class EtatMajor:
                 affect.append((zid, nouveaux))
         return zones, affect
 
+    # ---- 2 quinquies. la composante TERRESTRE ( 03/10 ) : manœuvre vers les objectifs selon le rapport de forces, appui feu
+    RAPPORT_ATTAQUE = 3.0                                # la règle du 3 contre 1 ( doctrine ) pour attaquer une position
+    RAYON_OBJECTIF_KM = 30.0                             # forces comptées autour d'un objectif
+    ARRIVE_KM = 5.0
+    POIDS_TERRE = {"blinde": 1.0, "mecanise": 0.7, "infanterie": 0.4}
+    DEC_APPUI = 4000                                     # 4 000 + camp x 100 + k
+    RAYON_APPUI_KM = 60.0
+
+    def _role_terre(self, s):
+        return self.g.roles_terre.get(s["dbid"])
+
+    def _force(self, camp, P, rayon, connue=True):
+        """La force terrestre d'un camp autour d'un point : nos unités ( vérité ) ou les unités adverses CONNUES."""
+        g, total = self.g, 0.0
+        for k, s in g.sol.items():
+            r = self._role_terre(s)
+            if r not in self.POIDS_TERRE:
+                continue
+            if s["camp"] == camp:
+                pos = s["pos"]
+            elif connue and not self._connu_terre(camp, k):
+                continue
+            else:
+                pos = self._vu_ou(camp, k, s["pos"])
+            if km(pos, P) <= rayon:
+                total += self.POIDS_TERRE[r]
+        return total
+
+    def _connu_terre(self, camp, k):
+        return (not self.g.brouillard) or k in self.memoire.get(camp, {}) or (self.g.vus.get(camp, {}).get(k, (0,))[0] >= CLASSIF_MIN)
+
+    def terre(self, camp):
+        """[ ( lat, lon, [ numéros ] ) ] : les ordres de mouvement du camp. Chaque unité de manœuvre attaque l'objectif
+        d'attaque le plus important si le rapport ( nos forces à moins de 150 km de l'objectif contre l'ennemi CONNU autour
+        de lui ) atteint RAPPORT_ATTAQUE ; sinon elle tient la position défensive la plus proche. Seuls les ordres qui
+        changent sont envoyés ; l'artillerie et les lanceurs restent en position ( ils appuient par le feu )."""
+        g = self.g
+        obj = g.objectifs_terre.get(camp) or {}
+        attaques = sorted(obj.get("attaque", []), key=lambda o: -o[3])
+        tenir = obj.get("tenir", [])
+        if not attaques and not tenir:
+            return []
+        mes = [(k, s) for k, s in sorted(g.sol.items()) if s["camp"] == camp and self._role_terre(s) in self.POIDS_TERRE]
+        ordres = {}
+        decision = {"camp": camp, "tour": g.tours, "terre": []}
+        for nom, la, lo, poids in attaques:
+            P = (la, lo)
+            nous = sum(self.POIDS_TERRE[self._role_terre(s)] for k, s in mes if km(s["pos"], P) <= 150.0)
+            eux = self._force(camp, P, self.RAYON_OBJECTIF_KM)
+            rapport = nous / max(0.5, eux)
+            decision["terre"].append({"objectif": nom, "nous": round(nous, 1), "eux_connus": round(eux, 1), "rapport": round(rapport, 1),
+                                      "ordre": "attaque" if rapport >= self.RAPPORT_ATTAQUE else "pas assez"})
+            if rapport >= self.RAPPORT_ATTAQUE:
+                for k, s in mes:
+                    if k not in ordres and km(s["pos"], P) <= 150.0:
+                        ordres[k] = P
+        for k, s in mes:
+            if k in ordres or not tenir:
+                continue
+            nom, la, lo, _ = min(tenir, key=lambda o: km(s["pos"], (o[1], o[2])))
+            ordres[k] = (la, lo)
+        par_point = {}
+        for k, P in ordres.items():
+            if km(g.sol[k]["pos"], P) <= self.ARRIVE_KM or self.ordres_terre.get(k) == list(P):
+                continue
+            self.ordres_terre[k] = list(P)
+            par_point.setdefault(P, []).append(k)
+        self.journal.append(decision)
+        return [(P[0], P[1], ks) for P, ks in par_point.items()]
+
+    def appui(self, ci, camp):
+        """( frappes, affectations ) : l'APPUI FEU contre les forces terrestres adverses CONNUES à moins de RAYON_APPUI_KM
+        de nos unités de manœuvre : frappeurs inemployés ( jamais sous un parapluie connu ), artillerie et lanceurs à
+        portée. Une frappe par camp, refermée quand il n'y a plus de cible."""
+        g = self.g
+        mes = [s["pos"] for s in g.sol.values() if s["camp"] == camp and self._role_terre(s) in self.POIDS_TERRE]
+        menaces = self.parapluies(camp)
+        cibles, decouverts = [], []
+        for k, s in g.sol.items():
+            if s["camp"] == camp or self._role_terre(s) not in ("blinde", "mecanise", "infanterie", "artillerie"):
+                continue
+            if not self._connu_terre(camp, k):
+                continue
+            P = self._vu_ou(camp, k, s["pos"])
+            if any(km(P, m) <= self.RAYON_APPUI_KM for m in mes):
+                cibles.append(k)
+                if not any(km(pos, P) <= r + MARGE_KM for _, pos, r in menaces):
+                    decouverts.append(k)
+        cibles.sort()
+        cur = self.appui_cours.get(camp)
+        frappes, affect = [], []
+        if not cibles:
+            if cur:
+                self.a_clore.append((camp, cur["id"]))
+                for k, m in list(g.affecte.items()):
+                    if m == cur["id"]:
+                        del g.affecte[k]
+                self.appui_cours[camp] = None
+            return frappes, affect
+        if not cur or set(cur["cibles"]) != set(cibles):
+            if cur:
+                self.a_clore.append((camp, cur["id"]))
+                for k, m in list(g.affecte.items()):
+                    if m == cur["id"]:
+                        del g.affecte[k]
+            self.k_ap[camp] += 1
+            cur = self.appui_cours[camp] = {"id": self.DEC_APPUI + ci * 100 + self.k_ap[camp] % 100, "cibles": cibles}
+            frappes.append((cur["id"], camp, cibles))
+        mid = cur["id"]
+        positions = [self._vu_ou(camp, k, g.sol[k]["pos"]) for k in cibles if k in g.sol]
+        avions = []
+        if decouverts:
+            avions = [k for k, a in sorted(g.avions.items()) if a["camp"] == camp and a["role"] in ("frappe", "helico")
+                      and abs(g.affecte.get(k, 0)) < 1000][: 2 * len(decouverts)]
+            avions = avions[:len(avions) // 2 * 2]
+        feux = [k for k, s in sorted(g.sol.items()) if s["camp"] == camp and self._role_terre(s) in ("artillerie", "lanceur")
+                and abs(g.affecte.get(k, 0)) < 1000 and g.affecte.get(k) != -1
+                and any(km(s["pos"], p) <= self._p("sol", s["dbid"]) for p in positions)]
+        if avions or feux:
+            affect.append((mid, avions + feux))
+        return frappes, affect
+
     DEC_ANTINAVIRE = 3000                                # 3 000 + camp x 100 + k
     PORTEE_ANTINAVIRE_KM = 400.0
 
@@ -703,7 +829,8 @@ class EtatMajor:
 
     def etat(self):
         return {"part_dead": self.part_dead, "efficacite": self.efficacite, "k": self.k,
-                "zones": {str(i): list(p) for i, p in self.zones.items()}, "antinav": self.antinav, "k_an": self.k_an, "ratio": self.ratio, "valeur": self.valeur, "dernier_bilan": self.dernier_bilan,
+                "zones": {str(i): list(p) for i, p in self.zones.items()}, "antinav": self.antinav, "k_an": self.k_an,
+                "appui_cours": self.appui_cours, "k_ap": self.k_ap, "ordres_terre": {str(k): v for k, v in self.ordres_terre.items()}, "ratio": self.ratio, "valeur": self.valeur, "dernier_bilan": self.dernier_bilan,
                 "cible_imposee": self.cible_imposee, "mult_chef": self.mult_chef, "reserves_gardees": self.reserves_gardees,
                 "memoire": {c: {str(k): v for k, v in m.items()} for c, m in self.memoire.items()}, "avant_guerre": self.avant_guerre,
                 "missions": {str(i): dict(m, avions=sorted(m["avions"])) for i, m in self.missions.items()},
@@ -716,6 +843,9 @@ class EtatMajor:
         self.journal = e.get("journal", [])
         self.zones = {int(i): tuple(p) for i, p in (e.get("zones") or {}).items()}
         self.antinav = e.get("antinav") or self.antinav
+        self.appui_cours = e.get("appui_cours") or self.appui_cours
+        self.k_ap = e.get("k_ap") or self.k_ap
+        self.ordres_terre = {int(k): v for k, v in (e.get("ordres_terre") or {}).items()}
         self.k_an = e.get("k_an") or self.k_an
         self.avant_guerre = e.get("avant_guerre", False)
         self.ratio = e.get("ratio") or self.ratio

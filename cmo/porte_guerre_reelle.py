@@ -761,6 +761,43 @@ def e31_antinavire_sous_parapluie():
         assert not any(m == an["id"] for k, m in g.affecte.items() if k in g.avions), "un avion envoyé sous le parapluie"
 
 
+SOL_TERRE = T.SOL + [("Russia [1992-]", 1918, "T-90A", 54.59, 22.20), ("Russia [1992-]", 1918, "T-90A", 54.60, 22.25),
+                     ("Russia [1992-]", 1918, "T-90A", 54.58, 22.15), ("Poland", 4881, "M1A2C", 53.90, 23.00)]
+ROLES_TEST = {1918: "blinde", 4881: "blinde"}
+OBJ_TEST = {"Russie-Chine": {"attaque": [("Suwałki", 54.15, 23.20, 1.0)], "tenir": [("Goussev", 54.59, 22.20, 1.0)]},
+            "OTAN": {"attaque": [("Goussev", 54.59, 22.20, 1.0)], "tenir": [("Suwałki", 54.15, 23.20, 1.0)]}}
+
+
+def e32_manoeuvre_terrestre():
+    """La manœuvre terrestre au rapport de forces : trois T-90 contre un Abrams loin du passage de Suwałki ( rapport >= 3 ) :
+    les Russes attaquent le passage ; l'Abrams, à 1 contre 3 face à Goussev, n'attaque pas : il va tenir le passage."""
+    with guerre(sol=SOL_TERRE, roles_terre=ROLES_TEST, objectifs_terre=OBJ_TEST) as (f, g):
+        g.tour()
+        t90 = [k for k, s in g.sol.items() if s["dbid"] == 1918]
+        abrams = next(k for k, s in g.sol.items() if s["dbid"] == 4881)
+        assert all(g.em.ordres_terre.get(k) == [54.15, 23.20] for k in t90), g.em.ordres_terre
+        assert g.em.ordres_terre.get(abrams) == [54.15, 23.20], g.em.ordres_terre
+        d = next(x for x in g.em.journal if x.get("camp") == "OTAN" and "terre" in x)
+        assert d["terre"][0]["ordre"] == "pas assez" and d["terre"][0]["rapport"] < 3, d
+        g.tour()
+        assert GR.km(g.sol[t90[0]]["pos"], (54.15, 23.20)) < 5, g.sol[t90[0]]["pos"]       # ils y sont ( le faux téléporte )
+
+
+def e33_appui_feu():
+    """L'appui feu : les T-90 connus à moins de 60 km de l'Abrams sont la cible d'une frappe d'appui ; des frappeurs qui
+    attendaient y sont engagés."""
+    with guerre(sol=SOL_TERRE, roles_terre=ROLES_TEST, objectifs_terre=OBJ_TEST) as (f, g):
+        g.tour()
+        for k in [k for k, a in g.avions.items() if a["pays"] == "Poland" and a["role"] == "frappe"]:
+            g.affecte.pop(k, None)
+        g.frappe["OTAN"] = None
+        g.tour()
+        ap = g.em.appui_cours["OTAN"]
+        t90 = sorted(k for k, s in g.sol.items() if s["dbid"] == 1918)
+        assert ap and set(t90) <= set(ap["cibles"]), (ap, t90)
+        assert f.lua(f"local m = FAUX.missions['OTAN/HMT-F{ap['id']}'] return m and m.type") == "Land"
+
+
 TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_ferme_la_base, e4_remplacer_par_paires,
          e5_racheter_les_munitions, e6_bilan_de_cmo, e7_l_argent_se_conserve, e8_reprendre_sans_reconstruire,
          e9_completer_en_cours_de_guerre, e10_mort_pendant_une_bascule, e11_dead_avant_la_frappe, e12_apprentissage_borne,
@@ -768,7 +805,8 @@ TESTS = [e1_construire_le_theatre, e2_defense_et_frappe, e3_une_piste_detruite_f
          e16_cadence_surge_puis_soutenue, e17_brouillard_de_guerre, e18_composante_air,
          e19_bombardiers, e20_sead_russe, e21_balayage, e22_evaluation_des_degats, e23_reconnaissance,
          e24_reserve_et_production, e25_generation_de_force, e26_apprentissage_des_forces, e27_chef_qwen,
-         e28_composante_navale, e29_frappe_antinavire, e30_registre_perime, e31_antinavire_sous_parapluie]
+         e28_composante_navale, e29_frappe_antinavire, e30_registre_perime, e31_antinavire_sous_parapluie,
+         e32_manoeuvre_terrestre, e33_appui_feu]
 
 
 def controles():
@@ -866,6 +904,8 @@ def controles():
          ("l'état-major lit les dégâts réels", e22_evaluation_des_degats, (GR.GuerreReelle, "op_percu", lambda self, camp, i: self.bases[i]["op"])),
          ("un avion s'achète en guerre", e24_reserve_et_production, (GR.GuerreReelle, "_remplacer", remplacer_sans_reserve)),
          ("le registre périmé n'est pas refait", e30_registre_perime, (CL.Labo, "recenser", lambda self: 0)),
+         ("on attaque sans le rapport de forces", e32_manoeuvre_terrestre, (EM.EtatMajor, "RAPPORT_ATTAQUE", 0.1)),
+         ("pas d'appui feu", e33_appui_feu, (EM.EtatMajor, "appui", lambda self, ci, camp: ([], []))),
          ("pas de frappe antinavire", e29_frappe_antinavire, (EM.EtatMajor, "antinavire", lambda self, ci, camp: ([], []))),
          ("la carte oublie les navires", e29_frappe_antinavire, (EM.EtatMajor, "renseigner", renseigner_sans_navires)),
          ("pas de marine", e28_composante_navale, (EM.EtatMajor, "marine", lambda self, ci, camp: ([], []))),
