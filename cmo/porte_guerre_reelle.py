@@ -650,7 +650,8 @@ def e27_chef_qwen():
         if len(vus) == 1:
             russe = next(b["index"] for b in vus[0]["situation"]["bases_adverses"])
             return json.dumps({"mode": "concentrer", "raison": "la base russe concentre la menace", "cible": russe,
-                               "mult_aa": 1.0, "mult_frappe": 3.0, "reserves": "engager"})
+                               "mult_aa": 1.0, "mult_frappe": 3.0, "reserves": "engager", "posture_terre": "offensive",
+                               "posture_mer": "nimporte"})
         return "ce n'est pas du JSON"
     with guerre() as (f, g):
         g.chef = CQ.ChefQwen(g, appeler=faux)
@@ -666,7 +667,9 @@ def e27_chef_qwen():
         ot = decs["OTAN"] if decs["OTAN"]["id"] == "concentrer" else decs["Russie-Chine"]
         autre = decs["Russie-Chine"] if ot is decs["OTAN"] else decs["OTAN"]
         assert ot["mult_frappe"] == 2.0 and ot["valide"] and autre["id"] == "poursuivre" and not autre["valide"], decs
-        assert g.em.mult_chef[[c for c, d in decs.items() if d is ot][0]]["frappe"] == 2.0
+        camp_ot = [c for c, d in decs.items() if d is ot][0]
+        assert g.em.mult_chef[camp_ot]["frappe"] == 2.0
+        assert g.em.posture_terre[camp_ot] == "offensive" and g.em.posture_mer[camp_ot] == "offensive", (g.em.posture_terre, g.em.posture_mer)
         if decs["OTAN"] is ot:
             assert g.em.cible_imposee["OTAN"] == russe and g.frappe["OTAN"]["base"] == russe
         for _ in range(CQ.HORIZON_TOURS):

@@ -111,6 +111,8 @@ class EtatMajor:
         # les leviers STRATÉGIQUES du chef d'état-major ( Qwen, chef_qwen.py ) : cible prioritaire, multiplicateurs des
         # ratios, réserves gardées
         self.cible_imposee = {c: None for c in g.camps}
+        self.posture_terre = {c: "doctrine" for c in g.camps}     # offensive / doctrine / defensive ( levier du chef )
+        self.posture_mer = {c: "doctrine" for c in g.camps}
         self.mult_chef = {c: {"aa": 1.0, "frappe": 1.0} for c in g.camps}
         self.reserves_gardees = {c: False for c in g.camps}
 
@@ -528,9 +530,10 @@ class EtatMajor:
             nous = sum(self.POIDS_TERRE[self._role_terre(s)] for k, s in mes if km(s["pos"], P) <= 150.0)
             eux = self._force(camp, P, self.RAYON_OBJECTIF_KM)
             rapport = nous / max(0.5, eux)
+            seuil = {"offensive": 2.0, "defensive": float("inf")}.get(self.posture_terre.get(camp), self.RAPPORT_ATTAQUE)
             decision["terre"].append({"objectif": nom, "nous": round(nous, 1), "eux_connus": round(eux, 1), "rapport": round(rapport, 1),
-                                      "ordre": "attaque" if rapport >= self.RAPPORT_ATTAQUE else "pas assez"})
-            if rapport >= self.RAPPORT_ATTAQUE:
+                                      "seuil": seuil, "ordre": "attaque" if rapport >= seuil else "pas assez"})
+            if rapport >= seuil:
                 for k, s in mes:
                     if k not in ordres and km(s["pos"], P) <= 150.0:
                         ordres[k] = P
@@ -620,7 +623,8 @@ class EtatMajor:
                 if not n or n["camp"] == camp or n.get("genre") == "site":
                     continue
                 P = self._vu_ou(camp, k, n["pos"])
-                if km(P, C) > self.PORTEE_ANTINAVIRE_KM:
+                portee = {"offensive": 600.0, "defensive": 200.0}.get(self.posture_mer.get(camp), self.PORTEE_ANTINAVIRE_KM)
+                if km(P, C) > portee:
                     continue
                 (couverts if any(km(pos, P) <= r + MARGE_KM for _, pos, r in menaces) else decouverts).append(k)
         tireurs = [k for k, n in sorted(g.navires.items()) if n["camp"] == camp
@@ -832,6 +836,7 @@ class EtatMajor:
                 "zones": {str(i): list(p) for i, p in self.zones.items()}, "antinav": self.antinav, "k_an": self.k_an,
                 "appui_cours": self.appui_cours, "k_ap": self.k_ap, "ordres_terre": {str(k): v for k, v in self.ordres_terre.items()}, "ratio": self.ratio, "valeur": self.valeur, "dernier_bilan": self.dernier_bilan,
                 "cible_imposee": self.cible_imposee, "mult_chef": self.mult_chef, "reserves_gardees": self.reserves_gardees,
+                "posture_terre": self.posture_terre, "posture_mer": self.posture_mer,
                 "memoire": {c: {str(k): v for k, v in m.items()} for c, m in self.memoire.items()}, "avant_guerre": self.avant_guerre,
                 "missions": {str(i): dict(m, avions=sorted(m["avions"])) for i, m in self.missions.items()},
                 "journal": self.journal[-200:]}
@@ -854,5 +859,7 @@ class EtatMajor:
         self.cible_imposee = e.get("cible_imposee") or self.cible_imposee
         self.mult_chef = e.get("mult_chef") or self.mult_chef
         self.reserves_gardees = e.get("reserves_gardees") or self.reserves_gardees
+        self.posture_terre = e.get("posture_terre") or self.posture_terre
+        self.posture_mer = e.get("posture_mer") or self.posture_mer
         if e.get("memoire") is not None:
             self.memoire = {c: {int(k): v for k, v in m.items()} for c, m in e["memoire"].items()}

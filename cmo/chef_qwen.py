@@ -32,11 +32,14 @@ SYSTEME = ("Tu es le chef d'état-major du camp {camp} dans une guerre réelle s
            "aériennes, défenses, flotte ) en préservant tes forces, dont les réserves sont FINIES. Tes leviers : « cible » = "
            "index d'une base adverse à frapper en priorité ( null = le choix de ton état-major ) ; « mult_frappe » multiplie le "
            "nombre de frappeurs engagés par cible ; « mult_aa » multiplie le nombre de chasseurs par avion adverse menaçant ; "
-           "« reserves » = engager ( faire venir des renforts de la réserve nationale ) ou garder. Méthode : lis la situation "
+           "« reserves » = engager ( faire venir des renforts de la réserve nationale ) ou garder ; « posture_terre » = "
+           "offensive ( attaquer dès 2 contre 1 ), doctrine ( 3 contre 1 ) ou defensive ( aucune attaque ) ; « posture_mer » "
+           "= offensive ( frappes antinavire jusqu'à 600 km ), doctrine ( 400 km ) ou defensive ( 200 km ). Méthode : lis la situation "
            "( synthese, taux observés sur l'heure écoulée ), compare les modes d'action et leurs prévisions jouées sur une copie "
            "calée sur ces taux, choisis-en un ou ajuste-le dans les bornes. Réponds UNIQUEMENT en JSON : "
            '{{"mode": "<id>", "raison": "<3 phrases au plus>", "cible": <index de base ou null>, '
-           '"mult_aa": <0.5 à 2>, "mult_frappe": <0.5 à 2>, "reserves": "engager" ou "garder"}}')
+           '"mult_aa": <0.5 à 2>, "mult_frappe": <0.5 à 2>, "reserves": "engager" ou "garder", '
+           '"posture_terre": "offensive" | "doctrine" | "defensive", "posture_mer": "offensive" | "doctrine" | "defensive"}}')
 FENETRE_TAUX = 60                                         # tours ( 1 h de jeu ) sur lesquels les taux sont observés
 # Élasticités de la copie ( choix à valider ) : dégâts ~ mult_frappe^1 ; pertes ~ mult_frappe^0,6 x mult_aa^-0,3
 
@@ -118,14 +121,25 @@ class ChefQwen:
                 "mission_en_cours": fr and {"type": fr.get("type"), "base": fr.get("base"), "cibles": len(fr.get("cibles", []))},
                 "ratios": em.ratio.get(camp), "part_dead": round(em.part_dead.get(camp, 0.5), 2),
                 "reserve": {k: int(v) for k, v in g.reserve.items() if g.camp_de_pays(k.rsplit("|", 1)[0]) == camp and v >= 2},
-                "pertes_fenetre": pertes, "infligees_fenetre": infligees}
+                "pertes_fenetre": pertes, "infligees_fenetre": infligees,
+                "terre": [x for x in em.journal if x.get("camp") == camp and "terre" in x][-1:] and
+                         [x for x in em.journal if x.get("camp") == camp and "terre" in x][-1]["terre"],
+                "mer": {"nos_navires": sum(1 for n in g.navires.values() if n["camp"] == camp),
+                        "navires_ennemis_connus": sum(1 for k in em.memoire.get(camp, {}) if k in g.navires),
+                        "navires_perdus": sum(1 for m in g.morts if m["genre"] == "navire" and g.camp_de_pays(m["pays"]) == camp),
+                        "navires_ennemis_coules": sum(1 for m in g.morts if m["genre"] == "navire" and g.camp_de_pays(m["pays"]) != camp),
+                        "frappe_antinavire_cibles": len(((em.antinav or {}).get(camp) or {}).get("cibles", []))},
+                "postures": {"terre": em.posture_terre.get(camp), "mer": em.posture_mer.get(camp)}}
 
     # ---- 2. les modes d'action, joués sur une copie ( l'estimateur )
     def modes(self, camp, sit):
         cible_max = sit["bases_adverses"][0]["index"] if sit["bases_adverses"] else None
-        return [{"id": "poursuivre", "cible": None, "mult_aa": 1.0, "mult_frappe": 1.0, "reserves": "engager"},
-                {"id": "concentrer", "cible": cible_max, "mult_aa": 1.0, "mult_frappe": 1.5, "reserves": "engager"},
-                {"id": "defendre", "cible": None, "mult_aa": 1.5, "mult_frappe": 0.7, "reserves": "garder"}]
+        return [{"id": "poursuivre", "cible": None, "mult_aa": 1.0, "mult_frappe": 1.0, "reserves": "engager",
+                 "posture_terre": "doctrine", "posture_mer": "doctrine"},
+                {"id": "concentrer", "cible": cible_max, "mult_aa": 1.0, "mult_frappe": 1.5, "reserves": "engager",
+                 "posture_terre": "offensive", "posture_mer": "offensive"},
+                {"id": "defendre", "cible": None, "mult_aa": 1.5, "mult_frappe": 0.7, "reserves": "garder",
+                 "posture_terre": "defensive", "posture_mer": "defensive"}]
 
     def jouer(self, camp, mode, sit):
         """La copie : l'issue à l'horizon d'un mode d'action, à partir des taux OBSERVÉS sur l'heure écoulée ( dégâts
@@ -193,6 +207,8 @@ class ChefQwen:
             except (TypeError, ValueError):
                 out[k] = base[k]
         out["reserves"] = d.get("reserves") if d.get("reserves") in ("engager", "garder") else base["reserves"]
+        for k in ("posture_terre", "posture_mer"):
+            out[k] = d.get(k) if d.get(k) in ("offensive", "doctrine", "defensive") else base[k]
         out["raison"] = str(d.get("raison", ""))[:400]
         out["valide"] = "erreur" not in d and d.get("mode") in [m["id"] for m in modes]
         return out
@@ -207,11 +223,14 @@ class ChefQwen:
             em.cible_imposee[camp] = d["cible"]
             em.mult_chef[camp] = {"aa": d["mult_aa"], "frappe": d["mult_frappe"]}
             em.reserves_gardees[camp] = d["reserves"] == "garder"
+            em.posture_terre[camp] = d["posture_terre"]
+            em.posture_mer[camp] = d["posture_mer"]
             prevu = self.jouer(camp, d, ctx["situation"])
             rec = {"camp": camp, "tour": self.g.tours, "decision": d, "prevision": prevu, "brut": brut[:2000],
                    "duree_s": ctx["duree_s"], "bilan": None, "forces": ctx["situation"]["forces"], "messages": ctx["messages"]}
             self.decisions.append(rec)
-            em.journal.append({"camp": camp, "tour": self.g.tours, "chef_qwen": {k: d[k] for k in ("id", "cible", "mult_aa", "mult_frappe", "reserves", "valide")},
+            em.journal.append({"camp": camp, "tour": self.g.tours, "chef_qwen": {k: d[k] for k in ("id", "cible", "mult_aa", "mult_frappe", "reserves",
+                                                                                                   "posture_terre", "posture_mer", "valide")},
                                "raison": d["raison"][:200], "prevision": prevu})
             self._archiver(rec)
 
